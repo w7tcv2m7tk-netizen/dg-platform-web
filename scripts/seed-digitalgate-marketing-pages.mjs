@@ -7,8 +7,11 @@
  *   node --env-file=.env.local scripts/seed-digitalgate-marketing-pages.mjs
  *   node --env-file=.env.local scripts/seed-digitalgate-marketing-pages.mjs --publish
  *
- * Reads from sibling repo: ../dg-platform/marketing/pages/
+ * Prefers in-repo marketing/pages/, falling back to sibling
+ * ../dg-platform/marketing/pages/ when present.
  * Upserts + publishes pages on the DigitalGate org website (slug: digitalgate).
+ *
+ * Do NOT run against production Neon unless explicitly approved.
  */
 import { config } from "dotenv";
 import { readFileSync, existsSync } from "node:fs";
@@ -20,10 +23,11 @@ import { PrismaClient } from "@prisma/client";
 config({ path: ".env.local" });
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const MARKETING_DIR = join(
-  __dirname,
-  "../../dg-platform/marketing/pages",
-);
+const IN_REPO_MARKETING_DIR = join(__dirname, "../marketing/pages");
+const SIBLING_MARKETING_DIR = join(__dirname, "../../dg-platform/marketing/pages");
+const MARKETING_DIR = existsSync(IN_REPO_MARKETING_DIR)
+  ? IN_REPO_MARKETING_DIR
+  : SIBLING_MARKETING_DIR;
 const publish = process.argv.includes("--publish");
 const onlyArg = process.argv.find((a) => a.startsWith("--only="));
 const onlySlugs = onlyArg

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 /**
  * DigitalGate marketing motion — card reveals, journey highlight, and (on home)
- * a subtle fade of the fixed hero environment as content surfaces rise over it.
+ * causal stage activation, and a subtle fade of the fixed hero environment as content surfaces rise over it.
  * CSS owns layout/fallback; this island only enhances behaviour.
  */
 export function DgMarketingMotion() {
@@ -60,6 +60,53 @@ export function DgMarketingMotion() {
       );
       for (const panel of panels) panelObserver.observe(panel);
       cleanups.push(() => panelObserver.disconnect());
+    }
+
+
+    // Causal homepage stages — illuminate architecture as each stage enters.
+    const stageEls = Array.from(document.querySelectorAll<HTMLElement>("[data-dg-hp-stage]"));
+    if (stageEls.length > 0) {
+      if (reduce) {
+        for (const el of stageEls) el.classList.add("is-on");
+      } else {
+        const stageObserver = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              const el = entry.target as HTMLElement;
+              if (!(entry.isIntersecting && entry.intersectionRatio >= 0.28)) continue;
+              el.classList.add("is-on");
+              const stage = el.dataset.dgHpStage;
+              if (stage === "intelligence" || stage === "twin") {
+                const root = el.closest("section") ?? document;
+                window.setTimeout(() => {
+                  root
+                    .querySelectorAll<HTMLElement>('[data-dg-hp-stage="twin"]')
+                    .forEach((n) => n.classList.add("is-on"));
+                }, 120);
+                window.setTimeout(() => {
+                  root
+                    .querySelectorAll<HTMLElement>('[data-dg-hp-stage="brain"]')
+                    .forEach((n) => n.classList.add("is-on"));
+                }, 320);
+                window.setTimeout(() => {
+                  root
+                    .querySelectorAll<HTMLElement>('[data-dg-hp-stage="advisor"]')
+                    .forEach((n) => n.classList.add("is-on"));
+                }, 520);
+                window.setTimeout(() => {
+                  root
+                    .querySelectorAll<HTMLElement>('[data-dg-hp-stage="action"]')
+                    .forEach((n) => n.classList.add("is-on"));
+                }, 720);
+              }
+              stageObserver.unobserve(el);
+            }
+          },
+          { root: null, rootMargin: "0px 0px -12% 0px", threshold: [0.28, 0.5] },
+        );
+        for (const el of stageEls) stageObserver.observe(el);
+        cleanups.push(() => stageObserver.disconnect());
+      }
     }
 
     // Layered home: hero → environment → platform (fade fixed atmosphere).

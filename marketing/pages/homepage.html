@@ -1,1710 +1,1309 @@
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>DigitalGate | The Gateway to Your Digital World™</title>
-<meta name="description" content="One intelligent platform for running and growing your business. Connect customers, operations, AI and automation on DigitalGate.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap"></noscript>
+
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Inter, system-ui, sans-serif; background: #0A0E17; color: #F9FAFB; line-height: 1.5; }
-  .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
-  a { color: inherit; }
-
-  /* Headings — explicit contrast for Oxygen */
-  h1, h2, h3, h4, .section-header h2, .pillar h3, .app-name, .twin-card h3,
-  .why-item h4, .story-logo strong, .gate-title, .connect-panel h3,
-  .dg-layer h3, .dg-journey-panel h3, .dg-ind-card h3, .dg-core-band h3 {
-    color: #F9FAFB !important;
+  /* DigitalGate homepage — flagship OPEN Gateway + signature scroll scenes. Scoped .dg-hp */
+  .dg-hp {
+    --dg-ink: #F1F5F9;
+    --dg-mute: #94A3B8;
+    --dg-dim: #64748B;
+    --dg-line: rgba(51,65,85,0.75);
+    --dg-violet: #7C3AED;
+    --dg-violet-soft: #A78BFA;
+    --dg-blue: #3B82F6;
+    --dg-cyan: #22D3EE;
+    --dg-amber: #F59E0B;
+    --dg-green: #34D399;
+    --dg-bg: #03050A;
+    --dg-panel: rgba(10,14,23,0.88);
+    color: var(--dg-ink);
+    background: var(--dg-bg);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.55;
+    overflow-x: clip;
+  }
+  .dg-hp *, .dg-hp *::before, .dg-hp *::after { box-sizing: border-box; }
+  .dg-hp a { color: inherit; }
+  .dg-hp img { max-width: 100%; height: auto; display: block; }
+  .dg-hp .dg-hp-wrap { width: min(1120px, calc(100% - 2rem)); margin: 0 auto; }
+  .dg-hp section { padding: clamp(3.5rem, 7vw, 5.5rem) 0; position: relative; border-top: 1px solid rgba(30,41,59,0.55); }
+  .dg-hp section.dg-hp-alt { background: linear-gradient(180deg, rgba(8,12,22,0.9), rgba(3,5,10,0.95)); }
+  .dg-hp .dg-hp-kicker {
+    display: inline-block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--dg-violet-soft); margin-bottom: 0.85rem;
+  }
+  .dg-hp h1, .dg-hp h2, .dg-hp h3 { font-weight: 800; letter-spacing: -0.03em; line-height: 1.12; color: #F8FAFC; }
+  .dg-hp h1 { font-size: clamp(2.2rem, 5.4vw, 3.6rem); max-width: 16ch; margin: 0 auto 1rem; }
+  .dg-hp h2 { font-size: clamp(1.55rem, 3.2vw, 2.25rem); max-width: 22ch; margin: 0 0 0.85rem; }
+  .dg-hp .dg-hp-lead { color: #CBD5E1; font-size: clamp(1.02rem, 2vw, 1.16rem); max-width: 42rem; }
+  .dg-hp .dg-hp-dry { color: var(--dg-dim); font-size: 0.95rem; font-style: italic; margin-top: 0.75rem; }
+  .dg-hp .dg-hp-ctas { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.35rem; }
+  .dg-hp .btn-primary, .dg-hp .btn-secondary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+    padding: 0.85rem 1.25rem; border-radius: 999px; font-weight: 800; font-size: 0.92rem;
+    text-decoration: none; transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .dg-hp .btn-primary {
+    color: white; border: 0;
+    background: linear-gradient(135deg, #7C3AED, #4F46E5 55%, #2563EB);
+    box-shadow: 0 10px 32px rgba(124,58,237,0.28);
+  }
+  .dg-hp .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 14px 36px rgba(124,58,237,0.34); }
+  .dg-hp .btn-secondary {
+    color: #E2E8F0; border: 1px solid rgba(148,163,184,0.35); background: rgba(15,23,42,0.55);
+  }
+  .dg-hp .btn-secondary:hover { background: rgba(30,41,59,0.8); }
+  .dg-hp .btn-primary:focus-visible, .dg-hp .btn-secondary:focus-visible {
+    outline: 2px solid #A78BFA; outline-offset: 3px;
   }
 
-  /* Hero — full-bleed atmospheric composition (extends under fixed site header) */
-  .hero-home {
-    --hx: 0; --hy: 0;
-    position: relative; min-height: 100svh; min-height: 100dvh; display: flex; align-items: center;
-    justify-content: center; overflow: hidden; background: #03050A; text-align: center;
-    padding: clamp(5.5rem, 10vw, 7rem) 0 clamp(3rem, 6vw, 4rem); isolation: isolate;
-    box-sizing: border-box;
-  }
-  .hero-atmosphere {
-    position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
-  }
-  .hero-home .hero-mesh {
-    position: absolute; inset: -8%;
-    background:
-      radial-gradient(ellipse 70% 55% at 50% -5%, rgba(59,130,246,0.28), transparent 58%),
-      radial-gradient(ellipse 45% 40% at 12% 70%, rgba(14,165,233,0.12), transparent 55%),
-      radial-gradient(ellipse 50% 45% at 88% 55%, rgba(45,212,191,0.14), transparent 55%),
-      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(37,99,235,0.1), transparent 50%),
-      linear-gradient(180deg, #05070D 0%, #03050A 55%, #070B14 100%);
-    transform: translate3d(calc(var(--hx) * 12px), calc(var(--hy) * 8px), 0);
-    will-change: transform;
-  }
-  .hero-home .hero-aurora {
-    position: absolute; inset: -20%;
-    background:
-      conic-gradient(from 210deg at 50% 40%,
-        transparent 0deg,
-        rgba(59,130,246,0.07) 55deg,
-        transparent 110deg,
-        rgba(45,212,191,0.06) 180deg,
-        transparent 240deg,
-        rgba(96,165,250,0.08) 300deg,
-        transparent 360deg);
-    filter: blur(40px); opacity: 0.85;
-    transform: translate3d(calc(var(--hx) * 18px), calc(var(--hy) * 12px), 0);
-    will-change: transform;
-  }
-  .hero-home .hero-orb {
-    position: absolute; border-radius: 50%; filter: blur(48px); opacity: 0.55;
-    transform: translate3d(calc(var(--hx) * var(--px, 8px)), calc(var(--hy) * var(--py, 6px)), 0);
-    will-change: transform;
-  }
-  .hero-home .hero-orb-a {
-    --px: 22px; --py: 14px;
-    width: min(52vw, 560px); height: min(52vw, 560px);
-    top: 4%; left: 50%; margin-left: calc(min(52vw, 560px) / -2);
-    background: radial-gradient(circle, rgba(59,130,246,0.35) 0%, rgba(14,165,233,0.12) 40%, transparent 70%);
-  }
-  .hero-home .hero-orb-b {
-    --px: -16px; --py: 10px;
-    width: min(38vw, 420px); height: min(38vw, 420px);
-    bottom: 8%; right: -6%;
-    background: radial-gradient(circle, rgba(45,212,191,0.22) 0%, transparent 68%);
-  }
-  .hero-home .hero-orb-c {
-    --px: 10px; --py: -12px;
-    width: min(28vw, 300px); height: min(28vw, 300px);
-    top: 35%; left: -4%;
-    background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
-  }
-  .hero-home .hero-network {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    opacity: 0.55;
-    transform: translate3d(calc(var(--hx) * 6px), calc(var(--hy) * 4px), 0) scale(1.02);
-    will-change: transform;
-  }
-  .hero-home .hero-network .n-line {
-    stroke: rgba(147,197,253,0.28); stroke-width: 1; fill: none;
-  }
-  .hero-home .hero-network .n-line-soft {
-    stroke: rgba(45,212,191,0.18); stroke-width: 1; fill: none;
-  }
-  .hero-home .hero-network .n-node {
-    fill: rgba(191,219,254,0.75);
-  }
-  .hero-home .hero-network .n-node-core {
-    fill: #60A5FA; filter: drop-shadow(0 0 6px rgba(59,130,246,0.55));
-  }
-  .hero-home .hero-grid {
-    position: absolute; inset: 0; opacity: 0.045;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.55) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.55) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, #000 15%, transparent 78%);
-    -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, #000 15%, transparent 78%);
-  }
-  .hero-home .hero-vignette {
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(ellipse 55% 50% at 50% 42%, transparent 30%, rgba(3,5,10,0.55) 100%),
-      linear-gradient(180deg, rgba(3,5,10,0.35) 0%, transparent 22%, transparent 72%, rgba(3,5,10,0.75) 100%);
-  }
-  .hero-home .hero-horizon {
-    position: absolute; left: 50%; bottom: 12%; width: min(90vw, 920px); height: 2px;
-    transform: translateX(-50%);
-    background: linear-gradient(90deg, transparent, rgba(96,165,250,0.35), rgba(45,212,191,0.25), transparent);
-    filter: blur(0.5px); opacity: 0.7;
-  }
-  .hero-inner { position: relative; z-index: 2; max-width: 920px; padding: 0 1.5rem; }
-  .hero-eyebrow {
-    display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.16em;
-    text-transform: uppercase; color: #93C5FD; background: rgba(59,130,246,0.1);
-    border: 1px solid rgba(59,130,246,0.22); border-radius: 999px; padding: 0.5rem 1.35rem; margin-bottom: 1.5rem;
-  }
-  .hero-home h1 {
-    font-size: clamp(2.65rem, 6.2vw, 4.85rem); font-weight: 800; line-height: 1.04;
-    letter-spacing: -0.038em; margin-bottom: 0.35rem;
-    text-wrap: balance;
-  }
-  .hero-home h1 .accent {
-    background: linear-gradient(105deg, #F0F9FF 0%, #93C5FD 42%, #5EEAD4 100%);
-    -webkit-background-clip: text; background-clip: text;
-    color: transparent !important;
-  }
-  .hero-brand-rule {
-    width: min(140px, 28vw); height: 2px; margin: 1.15rem auto 1.35rem;
-    border-radius: 2px;
-    background: linear-gradient(90deg, transparent, #60A5FA 30%, #2DD4BF 70%, transparent);
-    opacity: 0.85;
-  }
-  .hero-sub {
-    font-size: clamp(1.05rem, 2.1vw, 1.3rem); color: #CBD5E1; max-width: 740px;
-    margin: 0 auto 0.65rem; line-height: 1.65;
-  }
-  .hero-lede {
-    font-size: 1.02rem; color: #94A3B8; margin-bottom: 2.25rem;
-    letter-spacing: 0.02em;
-  }
-  .hero-ctas { display: flex; flex-wrap: wrap; gap: 0.85rem; justify-content: center; }
-  .btn-primary, .btn-secondary {
-    display: inline-flex; align-items: center; gap: 8px; padding: 0.95rem 1.9rem;
-    border-radius: 999px; font-weight: 700; font-size: 0.95rem; text-decoration: none;
-    transition: transform 0.22s, box-shadow 0.25s, border-color 0.2s, color 0.2s, background 0.2s, filter 0.2s;
-  }
-  .btn-primary {
-    position: relative; overflow: hidden;
-    background: linear-gradient(105deg, #3B82F6 0%, #2563EB 55%, #1D4ED8 100%);
-    color: #fff !important;
-    box-shadow: 0 8px 28px rgba(37,99,235,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
-  }
-  .btn-primary::after {
-    content: ""; position: absolute; inset: 0; left: -40%;
-    background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
-    transform: translateX(-120%);
-  }
-  .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 14px 36px rgba(59,130,246,0.42), 0 0 0 1px rgba(147,197,253,0.22);
-    filter: brightness(1.04);
-  }
-  .btn-primary:active { transform: translateY(0); }
-  .btn-secondary {
-    background: rgba(15,23,42,0.72); border: 1px solid rgba(148,163,184,0.28);
-    color: #E2E8F0 !important; backdrop-filter: blur(8px);
-  }
-  .btn-secondary:hover {
-    transform: translateY(-1px); border-color: #60A5FA; color: #fff !important;
-    background: rgba(30,41,59,0.9);
-  }
-
-  /* Sections */
-  section { padding: 5rem 0; border-top: 1px solid #1E293B; }
-  section.alt { background: #111827; }
-  .section-header { text-align: center; max-width: 720px; margin: 0 auto 2.5rem; }
-  .sub-label {
-    display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
-    text-transform: uppercase; color: #93C5FD; margin-bottom: 0.65rem;
-  }
-  .section-header h2 { font-size: clamp(1.6rem, 3vw, 2.25rem); font-weight: 800; margin-bottom: 0.6rem; }
-  .section-header p { color: #94A3B8; font-size: 1rem; line-height: 1.65; }
-
-  /* Five pillars */
-  .pillars { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
-  .pillar {
-    background: #111827; border: 1px solid #334155; border-radius: 16px; padding: 1.5rem 1rem;
-    text-align: center; transition: border-color 0.2s;
-  }
-  .pillar:hover { border-color: #3B82F6; }
-  .pillar-icon {
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: #60A5FA;
-    margin-bottom: 0.65rem;
-    opacity: 0.9;
-  }
-  .pillar h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
-  .pillar p { font-size: 0.78rem; color: #94A3B8; line-height: 1.5; }
-
-  /* Problem → Connected */
-  .connect-compare {
-    display: grid; grid-template-columns: 1fr auto 1fr; gap: 1.25rem; align-items: stretch;
-    max-width: 960px; margin: 0 auto;
-  }
-  .connect-panel {
-    background: #111827; border: 1px solid #334155; border-radius: 16px; padding: 1.5rem 1.35rem;
-  }
-  .connect-panel.before { border-color: rgba(239,68,68,0.25); }
-  .connect-panel.after {
-    border-color: rgba(59,130,246,0.4);
-    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(16,185,129,0.06));
-  }
-  .connect-panel h3 { font-size: 1rem; font-weight: 800; margin-bottom: 0.85rem; }
-  .connect-panel.before h3 { color: #FCA5A5; }
-  .connect-panel.after h3 { color: #93C5FD; }
-  .connect-panel ul { list-style: none; padding: 0; margin: 0; }
-  .connect-panel li { font-size: 0.88rem; color: #94A3B8; padding: 0.35rem 0; line-height: 1.45; }
-  .connect-panel.after li { color: #CBD5E1; }
-  .connect-arrow {
-    align-self: center; font-size: 1.5rem; font-weight: 800; color: #3B82F6;
-  }
-
-  /* Ecosystem */
-  .eco-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.65rem; max-width: 900px; margin: 0 auto 1.5rem;
-  }
-  .eco-node {
-    background: #111827; border: 1px solid #334155; border-radius: 10px; padding: 0.75rem 0.5rem;
-    text-align: center; font-size: 0.78rem; font-weight: 600; color: #CBD5E1;
-  }
-  .eco-node.planned {
-    opacity: 0.78; border-style: dashed; color: #94A3B8; font-weight: 500;
-  }
-  .eco-note {
-    text-align: center; max-width: 640px; margin: 0 auto 1.25rem; font-size: 0.85rem; color: #64748B; line-height: 1.55;
-  }
-  .eco-gate {
-    max-width: 560px; margin: 1.25rem auto; padding: 1.5rem; border-radius: 16px; text-align: center;
-    background: linear-gradient(105deg, rgba(59,130,246,0.18), rgba(45,212,191,0.08));
-    border: 1px solid rgba(59,130,246,0.35);
-  }
-  .gate-title { font-size: 1.5rem; font-weight: 800; display: block; margin-bottom: 0.35rem; }
-  .eco-gate span { color: #94A3B8; font-size: 0.9rem; }
-  .eco-result {
-    text-align: center; font-size: 1.1rem; font-weight: 700; color: #93C5FD; margin-top: 1rem;
-  }
-
-  /* ===== DigitalGate motion language ===== */
-  /* Visible by default so content never stays hidden if JS is absent. */
-  .dg-reveal {
-    opacity: 1;
-    transform: none;
-  }
-  @keyframes dg-reveal-in {
-    from { opacity: 0; transform: translate3d(0, 24px, 0) scale(0.98); }
-    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-  }
-  /* CSS-first reveal (works without React island). JS .is-in is optional. */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .dg-reveal:not(.is-in) {
-        animation: dg-reveal-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
-        animation-timeline: view();
-        animation-range: entry 5% cover 38%;
-      }
-      .dg-reveal:nth-child(2):not(.is-in) { animation-range: entry 8% cover 40%; }
-      .dg-reveal:nth-child(3):not(.is-in) { animation-range: entry 12% cover 42%; }
-      .dg-reveal:nth-child(4):not(.is-in) { animation-range: entry 16% cover 44%; }
-      .dg-reveal:nth-child(5):not(.is-in) { animation-range: entry 20% cover 46%; }
-    }
-  }
-  /* JS-enhanced path when DgMarketingMotion marks .is-in */
+  /* Editorial reveals */
+  .dg-hp .dg-reveal { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: no-preference) {
-    .dg-reveal.js-motion {
-      opacity: 0;
-      transform: translate3d(0, 24px, 0) scale(0.98);
-      transition:
-        opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-      animation: none;
-    }
-    .dg-reveal.js-motion.is-in {
-      opacity: 1;
-      transform: translate3d(0, 0, 0) scale(1);
-    }
-    .dg-reveal.js-motion:nth-child(1) { transition-delay: 0ms; }
-    .dg-reveal.js-motion:nth-child(2) { transition-delay: 70ms; }
-    .dg-reveal.js-motion:nth-child(3) { transition-delay: 140ms; }
-    .dg-reveal.js-motion:nth-child(4) { transition-delay: 210ms; }
-    .dg-reveal.js-motion:nth-child(5) { transition-delay: 280ms; }
-    .dg-reveal.js-motion:nth-child(6) { transition-delay: 350ms; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .dg-reveal, .dg-reveal.js-motion {
-      opacity: 1 !important; transform: none !important; animation: none !important; transition: none !important;
-    }
+    .dg-hp .dg-reveal.js-motion { opacity: 0; transform: translateY(14px); transition: opacity 0.55s ease, transform 0.55s ease; }
+    .dg-hp .dg-reveal.js-motion.is-in { opacity: 1; transform: none; }
   }
 
-  .arch-across {
-    margin-top: 1.75rem; text-align: center; max-width: 560px; margin-left: auto; margin-right: auto;
-  }
-  .arch-across p { font-size: 0.82rem; color: #94A3B8; line-height: 1.55; margin-bottom: 0.75rem; }
-  .arch-across .apps-row { margin-top: 0.25rem; }
-  .apps-block .logic {
-    text-align: center; font-size: 0.78rem; color: #64748B; margin: -0.35rem 0 1rem; font-style: italic;
-  }
-
-  /* SYSTEM B — Sticky layered operating system */
-  #one-platform.dg-layers-section {
-    background: #0A0E17;
-    border-top: 1px solid #1E293B;
-    padding-bottom: 3rem;
-  }
-  .dg-layers {
-    max-width: 820px;
-    margin: 0.5rem auto 0;
-    padding: 0 1.25rem 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.35rem;
-  }
-  .dg-layer {
-    position: sticky;
-    top: 5.75rem;
-    border-radius: 1.15rem;
-    border: 1px solid rgba(71, 85, 105, 0.55);
-    background: linear-gradient(165deg, rgba(17,24,39,0.98), rgba(15,23,42,0.96));
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.04) inset,
-      0 18px 40px rgba(2,6,23,0.4);
-    padding: 1.35rem 1.4rem 1.5rem;
-    text-align: center;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  }
-  .dg-layer:nth-child(1) { z-index: 1; top: 5.5rem; }
-  .dg-layer:nth-child(2) { z-index: 2; top: 6.35rem; }
-  .dg-layer:nth-child(3) { z-index: 3; top: 7.2rem; }
-  .dg-layer:nth-child(4) { z-index: 4; top: 8.05rem; }
-  .dg-layer:hover {
-    border-color: rgba(96,165,250,0.45);
-    box-shadow:
-      0 1px 0 rgba(255,255,255,0.05) inset,
-      0 22px 48px rgba(2,6,23,0.5);
-  }
-  .dg-layer-kicker {
-    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-    color: #93C5FD; margin-bottom: 0.55rem;
-  }
-  .dg-layer-kicker i {
-    width: 1.4rem; height: 1.4rem; border-radius: 999px;
-    display: grid; place-items: center; font-style: normal; font-size: 0.65rem;
-    background: rgba(59,130,246,0.18); border: 1px solid rgba(59,130,246,0.35); color: #BFDBFE;
-  }
-  .dg-layer h3 {
-    font-size: clamp(1.25rem, 2.4vw, 1.55rem); font-weight: 800; letter-spacing: -0.025em;
-    margin: 0 0 0.45rem; color: #F8FAFC !important;
-  }
-  .dg-layer > p {
-    margin: 0 auto 1rem; font-size: 0.92rem; line-height: 1.55; color: #94A3B8; max-width: 52ch;
-  }
-  .dg-layer-chips {
-    display: flex; flex-wrap: wrap; gap: 0.45rem; justify-content: center;
-  }
-  .dg-layer-chips span {
-    font-size: 0.75rem; font-weight: 600; color: #E2E8F0;
-    padding: 0.38rem 0.75rem; border-radius: 8px;
-    background: rgba(15,23,42,0.75); border: 1px solid rgba(51,65,85,0.85);
-  }
-  @media (max-width: 720px) {
-    .dg-layer, .dg-layer:nth-child(n) {
-      position: relative; top: auto !important;
-    }
-  }
-
-  /* SYSTEM C — Product journey (responsive grid, no side scroll) */
-  #platform-overview.dg-journey-section {
-    padding: 0 0 2.5rem;
-    border-top: 1px solid #1E293B;
+  /* ========== HERO ========== */
+  .dg-hp .hero-home {
+    min-height: calc(100svh - 4.5rem);
+    min-height: calc(100dvh - 4.5rem);
+    display: grid; align-items: center; justify-items: center;
+    text-align: center; border-top: 0;
+    padding: clamp(4.5rem, 8vw, 6rem) 0 clamp(1.5rem, 3vw, 2.25rem);
     background:
-      radial-gradient(50% 60% at 0% 40%, rgba(37,99,235,0.18), transparent 65%),
-      #0A0E17;
+      radial-gradient(ellipse 70% 50% at 50% -8%, rgba(124,58,237,0.22), transparent 58%),
+      radial-gradient(ellipse 42% 38% at 16% 78%, rgba(59,130,246,0.12), transparent 55%),
+      radial-gradient(ellipse 38% 32% at 88% 60%, rgba(34,211,238,0.07), transparent 55%),
+      linear-gradient(180deg, #03050A 0%, #0A0E17 55%, #070B14 100%);
+    isolation: isolate; overflow: hidden;
   }
-  .dg-journey-section > .container { padding-top: 5rem; }
-  .dg-journey-track {
+  .dg-hp .hero-home::before {
+    content: ""; position: absolute; inset: 0; opacity: var(--env-fade, 1); pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 47px, rgba(148,163,184,0.03) 47px 48px),
+      repeating-linear-gradient(90deg, transparent 0 47px, rgba(148,163,184,0.03) 47px 48px);
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 75%);
+  }
+  .dg-hp .hero-home .dg-hp-hero-inner {
+    position: relative; z-index: 2; width: min(1120px, calc(100% - 1.5rem));
+    display: grid; justify-items: center;
+  }
+  .dg-hp .hero-home .dg-hp-eyebrow {
+    color: #93C5FD; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.16em;
+    text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .dg-hp .hero-home h1 .dg-hp-tm { font-size: 0.42em; vertical-align: super; color: #A78BFA; }
+  .dg-hp .hero-home .dg-hp-support {
+    color: #CBD5E1; font-size: clamp(1.05rem, 2.1vw, 1.25rem); max-width: 36rem; margin: 0 auto 0.35rem;
+  }
+  .dg-hp .hero-home .dg-hp-support-2 {
+    color: #94A3B8; font-size: clamp(0.95rem, 1.7vw, 1.05rem); max-width: 40rem; margin: 0.35rem auto 0;
+  }
+  .dg-hp .hero-home .dg-hp-ctas { justify-content: center; margin-top: 1.15rem; margin-bottom: 0.15rem; }
+  .dg-hp .dg-hp-gateway {
+    margin: 1.1rem auto 0.15rem;
+    width: min(1100px, 100%);
     position: relative;
-    height: auto;
-    padding: 0;
   }
-  .dg-journey-sticky {
-    position: relative;
-    top: auto;
-    height: auto;
-    display: block;
-    overflow: visible;
-    padding: 0;
+  .dg-hp .dg-hp-gateway::before {
+    content: "";
+    position: absolute;
+    inset: 8% 18% 12%;
+    background: radial-gradient(ellipse at center, rgba(124,58,237,0.18), transparent 68%);
+    pointer-events: none;
+    z-index: 0;
   }
-  .dg-journey-progress {
-    display: none;
+  .dg-hp .dg-hp-gateway svg { width: 100%; height: auto; display: block; position: relative; z-index: 1; }
+  .dg-hp .dg-hp-gateway-desktop { display: block; }
+  .dg-hp .dg-hp-gateway-mobile { display: none; }
+  .dg-hp .dg-hp-scroll-cue {
+    margin-top: 0.55rem; display: inline-flex; flex-direction: column; align-items: center; gap: 0.35rem;
+    color: #64748B; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
   }
-  .dg-journey-viewport {
-    max-width: 1200px; margin: 0 auto;
-    padding: 0 1.25rem 0.35rem;
-    overflow: visible;
+  .dg-hp .dg-hp-scroll-cue i {
+    width: 1px; height: 28px; display: block;
+    background: linear-gradient(180deg, rgba(167,139,250,0.9), transparent);
   }
-  .dg-journey-rail {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 1rem;
-    width: 100%;
-    padding: 0.15rem 0 0.85rem;
-    transform: none !important;
-  }
-  .dg-journey-hint {
-    display: none;
-  }
-  .dg-journey-panel {
-    width: auto;
-    min-width: 0;
-    flex: none;
-    scroll-snap-align: none;
-    border-radius: 1.1rem;
-    border: 1px solid rgba(71,85,105,0.55);
-    background: linear-gradient(160deg, #111827 0%, #0B1220 100%);
-    box-shadow: 0 16px 40px rgba(2,6,23,0.35);
-    padding: 1.2rem 1.15rem 1.3rem;
-    opacity: 1;
-    transform: none;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
-  }
-  .dg-journey-panel.is-active {
-    border-color: rgba(96,165,250,0.45);
-    box-shadow: 0 20px 48px rgba(15,23,42,0.55);
-  }
-  .dg-journey-step {
-    display: inline-flex; align-items: center; gap: 0.45rem;
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-    color: #93C5FD; margin-bottom: 0.55rem;
-  }
-  .dg-journey-step b {
-    width: 1.45rem; height: 1.45rem; border-radius: 999px; display: grid; place-items: center;
-    font-size: 0.68rem; font-weight: 700; color: #fff;
-    background: linear-gradient(135deg, #3B82F6, #0EA5E9);
-  }
-  .dg-journey-panel h3 {
-    font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em;
-    margin: 0 0 0.4rem; color: #F8FAFC !important;
-  }
-  .dg-journey-panel > p {
-    margin: 0 0 1rem; font-size: 0.84rem; line-height: 1.5; color: #94A3B8;
-  }
-  .dg-ui {
-    border-radius: 0.85rem;
-    border: 1px solid rgba(51,65,85,0.8);
-    background: rgba(2,6,23,0.55);
-    padding: 0.85rem 0.9rem;
-  }
-  .dg-ui-row {
-    display: flex; justify-content: space-between; align-items: baseline;
-    gap: 0.75rem; padding: 0.35rem 0;
-    border-bottom: 1px solid rgba(51,65,85,0.45);
-    font-size: 0.78rem;
-  }
-  .dg-ui-row:last-child { border-bottom: 0; }
-  .dg-ui-row span { color: #94A3B8; }
-  .dg-ui-row strong { color: #E2E8F0; font-weight: 700; }
-  .dg-ui-metric {
-    display: flex; align-items: flex-end; justify-content: space-between; gap: 0.75rem;
-    margin-bottom: 0.55rem;
-  }
-  .dg-ui-metric strong {
-    font-size: 1.55rem; font-weight: 800; letter-spacing: -0.03em; color: #F8FAFC;
-  }
-  .dg-ui-metric span { font-size: 0.72rem; color: #64748B; text-transform: uppercase; letter-spacing: 0.08em; }
-  .dg-ui-bar {
-    height: 6px; border-radius: 999px; background: rgba(51,65,85,0.7); overflow: hidden; margin: 0.35rem 0 0.65rem;
-  }
-  .dg-ui-bar i {
-    display: block; height: 100%; width: 78%; border-radius: inherit;
-    background: linear-gradient(90deg, #3B82F6, #2DD4BF);
-  }
-  .dg-ui-advice {
-    font-size: 0.88rem; line-height: 1.45; color: #E2E8F0; font-weight: 600;
-  }
-  .dg-ui-cta {
-    display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.75rem;
-    font-size: 0.78rem; font-weight: 700; color: #93C5FD;
-  }
-  .dg-ui-cta em {
-    font-style: normal; transition: transform 0.2s ease; display: inline-block;
-  }
-  .dg-journey-panel.is-active .dg-ui-cta em { transform: translateX(4px); }
-  .dg-journey-link {
-    position: absolute; pointer-events: none; /* reserved for future connectors */
-  }
-  .dg-journey-end {
-    max-width: 720px; margin: 0 auto; padding: 1.25rem 1.5rem 0; text-align: center;
-  }
-  .dg-journey-end p {
-    font-size: 1.05rem; font-weight: 700; color: #CBD5E1; line-height: 1.5;
-  }
-  @media (max-width: 1100px) {
-    .dg-journey-rail {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-  @media (max-width: 767px) {
-    .dg-journey-rail {
-      grid-template-columns: 1fr;
-      gap: 0.9rem;
-      padding-bottom: 0;
-    }
-    .dg-journey-panel { width: 100%; }
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes dg-hp-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    @keyframes dg-hp-gate-glow { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
+    @keyframes dg-hp-signal { 0% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -28; } }
+    .dg-hp .dg-hp-hero-rise { opacity: 0; animation: dg-hp-rise 0.85s cubic-bezier(0.22,1,0.36,1) forwards; }
+    .dg-hp .dg-hp-hero-rise-1 { animation-delay: 0.05s; }
+    .dg-hp .dg-hp-hero-rise-2 { animation-delay: 0.16s; }
+    .dg-hp .dg-hp-hero-rise-3 { animation-delay: 0.28s; }
+    .dg-hp .dg-hp-hero-rise-4 { animation-delay: 0.4s; }
+    .dg-hp .dg-hp-hero-rise-5 { animation-delay: 0.55s; }
+    .dg-hp .dg-hp-hero-rise-6 { animation-delay: 0.68s; }
+    .dg-hp .dg-hp-glow { animation: dg-hp-gate-glow 5.5s ease-in-out infinite; }
+    .dg-hp .dg-hp-flow { stroke-dasharray: 5 9; animation: dg-hp-signal 4.8s ease-in-out infinite; }
   }
 
-  /* Industry workflow cards */
-  .dg-ind-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;
-    max-width: 1000px; margin: 0 auto 1.75rem;
+  /* ========== APP ICON OS FAMILY ========== */
+  .dg-hp .dg-app-family {
+    display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 0.65rem; margin-top: 1.35rem;
   }
-  .dg-ind-card {
-    border-radius: 1.05rem; border: 1px solid rgba(51,65,85,0.85);
-    background: #111827; padding: 1.25rem 1.25rem 1.35rem;
-    transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  .dg-hp .dg-app {
+    display: grid; justify-items: center; gap: 0.4rem; text-align: center;
+    padding: 0.9rem 0.45rem 0.95rem; border-radius: 18px;
+    border: 1px solid rgba(124,58,237,0.28);
+    background:
+      linear-gradient(165deg, rgba(124,58,237,0.14) 0%, rgba(15,23,42,0.92) 55%),
+      linear-gradient(180deg, rgba(30,41,59,0.4), transparent);
+    box-shadow: inset 0 1px 0 rgba(167,139,250,0.14), inset 0 -1px 0 rgba(2,6,23,0.5);
   }
-  .dg-ind-card:hover {
-    border-color: rgba(96,165,250,0.4);
-    background: #0f172a;
+  .dg-hp .dg-app-mark {
+    width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center;
+    color: #E2E8F0; position: relative;
+    background:
+      linear-gradient(145deg, rgba(51,65,85,0.95) 0%, rgba(15,23,42,0.98) 48%, rgba(2,6,23,0.98) 100%);
+    border: 1px solid rgba(167,139,250,0.42);
+    box-shadow:
+      0 0 0 1px rgba(59,130,246,0.1),
+      inset 0 1px 0 rgba(226,232,240,0.12),
+      inset 0 -1px 0 rgba(2,6,23,0.55),
+      0 10px 24px rgba(124,58,237,0.16);
+    clip-path: polygon(10% 0, 90% 0, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0 90%, 0 10%);
   }
-  .dg-ind-card .eyebrow {
-    font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    color: #93C5FD; margin-bottom: 0.4rem;
+  .dg-hp .dg-app-mark::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(135deg, rgba(167,139,250,0.18), transparent 42%, rgba(56,189,248,0.1));
   }
-  .dg-ind-card h3 {
-    font-size: 1.15rem; font-weight: 800; margin: 0 0 0.35rem; color: #F8FAFC !important;
+  .dg-hp .dg-app[data-app="brain"] .dg-app-mark { color: #C4B5FD; border-color: rgba(167,139,250,0.72); }
+  .dg-hp .dg-app[data-app="advisor"] .dg-app-mark { color: #7DD3FC; border-color: rgba(56,189,248,0.58); }
+  .dg-hp .dg-app[data-app="automation"] .dg-app-mark { color: #6EE7B7; border-color: rgba(52,211,153,0.42); }
+  .dg-hp .dg-app[data-app="ai-visibility"] .dg-app-mark { color: #67E8F9; border-color: rgba(34,211,238,0.45); }
+  .dg-hp .dg-app strong {
+    display: block; font-size: 0.72rem; letter-spacing: 0.04em; color: #F1F5F9; font-weight: 800;
   }
-  .dg-ind-card > p { margin: 0 0 0.9rem; font-size: 0.86rem; color: #94A3B8; line-height: 1.5; }
-  .dg-flow {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem;
+  .dg-hp .dg-app span { color: #64748B; font-size: 0.68rem; }
+  .dg-hp .dg-app-family.is-compact { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .dg-hp .dg-app-family.is-hero {
+    grid-template-columns: repeat(5, minmax(0,1fr)); width: min(720px, 100%); margin: 0.85rem auto 0;
   }
-  .dg-flow span {
-    font-size: 0.72rem; font-weight: 600; color: #CBD5E1;
-    padding: 0.28rem 0.55rem; border-radius: 6px;
-    background: rgba(15,23,42,0.8); border: 1px solid rgba(51,65,85,0.75);
-  }
-  .dg-flow i {
-    font-style: normal; color: #64748B; font-size: 0.7rem;
-  }
-  .dg-ind-subs {
-    margin-top: 0.85rem; font-size: 0.75rem; color: #64748B; line-height: 1.45;
-  }
-  @media (max-width: 720px) {
-    .dg-ind-grid { grid-template-columns: 1fr; }
-  }
-
-  /* Core architecture bands */
-  .dg-core-arch {
-    max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 0.85rem;
-  }
-  .dg-core-band {
-    border-radius: 1rem; border: 1px solid rgba(51,65,85,0.8);
-    background: #111827; padding: 1.15rem 1.25rem;
-    text-align: center;
-  }
-  .dg-core-band h3 {
-    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
-    color: #93C5FD; margin: 0 0 0.75rem; text-align: center;
-  }
-  .dg-core-band .apps-row { justify-content: center; }
-  .dg-core-arrow {
-    text-align: center; color: #3B82F6; font-weight: 700; font-size: 0.95rem;
+  .dg-hp .dg-app-family.is-hero .dg-app { padding: 0.65rem 0.35rem; }
+  .dg-hp .dg-app-family.is-hero .dg-app-mark { width: 40px; height: 40px; border-radius: 12px; }
+  .dg-hp #dg-app-family {
+    padding-top: clamp(2.5rem, 5vw, 3.5rem);
+    padding-bottom: clamp(2.5rem, 5vw, 3.5rem);
   }
 
-  /* Core / apps grids */
-  .core-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
-  .core-item {
-    background: #0A0E17; border: 1px solid #334155; border-radius: 10px; padding: 0.85rem 1rem;
-    font-size: 0.85rem; color: #CBD5E1; display: flex; align-items: center; gap: 8px;
+  /* ========== SCENE TRACKS ========== */
+  .dg-hp .dg-scene {
+    --dg-scene-p: 0;
+    padding: 0; border-top: 1px solid rgba(30,41,59,0.55);
+    background: linear-gradient(180deg, #05080F, #03050A);
   }
-  .core-item .ic { color: #10B981; font-weight: 700; }
-
-  .apps-block { margin-top: 2.5rem; }
-  .apps-block h3 { font-size: 1rem; font-weight: 700; text-align: center; margin-bottom: 1rem; color: #93C5FD; letter-spacing: 0.06em; text-transform: uppercase; }
-  .apps-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
-  .app-chip {
-    background: #111827; border: 1px solid #334155; border-radius: 999px; padding: 0.45rem 1rem;
-    font-size: 0.82rem; font-weight: 600; color: #E2E8F0;
+  .dg-hp .dg-scene-track { position: relative; height: 155vh; }
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .dg-scene-track { height: 145vh; }
+  .dg-hp .dg-scene[data-dg-scene="architecture-product"] .dg-scene-track { height: 150vh; }
+  .dg-hp .dg-scene-sticky {
+    position: sticky; top: 4.5rem;
+    height: calc(100svh - 4.5rem); height: calc(100dvh - 4.5rem);
+    display: grid; align-items: center; overflow: hidden;
   }
-  a.app-chip:hover { border-color: #3B82F6; color: #BFDBFE; }
-  .app-chip.soon { opacity: 0.7; border-style: dashed; color: #94A3B8; }
-
-  /* Digital Twin */
-  .twin-card {
-    max-width: 820px; margin: 0 auto; padding: 2rem; border-radius: 20px; text-align: center;
-    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(16,185,129,0.06));
-    border: 1px solid rgba(59,130,246,0.25);
+  .dg-hp .dg-scene-inner {
+    width: min(1120px, calc(100% - 1.5rem)); margin: 0 auto;
+    display: grid; gap: 1rem;
   }
-  .twin-card h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.75rem; }
-  .twin-card > p { color: #94A3B8; line-height: 1.65; max-width: 640px; margin: 0 auto 1.25rem; }
-  .twin-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
-  .twin-pills span {
-    font-size: 0.75rem; padding: 0.35rem 0.85rem; border-radius: 999px;
-    background: rgba(15,23,42,0.8); border: 1px solid #334155; color: #CBD5E1;
+  .dg-hp .dg-scene-copy { max-width: 40rem; }
+  .dg-hp .dg-scene-stage {
+    position: relative; border-radius: 22px; overflow: hidden;
+    border: 1px solid rgba(99,102,241,0.22);
+    background:
+      radial-gradient(ellipse 55% 60% at 50% 40%, rgba(124,58,237,0.14), transparent 70%),
+      linear-gradient(180deg, rgba(8,12,22,0.96), rgba(3,5,10,0.98));
+    min-height: min(52vh, 420px);
+    padding: clamp(0.75rem, 2vw, 1.25rem);
   }
-
-  /* Connected Business → Business Brain */
-  .connected-block {
-    max-width: 820px; margin: 0 auto; text-align: center;
+  .dg-hp .dg-scene-stage > svg { width: 100%; height: auto; display: block; }
+  .dg-hp .dg-scene-caption {
+    text-align: center; color: #94A3B8; font-size: 0.9rem; margin: 0.35rem 0 0;
   }
-  .connected-block .connected-copy {
-    margin: 0 auto 1.75rem; max-width: 640px;
-  }
-  .connected-block .connected-copy h3 {
-    font-size: clamp(1.25rem, 2.5vw, 1.55rem); font-weight: 800;
-    margin: 1.5rem 0 0.65rem; color: #F9FAFB !important;
-  }
-  .connected-block .connected-copy p {
-    color: #94A3B8; line-height: 1.7; margin: 0 auto 0.85rem;
-  }
-  .connected-block .connected-copy p strong { color: #E2E8F0; font-weight: 700; }
-  .brain-panel {
-    margin: 0 auto 1.5rem; padding: 1.75rem 1.35rem 1.65rem; border-radius: 20px;
-    background: linear-gradient(135deg, rgba(59,130,246,0.14), rgba(14,165,233,0.06));
-    border: 1px solid rgba(59,130,246,0.28);
-  }
-  .brain-panel-core {
-    display: inline-flex; align-items: center; justify-content: center;
-    margin: 0 auto 1.15rem; padding: 0.85rem 1.4rem; border-radius: 999px;
-    background: linear-gradient(145deg, rgba(59,130,246,0.5), rgba(14,165,233,0.22));
-    border: 1px solid rgba(147,197,253,0.45);
-    box-shadow: 0 0 36px rgba(59,130,246,0.22);
-    font-size: 0.92rem; font-weight: 800; letter-spacing: -0.01em; color: #F8FAFC;
-  }
-  .brain-chips {
-    display: flex !important; flex-wrap: wrap !important; gap: 0.5rem !important;
-    justify-content: center !important; align-items: center;
-  }
-  .brain-chips span {
-    display: inline-block !important;
-    font-size: 0.75rem !important; font-weight: 600 !important;
-    padding: 0.4rem 0.9rem !important; border-radius: 999px !important;
-    background: rgba(15,23,42,0.85) !important; border: 1px solid #334155 !important;
-    color: #CBD5E1 !important; white-space: nowrap !important;
-  }
-  .flywheel {
-    display: flex !important; flex-wrap: wrap !important; gap: 0.45rem !important;
-    justify-content: center !important;
-    margin: 0 auto 0.25rem; max-width: 720px;
-  }
-  .flywheel span {
-    display: inline-block !important;
-    font-size: 0.68rem !important; font-weight: 800 !important;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 0.45rem 0.8rem !important; border-radius: 8px;
-    background: rgba(15,23,42,0.9) !important; border: 1px solid #334155 !important;
-    color: #93C5FD !important;
-  }
-  .connected-cta { text-align: center; margin-top: 1.5rem; }
-
-  /* AI grid */
-  .ai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-  .ai-card {
-    background: #111827; border: 1px solid #334155; border-radius: 14px; padding: 1.25rem; text-align: center;
-  }
-  .ai-card .icon { font-size: 1.6rem; margin-bottom: 0.5rem; }
-  .ai-card h4 { font-size: 0.88rem; font-weight: 700; color: #F9FAFB; margin-bottom: 0.3rem; }
-  .ai-card p { font-size: 0.76rem; color: #64748B; line-height: 1.45; }
-  .ai-card.evolving { opacity: 0.82; border-style: dashed; }
-  .ai-badge {
-    display: inline-block; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-    margin-bottom: 0.55rem; padding: 0.2rem 0.55rem; border-radius: 999px;
-  }
-  .ai-badge.now { color: #34D399; background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.25); }
-  .ai-badge.soon { color: #FBBF24; background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.22); }
-  .ai-split-label {
-    text-align: center; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-    color: #93C5FD; margin: 2rem 0 1rem;
+  .dg-hp .dg-scene-phase-label {
+    position: absolute; top: 0.85rem; left: 1rem; z-index: 2;
+    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #A78BFA; opacity: 0.9;
   }
 
-  /* Industries */
-  .ind-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-  .ind-card {
-    background: #111827; border: 1px solid #334155; border-radius: 14px; padding: 1.25rem; text-align: center;
+  /* Scene A — continuous causal math via --dg-scene-p */
+  .dg-hp .dg-scene[data-dg-scene="gateway-formation"] .sa-frag {
+    opacity: calc(1 - var(--dg-scene-p) * 1.35);
+    transform: translateX(calc(var(--dg-scene-p) * -28px)) scale(calc(1 - var(--dg-scene-p) * 0.12));
+    transform-origin: 120px 140px;
   }
-  .ind-card.flagship { border-color: rgba(59,130,246,0.45); background: linear-gradient(160deg, rgba(59,130,246,0.12), #111827 60%); }
-  .ind-card .icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
-  .ind-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.35rem; }
-  .ind-card p { font-size: 0.78rem; color: #64748B; }
-  .ind-status {
-    display: inline-block; margin-top: 0.65rem; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em;
-    text-transform: uppercase; color: #93C5FD;
+  .dg-hp .dg-scene[data-dg-scene="gateway-formation"] .sa-paths {
+    stroke-dasharray: 140;
+    stroke-dashoffset: calc(140 * (1 - min(1, var(--dg-scene-p) / 0.3)));
+    opacity: calc(0.25 + min(1, var(--dg-scene-p) / 0.25) * 0.75);
   }
-  .ind-status.dev { color: #FBBF24; }
-  .ind-status.soon { color: #64748B; }
+  .dg-hp .dg-scene[data-dg-scene="gateway-formation"] .sa-gate {
+    opacity: calc(
+      min(1, max(0, (var(--dg-scene-p) - 0.12) * 5))
+      * max(0.28, 1 - max(0, (var(--dg-scene-p) - 0.42) * 2.4))
+    );
+    transform: translateX(calc(max(0, (var(--dg-scene-p) - 0.3) * 36px)))
+      scale(calc(1 + min(0.12, max(0, (var(--dg-scene-p) - 0.28) * 0.35))));
+    transform-origin: 405px 140px;
+    filter: drop-shadow(0 0 calc(max(0, (var(--dg-scene-p) - 0.28) * 18px) * max(0, (0.55 - var(--dg-scene-p)) * 5)) rgba(167,139,250,0.45));
+  }
+  .dg-hp .dg-scene[data-dg-scene="gateway-formation"] .sa-core {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.38) * 2.6));
+    transform: scale(calc(0.72 + max(0, (var(--dg-scene-p) - 0.38) * 0.45)))
+      translateX(calc(max(0, (0.55 - var(--dg-scene-p)) * 24px)));
+    transform-origin: 620px 140px;
+  }
+  .dg-hp .dg-scene[data-dg-scene="gateway-formation"] .sa-twin {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.55) * 4.2));
+    transform: translate(
+      calc((1 - max(0, min(1, (var(--dg-scene-p) - 0.55) * 4))) * -18px),
+      calc((1 - max(0, min(1, (var(--dg-scene-p) - 0.55) * 4))) * 14px)
+    );
+  }
+  .dg-hp .dg-scene[data-dg-scene="gateway-formation"] .sa-twin-link {
+    stroke-dasharray: 60;
+    stroke-dashoffset: calc(60 * (1 - max(0, min(1, (var(--dg-scene-p) - 0.58) * 5))));
+  }
+  .dg-hp .dg-scene[data-dg-scene="gateway-formation"] .sa-brain {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.68) * 5));
+    transform: scale(calc(0.85 + max(0, (var(--dg-scene-p) - 0.68) * 0.5)));
+    transform-origin: 720px 70px;
+    filter: drop-shadow(0 0 calc(max(0, (var(--dg-scene-p) - 0.7) * 18px)) rgba(167,139,250,0.55));
+  }
+  .dg-hp .dg-scene[data-dg-scene="gateway-formation"] .sa-advisor {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.82) * 6));
+    transform: translateY(calc((1 - max(0, min(1, (var(--dg-scene-p) - 0.82) * 6))) * 16px));
+  }
+  .dg-hp .dg-scene[data-dg-scene="gateway-formation"] .sa-apps {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.78) * 5));
+    transform: translateX(calc((1 - max(0, min(1, (var(--dg-scene-p) - 0.78) * 5))) * 22px));
+  }
 
-  .biz-workflows { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
-  .biz-workflow {
-    background: #111827; border: 1px solid #334155; border-radius: 14px; padding: 1.25rem;
+  /* Scene A discrete phase emphasis */
+  .dg-hp .dg-scene[data-phase="converge"] .sa-paths { filter: drop-shadow(0 0 4px rgba(124,58,237,0.55)); }
+  .dg-hp .dg-scene[data-phase="cross"] .sa-gate { filter: drop-shadow(0 0 14px rgba(167,139,250,0.55)); }
+  .dg-hp .dg-scene[data-phase="context"] .sa-core { filter: drop-shadow(0 0 16px rgba(167,139,250,0.5)); }
+  .dg-hp .dg-scene[data-phase="twin"] .sa-twin { filter: drop-shadow(0 0 10px rgba(59,130,246,0.55)); }
+  .dg-hp .dg-scene[data-phase="brain"] .sa-brain { transform: scale(1.14); }
+  .dg-hp .dg-scene[data-phase="advisor"] .sa-advisor { filter: drop-shadow(0 0 12px rgba(56,189,248,0.55)); }
+  .dg-hp .dg-scene[data-phase="settle"] .sa-apps { filter: drop-shadow(0 0 8px rgba(124,58,237,0.35)); }
+
+  /* Scene B — governed action */
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-brain {
+    opacity: calc(0.45 + min(1, var(--dg-scene-p) / 0.18) * 0.55);
   }
-  .biz-workflow h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.45rem; }
-  .biz-workflow p { font-size: 0.82rem; color: #94A3B8; line-height: 1.55; }
-  .ind-tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; max-width: 960px; margin: 0 auto; }
-  .ind-tier {
-    background: #111827; border: 1px solid #334155; border-radius: 14px; padding: 1.15rem;
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-advisor {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.18) * 4));
+    transform: translateX(calc((1 - max(0, min(1, (var(--dg-scene-p) - 0.18) * 4))) * -12px));
   }
-  .ind-tier h4 {
-    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-rec {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.32) * 5));
+    transform: scale(calc(0.92 + max(0, min(1, (var(--dg-scene-p) - 0.32) * 5)) * 0.08));
+    transform-origin: 365px 120px;
+  }
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-path-to-gate {
+    stroke-dasharray: 70;
+    stroke-dashoffset: calc(70 * (1 - max(0, min(1, (var(--dg-scene-p) - 0.35) * 4))));
+  }
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-gate {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.45) * 5));
+    filter: drop-shadow(0 0 12px rgba(245,158,11, calc(max(0, (var(--dg-scene-p) - 0.48) * 1.2))));
+  }
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-hold {
+    opacity: calc(
+      max(0, (var(--dg-scene-p) - 0.48) * 8) * max(0, 1 - max(0, (var(--dg-scene-p) - 0.72) * 8))
+    );
+  }
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-path-after {
+    stroke-dasharray: 50;
+    stroke-dashoffset: calc(50 * (1 - max(0, min(1, (var(--dg-scene-p) - 0.76) * 6))));
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.74) * 6));
+  }
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-action {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.76) * 6));
+    transform: translateX(calc((1 - max(0, min(1, (var(--dg-scene-p) - 0.76) * 6))) * 14px));
+  }
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-outcome {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.86) * 8));
+  }
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .sb-learn {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.94) * 12));
+    stroke-dasharray: 90;
+    stroke-dashoffset: calc(90 * (1 - max(0, (var(--dg-scene-p) - 0.94) * 12)));
+  }
+  .dg-hp .dg-scene[data-phase="authority"] .sb-gate {
+    transform: scale(1.06);
+    transform-origin: 565px 120px;
+  }
+  .dg-hp .dg-scene[data-phase="act"] .sb-action,
+  .dg-hp .dg-scene[data-phase="outcome"] .sb-action {
+    filter: drop-shadow(0 0 10px rgba(52,211,153,0.45));
+  }
+
+  /* Scene C — architecture → product (not a crossfade) */
+  .dg-hp .dg-scene[data-dg-scene="architecture-product"] .sc-abstract {
+    opacity: calc(1 - max(0, (var(--dg-scene-p) - 0.15) * 1.4));
+    transform:
+      translateX(calc(var(--dg-scene-p) * 48px))
+      scale(calc(1 - var(--dg-scene-p) * 0.18));
+    transform-origin: 200px 110px;
+  }
+  .dg-hp .dg-scene[data-dg-scene="architecture-product"] .sc-frame {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.18) * 2.4) * max(0.35, 1 - max(0, (var(--dg-scene-p) - 0.72) * 2.5)));
+    stroke-dasharray: 220;
+    stroke-dashoffset: calc(220 * (1 - max(0, min(1, (var(--dg-scene-p) - 0.2) * 2))));
+    transform: scale(calc(0.92 + max(0, min(1, (var(--dg-scene-p) - 0.2) * 2)) * 0.08));
+    transform-origin: 480px 110px;
+  }
+  .dg-hp .dg-scene[data-dg-scene="architecture-product"] .sc-product {
+    opacity: calc(max(0, (var(--dg-scene-p) - 0.52) * 2.6));
+    transform:
+      translateY(calc((1 - max(0, min(1, (var(--dg-scene-p) - 0.52) * 2.6))) * 28px))
+      scale(calc(0.94 + max(0, min(1, (var(--dg-scene-p) - 0.52) * 2.6)) * 0.06));
+  }
+  .dg-hp .dg-scene-product-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 0.65rem; margin-top: 0.75rem;
+  }
+  .dg-hp .dg-scene-product-grid figure {
+    margin: 0; border-radius: 12px; overflow: hidden;
+    border: 1px solid rgba(51,65,85,0.8); background: #03050A;
+  }
+  .dg-hp .dg-scene-product-grid img {
+    width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top center; background: #0f172a;
+  }
+  .dg-hp .dg-scene-product-grid figcaption {
+    padding: 0.55rem 0.7rem; font-size: 0.78rem; color: #94A3B8; border-top: 1px solid rgba(30,41,59,0.9);
+  }
+  .dg-hp .dg-scene-product-grid figcaption strong { display: block; color: #F1F5F9; font-size: 0.86rem; }
+
+  /* Phase labels via ::after */
+  .dg-hp .dg-scene[data-phase] .dg-phase-text::after { content: ""; }
+  .dg-hp .dg-scene[data-phase="frag"] .dg-phase-text::after { content: "Fragmented outside"; }
+  .dg-hp .dg-scene[data-phase="converge"] .dg-phase-text::after { content: "Signals converging"; }
+  .dg-hp .dg-scene[data-phase="cross"] .dg-phase-text::after { content: "Crossing the Gateway"; }
+  .dg-hp .dg-scene[data-phase="context"] .dg-phase-text::after { content: "Shared context forming"; }
+  .dg-hp .dg-scene[data-phase="twin"] .dg-phase-text::after { content: "Digital Twin forming"; }
+  .dg-hp .dg-scene[data-phase="brain"] .dg-phase-text::after { content: "Business Brain active"; }
+  .dg-hp .dg-scene[data-phase="advisor"] .dg-phase-text::after { content: "AI Advisor reasoning"; }
+  .dg-hp .dg-scene[data-phase="settle"] .dg-phase-text::after { content: "Intelligence Core settled"; }
+  .dg-hp .dg-scene[data-phase="reason"] .dg-phase-text::after { content: "Advisor reasoning"; }
+  .dg-hp .dg-scene[data-phase="recommend"] .dg-phase-text::after { content: "Recommendation formed"; }
+  .dg-hp .dg-scene[data-phase="authority"] .dg-phase-text::after { content: "Human authority required"; }
+  .dg-hp .dg-scene[data-phase="permit"] .dg-phase-text::after { content: "Authority granted"; }
+  .dg-hp .dg-scene[data-phase="act"] .dg-phase-text::after { content: "Authorised action"; }
+  .dg-hp .dg-scene[data-phase="outcome"] .dg-phase-text::after { content: "Outcome returned"; }
+  .dg-hp .dg-scene[data-phase="learn"] .dg-phase-text::after { content: "Learning updates context"; }
+  .dg-hp .dg-scene[data-phase="abstract"] .dg-phase-text::after { content: "Architecture"; }
+  .dg-hp .dg-scene[data-phase="align"] .dg-phase-text::after { content: "Structure aligning"; }
+  .dg-hp .dg-scene[data-phase="resolve"] .dg-phase-text::after { content: "Resolving into product"; }
+  .dg-hp .dg-scene[data-phase="product"] .dg-phase-text::after { content: "Live DigitalGate surfaces"; }
+
+  /* Editorial sections */
+  .dg-hp .dg-hp-compare {
+    margin-top: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+  }
+  .dg-hp .dg-hp-compare-side {
+    border-radius: 16px; padding: 1.25rem 1.15rem; border: 1px solid rgba(51,65,85,0.7); background: rgba(15,23,42,0.55);
+  }
+  .dg-hp .dg-hp-compare-side.is-trad { border-color: rgba(100,116,139,0.45); }
+  .dg-hp .dg-hp-compare-side.is-dg {
+    border-color: rgba(124,58,237,0.45);
+    background: linear-gradient(165deg, rgba(124,58,237,0.12), rgba(15,23,42,0.7));
+  }
+  .dg-hp .dg-hp-compare-tag {
+    display: block; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
     color: #64748B; margin-bottom: 0.75rem;
   }
-  .ind-tier ul { list-style: none; padding: 0; margin: 0; }
-  .ind-tier li { margin-bottom: 0.45rem; font-size: 0.82rem; }
-  .ind-tier a { color: #CBD5E1; text-decoration: none; }
-  .ind-tier a:hover { color: #93C5FD; }
+  .dg-hp .dg-hp-compare-side.is-dg .dg-hp-compare-tag { color: #A78BFA; }
+  .dg-hp .dg-hp-stat { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.04em; color: #E2E8F0; }
+  .dg-hp .dg-hp-stat small { display: block; font-size: 0.85rem; color: #64748B; font-weight: 700; letter-spacing: 0; }
+  .dg-hp .dg-hp-brief p { margin: 0 0 0.55rem; color: #CBD5E1; font-size: 0.98rem; }
+  .dg-hp .dg-hp-brief p.is-done { color: #6EE7B7; font-weight: 700; }
 
-  /* Why */
-  .why-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; max-width: 900px; margin: 0 auto; }
-  .why-item {
-    background: #111827; border: 1px solid #334155; border-radius: 12px; padding: 1rem;
-    text-align: center; font-size: 0.88rem; font-weight: 600; color: #E2E8F0;
+  .dg-hp .dg-hp-defs { margin-top: 1.35rem; }
+  .dg-hp .dg-hp-defs > div {
+    display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: 0.75rem 1.25rem;
+    padding: 1rem 0; border-bottom: 1px solid rgba(51,65,85,0.55);
   }
-  .why-item strong { display: block; color: #93C5FD; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.25rem; font-weight: 700; }
+  .dg-hp .dg-hp-defs dt { font-weight: 800; color: #E2E8F0; }
+  .dg-hp .dg-hp-defs dd { margin: 0; color: #94A3B8; max-width: 48rem; }
 
-  /* Stories */
-  .stories { display: flex; flex-wrap: wrap; gap: 1.25rem; justify-content: center; }
-  .story-logo {
-    background: #111827; border: 1px solid #334155; border-radius: 14px; padding: 1.5rem 2rem;
-    text-align: center; min-width: 200px;
+  .dg-hp .dg-hp-spine {
+    margin-top: 1.5rem; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 1rem; align-items: stretch;
   }
-  .story-logo strong { display: block; font-size: 1.05rem; margin-bottom: 0.25rem; }
-  .story-logo span { font-size: 0.78rem; color: #64748B; }
-
-  /* Not-a list */
-  .not-a {
-    display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 1.5rem;
+  .dg-hp .dg-hp-core {
+    border-radius: 18px; padding: 1.4rem 1.25rem; border: 1px solid rgba(124,58,237,0.45);
+    background: linear-gradient(165deg, rgba(124,58,237,0.14), rgba(59,130,246,0.06)), rgba(3,5,10,0.9);
   }
-  .not-a span {
-    font-size: 0.78rem; padding: 0.35rem 0.85rem; border-radius: 999px;
-    background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #FCA5A5;
-    text-decoration: line-through; opacity: 0.85;
+  .dg-hp .dg-hp-core h3 {
+    color: #C4B5FD; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 0.85rem;
   }
-  .is-a {
-    text-align: center; margin-top: 1rem; font-size: 1.05rem; font-weight: 700; color: #34D399;
+  .dg-hp .dg-hp-core-grid { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .dg-hp .dg-hp-core-grid span {
+    padding: 0.4rem 0.7rem; border-radius: 999px; border: 1px solid rgba(148,163,184,0.28);
+    background: rgba(15,23,42,0.55); font-size: 0.8rem; font-weight: 700; color: #E2E8F0;
   }
 
-  /* CTA */
-  .cta-section { text-align: center; padding: 5rem 0; background: linear-gradient(180deg, #111827, #0A0E17); }
-  .cta-section h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 800; margin-bottom: 0.75rem; }
-  .cta-section p { color: #94A3B8; max-width: 560px; margin: 0 auto 1.5rem; }
+  .dg-hp .dg-hp-industries {
+    margin-top: 1.35rem; display: grid; grid-template-columns: 180px 1fr; gap: 1rem;
+  }
+  .dg-hp .dg-hp-ind-spine {
+    border-radius: 16px; padding: 1.2rem 1rem; border: 1px solid rgba(124,58,237,0.4);
+    background: rgba(124,58,237,0.08); text-align: center;
+  }
+  .dg-hp .dg-hp-ind-spine strong {
+    display: block; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: #C4B5FD; margin-bottom: 0.5rem;
+  }
+  .dg-hp .dg-hp-ind-spine span { font-size: 0.86rem; color: #94A3B8; }
+  .dg-hp .dg-hp-ind-flows { display: grid; gap: 0.65rem; }
+  .dg-hp .dg-hp-ind-flow {
+    display: grid; grid-template-columns: 110px 1fr; gap: 0.75rem; align-items: center;
+    padding: 0.85rem 1rem; border-radius: 12px; border: 1px solid rgba(51,65,85,0.7); background: rgba(10,14,23,0.7);
+  }
+  .dg-hp .dg-hp-ind-flow strong { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: #93C5FD; }
+  .dg-hp .dg-hp-flow-steps { display: flex; flex-wrap: wrap; gap: 0.3rem 0.35rem; align-items: center; font-size: 0.82rem; color: #CBD5E1; font-weight: 600; }
+  .dg-hp .dg-hp-flow-steps i { font-style: normal; color: #475569; font-weight: 800; }
 
-  .screenshots-home { padding: 5rem 0; background: #111827; border-top: 1px solid #1E293B; }
-  .shot-grid, .shot-masonry {
-    display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.25rem;
-    max-width: 1100px; margin: 2rem auto 0;
+  .dg-hp .dg-hp-presence {
+    display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 1.25rem; align-items: center; margin-top: 1.1rem;
   }
-  .shot-masonry .shot-frame:nth-child(1) { grid-column: span 7; }
-  .shot-masonry .shot-frame:nth-child(2) { grid-column: span 5; }
-  .shot-masonry .shot-frame:nth-child(3) { grid-column: span 12; max-width: 820px; width: 100%; justify-self: center; }
-  .shot-frame {
-    position: relative; aspect-ratio: 16/10; border-radius: 14px; border: 1px solid #334155; overflow: hidden; background: #0F172A;
+  .dg-hp .dg-hp-presence-note {
+    border-left: 3px solid #22D3EE; padding: 0.85rem 1rem; background: rgba(34,211,238,0.06);
+    border-radius: 0 12px 12px 0; color: #CBD5E1; font-size: 0.95rem;
   }
-  .shot-frame img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
-  .shot-frame .shot-caption {
-    position: absolute; inset: auto 0 0 0; padding: 0.85rem 1rem;
-    background: linear-gradient(180deg, transparent, rgba(2, 6, 23, 0.92) 35%); text-align: left;
+  .dg-hp .dg-hp-presence-note strong { color: #67E8F9; }
+
+  .dg-hp .dg-hp-shots {
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 0.85rem; margin-top: 1.25rem;
   }
-  .shot-frame .shot-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #93C5FD; display: block; }
-  .shot-frame .shot-title { font-size: 0.95rem; font-weight: 700; color: #F1F5F9; display: block; }
-  .shot-frame .shot-sub { font-size: 0.72rem; color: #94A3B8; display: block; margin-top: 0.15rem; }
-  @media (max-width: 900px) {
-    .shot-grid, .shot-masonry { grid-template-columns: 1fr; }
-    .shot-masonry .shot-frame:nth-child(1),
-    .shot-masonry .shot-frame:nth-child(2),
-    .shot-masonry .shot-frame:nth-child(3) { grid-column: span 1; max-width: none; }
+  .dg-hp .dg-hp-shot {
+    border-radius: 14px; overflow: hidden; border: 1px solid rgba(51,65,85,0.8); background: #03050A;
+  }
+  .dg-hp .dg-hp-shot img { width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top center; background: #0f172a; }
+  .dg-hp .dg-hp-shot figcaption { padding: 0.75rem 0.9rem 0.95rem; border-top: 1px solid rgba(30,41,59,0.9); }
+  .dg-hp .dg-hp-shot figcaption strong { display: block; font-size: 0.92rem; color: #F1F5F9; margin-bottom: 0.15rem; }
+  .dg-hp .dg-hp-shot figcaption span { font-size: 0.78rem; color: #64748B; }
+
+  .dg-hp .dg-hp-founding-points {
+    display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 0.65rem; margin: 1.5rem 0 0.5rem;
+  }
+  .dg-hp .dg-hp-founding-points div {
+    padding: 1rem 0.9rem; border-radius: 12px; border: 1px solid rgba(124,58,237,0.3);
+    background: rgba(124,58,237,0.07); font-size: 0.9rem; font-weight: 700; color: #E2E8F0; text-align: center;
   }
 
+  .dg-hp .dg-hp-final {
+    text-align: center; border-top: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,58,237,0.16), transparent 60%),
+      linear-gradient(180deg, #0A0E17, #03050A);
+    padding-bottom: clamp(4rem, 8vw, 6rem);
+  }
+  .dg-hp .dg-hp-final h2 { max-width: 18ch; margin-left: auto; margin-right: auto; }
+  .dg-hp .dg-hp-final-state {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 0 auto 1.5rem; width: min(720px, 100%); text-align: left;
+  }
+  .dg-hp .dg-hp-final-state article {
+    border-radius: 16px; padding: 1.1rem 1rem; border: 1px solid rgba(51,65,85,0.7); background: rgba(15,23,42,0.55);
+  }
+  .dg-hp .dg-hp-final-state article.is-after {
+    border-color: rgba(52,211,153,0.4); background: rgba(16,185,129,0.07);
+  }
+  .dg-hp .dg-hp-final-state strong {
+    display: block; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.55rem;
+  }
+  .dg-hp .dg-hp-final-state .is-before strong { color: #94A3B8; }
+  .dg-hp .dg-hp-final-state .is-after strong { color: #6EE7B7; }
+  .dg-hp .dg-hp-final-state ul { margin: 0; padding-left: 1.1rem; color: #CBD5E1; font-size: 0.92rem; }
+  .dg-hp .dg-hp-resolve-pillars {
+    display: flex; flex-wrap: wrap; gap: 0.45rem; justify-content: center; margin: 1.25rem auto 0.5rem; width: min(640px, 100%);
+  }
+  .dg-hp .dg-hp-resolve-pillars span {
+    padding: 0.45rem 0.85rem; border-radius: 999px; border: 1px solid rgba(52,211,153,0.28);
+    background: rgba(16,185,129,0.08); font-size: 0.8rem; font-weight: 700; color: #A7F3D0;
+  }
+
+  /* Responsive */
+  @media (max-width: 1280px) {
+    .dg-hp .dg-app-family { grid-template-columns: repeat(7, minmax(0,1fr)); }
+  }
   @media (max-width: 1024px) {
-    .pillars { grid-template-columns: repeat(3, 1fr); }
-    .eco-grid { grid-template-columns: repeat(3, 1fr); }
-    .core-grid { grid-template-columns: repeat(3, 1fr); }
-    .ai-grid { grid-template-columns: repeat(2, 1fr); }
-    .ind-grid { grid-template-columns: repeat(2, 1fr); }
-    .biz-workflows, .ind-tiers { grid-template-columns: 1fr; }
-    .why-grid { grid-template-columns: repeat(2, 1fr); }
-    .connect-compare { grid-template-columns: 1fr; }
-    .connect-arrow { transform: rotate(90deg); justify-self: center; }
+    .dg-hp .dg-app-family { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    .dg-hp .dg-hp-shots { grid-template-columns: repeat(2, minmax(0,1fr)); }
   }
-  @media (max-width: 640px) {
-    .pillars { grid-template-columns: 1fr 1fr; }
-    .eco-grid { grid-template-columns: repeat(2, 1fr); }
-    .core-grid { grid-template-columns: 1fr 1fr; }
-    .why-grid { grid-template-columns: 1fr; }
+  @media (max-width: 900px) {
+    .dg-hp .dg-hp-gateway-desktop { display: none; }
+    .dg-hp .dg-hp-gateway-mobile { display: block; }
+    .dg-hp .dg-scene-track { height: auto !important; }
+    .dg-hp .dg-scene-sticky {
+      position: relative; top: auto; height: auto; padding: 2.5rem 0;
+    }
+    .dg-hp .dg-app-family { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .dg-hp .dg-app-family.is-hero { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .dg-hp .dg-hp-compare, .dg-hp .dg-hp-spine, .dg-hp .dg-hp-presence, .dg-hp .dg-hp-industries, .dg-hp .dg-hp-final-state {
+      grid-template-columns: 1fr;
+    }
+    .dg-hp .dg-hp-shots, .dg-hp .dg-scene-product-grid { grid-template-columns: 1fr; }
+    .dg-hp .dg-hp-founding-points { grid-template-columns: 1fr 1fr; }
+    .dg-hp .dg-hp-defs > div { grid-template-columns: 1fr; gap: 0.35rem; }
+    .dg-hp .dg-hp-ind-flow { grid-template-columns: 1fr; }
+    .dg-hp .hero-home { min-height: auto; padding-top: 4.25rem; }
+    .dg-hp .dg-hp-ctas { flex-direction: column; align-items: stretch; }
+    .dg-hp .btn-primary, .dg-hp .btn-secondary { width: 100%; }
+    .dg-hp .hero-home h1 { max-width: 12ch; }
+  }
+  @media (max-width: 520px) {
+    .dg-hp .dg-hp-wrap { width: min(1120px, calc(100% - 1.5rem)); }
+    .dg-hp .dg-hp-founding-points { grid-template-columns: 1fr; }
+    .dg-hp .dg-app-family.is-hero { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  }
+  @media (max-width: 390px) {
+    .dg-hp .dg-hp-wrap { width: min(1120px, calc(100% - 1.25rem)); }
   }
 
-  /* Hero atmosphere + cinematic motion (opt-in; reduced-motion keeps content visible) */
-  @keyframes hero-mesh-drift {
-    0% { filter: hue-rotate(0deg) saturate(1); }
-    50% { filter: hue-rotate(8deg) saturate(1.08); }
-    100% { filter: hue-rotate(0deg) saturate(1); }
-  }
-  @keyframes hero-aurora-spin {
-    0% { transform: translate3d(calc(var(--hx) * 18px), calc(var(--hy) * 12px), 0) rotate(0deg) scale(1); }
-    100% { transform: translate3d(calc(var(--hx) * 18px), calc(var(--hy) * 12px), 0) rotate(28deg) scale(1.06); }
-  }
-  @keyframes hero-orb-breathe {
-    0%, 100% { opacity: 0.45; transform: translate3d(calc(var(--hx) * var(--px, 8px)), calc(var(--hy) * var(--py, 6px)), 0) scale(1); }
-    50% { opacity: 0.72; transform: translate3d(calc(var(--hx) * var(--px, 8px)), calc(var(--hy) * var(--py, 6px)), 0) scale(1.1); }
-  }
-  @keyframes hero-grid-pan {
-    0% { background-position: 0 0; }
-    100% { background-position: 56px 56px; }
-  }
-  @keyframes hero-network-pulse {
-    0%, 100% { opacity: 0.42; }
-    50% { opacity: 0.72; }
-  }
-  @keyframes hero-line-draw {
-    0% { stroke-dashoffset: 24; opacity: 0.25; }
-    50% { stroke-dashoffset: 0; opacity: 0.85; }
-    100% { stroke-dashoffset: -24; opacity: 0.25; }
-  }
-  @keyframes hero-node-twinkle {
-    0%, 100% { opacity: 0.35; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.35); }
-  }
-  @keyframes hero-horizon-glow {
-    0%, 100% { opacity: 0.45; transform: translateX(-50%) scaleX(0.92); }
-    50% { opacity: 0.85; transform: translateX(-50%) scaleX(1.05); }
-  }
-  @keyframes hero-rise {
-    from { opacity: 0; transform: translate3d(0, 22px, 0); filter: blur(4px); }
-    to { opacity: 1; transform: translate3d(0, 0, 0); filter: blur(0); }
-  }
-  @keyframes hero-gateway-in {
-    from { opacity: 0; transform: translate3d(0, 28px, 0) scale(0.985); filter: blur(6px); letter-spacing: -0.02em; }
-    to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); filter: blur(0); letter-spacing: -0.038em; }
-  }
-  @keyframes hero-rule-in {
-    from { opacity: 0; transform: scaleX(0.35); }
-    to { opacity: 0.85; transform: scaleX(1); }
-  }
-  @keyframes hero-cta-shine {
-    0%, 70% { transform: translateX(-120%); }
-    100% { transform: translateX(220%); }
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .hero-home .hero-mesh { animation: hero-mesh-drift 16s ease-in-out infinite; }
-    .hero-home .hero-aurora { animation: hero-aurora-spin 28s linear infinite alternate; }
-    .hero-home .hero-orb-a { animation: hero-orb-breathe 9s ease-in-out infinite; }
-    .hero-home .hero-orb-b { animation: hero-orb-breathe 11s ease-in-out infinite 1.2s; }
-    .hero-home .hero-orb-c { animation: hero-orb-breathe 13s ease-in-out infinite 0.6s; }
-    .hero-home .hero-grid { animation: hero-grid-pan 32s linear infinite; }
-    .hero-home .hero-network { animation: hero-network-pulse 7s ease-in-out infinite; }
-    .hero-home .hero-network .n-line,
-    .hero-home .hero-network .n-line-soft {
-      stroke-dasharray: 6 10;
-      animation: hero-line-draw 5.5s ease-in-out infinite;
-    }
-    .hero-home .hero-network .n-line:nth-child(odd) { animation-delay: 0.8s; }
-    .hero-home .hero-network .n-line-soft { animation-duration: 7s; animation-delay: 1.4s; }
-    .hero-home .hero-network .n-node,
-    .hero-home .hero-network .n-node-core {
-      transform-box: fill-box; transform-origin: center;
-      animation: hero-node-twinkle 4.2s ease-in-out infinite;
-    }
-    .hero-home .hero-network .n-node:nth-child(3n) { animation-delay: 0.7s; }
-    .hero-home .hero-network .n-node:nth-child(4n) { animation-delay: 1.5s; }
-    .hero-home .hero-network .n-node-core { animation-duration: 5.2s; }
-    .hero-home .hero-horizon { animation: hero-horizon-glow 8s ease-in-out infinite; }
-    .hero-reveal {
-      opacity: 0; animation: hero-rise 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-    .hero-reveal-gateway {
-      opacity: 0; animation: hero-gateway-in 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    .hero-reveal-rule {
-      opacity: 0; transform-origin: center; animation: hero-rule-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    }
-    .hero-reveal-1 { animation-delay: 0.06s; }
-    .hero-reveal-2 { animation-delay: 0.2s; }
-    .hero-reveal-3 { animation-delay: 0.42s; }
-    .hero-reveal-4 { animation-delay: 0.58s; }
-    .hero-reveal-5 { animation-delay: 0.72s; }
-    .hero-reveal-6 { animation-delay: 0.9s; }
-    .btn-primary::after { animation: hero-cta-shine 5.5s ease-in-out 1.4s infinite; }
-  }
+  /* Reduced motion: settled finals */
   @media (prefers-reduced-motion: reduce) {
-    .btn-primary:hover, .btn-secondary:hover { transform: none; }
-    .btn-primary::after { display: none; }
-    .hero-home { --hx: 0 !important; --hy: 0 !important; }
+    .dg-hp .dg-hp-hero-rise, .dg-hp .dg-reveal, .dg-hp .dg-hp-glow, .dg-hp .dg-hp-flow, .dg-hp .dg-scene-stage * {
+      animation: none !important; transition: none !important;
+    }
+    .dg-hp .dg-scene { --dg-scene-p: 1 !important; }
+    .dg-hp .dg-scene .sa-frag { opacity: 0.22 !important; transform: none !important; }
+    .dg-hp .dg-scene .sa-gate { opacity: 0.32 !important; transform: none !important; }
+    .dg-hp .dg-scene .sa-paths,
+    .dg-hp .dg-scene .sa-twin-link,
+    .dg-hp .dg-scene .sb-path-to-gate,
+    .dg-hp .dg-scene .sb-path-after,
+    .dg-hp .dg-scene .sb-learn,
+    .dg-hp .dg-scene .sc-frame { stroke-dashoffset: 0 !important; }
+    .dg-hp .dg-scene .sa-core,
+    .dg-hp .dg-scene .sa-twin,
+    .dg-hp .dg-scene .sa-brain,
+    .dg-hp .dg-scene .sa-advisor,
+    .dg-hp .dg-scene .sa-apps,
+    .dg-hp .dg-scene .sb-brain,
+    .dg-hp .dg-scene .sb-advisor,
+    .dg-hp .dg-scene .sb-rec,
+    .dg-hp .dg-scene .sb-gate,
+    .dg-hp .dg-scene .sb-action,
+    .dg-hp .dg-scene .sb-outcome,
+    .dg-hp .dg-scene .sb-learn,
+    .dg-hp .dg-scene .sc-frame,
+    .dg-hp .dg-scene .sc-product { opacity: 1 !important; transform: none !important; filter: none !important; }
+    .dg-hp .dg-scene .sc-abstract { opacity: 0.28 !important; transform: none !important; }
+    .dg-hp .dg-scene .sb-hold { opacity: 0 !important; }
+    .dg-hp .btn-primary:hover, .dg-hp .btn-secondary:hover { transform: none; }
   }
-  @media (max-width: 640px) {
-    .hero-home { padding: clamp(5rem, 14vw, 5.5rem) 0 3.5rem; min-height: 100svh; min-height: 100dvh; }
-    .hero-home .hero-network { opacity: 0.4; }
-    .hero-home .hero-orb-c { display: none; }
-  }
-
-  /*
-   * Layered home environment (desktop) — hero atmosphere stays as a fixed visual
-   * foundation while section surfaces rise over it. Not full-page parallax.
-   * Mobile / reduced-motion keep the existing stacked layout.
-   */
-  @media (min-width: 960px) and (prefers-reduced-motion: no-preference) {
-    .hero-home {
-      --env-fade: 1;
-      background: transparent;
-    }
-    .hero-home .hero-atmosphere {
-      position: fixed;
-      inset: 0;
-      height: 100svh;
-      height: 100dvh;
-      z-index: 0;
-      opacity: var(--env-fade, 1);
-      transition: opacity 0.45s ease;
-      will-change: opacity;
-    }
-    .hero-home .hero-inner {
-      position: relative;
-      z-index: 2;
-    }
-
-    /* Content stack sits above the fixed environment */
-    [data-dg-motion-root] > section,
-    section.cta-section,
-    section.screenshots-home {
-      position: relative;
-      z-index: 2;
-    }
-
-    /* First surfaces: translucent — environment still readable underneath */
-    #pillars {
-      background: rgba(10, 14, 23, 0.52);
-      -webkit-backdrop-filter: blur(18px) saturate(1.15);
-      backdrop-filter: blur(18px) saturate(1.15);
-      border-top: 1px solid rgba(51, 65, 85, 0.55);
-      box-shadow: 0 -24px 64px rgba(2, 6, 23, 0.35);
-    }
-    #connected.alt,
-    #apps.alt,
-    #connected-business.alt,
-    #ai.alt,
-    #why.alt,
-    #founding.alt {
-      background: rgba(17, 24, 39, 0.82);
-      -webkit-backdrop-filter: blur(22px) saturate(1.1);
-      backdrop-filter: blur(22px) saturate(1.1);
-    }
-
-    /* Mid/late sections: denser platform surfaces (environment → platform) */
-    #one-platform.dg-layers-section,
-    #platform-overview,
-    #platform-core,
-    #digital-twin,
-    #connects,
-    #industries {
-      background: rgba(10, 14, 23, 0.94);
-    }
-
-    /* Solid frames — screenshots + final CTA must stay fully readable */
-    #platform-screenshots.screenshots-home,
-    .cta-section {
-      background: #0A0E17;
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-    }
-    .cta-section {
-      background: linear-gradient(180deg, #111827 0%, #0A0E17 100%);
-    }
-
-    /* Cards stay solid so translucency doesn’t hurt contrast */
-    #pillars .pillar,
-    .connect-panel,
-    .dg-layer,
-    .dg-core-band,
-    .dg-journey-panel,
-    .twin-card,
-    .dg-ind-card,
-    .why-item,
-    .shot-frame {
-      background-color: rgba(17, 24, 39, 0.96);
-    }
-  }
-
 </style>
 
-<!-- ===== HERO ===== -->
+
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute">
+<defs>
+<!-- DigitalGate Apps — distinctive OS-family glyphs (shared bevelled tile in CSS) -->
+<symbol id="dg-app-crm" viewBox="0 0 24 24" fill="none">
+  <circle cx="8.2" cy="8" r="2.6" stroke="currentColor" stroke-width="1.55"/>
+  <circle cx="16.2" cy="7.2" r="2.1" stroke="currentColor" stroke-width="1.45"/>
+  <path d="M3.6 18.2c.7-2.7 2.4-4.1 8.4-4.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+  <path d="M13.4 18c.45-1.5 1.45-2.3 4.1-2.3" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+  <path d="M11.8 10.2 14.6 9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+</symbol>
+<symbol id="dg-app-websites" viewBox="0 0 24 24" fill="none">
+  <rect x="3.5" y="5.5" width="17" height="13" rx="2.2" stroke="currentColor" stroke-width="1.55"/>
+  <path d="M3.5 9h17" stroke="currentColor" stroke-width="1.55"/>
+  <circle cx="6.2" cy="7.2" r="0.7" fill="currentColor"/><circle cx="8.2" cy="7.2" r="0.7" fill="currentColor"/>
+  <path d="M7 13.2h4.5M7 15.5h7.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+</symbol>
+<symbol id="dg-app-brain" viewBox="0 0 24 24" fill="none">
+  <!-- Architectural knowledge lattice — not anatomical -->
+  <circle cx="12" cy="12" r="7.2" stroke="currentColor" stroke-width="1.5"/>
+  <circle cx="12" cy="12" r="2.4" stroke="currentColor" stroke-width="1.45"/>
+  <circle cx="12" cy="12" r="1" fill="currentColor"/>
+  <path d="M12 4.8v2.4M12 16.8v2.4M4.8 12h2.4M16.8 12h2.4M7.1 7.1l1.7 1.7M15.2 15.2l1.7 1.7M16.9 7.1l-1.7 1.7M8.8 15.2l-1.7 1.7" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+</symbol>
+<symbol id="dg-app-advisor" viewBox="0 0 24 24" fill="none">
+  <path d="M12 3.5 14 8.2l5 .6-3.6 3.4.9 4.9L12 14.8 7.7 17.1l.9-4.9L5 8.8l5-.6L12 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="12" cy="11.2" r="1.15" fill="currentColor"/>
+</symbol>
+<symbol id="dg-app-automation" viewBox="0 0 24 24" fill="none">
+  <circle cx="12" cy="12" r="3.6" stroke="currentColor" stroke-width="1.55"/>
+  <path d="M12 3.8v2.3M12 17.9v2.3M3.8 12h2.3M17.9 12h2.3M6.4 6.4l1.6 1.6M16 16l1.6 1.6M17.6 6.4 16 8M8 16l-1.6 1.6" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+</symbol>
+<symbol id="dg-app-seo" viewBox="0 0 24 24" fill="none">
+  <circle cx="10.4" cy="10.4" r="5.2" stroke="currentColor" stroke-width="1.55"/>
+  <path d="m14.4 14.4 5.2 5.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M8.2 10.4h4.4M10.4 8.2v4.4" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.75"/>
+</symbol>
+<symbol id="dg-app-ai-visibility" viewBox="0 0 24 24" fill="none">
+  <path d="M12 5.4c4.2 0 7.7 3.5 9 6.6-1.3 3.1-4.8 6.6-9 6.6s-7.7-3.5-9-6.6c1.3-3.1 4.8-6.6 9-6.6Z" stroke="currentColor" stroke-width="1.55"/>
+  <circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.5"/>
+  <circle cx="12" cy="12" r="1" fill="currentColor"/>
+</symbol>
+<symbol id="dg-app-marketing" viewBox="0 0 24 24" fill="none">
+  <path d="M4.5 8.2h5.2L17.8 4v16.2L9.7 16H4.5A1.7 1.7 0 0 1 2.8 14.3v-4.4A1.7 1.7 0 0 1 4.5 8.2Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+  <path d="M19.2 7.2v9.6" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+  <path d="M21.2 9.2v5.6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.7"/>
+</symbol>
+<symbol id="dg-app-reporting" viewBox="0 0 24 24" fill="none">
+  <path d="M4.5 17.5V11l3.8 2.8 3.4-5.2 3.8 3.8 2.6-2.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M4 18.8h16" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+  <circle cx="18.1" cy="10" r="1.2" fill="currentColor"/>
+</symbol>
+<symbol id="dg-app-communications" viewBox="0 0 24 24" fill="none">
+  <path d="M5.8 6.8h12.4a2.2 2.2 0 0 1 2.2 2.2v5.2a2.2 2.2 0 0 1-2.2 2.2H10.2L6.2 19.6V16.4a2.2 2.2 0 0 1-2.2-2.2V9a2.2 2.2 0 0 1 1.8-2.2Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+  <path d="M8.2 11h7.6M8.2 13.4h4.8" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.75"/>
+</symbol>
+<symbol id="dg-app-property" viewBox="0 0 24 24" fill="none">
+  <path d="M4 18.5V9.8L12 4l8 5.8v8.7" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+  <path d="M9.2 18.5v-5.2h5.6v5.2" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+  <path d="M12 8.2v1.8" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
+</symbol>
+<symbol id="dg-app-accommodation" viewBox="0 0 24 24" fill="none">
+  <path d="M4 18.5V10.2A2.2 2.2 0 0 1 6.2 8h11.6A2.2 2.2 0 0 1 20 10.2v8.3" stroke="currentColor" stroke-width="1.55"/>
+  <path d="M3 18.5h18" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+  <path d="M8 8V6.4a4 4 0 0 1 8 0V8" stroke="currentColor" stroke-width="1.55"/>
+  <path d="M7.5 12.5h3M13.5 12.5h3" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.7"/>
+</symbol>
+<symbol id="dg-app-finance" viewBox="0 0 24 24" fill="none">
+  <path d="M12 3.8v16.4" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+  <path d="M8.2 8c1-.8 2.3-1.2 3.8-1.2 2.4 0 4.1 1.15 4.1 3.05S14.4 12.6 12 12.6 8 13.7 8 15.55c0 1.9 1.8 3.15 4.2 3.15 1.5 0 2.9-.5 4-1.35" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>
+</symbol>
+<symbol id="dg-app-services" viewBox="0 0 24 24" fill="none">
+  <path d="M7.2 8.5h9.6L18.5 12v5.2a1.6 1.6 0 0 1-1.6 1.6H7.1A1.6 1.6 0 0 1 5.5 17.2V12L7.2 8.5Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>
+  <path d="M7.2 8.5V6.8a2.2 2.2 0 0 1 2.2-2.2h5.2a2.2 2.2 0 0 1 2.2 2.2v1.7" stroke="currentColor" stroke-width="1.55"/>
+  <path d="M9.4 14.8h5.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+</symbol>
+</defs>
+</svg>
+
+<div class="dg-hp" data-dg-motion-root>
+
+<!-- ========== HERO ========== -->
 <section class="hero-home" id="top">
-  <div class="hero-atmosphere" aria-hidden="true">
-    <div class="hero-mesh"></div>
-    <div class="hero-aurora"></div>
-    <div class="hero-orb hero-orb-a"></div>
-    <div class="hero-orb hero-orb-b"></div>
-    <div class="hero-orb hero-orb-c"></div>
-    <svg class="hero-network" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" focusable="false">
-      <g class="n-links">
-        <line class="n-line" x1="180" y1="140" x2="360" y2="220"/>
-        <line class="n-line" x1="360" y1="220" x2="520" y2="160"/>
-        <line class="n-line" x1="520" y1="160" x2="640" y2="280"/>
-        <line class="n-line" x1="640" y1="280" x2="820" y2="200"/>
-        <line class="n-line" x1="820" y1="200" x2="980" y2="260"/>
-        <line class="n-line-soft" x1="260" y1="420" x2="420" y2="340"/>
-        <line class="n-line-soft" x1="420" y1="340" x2="640" y2="280"/>
-        <line class="n-line-soft" x1="640" y1="280" x2="780" y2="400"/>
-        <line class="n-line" x1="780" y1="400" x2="960" y2="460"/>
-        <line class="n-line" x1="420" y1="340" x2="300" y2="520"/>
-        <line class="n-line-soft" x1="520" y1="160" x2="480" y2="80"/>
-        <line class="n-line" x1="820" y1="200" x2="900" y2="100"/>
-        <line class="n-line-soft" x1="180" y1="140" x2="120" y2="280"/>
-        <line class="n-line" x1="980" y1="260" x2="1080" y2="380"/>
-      </g>
-      <g class="n-nodes">
-        <circle class="n-node" cx="180" cy="140" r="2.2"/>
-        <circle class="n-node" cx="360" cy="220" r="2.4"/>
-        <circle class="n-node" cx="520" cy="160" r="2.2"/>
-        <circle class="n-node-core" cx="640" cy="280" r="3.4"/>
-        <circle class="n-node" cx="820" cy="200" r="2.3"/>
-        <circle class="n-node" cx="980" cy="260" r="2.1"/>
-        <circle class="n-node" cx="260" cy="420" r="2"/>
-        <circle class="n-node" cx="420" cy="340" r="2.3"/>
-        <circle class="n-node" cx="780" cy="400" r="2.2"/>
-        <circle class="n-node" cx="960" cy="460" r="2"/>
-        <circle class="n-node" cx="300" cy="520" r="2"/>
-        <circle class="n-node" cx="480" cy="80" r="1.8"/>
-        <circle class="n-node" cx="900" cy="100" r="1.9"/>
-        <circle class="n-node" cx="120" cy="280" r="1.8"/>
-        <circle class="n-node" cx="1080" cy="380" r="2"/>
-      </g>
-    </svg>
-    <div class="hero-grid"></div>
-    <div class="hero-horizon"></div>
-    <div class="hero-vignette"></div>
+  <div class="dg-hp-hero-inner">
+    <p class="dg-hp-eyebrow dg-hp-hero-rise dg-hp-hero-rise-1">AI-Powered Business Operating Platform</p>
+    <h1 class="dg-hp-hero-rise dg-hp-hero-rise-2">The Gateway to Your Digital World<span class="dg-hp-tm">™</span></h1>
+    <p class="dg-hp-support dg-hp-hero-rise dg-hp-hero-rise-3">One intelligent platform for running, understanding and growing your business.</p>
+    <p class="dg-hp-support-2 dg-hp-hero-rise dg-hp-hero-rise-3">Connect your customers, operations, digital presence, AI and automation in one Business Operating Platform.</p>
+    <div class="dg-hp-ctas dg-hp-hero-rise dg-hp-hero-rise-4">
+      <a class="btn-primary" href="https://digitalgate.com.au/founding-customers/#application">Apply for Founding 10 →</a>
+      <a class="btn-secondary" href="https://audit.digitalgate.com.au">Get My Free Business Audit →</a>
+    </div>
+
+<div class="dg-hp-gateway dg-hp-hero-rise dg-hp-hero-rise-5" aria-hidden="true">
+      
+      <svg class="dg-hp-gateway-desktop" viewBox="0 0 1100 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Open DigitalGate threshold from fragmented systems into connected intelligence">
+        <defs>
+          <linearGradient id="dgHpFrame" x1="470" y1="40" x2="630" y2="360" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#A78BFA"/><stop offset="1" stop-color="#38BDF8"/>
+          </linearGradient>
+          <linearGradient id="dgHpDepth" x1="550" y1="70" x2="550" y2="340" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#7C3AED" stop-opacity="0.38"/><stop offset="0.55" stop-color="#1D4ED8" stop-opacity="0.16"/><stop offset="1" stop-color="#020617" stop-opacity="0.04"/>
+          </linearGradient>
+          <linearGradient id="dgHpFloor" x1="550" y1="290" x2="550" y2="360" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#67E8F9" stop-opacity="0.4"/><stop offset="1" stop-color="#67E8F9" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="dgHpAppStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop stop-color="#7C3AED"/><stop offset="1" stop-color="#3B82F6"/>
+          </linearGradient>
+          <radialGradient id="dgHpPassage" cx="50%" cy="45%" r="55%">
+            <stop stop-color="#A78BFA" stop-opacity="0.4"/><stop offset="0.6" stop-color="#1E3A8A" stop-opacity="0.18"/><stop offset="1" stop-color="#020617" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="dgHpCoreGlow" cx="50%" cy="50%" r="50%">
+            <stop stop-color="#A78BFA" stop-opacity="0.55"/><stop offset="1" stop-color="#A78BFA" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="dgHpSoft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="10"/></filter>
+        </defs>
+
+        <g data-side="outside">
+          <text x="36" y="34" fill="#64748B" font-size="11" font-family="Inter,sans-serif" font-weight="800" letter-spacing="1.5">OUTSIDE · FRAGMENTED</text>
+          <circle class="dg-hp-flow" cx="72" cy="88" r="6" fill="#64748B"/>
+          <circle cx="152" cy="68" r="5" fill="#64748B"/>
+          <circle cx="232" cy="108" r="6" fill="#64748B"/>
+          <circle cx="102" cy="158" r="5" fill="#475569"/>
+          <circle cx="192" cy="188" r="6" fill="#64748B"/>
+          <circle cx="262" cy="152" r="4.5" fill="#475569"/>
+          <circle cx="58" cy="228" r="4" fill="#475569"/>
+          <circle cx="148" cy="248" r="5" fill="#64748B"/>
+          <circle cx="236" cy="238" r="4" fill="#475569"/>
+          <path class="dg-hp-flow" d="M72 88 L152 68 M152 68 L232 108 M102 158 L192 188 M232 108 L262 152 M72 88 L102 158 M192 188 L148 248 M58 228 L102 158" stroke="#475569" stroke-width="1.15" stroke-linecap="round"/>
+          <path d="M152 68 L192 188 M232 108 L236 238" stroke="#334155" stroke-width="1" stroke-dasharray="3 5"/>
+          <g opacity="0.75" font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#64748B">
+            <rect x="40" y="278" width="52" height="22" rx="6" stroke="#334155" fill="rgba(15,23,42,0.75)"/><text x="66" y="292" text-anchor="middle">CRM</text>
+            <rect x="106" y="298" width="56" height="22" rx="6" stroke="#334155" fill="rgba(15,23,42,0.75)"/><text x="134" y="312" text-anchor="middle">Email</text>
+            <rect x="176" y="284" width="52" height="22" rx="6" stroke="#334155" fill="rgba(15,23,42,0.75)"/><text x="202" y="298" text-anchor="middle">Ads</text>
+            <rect x="246" y="304" width="70" height="22" rx="6" stroke="#334155" fill="rgba(15,23,42,0.75)"/><text x="281" y="318" text-anchor="middle">Payments</text>
+            <rect x="68" y="336" width="68" height="22" rx="6" stroke="#334155" fill="rgba(15,23,42,0.75)"/><text x="102" y="350" text-anchor="middle">Website</text>
+            <rect x="156" y="346" width="72" height="22" rx="6" stroke="#334155" fill="rgba(15,23,42,0.75)"/><text x="192" y="360" text-anchor="middle">Analytics</text>
+          </g>
+          <text x="36" y="400" fill="#475569" font-size="11" font-family="Inter,sans-serif" font-weight="700">Disconnected tools · broken context</text>
+          <g data-third-party="outside" opacity="0.55" font-family="Inter,sans-serif" font-size="8" font-weight="700" fill="#475569">
+            <text x="36" y="418">Google · Meta · Stripe · Xero · WordPress</text>
+          </g>
+        </g>
+
+        <g>
+          <path class="dg-hp-flow" d="M280 118 C 360 128, 420 158, 470 188" stroke="#7C3AED" stroke-opacity="0.55" stroke-width="1.4" fill="none"/>
+          <path class="dg-hp-flow" d="M290 178 C 370 184, 430 194, 470 208" stroke="#3B82F6" stroke-opacity="0.5" stroke-width="1.3" fill="none"/>
+          <path class="dg-hp-flow" d="M275 238 C 360 234, 420 224, 470 228" stroke="#22D3EE" stroke-opacity="0.4" stroke-width="1.2" fill="none"/>
+          <path class="dg-hp-flow" d="M300 298 C 380 274, 430 254, 470 248" stroke="#A78BFA" stroke-opacity="0.45" stroke-width="1.2" fill="none"/>
+        </g>
+
+        <!-- OPEN architectural threshold: no door leaf, no knob -->
+        <g data-gateway="open">
+          <ellipse class="dg-hp-glow" cx="550" cy="210" rx="122" ry="152" fill="url(#dgHpPassage)" filter="url(#dgHpSoft)"/>
+          <path d="M470 48 H630 C642 48 650 56 650 68 V332 C650 344 642 352 630 352 H470 C458 352 450 344 450 332 V68 C450 56 458 48 470 48Z" stroke="url(#dgHpFrame)" stroke-width="2.6" fill="rgba(15,23,42,0.22)"/>
+          <rect x="470" y="68" width="160" height="264" rx="2" fill="url(#dgHpDepth)"/>
+          <rect x="490" y="88" width="120" height="224" rx="1" stroke="#A78BFA" stroke-opacity="0.35" stroke-width="1" fill="rgba(124,58,237,0.06)"/>
+          <rect x="508" y="108" width="84" height="184" rx="1" stroke="#38BDF8" stroke-opacity="0.28" stroke-width="1" fill="rgba(56,189,248,0.05)"/>
+          <path d="M502 332 C 522 298, 578 298, 598 332" fill="url(#dgHpFloor)"/>
+          <path class="dg-hp-flow" d="M550 318 V128" stroke="#67E8F9" stroke-opacity="0.45" stroke-width="1.4" stroke-dasharray="4 7"/>
+          <path d="M470 68 H630" stroke="#E2E8F0" stroke-opacity="0.35" stroke-width="1.2"/>
+          <circle class="dg-hp-glow" cx="550" cy="68" r="3.5" fill="#C4B5FD"/>
+          <!-- glimpse of structured lattice beyond -->
+          <g opacity="0.55" stroke="#93C5FD" stroke-width="0.8">
+            <path d="M520 140 H580 M520 170 H580 M520 200 H580 M520 230 H580 M520 260 H580"/>
+            <path d="M530 130 V270 M550 130 V270 M570 130 V270"/>
+          </g>
+          <text x="550" y="378" text-anchor="middle" fill="#A78BFA" font-size="12" font-family="Inter,sans-serif" font-weight="800" letter-spacing="2.2">OPEN GATEWAY</text>
+          <text x="550" y="396" text-anchor="middle" fill="#64748B" font-size="10" font-family="Inter,sans-serif" font-weight="600">invitation into connected intelligence</text>
+        </g>
+
+        <g data-side="inside">
+          <text x="780" y="34" fill="#67E8F9" font-size="11" font-family="Inter,sans-serif" font-weight="800" letter-spacing="1.5">INSIDE · DIGITALGATE</text>
+          <g transform="translate(830,155)">
+            <circle class="dg-hp-glow" r="56" fill="url(#dgHpCoreGlow)" filter="url(#dgHpSoft)"/>
+            <circle r="40" stroke="#A78BFA" stroke-opacity="0.55" stroke-width="1.3" fill="rgba(15,23,42,0.88)"/>
+            <circle r="26" stroke="#38BDF8" stroke-opacity="0.45" stroke-width="1.1" fill="none"/>
+            <circle class="dg-hp-glow" r="8" fill="#C4B5FD"/>
+            <path d="M0 -26 V26 M-26 0 H26" stroke="#E2E8F0" stroke-opacity="0.35" stroke-width="1"/>
+            <text y="74" text-anchor="middle" fill="#E2E8F0" font-size="11" font-family="Inter,sans-serif" font-weight="800">Intelligence Core</text>
+          </g>
+          <!-- DG App family -->
+          <g font-family="Inter,sans-serif" font-size="9" font-weight="700" fill="#94A3B8">
+            <g transform="translate(700,52)">
+              <rect width="42" height="42" rx="12" fill="rgba(15,23,42,0.92)" stroke="url(#dgHpAppStroke)" stroke-width="1.35"/>
+              <circle cx="16" cy="16" r="3" stroke="#E2E8F0" stroke-width="1.4" fill="none"/><path d="M9 30c1-3.2 3-5 12-5" stroke="#E2E8F0" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+              <text x="21" y="56" text-anchor="middle">CRM</text>
+            </g>
+            <g transform="translate(960,68)">
+              <rect width="42" height="42" rx="12" fill="rgba(15,23,42,0.92)" stroke="url(#dgHpAppStroke)" stroke-width="1.35"/>
+              <rect x="11" y="12" width="20" height="16" rx="2" stroke="#E2E8F0" stroke-width="1.4" fill="none"/><path d="M11 17h20" stroke="#E2E8F0" stroke-width="1.4"/>
+              <text x="21" y="56" text-anchor="middle">Sites</text>
+            </g>
+            <g transform="translate(690,248)">
+              <rect width="42" height="42" rx="12" fill="rgba(15,23,42,0.92)" stroke="url(#dgHpAppStroke)" stroke-width="1.35"/>
+              <circle cx="21" cy="20" r="8" stroke="#E2E8F0" stroke-width="1.4" fill="none"/><circle cx="21" cy="20" r="2.2" fill="#A78BFA"/><path d="M21 12v16M13 20h16" stroke="#E2E8F0" stroke-width="1.1" opacity="0.7"/>
+              <text x="21" y="56" text-anchor="middle">Brain</text>
+            </g>
+            <g transform="translate(970,236)">
+              <rect width="42" height="42" rx="12" fill="rgba(15,23,42,0.92)" stroke="url(#dgHpAppStroke)" stroke-width="1.35"/>
+              <path d="M21 10l2.4 5.1L29 17l-4 3.7 1 5.3-5-2.8-5 2.8 1-5.3-4-3.7 5.6-1.9z" stroke="#E2E8F0" stroke-width="1.2" fill="none"/>
+              <text x="21" y="56" text-anchor="middle">Advisor</text>
+            </g>
+            <g transform="translate(830,308)">
+              <rect width="42" height="42" rx="12" fill="rgba(15,23,42,0.92)" stroke="url(#dgHpAppStroke)" stroke-width="1.35"/>
+              <circle cx="21" cy="20" r="6" stroke="#E2E8F0" stroke-width="1.4" fill="none"/><path d="M21 8v3M21 29v3M9 20h3M30 20h3" stroke="#E2E8F0" stroke-width="1.3" stroke-linecap="round"/>
+              <text x="21" y="56" text-anchor="middle">Automate</text>
+            </g>
+          </g>
+          <path class="dg-hp-flow" d="M630 190 C 700 168, 760 155, 810 150" stroke="#7C3AED" stroke-opacity="0.5" stroke-width="1.3" fill="none"/>
+          <path class="dg-hp-flow" d="M630 220 C 710 232, 770 245, 820 255" stroke="#3B82F6" stroke-opacity="0.45" stroke-width="1.2" fill="none"/>
+          <text x="780" y="400" fill="#94A3B8" font-size="11" font-family="Inter,sans-serif" font-weight="700">DigitalGate Apps · Twin · Brain · Advisor</text>
+        </g>
+      </svg>
+
+
+      <svg class="dg-hp-gateway-mobile" viewBox="0 0 390 560" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Open DigitalGate threshold on mobile">
+        <defs>
+          <linearGradient id="dgHpMFrame" x1="120" y1="180" x2="270" y2="360" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#A78BFA"/><stop offset="1" stop-color="#38BDF8"/>
+          </linearGradient>
+          <linearGradient id="dgHpMDepth" x1="195" y1="200" x2="195" y2="360" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#7C3AED" stop-opacity="0.35"/><stop offset="1" stop-color="#020617" stop-opacity="0.05"/>
+          </linearGradient>
+          <radialGradient id="dgHpMGlow" cx="50%" cy="50%" r="50%">
+            <stop stop-color="#A78BFA" stop-opacity="0.4"/><stop offset="1" stop-color="#A78BFA" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <text x="195" y="28" text-anchor="middle" fill="#64748B" font-size="11" font-family="Inter,sans-serif" font-weight="800" letter-spacing="1.2">FRAGMENTED OUTSIDE</text>
+        <circle cx="70" cy="70" r="5" fill="#64748B"/><circle cx="140" cy="58" r="4" fill="#64748B"/><circle cx="220" cy="72" r="5" fill="#64748B"/><circle cx="300" cy="60" r="4" fill="#475569"/><circle cx="100" cy="110" r="4" fill="#64748B"/><circle cx="190" cy="120" r="5" fill="#64748B"/><circle cx="280" cy="108" r="4" fill="#475569"/>
+        <path class="dg-hp-flow" d="M70 70 L140 58 L220 72 L300 60 M100 110 L190 120 L280 108 M140 58 L190 120" stroke="#475569" stroke-width="1.1"/>
+        <g font-size="9" font-family="Inter,sans-serif" font-weight="700" fill="#64748B">
+          <rect x="40" y="140" width="50" height="18" rx="5" stroke="#334155" fill="rgba(15,23,42,0.8)"/><text x="65" y="152" text-anchor="middle">CRM</text>
+          <rect x="110" y="140" width="54" height="18" rx="5" stroke="#334155" fill="rgba(15,23,42,0.8)"/><text x="137" y="152" text-anchor="middle">Email</text>
+          <rect x="184" y="140" width="50" height="18" rx="5" stroke="#334155" fill="rgba(15,23,42,0.8)"/><text x="209" y="152" text-anchor="middle">Ads</text>
+          <rect x="252" y="140" width="70" height="18" rx="5" stroke="#334155" fill="rgba(15,23,42,0.8)"/><text x="287" y="152" text-anchor="middle">Payments</text>
+        </g>
+        <!-- OPEN gateway -->
+        <ellipse class="dg-hp-glow" cx="195" cy="270" rx="90" ry="100" fill="url(#dgHpMGlow)"/>
+        <rect x="120" y="180" width="150" height="180" rx="6" stroke="url(#dgHpMFrame)" stroke-width="2.4" fill="rgba(15,23,42,0.25)"/>
+        <rect x="120" y="180" width="150" height="180" rx="6" fill="url(#dgHpMDepth)"/>
+        <rect x="138" y="198" width="114" height="144" rx="2" stroke="#A78BFA" stroke-opacity="0.35" fill="rgba(124,58,237,0.06)"/>
+        <rect x="154" y="216" width="82" height="108" rx="2" stroke="#38BDF8" stroke-opacity="0.28" fill="rgba(56,189,248,0.05)"/>
+        <path class="dg-hp-flow" d="M195 340 V230" stroke="#67E8F9" stroke-opacity="0.5" stroke-width="1.3" stroke-dasharray="4 6"/>
+        <text x="195" y="380" text-anchor="middle" fill="#A78BFA" font-size="11" font-family="Inter,sans-serif" font-weight="800" letter-spacing="1.8">OPEN GATEWAY</text>
+        <circle class="dg-hp-glow" cx="195" cy="440" r="28" fill="url(#dgHpMGlow)"/>
+        <circle cx="195" cy="440" r="20" stroke="#A78BFA" stroke-width="1.2" fill="rgba(15,23,42,0.9)"/>
+        <circle cx="195" cy="440" r="5" fill="#C4B5FD"/>
+        <text x="195" y="488" text-anchor="middle" fill="#E2E8F0" font-size="12" font-family="Inter,sans-serif" font-weight="800">Intelligence Core</text>
+        <text x="195" y="510" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="Inter,sans-serif" font-weight="600">Apps · Twin · Brain · Advisor</text>
+        <text x="195" y="540" text-anchor="middle" fill="#64748B" font-size="10" font-family="Inter,sans-serif" font-weight="700">Connected business beyond the threshold</text>
+      </svg>
+    </div>
+
+
+    <div class="dg-app-family is-hero dg-hp-hero-rise dg-hp-hero-rise-6" role="list" aria-label="DigitalGate Apps">
+<div class="dg-app" data-app="crm" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="24" height="24"><use href="#dg-app-crm"/></svg></span><strong>CRM</strong><span>Customers</span></div>
+<div class="dg-app" data-app="websites" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="24" height="24"><use href="#dg-app-websites"/></svg></span><strong>Websites</strong><span>Presence</span></div>
+<div class="dg-app" data-app="brain" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="24" height="24"><use href="#dg-app-brain"/></svg></span><strong>Business Brain</strong><span>Context</span></div>
+<div class="dg-app" data-app="advisor" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="24" height="24"><use href="#dg-app-advisor"/></svg></span><strong>AI Advisor</strong><span>Reasoning</span></div>
+<div class="dg-app" data-app="automation" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="24" height="24"><use href="#dg-app-automation"/></svg></span><strong>Automation</strong><span>Action</span></div>
+    </div>
+    <p class="dg-hp-scroll-cue dg-hp-hero-rise dg-hp-hero-rise-6" aria-hidden="true"><span>Enter the gateway</span><i></i></p>
   </div>
-  <div class="hero-inner">
-    <div class="hero-eyebrow hero-reveal hero-reveal-1">AI-Powered Business Operating Platform</div>
-    <h1 class="hero-reveal-gateway hero-reveal-2">The Gateway to Your <span class="accent">Digital World</span>™</h1>
-    <div class="hero-brand-rule hero-reveal-rule hero-reveal-3" aria-hidden="true"></div>
-    <p class="hero-sub hero-reveal hero-reveal-4">One intelligent platform for running, understanding and growing your business.</p>
-    <p class="hero-lede hero-reveal hero-reveal-4">Connect your customers, operations, digital presence, AI and automation in one Business Operating Platform.</p>
-    <div class="hero-ctas hero-reveal hero-reveal-5">
-      <a href="https://digitalgate.com.au/founding-customers/#application" class="btn-primary">Apply for Founding 10 →</a>
-      <a href="https://audit.digitalgate.com.au" class="btn-secondary">Get My Free Business Audit →</a>
+</section>
+
+
+<!-- ========== SCENE A ========== -->
+<section class="dg-scene" id="scene-gateway-formation" data-dg-scene="gateway-formation" data-dg-scene-mobile="step" data-phase="frag">
+  <div class="dg-scene-track">
+    <div class="dg-scene-sticky">
+      <div class="dg-scene-inner">
+        <div class="dg-scene-copy">
+          <span class="dg-hp-kicker">Signature sequence</span>
+          <h2>From fragmentation to intelligence.</h2>
+          <p class="dg-hp-lead">Watch a scattered business reorganise through the open Gateway — into shared context, a Digital Twin, Business Brain, and AI Advisor.</p>
+        </div>
+        <div class="dg-scene-stage">
+          <div class="dg-scene-phase-label dg-phase-text" aria-live="polite"></div>
+
+<svg viewBox="0 0 960 300" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fragmented business transforming through the open Gateway into Digital Twin, Business Brain and AI Advisor">
+  <defs>
+    <linearGradient id="saGate" x1="360" y1="40" x2="420" y2="240"><stop stop-color="#A78BFA"/><stop offset="1" stop-color="#38BDF8"/></linearGradient>
+    <linearGradient id="saPath" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#64748B"/><stop offset="0.45" stop-color="#7C3AED"/><stop offset="1" stop-color="#A78BFA"/></linearGradient>
+    <radialGradient id="saGlow" cx="50%" cy="50%" r="50%"><stop stop-color="#A78BFA" stop-opacity="0.45"/><stop offset="1" stop-color="#A78BFA" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g class="sa-frag">
+    <text x="24" y="28" fill="#64748B" font-size="11" font-family="Inter,sans-serif" font-weight="800" letter-spacing="1.4">OUTSIDE · FRAGMENTED</text>
+    <circle cx="48" cy="70" r="5" fill="#64748B"/><circle cx="110" cy="52" r="4" fill="#64748B"/><circle cx="160" cy="88" r="5" fill="#64748B"/>
+    <circle cx="70" cy="120" r="4" fill="#475569"/><circle cx="130" cy="140" r="5" fill="#64748B"/><circle cx="40" cy="170" r="4" fill="#475569"/>
+    <circle cx="180" cy="160" r="4" fill="#64748B"/><circle cx="100" cy="190" r="5" fill="#64748B"/>
+    <path d="M48 70 L110 52 L160 88 L130 140 L70 120 L48 70 M40 170 L70 120 L100 190 L180 160" stroke="#475569" stroke-width="1.1"/>
+    <g font-size="9" font-family="Inter,sans-serif" font-weight="700" fill="#64748B">
+      <rect x="24" y="220" width="48" height="18" rx="5" stroke="#334155" fill="rgba(15,23,42,0.8)"/><text x="48" y="232" text-anchor="middle">CRM</text>
+      <rect x="82" y="228" width="52" height="18" rx="5" stroke="#334155" fill="rgba(15,23,42,0.8)"/><text x="108" y="240" text-anchor="middle">Email</text>
+      <rect x="144" y="220" width="44" height="18" rx="5" stroke="#334155" fill="rgba(15,23,42,0.8)"/><text x="166" y="232" text-anchor="middle">Ads</text>
+      <rect x="48" y="250" width="70" height="18" rx="5" stroke="#334155" fill="rgba(15,23,42,0.8)"/><text x="83" y="262" text-anchor="middle">Payments</text>
+    </g>
+    <text x="24" y="288" fill="#475569" font-size="10" font-family="Inter,sans-serif" font-weight="700">Google · Meta · Stripe · Xero · WordPress</text>
+  </g>
+  <path class="sa-paths" d="M190 100 C 260 105, 310 125, 360 140" stroke="url(#saPath)" stroke-width="1.55" fill="none" pathLength="140"/>
+  <path class="sa-paths" d="M185 140 C 250 142, 310 145, 360 148" stroke="url(#saPath)" stroke-width="1.35" fill="none" pathLength="140"/>
+  <path class="sa-paths" d="M188 175 C 255 168, 315 158, 360 155" stroke="url(#saPath)" stroke-width="1.25" fill="none" pathLength="140"/>
+  <g class="sa-gate">
+    <rect x="360" y="50" width="90" height="180" rx="6" stroke="url(#saGate)" stroke-width="2.3" fill="rgba(124,58,237,0.1)"/>
+    <rect x="376" y="68" width="58" height="144" rx="2" stroke="#A78BFA" stroke-opacity="0.4" fill="rgba(124,58,237,0.06)"/>
+    <rect x="388" y="86" width="34" height="108" rx="2" stroke="#38BDF8" stroke-opacity="0.3" fill="rgba(56,189,248,0.05)"/>
+    <path d="M405 210 V100" stroke="#67E8F9" stroke-opacity="0.5" stroke-width="1.3" stroke-dasharray="4 6"/>
+    <text x="405" y="250" text-anchor="middle" fill="#A78BFA" font-size="11" font-family="Inter,sans-serif" font-weight="800" letter-spacing="1.6">OPEN</text>
+  </g>
+  <g class="sa-core">
+    <circle cx="620" cy="140" r="54" fill="url(#saGlow)"/>
+    <circle cx="620" cy="140" r="40" stroke="#A78BFA" stroke-width="1.5" fill="rgba(15,23,42,0.9)"/>
+    <circle cx="620" cy="140" r="26" stroke="#38BDF8" stroke-opacity="0.5" stroke-width="1.2" fill="none"/>
+    <circle cx="620" cy="140" r="7" fill="#C4B5FD"/>
+    <path d="M620 114 V166 M594 140 H646" stroke="#E2E8F0" stroke-opacity="0.35" stroke-width="1"/>
+    <path d="M600 120 H640 M600 160 H640 M608 112 V168 M632 112 V168" stroke="#93C5FD" stroke-opacity="0.28" stroke-width="0.7"/>
+    <text x="620" y="212" text-anchor="middle" fill="#E2E8F0" font-size="12" font-family="Inter,sans-serif" font-weight="800">Intelligence Core</text>
+  </g>
+  <g class="sa-twin">
+    <circle cx="520" cy="68" r="20" stroke="#3B82F6" stroke-width="1.35" fill="rgba(59,130,246,0.12)"/>
+    <circle cx="508" cy="60" r="4" fill="#60A5FA"/><circle cx="532" cy="60" r="4" fill="#60A5FA"/><circle cx="520" cy="78" r="4" fill="#60A5FA"/>
+    <path d="M508 60 L520 78 L532 60" stroke="#93C5FD" stroke-width="1" opacity="0.8"/>
+    <text x="520" y="104" text-anchor="middle" fill="#93C5FD" font-size="10" font-family="Inter,sans-serif" font-weight="800">DIGITAL TWIN</text>
+    <path class="sa-twin-link" d="M538 80 C 560 100, 590 120, 600 128" stroke="#7C3AED" stroke-width="1.25" fill="none" pathLength="60"/>
+  </g>
+  <g class="sa-brain">
+    <circle cx="720" cy="68" r="24" stroke="#A78BFA" stroke-width="1.55" fill="rgba(124,58,237,0.16)"/>
+    <circle cx="720" cy="68" r="10" stroke="#C4B5FD" stroke-width="1.1" fill="none"/>
+    <circle cx="720" cy="68" r="3.5" fill="#C4B5FD"/>
+    <path d="M720 48v6M720 82v6M700 68h6M734 68h6" stroke="#C4B5FD" stroke-width="1.1" stroke-linecap="round"/>
+    <text x="720" y="112" text-anchor="middle" fill="#C4B5FD" font-size="10" font-family="Inter,sans-serif" font-weight="800">BUSINESS BRAIN</text>
+    <path class="sa-twin-link" d="M656 125 C 680 100, 700 85, 708 78" stroke="#A78BFA" stroke-width="1.2" fill="none" pathLength="60"/>
+  </g>
+  <g class="sa-advisor">
+    <circle cx="760" cy="188" r="20" stroke="#38BDF8" stroke-width="1.4" fill="rgba(56,189,248,0.12)"/>
+    <path d="M760 174l1.6 3.4 3.7.4-2.7 2.6.7 3.6-3.3-1.8-3.3 1.8.7-3.6-2.7-2.6 3.7-.4z" stroke="#7DD3FC" stroke-width="1.1" fill="none"/>
+    <text x="760" y="228" text-anchor="middle" fill="#7DD3FC" font-size="10" font-family="Inter,sans-serif" font-weight="800">AI ADVISOR</text>
+    <path class="sa-twin-link" d="M650 158 C 690 170, 720 180, 742 186" stroke="#38BDF8" stroke-width="1.2" fill="none" pathLength="60"/>
+  </g>
+  <g class="sa-apps" font-family="Inter,sans-serif" font-size="8" font-weight="700" fill="#94A3B8">
+    <g transform="translate(840,36)"><rect width="38" height="38" rx="10" fill="rgba(15,23,42,0.92)" stroke="#7C3AED" stroke-width="1.25"/><use href="#dg-app-crm" x="7" y="7" width="24" height="24" color="#E2E8F0"/><text x="19" y="52" text-anchor="middle">CRM</text></g>
+    <g transform="translate(892,88)"><rect width="38" height="38" rx="10" fill="rgba(15,23,42,0.92)" stroke="#7C3AED" stroke-width="1.25"/><use href="#dg-app-websites" x="7" y="7" width="24" height="24" color="#E2E8F0"/><text x="19" y="52" text-anchor="middle">Sites</text></g>
+    <g transform="translate(850,148)"><rect width="38" height="38" rx="10" fill="rgba(15,23,42,0.92)" stroke="#7C3AED" stroke-width="1.25"/><use href="#dg-app-automation" x="7" y="7" width="24" height="24" color="#E2E8F0"/><text x="19" y="52" text-anchor="middle">Auto</text></g>
+    <g transform="translate(798,208)"><rect width="38" height="38" rx="10" fill="rgba(15,23,42,0.92)" stroke="#7C3AED" stroke-width="1.25"/><use href="#dg-app-reporting" x="7" y="7" width="24" height="24" color="#E2E8F0"/><text x="19" y="52" text-anchor="middle">Report</text></g>
+    <g transform="translate(860,230)"><rect width="38" height="38" rx="10" fill="rgba(15,23,42,0.92)" stroke="#7C3AED" stroke-width="1.25"/><use href="#dg-app-ai-visibility" x="7" y="7" width="24" height="24" color="#E2E8F0"/><text x="19" y="52" text-anchor="middle">AI Vis</text></g>
+  </g>
+</svg>
+
+          <p class="dg-scene-caption">Signals connect. Structure forms. DigitalGate becomes the operating language.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ===== FIVE PILLARS ===== -->
-<div data-dg-motion-root>
-<section id="pillars">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">PLATFORM PHILOSOPHY</span>
-      <h2>Connect · Centralise · Understand · Automate · Grow</h2>
-      <p>Everything DigitalGate builds supports one or more of these five pillars — the foundation of your business operating system.</p>
+
+<!-- ========== Intelligence architecture ========== -->
+<section class="dg-hp-alt" id="intelligence">
+  <div class="dg-hp-wrap">
+    <div class="dg-reveal">
+      <span class="dg-hp-kicker">Intelligence architecture</span>
+      <h2>Digital Twin. Business Brain. AI Advisor.</h2>
+      <p class="dg-hp-lead">The Digital Twin is the evolving representation of the business’s current operating state. The Business Brain holds structured knowledge and context. The AI Advisor reasons over that context to identify priorities and recommend actions. They are separate on purpose.</p>
+      <p class="dg-hp-dry">One living state. One knowledge layer. One reasoning surface — not a single blurred “AI blob.”</p>
     </div>
-    <div class="pillars">
-      <div class="pillar dg-reveal">
-        <div class="pillar-icon" aria-hidden="true">01</div>
-        <h3>Connect</h3>
-        <p>Connect your website, CRM, marketing, payments, AI and business systems.</p>
+  </div>
+</section>
+
+
+<!-- ========== Information → Direction ========== -->
+<section id="direction">
+  <div class="dg-hp-wrap">
+    <div class="dg-reveal">
+      <span class="dg-hp-kicker">Information → Direction</span>
+      <h2>Dashboards show numbers. DigitalGate shows what needs doing.</h2>
+      <p class="dg-hp-lead">Passive software reports. Operating intelligence interprets, prioritises and prepares — then waits for your decision.</p>
+    </div>
+    <div class="dg-hp-compare">
+      <div class="dg-hp-compare-side is-trad dg-reveal">
+        <span class="dg-hp-compare-tag">Traditional</span>
+        <div class="dg-hp-stat">Counts<small>and charts</small></div>
+        <p style="margin-top:1rem;margin-bottom:0;">Information without direction. You still decide what it means.</p>
       </div>
-      <div class="pillar dg-reveal">
-        <div class="pillar-icon" aria-hidden="true">02</div>
-        <h3>Centralise</h3>
-        <p>One login, one customer record and one timeline across your business.</p>
-      </div>
-      <div class="pillar dg-reveal">
-        <div class="pillar-icon" aria-hidden="true">03</div>
-        <h3>Understand</h3>
-        <p>Your Digital Twin™ turns connected business data into context and insight.</p>
-      </div>
-      <div class="pillar dg-reveal">
-        <div class="pillar-icon" aria-hidden="true">04</div>
-        <h3>Automate</h3>
-        <p>Trigger workflows, follow-ups and AI actions from real business events.</p>
-      </div>
-      <div class="pillar dg-reveal">
-        <div class="pillar-icon" aria-hidden="true">05</div>
-        <h3>Grow</h3>
-        <p>Improve visibility, acquisition, conversion and performance without adding another disconnected stack.</p>
+      <div class="dg-hp-compare-side is-dg dg-reveal">
+        <span class="dg-hp-compare-tag">DigitalGate</span>
+        <div class="dg-hp-brief">
+          <p>Priority opportunities need attention.</p>
+          <p>High-value relationships have gone quiet.</p>
+          <p class="is-done">A governed follow-up plan is ready for approval.</p>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== YOUR BUSINESS, CONNECTED ===== -->
-<section class="alt" id="connected">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">THE PROBLEM</span>
-      <h2>Your business shouldn&apos;t run across 20 disconnected tools.</h2>
-      <p>Most businesses run on disconnected tools. DigitalGate brings them into one business context.</p>
-    </div>
-    <div class="connect-compare">
-      <div class="connect-panel before dg-reveal">
-        <h3>Before</h3>
-        <ul>
-          <li>Separate CRM, website, email, SEO and automation tools</li>
-          <li>Customer data scattered across logins and spreadsheets</li>
-          <li>Manual follow-ups and duplicated work</li>
-          <li>No shared view of what the business is doing</li>
-        </ul>
-      </div>
-      <div class="connect-arrow" aria-hidden="true">→</div>
-      <div class="connect-panel after dg-reveal">
-        <h3>With DigitalGate</h3>
-        <ul>
-          <li>One platform for CRM, website, AI, automation and apps</li>
-          <li>One business record and universal timeline</li>
-          <li>Automation and AI on real events — not busywork</li>
-          <li>One connected business context you can operate from</li>
-        </ul>
+
+<!-- ========== SCENE B ========== -->
+<section class="dg-scene dg-hp-alt" id="scene-governed-action" data-dg-scene="governed-action" data-dg-scene-mobile="step" data-phase="context">
+  <div class="dg-scene-track">
+    <div class="dg-scene-sticky">
+      <div class="dg-scene-inner">
+        <div class="dg-scene-copy">
+          <span class="dg-hp-kicker">Governed action</span>
+          <h2>Powerful intelligence. Human control where it matters.</h2>
+          <p class="dg-hp-lead">A recommendation reaches an amber authority gate. The path stops until human permission — then green action continues and outcomes return as learning to the Twin and Business Brain.</p>
+        </div>
+        <div class="dg-scene-stage">
+          <div class="dg-scene-phase-label dg-phase-text" aria-live="polite"></div>
+
+<svg viewBox="0 0 960 270" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AI recommendation held at human authority before authorised action and learning return">
+  <g class="sb-brain">
+    <circle cx="90" cy="120" r="34" stroke="#A78BFA" stroke-width="1.5" fill="rgba(124,58,237,0.14)"/>
+    <circle cx="90" cy="120" r="12" stroke="#C4B5FD" stroke-width="1.1" fill="none"/>
+    <circle cx="90" cy="120" r="4" fill="#C4B5FD"/>
+    <text x="90" y="175" text-anchor="middle" fill="#C4B5FD" font-size="11" font-family="Inter,sans-serif" font-weight="800">BUSINESS BRAIN</text>
+  </g>
+  <path d="M124 120 H170" stroke="#A78BFA" stroke-width="1.3"/>
+  <g class="sb-advisor">
+    <circle cx="210" cy="120" r="28" stroke="#38BDF8" stroke-width="1.4" fill="rgba(56,189,248,0.1)"/>
+    <path d="M210 106l1.5 3.2 3.5.4-2.5 2.4.6 3.4-3.1-1.7-3.1 1.7.6-3.4-2.5-2.4 3.5-.4z" stroke="#7DD3FC" stroke-width="1.1" fill="none"/>
+    <text x="210" y="175" text-anchor="middle" fill="#7DD3FC" font-size="11" font-family="Inter,sans-serif" font-weight="800">AI ADVISOR</text>
+  </g>
+  <path d="M238 120 H290" stroke="#38BDF8" stroke-width="1.3"/>
+  <g class="sb-rec">
+    <rect x="290" y="92" width="150" height="56" rx="12" stroke="#60A5FA" stroke-width="1.4" fill="rgba(59,130,246,0.1)"/>
+    <text x="365" y="116" text-anchor="middle" fill="#93C5FD" font-size="10" font-family="Inter,sans-serif" font-weight="800">RECOMMENDATION</text>
+    <text x="365" y="134" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Inter,sans-serif">Priority follow-up ready</text>
+  </g>
+  <!-- Path stops at amber gate — authority interruption -->
+  <path class="sb-path-to-gate" d="M440 120 H500" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" pathLength="70"/>
+  <circle cx="500" cy="120" r="4" fill="#F59E0B"/>
+  <g class="sb-gate">
+    <rect x="508" y="74" width="130" height="92" rx="14" stroke="#F59E0B" stroke-width="2.2" fill="rgba(245,158,11,0.1)"/>
+    <text x="573" y="108" text-anchor="middle" fill="#FBBF24" font-size="11" font-family="Inter,sans-serif" font-weight="800">HUMAN AUTHORITY</text>
+    <text x="573" y="128" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Inter,sans-serif">Policy · permission</text>
+    <text class="sb-hold" x="573" y="148" text-anchor="middle" fill="#F59E0B" font-size="10" font-family="Inter,sans-serif" font-weight="800">WAITING</text>
+  </g>
+  <!-- Green continues only after authority -->
+  <path class="sb-path-after" d="M638 120 H680" stroke="#34D399" stroke-width="2" stroke-linecap="round" pathLength="50"/>
+  <g class="sb-action">
+    <rect x="680" y="96" width="110" height="48" rx="12" stroke="#34D399" stroke-width="1.6" fill="rgba(16,185,129,0.1)"/>
+    <text x="735" y="118" text-anchor="middle" fill="#6EE7B7" font-size="10" font-family="Inter,sans-serif" font-weight="800">ACTION</text>
+    <text x="735" y="134" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Inter,sans-serif">Authorised</text>
+  </g>
+  <g class="sb-outcome">
+    <circle cx="850" cy="120" r="22" stroke="#34D399" stroke-width="1.4" fill="rgba(16,185,129,0.12)"/>
+    <text x="850" y="124" text-anchor="middle" fill="#6EE7B7" font-size="9" font-family="Inter,sans-serif" font-weight="800">OUTCOME</text>
+  </g>
+  <path class="sb-learn" d="M850 142 C 850 220, 90 220, 90 154" stroke="#34D399" stroke-width="1.5" fill="none" pathLength="90"/>
+  <text class="sb-learn" x="470" y="248" text-anchor="middle" fill="#34D399" font-size="11" font-family="Inter,sans-serif" font-weight="700">learning returns to Digital Twin · Business Brain · next decision</text>
+</svg>
+
+          <p class="dg-scene-caption">Recommendation → Human Authority → Authorised Action → Outcome → Learning.</p>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== ONE PLATFORM LAYERS (System B) ===== -->
-<section class="dg-layers-section" id="one-platform">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">OPERATING SYSTEM</span>
-      <h2>One platform. Every part of your business.</h2>
-      <p>Layers that build into a single business operating system — not a pile of disconnected products.</p>
+
+<!-- ========== Definitions ========== -->
+<section id="definitions">
+  <div class="dg-hp-wrap">
+    <div class="dg-reveal">
+      <span class="dg-hp-kicker">Plain meanings</span>
+      <h2>What the words actually mean.</h2>
+      <p class="dg-hp-lead">Clear definitions — citation-ready, not a feature catalogue.</p>
     </div>
-  </div>
-  <div class="dg-layers" aria-label="Platform layers">
-    <article class="dg-layer">
-      <div class="dg-layer-kicker"><i>01</i> Connect</div>
-      <h3>Bring the business into one context</h3>
-      <p>CRM, websites, commerce, communications and documents share the same customer and event stream.</p>
-      <div class="dg-layer-chips">
-        <span>CRM</span><span>Websites</span><span>Commerce</span><span>Communications</span><span>Documents</span>
-      </div>
-    </article>
-    <article class="dg-layer">
-      <div class="dg-layer-kicker"><i>02</i> Understand</div>
-      <h3>See what the business is actually doing</h3>
-      <p>Business Brain™, Digital Twin™ and Business Health turn connected activity into coverage, signals and clarity.</p>
-      <div class="dg-layer-chips">
-        <span>Business Brain</span><span>Digital Twin</span><span>Business Health</span><span>AI Advisor</span>
-      </div>
-    </article>
-    <article class="dg-layer">
-      <div class="dg-layer-kicker"><i>03</i> Automate</div>
-      <h3>Act on real events — with human oversight</h3>
-      <p>Workflows, outreach and communications run from live business context, not generic triggers.</p>
-      <div class="dg-layer-chips">
-        <span>Automation</span><span>Workflows</span><span>Outreach</span><span>Communications</span>
-      </div>
-    </article>
-    <article class="dg-layer">
-      <div class="dg-layer-kicker"><i>04</i> Grow</div>
-      <h3>Improve visibility, acquisition and conversion</h3>
-      <p>Growth sits on the same Core — so SEO, AI Visibility, prospecting and analytics compound each other.</p>
-      <div class="dg-layer-chips">
-        <span>SEO</span><span>AI Visibility</span><span>Prospecting</span><span>Reputation</span><span>Analytics</span>
-      </div>
-    </article>
+    <dl class="dg-hp-defs dg-reveal">
+      <div><dt>DigitalGate</dt><dd>An AI-powered Business Operating Platform connecting customer data, operations, digital presence, intelligence and automation into one shared business context.</dd></div>
+      <div><dt>Digital Twin</dt><dd>The evolving representation of the business’s current operating state.</dd></div>
+      <div><dt>Business Brain</dt><dd>Structured business knowledge and context.</dd></div>
+      <div><dt>AI Advisor</dt><dd>The reasoning layer that uses Business Brain context to identify priorities and recommend actions.</dd></div>
+      <div><dt>Automation</dt><dd>The capability that turns authorised signals and decisions into governed business actions and outcomes.</dd></div>
+      <div><dt>AI Visibility</dt><dd>How clearly AI systems can understand, evaluate and confidently surface the business.</dd></div>
+      <div><dt>DigitalGate Apps</dt><dd>Specialised capabilities that attach to the Platform Core and share identity, customers, context, permissions, events, intelligence, automation and reporting.</dd></div>
+    </dl>
   </div>
 </section>
 
-<!-- ===== PLATFORM OVERVIEW / JOURNEY ===== -->
-<section class="dg-journey-section" id="platform-overview">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">HOW IT WORKS</span>
-      <h2>From signal → decision → action → outcome</h2>
-      <p>DigitalGate doesn’t just store data. It connects activity, surfaces what matters, helps you act — then learns from the result.</p>
+
+<!-- ========== Core + Apps ========== -->
+<section class="dg-hp-alt" id="core-apps">
+  <div class="dg-hp-wrap">
+    <div class="dg-reveal">
+      <span class="dg-hp-kicker">Platform Core + DigitalGate Apps</span>
+      <h2>One operating system. Specialised capabilities.</h2>
+      <p class="dg-hp-lead">Apps attach to the Platform Core. They share identity, customers, business context, permissions, events, intelligence, automation and reporting.</p>
+    </div>
+    <div class="dg-hp-spine">
+      <div class="dg-hp-core dg-reveal">
+        <h3>Platform Core</h3>
+        <div class="dg-hp-core-grid">
+          <span>Identity</span><span>Customers</span><span>Context</span><span>Permissions</span>
+          <span>Intelligence</span><span>Automation</span><span>Reporting</span><span>Events</span>
+        </div>
+      </div>
+      <div class="dg-reveal">
+        <p class="dg-hp-lead" style="margin:0">DigitalGate Apps are not unrelated SaaS products. They are specialised capabilities on one substrate — the same Twin, Brain and permission model everywhere.</p>
+      </div>
+    </div>
+    <div class="dg-app-family dg-reveal" role="list" aria-label="DigitalGate application family">
+<div class="dg-app" data-app="crm" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-crm"/></svg></span><strong>CRM</strong><span>Customers</span></div>
+<div class="dg-app" data-app="websites" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-websites"/></svg></span><strong>Websites</strong><span>Presence</span></div>
+<div class="dg-app" data-app="brain" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-brain"/></svg></span><strong>Business Brain</strong><span>Context</span></div>
+<div class="dg-app" data-app="advisor" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-advisor"/></svg></span><strong>AI Advisor</strong><span>Reasoning</span></div>
+<div class="dg-app" data-app="automation" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-automation"/></svg></span><strong>Automation</strong><span>Action</span></div>
+<div class="dg-app" data-app="seo" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-seo"/></svg></span><strong>SEO</strong><span>Discovery</span></div>
+<div class="dg-app" data-app="ai-visibility" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-ai-visibility"/></svg></span><strong>AI Visibility</strong><span>AI discovery</span></div>
+<div class="dg-app" data-app="marketing" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-marketing"/></svg></span><strong>Marketing</strong><span>Reach</span></div>
+<div class="dg-app" data-app="reporting" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-reporting"/></svg></span><strong>Reporting</strong><span>Intelligence</span></div>
+<div class="dg-app" data-app="communications" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-communications"/></svg></span><strong>Communications</strong><span>Signals</span></div>
+<div class="dg-app" data-app="property" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-property"/></svg></span><strong>Property</strong><span>Listings</span></div>
+<div class="dg-app" data-app="accommodation" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-accommodation"/></svg></span><strong>Accommodation</strong><span>Stays</span></div>
+<div class="dg-app" data-app="finance" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-finance"/></svg></span><strong>Finance</strong><span>Money flow</span></div>
+<div class="dg-app" data-app="services" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-services"/></svg></span><strong>Services</strong><span>Delivery</span></div>
     </div>
   </div>
-  <div class="dg-journey" aria-label="Product journey">
-    <div class="dg-journey-track">
-      <div class="dg-journey-sticky">
-        <div class="dg-journey-viewport">
-          <div class="dg-journey-rail">
-            <article class="dg-journey-panel is-active">
-              <div class="dg-journey-step"><b>01</b> Connect</div>
-              <h3>Signals arrive</h3>
-              <p>CRM, website, commerce, communications and connectors feed one business context.</p>
-              <div class="dg-ui">
-                <div class="dg-ui-row"><span>New contacts</span><strong>12</strong></div>
-                <div class="dg-ui-row"><span>Opportunities</span><strong>4</strong></div>
-                <div class="dg-ui-row"><span>Need follow-up</span><strong>2</strong></div>
-              </div>
-            </article>
-            <article class="dg-journey-panel is-active">
-              <div class="dg-journey-step"><b>02</b> Understand</div>
-              <h3>Context forms</h3>
-              <p>Business Brain™ and Digital Twin™ interpret what’s happening across the business.</p>
-              <div class="dg-ui">
-                <div class="dg-ui-metric"><strong>78%</strong><span>Coverage</span></div>
-                <div class="dg-ui-bar" aria-hidden="true"><i></i></div>
-                <div class="dg-ui-row"><span>Health signals</span><strong>Stable</strong></div>
-                <div class="dg-ui-row"><span>Open loops</span><strong>3</strong></div>
-              </div>
-            </article>
-            <article class="dg-journey-panel is-active">
-              <div class="dg-journey-step"><b>03</b> Advise</div>
-              <h3>What matters next</h3>
-              <p>AI Advisor prioritises work from live context — not generic tips.</p>
-              <div class="dg-ui">
-                <p class="dg-ui-advice">3 opportunities need attention today.</p>
-                <div class="dg-ui-row"><span>Priority</span><strong>Follow up River Ave</strong></div>
-                <div class="dg-ui-row"><span>Why</span><strong>No contact in 5 days</strong></div>
-              </div>
-            </article>
-            <article class="dg-journey-panel is-active">
-              <div class="dg-journey-step"><b>04</b> Act</div>
-              <h3>Human-approved action</h3>
-              <p>Create a task, send a draft, update an opportunity or launch automation — with oversight.</p>
-              <div class="dg-ui">
-                <div class="dg-ui-row"><span>Action</span><strong>Follow up lead</strong></div>
-                <div class="dg-ui-row"><span>Channel</span><strong>Email draft</strong></div>
-                <span class="dg-ui-cta">Approve &amp; send <em>→</em></span>
-              </div>
-            </article>
-            <article class="dg-journey-panel is-active">
-              <div class="dg-journey-step"><b>05</b> Learn</div>
-              <h3>Outcome returns</h3>
-              <p>Results flow back into Twin, Brain and signals — so the next decision is sharper.</p>
-              <div class="dg-ui">
-                <div class="dg-ui-row"><span>Opportunity</span><strong>→ Contacted</strong></div>
-                <div class="dg-ui-row"><span>Signal</span><strong>Engagement +1</strong></div>
-                <div class="dg-ui-row"><span>Next</span><strong>Schedule appraisal</strong></div>
-              </div>
-            </article>
+</section>
+
+
+<!-- Dedicated app-family capture strip -->
+<section id="dg-app-family" class="dg-hp-alt" aria-label="DigitalGate Apps icon family">
+  <div class="dg-hp-wrap">
+    <div class="dg-reveal">
+      <span class="dg-hp-kicker">DigitalGate Apps</span>
+      <h2>The application family.</h2>
+      <p class="dg-hp-lead">Fourteen specialised capabilities. One OS language — graphite tiles, violet illumination, unique silhouettes.</p>
+    </div>
+    <div class="dg-app-family dg-reveal" role="list">
+<div class="dg-app" data-app="crm" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-crm"/></svg></span><strong>CRM</strong><span>Customers</span></div>
+<div class="dg-app" data-app="websites" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-websites"/></svg></span><strong>Websites</strong><span>Presence</span></div>
+<div class="dg-app" data-app="brain" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-brain"/></svg></span><strong>Business Brain</strong><span>Context</span></div>
+<div class="dg-app" data-app="advisor" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-advisor"/></svg></span><strong>AI Advisor</strong><span>Reasoning</span></div>
+<div class="dg-app" data-app="automation" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-automation"/></svg></span><strong>Automation</strong><span>Action</span></div>
+<div class="dg-app" data-app="seo" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-seo"/></svg></span><strong>SEO</strong><span>Discovery</span></div>
+<div class="dg-app" data-app="ai-visibility" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-ai-visibility"/></svg></span><strong>AI Visibility</strong><span>AI discovery</span></div>
+<div class="dg-app" data-app="marketing" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-marketing"/></svg></span><strong>Marketing</strong><span>Reach</span></div>
+<div class="dg-app" data-app="reporting" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-reporting"/></svg></span><strong>Reporting</strong><span>Intelligence</span></div>
+<div class="dg-app" data-app="communications" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-communications"/></svg></span><strong>Communications</strong><span>Signals</span></div>
+<div class="dg-app" data-app="property" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-property"/></svg></span><strong>Property</strong><span>Listings</span></div>
+<div class="dg-app" data-app="accommodation" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-accommodation"/></svg></span><strong>Accommodation</strong><span>Stays</span></div>
+<div class="dg-app" data-app="finance" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-finance"/></svg></span><strong>Finance</strong><span>Money flow</span></div>
+<div class="dg-app" data-app="services" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-services"/></svg></span><strong>Services</strong><span>Delivery</span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ========== Industries ========== -->
+<section id="industries">
+  <div class="dg-hp-wrap">
+    <div class="dg-reveal">
+      <span class="dg-hp-kicker">Industry transformation</span>
+      <h2>Same intelligence architecture. Different business workflow.</h2>
+      <p class="dg-hp-lead">The Platform Core stays stable. Specialised workflow architecture changes around it — not four unrelated products.</p>
+    </div>
+    <div class="dg-hp-industries dg-reveal">
+      <div class="dg-hp-ind-spine"><strong>Stable core</strong><span>One Twin · one Brain · one permission model</span></div>
+      <div class="dg-hp-ind-flows">
+        <div class="dg-hp-ind-flow"><strong>Property</strong><div class="dg-hp-flow-steps"><span>Lead</span><i>→</i><span>Appraisal</span><i>→</i><span>Listing</span><i>→</i><span>Offer</span><i>→</i><span>Settlement</span></div></div>
+        <div class="dg-hp-ind-flow"><strong>Services</strong><div class="dg-hp-flow-steps"><span>Enquiry</span><i>→</i><span>Quote</span><i>→</i><span>Job</span><i>→</i><span>Invoice</span><i>→</i><span>Review</span></div></div>
+        <div class="dg-hp-ind-flow"><strong>Hospitality</strong><div class="dg-hp-flow-steps"><span>Booking</span><i>→</i><span>Guest</span><i>→</i><span>Stay</span><i>→</i><span>Operations</span><i>→</i><span>Revenue</span></div></div>
+        <div class="dg-hp-ind-flow"><strong>Finance</strong><div class="dg-hp-flow-steps"><span>Lead</span><i>→</i><span>Qualify</span><i>→</i><span>Application</span><i>→</i><span>Compliance</span><i>→</i><span>Close</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ========== Digital Presence ========== -->
+<section class="dg-hp-alt" id="presence">
+  <div class="dg-hp-wrap">
+    <div class="dg-hp-presence">
+      <div class="dg-reveal">
+        <span class="dg-hp-kicker">Digital Presence</span>
+        <h2>Your business understands itself — and the outside world can understand it too.</h2>
+        <p class="dg-hp-lead">Internal intelligence propagates outward through website, structured content, SEO, AI Visibility, reputation and marketing. Discovery, enquiries and behaviour flow back in.</p>
+        <p class="dg-hp-presence-note"><strong>AI Visibility</strong> — how clearly AI systems can understand, evaluate and confidently surface the business, measured from real presence signals.</p>
+      </div>
+      <div class="dg-reveal" aria-hidden="true">
+        <svg viewBox="0 0 420 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="30" y="50" width="120" height="120" rx="12" stroke="#A78BFA" stroke-width="1.4" fill="rgba(124,58,237,0.1)"/>
+          <text x="90" y="105" text-anchor="middle" fill="#C4B5FD" font-size="11" font-family="Inter,sans-serif" font-weight="800">CORE</text>
+          <text x="90" y="122" text-anchor="middle" fill="#94A3B8" font-size="9" font-family="Inter,sans-serif">Twin · Brain</text>
+          <path d="M150 110 H190" stroke="#7C3AED" stroke-width="1.3"/>
+          <rect x="190" y="70" width="90" height="80" rx="8" stroke="#22D3EE" stroke-width="1.4" fill="rgba(34,211,238,0.08)"/>
+          <text x="235" y="115" text-anchor="middle" fill="#67E8F9" font-size="10" font-family="Inter,sans-serif" font-weight="800">PRESENCE</text>
+          <path d="M280 110 H320" stroke="#22D3EE" stroke-width="1.3"/>
+          <circle cx="350" cy="80" r="14" stroke="#94A3B8" stroke-width="1.2"/><text x="350" y="84" text-anchor="middle" fill="#94A3B8" font-size="8" font-family="Inter,sans-serif">SEO</text>
+          <circle cx="380" cy="120" r="14" stroke="#67E8F9" stroke-width="1.2"/><text x="380" y="124" text-anchor="middle" fill="#67E8F9" font-size="7" font-family="Inter,sans-serif">AI Vis</text>
+          <circle cx="350" cy="160" r="14" stroke="#94A3B8" stroke-width="1.2"/><text x="350" y="164" text-anchor="middle" fill="#94A3B8" font-size="7" font-family="Inter,sans-serif">Web</text>
+          <path d="M350 174 C 280 205, 120 205, 90 170" stroke="#34D399" stroke-width="1.25" stroke-dasharray="4 5"/>
+          <text x="210" y="212" text-anchor="middle" fill="#34D399" font-size="10" font-family="Inter,sans-serif" font-weight="700">discovery &amp; enquiries return</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ========== SCENE C ========== -->
+<section class="dg-scene" id="scene-architecture-product" data-dg-scene="architecture-product" data-dg-scene-mobile="step" data-phase="abstract">
+  <div class="dg-scene-track">
+    <div class="dg-scene-sticky">
+      <div class="dg-scene-inner">
+        <div class="dg-scene-copy">
+          <span class="dg-hp-kicker">Abstract → product</span>
+          <h2>This isn’t a concept diagram. This is the platform.</h2>
+          <p class="dg-hp-lead">Architecture lines align to interface boundaries. Conceptual modules resolve into live DigitalGate surfaces — not a simple crossfade.</p>
+        </div>
+        <div class="dg-scene-stage">
+          <div class="dg-scene-phase-label dg-phase-text" aria-live="polite"></div>
+
+<svg viewBox="0 0 960 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Abstract DigitalGate architecture aligning into the real product interface">
+  <g class="sc-abstract">
+    <circle cx="160" cy="100" r="36" stroke="#A78BFA" stroke-width="1.4" fill="rgba(124,58,237,0.12)"/>
+    <circle cx="160" cy="100" r="9" fill="#C4B5FD"/>
+    <circle cx="80" cy="48" r="13" stroke="#3B82F6" stroke-width="1.2" fill="rgba(15,23,42,0.9)"/>
+    <circle cx="250" cy="48" r="13" stroke="#22D3EE" stroke-width="1.2" fill="rgba(15,23,42,0.9)"/>
+    <circle cx="80" cy="152" r="13" stroke="#A78BFA" stroke-width="1.2" fill="rgba(15,23,42,0.9)"/>
+    <circle cx="250" cy="152" r="13" stroke="#34D399" stroke-width="1.2" fill="rgba(15,23,42,0.9)"/>
+    <path d="M93 58 L138 86 M237 58 L182 86 M93 142 L138 114 M237 142 L182 114" stroke="#64748B" stroke-width="1.2"/>
+    <text x="160" y="188" text-anchor="middle" fill="#94A3B8" font-size="11" font-family="Inter,sans-serif" font-weight="700">Architecture</text>
+  </g>
+  <g class="sc-frame">
+    <path d="M340 28 H620 V172 H340 Z" stroke="#6366F1" stroke-width="1.6" fill="rgba(99,102,241,0.05)" pathLength="220"/>
+    <path d="M360 58 H600 M360 90 H540 M360 122 H580 M360 148 H500" stroke="#818CF8" stroke-width="1.15" pathLength="220"/>
+    <text x="480" y="190" text-anchor="middle" fill="#A5B4FC" font-size="11" font-family="Inter,sans-serif" font-weight="700">Interface boundaries</text>
+  </g>
+  <g class="sc-product">
+    <rect x="660" y="28" width="260" height="144" rx="14" stroke="#22D3EE" stroke-width="1.5" fill="rgba(34,211,238,0.06)"/>
+    <rect x="678" y="46" width="90" height="14" rx="4" fill="rgba(167,139,250,0.35)"/>
+    <rect x="678" y="74" width="224" height="8" rx="3" fill="rgba(148,163,184,0.25)"/>
+    <rect x="678" y="92" width="180" height="8" rx="3" fill="rgba(148,163,184,0.18)"/>
+    <rect x="678" y="118" width="70" height="36" rx="8" stroke="#7C3AED" stroke-opacity="0.5" fill="rgba(124,58,237,0.12)"/>
+    <rect x="760" y="118" width="70" height="36" rx="8" stroke="#3B82F6" stroke-opacity="0.5" fill="rgba(59,130,246,0.1)"/>
+    <rect x="842" y="118" width="60" height="36" rx="8" stroke="#34D399" stroke-opacity="0.5" fill="rgba(16,185,129,0.1)"/>
+    <text x="790" y="190" text-anchor="middle" fill="#67E8F9" font-size="11" font-family="Inter,sans-serif" font-weight="800">Live DigitalGate UI</text>
+  </g>
+</svg>
+
+          <div class="dg-scene-product-grid sc-product">
+            <figure><img src="/marketing/screenshots/dashboard-overview.png" alt="DigitalGate Business Overview" width="1440" height="900" loading="lazy"/><figcaption><strong>Business Overview</strong>Operating state and priorities</figcaption></figure>
+            <figure><img src="/marketing/screenshots/crm-contacts.png" alt="DigitalGate CRM contacts" width="1440" height="900" loading="lazy"/><figcaption><strong>CRM</strong>One customer record</figcaption></figure>
+            <figure><img src="/marketing/screenshots/ai-assistant.png" alt="DigitalGate AI Advisor" width="1440" height="900" loading="lazy"/><figcaption><strong>AI Advisor</strong>Context into recommended action</figcaption></figure>
           </div>
         </div>
       </div>
     </div>
-    <div class="dg-journey-end">
-      <p>Your business gets smarter with every interaction.</p>
-    </div>
   </div>
-  <div class="container">
-    <div class="arch-across">
-      <p>Shared intelligence operates <strong style="color:#CBD5E1;font-weight:600;">across</strong> Core and Apps:</p>
-      <div class="apps-row">
-        <span class="app-chip">AI</span>
-        <span class="app-chip">Event Bus</span>
-        <span class="app-chip">Digital Twin</span>
-        <span class="app-chip">Intelligence</span>
-        <span class="app-chip">Connectors</span>
-      </div>
+</section>
+
+
+<!-- ========== Extra product proof ========== -->
+<section id="platform-screenshots" class="dg-hp-alt">
+  <div class="dg-hp-wrap">
+    <div class="dg-reveal">
+      <span class="dg-hp-kicker">In production</span>
+      <h2>Real DigitalGate product evidence.</h2>
+      <p class="dg-hp-lead">Live surfaces — not mockups invented for a landing page.</p>
+    </div>
+    <div class="dg-hp-shots">
+      <figure class="dg-hp-shot dg-reveal"><img src="/marketing/screenshots/website-health.png" alt="DigitalGate Website Studio health" loading="lazy" width="1440" height="900"/><figcaption><strong>Website Studio</strong><span>Presence on the same core</span></figcaption></figure>
+      <figure class="dg-hp-shot dg-reveal"><img src="/marketing/screenshots/vendor-pipeline.png" alt="DigitalGate automation pipeline" loading="lazy" width="1440" height="900"/><figcaption><strong>Automation</strong><span>Workflow on shared context</span></figcaption></figure>
+      <figure class="dg-hp-shot dg-reveal"><img src="/marketing/screenshots/ai-visibility.png" alt="DigitalGate AI Visibility" loading="lazy" width="1440" height="900"/><figcaption><strong>AI Visibility</strong><span>Honest presence readiness</span></figcaption></figure>
     </div>
   </div>
 </section>
 
-<!-- ===== PLATFORM CORE ===== -->
-<section id="platform-core">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">CORE</span>
-      <h2>One system — business, intelligence and growth</h2>
-      <p>These aren’t separate products. They form one connected operating layer every customer receives on day one.</p>
+
+<!-- ========== Founding 10 ========== -->
+<section id="founding">
+  <div class="dg-hp-wrap" style="text-align:center;">
+    <div class="dg-reveal">
+      <span class="dg-hp-kicker">Founding 10</span>
+      <h2 style="margin-left:auto;margin-right:auto;">Be among the first.</h2>
+      <p class="dg-hp-lead" style="margin-left:auto;margin-right:auto;">A limited founding cohort with priority onboarding, early access, and a real seat at shaping the platform — at standard published pricing.</p>
     </div>
-    <div class="dg-core-arch">
-      <div class="dg-core-band dg-reveal">
-        <h3>Business</h3>
-        <div class="apps-row">
-          <span class="app-chip">CRM</span>
-          <span class="app-chip">Commerce</span>
-          <span class="app-chip">Communications</span>
-          <span class="app-chip">Documents</span>
-          <span class="app-chip">Design Studio</span>
-          <span class="app-chip">Infrastructure</span>
-        </div>
-      </div>
-      <div class="dg-core-arrow" aria-hidden="true">↓</div>
-      <div class="dg-core-band dg-reveal">
-        <h3>Intelligence</h3>
-        <div class="apps-row">
-          <span class="app-chip">Business Brain</span>
-          <span class="app-chip">Digital Twin</span>
-          <span class="app-chip">Business Health</span>
-          <span class="app-chip">AI Advisor</span>
-        </div>
-      </div>
-      <div class="dg-core-arrow" aria-hidden="true">↓</div>
-      <div class="dg-core-band dg-reveal">
-        <h3>Growth</h3>
-        <div class="apps-row">
-          <a class="app-chip" href="/prospecting/">Prospecting</a>
-          <a class="app-chip" href="/seo/">SEO</a>
-          <a class="app-chip" href="/ai-visibility/">AI Visibility</a>
-          <a class="app-chip" href="/automation/">Automation</a>
-          <a class="app-chip" href="/analytics/">Analytics</a>
-          <a class="app-chip" href="/reputation/">Reputation</a>
-        </div>
-      </div>
+    <div class="dg-hp-founding-points dg-reveal">
+      <div>Limited founding cohort</div><div>Priority onboarding</div><div>Early access</div><div>Shape the platform</div>
+    </div>
+    <div class="dg-hp-ctas dg-reveal" style="justify-content:center;">
+      <a class="btn-primary" href="https://digitalgate.com.au/founding-customers/#application">Apply for Founding 10 →</a>
+      <a class="btn-secondary" href="https://audit.digitalgate.com.au">Get My Free Business Audit →</a>
     </div>
   </div>
 </section>
 
-<!-- ===== APPS ===== -->
-<section class="alt" id="apps">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">MODULAR APPS</span>
-      <h2>Core → Infrastructure → Industry → Growth</h2>
-      <p>Add only what your business needs — without replacing your foundation. Industry Apps are specialised layers; not every vertical is fully developed yet.</p>
-    </div>
 
-    <div class="apps-block">
-      <h3>Core</h3>
-      <p class="logic">Run your business</p>
-      <div class="apps-row">
-        <a class="app-chip" href="/apps/core/crm/">CRM</a>
-        <a class="app-chip" href="/apps/core/opportunities/">Opportunities</a>
-        <a class="app-chip" href="/apps/core/tasks/">Tasks</a>
-        <a class="app-chip" href="/apps/core/communications/">Communications</a>
-      </div>
+<!-- ========== Final resolution ========== -->
+<section class="dg-hp-final" id="resolve">
+  <div class="dg-hp-wrap">
+    <div class="dg-hp-final-state dg-reveal">
+      <article class="is-before"><strong>Opening state</strong><ul><li>Systems isolated</li><li>Signals broken</li><li>Context fragmented</li></ul></article>
+      <article class="is-after"><strong>Resolved state</strong><ul><li>Systems connected</li><li>Shared context established</li><li>Intelligence active · actions governed · outcomes returning</li></ul></article>
     </div>
-
-    <div class="apps-block">
-      <h3>Infrastructure</h3>
-      <p class="logic">Operate your digital presence</p>
-      <div class="apps-row">
-        <a class="app-chip" href="/apps/infrastructure/website/">Website · Domains · Email</a>
-      </div>
+    <div class="dg-hp-resolve-pillars dg-reveal" aria-label="Coherent business outcomes">
+      <span>Connected</span><span>Understood</span><span>Governed</span><span>Learning</span>
     </div>
-
-    <div class="apps-block">
-      <h3>Industry Apps</h3>
-      <p class="logic">Specialise your workflows</p>
-      <div class="apps-row">
-        <a class="app-chip" href="/apps/industry/property/">Property</a>
-        <a class="app-chip" href="/apps/industry/services/">Services</a>
-        <a class="app-chip" href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation</a>
-        <a class="app-chip" href="/apps/industry/">All Industry Apps</a>
-      </div>
-    </div>
-
-    <div class="apps-block">
-      <h3>Growth</h3>
-      <p class="logic">Grow visibility, acquisition and conversion</p>
-      <div class="apps-row">
-        <a class="app-chip" href="/prospecting/">Prospecting &amp; Opportunity Engine</a>
-        <a class="app-chip" href="/ai-visibility/">AI Visibility</a>
-        <a class="app-chip" href="/seo/">SEO</a>
-        <a class="app-chip" href="/automation/">Automation</a>
-        <a class="app-chip" href="/analytics/">Analytics</a>
-        <a class="app-chip" href="/social/">Social</a>
-      </div>
-      <p style="margin-top:0.75rem;font-size:0.88rem;"><a href="/growth/" style="color:#93C5FD;font-weight:600;">Explore Growth capabilities →</a></p>
-    </div>
-
-    <p style="text-align:center;margin-top:2rem;"><a href="/apps/" class="btn-secondary">Explore the Apps hub →</a></p>
-  </div>
-</section>
-
-<!-- ===== DIGITAL TWIN ===== -->
-<section id="digital-twin">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">INTELLIGENCE LAYER</span>
-      <h2>Your Business Digital Twin™</h2>
-      <p><strong style="color:#E2E8F0;font-weight:700;">Your business has a Digital Twin™</strong> — a living business context that helps DigitalGate understand what is happening, and what should happen next.</p>
-    </div>
-    <div class="twin-card">
-      <h3>Every connected system contributes to your business context</h3>
-      <p>As you connect CRM, website, marketing, reviews, revenue and more, your Digital Twin builds a clearer picture of customers, opportunities and performance — so recommendations and priorities stay grounded in how your business actually operates.</p>
-      <div class="twin-pills">
-        <span>Customers</span><span>Opportunities</span><span>Marketing</span><span>Website</span>
-        <span>SEO</span><span>AI Visibility</span><span>Revenue</span><span>Automation</span>
-        <span>Reviews</span><span>Growth</span>
-      </div>
+    <h2 class="dg-reveal">Your business already has the pieces. DigitalGate makes them work as one.</h2>
+    <p class="dg-hp-lead dg-reveal" style="margin-left:auto;margin-right:auto;">Enter DigitalGate. Connect the parts. Give the business a brain. Keep accountability where it belongs.</p>
+    <div class="dg-hp-ctas dg-reveal" style="justify-content:center;">
+      <a class="btn-primary" href="https://digitalgate.com.au/founding-customers/#application">Apply for Founding 10 →</a>
+      <a class="btn-secondary" href="https://digitalgate.com.au/apps/">Explore Apps →</a>
+      <a class="btn-secondary" href="https://audit.digitalgate.com.au">Get My Free Business Audit →</a>
     </div>
   </div>
 </section>
 
-<!-- ===== CONNECTED BUSINESS → BUSINESS BRAIN ===== -->
-<section class="alt" id="connected-business">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">CONNECTED BUSINESS</span>
-      <h2>From disconnected tools to a connected business</h2>
-      <p>Your business shouldn’t have to rely on you to connect everything together.</p>
-    </div>
-    <div class="connected-block">
-      <div class="connected-copy">
-        <p>DigitalGate brings your CRM, website, marketing, communications, commerce, operations and growth systems into one connected platform.</p>
-        <p><strong>One business context. One source of truth. One place to understand what is happening.</strong></p>
-        <h3>Then give your business a brain.</h3>
-        <p>Once your business is connected, AI can work with the context behind it.</p>
-        <p>DigitalGate’s Business Brain™ uses your business information, Digital Twin, goals, knowledge and connected activity to help you understand what’s happening, decide what matters and take action.</p>
-      </div>
-      <div class="brain-panel" aria-hidden="true">
-        <div class="brain-panel-core">Business Brain™</div>
-        <div class="brain-chips">
-          <span>Customers</span>
-          <span>CRM</span>
-          <span>Website</span>
-          <span>Marketing</span>
-          <span>Commerce</span>
-          <span>Operations</span>
-          <span>Analytics</span>
-          <span>Automation</span>
-        </div>
-      </div>
-      <div class="flywheel" aria-label="Connect Centralise Understand Think Act Learn Grow">
-        <span>Connect</span><span>Centralise</span><span>Understand</span><span>Think</span>
-        <span>Act</span><span>Learn</span><span>Grow</span>
-      </div>
-      <p class="connected-cta"><a href="/business-brain/" class="btn-secondary">Explore Business Brain™ →</a></p>
-    </div>
-  </div>
-</section>
-
-<!-- ===== WHAT DIGITALGATE CONNECTS ===== -->
-<section id="connects">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">ECOSYSTEM</span>
-      <h2>What DigitalGate connects</h2>
-      <p>When everything connects into one business context, your platform understands — and can act — on what matters.</p>
-    </div>
-    <p class="eco-note">Solid tiles are in active use. Dashed tiles expand as the platform grows.</p>
-    <div class="eco-grid">
-      <div class="eco-node">Website</div>
-      <div class="eco-node">CRM</div>
-      <div class="eco-node">Documents</div>
-      <div class="eco-node">Automation</div>
-      <div class="eco-node">Email</div>
-      <div class="eco-node">AI</div>
-      <div class="eco-node">Reviews</div>
-      <div class="eco-node">Bookings</div>
-      <div class="eco-node">Payments</div>
-      <div class="eco-node">Industry Software</div>
-      <div class="eco-node">Analytics</div>
-      <div class="eco-node planned">Marketing</div>
-      <div class="eco-node planned">Google</div>
-      <div class="eco-node planned">Social Media</div>
-      <div class="eco-node planned">SMS</div>
-      <div class="eco-node planned">AI Communications</div>
-    </div>
-    <div class="eco-gate">
-      <strong class="gate-title">DigitalGate Platform</strong>
-      <span>One connected business operating system</span>
-    </div>
-    <p class="eco-result">↓ One Connected Business ↓</p>
-  </div>
-</section>
-
-<!-- ===== AI THROUGHOUT ===== -->
-<section class="alt" id="ai">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">AI-POWERED</span>
-      <h2>AI Throughout Your Business</h2>
-      <p>Connected business data makes AI useful — not generic. Available capabilities today; deeper AI evolving on the same foundation.</p>
-    </div>
-    <p class="ai-split-label">Available / Early Access</p>
-    <div class="ai-grid">
-      <div class="ai-card dg-reveal"><span class="ai-badge now">Early Access</span><div class="icon">🧠</div><h4>AI Business Advisor</h4><p>Daily briefing and strategic priorities</p></div>
-      <div class="ai-card dg-reveal"><span class="ai-badge now">Early Access</span><div class="icon">💡</div><h4>AI Recommendations</h4><p>Priorities grounded in connected business data</p></div>
-      <div class="ai-card dg-reveal"><span class="ai-badge now">Available</span><div class="icon">✍️</div><h4>AI Content</h4><p>Emails, pages and campaign copy</p></div>
-      <div class="ai-card dg-reveal"><span class="ai-badge now">Early Access</span><div class="icon">🎯</div><h4>AI Lead Qualification</h4><p>Score and route leads with human oversight</p></div>
-      <div class="ai-card dg-reveal"><span class="ai-badge now">Available</span><div class="icon">🔍</div><h4>AI Visibility Optimisation</h4><p>Readiness for Google and AI search</p></div>
-      <div class="ai-card dg-reveal"><span class="ai-badge now">Early Access</span><div class="icon">📊</div><h4>AI Reports</h4><p>Executive summaries from live data</p></div>
-    </div>
-    <p class="ai-split-label">Evolving</p>
-    <div class="ai-grid">
-      <div class="ai-card evolving dg-reveal"><span class="ai-badge soon">In Development</span><div class="icon">🎙️</div><h4>AI Voice Agents</h4><p>Inbound calls and lead qualification</p></div>
-      <div class="ai-card evolving dg-reveal"><span class="ai-badge soon">In Development</span><div class="icon">⚡</div><h4>Advanced Workflow Builder</h4><p>Visual multi-step automation</p></div>
-      <div class="ai-card evolving dg-reveal"><span class="ai-badge soon">Coming Soon</span><div class="icon">📈</div><h4>Deeper Business Intelligence</h4><p>Richer patterns across your Digital Twin</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== INDUSTRIES ===== -->
-<section id="industries">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">INDUSTRY APPS</span>
-      <h2>Built for how real businesses operate</h2>
-      <p>Industry Apps specialise the Core. Templates underneath match your workflows — not disconnected vertical tools.</p>
-    </div>
-    <div class="dg-ind-grid">
-      <article class="dg-ind-card dg-reveal">
-        <div class="eyebrow">Available</div>
-        <h3>Property</h3>
-        <p>Real Estate · Property Management · Commercial · Development · Buyers Agency</p>
-        <div class="dg-flow" aria-label="Real Estate workflow">
-          <span>Vendors</span><i>→</i><span>Appraisals</span><i>→</i><span>Listings</span><i>→</i><span>Buyers</span><i>→</i><span>Offers</span><i>→</i><span>Settlement</span>
-        </div>
-        <p class="dg-ind-subs"><a href="/apps/industry/property/" style="color:#93C5FD;text-decoration:none;font-weight:700;">Explore Property →</a></p>
-      </article>
-      <article class="dg-ind-card dg-reveal">
-        <div class="eyebrow">Available</div>
-        <h3>Services</h3>
-        <p>Trades · Cleaning · Maintenance · Facilities · Field Services</p>
-        <div class="dg-flow">
-          <span>Enquiry</span><i>→</i><span>Quote</span><i>→</i><span>Job</span><i>→</i><span>Invoice</span><i>→</i><span>Review</span>
-        </div>
-        <p class="dg-ind-subs"><a href="/apps/industry/services/" style="color:#93C5FD;text-decoration:none;font-weight:700;">Explore Services →</a></p>
-      </article>
-      <article class="dg-ind-card dg-reveal">
-        <div class="eyebrow">Early Access</div>
-        <h3>Hospitality</h3>
-        <p>Accommodation · Hotels · Resorts · Venues</p>
-        <div class="dg-flow">
-          <span>Booking</span><i>→</i><span>Guest</span><i>→</i><span>Stay</span><i>→</i><span>Operations</span><i>→</i><span>Revenue</span>
-        </div>
-        <p class="dg-ind-subs"><a href="/apps/industry/hospitality-accommodation/" style="color:#93C5FD;text-decoration:none;font-weight:700;">Explore Hospitality →</a></p>
-      </article>
-      <article class="dg-ind-card dg-reveal">
-        <div class="eyebrow">Early Access</div>
-        <h3>Finance</h3>
-        <p>Accounting · Bookkeeping · Mortgage · Finance Broking · Insurance</p>
-        <div class="dg-flow">
-          <span>Lead</span><i>→</i><span>Qualify</span><i>→</i><span>Application</span><i>→</i><span>Compliance</span><i>→</i><span>Close</span>
-        </div>
-        <p class="dg-ind-subs"><a href="/apps/industry/finance/" style="color:#93C5FD;text-decoration:none;font-weight:700;">Explore Finance →</a></p>
-      </article>
-    </div>
-    <div class="ind-tiers">
-      <div class="ind-tier dg-reveal">
-        <h4>Available</h4>
-        <ul>
-          <li><a href="/apps/industry/property/">Property</a> <span style="color:#64748B;">· Templates: Real Estate, PM, Commercial…</span></li>
-          <li><a href="/apps/industry/services/">Services</a></li>
-        </ul>
-      </div>
-      <div class="ind-tier dg-reveal">
-        <h4>Early Access</h4>
-        <ul>
-          <li><a href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation</a></li>
-          <li><a href="/apps/industry/finance/">Finance</a></li>
-          <li><a href="/apps/industry/creator/">Creator &amp; Media</a></li>
-        </ul>
-      </div>
-      <div class="ind-tier dg-reveal">
-        <h4>Coming Soon</h4>
-        <ul>
-          <li><a href="/apps/industry/automotive/">Automotive</a></li>
-          <li>Professional · Retail · Health · Transport · Education</li>
-          <li>Agriculture &amp; Primary <span style="color:#64748B;">· Reserved</span></li>
-        </ul>
-      </div>
-    </div>
-    <p style="text-align:center;margin-top:2rem;"><a href="/apps/" class="btn-secondary">Explore all DigitalGate Apps →</a></p>
-  </div>
-</section>
-
-<!-- ===== WHY DIGITALGATE ===== -->
-<section class="alt" id="why">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">WHY DIGITALGATE</span>
-      <h2>One business context. One platform. One source of truth.</h2>
-      <p>An intelligent layer that grows with you — not a pile of disconnected tools.</p>
-    </div>
-    <div class="why-grid">
-      <div class="why-item dg-reveal"><strong>One</strong> business context</div>
-      <div class="why-item dg-reveal"><strong>One</strong> platform</div>
-      <div class="why-item dg-reveal"><strong>One</strong> source of truth</div>
-      <div class="why-item dg-reveal"><strong>One</strong> intelligence layer</div>
-      <div class="why-item dg-reveal"><strong>Grows</strong> with you</div>
-      <div class="why-item dg-reveal"><strong>Honest</strong> about what&apos;s ready</div>
-    </div>
-    <div class="not-a">
-      <span>Not just a CRM</span>
-      <span>Not just a website</span>
-      <span>Not just SEO</span>
-      <span>Not just automation</span>
-    </div>
-    <p class="is-a">DigitalGate connects them into one business operating system.</p>
-  </div>
-</section>
-
-<!-- ===== PLATFORM SCREENSHOTS + PROOF ===== -->
-<section class="screenshots-home" id="platform-screenshots">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">SEE THE PLATFORM</span>
-      <h2>See DigitalGate in production</h2>
-      <p>Built, deployed and refined through real businesses.</p>
-    </div>
-    <div class="shot-masonry">
-      <div class="shot-frame dg-reveal">
-        <img src="https://app.digitalgate.com.au/marketing/screenshots/dashboard-overview.png" alt="DigitalGate Business Overview dashboard" loading="lazy" width="640" height="400">
-        <div class="shot-caption"><span class="shot-label">Dashboard</span><span class="shot-title">Business Overview</span><span class="shot-sub">Health score and AI briefing</span></div>
-      </div>
-      <div class="shot-frame dg-reveal">
-        <img src="https://app.digitalgate.com.au/marketing/screenshots/crm-contacts.png" alt="DigitalGate CRM contacts" loading="lazy" width="640" height="400">
-        <div class="shot-caption"><span class="shot-label">CRM</span><span class="shot-title">Contacts &amp; Timeline</span><span class="shot-sub">One customer record</span></div>
-      </div>
-      <div class="shot-frame dg-reveal">
-        <img src="https://app.digitalgate.com.au/marketing/screenshots/vendor-pipeline.png" alt="DigitalGate vendor pipeline" loading="lazy" width="640" height="400">
-        <div class="shot-caption"><span class="shot-label">Real Estate</span><span class="shot-title">Vendor Pipeline</span><span class="shot-sub">Live on Roe Realty</span></div>
-      </div>
-    </div>
-    <p class="shot-grid-hint">Click any screenshot to enlarge</p>
-    <div class="stories" style="margin-top:2rem;">
-      <div class="story-logo"><strong>DigitalGate</strong><span>Command Centre · Live</span></div>
-      <div class="story-logo"><strong>Roe Realty</strong><span>Real Estate · Live</span></div>
-      <div class="story-logo"><strong>Currumbin Valley Hideaway</strong><span>Hospitality &amp; Accommodation · Live</span></div>
-    </div>
-    <p style="text-align:center;margin-top:1.5rem;"><a href="/pricing#screenshots" class="btn-secondary">View all platform screenshots →</a></p>
-  </div>
-</section>
-
-</div><!-- /dg-motion-root -->
-<!-- ===== FOUNDING CUSTOMER PROGRAMME ===== -->
-<section class="alt" id="founding">
-  <div class="container">
-    <div class="section-header">
-      <span class="sub-label">FOUNDING 10</span>
-      <h2>Be among the first businesses to operate on DigitalGate</h2>
-      <p>The first 10 businesses receive the strongest founding programme advantage — limited access, priority onboarding, influence and referral rates — at standard published pricing.</p>
-      <p style="margin-top:0.75rem;color:#CBD5E1;font-weight:600;">10 places only.</p>
-    </div>
-    <div class="hero-ctas" style="justify-content:center;">
-      <a href="https://digitalgate.com.au/founding-customers/#application" class="btn-primary">Apply for Founding 10 →</a>
-    </div>
-    <p style="text-align:center;margin-top:1.5rem;color:#94A3B8;font-size:0.92rem;">Prefer to see what DigitalGate would find in your business first?</p>
-    <div class="hero-ctas" style="justify-content:center;margin-top:0.75rem;">
-      <a href="https://audit.digitalgate.com.au" class="btn-secondary">Get My Free Business Audit →</a>
-    </div>
-  </div>
-</section>
-
-<!-- ===== CTA ===== -->
-<section class="cta-section">
-  <div class="container">
-    <h2>Your business is already running on systems.</h2>
-    <p>The question is whether those systems are working together.</p>
-    <p style="margin-top:0.75rem;">DigitalGate brings your business context, operations, digital presence, AI and automation onto one platform.</p>
-    <div class="hero-ctas">
-      <a href="https://digitalgate.com.au/founding-customers/#application" class="btn-primary">Apply for Founding 10 →</a>
-      <a href="https://audit.digitalgate.com.au" class="btn-secondary">Get My Free Business Audit →</a>
-    </div>
-  </div>
-</section>
-
-<script>
-(function () {
-  var hero = document.querySelector('.hero-home');
-  if (!hero) return;
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-  var fine = window.matchMedia('(hover: hover) and (pointer: fine)');
-  var raf = 0;
-  var tx = 0, ty = 0, cx = 0, cy = 0;
-
-  function enabled() {
-    return !reduce.matches && fine.matches;
-  }
-
-  function onMove(e) {
-    if (!enabled()) return;
-    var r = hero.getBoundingClientRect();
-    tx = ((e.clientX - r.left) / r.width - 0.5) * 2;
-    ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
-    if (!raf) raf = requestAnimationFrame(tick);
-  }
-
-  function tick() {
-    cx += (tx - cx) * 0.08;
-    cy += (ty - cy) * 0.08;
-    hero.style.setProperty('--hx', cx.toFixed(3));
-    hero.style.setProperty('--hy', cy.toFixed(3));
-    if (Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001) {
-      raf = requestAnimationFrame(tick);
-    } else {
-      raf = 0;
-    }
-  }
-
-  function reset() {
-    tx = 0; ty = 0;
-    if (!raf) raf = requestAnimationFrame(tick);
-  }
-
-  function bind() {
-    hero.addEventListener('pointermove', onMove, { passive: true });
-    hero.addEventListener('pointerleave', reset);
-  }
-
-  function unbind() {
-    hero.removeEventListener('pointermove', onMove);
-    hero.removeEventListener('pointerleave', reset);
-    hero.style.setProperty('--hx', '0');
-    hero.style.setProperty('--hy', '0');
-  }
-
-  function sync() {
-    unbind();
-    if (enabled()) bind();
-  }
-
-  sync();
-  if (reduce.addEventListener) {
-    reduce.addEventListener('change', sync);
-    fine.addEventListener('change', sync);
-  }
-})();
-</script>
+</div>
