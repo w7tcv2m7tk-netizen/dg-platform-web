@@ -530,1025 +530,262 @@ export const digitalgateVisualStorytellingCss = `
 }
 
 /* ===========================================================================
-   DigitalGate visual STAGES (#48) — editorial scenes woven through the article.
-
-   Stages are SECTIONS, not cards. The outer .dg-stage provides only rhythm,
-   alignment and semantic grouping — no enclosing panel, border, radius, shadow
-   or fixed height. Visual surfaces live INSIDE a scene, and only where a surface
-   genuinely belongs (a real interface, a single contained object). Depth is
-   used selectively: the Business Brain can glow and important interfaces can
-   have glass, but the page around them stays calm. Reusable across Parts 1–4.
+   DigitalGate INSIGHTS — dedicated four-chapter presentation system.
+   ONE shell for all four articles, driven only by the frozen --insights-*
+   tokens. No per-part selectors, no :has() repair, no per-article margin
+   overrides. Website Studio owns the content; this owns the presentation.
+   Scoped under .insights-article so it never leaks into other public pages.
    =========================================================================== */
-.dg-stage-suite {
-  display: grid;
-  gap: clamp(3rem, 5.5vw, 4.5rem);
-  margin: clamp(3rem, 5.5vw, 4.5rem) 0;
+:root {
+  --insights-shell-max: 1440px;
+  --insights-prose-max: 760px;
+  --insights-stage-max: 1100px;
+  --insights-gutter-desktop: 48px;
+  --insights-gutter-tablet: 32px;
+  --insights-gutter-mobile: 20px;
+  --insights-hero-top: 40px;
+  --insights-hero-bottom: 60px;
+  --insights-section-gap: 80px;
+  --insights-prose-gap: 32px;
+  --insights-gutter: var(--insights-gutter-desktop);
+  --insights-surface: #12121f;
+  --insights-border: rgba(255, 255, 255, 0.06);
+  --insights-purple: #7c3aed;
+  --insights-purple-light: #a78bfa;
+  --insights-blue: #3b82f6;
+  --insights-green: #34d399;
+  --insights-amber: #fbbf24;
+  --insights-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --insights-font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Source Code Pro", monospace;
 }
-.dg-stage {
-  position: relative;
-  display: grid;
-  gap: clamp(1.5rem, 2.4vw, 2.25rem);
-  /* !important beats the imported editorial resets: their section padding +
-     border-top and universal margin:0 would otherwise give every scene an
-     identical divider, a tall empty band, and kill centring. A stage is a
-     section for rhythm only — no inherited chrome. */
-  margin: clamp(3rem, 5.5vw, 4.5rem) auto !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: none !important;
-  max-width: 46rem;
-}
-/* Intro: a compact step marker + eyebrow on one line, then title and lede. */
-.dg-stage__intro { display: grid; gap: 0.55rem; max-width: 42rem; }
-.dg-stage__kicker {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  margin: 0 !important;
-}
-.dg-stage__step {
-  display: inline-flex;
-  align-items: center;
-  flex: none;
-  font-family: Sora, Inter, sans-serif;
-  font-size: 0.66rem !important;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  color: #93c5fd !important;
-  padding: 0.16rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid rgba(96, 165, 250, 0.28);
-  background: rgba(59, 130, 246, 0.1);
-}
-.wb-html-island--page:not(.wb-html-island--light) .dg-stage__eyebrow,
-.dg-stage__eyebrow {
-  font-size: 0.7rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-  color: #93c5fd !important;
-}
-.wb-html-island--page:not(.wb-html-island--light) .dg-stage__title,
-.dg-stage__title {
-  margin: 0 !important;
-  font-family: Sora, Inter, sans-serif !important;
-  font-size: clamp(1.7rem, 2.3vw, 2.35rem) !important;
-  font-weight: 800 !important;
-  line-height: 1.16 !important;
-  color: #f8fafc !important;
-  letter-spacing: -0.015em;
-}
-.wb-html-island--page:not(.wb-html-island--light) .dg-stage__lede,
-.dg-stage__lede {
-  margin: 0 !important;
-  font-size: clamp(1rem, 1.2vw, 1.14rem) !important;
-  line-height: 1.6 !important;
-  color: #cbd5e1 !important;
-  max-width: 44rem;
-}
-.wb-html-island--page:not(.wb-html-island--light) .dg-stage__caption,
-.dg-stage__caption {
-  margin: 0 !important;
-  padding-top: 0.5rem;
-  font-size: 0.8rem !important;
-  line-height: 1.5 !important;
-  color: #94a3b8 !important;
-  border-top: 1px solid rgba(148, 163, 184, 0.14);
-  max-width: 44rem;
-}
-.dg-stage__scene { position: relative; }
 
-/* —— Selective width: a few dominant architecture visuals break out wider than
-   the reading measure; every other scene stays in the prose column. The stage's
-   containing column is page-centred, so auto inline margins centre the breakout
-   on the page. Width is capped to the viewport so it never adds horizontal
-   scroll. —— */
-.dg-stage--wide {
-  max-width: none;
-  width: min(1040px, calc(100vw - 3rem));
-  /* Centre on the page from ANY page-centred parent — including narrow
-     (max-width) containers where auto margins collapse. margin-left:50% lands
-     the box origin on the parent's centre (= page centre) and translateX pulls
-     it back by half its own width. */
-  margin-left: 50% !important;
-  margin-right: 0 !important;
-  transform: translateX(-50%);
-}
-.dg-stage--wide .dg-stage__intro { margin-inline: auto !important; }
-.dg-stage--wide .dg-stage__caption { margin-inline: auto !important; }
-
-/* Reusable Business Brain™ object */
-.dg-brain { display: inline-grid; place-items: center; }
-.dg-brain__glyph { width: clamp(48px, 8vw, 88px); height: auto; display: block; }
-.dg-stage .dg-brain__glyph { filter: drop-shadow(0 6px 22px rgba(59, 130, 246, 0.35)); }
-
-/* Reusable node */
-.dg-node {
-  display: grid;
-  gap: 0.2rem;
-  padding: 0.85rem 0.9rem;
-  border: 1px solid rgba(36, 50, 68, 0.9);
-  border-radius: 14px;
-  background: rgba(9, 13, 22, 0.72);
-}
-.wb-html-island--page:not(.wb-html-island--light) .dg-node strong,
-.dg-node strong { color: #f1f5f9 !important; font-size: 0.82rem !important; font-weight: 700 !important; font-family: Sora, Inter, sans-serif !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dg-node small,
-.dg-node small { color: #94a3b8 !important; font-size: 0.7rem !important; line-height: 1.35 !important; }
-.dg-node.is-signal { border-color: rgba(56, 189, 248, 0.45); }
-.dg-node.is-live { border-color: rgba(96, 165, 250, 0.55); box-shadow: inset 0 0 30px rgba(59, 130, 246, 0.1); }
-.dg-node.is-positive { border-color: rgba(52, 211, 153, 0.45); }
-.dg-node.is-attention { border-color: rgba(251, 191, 36, 0.42); }
-.dg-node.is-guard { border-color: rgba(167, 139, 250, 0.45); }
-
-/* —— Part 2 · living-system architecture map —— */
-.dg-anatomy { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 1.5rem; align-items: center; }
-.dg-anatomy__diagram { position: relative; display: grid; place-items: center; min-height: clamp(260px, 28vw, 380px); }
-.dg-anatomy__ring { position: absolute; border-radius: 50%; border: 1px solid rgba(96, 165, 250, 0.22); }
-.dg-anatomy__ring--2 { width: 62%; height: 62%; border-style: dashed; border-color: rgba(96, 165, 250, 0.3); }
-.dg-anatomy__ring--3 { width: 96%; height: 96%; }
-.dg-anatomy__core { position: relative; display: grid; place-items: center; gap: 0.3rem; padding: 1.1rem; border-radius: 50%; z-index: 2; text-align: center; }
-.dg-anatomy__core strong { color: #f8fafc !important; font-size: 0.82rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dg-anatomy__legend { display: grid; gap: 0.5rem; }
-.dg-anatomy__ring-label { margin: 0.3rem 0 0.1rem !important; color: #93c5fd !important; font-size: 0.66rem !important; font-weight: 800 !important; letter-spacing: 0.1em; text-transform: uppercase; }
-.dg-anatomy__group { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; }
-.dg-anatomy__group.is-inner { grid-template-columns: 1fr; }
-.dg-anatomy__node { display: grid; gap: 0.1rem; padding: 0.6rem 0.75rem; border: 1px solid rgba(36, 50, 68, 0.9); border-radius: 12px; background: rgba(9, 13, 22, 0.7); }
-.dg-anatomy__node strong { color: #e2e8f0 !important; font-size: 0.76rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dg-anatomy__node small { color: #94a3b8 !important; font-size: 0.66rem !important; }
-.dg-anatomy__node.is-brain { border-color: rgba(96, 165, 250, 0.55); background: linear-gradient(150deg, rgba(30, 64, 175, 0.18), rgba(9, 13, 22, 0.8)); }
-.dg-anatomy__node.is-guard { border-color: rgba(167, 139, 250, 0.42); }
-.dg-anatomy__node.is-learn { border-color: rgba(52, 211, 153, 0.4); }
-
-.dg-path { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.55rem; }
-.dg-path .dg-node { position: relative; text-align: center; }
-.dg-path .dg-node:not(:last-child)::after { content: "→"; position: absolute; right: -0.55rem; top: 50%; transform: translateY(-50%); color: #60a5fa; font-weight: 800; z-index: 2; }
-
-/* —— Part 3 · dominant loop —— */
-.dgs-loop { position: relative; min-height: clamp(380px, 40vw, 560px); display: grid; place-items: center; }
-.dgs-loop__ring { position: absolute; inset: 0; margin: auto; width: min(100%, 520px); height: auto; }
-.dgs-loop__center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; gap: 0.25rem; text-align: center; z-index: 2; }
-.dgs-loop__center strong { color: #f8fafc !important; font-size: 0.82rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dgs-loop__stops { list-style: none; margin: 0; padding: 0; position: relative; width: min(100%, 540px); aspect-ratio: 1 / 1; }
-.dgs-loop__stop { position: absolute; width: clamp(112px, 20vw, 150px); display: grid; gap: 0.05rem; padding: 0.6rem 0.7rem; border: 1px solid rgba(96, 165, 250, 0.4); border-radius: 14px; background: rgba(9, 13, 22, 0.88); text-align: center; transform: translate(-50%, -50%); }
-.dgs-loop__stop span { display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; margin: 0 auto 0.15rem; border-radius: 999px; background: rgba(59, 130, 246, 0.2); color: #bfdbfe !important; font-size: 0.66rem; font-weight: 800; }
-.dgs-loop__stop strong { color: #f1f5f9 !important; font-size: 0.78rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dgs-loop__stop small { color: #94a3b8 !important; font-size: 0.62rem !important; }
-.dgs-loop__stop--1 { top: 3%; left: 50%; }
-.dgs-loop__stop--2 { top: 36%; left: 96%; }
-.dgs-loop__stop--3 { top: 92%; left: 74%; }
-.dgs-loop__stop--4 { top: 92%; left: 26%; }
-.dgs-loop__stop--5 { top: 36%; left: 4%; }
-
-/* —— Part 3 · scenario journey (explicit human gate) —— */
-.dg-journey { list-style: none; margin: 0; padding: 0 0 0 0.4rem; display: grid; gap: 0.55rem; }
-.dg-journey__step { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 0.9rem; align-items: start; padding: 0.85rem 1rem 0.85rem 0.9rem; border: 1px solid rgba(36, 50, 68, 0.9); border-radius: 14px; background: rgba(9, 13, 22, 0.72); }
-.dg-journey__step > div { display: grid; grid-template-columns: auto 1fr; gap: 0.1rem 0.6rem; align-items: center; }
-.dg-journey__step > div > strong { grid-column: 1 / -1; }
-.dg-journey__step .dg-brain { grid-row: span 2; }
-.dg-journey__step .dg-brain + strong, .dg-journey__step .dg-brain ~ p { grid-column: 2; }
-.dg-journey__step strong { color: #f1f5f9 !important; font-size: 0.86rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dg-journey__step p { margin: 0.1rem 0 0 !important; color: #94a3b8 !important; font-size: 0.76rem !important; }
-.dg-journey__dot { width: 0.7rem; height: 0.7rem; margin-top: 0.4rem; border-radius: 999px; background: #60a5fa; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14); }
-.dg-journey__step.is-signal { border-color: rgba(56, 189, 248, 0.45); }
-.dg-journey__step.is-signal .dg-journey__dot { background: #38bdf8; }
-.dg-journey__step.is-brain { border-color: rgba(96, 165, 250, 0.55); background: linear-gradient(150deg, rgba(30, 64, 175, 0.16), rgba(9, 13, 22, 0.8)); }
-.dg-journey__step.is-positive { border-color: rgba(52, 211, 153, 0.45); }
-.dg-journey__step.is-positive .dg-journey__dot { background: #34d399; box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.14); }
-.dg-journey__gate { border-color: rgba(251, 191, 36, 0.5); background: linear-gradient(150deg, rgba(120, 83, 8, 0.22), rgba(9, 13, 22, 0.82)); }
-.dg-journey__gate .dg-journey__dot { background: #fbbf24; box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.16); }
-.dg-gate__badge { display: inline-block; margin-top: 0.35rem; padding: 0.25rem 0.6rem; border: 1px solid rgba(251, 191, 36, 0.5); border-radius: 999px; color: #fde68a !important; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.04em; }
-
-/* —— Part 4 · maturity rail —— */
-.dg-rail { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.6rem; align-items: stretch; }
-.dg-rail__step { position: relative; display: grid; gap: 0.25rem; padding: 1rem 0.8rem; border: 1px solid rgba(51, 65, 85, 0.9); border-radius: 16px; background: rgba(9, 13, 22, 0.75); text-align: center; }
-.dg-rail__step:not(:last-child)::after { content: "→"; position: absolute; right: -0.55rem; top: 50%; transform: translateY(-50%); color: #60a5fa; font-weight: 800; z-index: 2; }
-.dg-rail__num { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; margin: 0 auto; border-radius: 999px; background: rgba(59, 130, 246, 0.16); color: #93c5fd !important; font-size: 0.68rem; font-weight: 800; }
-.dg-rail__step strong { color: #e2e8f0 !important; font-size: 0.8rem !important; font-family: Sora, Inter, sans-serif !important; }
-.dg-rail__step small { color: #94a3b8 !important; font-size: 0.66rem !important; }
-.dg-rail__step.is-live { border-color: rgba(96, 165, 250, 0.5); box-shadow: inset 0 0 30px rgba(59, 130, 246, 0.1); }
-.dg-rail__step.is-peak { border-color: rgba(52, 211, 153, 0.5); background: linear-gradient(160deg, rgba(6, 78, 59, 0.24), rgba(9, 13, 22, 0.8)); }
-
-/* —— Part 4 · comparison (interface frame) —— */
-.dg-compare { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 1.1rem; align-items: stretch; }
-.dg-compare__side { display: grid; gap: 0.7rem; align-content: start; padding: 1.1rem; border: 1px solid rgba(51, 65, 85, 0.9); border-radius: 18px; background: rgba(9, 13, 22, 0.72); }
-.dg-compare__side--dg { border-color: rgba(96, 165, 250, 0.4); background: linear-gradient(160deg, rgba(30, 64, 175, 0.1), rgba(9, 13, 22, 0.82)); }
-.dg-compare__tag { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #94a3b8 !important; }
-.dg-compare__side--dg .dg-compare__tag { color: #93c5fd !important; }
-.dg-compare__stat { display: grid; place-items: center; padding: 1.2rem; }
-.dg-compare__stat strong { color: #e2e8f0 !important; font-size: clamp(2.4rem, 6vw, 3.6rem) !important; font-weight: 800; font-family: Sora, Inter, sans-serif; line-height: 1; }
-.dg-compare__stat small { color: #94a3b8 !important; font-size: 0.72rem !important; }
-.dg-compare__note { margin: 0 !important; color: #94a3b8 !important; font-size: 0.72rem !important; }
-.dg-frame { border: 1px solid rgba(96, 165, 250, 0.35); border-radius: 14px; overflow: hidden; background: rgba(4, 8, 16, 0.9); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35); }
-.dg-frame__bar { display: flex; align-items: center; gap: 0.35rem; padding: 0.5rem 0.75rem; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid rgba(96, 165, 250, 0.2); }
-.dg-frame__bar span { width: 0.55rem; height: 0.55rem; border-radius: 999px; background: rgba(148, 163, 184, 0.4); }
-.dg-frame__bar em { margin-left: auto; font-style: normal; color: #93c5fd !important; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.06em; }
-.dg-frame__body { display: grid; gap: 0.5rem; padding: 0.9rem 1rem 1rem; }
-.dg-frame__line { margin: 0 !important; color: #e2e8f0 !important; font-size: 0.84rem !important; line-height: 1.4 !important; }
-.dg-frame__line--done { color: #a7f3d0 !important; }
-.dg-frame__pill { display: inline-block; margin-right: 0.4rem; padding: 0.12rem 0.5rem; border-radius: 999px; background: rgba(251, 191, 36, 0.16); color: #fde68a !important; font-size: 0.64rem; font-weight: 800; }
-.dg-frame__cta { display: inline-block; margin-top: 0.2rem; padding: 0.45rem 0.75rem; border-radius: 10px; border: 1px solid rgba(96, 165, 250, 0.4); color: #bfdbfe !important; font-size: 0.72rem; font-weight: 800; }
-
-/* —— Part 4 · governance split —— */
-.dg-govern { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; align-items: stretch; }
-.dg-govern__col { display: grid; gap: 0.55rem; align-content: start; padding: 1rem; border: 1px solid rgba(51, 65, 85, 0.9); border-radius: 16px; background: rgba(9, 13, 22, 0.72); }
-.dg-govern__col--human { border-color: rgba(251, 191, 36, 0.45); background: linear-gradient(160deg, rgba(120, 83, 8, 0.16), rgba(9, 13, 22, 0.8)); }
-.dg-govern__col--system { border-color: rgba(52, 211, 153, 0.35); }
-.dg-govern__role { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #93c5fd !important; }
-.dg-govern__col--human .dg-govern__role { color: #fde68a !important; }
-.dg-govern__col--system .dg-govern__role { color: #a7f3d0 !important; }
-.dg-govern__col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.35rem; }
-.dg-govern__col li { position: relative; padding-left: 1rem; color: #cbd5e1 !important; font-size: 0.78rem; }
-.dg-govern__col li::before { content: ""; position: absolute; left: 0; top: 0.5rem; width: 0.4rem; height: 0.4rem; border-radius: 999px; background: #60a5fa; }
-.dg-govern__col--human li::before { background: #fbbf24; }
-.dg-govern__col--system li::before { background: #34d399; }
-
-/* —— Part 4 · approved prototype port (dgp4-* namespace; #48) —— */
-/* Scoped to .dg-stage--p4 so Parts 1–3 wide stages keep their content-driven
-   height. Part 4 breaks out to the approved width and centres on the page from
-   ANY parent (incl. the article's padded .container), matching the dgp1-/dgp3-
-   robust-centring mechanism so there is never horizontal overflow on mobile. */
-.dg-stage--p4.dg-stage--wide { min-height: clamp(420px, 48vw, 620px); width: min(1200px, calc(100vw - 2rem)); }
-.dg-stage--p4.dgp4-stage--learning,
-.dg-stage--p4.dgp4-stage--recap { min-height: 0; }
-.dgp4-scene { position: relative; width: 100%; }
-.dgp4-svg { display: block; width: 100%; height: auto; max-width: 100%; }
-.dgp4-desktop { display: block; }
-.dgp4-mobile { display: none; }
-.dgp4-sr-only {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-}
-.dgp4-scene--maturity .dgp4-desktop,
-.dgp4-scene--compare .dgp4-desktop,
-.dgp4-scene--responsibility .dgp4-desktop {
-  position: relative;
+.insights-article {
+  display: block;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  font-family: var(--insights-font-sans);
+  line-height: 1.6;
 }
-.dgp4-scene--maturity .dgp4-desktop { max-width: 1200px; }
-.dgp4-scene--compare .dgp4-desktop,
-.dgp4-scene--responsibility .dgp4-desktop { max-width: 1100px; }
+.insights-article *,
+.insights-article *::before,
+.insights-article *::after { box-sizing: border-box; }
 
-/* Learning loop — semantic HTML sequence (not SVG-only) */
-.dgp4-scene--learning { display: grid; gap: 0.85rem; max-width: 46rem; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp4-learning-kicker,
-.dgp4-learning-kicker {
-  margin: 0 !important;
-  color: #a7f3d0 !important;
-  font-size: 0.78rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase !important;
+/* One shared reading column + one signature breakout, at one gutter. */
+.insights-hero-inner,
+.insights-prose,
+.insights-series-nav,
+.insights-cta {
+  max-width: var(--insights-prose-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--insights-gutter);
+  padding-right: var(--insights-gutter);
 }
-.dgp4-learning-loop {
-  list-style: none;
-  margin: 0;
-  padding: 0.25rem 0 0.25rem 0.9rem;
-  display: grid;
-  gap: 0.45rem;
-  border-left: 2px solid rgba(52, 211, 153, 0.35);
-}
-.dgp4-learning-loop li {
-  display: grid;
-  grid-template-columns: minmax(7.5rem, auto) 1fr;
-  gap: 0.35rem 0.75rem;
-  align-items: baseline;
-}
-.wb-html-island--page:not(.wb-html-island--light) .dgp4-learning-loop strong,
-.dgp4-learning-loop strong {
-  color: #e2e8f0 !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
-  font-size: 0.72rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.wb-html-island--page:not(.wb-html-island--light) .dgp4-learning-loop small,
-.dgp4-learning-loop small {
-  color: #94a3b8 !important;
-  font-size: 0.74rem !important;
-  line-height: 1.35 !important;
-}
-.dgp4-learning-loop li.is-return strong { color: #34d399 !important; }
-.dgp4-learning-loop li.is-return small { color: #6ee7b7 !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp4-learning-note,
-.dgp4-learning-note {
-  margin: 0 !important;
-  color: #94a3b8 !important;
-  font-size: 0.84rem !important;
-  line-height: 1.5 !important;
+.insights-figure {
+  max-width: var(--insights-stage-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--insights-gutter);
+  padding-right: var(--insights-gutter);
 }
 
-/* Series recap — restrained timeline (not four cards) */
-.dgp4-scene--recap {
-  display: grid;
-  gap: 1rem;
-  padding-top: 0.35rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-.wb-html-island--page:not(.wb-html-island--light) .dgp4-recap-label,
-.dgp4-recap-label {
-  margin: 0 !important;
-  text-align: center;
-  color: #64748b !important;
-  font-size: 0.68rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.14em !important;
-  text-transform: uppercase !important;
-}
-.dgp4-recap-timeline {
-  list-style: none;
-  margin: 0;
-  padding: 0.75rem 0 0.25rem;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
+/* —— Hero —— */
+.insights-hero {
   position: relative;
+  padding: var(--insights-hero-top) 0 var(--insights-hero-bottom);
+  background: radial-gradient(ellipse at 50% 30%, rgba(124, 58, 237, 0.06), transparent 70%);
 }
-.dgp4-recap-timeline::before {
-  content: "";
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  top: calc(0.75rem + 1.55rem);
-  height: 1px;
-  background: linear-gradient(90deg, rgba(124, 58, 237, 0.2), rgba(167, 139, 250, 0.35), rgba(124, 58, 237, 0.2));
-  pointer-events: none;
+.insights-hero-inner { position: relative; z-index: 1; }
+.insights-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.insights-badge {
+  display: inline-block; padding: 4px 14px; border-radius: 100px;
+  background: rgba(124, 58, 237, 0.12); border: 1px solid rgba(124, 58, 237, 0.2);
+  color: var(--insights-purple-light) !important;
+  font-family: var(--insights-font-sans) !important;
+  font-size: 12px !important; font-weight: 600 !important; letter-spacing: 0.05em; text-transform: uppercase;
 }
-.dgp4-recap-timeline li {
-  display: grid;
-  justify-items: center;
-  gap: 0.35rem;
-  text-align: center;
-  position: relative;
-  z-index: 1;
+.insights-part { color: #6b7280 !important; font-size: 13px !important; font-weight: 500; letter-spacing: 0.02em; }
+.insights-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.insights-progress-track { display: flex; gap: 6px; }
+.insights-progress-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.04);
 }
-.wb-html-island--page:not(.wb-html-island--light) .dgp4-recap-num,
-.dgp4-recap-num {
-  color: rgba(167, 139, 250, 0.55) !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
-  font-size: 0.72rem !important;
-  font-weight: 700 !important;
+.insights-progress-dot.active {
+  background: var(--insights-purple); border-color: var(--insights-purple);
+  box-shadow: 0 0 16px rgba(124, 58, 237, 0.3);
 }
-.wb-html-island--page:not(.wb-html-island--light) .dgp4-recap-text,
-.dgp4-recap-text {
-  color: #94a3b8 !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
-  font-size: 0.62rem !important;
-  line-height: 1.35 !important;
+.insights-progress-labels { display: flex; gap: 8px; font-family: var(--insights-font-mono); font-size: 12px; color: #6b7280; }
+.insights-progress-labels .active { color: var(--insights-purple-light); font-weight: 600; }
+.wb-html-island--page:not(.wb-html-island--light) .insights-title,
+.insights-title {
+  margin: 0 0 20px !important;
+  font-family: var(--insights-font-sans) !important;
+  font-size: clamp(40px, 5.5vw, 72px) !important;
+  font-weight: 700 !important; line-height: 1.05 !important; letter-spacing: -0.02em !important;
+  color: #ffffff !important; max-width: 18ch;
 }
-.dgp4-recap-timeline li::after {
-  content: "";
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 999px;
-  background: rgba(124, 58, 237, 0.35);
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.08);
+.insights-title-accent {
+  background: linear-gradient(135deg, var(--insights-purple-light), var(--insights-blue));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
 }
-.dgp4-recap-timeline li.is-current .dgp4-recap-num {
-  color: #c4b5fd !important;
-  font-weight: 800 !important;
+.wb-html-island--page:not(.wb-html-island--light) .insights-lede,
+.insights-lede {
+  margin: 0 0 24px !important;
+  font-size: clamp(18px, 1.4vw, 22px) !important; line-height: 1.5 !important;
+  color: #9ca3af !important; max-width: 600px;
 }
-.dgp4-recap-timeline li.is-current .dgp4-recap-text {
-  color: #ddd6fe !important;
+.insights-byline { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #6b7280; }
+.insights-avatar {
+  display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 100px;
+  font-family: var(--insights-font-sans); font-weight: 800; font-size: 11px; color: #ede9fe;
+  background: linear-gradient(135deg, var(--insights-purple), var(--insights-blue));
 }
-.dgp4-recap-timeline li.is-current::after {
-  background: rgba(167, 139, 250, 0.7);
-  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.16);
+.insights-author { font-weight: 500; color: #9ca3af; }
+.insights-divider { color: #6b7280; opacity: 0.4; }
+
+/* —— Body / prose —— */
+.insights-body { padding: 0 0 var(--insights-section-gap); }
+.insights-prose { display: flex; flex-direction: column; gap: var(--insights-prose-gap); }
+.wb-html-island--page:not(.wb-html-island--light) .insights-prose h2,
+.insights-prose h2 {
+  margin: 8px 0 0 !important; font-family: var(--insights-font-sans) !important;
+  font-size: clamp(28px, 2.8vw, 40px) !important; font-weight: 700 !important;
+  line-height: 1.15 !important; letter-spacing: -0.01em !important; color: #ffffff !important;
+}
+.wb-html-island--page:not(.wb-html-island--light) .insights-prose h3,
+.insights-prose h3 {
+  margin: 4px 0 0 !important; font-family: var(--insights-font-sans) !important;
+  font-size: clamp(20px, 1.6vw, 26px) !important; font-weight: 600 !important;
+  line-height: 1.25 !important; color: #ffffff !important;
+}
+.wb-html-island--page:not(.wb-html-island--light) .insights-prose p,
+.insights-prose p { margin: 0 !important; font-size: 18px !important; line-height: 1.7 !important; color: #9ca3af !important; }
+.insights-prose p + p { margin-top: 16px !important; }
+.insights-prose strong { color: #ffffff !important; font-weight: 600; }
+.wb-html-island--page:not(.wb-html-island--light) .insights-prose a,
+.insights-prose a { color: #93c5fd !important; text-decoration: none; }
+.insights-prose a:hover { color: #c7d2fe !important; }
+/* Website Studio content sits at the reading measure; drop inherited chrome. */
+.insights-prose section { padding: 0 !important; border: 0 !important; background: none !important; margin: 0 !important; }
+.insights-prose .container,
+.insights-prose .container-wide,
+.insights-prose .wide,
+.insights-prose .prose { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+.insights-prose ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.insights-prose li { position: relative; padding-left: 20px; color: #9ca3af; font-size: 17px; line-height: 1.6; }
+.insights-prose li::before { content: ""; position: absolute; left: 0; top: 11px; width: 6px; height: 6px; border-radius: 50%; background: var(--insights-blue); }
+/* Retained Website Studio content components, styled to the shell (not repair). */
+.insights-prose .dg-callout,
+.insights-prose .dg-principle,
+.insights-prose .dg-prompt,
+.insights-prose .dg-frame { margin: 0; padding: 20px 22px; border: 1px solid var(--insights-border); border-radius: 14px; background: var(--insights-surface); color: #cbd5e1; }
+.insights-prose .dg-callout { border-left: 3px solid var(--insights-blue); }
+.insights-prose .dg-grid,
+.insights-prose .dg-example,
+.insights-prose .dg-stack { display: grid; gap: 12px; margin: 0; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.insights-prose .dg-card,
+.insights-prose .dg-stack > div,
+.insights-prose .dg-example > div { border: 1px solid var(--insights-border); border-radius: 12px; background: var(--insights-surface); padding: 16px 18px; }
+.insights-prose .dg-card h3,
+.insights-prose .dg-card p { margin: 0 !important; }
+.insights-prose .dg-card p { font-size: 15px !important; }
+
+/* —— Figures —— */
+.insights-figure { margin: 0 auto 48px; }
+.insights-diagram {
+  width: 100%; background: var(--insights-surface); border: 1px solid var(--insights-border);
+  border-radius: 16px; overflow: hidden;
+}
+.insights-diagram svg { display: block; width: 100%; height: auto; }
+.wb-html-island--page:not(.wb-html-island--light) .insights-figcaption,
+.insights-figcaption {
+  margin: 16px auto 0 !important; max-width: 620px; text-align: center;
+  font-size: 15px !important; color: #6b7280 !important; line-height: 1.5 !important;
 }
 
-@media (max-width: 767px) {
-  .dgp4-desktop { display: none !important; }
-  .dgp4-mobile { display: block !important; width: 100%; max-width: 390px; margin: 0 auto; }
-  .dgp4-recap-timeline {
-    grid-template-columns: 1fr;
-    justify-items: stretch;
-    gap: 0.85rem;
-    padding-left: 0.5rem;
-  }
-  .dgp4-recap-timeline::before {
-    left: 0.15rem;
-    right: auto;
-    top: 0.5rem;
-    bottom: 0.5rem;
-    width: 1px;
-    height: auto;
-    background: linear-gradient(180deg, rgba(124, 58, 237, 0.2), rgba(167, 139, 250, 0.35), rgba(124, 58, 237, 0.2));
-  }
-  .dgp4-recap-timeline li {
-    grid-template-columns: auto 1fr auto;
-    justify-items: start;
-    align-items: center;
-    gap: 0.65rem;
-    text-align: left;
-    padding-left: 1rem;
-  }
-  .dgp4-recap-timeline li::after { order: 3; }
+/* —— Footer: series navigation + CTA —— */
+.insights-footer { padding: 0 0 40px; }
+.insights-series-nav { padding-top: 8px; }
+.insights-series-nav-eyebrow {
+  margin: 0 0 16px !important; font-family: var(--insights-font-sans) !important;
+  font-size: 12px !important; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #6b7280 !important;
+}
+.insights-series-nav-list {
+  list-style: none; margin: 0 0 24px !important; padding: 24px 0 !important;
+  border-top: 1px solid var(--insights-border); border-bottom: 1px solid var(--insights-border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.insights-series-nav-item { margin: 0; padding: 0; }
+.insights-series-nav-item::before { display: none !important; }
+.insights-series-nav-item a,
+.insights-series-nav-item.active { display: flex; align-items: center; gap: 16px; padding: 8px 12px; border-radius: 8px; text-decoration: none; }
+.insights-series-nav-item a:hover { background: rgba(255, 255, 255, 0.03); }
+.insights-series-nav-item.active { background: rgba(124, 58, 237, 0.06); }
+.insights-series-nav-num { min-width: 28px; font-family: var(--insights-font-mono); font-size: 13px; font-weight: 600; color: #6b7280; }
+.insights-series-nav-item.active .insights-series-nav-num { color: var(--insights-purple-light); }
+.wb-html-island--page:not(.wb-html-island--light) .insights-series-nav-label,
+.insights-series-nav-label { font-size: 15px !important; color: #9ca3af !important; }
+.insights-series-nav-item.active .insights-series-nav-label { color: #ffffff !important; font-weight: 500; }
+.insights-series-nav-links {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-bottom: 32px; padding-bottom: 32px; border-bottom: 1px solid var(--insights-border);
+}
+.insights-series-nav-links a { color: #9ca3af !important; text-decoration: none; font-size: 14px; font-weight: 500; }
+.insights-series-nav-links a:hover { color: #ffffff !important; }
+.insights-current { color: #ffffff; font-weight: 600; font-size: 14px; }
+.insights-complete { color: var(--insights-green) !important; font-weight: 600; font-size: 14px; letter-spacing: 0.02em; }
+.insights-cta { text-align: center; padding-top: 8px; }
+.insights-cta p { margin: 0 0 20px !important; font-size: 18px !important; color: #9ca3af !important; }
+.insights-cta-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; }
+.insights-btn-primary {
+  display: inline-block; padding: 10px 22px; border-radius: 8px; text-decoration: none;
+  font-weight: 600; font-size: 14px; color: #ffffff !important; background: var(--insights-purple);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.insights-btn-primary:hover { background: #6d28d9; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3); }
+.insights-btn-secondary {
+  display: inline-block; padding: 10px 22px; border-radius: 8px; text-decoration: none;
+  font-weight: 500; font-size: 14px; color: #9ca3af !important; border: 1px solid var(--insights-border);
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.insights-btn-secondary:hover { border-color: var(--insights-purple); color: #ffffff !important; transform: translateY(-1px); }
+
+/* —— Responsive: one shared responsive system (no per-part fixes) —— */
+@media (max-width: 1024px) {
+  .insights-article { --insights-gutter: var(--insights-gutter-tablet); }
+  .insights-title { font-size: clamp(36px, 5vw, 48px) !important; }
+  .insights-figure { margin-bottom: 36px; }
+  .insights-prose p { font-size: 17px !important; }
+}
+@media (max-width: 768px) {
+  .insights-article { --insights-gutter: var(--insights-gutter-mobile); }
+  .insights-hero { padding: 24px 0 40px; }
+  .insights-body { padding-bottom: 40px; }
+  .insights-title { font-size: clamp(30px, 8vw, 40px) !important; }
+  .insights-lede { font-size: 17px !important; }
+  .insights-prose h2 { font-size: 26px !important; }
+  .insights-prose h3 { font-size: 20px !important; }
+  .insights-prose p { font-size: 16px !important; }
+  .insights-figure { margin-bottom: 28px; }
+  .insights-diagram { border-radius: 12px; }
+  .insights-figcaption { font-size: 13px !important; }
+  .insights-series-nav-links { flex-wrap: wrap; justify-content: center; gap: 12px; }
+  .insights-progress-dot { width: 8px; height: 8px; }
+}
+@media (max-width: 390px) {
+  .insights-title { font-size: 30px !important; }
+  .insights-lede { font-size: 16px !important; }
+  .insights-prose p { font-size: 15px !important; }
+  .insights-cta-actions { flex-direction: column; width: 100%; }
+  .insights-cta-actions a { width: 100%; text-align: center; }
+}
+@media (max-width: 360px) {
+  .insights-title { font-size: 28px !important; }
 }
 
-/* —— Responsive: reflow, never shrink into microscopic labels —— */
-@media (max-width: 900px) {
-  .dg-anatomy { grid-template-columns: 1fr; }
-  .dg-compare { grid-template-columns: 1fr; }
-  .dg-path { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .dg-path .dg-node:not(:last-child)::after { content: ""; }
-}
-@media (max-width: 680px) {
-  .dg-stage { margin: clamp(2.5rem, 8vw, 3rem) auto !important; gap: 1.4rem; }
-  /* Mobile containers are full-width and page-centred, so simple auto centring
-     works — drop the desktop 50%/translate breakout to avoid a double shift.
-     Part 4 stages land inside the article's padded .container. On mobile they
-     do not break out — they fit the reading column so there is never any
-     horizontal overflow; the dgp4 mobile SVGs are genuine mobile compositions. */
-  .dg-stage--wide:not(.dg-stage--p4) { width: calc(100vw - 2rem); transform: none; margin-inline: auto !important; }
-  .dg-stage--p4.dg-stage--wide { width: 100%; transform: none; margin-inline: auto !important; }
-  /* Loop and rail become vertical sequences on mobile (relationships preserved) */
-  .dgs-loop { min-height: 0; }
-  .dgs-loop__ring, .dgs-loop__center { display: none; }
-  .dgs-loop__stops { position: static; width: 100%; aspect-ratio: auto; display: grid; gap: 0.55rem; }
-  .dgs-loop__stop { position: static; width: auto; transform: none; text-align: left; grid-template-columns: auto 1fr; align-items: center; gap: 0.1rem 0.7rem; }
-  .dgs-loop__stop span { margin: 0; }
-  .dgs-loop__stop strong { grid-column: 2; }
-  .dgs-loop__stop small { grid-column: 2; }
-  .dg-rail { grid-template-columns: 1fr; }
-  .dg-rail__step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -0.55rem; transform: translateX(50%); }
-  .dg-govern { grid-template-columns: 1fr; }
-  .dg-path { grid-template-columns: 1fr; }
-  .dg-anatomy__group { grid-template-columns: 1fr; }
-}
-
-/* —— Motion: explains state/change; excellent static fallback by default —— */
-@media (prefers-reduced-motion: no-preference) {
-  .dg-brain__spark { animation: dgBrainSpark 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-  .dg-flow__loop { stroke-dasharray: 7 12; animation: dgFlowMove 2.6s linear infinite; }
-  .dg-frame__line--done { animation: dgFrameReveal 0.6s ease-out 0.2s both; }
-  /* Part 4 — emerging priority, information flow, governed progression, learning feedback */
-  .dgp4-priority-pulse {
-    animation: dgp4PriorityPulse 2s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-  .dgp4-learn-path { animation: dgp4LearnPath 4s ease-in-out infinite; }
-  .dgp4-learn-particle {
-    animation: dgp4LearnParticle 3.2s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-  .dgp4-resp-flow {
-    animation: dgp4RespFlow 3s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-  .dgp4-mobile-resp-flow {
-    animation: dgp4MobileRespFlow 3s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-  @keyframes dgBrainSpark { 0%, 100% { opacity: 0.6; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.15); } }
-  @keyframes dgFlowMove { to { stroke-dashoffset: -28; } }
-  @keyframes dgStagePulse { 0%, 100% { box-shadow: inset 0 0 0 rgba(59,130,246,0); } 50% { box-shadow: inset 0 0 34px rgba(59,130,246,0.14); } }
-  @keyframes dgFrameReveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-  @keyframes dgp4PriorityPulse {
-    0%, 100% { opacity: 0.65; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.35); }
-  }
-  @keyframes dgp4LearnPath {
-    0%, 100% { opacity: 0.4; stroke-dashoffset: 0; }
-    50% { opacity: 0.85; stroke-dashoffset: -12; }
-  }
-  @keyframes dgp4LearnParticle {
-    0%, 100% { opacity: 0.4; transform: translate(0, 0); }
-    50% { opacity: 0.9; transform: translate(4px, -4px); }
-  }
-  @keyframes dgp4RespFlow {
-    0%, 100% { opacity: 0.35; transform: translateX(0); }
-    50% { opacity: 0.85; transform: translateX(8px); }
-  }
-  @keyframes dgp4MobileRespFlow {
-    0%, 100% { opacity: 0.35; transform: translateY(0); }
-    50% { opacity: 0.85; transform: translateY(5px); }
-  }
-}
-
-/* ===========================================================================
-   Scene isolation from imported article stylesheets.
-   Some Insights pages ship editorial resets like
-     .dg-insight li { position: relative; padding: .3rem 0 .3rem 1.2rem }
-     .dg-insight ul { margin: 0 0 1.2rem }
-   which match our list-based scenes at (0,1,1) and would otherwise disturb the
-   diagrams. Re-assert the geometry under .dg-stage (0,2,0) so scenes render the
-   same regardless of the surrounding article CSS. The intelligence loop is the
-   critical case: its stops must stay absolutely positioned around the Brain.
-   =========================================================================== */
-.dg-stage .dgs-loop__stops { position: relative; margin: 0; }
-.dg-stage .dgs-loop__stop { position: absolute; padding: 0.6rem 0.7rem; }
-.dg-stage .dgs-journey__step { padding: 0.85rem 1rem 0.85rem 0.9rem; }
-.dg-stage .dgs-rail__step { padding: 1rem 0.8rem; }
-.dg-stage .dgs-govern__col ul { margin: 0; }
-.dg-stage .dgs-govern__col li { padding: 0 0 0 1rem; }
-@media (max-width: 680px) {
-  .dg-stage .dgs-loop__stop { position: static; padding: 0.7rem 0.85rem; }
-}
-
-/* ===========================================================================
-   PART 1 — “From dumb businesses to smart businesses” (redesigned, #48 Phase 1).
-   A premium technology-editorial / product-architecture experience. All classes
-   are namespaced dgp1- and Part-1 wrappers carry .dg-stage--p1, so Parts 2–4 are
-   untouched. Foundational tokens here are reusable for later Parts 2–4 passes.
-   =========================================================================== */
-.dg-stage--p1 {
-  --p1-ink: #eef4ff;
-  --p1-muted: #9db0c8;
-  --p1-blue: #60a5fa;
-  --p1-electric: #7dd3fc;
-  --p1-purple: #a78bfa;
-  --p1-hair: rgba(148, 163, 184, 0.16);
-}
-
-/* Editorial intros sit centred above the expansive visuals. */
-.dgp1-stage--frag .dg-stage__intro,
-.dgp1-stage--arch .dg-stage__intro,
-.dgp1-stage--rail .dg-stage__intro {
-  text-align: center;
-  justify-items: center;
-  max-width: 46rem;
-}
-.dgp1-stage--frag .dg-stage__kicker,
-.dgp1-stage--arch .dg-stage__kicker,
-.dgp1-stage--rail .dg-stage__kicker { justify-content: center; }
-.dgp1-stage--frag .dg-stage__caption,
-.dgp1-stage--arch .dg-stage__caption,
-.dgp1-stage--rail .dg-stage__caption { text-align: center; max-width: 40rem; }
-
-/* Expansive breakouts: the fragmentation and architecture scenes are the memorable
-   moments and run wide; the rail is tighter so it supports rather than competes. */
-.dgp1-stage--frag.dg-stage--wide,
-.dgp1-stage--arch.dg-stage--wide { width: min(1180px, calc(100vw - 2rem)); }
-.dgp1-stage--rail.dg-stage--wide { width: min(940px, calc(100vw - 3rem)); }
-
-/* Scenes are open — no boxed rectangle. Depth comes from light: a soft,
-   feathered glow behind the fragmentation/architecture, never a bordered panel.
-   Glow is clipped to the scene so decorative bleed cannot cause horizontal overflow
-   (harmonised toward Parts 3–4 finish; geometry unchanged). */
-.dgp1-scene { position: relative; z-index: 0; overflow: hidden; }
-.dgp1-svg { display: block; width: 100%; height: auto; }
-.dgp1-svg--mobile { display: none; }
-.dgp1-scene--frag::before,
-.dgp1-scene--arch::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(52% 64% at 84% 50%, rgba(124, 58, 237, 0.08), transparent 64%),
-    radial-gradient(42% 56% at 10% 44%, rgba(56, 189, 248, 0.045), transparent 64%);
-}
-
-/* Problem indicators — icon + label + sublabel; never four feature cards. */
-.dgp1-problems {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2.15rem 2.75rem;
-  padding-top: 1.85rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-.dgp1-problem { display: flex; gap: 0.95rem; align-items: flex-start; }
-.dgp1-problem__ic { flex: none; width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; }
-.dgp1-problem__ic svg { width: 18px; height: 18px; }
-.dgp1-problem__ic--red { background: rgba(239, 68, 68, 0.07); border: 1px solid rgba(239, 68, 68, 0.14); color: #f87171; }
-.dgp1-problem__ic--yellow { background: rgba(234, 179, 8, 0.07); border: 1px solid rgba(234, 179, 8, 0.14); color: #facc15; }
-.dgp1-problem__ic--orange { background: rgba(249, 115, 22, 0.07); border: 1px solid rgba(249, 115, 22, 0.14); color: #fb923c; }
-.dgp1-problem__ic--purple { background: rgba(168, 85, 247, 0.07); border: 1px solid rgba(168, 85, 247, 0.14); color: #c084fc; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-problem__b strong,
-.dgp1-problem__b strong { display: block; color: #f1f5f9 !important; font-family: Sora, Inter, sans-serif !important; font-size: 0.84rem !important; font-weight: 700 !important; letter-spacing: -0.01em; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-problem__b small,
-.dgp1-problem__b small { display: block; margin-top: 0.2rem !important; color: #64748b !important; font-family: ui-monospace, SFMono-Regular, monospace !important; font-size: 0.7rem !important; line-height: 1.4 !important; letter-spacing: 0.02em; }
-
-/* Transformation rail — icon nodes + connecting track + arrows. */
-.dgp1-rail { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; padding: 1.15rem 2.5rem 0; }
-.dgp1-rail__track { position: absolute; top: 38px; left: 15%; right: 15%; height: 1px; z-index: 0; background: linear-gradient(90deg, rgba(31, 41, 55, 0.5), rgba(124, 58, 237, 0.16) 50%, rgba(31, 41, 55, 0.5)); }
-.dgp1-rail__stop { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.55rem; }
-.dgp1-rail__ic { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.08); color: #6b7280; }
-.dgp1-rail__ic svg { width: 18px; height: 18px; }
-.dgp1-rail__stop--connected .dgp1-rail__ic { color: #cbd5e1; border-color: rgba(203, 213, 225, 0.16); }
-.dgp1-rail__stop--intelligent .dgp1-rail__ic { background: rgba(168, 85, 247, 0.08); border-color: rgba(168, 85, 247, 0.16); color: #c084fc; }
-.dgp1-rail__stop--coordinated .dgp1-rail__ic { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.16); color: #60a5fa; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__label,
-.dgp1-rail__label { font-family: Sora, Inter, sans-serif; font-size: 0.68rem !important; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--connected .dgp1-rail__label { color: #cbd5e1 !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--intelligent .dgp1-rail__label { color: #c4b5fd !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--coordinated .dgp1-rail__label { color: #93c5fd !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__sub,
-.dgp1-rail__sub { font-family: ui-monospace, SFMono-Regular, monospace !important; font-size: 0.6rem !important; letter-spacing: 0.06em; color: #475569 !important; }
-.dgp1-rail__arrow { align-self: flex-start; margin-top: 10px; display: grid; place-items: center; color: rgba(167, 139, 250, 0.32); }
-.dgp1-rail__arrow svg { width: 20px; height: 20px; }
-
-/* Part-1 hero: extremely restrained architectural illumination behind the copy.
-   Scoped with :has() to the page that actually carries a Part-1 stage, so Parts
-   3/4 (which share .dg-insight .hero) are never touched. */
-.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero { position: relative; overflow: hidden; }
-.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(42% 60% at 84% 0%, rgba(124, 58, 237, 0.14), transparent 60%),
-    radial-gradient(40% 52% at 6% 4%, rgba(56, 189, 248, 0.09), transparent 62%);
-}
-.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero > * { position: relative; z-index: 1; }
-/* Reference hero: the title dominates the first viewport; restrained eyebrow;
-   concise lede; generous negative space. Scoped to the Part-1 page only. */
-.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero h1 {
-  font-size: clamp(2.9rem, 6vw, 4.9rem) !important;
-  line-height: 1.03 !important;
-  letter-spacing: -0.035em !important;
-  max-width: 20ch;
-  margin: 0.7rem 0 1.15rem !important;
-}
-.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero .kicker {
-  display: inline-block !important;
-  color: #93c5fd !important;
-  font-family: Sora, Inter, sans-serif !important;
-  font-weight: 800 !important;
-  font-size: 0.74rem !important;
-  letter-spacing: 0.18em !important;
-  text-transform: uppercase !important;
-}
-.wb-html-island--page:has([data-dg-stage-of="insights-part-1"]) .hero .hero-thesis {
-  font-size: clamp(1.1rem, 1.7vw, 1.45rem) !important;
-  line-height: 1.5 !important;
-  color: #cbd5e1 !important;
-  max-width: 44ch;
-}
-
-/* —— Part 1 · mobile: real vertical recompositions, not shrunk desktop —— */
-@media (max-width: 680px) {
-  /* Decorative glow/SVG bleed must never create horizontal page scroll. */
-  .dg-stage--p1.dg-stage--wide,
-  .dgp2-stage--anatomy.dg-stage--wide,
-  .dgp2-stage--learn.dg-stage--wide {
-    max-width: 100%;
-    overflow-x: clip;
-  }
-  .dgp1-svg--desktop { display: none; }
-  .dgp1-svg--mobile { display: block; }
-  .dgp1-problems { grid-template-columns: 1fr; gap: 1.4rem; }
-  .dgp1-rail { flex-direction: column; align-items: center; gap: 0.35rem; padding: 0.5rem 0 0; }
-  .dgp1-rail__track { display: none; }
-  .dgp1-rail__arrow { align-self: center; margin: 0; transform: rotate(90deg); }
-}
-
-/* —— Part 1 · motion: only communicates system behaviour; static tells the
-   whole story; respects prefers-reduced-motion. —— */
-@media (prefers-reduced-motion: no-preference) {
-  .dgp1-flow { stroke-dasharray: 4 10; animation: dgp1Flow 2.8s linear infinite; }
-  .dgp1-pulse { animation: dgp1Pulse 2.4s ease-in-out infinite; }
-  .dgp1-corepulse { animation: dgp1Core 2s ease-in-out infinite; }
-  .dgp1-orbit-slow, .dgp1-spin-slow { animation: dgp1Spin 26s linear infinite; }
-  .dgp1-orbit-rev, .dgp1-spin-rev { animation: dgp1SpinRev 32s linear infinite; }
-  @keyframes dgp1Flow { to { stroke-dashoffset: -28; } }
-  @keyframes dgp1Pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.85; } }
-  @keyframes dgp1Core { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
-  @keyframes dgp1Spin { to { transform: rotate(360deg); } }
-  @keyframes dgp1SpinRev { to { transform: rotate(-360deg); } }
-  /* Parts 1–2 only: slightly slower / softer motion toward Parts 3–4 restraint.
-     Part 3 keeps the shared baseline above unchanged. */
-  .dg-stage--p1 .dgp1-flow,
-  .dgp2-stage--anatomy .dgp1-flow { stroke-dasharray: 4 12; animation-duration: 3.4s; }
-  .dg-stage--p1 .dgp1-pulse,
-  .dgp2-stage--anatomy .dgp1-pulse { animation: dgp1PulseSoft 3.2s ease-in-out infinite; }
-  .dg-stage--p1 .dgp1-corepulse,
-  .dgp2-stage--anatomy .dgp1-corepulse { animation: dgp1CoreSoft 2.8s ease-in-out infinite; }
-  .dg-stage--p1 .dgp1-orbit-slow, .dg-stage--p1 .dgp1-spin-slow,
-  .dgp2-stage--anatomy .dgp1-orbit-slow, .dgp2-stage--anatomy .dgp1-spin-slow { animation-duration: 34s; }
-  .dg-stage--p1 .dgp1-orbit-rev, .dg-stage--p1 .dgp1-spin-rev,
-  .dgp2-stage--anatomy .dgp1-orbit-rev, .dgp2-stage--anatomy .dgp1-spin-rev { animation-duration: 42s; }
-  @keyframes dgp1PulseSoft { 0%, 100% { opacity: 0.42; } 50% { opacity: 0.72; } }
-  @keyframes dgp1CoreSoft { 0%, 100% { opacity: 0.62; } 50% { opacity: 0.92; } }
-}
+/* —— Reduced motion: static-first; the diagrams are SMIL-free already —— */
 @media (prefers-reduced-motion: reduce) {
-  .dgp1-flow { display: none; }
-}
-
-/* ===========================================================================
-   PART 2 — “An intelligent business is more than a brain” (ported prototype).
-   dgp2- namespaced and :has() scoped so Part 1 and Parts 3–4 are untouched.
-   Shares the dgp1- motion utilities (flow / spin / corepulse) as behaviours.
-   =========================================================================== */
-.dgp2-stage--anatomy .dg-stage__intro,
-.dgp2-stage--learn .dg-stage__intro { text-align: center; justify-items: center; max-width: 46rem; }
-.dgp2-stage--anatomy .dg-stage__kicker,
-.dgp2-stage--learn .dg-stage__kicker { justify-content: center; }
-.dgp2-stage--anatomy .dg-stage__caption,
-.dgp2-stage--learn .dg-stage__caption { text-align: center; max-width: 44rem; }
-.dgp2-stage--anatomy.dg-stage--wide { width: min(1180px, calc(100vw - 2rem)); }
-.dgp2-stage--learn.dg-stage--wide { width: min(1040px, calc(100vw - 3rem)); }
-
-/* Scenes stay open on the editorial canvas; clip decorative glow only
-   (harmonised toward Parts 3–4 finish; anatomy geometry unchanged). */
-.dgp2-scene { position: relative; z-index: 0; overflow: hidden; }
-.dgp2-svg { display: block; width: 100%; height: auto; }
-.dgp2-svg--mobile { display: none; }
-.dgp2-scene--anatomy::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(44% 54% at 48% 38%, rgba(124, 58, 237, 0.075), transparent 64%);
-}
-
-/* Learning sequence rail: SIGNALS → CONTEXT → INTELLIGENCE → REASONING → ACTION → OUTCOME → LEARNING ↺ */
-.dgp2-learn { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.35rem; padding: 1.15rem 3.25rem 0; }
-.dgp2-learn__track { position: absolute; top: 38px; left: 11%; right: 11%; height: 1px; z-index: 0; background: linear-gradient(90deg, rgba(124, 58, 237, 0.06), rgba(124, 58, 237, 0.16) 50%, rgba(124, 58, 237, 0.06)); }
-.dgp2-learn__stop { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
-.dgp2-learn__ic { width: 38px; height: 38px; border-radius: 999px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.08); color: #9ca3af; }
-.dgp2-learn__ic svg { width: 16px; height: 16px; }
-.dgp2-learn__stop--intelligence .dgp2-learn__ic { background: rgba(168, 85, 247, 0.08); border-color: rgba(168, 85, 247, 0.16); color: #c084fc; }
-.dgp2-learn__stop--learning .dgp2-learn__ic { background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.16); color: #34d399; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__label,
-.dgp2-learn__label { font-family: Sora, Inter, sans-serif; font-size: 0.62rem !important; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__stop--intelligence .dgp2-learn__label { color: #c4b5fd !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__stop--learning .dgp2-learn__label { color: #6ee7b7 !important; }
-.dgp2-learn__arrow { align-self: flex-start; margin-top: 9px; display: grid; place-items: center; color: rgba(167, 139, 250, 0.3); }
-.dgp2-learn__arrow svg { width: 16px; height: 16px; }
-.dgp2-learn__loop { align-self: flex-start; margin-top: 6px; margin-left: 0.2rem; color: #34d399; font-size: 1.05rem; opacity: 0.85; }
-
-/* Part-2 hero: the title dominates, restrained eyebrow — scoped to the Part-2 page. */
-.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero { position: relative; overflow: hidden; }
-.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(42% 60% at 84% 0%, rgba(124, 58, 237, 0.14), transparent 60%),
-    radial-gradient(40% 52% at 6% 4%, rgba(56, 189, 248, 0.09), transparent 62%);
-}
-.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero > * { position: relative; z-index: 1; }
-.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero h1 {
-  font-size: clamp(2.9rem, 6vw, 4.9rem) !important;
-  line-height: 1.03 !important;
-  letter-spacing: -0.035em !important;
-  max-width: 20ch;
-  margin: 0.7rem 0 1.15rem !important;
-}
-.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero .kicker {
-  display: inline-block !important;
-  color: #93c5fd !important;
-  font-family: Sora, Inter, sans-serif !important;
-  font-weight: 800 !important;
-  font-size: 0.74rem !important;
-  letter-spacing: 0.18em !important;
-  text-transform: uppercase !important;
-}
-.wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero .hero-thesis {
-  font-size: clamp(1.1rem, 1.7vw, 1.45rem) !important;
-  line-height: 1.5 !important;
-  color: #cbd5e1 !important;
-  max-width: 44ch;
-}
-
-@media (max-width: 680px) {
-  .dgp2-svg--desktop { display: none; }
-  .dgp2-svg--mobile { display: block; }
-  .dgp2-learn { flex-wrap: wrap; justify-content: center; gap: 0.7rem 0.5rem; padding: 0.5rem 0 0; }
-  .dgp2-learn__track { display: none; }
-  .dgp2-learn__arrow { margin-top: 10px; }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .dgp2-health { animation: dgp2Health 3.2s ease-in-out infinite; }
-  @keyframes dgp2Health { 0%, 100% { opacity: 0.38; } 50% { opacity: 0.72; } }
-}
-
-/* ===========================================================================
-   PART 3 — “From signal to action” (ported prototype).
-   dgp3- namespaced and :has() scoped so Parts 1, 2 and 4 are untouched.
-   Shares the dgp1- motion utilities (flow / spin / corepulse) as behaviours.
-   =========================================================================== */
-.dgp3-stage--loop .dg-stage__intro,
-.dgp3-stage--journey .dg-stage__intro { text-align: center; justify-items: center; max-width: 48rem; }
-.dgp3-stage--loop .dg-stage__kicker,
-.dgp3-stage--journey .dg-stage__kicker { justify-content: center; }
-.dgp3-stage--loop .dg-stage__caption,
-.dgp3-stage--journey .dg-stage__caption { text-align: center; max-width: 46rem; }
-.dgp3-stage--loop.dg-stage--wide { width: min(1120px, calc(100vw - 2rem)); }
-.dgp3-stage--journey.dg-stage--wide { width: min(1080px, calc(100vw - 2rem)); }
-
-.dgp3-scene { position: relative; z-index: 0; }
-.dgp3-svg { display: block; width: 100%; height: auto; }
-.dgp3-svg--mobile { display: none; }
-.dgp3-scene--loop::before {
-  content: "";
-  position: absolute;
-  inset: -4% 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(38% 34% at 52% 32%, rgba(124, 58, 237, 0.14), transparent 62%),
-    radial-gradient(26% 30% at 80% 32%, rgba(59, 130, 246, 0.08), transparent 64%);
-}
-.dgp3-scene--journey::before {
-  content: "";
-  position: absolute;
-  inset: -10% 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(60% 70% at 50% 50%, rgba(124, 58, 237, 0.06), transparent 66%);
-}
-
-/* Part-3 hero: the title dominates, restrained eyebrow — scoped to the Part-3 page. */
-.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero { position: relative; overflow: hidden; }
-.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(42% 60% at 84% 0%, rgba(124, 58, 237, 0.14), transparent 60%),
-    radial-gradient(40% 52% at 6% 4%, rgba(56, 189, 248, 0.09), transparent 62%);
-}
-.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero > * { position: relative; z-index: 1; }
-.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero h1 {
-  font-size: clamp(2.9rem, 6vw, 4.9rem) !important;
-  line-height: 1.03 !important;
-  letter-spacing: -0.035em !important;
-  max-width: 18ch;
-  margin: 0.7rem 0 1.15rem !important;
-}
-.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero .kicker {
-  display: inline-block !important;
-  color: #93c5fd !important;
-  font-family: Sora, Inter, sans-serif !important;
-  font-weight: 800 !important;
-  font-size: 0.74rem !important;
-  letter-spacing: 0.18em !important;
-  text-transform: uppercase !important;
-}
-.wb-html-island--page:has([data-dg-stage-of="insights-part-3"]) .hero .hero-thesis {
-  font-size: clamp(1.1rem, 1.7vw, 1.45rem) !important;
-  line-height: 1.5 !important;
-  color: #cbd5e1 !important;
-  max-width: 44ch;
-}
-
-@media (max-width: 680px) {
-  .dgp3-svg--desktop { display: none; }
-  .dgp3-svg--mobile { display: block; }
-}
-
-/* ===========================================================================
-   DigitalGate INSIGHTS — shared four-part SERIES SHELL (renderer-owned).
-   One canvas, one hero system, one typographic scale, one margin system across
-   Parts 1–4. The renderer normalises every article into .dg-insights-hero /
-   .dg-insights-series-nav, so the older per-article/per-part hero CSS no
-   longer matches anything. Signature scenes stay distinct; the shell does not.
-   =========================================================================== */
-.dg-insight {
-  --dgi-prose-max: 720px;
-  --dgi-stage-max: 1120px;
-  --dgi-gutter: clamp(1.25rem, 5vw, 2rem);
-  --dgi-section-gap: clamp(2.75rem, 6vw, 4.5rem);
-}
-
-/* (14) ONE shared reading column: breadcrumb, badge, title, lede, metadata and
-   body prose all start/end on the same horizontal guides across all four. */
-.wb-html-island--page .dg-insight .dg-insights-shell,
-.wb-html-island--page .dg-insight .container,
-.wb-html-island--page .dg-insight .prose {
-  max-width: var(--dgi-prose-max) !important;
-  width: 100% !important;
-  margin-inline: auto !important;
-  padding-inline: var(--dgi-gutter) !important;
-}
-.wb-html-island--page .dg-insight .container-wide,
-.wb-html-island--page .dg-insight .wide {
-  max-width: var(--dgi-stage-max) !important;
-  width: 100% !important;
-  margin-inline: auto !important;
-  padding-inline: var(--dgi-gutter) !important;
-}
-/* (9) ONE signature-visual breakout: identical width + page-centred from any
-   parent (incl. the padded prose .container) across all four parts. */
-.wb-html-island--page .dg-insight .dg-stage--wide {
-  width: min(var(--dgi-stage-max), calc(100vw - 2 * var(--dgi-gutter))) !important;
-  max-width: none !important;
-  margin-left: 50% !important;
-  margin-right: 0 !important;
-  transform: translateX(-50%) !important;
-}
-@media (max-width: 680px) {
-  /* On mobile the stage fits the reading column — no breakout, no overflow. */
-  .wb-html-island--page .dg-insight .dg-stage--wide {
-    width: 100% !important;
-    margin-inline: auto !important;
-    transform: none !important;
-  }
-}
-/* One shared section rhythm. */
-.wb-html-island--page .dg-insight section {
-  padding-block: var(--dgi-section-gap) !important;
-}
-
-/* (4)(5)(6)(10) Shared hero shell — restrained editorial architecture. */
-.dg-insights-hero {
-  position: relative;
-  overflow: hidden;
-  border-top: 0 !important;
-  padding: clamp(1.75rem, 4vw, 3rem) 0 clamp(1.5rem, 3vw, 2.25rem) !important;
-  background:
-    radial-gradient(42% 60% at 84% 0%, rgba(124, 58, 237, 0.14), transparent 60%),
-    radial-gradient(40% 52% at 6% 4%, rgba(56, 189, 248, 0.09), transparent 62%),
-    linear-gradient(180deg, #070b13, #0a0e17);
-}
-.dg-insights-hero > .dg-insights-shell { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.95rem; }
-.dg-insights-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; margin: 0 !important; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.72rem; color: #64748b; }
-.wb-html-island--page:not(.wb-html-island--light) .dg-insights-breadcrumb a,
-.dg-insights-breadcrumb a { color: #64748b !important; text-decoration: none; }
-.dg-insights-breadcrumb a:hover { color: #93c5fd !important; }
-.dg-insights-breadcrumb__current { color: #94a3b8; }
-
-/* (5)(6) Series badge + Part X of 4 + four-position progress. */
-.dg-insights-eyebrow { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem 1rem; }
-.dg-insights-badge {
-  display: inline-block; font-family: Sora, Inter, sans-serif; font-weight: 800; font-size: 0.7rem;
-  letter-spacing: 0.16em; text-transform: uppercase; color: #c4b5fd;
-  padding: 0.34rem 0.72rem !important; border: 1px solid rgba(124, 58, 237, 0.34); border-radius: 999px;
-  background: rgba(124, 58, 237, 0.08);
-}
-.dg-insights-part { font-family: Sora, Inter, sans-serif; font-weight: 700; font-size: 0.74rem; letter-spacing: 0.12em; text-transform: uppercase; color: #64748b; }
-/* margin-left:auto is authoritative — some article stylesheets ship a
-   universal .dg-insight reset (margin:0) that would otherwise clobber it. */
-.dg-insights-progress { display: inline-flex; align-items: center; gap: 0.42rem; margin-left: auto !important; }
-.dg-insights-progress i { width: 7px; height: 7px; border-radius: 999px; background: rgba(148, 163, 184, 0.28); display: block; transition: width 0.3s ease; }
-.dg-insights-progress i.is-on { width: 22px; background: linear-gradient(90deg, #a78bfa, #60a5fa); box-shadow: 0 0 10px rgba(124, 58, 237, 0.5); }
-
-/* (7) One typographic system: title / lede / metadata. */
-.wb-html-island--page:not(.wb-html-island--light) .dg-insights-title,
-.dg-insights-title {
-  margin: 0.25rem 0 0.3rem !important; font-family: Sora, Inter, sans-serif !important; font-weight: 800 !important;
-  font-size: clamp(2.6rem, 5.6vw, 4.6rem) !important; line-height: 1.04 !important; letter-spacing: -0.035em !important;
-  color: #f8fafc !important; max-width: 20ch;
-}
-.wb-html-island--page:not(.wb-html-island--light) .dg-insights-lede,
-.dg-insights-lede {
-  margin: 0 !important; font-size: clamp(1.08rem, 1.7vw, 1.42rem) !important; line-height: 1.5 !important;
-  color: #cbd5e1 !important; max-width: 46ch;
-}
-.dg-insights-meta { display: flex; align-items: center; gap: 0.55rem; margin: 0.4rem 0 0 !important; font-size: 0.85rem; color: #94a3b8; }
-.dg-insights-avatar { display: inline-grid; place-items: center; width: 1.9rem; height: 1.9rem; border-radius: 999px; font-family: Sora, Inter, sans-serif; font-weight: 800; font-size: 0.66rem; color: #ede9fe; background: linear-gradient(135deg, #7c3aed, #3b82f6); }
-.dg-insights-meta__sep { color: #475569; margin: 0 0.1rem; }
-
-/* (7) Shared body heading scale (one system, not four personalities). */
-.wb-html-island--page:not(.wb-html-island--light) .dg-insight h2,
-.dg-insight h2 { font-family: Sora, Inter, sans-serif !important; font-weight: 700 !important; font-size: clamp(1.5rem, 2.6vw, 2rem) !important; line-height: 1.2 !important; letter-spacing: -0.02em !important; color: #f1f5f9 !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dg-insight h3,
-.dg-insight h3 { font-family: Sora, Inter, sans-serif !important; font-weight: 700 !important; font-size: 1.08rem !important; line-height: 1.35 !important; color: #bfdbfe !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dg-insight .lead,
-.dg-insight .lead { font-size: clamp(1.02rem, 1.4vw, 1.15rem) !important; line-height: 1.65 !important; color: #cbd5e1 !important; }
-
-/* (11)(12) Shared four-part series progression + next-article. */
-.dg-insights-series-nav { border-top: 1px solid rgba(148, 163, 184, 0.12); margin-top: clamp(2.5rem, 6vw, 4rem); padding: clamp(2.5rem, 5vw, 3.5rem) 0 clamp(3rem, 6vw, 4.5rem) !important; }
-.dg-insights-series-nav__eyebrow { margin: 0 0 1.15rem !important; font-family: Sora, Inter, sans-serif; font-weight: 800; font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: #64748b; }
-.dg-insights-series-nav__list { list-style: none; margin: 0 0 1.4rem !important; padding: 0 !important; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.7rem; }
-.dg-insights-chapter { position: relative; margin: 0 !important; padding: 0 !important; }
-.dg-insights-chapter::before { display: none !important; }
-.dg-insights-chapter a, .dg-insights-chapter.is-current { display: flex; gap: 0.6rem; padding: 0.85rem !important; border-radius: 13px; border: 1px solid rgba(148, 163, 184, 0.14); background: rgba(255, 255, 255, 0.02); text-decoration: none; height: 100%; }
-.dg-insights-chapter a:hover { border-color: rgba(124, 58, 237, 0.4); background: rgba(124, 58, 237, 0.06); }
-.dg-insights-chapter.is-current { border-color: rgba(124, 58, 237, 0.5); background: linear-gradient(160deg, rgba(124, 58, 237, 0.12), rgba(59, 130, 246, 0.05)); }
-.dg-insights-chapter__num { font-family: ui-monospace, monospace; font-size: 0.72rem; font-weight: 700; color: #7c3aed; }
-.dg-insights-chapter.is-current .dg-insights-chapter__num { color: #c4b5fd; }
-.dg-insights-chapter__kicker { display: block; font-family: Sora, Inter, sans-serif; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b; margin-bottom: 0.25rem; }
-.wb-html-island--page:not(.wb-html-island--light) .dg-insights-chapter__title,
-.dg-insights-chapter__title { display: block; font-size: 0.8rem; line-height: 1.3; color: #cbd5e1 !important; }
-.dg-insights-chapter.is-current .dg-insights-chapter__title { color: #f1f5f9 !important; }
-.dg-insights-next { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem !important; border-radius: 14px; border: 1px solid rgba(124, 58, 237, 0.3); background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(16, 185, 129, 0.04)); text-decoration: none; }
-.dg-insights-next:hover { border-color: rgba(124, 58, 237, 0.55); }
-.dg-insights-next__k { font-family: ui-monospace, monospace; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; }
-.wb-html-island--page:not(.wb-html-island--light) .dg-insights-next__t,
-.dg-insights-next__t { flex: 1; font-family: Sora, Inter, sans-serif; font-weight: 700; font-size: 0.98rem; color: #f1f5f9 !important; }
-.dg-insights-next__a { color: #a78bfa; font-size: 1.1rem; }
-
-/* (15) Responsive shell — same series identity, deliberate recomposition. */
-@media (max-width: 760px) {
-  .dg-insights-eyebrow { gap: 0.5rem 0.7rem; }
-  .dg-insights-progress { margin-left: 0; width: 100%; order: 3; }
-  .dg-insights-title { font-size: clamp(2.1rem, 8vw, 2.9rem) !important; }
-  .dg-insights-series-nav__list { grid-template-columns: 1fr; }
-  .dg-insights-next { flex-wrap: wrap; }
+  .insights-btn-primary, .insights-btn-secondary { transition: none; }
+  .insights-btn-primary:hover, .insights-btn-secondary:hover { transform: none; box-shadow: none; }
 }
 `;

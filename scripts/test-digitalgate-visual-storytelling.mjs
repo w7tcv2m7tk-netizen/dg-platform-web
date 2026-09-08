@@ -1,307 +1,190 @@
 /**
- * Issue #48 — DigitalGate Insights visual STAGES (render-time, no Neon).
+ * DigitalGate Insights — dedicated four-chapter presentation system (#48).
  *
- * Verifies, against a fixture shaped like CURRENT production Website Studio HTML
- * (hero + series nav + semantic sections + legacy dg-story-visual + legacy
- * <style data-dg48-uplift> + data-dg48-visual blocks + unrelated article CSS):
- *  - all legacy presentation layers are removed (no double-render),
- *  - unrelated CSS / prose / headings / series nav survive,
- *  - the new individual scenes are woven through the article (not stacked),
- *  - each scene appears exactly once and re-runs are byte-identical.
+ * Verifies the production Insights renderer re-composes each Website Studio
+ * article into ONE approved shell: shared renderer, correct series metadata,
+ * one H1, 1–4 progression, prev/next navigation, canonical terminology, the
+ * Part-3 governance order (Advisor → Human Authority → authorised Action) with
+ * NO green action before authority, shared layout tokens, no per-part geometry,
+ * reduced-motion safety, and no broken series links. Content authority stays in
+ * Website Studio; only presentation is renderer-owned.
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = path.join(__dirname, "..");
 
 const load = () =>
   import(
     pathToFileURL(
-      path.join(__dirname, "../src/lib/digitalgate-visual-storytelling.ts"),
+      path.join(root, "src/lib/digitalgate-visual-storytelling.ts"),
     ).href
   );
 
-const SLUGS = {
-  "insights-part-1": "from-dumb-businesses-to-smart-businesses",
-  "insights-part-2": "intelligent-business-more-than-a-brain",
-  "insights-part-3": "from-signal-to-action",
-  "insights-part-4": "business-software-should-tell-you-what-needs-doing",
-};
-
 const count = (s, re) => (s.match(re) || []).length;
 
-/** Production-shaped Part 1 article carrying both legacy #48 layers. Headings
- * mirror the real article so the redesigned anchors weave scenes at:
- * fragmented→after the "fragmented" section, convergence(markers)→after the
- * "hidden human" section, intelligence-stack(architecture)→after "connected",
- * operating-system(rail)→after "not trying to replace". */
-const PROD_PART1 = `<article>
-  <header class="hero"><p class="eyebrow">DigitalGate Insights · 01</p><h1>From dumb businesses to smart businesses</h1>
-    <nav class="series"><a href="/insights/from-dumb-businesses-to-smart-businesses">Part 1</a><a href="/insights/intelligent-business-more-than-a-brain">Part 2</a><a href="/insights/from-signal-to-action">Part 3</a><a href="/insights/business-software-should-tell-you-what-needs-doing">Part 4</a></nav>
-  </header>
-  <style data-dg48-uplift="v2">.dg48-fragmented{color:#f00}.dg48-visual{padding:2rem}</style>
-  <style>.article-callout{border:1px solid #333}</style>
-  <section><h2>Most businesses aren’t dumb. They’re fragmented.</h2><p>PROSE_FRAGMENTED must survive.</p></section>
-  <section data-dg48-visual="fragmented-business"><div class="dg48-frag">LEGACY_VISUAL_FRAG</div></section>
-  <section><h2>The evolution of business software</h2><p>PROSE_EVOLUTION must survive.</p></section>
-  <section><h2>The hidden human integration layer</h2><p>PROSE_HUMAN must survive.</p></section>
-  <aside class="dg-story-visual" data-dg-story="intelligence-rail"><span class="dg-story-label">The DigitalGate intelligence loop</span></aside>
-  <section><h2>What “connected” actually means</h2><p>PROSE_CONNECTED must survive.</p></section>
-  <section data-dg48-visual="operating-layers"><div>LEGACY_OPERATING_LAYERS</div></section>
-  <section><h2>DigitalGate is not trying to replace every tool</h2><p>PROSE_REPLACE must survive.</p></section>
-  <section><h2>The vision: software → systems → intelligence</h2><p>PROSE_VISION must survive.</p><a class="cta" href="/demo">Book a Demo</a></section>
-</article>`;
+/** Real Website Studio source files (content authority) for each chapter. */
+const ARTICLES = {
+  1: { file: "from-dumb-businesses-to-smart-businesses", slug: "from-dumb-businesses-to-smart-businesses" },
+  2: { file: "intelligent-business-more-than-a-brain", slug: "intelligent-business-more-than-a-brain" },
+  3: { file: "from-signal-to-action", slug: "from-signal-to-action" },
+  4: { file: "software-that-tells-you-what-needs-doing", slug: "business-software-should-tell-you-what-needs-doing" },
+};
 
-describe("digitalgate insights visual stages (#48)", () => {
-  it("(12) maps canonical Insights slugs; unrelated slugs are null", async () => {
-    const { digitalgateVisualPageKind } = await load();
-    for (const [part, slug] of Object.entries(SLUGS)) {
-      assert.equal(digitalgateVisualPageKind(slug), part);
+const ROUTES = {
+  1: "/from-dumb-businesses-to-smart-businesses/",
+  2: "/intelligent-business-more-than-a-brain/",
+  3: "/from-signal-to-action/",
+  4: "/business-software-should-tell-you-what-needs-doing/",
+};
+
+function readArticle(part) {
+  return fs.readFileSync(
+    path.join(root, `marketing/pages/${ARTICLES[part].file}.html`),
+    "utf8",
+  );
+}
+
+async function renderPart(part) {
+  const { enhanceDigitalgateVisualHtml } = await load();
+  return enhanceDigitalgateVisualHtml(readArticle(part), ARTICLES[part].slug);
+}
+
+describe("DigitalGate Insights — dedicated four-chapter renderer (#48)", () => {
+  it("(1) all four canonical slugs use the shared Insights renderer", async () => {
+    for (const part of [1, 2, 3, 4]) {
+      const out = await renderPart(part);
+      assert.ok(
+        out.includes('data-dg-insights-article="v2"'),
+        `part ${part} uses the dedicated renderer`,
+      );
+      assert.ok(out.includes('class="insights-article"'), `part ${part} shell`);
+      assert.match(out, new RegExp(`data-part="${part}"`));
     }
-    assert.equal(
-      digitalgateVisualPageKind("software-that-tells-you-what-needs-doing"),
-      "insights-part-4",
-    );
+  });
+
+  it("(2) resolves correct series metadata; unrelated slugs are untouched", async () => {
+    const { digitalgateVisualPageKind, enhanceDigitalgateVisualHtml } = await load();
+    assert.equal(digitalgateVisualPageKind("from-signal-to-action"), "insights-part-3");
+    assert.equal(digitalgateVisualPageKind("software-that-tells-you-what-needs-doing"), "insights-part-4");
     assert.equal(digitalgateVisualPageKind("pricing"), null);
-    assert.equal(digitalgateVisualPageKind(null), null);
+    const html = `<header class="hero"><h1>Pricing</h1></header><p>x</p>`;
+    assert.equal(enhanceDigitalgateVisualHtml(html, "pricing"), html);
   });
 
-  it("removes both legacy layers, preserves content, weaves scenes (production shape)", async () => {
-    const { enhanceDigitalgateVisualHtml } = await load();
-    const out = enhanceDigitalgateVisualHtml(PROD_PART1, SLUGS["insights-part-1"]);
-
-    // (1) old renderer dg-story visuals removed
-    assert.ok(!out.includes("dg-story-visual"), "dg-story-visual removed");
-    assert.ok(!out.includes('data-dg-story="intelligence-rail"'), "old story marker removed");
-    // (2) dg48 uplift style removed (tag + its contents)
-    assert.ok(!out.includes("data-dg48-uplift"), "dg48 uplift style removed");
-    assert.ok(!out.includes(".dg48-fragmented"), "dg48 style contents removed");
-    // (3) dg48 visual stages removed
-    assert.ok(!out.includes("data-dg48-visual"), "dg48 visual attr removed");
-    assert.ok(!out.includes("LEGACY_VISUAL_FRAG"), "legacy visual block removed");
-    assert.ok(!out.includes("LEGACY_OPERATING_LAYERS"), "legacy layers block removed");
-    // (4) unrelated CSS preserved
-    assert.ok(out.includes(".article-callout"), "unrelated article CSS preserved");
-    // (5) prose preserved
-    for (const p of ["PROSE_FRAGMENTED", "PROSE_EVOLUTION", "PROSE_HUMAN", "PROSE_CONNECTED", "PROSE_REPLACE", "PROSE_VISION"]) {
-      assert.ok(out.includes(p), `${p} preserved`);
+  it("(3) renders exactly one H1 per article", async () => {
+    for (const part of [1, 2, 3, 4]) {
+      const out = await renderPart(part);
+      assert.equal(count(out, /<h1\b/gi), 1, `part ${part} has a single H1`);
     }
-    // (6) headings preserved
-    assert.ok(out.includes("The evolution of business software"));
-    assert.ok(out.includes("The hidden human integration layer"));
-    // (7) renderer-owned shared series shell: canonical breadcrumb, series badge,
-    //     Part X of 4 and a four-part series navigation replace the divergent
-    //     per-article series chrome so all four read as one series.
-    assert.ok(out.includes('data-dg-insights-shell="v1"'), "series shell applied");
-    assert.ok(out.includes("Part 1 of 4"), "Part X of 4 exposed in HTML (not SVG only)");
-    assert.ok(out.includes("dg-insights-series-nav"), "shared four-part series nav present");
-    assert.ok(out.includes("DigitalGate Insights"), "series badge present");
-    assert.ok(out.includes("/from-signal-to-action/"), "links to sibling chapter via real route");
-    assert.ok(out.includes(">Book a Demo<"), "CTA preserved");
-
-    // (8) correct individual new stages inserted, each tagged for this kind
-    for (const name of ["fragmented", "convergence", "intelligence-stack", "operating-system"]) {
-      assert.match(out, new RegExp(`data-dg-stage="${name}"`));
-    }
-    assert.equal(count(out, /data-dg-stage-of="insights-part-1"/g), 4);
-    assert.ok(!out.includes("data-dg-stage-suite"), "no monolithic suite wrapper");
-
-    // (9) scenes are distributed across the article (READ -> SEE -> READ),
-    // in the redesigned Part-1 order: signature, markers, architecture, rail.
-    assert.ok(
-      out.indexOf("PROSE_FRAGMENTED") < out.indexOf('data-dg-stage="fragmented"'),
-      "signature follows the fragmented prose",
-    );
-    assert.ok(
-      out.indexOf('data-dg-stage="fragmented"') < out.indexOf("PROSE_EVOLUTION"),
-      "signature precedes the next section (woven, not stacked)",
-    );
-    assert.ok(
-      out.indexOf("PROSE_HUMAN") < out.indexOf('data-dg-stage="convergence"'),
-      "markers follow the hidden-human prose",
-    );
-    assert.ok(
-      out.indexOf('data-dg-stage="convergence"') < out.indexOf("PROSE_CONNECTED"),
-      "markers precede the connected prose",
-    );
-    assert.ok(
-      out.indexOf("PROSE_CONNECTED") < out.indexOf('data-dg-stage="operating-system"'),
-      "transformation rail follows the connected prose",
-    );
-    assert.ok(
-      out.indexOf('data-dg-stage="operating-system"') < out.indexOf("PROSE_REPLACE"),
-      "rail precedes the replace prose",
-    );
-    assert.ok(
-      out.indexOf("PROSE_REPLACE") < out.indexOf('data-dg-stage="intelligence-stack"'),
-      "architecture lands late, before the synthesis",
-    );
-    assert.ok(
-      out.indexOf('data-dg-stage="intelligence-stack"') < out.indexOf("PROSE_VISION"),
-      "architecture precedes the vision prose (final resolution before CTA)",
-    );
-
-    // (10) each scene exactly once
-    for (const name of ["fragmented", "convergence", "intelligence-stack", "operating-system"]) {
-      assert.equal(count(out, new RegExp(`data-dg-stage="${name}"`, "g")), 1, `${name} once`);
-    }
-
-    // (11) second enhancement is byte-identical
-    assert.equal(enhanceDigitalgateVisualHtml(out, SLUGS["insights-part-1"]), out);
   });
 
-  it("(8/9/10/11) weaves Parts 2–4 scenes at their anchors, idempotently", async () => {
-    const { enhanceDigitalgateVisualHtml } = await load();
+  it("(4) shows the four-part progression 1–4 with the current chapter active", async () => {
+    for (const part of [1, 2, 3, 4]) {
+      const out = await renderPart(part);
+      assert.match(out, new RegExp(`Part ${part} of 4`), `part ${part} indicator`);
+      assert.equal(count(out, /insights-progress-dot/g), 4, `part ${part} four dots`);
+      assert.equal(
+        count(out, /insights-progress-dot active/g),
+        1,
+        `part ${part} exactly one active dot`,
+      );
+      // The active numeric label matches the part.
+      assert.match(out, new RegExp(`<span class="active">0${part}</span>`));
+    }
+  });
 
-    const p2 = enhanceDigitalgateVisualHtml(
-      `<header class="hero"><h1>Part 2</h1></header><section><h2>Opening</h2><p>P2_OPEN</p></section><section><h2>The DigitalGate body map</h2><p>P2_MAP</p></section><section><h2>A business operating system</h2><p>P2_OS</p></section>`,
-      SLUGS["insights-part-2"],
-    );
-    assert.match(p2, /data-dg-stage="living-system"/);
-    assert.match(p2, /data-dg-stage="living-flow"/);
-    // Ported living-system keeps Business Brain and AI Advisor distinct, a
-    // governance perimeter, and the learning sequence rail.
+  it("(5) provides previous / current / next navigation via real routes", async () => {
+    for (const part of [1, 2, 3, 4]) {
+      const out = await renderPart(part);
+      assert.match(out, new RegExp(`<span class="insights-current">Part ${part}</span>`));
+      if (part > 1) assert.ok(out.includes(`href="${ROUTES[part - 1]}"`), `part ${part} prev`);
+      if (part < 4) assert.ok(out.includes(`href="${ROUTES[part + 1]}"`), `part ${part} next`);
+      if (part === 4) assert.match(out, /insights-complete/, "part 4 resolves the series");
+    }
+  });
+
+  it("(6) keeps canonical DigitalGate terminology machine-readable in HTML", async () => {
+    const p1 = await renderPart(1);
+    // Definitions live in HTML (prose/labels), never only inside decorative SVG.
+    const proseOnly = p1.split('aria-hidden="true"').join(" ");
+    for (const term of ["Digital Twin", "Business Brain", "AI Advisor"]) {
+      assert.ok(p1.includes(term), `${term} present`);
+    }
+    assert.ok(proseOnly.includes("Digital Twin"), "Digital Twin is not SVG-only");
+    // Part 2 production copy distinguishes Brain (context layer) from Advisor (reasoning).
+    const p2 = await renderPart(2);
     assert.match(p2, /Business Brain/);
     assert.match(p2, /AI Advisor/);
-    assert.match(p2, /IMMUNE SYSTEM/);
-    assert.match(p2, /INTELLIGENCE/);
-    assert.equal(count(p2, /data-dg-stage-of="insights-part-2"/g), 2);
-    assert.equal(enhanceDigitalgateVisualHtml(p2, SLUGS["insights-part-2"]), p2);
-
-    const p3 = enhanceDigitalgateVisualHtml(
-      `<header class="hero"><h1>Part 3</h1></header><section><h2>1. Connect</h2><p>P3_CONNECT</p></section><section><h2>3. Advise</h2><p>P3_ADVISE</p></section><section><h2>4. Act</h2><p>P3_ACT</p></section>`,
-      SLUGS["insights-part-3"],
-    );
-    assert.match(p3, /data-dg-stage="intelligence-loop"/);
-    assert.match(p3, /data-dg-stage="scenario"/);
-    // ported loop: dominant Business Brain, distinct AI Advisor, amber human
-    // authority gate, green learning return; the signal journey changes state.
-    assert.match(p3, /BUSINESS BRAIN/);
-    assert.match(p3, /AI Advisor/);
-    assert.match(p3, /HUMAN AUTHORITY/);
-    assert.match(p3, /Human approval/);
-    assert.match(p3, /OUTCOMES → DIGITAL TWIN → BETTER CONTEXT/);
-    assert.match(p3, /AUTHORISED/);
-    assert.match(p3, /dgp3-scene--loop/);
-    assert.match(p3, /dgp3-scene--journey/);
-    // scenario should land after the loop, not stacked at the top
-    assert.ok(p3.indexOf('data-dg-stage="intelligence-loop"') < p3.indexOf('data-dg-stage="scenario"'));
-    assert.ok(p3.indexOf("P3_CONNECT") < p3.indexOf('data-dg-stage="scenario"'));
-    assert.equal(enhanceDigitalgateVisualHtml(p3, SLUGS["insights-part-3"]), p3);
-
-    const p4 = enhanceDigitalgateVisualHtml(
-      `<header class="hero"><h1>Part 4</h1></header><section><h2>Business software should tell you what needs doing</h2><p>P4_OPEN</p></section><section><h2>The problem with dashboards</h2><p>P4_DASH</p></section><section><h2>Human control is part of the intelligence</h2><p>P4_HUMAN</p></section><section><h2>The business should get smarter as more happens</h2><p>P4_LEARN</p></section><section><h2>From tools to an operating partner</h2><p>P4_CLOSE</p></section>`,
-      SLUGS["insights-part-4"],
-    );
-    assert.match(p4, /data-dg-stage="maturity"/);
-    assert.match(p4, /data-dg-stage="passive-vs-intelligent"/);
-    assert.match(p4, /data-dg-stage="governance"/);
-    assert.match(p4, /data-dg-stage="learning-loop"/);
-    assert.match(p4, /data-dg-stage="series-recap"/);
-    assert.match(p4, /dgp4-scene--maturity/);
-    assert.match(p4, /dgp4-desktop/);
-    assert.match(p4, /dgp4-mobile/);
-    assert.match(p4, /PASSIVE/);
-    assert.match(p4, /LEARNING SYSTEM/);
-    assert.match(p4, /GOVERNED AUTOMATION/);
-    assert.match(p4, />47</);
-    assert.match(p4, /prepared the priority follow-up list/i);
-    assert.match(p4, /HUMAN AUTHORITY/);
-    assert.match(p4, /Digital Twin/);
-    assert.match(p4, /AI Advisor/);
-    assert.match(p4, /Business Brain/);
-    assert.match(p4, /Fragmented → Connected/);
-    assert.match(p4, /Passive → Learning System/);
-    assert.equal(count(p4, /data-dg-stage-of="insights-part-4"/g), 5);
-    // governance lands around the human-control section
-    assert.ok(p4.indexOf("P4_HUMAN") < p4.indexOf('data-dg-stage="governance"'));
-    assert.ok(p4.indexOf('data-dg-stage="maturity"') < p4.indexOf('data-dg-stage="passive-vs-intelligent"'));
-    assert.ok(p4.indexOf('data-dg-stage="governance"') < p4.indexOf('data-dg-stage="learning-loop"'));
-    assert.equal(enhanceDigitalgateVisualHtml(p4, SLUGS["insights-part-4"]), p4);
-
-    // Parts 1–3 contracts unchanged by Part 4 isolation
-    const p1still = enhanceDigitalgateVisualHtml(
-      `<header class="hero"><h1>Part 1</h1></header><section><h2>Your tools don't talk to each other</h2><p>A</p></section>`,
-      SLUGS["insights-part-1"],
-    );
-    assert.match(p1still, /data-dg-stage-of="insights-part-1"/);
-    assert.doesNotMatch(p1still, /dgp4-/);
   });
 
-  it("falls back gracefully when semantic anchors are absent (no drop, no dup)", async () => {
-    const { enhanceDigitalgateVisualHtml } = await load();
-    // Headings present but none match anchors -> even distribution across sections.
-    const out = enhanceDigitalgateVisualHtml(
-      `<header class="hero"><h1>P1</h1></header><section><h2>Alpha</h2><p>A</p></section><section><h2>Beta</h2><p>B</p></section><section><h2>Gamma</h2><p>C</p></section><section><h2>Delta</h2><p>D</p></section>`,
-      SLUGS["insights-part-1"],
+  it("(7)(8) Part 3 governance order: Advisor → Human Authority → Action, no green action before authority", async () => {
+    const p3 = await renderPart(3);
+    const iAdvise = p3.indexOf("ADVISE");
+    const iAuthority = p3.indexOf("HUMAN AUTHORITY");
+    const iAct = p3.search(/>ACT</);
+    assert.ok(iAdvise >= 0 && iAuthority >= 0 && iAct >= 0, "all three stages present");
+    assert.ok(iAdvise < iAuthority, "advise precedes human authority");
+    assert.ok(iAuthority < iAct, "human authority precedes action");
+    // No green (#34d399/#10b981) authorised-action node appears before the amber
+    // Human Authority gate in the static semantic model.
+    const beforeAuthority = p3.slice(0, iAuthority);
+    assert.ok(
+      !/>ACT</.test(beforeAuthority),
+      "no ACT node before the human authority gate",
     );
-    // all four scenes present exactly once
-    for (const name of ["fragmented", "convergence", "intelligence-stack", "operating-system"]) {
-      assert.equal(count(out, new RegExp(`data-dg-stage="${name}"`, "g")), 1);
+  });
+
+  it("(9)(10) uses one shared token system, no per-part geometry / repair mechanisms", async () => {
+    const cssMod = await import(
+      pathToFileURL(
+        path.join(root, "src/components/websites/digitalgate-visual-storytelling-css.ts"),
+      ).href
+    );
+    const css = cssMod.digitalgateVisualStorytellingCss;
+    for (const token of [
+      "--insights-prose-max: 760px",
+      "--insights-stage-max: 1100px",
+      "--insights-gutter-desktop: 48px",
+      "--insights-section-gap: 80px",
+    ]) {
+      assert.ok(css.includes(token), `frozen token present: ${token}`);
     }
-    // and spread out (not all at the same spot) — content survives between them
-    assert.ok(out.includes("Alpha") && out.includes("Delta"));
-
-    // No headings at all -> insert after hero, in order, still no duplication.
-    const bare = enhanceDigitalgateVisualHtml(
-      `<header class="hero"></header>`,
-      SLUGS["insights-part-1"],
-    );
-    assert.equal(count(bare, /data-dg-stage-of="insights-part-1"/g), 4);
-    assert.equal(enhanceDigitalgateVisualHtml(bare, SLUGS["insights-part-1"]), bare);
-  });
-
-  it("(13) leaves unrelated pages untouched", async () => {
-    const { enhanceDigitalgateVisualHtml } = await load();
-    const html = `<header class="hero"></header><p>Pricing details</p>`;
-    assert.equal(enhanceDigitalgateVisualHtml(html, "pricing"), html);
-    assert.equal(enhanceDigitalgateVisualHtml("", SLUGS["insights-part-1"]), "");
-  });
-
-  it("applies ONE shared series shell to all four parts (badge, Part X of 4, progress, nav)", async () => {
-    const { enhanceDigitalgateVisualHtml } = await load();
-    const heroFor = (n, title, kicker) =>
-      `<div class="dg-insight" data-dg-motion-root><header class="hero"><div class="container"><span class="kicker">${kicker}</span><h1>${title}</h1><p class="hero-thesis">Lede ${n}.</p></div></header><section><div class="container"><h2>Section ${n}</h2><p>PROSE_${n}</p></div></section></div>`;
-    const fixtures = {
-      1: heroFor(1, "From fragmented businesses to intelligent ones", "Foundational Series · Part 1 of 3 · Connected Business"),
-      2: heroFor(2, "The intelligent business is more than a brain", "Foundational Series · Part 2 of 3"),
-      3: heroFor(3, "From signal to action", "03 · Intelligence Loop"),
-      4: heroFor(4, "The software that tells you what needs doing", "04 · Proactive"),
-    };
-    for (const [n, slug] of Object.entries(SLUGS)) {
-      const part = Number(n.split("-").pop());
-      const out = enhanceDigitalgateVisualHtml(fixtures[part], slug);
-      // Shared shell chrome present, identical construction across parts.
-      assert.ok(out.includes('data-dg-insights-shell="v1"'), `part ${part} shell`);
-      assert.ok(out.includes('class="dg-insights-hero"'), `part ${part} shared hero`);
-      assert.ok(out.includes("DigitalGate Insights"), `part ${part} badge`);
-      assert.match(out, new RegExp(`Part ${part} of 4`), `part ${part} indicator`);
-      assert.ok(out.includes('class="dg-insights-progress"'), `part ${part} progress`);
-      assert.ok(out.includes("dg-insights-breadcrumb"), `part ${part} breadcrumb`);
-      assert.ok(out.includes("dg-insights-meta"), `part ${part} metadata`);
-      assert.ok(out.includes("dg-insights-series-nav"), `part ${part} series nav`);
-      // Content authority preserved: the real title + prose survive.
-      assert.ok(out.includes(`PROSE_${part}`), `part ${part} prose preserved`);
-      // Stale per-article numbering ("Part X of 3") is gone from the hero.
-      assert.ok(!/Part \d of 3/.test(out.split("dg-insights-series-nav")[0]), `part ${part} stale numbering removed`);
-      // Idempotent.
-      assert.equal(enhanceDigitalgateVisualHtml(out, slug), out, `part ${part} idempotent`);
+    // Rejected repair mechanisms are gone.
+    assert.ok(!/\.dgp[1-4]-/.test(css), "no per-part dgpN stage CSS");
+    assert.ok(!css.includes("data-dg-stage-of"), "no per-part stage :has() scoping");
+    assert.ok(!/insights-part-1"\]\) \.hero/.test(css), "no per-part hero selectors");
+    // The renderer output carries no per-part geometry classes.
+    for (const part of [1, 2, 3, 4]) {
+      const out = await renderPart(part);
+      assert.ok(!/dgp[1-4]-|dg-stage--wide|dg-insights-hero/.test(out), `part ${part} clean markup`);
     }
   });
 
-  it("(14) keeps Business Brain / Automation on existing primitives", async () => {
+  it("(11) signature diagrams are reduced-motion safe (no SMIL animation)", async () => {
+    for (const part of [1, 2, 3, 4]) {
+      const out = await renderPart(part);
+      assert.ok(!/<animate\b/i.test(out), `part ${part} has no SMIL <animate>`);
+      // Decorative SVGs are hidden from assistive tech; figures carry aria-label.
+      assert.match(out, /<svg[^>]*aria-hidden="true"/);
+      assert.match(out, /role="figure" aria-label=/);
+    }
+  });
+
+  it("(12) series navigation has no broken links (no href=\"#\")", async () => {
+    for (const part of [1, 2, 3, 4]) {
+      const out = await renderPart(part);
+      assert.ok(!/href="#"/.test(out), `part ${part} has no placeholder links`);
+    }
+  });
+
+  it("is idempotent — a second render pass is byte-identical", async () => {
     const { enhanceDigitalgateVisualHtml } = await load();
-    const brain = enhanceDigitalgateVisualHtml(
-      `<div class="dg-bb"><section class="hero"></section><section></section></div>`,
-      "business-brain",
-    );
-    assert.match(brain, /data-dg-story="business-brain-network"/);
-    const auto = enhanceDigitalgateVisualHtml(
-      `<div><section class="hero"></section><section></section></div>`,
-      "automation",
-    );
-    assert.match(auto, /data-dg-story="automation-timeline"/);
+    const once = await renderPart(2);
+    assert.equal(enhanceDigitalgateVisualHtml(once, ARTICLES[2].slug), once);
   });
 });
