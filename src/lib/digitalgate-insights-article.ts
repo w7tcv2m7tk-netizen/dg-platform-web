@@ -417,8 +417,211 @@ function signatureVisual(part: InsightsPart): {
   return { svg: stripSmil(v.svg), caption: v.caption, aria: v.aria };
 }
 
-const GRID = (id: string) =>
-  `<pattern id="${id}" width="30" height="30" patternUnits="userSpaceOnUse" opacity="0.03"><path d="M 30 0 L 0 0 0 30" fill="none" stroke="white" stroke-width="0.5"/></pattern>`;
+/* —————————————————————————————————————————————————————————————————————————
+ * Signature diagram visual language
+ *
+ * A single, shared node/flow system so all four chapters read as one series.
+ * Every diagram uses the same canvas, grid, node treatment, typography and
+ * colour semantics. Colour is meaning, not decoration:
+ *   cyan   — incoming signal / sensing        purple — context / memory
+ *   indigo — digital twin (live state)        violet — Business Brain (dominant)
+ *   blue   — AI Advisor (reasoning)           amber  — human authority (governance)
+ *   green  — authorised action / learning     muted  — fragmented / passive
+ * Green never appears before the amber human-authority gate.
+ * ————————————————————————————————————————————————————————————————————————— */
+
+type ToneKey =
+  | "muted"
+  | "purple"
+  | "indigo"
+  | "violet"
+  | "blue"
+  | "cyan"
+  | "amber"
+  | "green";
+
+const TONE: Record<
+  ToneKey,
+  { line: string; fill: string; label: string; glow: string }
+> = {
+  muted: { line: "#64748b", fill: "rgba(148,163,184,0.05)", label: "#94a3b8", glow: "#64748b" },
+  purple: { line: "#8b5cf6", fill: "rgba(139,92,246,0.06)", label: "#c4b5fd", glow: "#8b5cf6" },
+  indigo: { line: "#6366f1", fill: "rgba(99,102,241,0.06)", label: "#a5b4fc", glow: "#6366f1" },
+  violet: { line: "#7c3aed", fill: "rgba(124,58,237,0.07)", label: "#c4b5fd", glow: "#7c3aed" },
+  blue: { line: "#3b82f6", fill: "rgba(59,130,246,0.06)", label: "#93c5fd", glow: "#3b82f6" },
+  cyan: { line: "#22d3ee", fill: "rgba(34,211,238,0.06)", label: "#67e8f9", glow: "#22d3ee" },
+  amber: { line: "#fbbf24", fill: "rgba(251,191,36,0.06)", label: "#fcd34d", glow: "#fbbf24" },
+  green: { line: "#34d399", fill: "rgba(52,211,153,0.06)", label: "#6ee7b7", glow: "#34d399" },
+};
+
+function glowDefs(): string {
+  return (Object.keys(TONE) as ToneKey[])
+    .map(
+      (k) =>
+        `<radialGradient id="g-${k}"><stop offset="0%" stop-color="${TONE[k].glow}" stop-opacity="0.22"/><stop offset="65%" stop-color="${TONE[k].glow}" stop-opacity="0.05"/><stop offset="100%" stop-color="${TONE[k].glow}" stop-opacity="0"/></radialGradient>`,
+    )
+    .join("");
+}
+
+function gridDef(id: string): string {
+  return `<pattern id="${id}" width="46" height="46" patternUnits="userSpaceOnUse"><path d="M46 0H0V46" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.025"/></pattern>`;
+}
+
+function frame(w: number, h: number, id: string): string {
+  return `<rect width="${w}" height="${h}" rx="16" fill="#0c0c15"/><rect width="${w}" height="${h}" rx="16" fill="url(#${id})"/>`;
+}
+
+/** A clean node: soft glow, ring(s) for the dominant one, label + optional mono sub. */
+function node(
+  x: number,
+  y: number,
+  r: number,
+  tone: ToneKey,
+  label: string,
+  sub = "",
+  dominant = false,
+): string {
+  const t = TONE[tone];
+  const glow = `<circle cx="${x}" cy="${y}" r="${(r * 1.85).toFixed(1)}" fill="url(#g-${tone})"/>`;
+  const outer = dominant
+    ? `<circle cx="${x}" cy="${y}" r="${r + 16}" fill="none" stroke="${t.line}" stroke-width="1" stroke-dasharray="5 8" opacity="0.35"/><circle cx="${x}" cy="${y}" r="${r + 7}" fill="none" stroke="${t.line}" stroke-width="1" opacity="0.4"/>`
+    : "";
+  const body = `<circle cx="${x}" cy="${y}" r="${r}" fill="${t.fill}" stroke="${t.line}" stroke-width="${dominant ? 2 : 1.5}"/>`;
+  const neural = dominant
+    ? `<circle cx="${x}" cy="${y}" r="${(r * 0.55).toFixed(1)}" fill="none" stroke="${t.line}" stroke-width="0.7" opacity="0.3"/><line x1="${(x - r * 0.7).toFixed(1)}" y1="${y}" x2="${(x + r * 0.7).toFixed(1)}" y2="${y}" stroke="${t.line}" stroke-width="0.7" opacity="0.3"/><line x1="${x}" y1="${(y - r * 0.7).toFixed(1)}" x2="${x}" y2="${(y + r * 0.7).toFixed(1)}" stroke="${t.line}" stroke-width="0.7" opacity="0.3"/>`
+    : "";
+  const dot = `<circle cx="${x}" cy="${y}" r="4" fill="${t.line}" opacity="0.75"/>`;
+  const ly = y + r + (dominant ? 27 : 23);
+  const fs = dominant ? 18 : 15;
+  const lbl = `<text x="${x}" y="${ly}" text-anchor="middle" fill="${t.label}" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="${fs}" font-weight="${dominant ? 700 : 600}">${label}</text>`;
+  const sb = sub
+    ? `<text x="${x}" y="${ly + 18}" text-anchor="middle" fill="#94a3b8" font-family="ui-monospace,SFMono-Regular,monospace" font-size="11">${sub}</text>`
+    : "";
+  return `<g>${glow}${outer}${body}${neural}${dot}${lbl}${sb}</g>`;
+}
+
+function flow(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  tone: ToneKey,
+  dashed = false,
+  width = 2,
+): string {
+  const t = TONE[tone];
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${t.line}" stroke-width="${width}" opacity="0.5" stroke-linecap="round"${dashed ? ` stroke-dasharray="6 7"` : ""}/>`;
+}
+
+function arc(d: string, tone: ToneKey, dashed = true, width = 2): string {
+  const t = TONE[tone];
+  return `<path d="${d}" fill="none" stroke="${t.line}" stroke-width="${width}" opacity="0.5" stroke-linecap="round"${dashed ? ` stroke-dasharray="6 8"` : ""}/>`;
+}
+
+function stageSvg(w: number, h: number, id: string, inner: string): string {
+  return `<svg viewBox="0 0 ${w} ${h}" aria-hidden="true"><defs>${glowDefs()}${gridDef(id)}</defs>${frame(w, h, id)}${inner}</svg>`;
+}
+
+/* ── Part 1 — fragmented tools → coordinated business intelligence ────────── */
+const SIG1 = (() => {
+  const frag = [
+    { x: 74, y: 92, l: "Website" },
+    { x: 58, y: 168, l: "CRM" },
+    { x: 96, y: 236, l: "Email" },
+    { x: 64, y: 312, l: "Analytics" },
+    { x: 124, y: 130, l: "Bookings" },
+    { x: 122, y: 292, l: "Finance" },
+  ];
+  const dots = frag
+    .map(
+      (f) =>
+        `<circle cx="${f.x}" cy="${f.y}" r="9" fill="rgba(148,163,184,0.05)" stroke="#64748b" stroke-width="1"/><text x="${f.x}" y="${f.y + 22}" text-anchor="middle" fill="#64748b" font-family="ui-monospace,monospace" font-size="9">${f.l}</text>`,
+    )
+    .join("");
+  const conv = frag
+    .map((f) => `<path d="M ${f.x + 8} ${f.y} Q 150 ${f.y} 190 205" fill="none" stroke="#64748b" stroke-width="0.8" stroke-dasharray="3 7" opacity="0.3"/>`)
+    .join("");
+  const inner =
+    `<g>${conv}${dots}</g>` +
+    node(190, 205, 16, "amber", "You", "manual layer") +
+    flow(206, 205, 290, 202, "amber") +
+    flow(370, 200, 454, 200, "purple") +
+    flow(502, 200, 592, 200, "indigo") +
+    flow(672, 200, 760, 200, "violet") +
+    flow(816, 200, 894, 200, "blue") +
+    flow(922, 228, 922, 296, "green") +
+    node(330, 200, 40, "purple", "DigitalGate", "Shared context") +
+    node(478, 200, 24, "indigo", "Digital Twin", "Live state") +
+    node(632, 200, 40, "violet", "Business Brain", "Structured context", true) +
+    node(788, 200, 28, "blue", "AI Advisor", "Reasoning") +
+    node(922, 200, 28, "amber", "Human Authority", "Approves") +
+    node(922, 318, 22, "green", "Action", "Authorised");
+  return stageSvg(1100, 405, "ig1", inner);
+})();
+
+/* ── Part 2 — a business is a living system ───────────────────────────────── */
+const SIG2 = (() => {
+  const inner =
+    // feeds into memory
+    flow(128, 108, 278, 178, "cyan") +
+    flow(128, 282, 278, 208, "amber") +
+    // central spine
+    flow(330, 190, 502, 190, "purple") +
+    flow(608, 190, 762, 190, "violet") +
+    // advisor → hands / voice
+    flow(828, 176, 936, 122, "green") +
+    flow(828, 206, 936, 262, "cyan") +
+    // learning return
+    arc("M 952 292 C 900 372, 520 372, 300 226", "green", true, 2) +
+    `<text x="626" y="366" text-anchor="middle" fill="#6ee7b7" font-family="ui-monospace,monospace" font-size="11" opacity="0.85">Learning returns to context</text>` +
+    node(108, 92, 22, "cyan", "Senses", "Signals") +
+    node(108, 296, 22, "amber", "Direction", "Goals") +
+    node(300, 190, 30, "indigo", "Memory", "CRM + knowledge") +
+    node(555, 190, 46, "violet", "Business Brain", "Structured intelligence", true) +
+    node(800, 190, 30, "blue", "AI Advisor", "Reasoning") +
+    node(955, 108, 22, "green", "Automation", "Hands") +
+    node(955, 276, 22, "cyan", "Comms", "Voice");
+  return stageSvg(1100, 400, "ig2", inner);
+})();
+
+/* ── Part 3 — the intelligence loop, governed by human authority ──────────── */
+const SIG3 = (() => {
+  const inner =
+    // forward path
+    flow(176, 155, 319, 155, "cyan") +
+    flow(371, 155, 514, 155, "purple") +
+    flow(566, 155, 700, 155, "blue") +
+    flow(760, 155, 889, 155, "green") +
+    // act → outcome → learning return (below, clearly separated)
+    arc("M 915 181 C 915 300, 850 300, 792 300", "green", false, 2) +
+    arc("M 730 300 C 470 300, 300 300, 168 178", "green", true, 2) +
+    `<text x="430" y="332" text-anchor="middle" fill="#6ee7b7" font-family="ui-monospace,monospace" font-size="11" opacity="0.85">Learning returns to context</text>` +
+    node(150, 155, 26, "cyan", "Connect", "Signals in") +
+    node(345, 155, 26, "purple", "Understand", "Context") +
+    node(540, 155, 26, "blue", "Advise", "Recommends") +
+    node(730, 155, 30, "amber", "Human Authority", "Approves", true) +
+    node(915, 155, 26, "green", "Act", "Authorised") +
+    node(755, 300, 20, "green", "Outcome", "");
+  return stageSvg(1100, 400, "ig3", inner);
+})();
+
+/* ── Part 4 — the maturity curve, human authority stays explicit ──────────── */
+const SIG4 = (() => {
+  const stops = [
+    { x: 150, y: 300, r: 22, tone: "muted" as ToneKey, l: "Passive", s: "Software runs" },
+    { x: 340, y: 255, r: 22, tone: "blue" as ToneKey, l: "Assistive", s: "Answers" },
+    { x: 530, y: 205, r: 22, tone: "purple" as ToneKey, l: "Proactive", s: "Surfaces" },
+    { x: 720, y: 160, r: 26, tone: "amber" as ToneKey, l: "Governed", s: "Automation" },
+    { x: 905, y: 116, r: 24, tone: "green" as ToneKey, l: "Learning", s: "Improves" },
+  ];
+  const curve = `<path d="M 150 300 C 245 300, 250 255, 340 255 C 435 255, 440 205, 530 205 C 625 205, 630 160, 720 160 C 815 160, 815 116, 905 116" fill="none" stroke="url(#p4Rise)" stroke-width="2.5" opacity="0.55" stroke-linecap="round"/>`;
+  const rise = `<linearGradient id="p4Rise" x1="0%" y1="100%" x2="100%" y2="0%"><stop offset="0%" stop-color="#64748b"/><stop offset="45%" stop-color="#8b5cf6"/><stop offset="75%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#34d399"/></linearGradient>`;
+  const axis = `<line x1="120" y1="352" x2="965" y2="352" stroke="#334155" stroke-width="1" opacity="0.45"/><text x="965" y="378" text-anchor="end" fill="#6ee7b7" font-family="ui-monospace,monospace" font-size="11" opacity="0.8">maturity →</text>`;
+  const gate = `<text x="720" y="96" text-anchor="middle" fill="#fcd34d" font-family="ui-monospace,monospace" font-size="11" opacity="0.85">human authority stays explicit</text>`;
+  const nodes = stops.map((s) => node(s.x, s.y, s.r, s.tone, s.l, s.s)).join("");
+  const inner = `<defs>${rise}</defs>${curve}${axis}${gate}${nodes}`;
+  return stageSvg(1100, 400, "ig4", inner);
+})();
 
 const SIGNATURE: Record<
   InsightsPart,
@@ -429,308 +632,27 @@ const SIGNATURE: Record<
       "The transformation from fragmented tools to connected business intelligence.",
     aria:
       "Fragmented business systems (website, CRM, email, analytics, bookings, finance) with the owner acting as the manual integration layer, converging into DigitalGate shared business context, then flowing through the Digital Twin, Business Brain and AI Advisor to a human authority gate before any authorised action.",
-    svg: `<svg viewBox="0 0 1100 500" aria-hidden="true">
-  <defs>
-    <linearGradient id="p1Connect" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6366f1" stop-opacity="0.2"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.5"/><stop offset="100%" stop-color="#a78bfa" stop-opacity="0.2"/></linearGradient>
-    <radialGradient id="p1BrainGlow"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.2"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
-    ${GRID("p1Grid")}
-  </defs>
-  <rect width="1100" height="500" fill="#0f0f1a" rx="12"/>
-  <rect width="1100" height="500" fill="url(#p1Grid)" rx="12"/>
-  <g opacity="0.6">
-    <circle cx="80" cy="100" r="14" fill="rgba(239,68,68,0.03)" stroke="#ef4444" stroke-width="0.8"/><text x="80" y="130" text-anchor="middle" fill="#ef4444" font-size="8" font-family="monospace" opacity="0.5">Website</text>
-    <circle cx="60" cy="170" r="12" fill="rgba(239,68,68,0.03)" stroke="#ef4444" stroke-width="0.8"/><text x="60" y="196" text-anchor="middle" fill="#ef4444" font-size="7" font-family="monospace" opacity="0.5">CRM</text>
-    <circle cx="100" cy="230" r="12" fill="rgba(239,68,68,0.03)" stroke="#ef4444" stroke-width="0.8"/><text x="100" y="256" text-anchor="middle" fill="#ef4444" font-size="7" font-family="monospace" opacity="0.5">Email</text>
-    <circle cx="50" cy="290" r="12" fill="rgba(239,68,68,0.03)" stroke="#ef4444" stroke-width="0.8"/><text x="50" y="316" text-anchor="middle" fill="#ef4444" font-size="7" font-family="monospace" opacity="0.5">Analytics</text>
-    <circle cx="120" cy="350" r="12" fill="rgba(239,68,68,0.03)" stroke="#ef4444" stroke-width="0.8"/><text x="120" y="376" text-anchor="middle" fill="#ef4444" font-size="7" font-family="monospace" opacity="0.5">Bookings</text>
-    <circle cx="70" cy="400" r="10" fill="rgba(239,68,68,0.03)" stroke="#ef4444" stroke-width="0.8"/><text x="70" y="424" text-anchor="middle" fill="#ef4444" font-size="6" font-family="monospace" opacity="0.5">Finance</text>
-    <path d="M 94 100 C 140 100, 180 140, 220 180" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="3 8" fill="none" opacity="0.2"/>
-    <path d="M 72 170 C 120 170, 170 200, 220 220" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="3 8" fill="none" opacity="0.2"/>
-    <path d="M 112 230 C 160 230, 200 250, 240 260" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="3 8" fill="none" opacity="0.2"/>
-    <path d="M 62 290 C 120 290, 170 300, 220 300" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="3 8" fill="none" opacity="0.2"/>
-    <path d="M 132 350 C 180 350, 220 340, 260 330" stroke="#ef4444" stroke-width="0.8" stroke-dasharray="3 8" fill="none" opacity="0.2"/>
-  </g>
-  <g>
-    <circle cx="280" cy="250" r="40" fill="rgba(251,191,36,0.03)" stroke="#fbbf24" stroke-width="1.5" opacity="0.4"/>
-    <circle cx="280" cy="250" r="26" fill="rgba(251,191,36,0.04)" stroke="#fbbf24" stroke-width="0.8" stroke-dasharray="4 6" opacity="0.3"/>
-    <text x="280" y="244" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="system-ui" font-weight="600">You</text>
-    <text x="280" y="262" text-anchor="middle" fill="#fbbf24" font-size="7" font-family="monospace" opacity="0.6">Integration Layer</text>
-    <path d="M 130 100 L 260 235" stroke="#fbbf24" stroke-width="0.8" opacity="0.15" stroke-dasharray="4 6"/>
-    <path d="M 110 170 L 260 242" stroke="#fbbf24" stroke-width="0.8" opacity="0.15" stroke-dasharray="4 6"/>
-    <path d="M 150 230 L 260 248" stroke="#fbbf24" stroke-width="0.8" opacity="0.15" stroke-dasharray="4 6"/>
-    <path d="M 90 290 L 260 252" stroke="#fbbf24" stroke-width="0.8" opacity="0.15" stroke-dasharray="4 6"/>
-  </g>
-  <path d="M 320 250 C 400 250, 460 250, 520 250" stroke="url(#p1Connect)" stroke-width="3" fill="none" opacity="0.6"/>
-  <g>
-    <circle cx="580" cy="250" r="80" fill="url(#p1BrainGlow)"/>
-    <circle cx="580" cy="250" r="55" fill="rgba(124,58,237,0.04)" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="6 8" opacity="0.4"/>
-    <circle cx="580" cy="250" r="40" fill="rgba(124,58,237,0.06)" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
-    <circle cx="580" cy="250" r="26" fill="rgba(124,58,237,0.08)" stroke="#7c3aed" stroke-width="0.8" stroke-dasharray="4 6" opacity="0.3"/>
-    <circle cx="580" cy="250" r="14" fill="#7c3aed" opacity="0.1"/>
-    <circle cx="580" cy="250" r="5" fill="#a78bfa" opacity="0.6"/>
-    <line x1="580" y1="210" x2="580" y2="290" stroke="#7c3aed" stroke-width="0.5" opacity="0.3"/>
-    <line x1="540" y1="250" x2="620" y2="250" stroke="#7c3aed" stroke-width="0.5" opacity="0.3"/>
-    <line x1="550" y1="220" x2="610" y2="280" stroke="#7c3aed" stroke-width="0.4" opacity="0.2"/>
-    <line x1="610" y1="220" x2="550" y2="280" stroke="#7c3aed" stroke-width="0.4" opacity="0.2"/>
-    <text x="580" y="295" text-anchor="middle" fill="#c4b5fd" font-size="13" font-family="system-ui" font-weight="700">DigitalGate</text>
-    <text x="580" y="312" text-anchor="middle" fill="#6b7280" font-size="8" font-family="monospace">Shared Business Context</text>
-  </g>
-  <g opacity="0.8">
-    <path d="M 635 240 L 680 220" stroke="#6366f1" stroke-width="1.5" opacity="0.4"/>
-    <circle cx="720" cy="180" r="18" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="1.2"/>
-    <text x="720" y="215" text-anchor="middle" fill="#c7d2fe" font-size="9" font-family="system-ui" font-weight="600">Digital Twin</text>
-    <text x="720" y="229" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Evolving State</text>
-    <path d="M 720 198 L 720 240" stroke="#6366f1" stroke-width="1.2" opacity="0.35"/>
-    <circle cx="720" cy="280" r="26" fill="rgba(124,58,237,0.04)" stroke="#7c3aed" stroke-width="1.5"/>
-    <circle cx="720" cy="280" r="16" fill="rgba(124,58,237,0.06)" stroke="#7c3aed" stroke-width="0.6" stroke-dasharray="3 4" opacity="0.3"/>
-    <text x="720" y="315" text-anchor="middle" fill="#c4b5fd" font-size="10" font-family="system-ui" font-weight="600">Business Brain</text>
-    <text x="720" y="330" text-anchor="middle" fill="#6b7280" font-size="7" font-family="monospace">Structured Context</text>
-    <path d="M 746 280 L 790 280" stroke="#7c3aed" stroke-width="1.5" opacity="0.4"/>
-    <circle cx="820" cy="280" r="20" fill="rgba(59,130,246,0.04)" stroke="#3b82f6" stroke-width="1.2"/>
-    <circle cx="820" cy="280" r="10" stroke="#60a5fa" stroke-width="0.6" fill="none" opacity="0.4"/>
-    <text x="820" y="315" text-anchor="middle" fill="#bfdbfe" font-size="9" font-family="system-ui" font-weight="600">AI Advisor</text>
-    <text x="820" y="329" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Reasoning Layer</text>
-    <path d="M 840 280 L 880 280" stroke="#fbbf24" stroke-width="1.5" opacity="0.4" stroke-dasharray="4 6"/>
-    <rect x="890" y="262" width="100" height="36" rx="4" fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="1" opacity="0.7"/>
-    <text x="940" y="278" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="system-ui" font-weight="600">Human</text>
-    <text x="940" y="292" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="system-ui" font-weight="600">Authority</text>
-    <path d="M 990 280 L 1030 280" stroke="#10b981" stroke-width="1.5" opacity="0.4"/>
-    <rect x="1040" y="268" width="50" height="24" rx="4" fill="rgba(16,185,129,0.04)" stroke="#10b981" stroke-width="0.8" opacity="0.7"/>
-    <text x="1065" y="285" text-anchor="middle" fill="#34d399" font-size="9" font-family="system-ui" font-weight="500">Action</text>
-  </g>
-  <text x="120" y="465" text-anchor="middle" fill="#4b5563" font-size="8" font-family="monospace" letter-spacing="0.1em">FRAGMENTED</text>
-  <text x="580" y="465" text-anchor="middle" fill="#7c3aed" font-size="8" font-family="monospace" letter-spacing="0.1em" font-weight="600">CONNECTED</text>
-  <text x="950" y="465" text-anchor="middle" fill="#a78bfa" font-size="8" font-family="monospace" letter-spacing="0.1em">INTELLIGENT</text>
-</svg>`,
+    svg: SIG1,
   },
   2: {
     caption:
       "A business is a living system. Intelligence emerges from the whole, not one part.",
     aria:
       "An abstract living-system architecture: senses (signals and analytics) and direction (goals) feed a nervous system of connectors and events; memory holds CRM and knowledge; the dominant Business Brain is DigitalGate's structured business knowledge and context layer, distinct from the AI Advisor reasoning layer; hands (automation), voice (communications) and body (Platform Core and apps) act; an immune system of security and governance surrounds it; and learning returns outcomes to the system.",
-    svg: `<svg viewBox="0 0 1100 550" aria-hidden="true">
-  <defs>
-    <radialGradient id="p2BrainGlow"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.2"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
-    <radialGradient id="p2AdvisorGlow"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.12"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
-    <linearGradient id="p2Nervous" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366f1" stop-opacity="0.1"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.3"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.1"/></linearGradient>
-    ${GRID("p2Grid")}
-  </defs>
-  <rect width="1100" height="550" fill="#0f0f1a" rx="12"/>
-  <rect width="1100" height="550" fill="url(#p2Grid)" rx="12"/>
-  <path d="M 300 100 C 300 180, 300 280, 550 280" stroke="url(#p2Nervous)" stroke-width="2" fill="none" opacity="0.4"/>
-  <path d="M 300 150 C 300 230, 300 330, 550 330" stroke="url(#p2Nervous)" stroke-width="1.5" fill="none" opacity="0.3"/>
-  <path d="M 550 280 C 700 280, 760 280, 850 280" stroke="url(#p2Nervous)" stroke-width="2" fill="none" opacity="0.4"/>
-  <text x="550" y="90" text-anchor="middle" fill="#4b5563" font-size="8" font-family="monospace" letter-spacing="0.1em">NERVOUS SYSTEM</text>
-  <g>
-    <text x="100" y="150" text-anchor="middle" fill="#4b5563" font-size="8" font-family="monospace" letter-spacing="0.1em">SENSES</text>
-    <text x="100" y="165" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Signals + Analytics</text>
-    <circle cx="80" cy="200" r="10" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="0.8"/><text x="80" y="222" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Web</text>
-    <circle cx="120" cy="200" r="10" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="0.8"/><text x="120" y="222" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Leads</text>
-    <circle cx="80" cy="240" r="10" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="0.8"/><text x="80" y="262" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Customers</text>
-    <circle cx="120" cy="240" r="10" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="0.8"/><text x="120" y="262" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Revenue</text>
-    <path d="M 90 200 L 200 240" stroke="#6366f1" stroke-width="0.8" stroke-dasharray="3 6" fill="none" opacity="0.3"/>
-    <path d="M 130 200 L 200 260" stroke="#6366f1" stroke-width="0.8" stroke-dasharray="3 6" fill="none" opacity="0.3"/>
-  </g>
-  <g>
-    <text x="100" y="350" text-anchor="middle" fill="#4b5563" font-size="8" font-family="monospace" letter-spacing="0.1em">DIRECTION</text>
-    <text x="100" y="365" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Goals + Strategy</text>
-    <circle cx="80" cy="400" r="16" fill="rgba(251,191,36,0.03)" stroke="#fbbf24" stroke-width="0.8"/>
-    <circle cx="80" cy="400" r="8" stroke="#fbbf24" stroke-width="0.6" fill="none"/>
-    <line x1="80" y1="392" x2="80" y2="408" stroke="#fbbf24" stroke-width="0.4" opacity="0.4"/>
-    <line x1="72" y1="400" x2="88" y2="400" stroke="#fbbf24" stroke-width="0.4" opacity="0.4"/>
-    <path d="M 96 400 C 180 400, 250 380, 320 360" stroke="#fbbf24" stroke-width="0.8" fill="none" opacity="0.2" stroke-dasharray="4 6"/>
-  </g>
-  <g>
-    <text x="100" y="310" text-anchor="middle" fill="#4b5563" font-size="7" font-family="monospace" letter-spacing="0.1em">MEMORY</text>
-    <circle cx="260" cy="280" r="45" fill="rgba(99,102,241,0.03)" stroke="#6366f1" stroke-width="1" opacity="0.6"/>
-    <circle cx="260" cy="280" r="30" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="0.6" stroke-dasharray="4 6" opacity="0.3"/>
-    <rect x="250" y="272" width="20" height="12" rx="1.5" stroke="#818cf8" stroke-width="0.6" fill="none"/>
-    <rect x="254" y="276" width="12" height="4" rx="0.5" fill="#818cf8" opacity="0.15"/>
-    <text x="260" y="315" text-anchor="middle" fill="#c7d2fe" font-size="10" font-family="system-ui" font-weight="600">Memory</text>
-    <text x="260" y="330" text-anchor="middle" fill="#6b7280" font-size="7" font-family="monospace">CRM + Knowledge</text>
-    <text x="260" y="345" text-anchor="middle" fill="#4b5563" font-size="6" font-family="monospace">Context Layer</text>
-  </g>
-  <g>
-    <text x="260" y="400" text-anchor="middle" fill="#4b5563" font-size="8" font-family="monospace" letter-spacing="0.1em">LEARNING</text>
-    <circle cx="260" cy="450" r="30" fill="rgba(52,211,153,0.03)" stroke="#34d399" stroke-width="0.8" opacity="0.5"/>
-    <circle cx="260" cy="450" r="18" fill="rgba(52,211,153,0.04)" stroke="#34d399" stroke-width="0.5" stroke-dasharray="3 4" opacity="0.3"/>
-    <path d="M 256 450 L 259 453 L 264 447" stroke="#34d399" stroke-width="0.8" fill="none" opacity="0.6"/>
-    <text x="260" y="472" text-anchor="middle" fill="#34d399" font-size="7" font-family="system-ui" font-weight="500">Digital Twin</text>
-    <text x="260" y="484" text-anchor="middle" fill="#6b7280" font-size="5" font-family="monospace">Evolving State</text>
-  </g>
-  <path d="M 305 280 C 360 280, 420 280, 480 280" stroke="#7c3aed" stroke-width="2.5" opacity="0.5"/>
-  <g>
-    <circle cx="560" cy="280" r="85" fill="url(#p2BrainGlow)"/>
-    <circle cx="560" cy="280" r="62" fill="rgba(124,58,237,0.03)" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="6 8" opacity="0.4"/>
-    <circle cx="560" cy="280" r="46" fill="rgba(124,58,237,0.05)" stroke="#7c3aed" stroke-width="1" opacity="0.5"/>
-    <circle cx="560" cy="280" r="32" fill="rgba(124,58,237,0.08)" stroke="#7c3aed" stroke-width="0.8" stroke-dasharray="4 6" opacity="0.3"/>
-    <circle cx="560" cy="280" r="18" fill="#7c3aed" opacity="0.08"/>
-    <circle cx="560" cy="280" r="6" fill="#a78bfa" opacity="0.5"/>
-    <line x1="560" y1="230" x2="560" y2="330" stroke="#7c3aed" stroke-width="0.5" opacity="0.3"/>
-    <line x1="515" y1="280" x2="605" y2="280" stroke="#7c3aed" stroke-width="0.5" opacity="0.3"/>
-    <line x1="528" y1="248" x2="592" y2="312" stroke="#7c3aed" stroke-width="0.4" opacity="0.2"/>
-    <line x1="592" y1="248" x2="528" y2="312" stroke="#7c3aed" stroke-width="0.4" opacity="0.2"/>
-    <circle cx="540" cy="260" r="5" fill="#7c3aed" opacity="0.2"/><circle cx="580" cy="260" r="5" fill="#7c3aed" opacity="0.2"/><circle cx="540" cy="300" r="5" fill="#7c3aed" opacity="0.2"/><circle cx="580" cy="300" r="5" fill="#7c3aed" opacity="0.2"/>
-    <text x="560" y="332" text-anchor="middle" fill="#fff" font-size="14" font-family="system-ui" font-weight="700">Business Brain</text>
-    <text x="560" y="352" text-anchor="middle" fill="#a78bfa" font-size="9" font-family="monospace">Structured Intelligence</text>
-    <text x="560" y="367" text-anchor="middle" fill="#6b7280" font-size="7" font-family="monospace">Context + Knowledge</text>
-  </g>
-  <path d="M 645 280 C 710 280, 770 280, 830 280" stroke="#3b82f6" stroke-width="2.5" opacity="0.5"/>
-  <g>
-    <circle cx="900" cy="280" r="70" fill="url(#p2AdvisorGlow)"/>
-    <circle cx="900" cy="280" r="45" fill="rgba(59,130,246,0.03)" stroke="#3b82f6" stroke-width="1.2" opacity="0.6"/>
-    <circle cx="900" cy="280" r="30" fill="rgba(59,130,246,0.05)" stroke="#3b82f6" stroke-width="0.8" stroke-dasharray="3 5" opacity="0.4"/>
-    <circle cx="900" cy="280" r="16" stroke="#60a5fa" stroke-width="0.8" fill="none" opacity="0.4"/>
-    <circle cx="900" cy="280" r="7" stroke="#60a5fa" stroke-width="0.5" fill="none" opacity="0.3"/>
-    <circle cx="900" cy="280" r="3" fill="#60a5fa" opacity="0.5"/>
-    <line x1="896" y1="280" x2="904" y2="280" stroke="#60a5fa" stroke-width="0.4" opacity="0.4"/>
-    <line x1="900" y1="276" x2="900" y2="284" stroke="#60a5fa" stroke-width="0.4" opacity="0.4"/>
-    <text x="900" y="315" text-anchor="middle" fill="#bfdbfe" font-size="12" font-family="system-ui" font-weight="600">AI Advisor</text>
-    <text x="900" y="332" text-anchor="middle" fill="#6b7280" font-size="8" font-family="monospace">Reasoning Layer</text>
-    <text x="900" y="347" text-anchor="middle" fill="#4b5563" font-size="7" font-family="monospace">Recommends actions</text>
-  </g>
-  <rect x="30" y="30" width="1040" height="490" rx="20" fill="none" stroke="#6366f1" stroke-width="0.5" opacity="0.08" stroke-dasharray="8 12"/>
-  <rect x="40" y="40" width="1020" height="470" rx="16" fill="none" stroke="#6366f1" stroke-width="0.3" opacity="0.05" stroke-dasharray="4 16"/>
-  <text x="1060" y="80" text-anchor="middle" fill="#4b5563" font-size="7" font-family="monospace" letter-spacing="0.05em" transform="rotate(-90, 1060, 80)">IMMUNE SYSTEM</text>
-  <text x="1060" y="400" text-anchor="middle" fill="#4b5563" font-size="7" font-family="monospace" letter-spacing="0.05em" transform="rotate(-90, 1060, 400)">HEALTH</text>
-  <circle cx="1040" cy="450" r="14" fill="rgba(52,211,153,0.03)" stroke="#34d399" stroke-width="0.6" opacity="0.5"/>
-  <path d="M 1032 450 L 1036 450 L 1038 444 L 1042 456 L 1046 448 L 1050 450" stroke="#34d399" stroke-width="1" fill="none" opacity="0.5"/>
-  <text x="1040" y="475" text-anchor="middle" fill="#6ee7b7" font-size="6" font-family="system-ui">Diagnostic</text>
-  <g>
-    <text x="940" y="400" text-anchor="middle" fill="#4b5563" font-size="8" font-family="monospace" letter-spacing="0.1em">HANDS</text>
-    <circle cx="940" cy="430" r="14" fill="rgba(16,185,129,0.03)" stroke="#10b981" stroke-width="0.6"/>
-    <text x="940" y="456" text-anchor="middle" fill="#34d399" font-size="7" font-family="system-ui" font-weight="500">Automation</text>
-    <path d="M 900 310 L 926 415" stroke="#10b981" stroke-width="0.8" opacity="0.2"/>
-    <text x="940" y="490" text-anchor="middle" fill="#4b5563" font-size="8" font-family="monospace" letter-spacing="0.1em">VOICE</text>
-    <circle cx="940" cy="510" r="14" fill="rgba(236,72,153,0.03)" stroke="#ec4899" stroke-width="0.6"/>
-    <text x="940" y="536" text-anchor="middle" fill="#f472b6" font-size="7" font-family="system-ui" font-weight="500">Communications</text>
-    <path d="M 900 310 L 926 500" stroke="#ec4899" stroke-width="0.8" opacity="0.2"/>
-    <text x="940" y="380" text-anchor="middle" fill="#4b5563" font-size="8" font-family="monospace" letter-spacing="0.1em">BODY</text>
-    <rect x="920" y="385" width="40" height="12" rx="2" fill="rgba(139,92,246,0.03)" stroke="#8b5cf6" stroke-width="0.4" opacity="0.4"/>
-    <text x="940" y="394" text-anchor="middle" fill="#a78bfa" font-size="5" font-family="monospace">Core+Apps</text>
-  </g>
-  <text x="550" y="520" text-anchor="middle" fill="#4b5563" font-size="7" font-family="monospace" letter-spacing="0.1em">ONE LIVING SYSTEM · SENSE · MEMORY · BRAIN · REASON · ACT · LEARN</text>
-</svg>`,
+    svg: SIG2,
   },
   3: {
     caption:
       "The intelligence loop: connect, understand, advise, authorise, act, learn — with explicit human governance before any action.",
     aria:
       "A causal loop: connect signals, understand context, advise with recommendations, then a human authority gate for consequential decisions, only then authorised action, an outcome, and learning that returns to context. No action path exists before the amber human-authority gate.",
-    svg: `<svg viewBox="0 0 1100 500" aria-hidden="true">
-  <defs>
-    <linearGradient id="p3Loop" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6366f1" stop-opacity="0.2"/><stop offset="25%" stop-color="#7c3aed" stop-opacity="0.4"/><stop offset="50%" stop-color="#a78bfa" stop-opacity="0.4"/><stop offset="75%" stop-color="#fbbf24" stop-opacity="0.4"/><stop offset="100%" stop-color="#34d399" stop-opacity="0.2"/></linearGradient>
-    ${GRID("p3Grid")}
-  </defs>
-  <rect width="1100" height="500" fill="#0f0f1a" rx="12"/>
-  <rect width="1100" height="500" fill="url(#p3Grid)" rx="12"/>
-  <path d="M 100 250 C 180 120, 920 120, 1000 250 C 1030 300, 1000 380, 900 380 C 550 380, 250 380, 150 380 C 80 380, 70 300, 100 250" stroke="url(#p3Loop)" stroke-width="3" fill="none" opacity="0.5"/>
-  <g>
-    <circle cx="150" cy="250" r="35" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="1.5"/>
-    <text x="150" y="244" text-anchor="middle" fill="#818cf8" font-size="11" font-family="system-ui" font-weight="600">CONNECT</text>
-    <text x="150" y="262" text-anchor="middle" fill="#6b7280" font-size="7" font-family="monospace">Signals in</text>
-    <circle cx="100" cy="190" r="6" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="0.6"/><text x="100" y="182" text-anchor="middle" fill="#6b7280" font-size="5" font-family="monospace">Web</text>
-    <circle cx="100" cy="210" r="6" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="0.6"/><text x="100" y="202" text-anchor="middle" fill="#6b7280" font-size="5" font-family="monospace">CRM</text>
-    <circle cx="100" cy="230" r="6" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="0.6"/><text x="100" y="222" text-anchor="middle" fill="#6b7280" font-size="5" font-family="monospace">Email</text>
-  </g>
-  <g>
-    <circle cx="380" cy="160" r="35" fill="rgba(124,58,237,0.04)" stroke="#7c3aed" stroke-width="1.5"/>
-    <text x="380" y="154" text-anchor="middle" fill="#c4b5fd" font-size="11" font-family="system-ui" font-weight="600">UNDERSTAND</text>
-    <text x="380" y="172" text-anchor="middle" fill="#6b7280" font-size="7" font-family="monospace">Context forms</text>
-    <path d="M 185 250 C 250 220, 300 190, 345 175" stroke="#7c3aed" stroke-width="1.5" opacity="0.3"/>
-  </g>
-  <g>
-    <circle cx="620" cy="160" r="35" fill="rgba(59,130,246,0.04)" stroke="#3b82f6" stroke-width="1.5"/>
-    <text x="620" y="154" text-anchor="middle" fill="#60a5fa" font-size="11" font-family="system-ui" font-weight="600">ADVISE</text>
-    <text x="620" y="172" text-anchor="middle" fill="#6b7280" font-size="7" font-family="monospace">Recommendations</text>
-    <path d="M 415 160 C 480 160, 550 160, 585 160" stroke="#3b82f6" stroke-width="1.5" opacity="0.3"/>
-  </g>
-  <g>
-    <rect x="740" y="310" width="220" height="44" rx="6" fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="1.5" opacity="0.7"/>
-    <text x="850" y="326" text-anchor="middle" fill="#fbbf24" font-size="11" font-family="system-ui" font-weight="600">HUMAN AUTHORITY</text>
-    <text x="850" y="342" text-anchor="middle" fill="#fbbf24" font-size="8" font-family="monospace">Consequential decisions</text>
-    <path d="M 655 160 C 730 200, 780 240, 810 280" stroke="#fbbf24" stroke-width="1.5" opacity="0.4" stroke-dasharray="5 8"/>
-  </g>
-  <g>
-    <circle cx="850" cy="250" r="35" fill="rgba(16,185,129,0.04)" stroke="#10b981" stroke-width="1.5"/>
-    <text x="850" y="244" text-anchor="middle" fill="#34d399" font-size="11" font-family="system-ui" font-weight="600">ACT</text>
-    <text x="850" y="262" text-anchor="middle" fill="#6b7280" font-size="7" font-family="monospace">Authorised execution</text>
-    <path d="M 850 310 L 850 285" stroke="#10b981" stroke-width="1.5" opacity="0.4"/>
-  </g>
-  <g>
-    <circle cx="380" cy="380" r="35" fill="rgba(52,211,153,0.04)" stroke="#34d399" stroke-width="1.5"/>
-    <text x="380" y="374" text-anchor="middle" fill="#34d399" font-size="11" font-family="system-ui" font-weight="600">LEARN</text>
-    <text x="380" y="392" text-anchor="middle" fill="#6b7280" font-size="7" font-family="monospace">Outcomes update context</text>
-    <path d="M 850 285 C 850 380, 700 380, 415 380" stroke="#34d399" stroke-width="1.5" opacity="0.4" stroke-dasharray="6 10"/>
-    <text x="630" y="415" text-anchor="middle" fill="#34d399" font-size="7" font-family="monospace" opacity="0.6">↺ Learning returns to context</text>
-  </g>
-  <text x="550" y="465" text-anchor="middle" fill="#4b5563" font-size="7" font-family="monospace" letter-spacing="0.1em">CONNECT → UNDERSTAND → ADVISE → HUMAN AUTHORITY → ACT → LEARN ↺</text>
-</svg>`,
+    svg: SIG3,
   },
   4: {
     caption:
       "The maturity progression from passive software to an intelligent, governed learning system.",
     aria:
       "A maturity progression: passive software, assistive, proactive, governed automation, learning system. Alongside, a contrast between information (a bare count of 47 opportunities) and direction (seven opportunities need attention, three high-value prospects have gone quiet, priority follow-up is ready). Human authority remains explicit; the machine observes, reasons, prepares and learns.",
-    svg: `<svg viewBox="0 0 1100 480" aria-hidden="true">
-  <defs>
-    <linearGradient id="p4Maturity" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#6366f1" stop-opacity="0.1"/><stop offset="25%" stop-color="#7c3aed" stop-opacity="0.2"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.3"/><stop offset="75%" stop-color="#fbbf24" stop-opacity="0.2"/><stop offset="100%" stop-color="#34d399" stop-opacity="0.2"/></linearGradient>
-    ${GRID("p4Grid")}
-  </defs>
-  <rect width="1100" height="480" fill="#0f0f1a" rx="12"/>
-  <rect width="1100" height="480" fill="url(#p4Grid)" rx="12"/>
-  <path d="M 100 240 C 300 240, 500 240, 700 240 C 900 240, 980 240, 1030 240" stroke="url(#p4Maturity)" stroke-width="2" fill="none" opacity="0.4"/>
-  <g>
-    <circle cx="150" cy="240" r="32" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="1.2" opacity="0.4"/>
-    <text x="150" y="234" text-anchor="middle" fill="#818cf8" font-size="9" font-family="system-ui" font-weight="600">PASSIVE</text>
-    <text x="150" y="252" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Data</text>
-    <text x="150" y="290" text-anchor="middle" fill="#4b5563" font-size="6" font-family="monospace">Dashboards</text>
-  </g>
-  <text x="220" y="245" fill="#4b5563" font-size="14" opacity="0.3">→</text>
-  <g>
-    <circle cx="300" cy="240" r="32" fill="rgba(99,102,241,0.04)" stroke="#6366f1" stroke-width="1.2" opacity="0.5"/>
-    <text x="300" y="234" text-anchor="middle" fill="#818cf8" font-size="9" font-family="system-ui" font-weight="600">ASSISTIVE</text>
-    <text x="300" y="252" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Search</text>
-    <text x="300" y="290" text-anchor="middle" fill="#4b5563" font-size="6" font-family="monospace">Answers</text>
-  </g>
-  <text x="370" y="245" fill="#4b5563" font-size="14" opacity="0.3">→</text>
-  <g>
-    <circle cx="460" cy="240" r="38" fill="rgba(124,58,237,0.04)" stroke="#7c3aed" stroke-width="1.5" opacity="0.6"/>
-    <text x="460" y="232" text-anchor="middle" fill="#c4b5fd" font-size="9" font-family="system-ui" font-weight="600">PROACTIVE</text>
-    <text x="460" y="250" text-anchor="middle" fill="#a78bfa" font-size="6" font-family="monospace">Priorities</text>
-    <text x="460" y="290" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Recommendations</text>
-  </g>
-  <text x="540" y="245" fill="#4b5563" font-size="14" opacity="0.3">→</text>
-  <g>
-    <circle cx="650" cy="240" r="38" fill="rgba(251,191,36,0.04)" stroke="#fbbf24" stroke-width="1.5" opacity="0.6"/>
-    <text x="650" y="230" text-anchor="middle" fill="#fbbf24" font-size="8" font-family="system-ui" font-weight="600">GOVERNED</text>
-    <text x="650" y="248" text-anchor="middle" fill="#fbbf24" font-size="8" font-family="system-ui" font-weight="600">AUTOMATION</text>
-    <text x="650" y="290" text-anchor="middle" fill="#6b7280" font-size="6" font-family="monospace">Permissions + Oversight</text>
-  </g>
-  <text x="730" y="245" fill="#4b5563" font-size="14" opacity="0.3">→</text>
-  <g>
-    <circle cx="850" cy="240" r="44" fill="rgba(52,211,153,0.04)" stroke="#34d399" stroke-width="2" opacity="0.7"/>
-    <circle cx="850" cy="240" r="28" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="0.8" stroke-dasharray="4 6" opacity="0.3"/>
-    <circle cx="850" cy="240" r="14" fill="rgba(52,211,153,0.04)" stroke="#34d399" stroke-width="0.5" opacity="0.2"/>
-    <circle cx="850" cy="240" r="5" fill="#34d399" opacity="0.15"/>
-    <path d="M 846 240 L 849 243 L 854 237" stroke="#34d399" stroke-width="0.8" fill="none" opacity="0.6"/>
-    <text x="850" y="224" text-anchor="middle" fill="#34d399" font-size="9" font-family="system-ui" font-weight="700">LEARNING</text>
-    <text x="850" y="242" text-anchor="middle" fill="#34d399" font-size="9" font-family="system-ui" font-weight="700">SYSTEM</text>
-    <text x="850" y="295" text-anchor="middle" fill="#6ee7b7" font-size="6" font-family="monospace">Outcomes → Context</text>
-  </g>
-  <g>
-    <text x="300" y="360" text-anchor="middle" fill="#4b5563" font-size="8" font-family="monospace" letter-spacing="0.1em">INFORMATION</text>
-    <rect x="200" y="375" width="200" height="60" rx="6" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
-    <text x="220" y="400" fill="#6b7280" font-size="8" font-family="monospace">Opportunities</text>
-    <text x="220" y="420" fill="#4b5563" font-size="22" font-family="system-ui" font-weight="700">47</text>
-    <text x="220" y="435" fill="#4b5563" font-size="6" font-family="monospace">All listed · No priority</text>
-    <text x="750" y="360" text-anchor="middle" fill="#a78bfa" font-size="8" font-family="monospace" letter-spacing="0.1em">DIRECTION</text>
-    <rect x="660" y="375" width="280" height="80" rx="6" fill="rgba(124,58,237,0.03)" stroke="rgba(124,58,237,0.08)" stroke-width="0.5"/>
-    <circle cx="680" cy="395" r="4" fill="#fbbf24" opacity="0.6"/><text x="692" y="398" fill="#fbbf24" font-size="8" font-family="system-ui" font-weight="500">Seven opportunities need attention</text>
-    <circle cx="680" cy="415" r="4" fill="#fbbf24" opacity="0.4"/><text x="692" y="418" fill="#fbbf24" font-size="8" font-family="system-ui" font-weight="500">Three high-value prospects have gone quiet</text>
-    <circle cx="680" cy="435" r="4" fill="#34d399" opacity="0.6"/><text x="692" y="438" fill="#34d399" font-size="8" font-family="system-ui" font-weight="500">Priority follow-up is ready</text>
-  </g>
-  <text x="550" y="465" text-anchor="middle" fill="#4b5563" font-size="6" font-family="monospace" letter-spacing="0.05em">HUMAN AUTHORITY REMAINS EXPLICIT · MACHINE OBSERVES · REASONS · PREPARES · LEARNS</text>
-</svg>`,
+    svg: SIG4,
   },
 };

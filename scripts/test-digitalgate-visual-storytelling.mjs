@@ -124,18 +124,18 @@ describe("DigitalGate Insights — dedicated four-chapter renderer (#48)", () =>
 
   it("(7)(8) Part 3 governance order: Advisor → Human Authority → Action, no green action before authority", async () => {
     const p3 = await renderPart(3);
-    const iAdvise = p3.indexOf("ADVISE");
-    const iAuthority = p3.indexOf("HUMAN AUTHORITY");
-    const iAct = p3.search(/>ACT</);
+    const iAdvise = p3.indexOf(">Advise<");
+    const iAuthority = p3.indexOf(">Human Authority<");
+    const iAct = p3.search(/>Act</);
     assert.ok(iAdvise >= 0 && iAuthority >= 0 && iAct >= 0, "all three stages present");
     assert.ok(iAdvise < iAuthority, "advise precedes human authority");
     assert.ok(iAuthority < iAct, "human authority precedes action");
-    // No green (#34d399/#10b981) authorised-action node appears before the amber
-    // Human Authority gate in the static semantic model.
+    // No authorised-action node appears before the amber Human Authority gate in
+    // the static semantic model.
     const beforeAuthority = p3.slice(0, iAuthority);
     assert.ok(
-      !/>ACT</.test(beforeAuthority),
-      "no ACT node before the human authority gate",
+      !/>Act</.test(beforeAuthority),
+      "no Act node before the human authority gate",
     );
   });
 
