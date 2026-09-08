@@ -197,7 +197,7 @@ function p1FragScene(): string {
   ]
     .map(
       ([d, c]) =>
-        `<path d="${d}" stroke="${c}" stroke-width="1.5" stroke-dasharray="4 9" fill="none" opacity="0.32"/>`,
+        `<path d="${d}" stroke="${c}" stroke-width="1.25" stroke-dasharray="4 9" fill="none" opacity="0.28"/>`,
     )
     .join("");
 
@@ -210,7 +210,7 @@ function p1FragScene(): string {
   ]
     .map(
       (d) =>
-        `<path d="${d}" fill="none" stroke="url(#dgp1Conv)" stroke-width="1.8"/><path class="dgp1-flow" d="${d}" fill="none" stroke="#8fd6ff" stroke-width="1.4" stroke-opacity="0.85"/>`,
+        `<path d="${d}" fill="none" stroke="url(#dgp1Conv)" stroke-width="1.5"/><path class="dgp1-flow" d="${d}" fill="none" stroke="#8fd6ff" stroke-width="1.2" stroke-opacity="0.7"/>`,
     )
     .join("");
 
@@ -229,7 +229,7 @@ function p1FragScene(): string {
 
   const desktop = `<svg class="dgp1-svg dgp1-svg--desktop" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
   <defs>
-    <radialGradient id="dgp1CoreGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(124,58,237,0.28)"/><stop offset="45%" stop-color="rgba(59,130,246,0.14)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient>
+    <radialGradient id="dgp1CoreGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(124,58,237,0.18)"/><stop offset="45%" stop-color="rgba(59,130,246,0.09)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient>
     <linearGradient id="dgp1Conv" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.12"/><stop offset="55%" stop-color="#7c3aed" stop-opacity="0.45"/><stop offset="100%" stop-color="#60a5fa" stop-opacity="0.8"/></linearGradient>
     <pattern id="dgp1Grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-width="0.5"/></pattern>
   </defs>
@@ -280,7 +280,7 @@ function p1FragScene(): string {
     .join("");
   const mobile = `<svg class="dgp1-svg dgp1-svg--mobile" viewBox="0 0 390 700" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
   <defs>
-    <radialGradient id="dgp1CoreGlowV" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(124,58,237,0.28)"/><stop offset="45%" stop-color="rgba(59,130,246,0.14)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient>
+    <radialGradient id="dgp1CoreGlowV" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(124,58,237,0.18)"/><stop offset="45%" stop-color="rgba(59,130,246,0.09)"/><stop offset="100%" stop-color="rgba(124,58,237,0)"/></radialGradient>
     <linearGradient id="dgp1ConvV" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.12"/><stop offset="55%" stop-color="#7c3aed" stop-opacity="0.45"/><stop offset="100%" stop-color="#60a5fa" stop-opacity="0.8"/></linearGradient>
   </defs>
   <text x="16" y="18" fill="#6b7280" font-family="ui-monospace,monospace" font-size="10" letter-spacing="1.5">DIFFERENT TOOLS · DISCONNECTED DATA</text>
@@ -345,14 +345,14 @@ function p1ArchScene(): string {
     <text x="80" y="${cy + 32}" text-anchor="middle" fill="#6b7280" font-size="10" font-family="ui-monospace,monospace" letter-spacing="0.4">${label}</text>`;
   const link = (d: string, c: string) =>
     `<path d="${d}" stroke="${c}" stroke-width="1.5" fill="none" stroke-dasharray="4 6" opacity="0.4"/><path class="dgp1-flow" d="${d}" stroke="${c}" stroke-width="1.5" fill="none" opacity="0.7"/>`;
-  const flow = (d: string, c: string, w = 2) =>
-    `<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" opacity="0.6"/><path class="dgp1-flow" d="${d}" stroke="#bfe4ff" stroke-width="1.4" fill="none" opacity="0.8"/>`;
+  const flow = (d: string, c: string, w = 1.6) =>
+    `<path d="${d}" stroke="${c}" stroke-width="${w}" fill="none" opacity="0.55"/><path class="dgp1-flow" d="${d}" stroke="#bfe4ff" stroke-width="1.2" fill="none" opacity="0.7"/>`;
 
   const desktop = `<svg class="dgp1-svg dgp1-svg--desktop" viewBox="0 0 1100 500" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
   <defs>
-    <linearGradient id="dgp1BrainGlow" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.1"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.3"/></linearGradient>
-    <radialGradient id="dgp1BrainRadial"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.16"/><stop offset="70%" stop-color="#7c3aed" stop-opacity="0.05"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
-    <filter id="dgp1Soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="dgp1BrainGlow" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.2"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.08"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.2"/></linearGradient>
+    <radialGradient id="dgp1BrainRadial"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.11"/><stop offset="70%" stop-color="#7c3aed" stop-opacity="0.04"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+    <filter id="dgp1Soft" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
   <text x="80" y="60" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1.5">DATA SOURCES</text>
   ${src(100, "#8b5cf6", "globe", "Website")}
@@ -363,8 +363,8 @@ function p1ArchScene(): string {
   ${link("M100 180 C 150 180, 180 210, 200 230", "#3b82f6")}
   ${link("M100 270 C 150 270, 180 260, 200 260", "#10b981")}
   ${link("M100 360 C 150 360, 180 300, 200 285", "#ec4899")}
-  <circle cx="230" cy="250" r="45" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="2" opacity="0.8"/>
-  <circle cx="230" cy="250" r="35" fill="none" stroke="#6366f1" stroke-width="1" stroke-dasharray="3 5" opacity="0.5"/>
+  <circle cx="230" cy="250" r="45" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="1.5" opacity="0.8"/>
+  <circle cx="230" cy="250" r="35" fill="none" stroke="#6366f1" stroke-width="1" stroke-dasharray="3 5" opacity="0.45"/>
   ${iconG("layers", 230, 246, 26, "#818cf8", 0.7)}
   <text x="230" y="272" text-anchor="middle" fill="#c7d2fe" font-family="Sora,Inter,sans-serif" font-size="11" font-weight="700">Digital Twin</text>
   <text x="230" y="315" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">CONTEXT</text>
@@ -409,13 +409,13 @@ function p1ArchScene(): string {
     `<circle cx="${cx}" cy="${cy}" r="30" fill="${bg}" stroke="${tint}" stroke-width="1.4" opacity="0.85"/>${iconG(key, cx, cy - 4, 20, tint, 0.8)}<text x="${cx}" y="${cy + 44}" text-anchor="middle" fill="#e5e7eb" font-family="Sora,Inter,sans-serif" font-size="10.5" font-weight="700">${label}</text>`;
   const mobile = `<svg class="dgp1-svg dgp1-svg--mobile" viewBox="0 0 390 900" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
   <defs>
-    <linearGradient id="dgp1BrainGlowV" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.1"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.3"/></linearGradient>
-    <radialGradient id="dgp1BrainRadialV"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.16"/><stop offset="70%" stop-color="#7c3aed" stop-opacity="0.05"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+    <linearGradient id="dgp1BrainGlowV" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.2"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.08"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0.2"/></linearGradient>
+    <radialGradient id="dgp1BrainRadialV"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.11"/><stop offset="70%" stop-color="#7c3aed" stop-opacity="0.04"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
   </defs>
   <text x="195" y="18" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1.5">DATA SOURCES</text>
   ${mSrc(90, "#8b5cf6", "globe")}${mSrc(160, "#3b82f6", "users")}${mSrc(230, "#10b981", "chart")}${mSrc(300, "#ec4899", "mail")}
   ${flow("M195 66 L195 128", "#7c3aed")}
-  <circle cx="195" cy="176" r="40" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="1.6" opacity="0.8"/>${iconG("layers", 195, 172, 24, "#818cf8", 0.7)}<text x="195" y="198" text-anchor="middle" fill="#c7d2fe" font-family="Sora,Inter,sans-serif" font-size="11" font-weight="700">Digital Twin</text>
+  <circle cx="195" cy="176" r="40" fill="rgba(99,102,241,0.05)" stroke="#6366f1" stroke-width="1.4" opacity="0.8"/>${iconG("layers", 195, 172, 24, "#818cf8", 0.7)}<text x="195" y="198" text-anchor="middle" fill="#c7d2fe" font-family="Sora,Inter,sans-serif" font-size="11" font-weight="700">Digital Twin</text>
   ${flow("M195 216 L195 300", "#7c3aed")}
   <circle cx="195" cy="400" r="100" fill="url(#dgp1BrainRadialV)"/>
   <g class="dgp1-spin-slow" style="transform-origin:195px 400px"><circle cx="195" cy="400" r="78" fill="none" stroke="#7c3aed" stroke-width="1" stroke-dasharray="8 8" opacity="0.3"/></g>
@@ -550,9 +550,9 @@ function p2AnatomyScene(): string {
 
   const desktop = `<svg class="dgp2-svg dgp2-svg--desktop" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
   <defs>
-    <radialGradient id="dgp2BrainGlow"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.08"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
-    <radialGradient id="dgp2AdvisorGlow"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
-    <filter id="dgp2Glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <radialGradient id="dgp2BrainGlow"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.16"/><stop offset="50%" stop-color="#7c3aed" stop-opacity="0.06"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+    <radialGradient id="dgp2AdvisorGlow"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.1"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+    <filter id="dgp2Glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
 
   <!-- Governance / immune perimeter -->
@@ -564,12 +564,12 @@ function p2AnatomyScene(): string {
   <text x="1140" y="476" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Security + Governance</text>
 
   <!-- Nervous system pathways -->
-  <g opacity="0.3">
-    <path d="M300 100 C 300 200, 300 300, 560 300" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.4"/>
-    <path d="M300 150 C 300 250, 300 350, 560 350" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.3"/>
-    <path d="M300 200 C 300 300, 300 400, 560 400" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.3"/>
-    <path d="M560 300 C 700 300, 760 300, 850 300" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.4"/>
-    <path d="M560 500 C 700 500, 760 500, 850 500" stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.3"/>
+  <g opacity="0.22">
+    <path d="M300 100 C 300 200, 300 300, 560 300" stroke="#7c3aed" stroke-width="0.8" fill="none" opacity="0.4"/>
+    <path d="M300 150 C 300 250, 300 350, 560 350" stroke="#7c3aed" stroke-width="0.8" fill="none" opacity="0.3"/>
+    <path d="M300 200 C 300 300, 300 400, 560 400" stroke="#7c3aed" stroke-width="0.8" fill="none" opacity="0.3"/>
+    <path d="M560 300 C 700 300, 760 300, 850 300" stroke="#7c3aed" stroke-width="0.8" fill="none" opacity="0.4"/>
+    <path d="M560 500 C 700 500, 760 500, 850 500" stroke="#7c3aed" stroke-width="0.8" fill="none" opacity="0.3"/>
     <text x="560" y="95" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">NERVOUS SYSTEM</text>
     <text x="560" y="110" text-anchor="middle" fill="#6b7280" font-size="8" font-family="ui-monospace,monospace">Connectors + Events</text>
   </g>
@@ -691,8 +691,8 @@ function p2AnatomyScene(): string {
     `<rect x="70" y="${cy}" width="250" height="60" rx="14" fill="${bg}" stroke="${tint}" stroke-opacity="0.4"/>${iconG(key, 104, cy + 30, 22, tint, 0.8)}<text x="132" y="${cy + 25}" fill="#6b7280" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">${kicker}</text><text x="132" y="${cy + 44}" fill="#eef4ff" font-family="Sora,Inter,sans-serif" font-size="14" font-weight="700">${label}</text>`;
   const mobile = `<svg class="dgp2-svg dgp2-svg--mobile" viewBox="0 0 390 1080" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
   <defs>
-    <radialGradient id="dgp2BrainGlowV"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.25"/><stop offset="55%" stop-color="#7c3aed" stop-opacity="0.07"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
-    <radialGradient id="dgp2AdvisorGlowV"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+    <radialGradient id="dgp2BrainGlowV"><stop offset="0%" stop-color="#7c3aed" stop-opacity="0.16"/><stop offset="55%" stop-color="#7c3aed" stop-opacity="0.055"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+    <radialGradient id="dgp2AdvisorGlowV"><stop offset="0%" stop-color="#3b82f6" stop-opacity="0.1"/><stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
   </defs>
   <rect x="18" y="18" width="354" height="1044" rx="26" fill="none" stroke="#6366f1" stroke-width="0.5" opacity="0.12" stroke-dasharray="8 8"/>
   <text x="195" y="46" text-anchor="middle" fill="#4b5563" font-size="9" font-family="ui-monospace,monospace" letter-spacing="1">IMMUNE SYSTEM · SECURITY + GOVERNANCE</text>

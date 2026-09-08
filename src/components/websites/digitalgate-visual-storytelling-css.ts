@@ -1096,60 +1096,62 @@ export const digitalgateVisualStorytellingCss = `
 .dgp1-stage--rail.dg-stage--wide { width: min(940px, calc(100vw - 3rem)); }
 
 /* Scenes are open — no boxed rectangle. Depth comes from light: a soft,
-   feathered glow behind the fragmentation/architecture, never a bordered panel. */
-.dgp1-scene { position: relative; z-index: 0; }
+   feathered glow behind the fragmentation/architecture, never a bordered panel.
+   Glow is clipped to the scene so decorative bleed cannot cause horizontal overflow
+   (harmonised toward Parts 3–4 finish; geometry unchanged). */
+.dgp1-scene { position: relative; z-index: 0; overflow: hidden; }
 .dgp1-svg { display: block; width: 100%; height: auto; }
 .dgp1-svg--mobile { display: none; }
 .dgp1-scene--frag::before,
 .dgp1-scene--arch::before {
   content: "";
   position: absolute;
-  inset: -8% -3%;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(56% 72% at 84% 50%, rgba(124, 58, 237, 0.14), transparent 62%),
-    radial-gradient(46% 62% at 10% 44%, rgba(56, 189, 248, 0.06), transparent 62%);
+    radial-gradient(52% 64% at 84% 50%, rgba(124, 58, 237, 0.08), transparent 64%),
+    radial-gradient(42% 56% at 10% 44%, rgba(56, 189, 248, 0.045), transparent 64%);
 }
 
 /* Problem indicators — icon + label + sublabel; never four feature cards. */
 .dgp1-problems {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem 2.5rem;
-  padding-top: 1.6rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 2.15rem 2.75rem;
+  padding-top: 1.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
-.dgp1-problem { display: flex; gap: 1rem; align-items: flex-start; }
-.dgp1-problem__ic { flex: none; width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; }
-.dgp1-problem__ic svg { width: 20px; height: 20px; }
-.dgp1-problem__ic--red { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; }
-.dgp1-problem__ic--yellow { background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.2); color: #facc15; }
-.dgp1-problem__ic--orange { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.2); color: #fb923c; }
-.dgp1-problem__ic--purple { background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.2); color: #c084fc; }
+.dgp1-problem { display: flex; gap: 0.95rem; align-items: flex-start; }
+.dgp1-problem__ic { flex: none; width: 36px; height: 36px; border-radius: 999px; display: grid; place-items: center; }
+.dgp1-problem__ic svg { width: 18px; height: 18px; }
+.dgp1-problem__ic--red { background: rgba(239, 68, 68, 0.07); border: 1px solid rgba(239, 68, 68, 0.14); color: #f87171; }
+.dgp1-problem__ic--yellow { background: rgba(234, 179, 8, 0.07); border: 1px solid rgba(234, 179, 8, 0.14); color: #facc15; }
+.dgp1-problem__ic--orange { background: rgba(249, 115, 22, 0.07); border: 1px solid rgba(249, 115, 22, 0.14); color: #fb923c; }
+.dgp1-problem__ic--purple { background: rgba(168, 85, 247, 0.07); border: 1px solid rgba(168, 85, 247, 0.14); color: #c084fc; }
 .wb-html-island--page:not(.wb-html-island--light) .dgp1-problem__b strong,
-.dgp1-problem__b strong { display: block; color: #ffffff !important; font-family: Sora, Inter, sans-serif !important; font-size: 0.9rem !important; font-weight: 600 !important; }
+.dgp1-problem__b strong { display: block; color: #f1f5f9 !important; font-family: Sora, Inter, sans-serif !important; font-size: 0.84rem !important; font-weight: 700 !important; letter-spacing: -0.01em; }
 .wb-html-island--page:not(.wb-html-island--light) .dgp1-problem__b small,
-.dgp1-problem__b small { display: block; margin-top: 0.18rem !important; color: #6b7280 !important; font-size: 0.78rem !important; line-height: 1.4 !important; }
+.dgp1-problem__b small { display: block; margin-top: 0.2rem !important; color: #64748b !important; font-family: ui-monospace, SFMono-Regular, monospace !important; font-size: 0.7rem !important; line-height: 1.4 !important; letter-spacing: 0.02em; }
 
 /* Transformation rail — icon nodes + connecting track + arrows. */
-.dgp1-rail { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.4rem; padding: 1rem 2.75rem 0; }
-.dgp1-rail__track { position: absolute; top: 40px; left: 15%; right: 15%; height: 1px; z-index: 0; background: linear-gradient(90deg, #1f2937, rgba(124, 58, 237, 0.22) 50%, #1f2937); }
-.dgp1-rail__stop { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
-.dgp1-rail__ic { width: 48px; height: 48px; border-radius: 999px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #6b7280; }
-.dgp1-rail__ic svg { width: 20px; height: 20px; }
-.dgp1-rail__stop--connected .dgp1-rail__ic { color: #d1d5db; }
-.dgp1-rail__stop--intelligent .dgp1-rail__ic { background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.2); color: #c084fc; }
-.dgp1-rail__stop--coordinated .dgp1-rail__ic { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.dgp1-rail { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; padding: 1.15rem 2.5rem 0; }
+.dgp1-rail__track { position: absolute; top: 38px; left: 15%; right: 15%; height: 1px; z-index: 0; background: linear-gradient(90deg, rgba(31, 41, 55, 0.5), rgba(124, 58, 237, 0.16) 50%, rgba(31, 41, 55, 0.5)); }
+.dgp1-rail__stop { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.55rem; }
+.dgp1-rail__ic { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.08); color: #6b7280; }
+.dgp1-rail__ic svg { width: 18px; height: 18px; }
+.dgp1-rail__stop--connected .dgp1-rail__ic { color: #cbd5e1; border-color: rgba(203, 213, 225, 0.16); }
+.dgp1-rail__stop--intelligent .dgp1-rail__ic { background: rgba(168, 85, 247, 0.08); border-color: rgba(168, 85, 247, 0.16); color: #c084fc; }
+.dgp1-rail__stop--coordinated .dgp1-rail__ic { background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.16); color: #60a5fa; }
 .wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__label,
-.dgp1-rail__label { font-family: Sora, Inter, sans-serif; font-size: 0.72rem !important; font-weight: 600; letter-spacing: 0.09em; color: #6b7280 !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--connected .dgp1-rail__label { color: #d1d5db !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--intelligent .dgp1-rail__label { color: #c084fc !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--coordinated .dgp1-rail__label { color: #60a5fa !important; }
+.dgp1-rail__label { font-family: Sora, Inter, sans-serif; font-size: 0.68rem !important; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--connected .dgp1-rail__label { color: #cbd5e1 !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--intelligent .dgp1-rail__label { color: #c4b5fd !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__stop--coordinated .dgp1-rail__label { color: #93c5fd !important; }
 .wb-html-island--page:not(.wb-html-island--light) .dgp1-rail__sub,
-.dgp1-rail__sub { font-size: 0.62rem !important; color: #4b5563 !important; }
-.dgp1-rail__arrow { align-self: flex-start; margin-top: 12px; display: grid; place-items: center; color: rgba(167, 139, 250, 0.4); }
-.dgp1-rail__arrow svg { width: 22px; height: 22px; }
+.dgp1-rail__sub { font-family: ui-monospace, SFMono-Regular, monospace !important; font-size: 0.6rem !important; letter-spacing: 0.06em; color: #475569 !important; }
+.dgp1-rail__arrow { align-self: flex-start; margin-top: 10px; display: grid; place-items: center; color: rgba(167, 139, 250, 0.32); }
+.dgp1-rail__arrow svg { width: 20px; height: 20px; }
 
 /* Part-1 hero: extremely restrained architectural illumination behind the copy.
    Scoped with :has() to the page that actually carries a Part-1 stage, so Parts
@@ -1193,6 +1195,13 @@ export const digitalgateVisualStorytellingCss = `
 
 /* —— Part 1 · mobile: real vertical recompositions, not shrunk desktop —— */
 @media (max-width: 680px) {
+  /* Decorative glow/SVG bleed must never create horizontal page scroll. */
+  .dg-stage--p1.dg-stage--wide,
+  .dgp2-stage--anatomy.dg-stage--wide,
+  .dgp2-stage--learn.dg-stage--wide {
+    max-width: 100%;
+    overflow-x: clip;
+  }
   .dgp1-svg--desktop { display: none; }
   .dgp1-svg--mobile { display: block; }
   .dgp1-problems { grid-template-columns: 1fr; gap: 1.4rem; }
@@ -1214,6 +1223,20 @@ export const digitalgateVisualStorytellingCss = `
   @keyframes dgp1Core { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
   @keyframes dgp1Spin { to { transform: rotate(360deg); } }
   @keyframes dgp1SpinRev { to { transform: rotate(-360deg); } }
+  /* Parts 1–2 only: slightly slower / softer motion toward Parts 3–4 restraint.
+     Part 3 keeps the shared baseline above unchanged. */
+  .dg-stage--p1 .dgp1-flow,
+  .dgp2-stage--anatomy .dgp1-flow { stroke-dasharray: 4 12; animation-duration: 3.4s; }
+  .dg-stage--p1 .dgp1-pulse,
+  .dgp2-stage--anatomy .dgp1-pulse { animation: dgp1PulseSoft 3.2s ease-in-out infinite; }
+  .dg-stage--p1 .dgp1-corepulse,
+  .dgp2-stage--anatomy .dgp1-corepulse { animation: dgp1CoreSoft 2.8s ease-in-out infinite; }
+  .dg-stage--p1 .dgp1-orbit-slow, .dg-stage--p1 .dgp1-spin-slow,
+  .dgp2-stage--anatomy .dgp1-orbit-slow, .dgp2-stage--anatomy .dgp1-spin-slow { animation-duration: 34s; }
+  .dg-stage--p1 .dgp1-orbit-rev, .dg-stage--p1 .dgp1-spin-rev,
+  .dgp2-stage--anatomy .dgp1-orbit-rev, .dgp2-stage--anatomy .dgp1-spin-rev { animation-duration: 42s; }
+  @keyframes dgp1PulseSoft { 0%, 100% { opacity: 0.42; } 50% { opacity: 0.72; } }
+  @keyframes dgp1CoreSoft { 0%, 100% { opacity: 0.62; } 50% { opacity: 0.92; } }
 }
 @media (prefers-reduced-motion: reduce) {
   .dgp1-flow { display: none; }
@@ -1233,33 +1256,35 @@ export const digitalgateVisualStorytellingCss = `
 .dgp2-stage--anatomy.dg-stage--wide { width: min(1180px, calc(100vw - 2rem)); }
 .dgp2-stage--learn.dg-stage--wide { width: min(1040px, calc(100vw - 3rem)); }
 
-.dgp2-scene { position: relative; z-index: 0; }
+/* Scenes stay open on the editorial canvas; clip decorative glow only
+   (harmonised toward Parts 3–4 finish; anatomy geometry unchanged). */
+.dgp2-scene { position: relative; z-index: 0; overflow: hidden; }
 .dgp2-svg { display: block; width: 100%; height: auto; }
 .dgp2-svg--mobile { display: none; }
 .dgp2-scene--anatomy::before {
   content: "";
   position: absolute;
-  inset: -6% -3%;
+  inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(46% 58% at 48% 38%, rgba(124, 58, 237, 0.12), transparent 60%);
+  background: radial-gradient(44% 54% at 48% 38%, rgba(124, 58, 237, 0.075), transparent 64%);
 }
 
 /* Learning sequence rail: SIGNALS → CONTEXT → INTELLIGENCE → REASONING → ACTION → OUTCOME → LEARNING ↺ */
-.dgp2-learn { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.3rem; padding: 1rem 3.5rem 0; }
-.dgp2-learn__track { position: absolute; top: 40px; left: 11%; right: 11%; height: 1px; z-index: 0; background: linear-gradient(90deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.25) 50%, rgba(124, 58, 237, 0.1)); }
-.dgp2-learn__stop { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
-.dgp2-learn__ic { width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #9ca3af; }
-.dgp2-learn__ic svg { width: 18px; height: 18px; }
-.dgp2-learn__stop--intelligence .dgp2-learn__ic { background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.2); color: #c084fc; }
-.dgp2-learn__stop--learning .dgp2-learn__ic { background: rgba(52, 211, 153, 0.1); border-color: rgba(52, 211, 153, 0.2); color: #34d399; }
+.dgp2-learn { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.35rem; padding: 1.15rem 3.25rem 0; }
+.dgp2-learn__track { position: absolute; top: 38px; left: 11%; right: 11%; height: 1px; z-index: 0; background: linear-gradient(90deg, rgba(124, 58, 237, 0.06), rgba(124, 58, 237, 0.16) 50%, rgba(124, 58, 237, 0.06)); }
+.dgp2-learn__stop { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.dgp2-learn__ic { width: 38px; height: 38px; border-radius: 999px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.035); border: 1px solid rgba(255, 255, 255, 0.08); color: #9ca3af; }
+.dgp2-learn__ic svg { width: 16px; height: 16px; }
+.dgp2-learn__stop--intelligence .dgp2-learn__ic { background: rgba(168, 85, 247, 0.08); border-color: rgba(168, 85, 247, 0.16); color: #c084fc; }
+.dgp2-learn__stop--learning .dgp2-learn__ic { background: rgba(52, 211, 153, 0.08); border-color: rgba(52, 211, 153, 0.16); color: #34d399; }
 .wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__label,
-.dgp2-learn__label { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 0.62rem !important; letter-spacing: 0.08em; color: #6b7280 !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__stop--intelligence .dgp2-learn__label { color: #c084fc !important; }
-.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__stop--learning .dgp2-learn__label { color: #34d399 !important; }
-.dgp2-learn__arrow { align-self: flex-start; margin-top: 10px; display: grid; place-items: center; color: rgba(167, 139, 250, 0.4); }
-.dgp2-learn__arrow svg { width: 18px; height: 18px; }
-.dgp2-learn__loop { align-self: flex-start; margin-top: 6px; margin-left: 0.2rem; color: #34d399; font-size: 1.15rem; }
+.dgp2-learn__label { font-family: Sora, Inter, sans-serif; font-size: 0.62rem !important; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #64748b !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__stop--intelligence .dgp2-learn__label { color: #c4b5fd !important; }
+.wb-html-island--page:not(.wb-html-island--light) .dgp2-learn__stop--learning .dgp2-learn__label { color: #6ee7b7 !important; }
+.dgp2-learn__arrow { align-self: flex-start; margin-top: 9px; display: grid; place-items: center; color: rgba(167, 139, 250, 0.3); }
+.dgp2-learn__arrow svg { width: 16px; height: 16px; }
+.dgp2-learn__loop { align-self: flex-start; margin-top: 6px; margin-left: 0.2rem; color: #34d399; font-size: 1.05rem; opacity: 0.85; }
 
 /* Part-2 hero: the title dominates, restrained eyebrow — scoped to the Part-2 page. */
 .wb-html-island--page:has([data-dg-stage-of="insights-part-2"]) .hero { position: relative; overflow: hidden; }
@@ -1305,8 +1330,8 @@ export const digitalgateVisualStorytellingCss = `
   .dgp2-learn__arrow { margin-top: 10px; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .dgp2-health { animation: dgp2Health 2.4s ease-in-out infinite; }
-  @keyframes dgp2Health { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+  .dgp2-health { animation: dgp2Health 3.2s ease-in-out infinite; }
+  @keyframes dgp2Health { 0%, 100% { opacity: 0.38; } 50% { opacity: 0.72; } }
 }
 
 /* ===========================================================================
