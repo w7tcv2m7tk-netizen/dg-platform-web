@@ -191,11 +191,12 @@
   .dg-hp .dg-scene {
     --dg-scene-p: 0;
     padding: 0; border-top: 1px solid rgba(30,41,59,0.55);
-    background: linear-gradient(180deg, #05080F, #03050A);
+    background: linear-gradient(180deg, #070B14, #03050A);
   }
-  .dg-hp .dg-scene-track { position: relative; height: 155vh; }
-  .dg-hp .dg-scene[data-dg-scene="governed-action"] .dg-scene-track { height: 145vh; }
-  .dg-hp .dg-scene[data-dg-scene="architecture-product"] .dg-scene-track { height: 150vh; }
+  /* Shorter tracks = less empty black void while scrubbing. */
+  .dg-hp .dg-scene-track { position: relative; height: 132vh; }
+  .dg-hp .dg-scene[data-dg-scene="governed-action"] .dg-scene-track { height: 124vh; }
+  .dg-hp .dg-scene[data-dg-scene="architecture-product"] .dg-scene-track { height: 128vh; }
   .dg-hp .dg-scene-sticky {
     position: sticky; top: 4.5rem;
     height: calc(100svh - 4.5rem); height: calc(100dvh - 4.5rem);
@@ -208,12 +209,14 @@
   .dg-hp .dg-scene-copy { max-width: 40rem; }
   .dg-hp .dg-scene-stage {
     position: relative; border-radius: 22px; overflow: hidden;
-    border: 1px solid rgba(99,102,241,0.22);
+    border: 1px solid rgba(129,140,248,0.28);
     background:
-      radial-gradient(ellipse 55% 60% at 50% 40%, rgba(124,58,237,0.14), transparent 70%),
-      linear-gradient(180deg, rgba(8,12,22,0.96), rgba(3,5,10,0.98));
+      radial-gradient(ellipse 60% 55% at 18% 30%, rgba(59,130,246,0.12), transparent 58%),
+      radial-gradient(ellipse 55% 60% at 50% 40%, rgba(124,58,237,0.18), transparent 70%),
+      linear-gradient(180deg, rgba(12,18,32,0.98), rgba(5,8,16,0.99));
     min-height: min(52vh, 420px);
-    padding: clamp(0.75rem, 2vw, 1.25rem);
+    padding: clamp(0.85rem, 2vw, 1.35rem);
+    box-shadow: inset 0 1px 0 rgba(226,232,240,0.06);
   }
   .dg-hp .dg-scene-stage > svg { width: 100%; height: auto; display: block; }
   .dg-hp .dg-scene-caption {
@@ -354,26 +357,30 @@
     transform: scale(calc(0.92 + max(0, min(1, (var(--dg-scene-p) - 0.2) * 2)) * 0.08));
     transform-origin: 480px 110px;
   }
+  /* Product proof must stay readable — scroll enhances, never hides into black voids. */
   .dg-hp .dg-scene[data-dg-scene="architecture-product"] .sc-product {
-    opacity: calc(max(0, (var(--dg-scene-p) - 0.52) * 2.6));
+    opacity: calc(0.55 + max(0, min(1, (var(--dg-scene-p) - 0.35) * 2.2)) * 0.45);
     transform:
-      translateY(calc((1 - max(0, min(1, (var(--dg-scene-p) - 0.52) * 2.6))) * 28px))
-      scale(calc(0.94 + max(0, min(1, (var(--dg-scene-p) - 0.52) * 2.6)) * 0.06));
+      translateY(calc((1 - max(0, min(1, (var(--dg-scene-p) - 0.35) * 2.2))) * 14px))
+      scale(calc(0.97 + max(0, min(1, (var(--dg-scene-p) - 0.35) * 2.2)) * 0.03));
   }
   .dg-hp .dg-scene-product-grid {
-    display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 0.65rem; margin-top: 0.75rem;
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 0.75rem; margin-top: 0.85rem;
   }
   .dg-hp .dg-scene-product-grid figure {
-    margin: 0; border-radius: 12px; overflow: hidden;
-    border: 1px solid rgba(51,65,85,0.8); background: #03050A;
+    margin: 0; border-radius: 14px; overflow: hidden;
+    border: 1px solid rgba(148,163,184,0.28);
+    background: linear-gradient(180deg, #111827, #0B1220);
+    box-shadow: 0 18px 40px rgba(2,6,23,0.45), 0 0 0 1px rgba(167,139,250,0.08);
   }
   .dg-hp .dg-scene-product-grid img {
-    width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top center; background: #0f172a;
+    width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top center;
+    background: #1E293B; display: block;
   }
   .dg-hp .dg-scene-product-grid figcaption {
-    padding: 0.55rem 0.7rem; font-size: 0.78rem; color: #94A3B8; border-top: 1px solid rgba(30,41,59,0.9);
+    padding: 0.65rem 0.75rem; font-size: 0.78rem; color: #94A3B8; border-top: 1px solid rgba(51,65,85,0.85);
   }
-  .dg-hp .dg-scene-product-grid figcaption strong { display: block; color: #F1F5F9; font-size: 0.86rem; }
+  .dg-hp .dg-scene-product-grid figcaption strong { display: block; color: #F8FAFC; font-size: 0.88rem; }
 
   /* Phase labels via ::after */
   .dg-hp .dg-scene[data-phase] .dg-phase-text::after { content: ""; }
@@ -473,15 +480,21 @@
   .dg-hp .dg-hp-presence-note strong { color: #67E8F9; }
 
   .dg-hp .dg-hp-shots {
-    display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 0.85rem; margin-top: 1.25rem;
+    display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem; margin-top: 1.35rem;
   }
   .dg-hp .dg-hp-shot {
-    border-radius: 14px; overflow: hidden; border: 1px solid rgba(51,65,85,0.8); background: #03050A;
+    margin: 0; border-radius: 16px; overflow: hidden;
+    border: 1px solid rgba(148,163,184,0.28);
+    background: linear-gradient(180deg, #111827, #0B1220);
+    box-shadow: 0 18px 40px rgba(2,6,23,0.4), 0 0 0 1px rgba(167,139,250,0.08);
   }
-  .dg-hp .dg-hp-shot img { width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top center; background: #0f172a; }
-  .dg-hp .dg-hp-shot figcaption { padding: 0.75rem 0.9rem 0.95rem; border-top: 1px solid rgba(30,41,59,0.9); }
-  .dg-hp .dg-hp-shot figcaption strong { display: block; font-size: 0.92rem; color: #F1F5F9; margin-bottom: 0.15rem; }
-  .dg-hp .dg-hp-shot figcaption span { font-size: 0.78rem; color: #64748B; }
+  .dg-hp .dg-hp-shot img {
+    width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top center;
+    background: #1E293B; display: block;
+  }
+  .dg-hp .dg-hp-shot figcaption { padding: 0.8rem 0.95rem 1rem; border-top: 1px solid rgba(51,65,85,0.85); }
+  .dg-hp .dg-hp-shot figcaption strong { display: block; font-size: 0.92rem; color: #F8FAFC; margin-bottom: 0.15rem; }
+  .dg-hp .dg-hp-shot figcaption span { font-size: 0.78rem; color: #94A3B8; }
 
   .dg-hp .dg-hp-founding-points {
     display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 0.65rem; margin: 1.5rem 0 0.5rem;
@@ -1097,7 +1110,7 @@
         <p class="dg-hp-lead" style="margin:0">DigitalGate Apps are not unrelated SaaS products. They are specialised capabilities on one substrate — the same Twin, Brain and permission model everywhere.</p>
       </div>
     </div>
-    <div class="dg-app-family dg-reveal" role="list" aria-label="DigitalGate application family">
+    <div id="dg-app-family" class="dg-app-family dg-reveal" role="list" aria-label="DigitalGate application family">
 <div class="dg-app" data-app="crm" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-crm"/></svg></span><strong>CRM</strong><span>Customers</span></div>
 <div class="dg-app" data-app="websites" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-websites"/></svg></span><strong>Websites</strong><span>Presence</span></div>
 <div class="dg-app" data-app="brain" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-brain"/></svg></span><strong>Business Brain</strong><span>Context</span></div>
@@ -1116,33 +1129,6 @@
   </div>
 </section>
 
-
-<!-- Dedicated app-family capture strip -->
-<section id="dg-app-family" class="dg-hp-alt" aria-label="DigitalGate Apps icon family">
-  <div class="dg-hp-wrap">
-    <div class="dg-reveal">
-      <span class="dg-hp-kicker">DigitalGate Apps</span>
-      <h2>The application family.</h2>
-      <p class="dg-hp-lead">Fourteen specialised capabilities. One OS language — graphite tiles, violet illumination, unique silhouettes.</p>
-    </div>
-    <div class="dg-app-family dg-reveal" role="list">
-<div class="dg-app" data-app="crm" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-crm"/></svg></span><strong>CRM</strong><span>Customers</span></div>
-<div class="dg-app" data-app="websites" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-websites"/></svg></span><strong>Websites</strong><span>Presence</span></div>
-<div class="dg-app" data-app="brain" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-brain"/></svg></span><strong>Business Brain</strong><span>Context</span></div>
-<div class="dg-app" data-app="advisor" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-advisor"/></svg></span><strong>AI Advisor</strong><span>Reasoning</span></div>
-<div class="dg-app" data-app="automation" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-automation"/></svg></span><strong>Automation</strong><span>Action</span></div>
-<div class="dg-app" data-app="seo" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-seo"/></svg></span><strong>SEO</strong><span>Discovery</span></div>
-<div class="dg-app" data-app="ai-visibility" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-ai-visibility"/></svg></span><strong>AI Visibility</strong><span>AI discovery</span></div>
-<div class="dg-app" data-app="marketing" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-marketing"/></svg></span><strong>Marketing</strong><span>Reach</span></div>
-<div class="dg-app" data-app="reporting" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-reporting"/></svg></span><strong>Reporting</strong><span>Intelligence</span></div>
-<div class="dg-app" data-app="communications" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-communications"/></svg></span><strong>Communications</strong><span>Signals</span></div>
-<div class="dg-app" data-app="property" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-property"/></svg></span><strong>Property</strong><span>Listings</span></div>
-<div class="dg-app" data-app="accommodation" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-accommodation"/></svg></span><strong>Accommodation</strong><span>Stays</span></div>
-<div class="dg-app" data-app="finance" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-finance"/></svg></span><strong>Finance</strong><span>Money flow</span></div>
-<div class="dg-app" data-app="services" role="listitem"><span class="dg-app-mark" aria-hidden="true"><svg width="28" height="28"><use href="#dg-app-services"/></svg></span><strong>Services</strong><span>Delivery</span></div>
-    </div>
-  </div>
-</section>
 
 
 <!-- ========== Industries ========== -->

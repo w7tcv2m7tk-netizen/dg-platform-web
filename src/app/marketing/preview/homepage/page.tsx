@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import { DgHomepageScrollScenes } from "@/components/websites/DgHomepageScrollScenes";
 import { DgMarketingMotion } from "@/components/websites/DgMarketingMotion";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Homepage design preview | DigitalGate",
   description:
