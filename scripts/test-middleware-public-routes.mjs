@@ -82,6 +82,11 @@ const MUST_BE_PUBLIC = [
   // Public capture
   "/api/public/website-form",
   "/api/health",
+  // Public marketing design previews (no DigitalGate login) — the Platform
+  // Overview preview lives here so unauthenticated reviewers are not bounced to
+  // Client Login. The whole namespace is intentionally public.
+  "/marketing/preview/platform",
+  "/marketing/preview/overview",
 ];
 
 /** Authenticated surface that must never be exempted. */
@@ -101,6 +106,9 @@ const MUST_BE_PROTECTED = [
   "/dashboard",
   "/apps/crm/contacts",
   "/command/growth-engine/proposals",
+  // Global auth must not have been weakened: /design-preview/* is NOT public.
+  "/design-preview/platform",
+  "/design-preview/anything",
 ];
 
 describe("H-2: middleware public route allowlist", () => {
@@ -122,6 +130,20 @@ describe("H-2: middleware public route allowlist", () => {
       [],
       `these routes are unexpectedly public: ${leaked.join(", ")}`,
     );
+  });
+
+  it("exposes the marketing design-preview namespace publicly (no login redirect)", async () => {
+    const isPublic = await publicMatcher();
+    // The Platform Overview preview is served here and must be reachable without
+    // a DigitalGate session (unauthenticated users must not be sent to login).
+    assert.equal(isPublic("/marketing/preview/platform"), true);
+    assert.equal(isPublic("/marketing/preview/overview"), true);
+  });
+
+  it("does not whitelist /design-preview/* (global auth unchanged)", async () => {
+    const isPublic = await publicMatcher();
+    assert.equal(isPublic("/design-preview/platform"), false);
+    assert.equal(isPublic("/design-preview/whatever"), false);
   });
 
   it("keeps webhook exemptions to exact paths, not a subtree wildcard", async () => {
