@@ -13,12 +13,14 @@ import {
   type DigitalgateStageKind,
   type StageDef,
 } from "./digitalgate-visual-stages";
+import { platformOverviewStages } from "./digitalgate-visual-stages-platform";
 
 export type DigitalgateVisualPageKind =
   | "insights-part-1"
   | "insights-part-2"
   | "insights-part-3"
   | "insights-part-4"
+  | "platform-overview"
   | "business-brain"
   | "automation"
   | null;
@@ -44,6 +46,8 @@ const SLUG_KIND: Record<string, Exclude<DigitalgateVisualPageKind, null>> = {
   "from-signal-to-action": "insights-part-3",
   "business-software-should-tell-you-what-needs-doing": "insights-part-4",
   "software-that-tells-you-what-needs-doing": "insights-part-4",
+  "platform-overview": "platform-overview",
+  "platform": "platform-overview",
   "business-brain": "business-brain",
   automation: "automation",
 };
@@ -260,6 +264,10 @@ function visualForKind(kind: Exclude<DigitalgateVisualPageKind, null>): string {
       return businessBrainNetwork;
     case "automation":
       return automationTimelineFixed;
+    case "platform-overview":
+      // Handled earlier in enhanceDigitalgateVisualHtml (woven stages, not a
+      // single legacy dg-story-visual block); never reaches this switch.
+      return "";
   }
 }
 
@@ -271,6 +279,9 @@ const CURRENT_STORY_MARKER: Record<Exclude<DigitalgateVisualPageKind, null>, str
   "insights-part-4": 'data-dg-story="proactive-compare"',
   "business-brain": 'data-dg-story="business-brain-network"',
   automation: 'data-dg-story="automation-timeline"',
+  // Platform Overview uses woven dgpov- stages (handled earlier); this marker is
+  // never consulted for it, but the map must cover every page kind.
+  "platform-overview": 'data-dg-stage-of="platform-overview"',
 };
 
 function hasCurrentVisual(html: string, kind: Exclude<DigitalgateVisualPageKind, null>): boolean {
@@ -599,6 +610,17 @@ export function enhanceDigitalgateVisualHtml(
   if (!kind) return html;
 
   let out = refreshStaleSeriesChrome(html);
+
+  // Platform Overview: architecture diagrams woven at section anchors. The
+  // SEO-critical copy stays in Website Studio HTML; only the visuals are
+  // injected. Idempotent per page kind.
+  if (kind === "platform-overview") {
+    if (out.includes('data-dg-stage-of="platform-overview"')) {
+      return out;
+    }
+    out = removeElementsWithAttr(out, "dg-story-visual");
+    return placeInsightsStages(out, platformOverviewStages());
+  }
 
   // Insights Parts 1–4: recomposed scenes woven through the article.
   const stageKind = insightsStageKind(kind);

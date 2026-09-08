@@ -900,4 +900,80 @@ export const digitalgateVisualStorytellingCss = `
   @keyframes dgStagePulse { 0%, 100% { box-shadow: inset 0 0 0 rgba(59,130,246,0); } 50% { box-shadow: inset 0 0 34px rgba(59,130,246,0.14); } }
   @keyframes dgFrameReveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 }
+
+/* ===========================================================================
+   PLATFORM OVERVIEW — approved prototype port (dgpov-* namespace).
+   Open architecture figures woven into the Website Studio article at section
+   anchors. No cards: the relationships are the product. Renderer-owned SVG is
+   decorative (aria-hidden); the meaning lives in the article HTML + figure
+   aria-label. Motion reuses a restrained path-following dash-flow + core pulse
+   and is fully disabled under prefers-reduced-motion (static tells the story).
+   =========================================================================== */
+.dgpov-scene {
+  /* Break out of the article's reading column and centre on the page from any
+     parent (incl. the padded .container), capped to the viewport so it never
+     adds horizontal scroll. */
+  width: min(1080px, calc(100vw - 2rem));
+  margin: clamp(1.5rem, 3vw, 2.5rem) 0;
+  margin-left: 50%;
+  transform: translateX(-50%);
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.dgpov-viz {
+  position: relative;
+  width: 100%;
+}
+.dgpov-viz::before {
+  content: "";
+  position: absolute;
+  inset: -6% 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(52% 60% at 50% 42%, rgba(124, 58, 237, 0.08), transparent 66%);
+}
+.dgpov-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.dgpov-svg--m { display: none; }
+.wb-html-island--page:not(.wb-html-island--light) .dgpov-cap,
+.dgpov-cap {
+  margin: 0.6rem auto 0 !important;
+  max-width: 46rem;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  font-size: 0.76rem !important;
+  line-height: 1.5 !important;
+  color: #64748b !important;
+}
+
+@media (max-width: 720px) {
+  .dgpov-scene {
+    /* Fit the reading column on mobile — no breakout, no overflow. */
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    transform: none;
+  }
+  .dgpov-svg--d { display: none; }
+  .dgpov-svg--m { display: block; }
+}
+
+/* Motion: restrained, causal, and only where it clarifies flow. */
+@media (prefers-reduced-motion: no-preference) {
+  .dgpov-flow {
+    stroke-dasharray: 4 10;
+    animation: dgpovFlow 3s linear infinite;
+  }
+  .dgpov-pulse {
+    animation: dgpovPulse 2.4s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  @keyframes dgpovFlow { to { stroke-dashoffset: -28; } }
+  @keyframes dgpovPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+}
 `;
