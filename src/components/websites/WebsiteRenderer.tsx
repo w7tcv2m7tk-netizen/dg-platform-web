@@ -18,6 +18,7 @@ import { PropertyReportCapture } from "@/components/websites/PropertyReportCaptu
 import { RoeBookingCapture } from "@/components/websites/RoeBookingCapture";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { HtmlWithDgForms } from "@/components/websites/HtmlWithDgForms";
+import { DgHomepageScrollScenes } from "@/components/websites/DgHomepageScrollScenes";
 import { DgMarketingMotion } from "@/components/websites/DgMarketingMotion";
 import { ChromeHeaderHtml } from "@/components/websites/ChromeHeaderHtml";
 import { ChromeFooterHtml } from "@/components/websites/ChromeFooterHtml";
@@ -743,10 +744,12 @@ export function WebsiteComponentView({
       }
       const needsDgMotion =
         /data-dg-motion-root|dg-journey|dg-layers|dg-reveal/i.test(html);
+      const needsDgScenes = /data-dg-scene=/i.test(html);
       if (hasForm) {
         return (
           <>
             <HtmlWithDgForms html={html} siteSlug={siteSlug} pageSlug={pageSlug} />
+            {needsDgScenes ? <DgHomepageScrollScenes /> : null}
             {needsDgMotion ? <DgMarketingMotion /> : null}
           </>
         );
@@ -757,6 +760,7 @@ export function WebsiteComponentView({
             className="wb-section wb-html-block"
             dangerouslySetInnerHTML={{ __html: html }}
           />
+          {needsDgScenes ? <DgHomepageScrollScenes /> : null}
           {needsDgMotion ? <DgMarketingMotion /> : null}
         </>
       );

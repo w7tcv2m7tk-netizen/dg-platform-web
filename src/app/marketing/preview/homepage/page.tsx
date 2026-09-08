@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Metadata } from "next";
 
+import { DgHomepageScrollScenes } from "@/components/websites/DgHomepageScrollScenes";
 import { DgMarketingMotion } from "@/components/websites/DgMarketingMotion";
 
 export const metadata: Metadata = {
@@ -32,6 +33,7 @@ export default async function HomepageDesignPreviewPage() {
         // Authored marketing HTML island (same shape Website Studio stores).
         dangerouslySetInnerHTML={{ __html: html }}
       />
+      <DgHomepageScrollScenes />
       <DgMarketingMotion />
     </div>
   );
