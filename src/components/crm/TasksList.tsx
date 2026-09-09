@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { TaskStatus } from "@dg/platform-core";
 
 import { CompleteTaskButton } from "@/components/crm/CompleteTaskButton";
@@ -25,6 +26,11 @@ function isOverdue(task: TaskListItem) {
   return new Date(task.dueAt).getTime() < Date.now();
 }
 
+function priorityLabel(priority: string | null) {
+  if (!priority) return "Normal priority";
+  return `${priority.charAt(0).toUpperCase()}${priority.slice(1)} priority`;
+}
+
 export function TasksList({
   tasks,
   canWrite = false,
@@ -39,32 +45,45 @@ export function TasksList({
   }
 
   return (
-    <ul className="mt-4 divide-y divide-slate-800">
+    <ul className="mt-4 space-y-3">
       {tasks.map((task) => {
         const overdue = isOverdue(task);
         return (
-          <li
-            key={task.id}
-            className="flex flex-wrap items-start justify-between gap-3 py-3"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="font-medium text-white">{task.title}</p>
-              {task.description ? (
-                <p className="mt-1 text-sm text-slate-400">{task.description}</p>
-              ) : null}
-              <p className="mt-1 text-sm text-slate-500">
-                <span className={overdue ? "text-amber-400" : undefined}>
-                  {formatDue(task.dueAt)}
-                  {overdue ? " · overdue" : ""}
-                </span>
-                {task.entityType ? ` · ${task.entityType}` : ""}
-                {task.priority ? ` · ${task.priority}` : ""}
-                {task.status !== "open" ? ` · ${task.status}` : ""}
-              </p>
+          <li key={task.id} className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={`/apps/crm/tasks/${task.id}`}
+                  className="font-medium text-white hover:text-blue-300 hover:underline"
+                >
+                  {task.title}
+                </Link>
+                {task.description ? (
+                  <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-400">
+                    {task.description}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm text-slate-600">No additional details.</p>
+                )}
+                <p className="mt-2 text-xs text-slate-500">
+                  <span className={overdue ? "text-amber-400" : undefined}>
+                    {formatDue(task.dueAt)}
+                    {overdue ? " · overdue" : ""}
+                  </span>
+                  {` · ${priorityLabel(task.priority)}`}
+                  {task.entityType ? ` · ${task.entityType}` : ""}
+                  {task.status !== "open" ? ` · ${task.status}` : ""}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link href={`/apps/crm/tasks/${task.id}`} className="dg-btn dg-btn-secondary text-xs">
+                  View
+                </Link>
+                {canWrite && task.status === "open" ? (
+                  <CompleteTaskButton taskId={task.id} />
+                ) : null}
+              </div>
             </div>
-            {canWrite && task.status === "open" ? (
-              <CompleteTaskButton taskId={task.id} />
-            ) : null}
           </li>
         );
       })}
