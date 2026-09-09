@@ -6,12 +6,21 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
 type Ctx = { params: Promise<{ id: string; pageId: string }> };
+
+function forbidden(action: string) {
+  return NextResponse.json(
+    { error: { code: "forbidden", message: `Insufficient permissions for websites.${action}` } },
+    { status: 403 },
+  );
+}
 
 export async function DELETE(_req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(_req);
   if (isNextResponse(session)) return session;
+  if (!canAccessWebsiteStudio(session, "delete")) return forbidden("delete");
 
   const { id, pageId } = await ctx.params;
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
@@ -43,6 +52,7 @@ export async function DELETE(_req: Request, ctx: Ctx) {
 export async function PATCH(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  if (!canAccessWebsiteStudio(session, "edit")) return forbidden("edit");
 
   const { id, pageId } = await ctx.params;
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
