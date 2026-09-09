@@ -2,6 +2,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { organisationHasWebsitesBuilder } from "@dg/platform-core";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 export { canRenderStudioContent } from "@/lib/website-studio-publication";
 
 /** Resolve whether the current Clerk session may preview a site's draft state. */
@@ -26,6 +27,7 @@ export async function canPreviewWebsiteOrganisation(
     name,
   });
   if (!session || session.organisationId !== websiteOrganisationId) return false;
+  if (!canAccessWebsiteStudio(session, "view")) return false;
 
   return organisationHasWebsitesBuilder(session.organisationId);
 }
