@@ -131,6 +131,37 @@ export function StudioSeoPanel({
   const [pageTitle, setPageTitle] = useState(page?.title ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [aiBusy, setAiBusy] = useState<"site" | "page" | null>(null);
+
+  async function runSeoAi(scope: "site" | "page") {
+    setAiBusy(scope);
+    setError("");
+    try {
+      const res = await fetch(`/api/v1/websites/${website.id}/seo-suggest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scope, pageId: page?.id }),
+      });
+      const json = (await res.json()) as {
+        data?: { seo?: WebsiteSeo };
+        error?: { message?: string };
+      };
+      if (!res.ok || !json.data?.seo) {
+        setError(json.error?.message || "AI could not suggest SEO");
+        setAiBusy(null);
+        return;
+      }
+      const seo = json.data.seo;
+      if (scope === "site") {
+        setSiteSeo((prev) => ({ ...prev, ...seo }));
+      } else {
+        setPageSeo((prev) => ({ ...prev, ...seo }));
+      }
+    } catch {
+      setError("AI request failed");
+    }
+    setAiBusy(null);
+  }
 
   // Keep local state in sync when page selection changes
   const pageKey = `${page?.id ?? ""}:${page?.updatedAt ?? ""}`;
@@ -222,14 +253,25 @@ export function StudioSeoPanel({
           disabled={disabled || busy}
           onChange={setSiteSeo}
         />
-        <button
-          type="button"
-          disabled={disabled || busy}
-          onClick={() => void saveSite()}
-          className="rounded-md bg-slate-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-        >
-          Save site SEO
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={disabled || busy || aiBusy !== null}
+            onClick={() => void runSeoAi("site")}
+            title="Let AI draft improved SEO for this site — review, then save"
+            className="rounded-md border border-violet-500/60 px-3 py-1.5 text-sm text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
+          >
+            {aiBusy === "site" ? "Thinking…" : "Use AI"}
+          </button>
+          <button
+            type="button"
+            disabled={disabled || busy}
+            onClick={() => void saveSite()}
+            className="rounded-md bg-slate-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          >
+            Save site SEO
+          </button>
+        </div>
       </section>
 
       {page ? (
@@ -320,14 +362,25 @@ export function StudioSeoPanel({
               );
             })()}
           </div>
-          <button
-            type="button"
-            disabled={disabled || busy}
-            onClick={() => void savePage()}
-            className="rounded-md bg-slate-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-          >
-            Save page SEO
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={disabled || busy || aiBusy !== null}
+              onClick={() => void runSeoAi("page")}
+              title="Let AI draft improved SEO for this page from its content — review, then save"
+              className="rounded-md border border-violet-500/60 px-3 py-1.5 text-sm text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
+            >
+              {aiBusy === "page" ? "Thinking…" : "Use AI"}
+            </button>
+            <button
+              type="button"
+              disabled={disabled || busy}
+              onClick={() => void savePage()}
+              className="rounded-md bg-slate-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+            >
+              Save page SEO
+            </button>
+          </div>
         </section>
       ) : null}
 
