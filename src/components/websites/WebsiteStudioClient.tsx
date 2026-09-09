@@ -61,10 +61,12 @@ export function WebsiteStudioClient({
       ? (initial.metadata.chrome as {
           headerHtml?: string | null;
           footerHtml?: string | null;
+          customCss?: string | null;
         })
       : null;
   const [headerDraft, setHeaderDraft] = useState(initialChrome?.headerHtml ?? "");
   const [footerDraft, setFooterDraft] = useState(initialChrome?.footerHtml ?? "");
+  const [cssDraft, setCssDraft] = useState(initialChrome?.customCss ?? "");
   const [savingChrome, setSavingChrome] = useState(false);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null,
@@ -124,6 +126,11 @@ export function WebsiteStudioClient({
   }, [page, pageGroups]);
 
   const selected = page?.components.find((c) => c.id === selectedComponentId);
+  const pageHtmlComponent =
+    page?.components?.find((c) => c.type === "html") ?? null;
+  const otherComponents = pageHtmlComponent
+    ? (page?.components ?? []).filter((c) => c.id !== pageHtmlComponent.id)
+    : (page?.components ?? []);
   const isPublished = website.status === "published";
   const previewQs = isPublished ? "" : "?preview=1";
   const primary = website.theme?.primaryColor || "#1e3a5f";
@@ -245,6 +252,34 @@ export function WebsiteStudioClient({
     setBusy(false);
   }
 
+  async function savePageHtml(componentId: string, html: string) {
+    if (!page) return;
+    setBusy(true);
+    const nextComponents: WebsiteComponent[] = page.components.map((c) =>
+      c.id === componentId ? { ...c, props: { ...c.props, html } } : c,
+    );
+    const res = await fetch(
+      `/api/v1/websites/${website.id}/pages/${page.id}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ components: nextComponents }),
+      },
+    );
+    const json = (await res.json()) as {
+      data?: { id: string };
+      error?: { message?: string };
+    };
+    if (!res.ok) {
+      setStatus(json.error?.message || "Could not save page HTML");
+      setBusy(false);
+      return;
+    }
+    await refreshFromServer();
+    setStatus("Page HTML saved");
+    setBusy(false);
+  }
+
   async function savePageChrome(next: {
     showHeader: boolean;
     showFooter: boolean;
@@ -298,6 +333,7 @@ export function WebsiteStudioClient({
       ...existingChrome,
       headerHtml: headerDraft,
       footerHtml: footerDraft,
+      customCss: cssDraft,
     };
     const res = await fetch(`/api/v1/websites/${website.id}`, {
       method: "PATCH",
@@ -873,7 +909,7 @@ export function WebsiteStudioClient({
           <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <h2 className="text-xs uppercase tracking-wide text-slate-500">
-                Components — {page?.title}
+                {pageHtmlComponent ? "Page HTML" : `Components — ${page?.title}`}
               </h2>
               {page ? (
                 <Link
@@ -889,25 +925,52 @@ export function WebsiteStudioClient({
                 </Link>
               ) : null}
             </div>
-            <ul className="space-y-1">
-              {(page?.components ?? []).map((c, index) => (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedComponentId(c.id)}
-                    className={`w-full text-left rounded px-2 py-1.5 text-sm ${
-                      selectedComponentId === c.id
-                        ? "bg-slate-800 text-amber-200"
-                        : "text-slate-300 hover:bg-slate-900"
-                    }`}
-                  >
-                    <span className="text-slate-500 mr-2">{index + 1}.</span>
-                    <span className="font-mono">{c.type}</span>
-                    <ComponentSummary component={c} />
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {pageHtmlComponent ? (
+              <>
+                <p className="mb-2 text-[11px] text-slate-500">
+                  The page body, rendered between the header and footer. Supports{" "}
+                  <code className="text-slate-400">&lt;style&gt;</code> blocks.
+                </p>
+                <PageHtmlEditor
+                  key={`${page?.id ?? ""}:${pageHtmlComponent.id}`}
+                  html={
+                    typeof pageHtmlComponent.props.html === "string"
+                      ? pageHtmlComponent.props.html
+                      : ""
+                  }
+                  disabled={busy}
+                  onSave={(html) => savePageHtml(pageHtmlComponent.id, html)}
+                />
+              </>
+            ) : null}
+            {otherComponents.length ? (
+              <>
+                {pageHtmlComponent ? (
+                  <p className="mt-3 mb-1 text-[11px] uppercase tracking-wide text-slate-500">
+                    Other components
+                  </p>
+                ) : null}
+                <ul className="space-y-1">
+                  {otherComponents.map((c, index) => (
+                    <li key={c.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedComponentId(c.id)}
+                        className={`w-full text-left rounded px-2 py-1.5 text-sm ${
+                          selectedComponentId === c.id
+                            ? "bg-slate-800 text-amber-200"
+                            : "text-slate-300 hover:bg-slate-900"
+                        }`}
+                      >
+                        <span className="text-slate-500 mr-2">{index + 1}.</span>
+                        <span className="font-mono">{c.type}</span>
+                        <ComponentSummary component={c} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
           </div>
 
           <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
@@ -952,6 +1015,49 @@ export function WebsiteStudioClient({
               className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
             />
           </div>
+
+          <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <h2 className="text-xs uppercase tracking-wide text-slate-500">
+                Site CSS{" "}
+                <span
+                  className={
+                    cssDraft.trim().length
+                      ? "text-emerald-400"
+                      : "text-amber-300"
+                  }
+                >
+                  (
+                  {cssDraft.trim().length
+                    ? `${cssDraft.trim().length.toLocaleString()} chars`
+                    : "empty"}
+                  )
+                </span>
+              </h2>
+              <button
+                type="button"
+                disabled={busy || savingChrome}
+                onClick={() => void saveSiteChrome()}
+                className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+              >
+                {savingChrome ? "Saving…" : "Save site CSS"}
+              </button>
+            </div>
+            <p className="mb-2 text-[11px] text-slate-500">
+              Global CSS injected on every page of this site (after the
+              header/footer styles, so it can override them). No{" "}
+              <code className="text-slate-400">&lt;style&gt;</code> tag needed.
+            </p>
+            <textarea
+              value={cssDraft}
+              onChange={(e) => setCssDraft(e.target.value)}
+              disabled={busy || savingChrome}
+              rows={8}
+              spellCheck={false}
+              placeholder=".my-class { color: #93c5fd; }"
+              className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
+            />
+          </div>
         </section>
 
         <aside className="space-y-3">
@@ -973,6 +1079,53 @@ export function WebsiteStudioClient({
         </aside>
       </div>
       ) : null}
+    </div>
+  );
+}
+
+function PageHtmlEditor({
+  html,
+  disabled,
+  onSave,
+}: {
+  html: string;
+  disabled?: boolean;
+  onSave: (html: string) => void | Promise<void>;
+}) {
+  const [draft, setDraft] = useState(html);
+  const [saving, setSaving] = useState(false);
+  const len = draft.trim().length;
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <span className="text-[11px] uppercase tracking-wide text-slate-500">
+          HTML{" "}
+          <span className={len ? "text-emerald-400" : "text-amber-300"}>
+            ({len ? `${len.toLocaleString()} chars` : "empty"})
+          </span>
+        </span>
+        <button
+          type="button"
+          disabled={disabled || saving}
+          onClick={async () => {
+            setSaving(true);
+            await onSave(draft);
+            setSaving(false);
+          }}
+          className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+        >
+          {saving ? "Saving…" : "Save page HTML"}
+        </button>
+      </div>
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        disabled={disabled || saving}
+        rows={16}
+        spellCheck={false}
+        placeholder="<section>…</section>"
+        className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
+      />
     </div>
   );
 }

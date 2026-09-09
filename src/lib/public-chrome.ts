@@ -6,6 +6,8 @@
 export type PublicSiteChrome = {
   headerHtml?: string;
   footerHtml?: string;
+  /** Author-supplied site-wide CSS, injected on every page. */
+  customCss?: string;
   stylesheets?: string[];
   navLinks?: Array<{ label: string; href: string }>;
   tagline?: string;
@@ -64,7 +66,10 @@ export function preparePublicChrome(
   const footerRaw = chrome.footerHtml?.trim() || "";
   const header = extractStyleBlocks(headerRaw);
   const footer = extractStyleBlocks(footerRaw);
-  const chromeCss = dedupeCss([...header.cssBlocks, ...footer.cssBlocks]);
+  const styleCss = dedupeCss([...header.cssBlocks, ...footer.cssBlocks]);
+  // Author site-wide CSS is appended last so it can override chrome styles.
+  const customCss = chrome.customCss?.trim() || "";
+  const chromeCss = [styleCss, customCss].filter(Boolean).join("\n");
   return {
     ...chrome,
     headerHtml: header.html,
