@@ -8,10 +8,24 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
+
+function forbidden(action: string) {
+  return NextResponse.json(
+    {
+      error: {
+        code: "forbidden",
+        message: `Insufficient permissions for websites.${action}`,
+      },
+    },
+    { status: 403 },
+  );
+}
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  if (!canAccessWebsiteStudio(session, "view")) return forbidden("view");
 
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
   if (!allowed) {
@@ -34,6 +48,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  if (!canAccessWebsiteStudio(session, "create")) return forbidden("create");
 
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
   if (!allowed) {

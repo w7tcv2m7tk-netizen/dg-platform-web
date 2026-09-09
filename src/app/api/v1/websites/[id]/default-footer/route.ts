@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { organisationHasWebsitesBuilder } from "@dg/platform-core";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -16,6 +17,13 @@ export async function GET(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
   await ctx.params;
+
+  if (!canAccessWebsiteStudio(session, "view")) {
+    return NextResponse.json(
+      { error: { code: "forbidden", message: "Insufficient permissions for websites.view" } },
+      { status: 403 },
+    );
+  }
 
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
   if (!allowed) {
