@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listCompanies,} from "@dg/platform-core";
+import { listCompanies, sessionHasFeature } from "@dg/platform-core";
 
 import { CreateCompanyForm } from "@/components/crm/CreateCompanyForm";
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
@@ -23,6 +23,7 @@ export default async function CrmCompaniesPage() {
     );
   }
 
+  const canWriteCompanies = sessionHasFeature(session, "crm.companies.write");
   const { items, meta } = await listCompanies({ organisationId: session.organisationId });
 
   return (
@@ -44,7 +45,13 @@ export default async function CrmCompaniesPage() {
               Group contacts under a business account for pipeline and reporting.
             </p>
             <div className="mt-4">
-              <CreateCompanyForm />
+              {canWriteCompanies ? (
+                <CreateCompanyForm />
+              ) : (
+                <p className="text-sm text-slate-400">
+                  You have read-only access to Companies.
+                </p>
+              )}
             </div>
           </div>
 
@@ -70,12 +77,14 @@ export default async function CrmCompaniesPage() {
                         {company.contactCount} contact{company.contactCount === 1 ? "" : "s"}
                       </p>
                     </Link>
-                    <CrmDeleteButton
-                      resource="companies"
-                      id={company.id}
-                      name={company.name}
-                      compact
-                    />
+                    {canWriteCompanies ? (
+                      <CrmDeleteButton
+                        resource="companies"
+                        id={company.id}
+                        name={company.name}
+                        compact
+                      />
+                    ) : null}
                   </li>
                 ))}
               </ul>
