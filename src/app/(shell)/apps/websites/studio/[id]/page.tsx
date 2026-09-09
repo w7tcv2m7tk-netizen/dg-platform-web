@@ -10,6 +10,7 @@ import {
 } from "@dg/platform-core";
 
 import { WebsiteStudioClient } from "@/components/websites/WebsiteStudioClient";
+import { WebsiteStudioUnsavedChangesGuard } from "@/components/websites/WebsiteStudioUnsavedChangesGuard";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 type Props = { params: Promise<{ id: string }> };
@@ -70,11 +71,13 @@ export default async function WebsiteStudioPage({ params }: Props) {
             <p className="text-sm text-slate-500">Loading studio…</p>
           }
         >
-          <WebsiteStudioClient
-            initial={website}
-            linkedDomain={linkedDomain}
-            showWordPressImport={showWordPressImport}
-          />
+          <WebsiteStudioUnsavedChangesGuard>
+            <WebsiteStudioClient
+              initial={website}
+              linkedDomain={linkedDomain}
+              showWordPressImport={showWordPressImport}
+            />
+          </WebsiteStudioUnsavedChangesGuard>
         </Suspense>
       </main>
     </>
