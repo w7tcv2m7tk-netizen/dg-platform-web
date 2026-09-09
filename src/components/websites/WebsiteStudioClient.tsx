@@ -15,6 +15,7 @@ import {
 import { MakeItLivePanel } from "@/components/websites/MakeItLivePanel";
 import { groupWebsitePages } from "@/components/websites/page-groups";
 import { StudioSeoPanel } from "@/components/websites/StudioSeoPanel";
+import { StudioImagesPanel } from "@/components/websites/StudioImagesPanel";
 import { WordPressImportPanel } from "@/components/websites/WordPressImportPanel";
 
 type StudioTab = "edit" | "import";
@@ -1116,6 +1117,8 @@ export function WebsiteStudioClient({
               className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
             />
           </div>
+
+          <StudioImagesPanel />
         </section>
 
         <aside className="space-y-3">
