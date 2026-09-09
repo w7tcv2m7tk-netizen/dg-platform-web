@@ -1,7 +1,7 @@
 import { sendQuote } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -10,6 +10,8 @@ interface RouteParams {
 export async function POST(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "commerce.manage");
+  if (denied) return denied;
 
   const { id } = await params;
   const quote = await sendQuote(
