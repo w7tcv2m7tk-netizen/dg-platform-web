@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { organisationHasWebsitesBuilder } from "@dg/platform-core";
+import {
+  listStudioLibraryImages,
+  organisationHasWebsitesBuilder,
+} from "@dg/platform-core";
 
 import { StudioImagesPanel } from "@/components/websites/StudioImagesPanel";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
@@ -11,14 +14,17 @@ export default async function ImagesLibraryPage() {
     ? await organisationHasWebsitesBuilder(session.organisationId)
     : false;
 
+  const uploaded =
+    session && allowed ? await listStudioLibraryImages(session.organisationId) : [];
+
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Images</h1>
         <p className="text-sm text-slate-400">
-          Hosted images for this organisation — copy a URL or{" "}
-          <code className="text-slate-300">&lt;img&gt;</code> tag into Header,
-          Page or Footer HTML in Studio
+          Upload, copy, or delete hosted images for this organisation. Paste a URL
+          or <code className="text-slate-300">&lt;img&gt;</code> tag into Header,
+          Page or Footer HTML in Studio.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -30,7 +36,7 @@ export default async function ImagesLibraryPage() {
           </div>
         ) : (
           <>
-            <StudioImagesPanel />
+            <StudioImagesPanel initialUploaded={uploaded} />
             <p className="text-sm text-slate-500">
               Paste into a site under{" "}
               <Link href="/apps/websites" className="text-slate-300 underline">

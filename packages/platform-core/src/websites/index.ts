@@ -18,6 +18,7 @@ export * from "./pagespeed";
 export * from "./html-to-components";
 export * from "./wp-import";
 export * from "./beta";
+export * from "./studio-images";
 
 import type { SiteHealthSnapshot } from "./types";
 

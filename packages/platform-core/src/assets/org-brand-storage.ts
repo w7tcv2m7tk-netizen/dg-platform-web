@@ -196,3 +196,67 @@ export async function storeOrgFile(input: {
     input.keyPrefix,
   );
 }
+
+/**
+ * True when `url` is an org-assets object for this organisation (Blob or /public).
+ * Rejects path traversal and other tenants' prefixes.
+ */
+export function orgOwnedAssetUrl(url: string, organisationId: string): boolean {
+  if (!url.trim() || !organisationId.trim()) return false;
+  try {
+    const parsed = new URL(url, "https://app.digitalgate.com.au");
+    const path = decodeURIComponent(parsed.pathname).replace(/^\/+/, "");
+    const prefix = `org-assets/${organisationId}/`;
+    if (!path.startsWith(prefix)) return false;
+    if (path.includes("..")) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function orgAssetRelativePath(url: string, organisationId: string): string | null {
+  if (!orgOwnedAssetUrl(url, organisationId)) return null;
+  try {
+    const parsed = new URL(url, "https://app.digitalgate.com.au");
+    return decodeURIComponent(parsed.pathname).replace(/^\/+/, "");
+  } catch {
+    return null;
+  }
+}
+
+/** Delete a previously stored org file. No-op for missing local files. */
+export async function deleteOrgFile(input: {
+  organisationId: string;
+  url: string;
+}): Promise<void> {
+  if (!orgOwnedAssetUrl(input.url, input.organisationId)) {
+    throw new Error("Asset URL is not owned by this organisation");
+  }
+
+  const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
+  const blobHosted = /blob\.vercel-storage\.com/i.test(input.url);
+
+  if (token && (blobHosted || isServerlessRuntime())) {
+    const { del } = await import("@vercel/blob");
+    await del(input.url, { token });
+    return;
+  }
+
+  if (isServerlessRuntime()) {
+    throw new BrandAssetStorageError(BLOB_TOKEN_REQUIRED_MESSAGE, "blob_required", 503);
+  }
+
+  const relative = orgAssetRelativePath(input.url, input.organisationId);
+  if (!relative) return;
+
+  const { unlink } = await import("node:fs/promises");
+  const path = await import("node:path");
+  const absolutePath = path.join(process.cwd(), "public", relative);
+  try {
+    await unlink(absolutePath);
+  } catch (err) {
+    const code = err && typeof err === "object" && "code" in err ? String(err.code) : "";
+    if (code !== "ENOENT") throw err;
+  }
+}

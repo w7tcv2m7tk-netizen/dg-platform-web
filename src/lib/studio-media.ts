@@ -8,12 +8,14 @@ const APP_ORIGIN = "https://app.digitalgate.com.au";
 export type StudioMediaImage = {
   id: string;
   label: string;
-  /** Root-relative path (served from public/) — used for in-app thumbnails. */
+  /** Root-relative path (served from public/) or absolute hosted URL. */
   src: string;
   width: number;
   height: number;
   alt: string;
   note?: string;
+  /** Organisation-uploaded images can be removed from the library. */
+  deletable?: boolean;
 };
 
 /** Aida — AI Business Advisor production imagery. */
@@ -73,16 +75,18 @@ export const AIDA_MEDIA: StudioMediaImage[] = [
   },
 ];
 
-export type StudioMediaGroup = { group: string; images: StudioMediaImage[] };
-
-export const STUDIO_MEDIA: StudioMediaGroup[] = [
-  { group: "Aida — AI Business Advisor", images: AIDA_MEDIA },
-];
-
 export function mediaAbsoluteUrl(src: string): string {
-  return `${APP_ORIGIN}${src}`;
+  const trimmed = src.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `${APP_ORIGIN}${trimmed.startsWith("/") ? trimmed : `/${trimmed}`}`;
+}
+
+function attr(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 }
 
 export function mediaImgSnippet(m: StudioMediaImage): string {
-  return `<img src="${mediaAbsoluteUrl(m.src)}" width="${m.width}" height="${m.height}" alt="${m.alt}" loading="lazy" decoding="async">`;
+  const size =
+    m.width > 0 && m.height > 0 ? ` width="${m.width}" height="${m.height}"` : "";
+  return `<img src="${attr(mediaAbsoluteUrl(m.src))}"${size} alt="${attr(m.alt)}" loading="lazy" decoding="async">`;
 }
