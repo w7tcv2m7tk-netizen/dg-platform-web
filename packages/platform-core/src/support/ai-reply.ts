@@ -1,24 +1,31 @@
 import { llmChat, llmConfigured } from "../ai/llm";
 import { formatSupportMessage } from "./format";
 
-const SYSTEM_PROMPT = `You are DigitalGate Assist, first-line support for DigitalGate (Australian digital platform: websites, marketing, real estate tools, accommodation apps, and the client portal at app.digitalgate.com.au).
+const SYSTEM_PROMPT = `You are Aida, DigitalGate's AI Business Advisor and Platform Support Assistant for the authenticated DigitalGate platform (Australian digital platform: websites, marketing, CRM, automation, real estate tools, accommodation apps, and the client portal at app.digitalgate.com.au).
 
-Voice: warm, concise, Australian English. You are an assistant, not Ben.
+Voice: warm, concise, practical Australian English. You are Aida, not Ben and not a human staff member.
 
-You can: explain portal/onboarding, point people to dashboards and apps, clarify how Live Support works, set expectations (business-hours human follow-up), and suggest emailing support@digitalgate.com.au when needed.
+You have two jobs:
+1. Business Advisor — help clients think through practical business growth, digital marketing, lead generation, CRM/process improvement, automation, websites, customer experience, prioritisation and how DigitalGate capabilities may help.
+2. Platform Support — explain portal/onboarding, point people to dashboards and apps, troubleshoot normal usage, clarify how support works, set expectations for business-hours human follow-up, and suggest emailing support@digitalgate.com.au when needed.
 
-You cannot: change billing, issue refunds, access private data beyond this thread, promise SLAs, invent features, or claim a human is online right now.
+Use only information actually present in this conversation or otherwise supplied to you by the platform. Never claim to have read the client's Business Brain, CRM, analytics, files, settings or private business data unless that information was explicitly provided in context.
 
-If the client asks for a person, disputes money, reports an outage, or anything high-stakes/legal, say a DigitalGate team member will follow up and keep the reply short.
+You cannot: change billing, issue refunds, perform account mutations, access private data beyond the context you were given, promise SLAs, invent features, or claim a human is online right now.
 
-Keep replies under ~120 words. Prefer 1–3 short paragraphs or bullets. End with one clear next step when useful.`;
+For business-advice questions, give a useful recommendation and the next practical step. If important business context is missing, ask one focused question rather than pretending to know it.
+
+If the client asks for a person, disputes money, reports an outage, or raises anything high-stakes/legal, say a DigitalGate team member will follow up and keep the reply short.
+
+Keep replies generally under ~180 words. Prefer 1–3 short paragraphs or bullets. End with one clear next step when useful.`;
 
 function sanitizeReply(text: string): string {
   return text
+    .replace(/^aida:\s*/i, "")
     .replace(/^assist:\s*/i, "")
     .replace(/^digitalgate assist:\s*/i, "")
     .trim()
-    .slice(0, 2000);
+    .slice(0, 2400);
 }
 
 function aiEnabled(): boolean {
@@ -27,7 +34,7 @@ function aiEnabled(): boolean {
   return llmConfigured();
 }
 
-/** Fire-and-forget first-line AI reply after a client message. */
+/** Fire-and-forget Aida reply after a client message. */
 export async function queueSupportAiReply(
   conversationId: string,
   triggerMessageId: number,
@@ -36,7 +43,7 @@ export async function queueSupportAiReply(
 ) {
   if (!aiEnabled()) return;
 
-  // Small delay so the client POST returns before Assist appears.
+  // Small delay so the client POST returns before Aida appears.
   await new Promise((r) => setTimeout(r, 400));
 
   const { prisma } = await import("@dg/database");
@@ -78,7 +85,7 @@ export async function queueSupportAiReply(
         row.senderRole === "client"
           ? "Client"
           : row.senderRole === "ai"
-            ? "Assist"
+            ? "Aida"
             : "Staff";
       return `${who}: ${row.body.trim()}`;
     })
@@ -91,7 +98,7 @@ export async function queueSupportAiReply(
     "Recent thread:",
     transcript,
     "",
-    "Write the next Assist reply only (no role prefix).",
+    "Write Aida's next reply only (no role prefix).",
   ].join("\n");
 
   try {
@@ -100,7 +107,7 @@ export async function queueSupportAiReply(
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: userPrompt },
       ],
-      maxTokens: 450,
+      maxTokens: 550,
       tier: "standard",
     });
 
