@@ -1292,7 +1292,7 @@ function FriendlyFields({
   if (type === "html") {
     return (
       <Field
-        label="HTML (sanitized leftover from WP — theme CSS not included)"
+        label="HTML"
         value={str("html")}
         disabled={disabled}
         multiline
