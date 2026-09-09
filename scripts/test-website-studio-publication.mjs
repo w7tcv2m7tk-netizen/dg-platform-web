@@ -99,3 +99,27 @@ test("page and chrome public render boundaries are wired through sanitization", 
   assert.match(chromeBoundary, /sanitisePublicHtml\(chrome\.footerHtml/);
   assert.match(chromeBoundary, /sanitisePublicCss\(chrome\.customCss/);
 });
+
+test("Website Studio guards dirty drafts before unload and destructive navigation", async () => {
+  const guard = await readFile("src/components/websites/WebsiteStudioUnsavedChangesGuard.tsx", "utf8");
+  assert.match(guard, /beforeunload/);
+  assert.match(guard, /window\.confirm\(LEAVE_MESSAGE\)/);
+  assert.match(guard, /dataset\.unsavedChanges/);
+  assert.match(guard, /requestValues\(init\.body\)/);
+  assert.match(guard, /response\.ok/);
+});
+
+test("Website Studio normalises network failures into recoverable JSON errors", async () => {
+  const guard = await readFile("src/components/websites/WebsiteStudioUnsavedChangesGuard.tsx", "utf8");
+  assert.match(guard, /NETWORK_ERROR_MESSAGE/);
+  assert.match(guard, /catch\s*\{\s*return networkFailureResponse\(\)/s);
+  assert.match(guard, /status:\s*503/);
+  assert.match(guard, /Content-Type\": \"application\/json/);
+});
+
+test("Website Studio page is wrapped in the unsaved-changes boundary", async () => {
+  const source = await readFile("src/app/(shell)/apps/websites/studio/[id]/page.tsx", "utf8");
+  assert.match(source, /WebsiteStudioUnsavedChangesGuard/);
+  assert.match(source, /<WebsiteStudioUnsavedChangesGuard>/);
+  assert.match(source, /<WebsiteStudioClient/);
+});
