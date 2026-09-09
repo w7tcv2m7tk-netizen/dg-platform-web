@@ -53,6 +53,7 @@ test("Studio API and preview entry points are wired through the access guard", a
     ["src/app/api/v1/websites/[id]/assist/route.ts", ["edit"]],
     ["src/app/api/v1/websites/[id]/seo-suggest/route.ts", ["view"]],
     ["src/app/api/v1/websites/[id]/ai-markup/route.ts", ["view"]],
+    ["src/app/api/v1/websites/[id]/ai-component/route.ts", ["view"]],
     ["src/app/api/v1/websites/[id]/pagespeed/route.ts", ["view"]],
     ["src/app/api/v1/websites/[id]/default-footer/route.ts", ["view"]],
     ["src/lib/website-studio-preview.ts", ["view"]],
