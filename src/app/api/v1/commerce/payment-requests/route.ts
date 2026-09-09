@@ -5,11 +5,13 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "commerce.payments");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const lineItems = body?.lineItems;
@@ -62,6 +64,8 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "commerce.read");
+  if (denied) return denied;
 
   const { searchParams } = new URL(req.url);
   const entityType = searchParams.get("entityType") ?? undefined;

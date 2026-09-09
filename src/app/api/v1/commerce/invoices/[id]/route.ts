@@ -5,7 +5,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -14,6 +14,8 @@ interface RouteParams {
 export async function GET(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "commerce.read");
+  if (denied) return denied;
 
   const { id } = await params;
   const invoice = await getInvoice(session.organisationId, id);
@@ -29,6 +31,8 @@ export async function GET(req: Request, { params }: RouteParams) {
 export async function PATCH(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "commerce.manage");
+  if (denied) return denied;
 
   const { id } = await params;
   const body = await req.json().catch(() => null);
