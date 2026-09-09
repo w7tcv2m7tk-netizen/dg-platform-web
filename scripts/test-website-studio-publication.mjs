@@ -104,7 +104,7 @@ test("Website Studio guards dirty drafts before unload and destructive navigatio
   const guard = await readFile("src/components/websites/WebsiteStudioUnsavedChangesGuard.tsx", "utf8");
   assert.match(guard, /beforeunload/);
   assert.match(guard, /window\.confirm\(LEAVE_MESSAGE\)/);
-  assert.match(guard, /data\.unsavedChanges/);
+  assert.match(guard, /dataset\.unsavedChanges/);
   assert.match(guard, /requestValues\(init\.body\)/);
   assert.match(guard, /response\.ok/);
 });
