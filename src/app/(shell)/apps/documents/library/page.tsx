@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { listOrgDocuments } from "@dg/platform-core";
+import { listOrgDocuments, sessionHasFeature } from "@dg/platform-core";
+import { notFound } from "next/navigation";
 
 import { DocumentsUploadForm } from "@/components/documents/DocumentsUploadForm";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 interface PageProps {
   searchParams: Promise<{
@@ -19,20 +20,9 @@ function kindLabel(kind: string) {
 
 export default async function DocumentsLibraryPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { session } = await getPlatformPageContext();
-
-  if (!session?.organisationId) {
-    return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Document library</h1>
-        </header>
-        <main className="dg-page-main">
-          <p className="text-sm text-slate-500">Sign in to continue.</p>
-        </main>
-      </>
-    );
-  }
+  const session = await getAuthorisedPlatformPageSession("documents.read");
+  if (!session) notFound();
+  const canWriteDocuments = sessionHasFeature(session, "documents.write");
 
   const documents = process.env.DATABASE_URL
     ? await listOrgDocuments({
@@ -60,11 +50,15 @@ export default async function DocumentsLibraryPage({ searchParams }: PageProps) 
         <section>
           <h2 className="text-sm font-medium text-slate-200">Upload</h2>
           <div className="mt-3">
-            <DocumentsUploadForm
-              defaultKind={params.kind?.trim() || "other"}
-              entityType={params.entityType?.trim()}
-              entityId={params.entityId?.trim()}
-            />
+            {canWriteDocuments ? (
+              <DocumentsUploadForm
+                defaultKind={params.kind?.trim() || "other"}
+                entityType={params.entityType?.trim()}
+                entityId={params.entityId?.trim()}
+              />
+            ) : (
+              <p className="text-sm text-slate-400">You have read-only access to Documents.</p>
+            )}
           </div>
         </section>
 
