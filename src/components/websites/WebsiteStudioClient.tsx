@@ -637,10 +637,10 @@ export function WebsiteStudioClient({
       ) : null}
 
       {tab === "edit" ? (
-      <div className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)_24rem]">
-        <aside className="space-y-3">
+      <div className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)_24rem] lg:items-stretch">
+        <aside className="space-y-3 lg:flex lg:flex-col lg:min-h-0">
           <h2 className="text-xs uppercase tracking-wide text-slate-500">Pages</h2>
-          <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="space-y-2 overflow-y-auto pr-1 max-h-[70vh] lg:max-h-none lg:flex-1 lg:min-h-0">
             {pageGroups.map((group) => {
               const defaultExpanded =
                 group.id === "core" ||
@@ -1138,6 +1138,8 @@ export function WebsiteStudioClient({
                 component={selected}
                 disabled={busy}
                 onSave={saveComponentProps}
+                websiteId={website.id}
+                siteName={website.name}
               />
             </div>
           ) : null}
@@ -1268,10 +1270,14 @@ function ComponentPropsEditor({
   component,
   disabled,
   onSave,
+  websiteId,
+  siteName,
 }: {
   component: WebsiteComponent;
   disabled?: boolean;
   onSave: (props: Record<string, unknown>) => void;
+  websiteId: string;
+  siteName?: string;
 }) {
   const [props, setProps] = useState<Record<string, unknown>>(component.props);
   const [mode, setMode] = useState<"fields" | "json">(
@@ -1279,9 +1285,47 @@ function ComponentPropsEditor({
   );
   const [raw, setRaw] = useState(JSON.stringify(component.props, null, 2));
   const [error, setError] = useState("");
+  const [aiBusy, setAiBusy] = useState(false);
 
   function updateField(key: string, value: unknown) {
     setProps((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function runAi() {
+    let current: Record<string, unknown>;
+    if (mode === "json") {
+      try {
+        current = JSON.parse(raw) as Record<string, unknown>;
+      } catch {
+        setError("Invalid JSON");
+        return;
+      }
+    } else {
+      current = props;
+    }
+    setAiBusy(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/v1/websites/${websiteId}/ai-component`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: component.type, props: current, siteName }),
+      });
+      const json = (await res.json()) as {
+        data?: { props?: Record<string, unknown> };
+        error?: { message?: string };
+      };
+      if (!res.ok || !json.data?.props) {
+        setError(json.error?.message || "AI could not improve this component");
+        setAiBusy(false);
+        return;
+      }
+      setProps(json.data.props);
+      setRaw(JSON.stringify(json.data.props, null, 2));
+    } catch {
+      setError("AI request failed");
+    }
+    setAiBusy(false);
   }
 
   return (
@@ -1329,26 +1373,37 @@ function ComponentPropsEditor({
       )}
 
       {error ? <p className="text-xs text-rose-400">{error}</p> : null}
-      <button
-        type="button"
-        disabled={disabled}
-        className="rounded-md bg-slate-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
-        onClick={() => {
-          if (mode === "json") {
-            try {
-              const parsed = JSON.parse(raw) as Record<string, unknown>;
-              setError("");
-              onSave(parsed);
-            } catch {
-              setError("Invalid JSON");
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={disabled || aiBusy}
+          onClick={() => void runAi()}
+          title="Let AI improve this component's copy — review, then save"
+          className="rounded-md border border-violet-500/60 px-3 py-1.5 text-sm text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
+        >
+          {aiBusy ? "Thinking…" : "Use AI"}
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          className="rounded-md bg-slate-700 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          onClick={() => {
+            if (mode === "json") {
+              try {
+                const parsed = JSON.parse(raw) as Record<string, unknown>;
+                setError("");
+                onSave(parsed);
+              } catch {
+                setError("Invalid JSON");
+              }
+              return;
             }
-            return;
-          }
-          onSave(props);
-        }}
-      >
-        Save
-      </button>
+            onSave(props);
+          }}
+        >
+          Save
+        </button>
+      </div>
     </div>
   );
 }
