@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AIM Financial × DigitalGate — Founding 10 Proposal (Stage 1)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* DigitalGate brand tokens — aligned with website/app SoT */
+    :root {
+      --dg-blue: #3B82F6;
+      --dg-blue-deep: #2563EB;
+      --dg-blue-soft: #93C5FD;
+      --dg-violet: #7C3AED;
+      --dg-cyan: #22D3EE;
+      --dg-ink: #0F172A;
+      --dg-ink-soft: #334155;
+      --dg-mute: #64748B;
+      --dg-line: #E2E8F0;
+      --dg-paper: #F8FAFC;
+      --dg-white: #FFFFFF;
+      --dg-dark: #05070A;
+      --dg-dark-panel: #0A0E17;
+      --dg-dark-elev: #111827;
+      --page-w: 210mm;
+      --page-h: 297mm;
+      --pad-x: 18mm;
+      --pad-y: 16mm;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #1e293b;
+      color: var(--dg-ink);
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      width: var(--page-w);
+      height: var(--page-h);
+      margin: 0 auto 12px;
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+      break-after: page;
+      background: var(--dg-white);
+    }
+    .page:last-child { page-break-after: auto; break-after: auto; }
+
+    @page { size: A4; margin: 0; }
+    @media print {
+      body { background: none; }
+      .page { margin: 0; box-shadow: none; }
+    }
+
+    h1, h2, h3, h4 {
+      font-family: Sora, Inter, sans-serif;
+      letter-spacing: -0.03em;
+      margin: 0;
+      color: var(--dg-ink);
+      font-weight: 700;
+    }
+    p { margin: 0; line-height: 1.55; color: var(--dg-ink-soft); }
+    ul, ol { margin: 0; padding-left: 1.15rem; color: var(--dg-ink-soft); }
+    li { margin: 0.28rem 0; line-height: 1.45; }
+    strong { color: var(--dg-ink); font-weight: 700; }
+
+    .inner {
+      padding: var(--pad-y) var(--pad-x);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .kicker {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--dg-blue);
+      margin-bottom: 10px;
+    }
+    .page-title {
+      font-size: 26px;
+      line-height: 1.15;
+      max-width: 28ch;
+      margin-bottom: 12px;
+    }
+    .lead {
+      font-size: 13.5px;
+      line-height: 1.55;
+      max-width: 54ch;
+      margin-bottom: 14px;
+    }
+    .body {
+      font-size: 12.2px;
+      line-height: 1.55;
+      max-width: 62ch;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--dg-line);
+    }
+    .page-header .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-header .brand img.icon { width: 22px; height: 22px; object-fit: contain; }
+    .page-header .brand img.word {
+      height: 13px;
+      width: auto;
+      object-fit: contain;
+      display: block;
+    }
+    .page-header .brand img.icon {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      display: block;
+    }
+    .page-header .meta {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--dg-mute);
+    }
+    .page-footer {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--dg-line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9px;
+      color: var(--dg-mute);
+      letter-spacing: 0.04em;
+    }
+    .page-footer .tm { color: var(--dg-ink-soft); font-weight: 600; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .card {
+      border: 1px solid var(--dg-line);
+      border-radius: 14px;
+      padding: 14px 14px 13px;
+      background: var(--dg-paper);
+    }
+    .card h3 {
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    .card p, .card li { font-size: 11.5px; }
+    .card.accent {
+      background: linear-gradient(160deg, rgba(59,130,246,0.08), rgba(124,58,237,0.05));
+      border-color: rgba(59,130,246,0.28);
+    }
+    .card.warn {
+      background: #FFFBEB;
+      border-color: #F59E0B;
+    }
+    .callout {
+      margin: 14px 0 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border-left: 3px solid var(--dg-blue);
+      background: rgba(59,130,246,0.07);
+      font-size: 12px;
+      color: var(--dg-ink);
+      font-weight: 600;
+      line-height: 1.45;
+    }
+    .pillars {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin: 10px 0 0;
+    }
+    .pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #BFDBFE;
+    }
+    .stream {
+      border: 1px solid var(--dg-line);
+      border-radius: 12px;
+      padding: 11px 12px;
+      background: #fff;
+    }
+    .stream .num {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dg-blue);
+      margin-bottom: 4px;
+    }
+    .stream h3 { font-size: 12.5px; margin-bottom: 6px; }
+    .stream li { font-size: 11px; }
+
+    .price-hero {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .price-block {
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+      border: 1px solid rgba(59,130,246,0.28);
+      background: linear-gradient(165deg, #0B1220, #111827 55%, #0A0E17);
+      color: #E2E8F0;
+    }
+    .price-block .label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #93C5FD;
+      margin-bottom: 8px;
+    }
+    .price-block .amount {
+      font-family: Sora, Inter, sans-serif;
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: #F8FAFC;
+      line-height: 1;
+    }
+    .price-block .amount small {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94A3B8;
+      letter-spacing: 0;
+      margin-left: 4px;
+    }
+    .price-block .note {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #94A3B8;
+      line-height: 1.45;
+    }
+    .price-total {
+      margin-top: 14px;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(124,58,237,0.1));
+      border: 1px solid rgba(59,130,246,0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .price-total .lt {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--dg-ink);
+    }
+    .price-total .rt {
+      font-family: Sora, Inter, sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--dg-ink);
+      letter-spacing: -0.03em;
+    }
+    .price-total .rt span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--dg-mute);
+      margin-left: 4px;
+    }
+
+    .diagram {
+      border: 1px solid var(--dg-line);
+      border-radius: 14px;
+      padding: 14px;
+      background: var(--dg-paper);
+    }
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+    }
+    .flow .box {
+      flex: 1;
+      border-radius: 10px;
+      padding: 10px 10px 9px;
+      background: #fff;
+      border: 1px solid var(--dg-line);
+      text-align: center;
+    }
+    .flow .box strong {
+      display: block;
+      font-size: 11.5px;
+      margin-bottom: 3px;
+    }
+    .flow .box span {
+      font-size: 10px;
+      color: var(--dg-mute);
+      line-height: 1.35;
+      display: block;
+    }
+    .flow .box.core {
+      background: linear-gradient(160deg, #1E3A8A, #3B82F6);
+      border-color: transparent;
+      color: #fff;
+    }
+    .flow .box.core strong { color: #fff; }
+    .flow .box.core span { color: #DBEAFE; }
+    .flow .arrow {
+      align-self: center;
+      color: var(--dg-blue);
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .phase {
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid var(--dg-line);
+      background: #fff;
+      position: relative;
+      min-height: 92px;
+    }
+    .phase .ph {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--dg-blue);
+      margin-bottom: 5px;
+    }
+    .phase h3 { font-size: 12.5px; line-height: 1.25; }
+
+    .compare .bad { border-color: #CBD5E1; }
+    .compare .good {
+      border-color: rgba(59,130,246,0.35);
+      background: linear-gradient(165deg, rgba(59,130,246,0.06), #fff);
+    }
+    .compare .tag {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .compare .bad .tag { color: var(--dg-mute); }
+    .compare .good .tag { color: var(--dg-blue); }
+
+    .org-tree {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .org-node {
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--dg-line);
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .org-node.platform {
+      background: linear-gradient(135deg, #1E40AF, #3B82F6);
+      color: #fff;
+      border: 0;
+    }
+    .org-children {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .detach {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px dashed rgba(59,130,246,0.45);
+      background: rgba(59,130,246,0.04);
+      font-size: 11.5px;
+      color: var(--dg-ink-soft);
+      text-align: center;
+    }
+
+    /* —— Cover —— */
+    .cover {
+      background:
+        radial-gradient(ellipse 70% 45% at 50% -5%, rgba(59,130,246,0.28), transparent 55%),
+        radial-gradient(ellipse 40% 35% at 90% 80%, rgba(124,58,237,0.16), transparent 55%),
+        linear-gradient(180deg, #05070A 0%, #0A0E17 55%, #070B14 100%);
+      color: #F1F5F9;
+    }
+    .cover .inner {
+      justify-content: space-between;
+      padding: 22mm var(--pad-x) 18mm;
+    }
+    .cover-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .cover-top img.icon {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+    }
+    .cover-top img.word {
+      height: 18px;
+      width: auto;
+      object-fit: contain;
+    }
+    .cover-label {
+      display: inline-block;
+      margin-top: 48px;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #93C5FD;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(147,197,253,0.35);
+      background: rgba(59,130,246,0.12);
+    }
+    .cover h1 {
+      margin-top: 18px;
+      font-size: 34px;
+      line-height: 1.12;
+      color: #F8FAFC;
+      max-width: 16ch;
+    }
+    .cover .subtitle {
+      margin-top: 12px;
+      font-size: 16px;
+      color: #CBD5E1;
+      font-weight: 500;
+      max-width: 28ch;
+    }
+    .cover-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 36px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(148,163,184,0.22);
+    }
+    .cover-meta .lbl {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #64748B;
+      margin-bottom: 6px;
+    }
+    .cover-meta .val {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #F1F5F9;
+      line-height: 1.4;
+    }
+    .cover-meta .val span {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #94A3B8;
+      margin-top: 2px;
+    }
+    .cover-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      color: #64748B;
+      font-size: 10.5px;
+    }
+    .cover-foot .tm {
+      color: #94A3B8;
+      font-weight: 600;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .platform-grid span {
+      display: block;
+      text-align: center;
+      padding: 11px 6px;
+      border-radius: 10px;
+      background: #0F172A;
+      color: #E2E8F0;
+      font-size: 10.5px;
+      font-weight: 700;
+      border: 1px solid rgba(59,130,246,0.25);
+    }
+
+    .steps ol {
+      list-style: none;
+      padding: 0;
+      counter-reset: step;
+    }
+    .steps li {
+      counter-increment: step;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      align-items: start;
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: var(--dg-ink);
+      font-weight: 600;
+    }
+    .steps li::before {
+      content: counter(step);
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--dg-blue);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .terms li { font-size: 11.2px; margin: 0.35rem 0; }
+    .contact {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 14px;
+      background: linear-gradient(160deg, #0A0E17, #111827);
+      color: #E2E8F0;
+    }
+    .contact .brandline {
+      font-family: Sora, Inter, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #F8FAFC;
+      margin-bottom: 10px;
+    }
+    .contact .who {
+      font-size: 13px;
+      font-weight: 700;
+      color: #F1F5F9;
+    }
+    .contact .role {
+      font-size: 11.5px;
+      color: #94A3B8;
+      margin-bottom: 8px;
+    }
+    .contact .coords {
+      font-size: 11.5px;
+      color: #CBD5E1;
+      line-height: 1.55;
+    }
+  </style>
+</head>
+<body>
+
+<!-- PAGE 1 — COVER -->
+<section class="page cover">
+  <div class="inner">
+    <div>
+      <div class="cover-top">
+        <img class="icon" src="assets/icon-on-dark.png" alt="DigitalGate" />
+        <img class="word" src="assets/logo-on-dark.png" alt="DigitalGate" />
+      </div>
+      <div class="cover-label">Founding 10 Proposal — Stage 1</div>
+      <h1>AIM Financial × DigitalGate</h1>
+      <p class="subtitle">Digital Business Infrastructure &amp; Growth Platform</p>
+      <div class="cover-meta">
+        <div>
+          <div class="lbl">Prepared for</div>
+          <div class="val">Nathan Gumbleton<span>AIM Financial</span></div>
+        </div>
+        <div>
+          <div class="lbl">Prepared by</div>
+          <div class="val">Ben Roe<span>Founder &amp; Platform Architect · DigitalGate</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="cover-foot">
+      <span class="tm">The Gateway to Your Digital World™</span>
+      <span>Confidential</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 2 — EXECUTIVE SUMMARY -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Executive summary</div>
+    </div>
+    <span class="kicker">Executive summary</span>
+    <h2 class="page-title">A connected digital foundation for AIM Financial and Hi-Vis Finance</h2>
+    <p class="lead">DigitalGate will establish the technology and digital growth platform supporting both AIM Financial and Hi-Vis Finance — not as a simple website quotation, but as connected business infrastructure.</p>
+    <p class="body" style="margin-bottom:12px">AIM Financial is the established business Nathan intends to retain. Hi-Vis Finance is being developed as a distinct digital business asset, with the option to grow and later separate or sell it.</p>
+    <p class="body" style="margin-bottom:14px">The goal is to avoid fragmented tools and instead create one coherent system spanning website, CRM, leads, automation, AI, analytics, SEO and business data.</p>
+    <div class="pillars">
+      <span class="pill">Website</span>
+      <span class="pill">CRM</span>
+      <span class="pill">Leads</span>
+      <span class="pill">Automation</span>
+      <span class="pill">AI</span>
+      <span class="pill">Analytics</span>
+      <span class="pill">SEO</span>
+      <span class="pill">Business data</span>
+    </div>
+    <div class="callout" style="margin-top:18px">One platform. Two brands. One connected digital ecosystem.</div>
+    <div class="grid-2" style="margin-top:16px">
+      <div class="card accent">
+        <h3>What Stage 1 delivers</h3>
+        <ul>
+          <li>DigitalGate Platform implementation</li>
+          <li>AIM Financial website</li>
+          <li>Hi-Vis Finance website</li>
+          <li>CRM foundation &amp; initial migration</li>
+          <li>Lead capture, automation &amp; analytics</li>
+          <li>SEO &amp; AI / Business Brain foundations</li>
+          <li>Architecture for later Hi-Vis separation</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>What Stage 1 deliberately excludes</h3>
+        <ul>
+          <li>Managed IT &amp; cybersecurity (Stage 2)</li>
+          <li>Substantial bespoke third-party integrations until assessed and approved</li>
+          <li>Third-party licence fees unless explicitly stated</li>
+          <li>Paid advertising spend</li>
+        </ul>
+        <p style="margin-top:10px;font-size:11.5px;color:var(--dg-mute)">Stage 2 Managed IT &amp; Cybersecurity will be separately scoped later. No Stage 2 pricing is included here.</p>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>2</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 3 — THE OPPORTUNITY -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · The opportunity</div>
+    </div>
+    <span class="kicker">The opportunity</span>
+    <h2 class="page-title">From fragmented tools to connected infrastructure</h2>
+    <p class="lead">Today’s stack works — but it doesn’t compound. DigitalGate replaces that fragmentation with a single operating layer behind both brands.</p>
+    <div class="grid-2 compare" style="margin-top:8px">
+      <div class="card bad">
+        <div class="tag">Current</div>
+        <h3>AIM Financial</h3>
+        <ul>
+          <li>Wix website</li>
+          <li>Lend CRM</li>
+          <li>Separate Meta activity</li>
+          <li>Limited analytics</li>
+          <li>No established SEO programme</li>
+          <li>Various external integrations</li>
+          <li>Systems operating independently</li>
+        </ul>
+      </div>
+      <div class="card good">
+        <div class="tag">Proposed</div>
+        <h3>DigitalGate Platform</h3>
+        <ul>
+          <li>AIM Financial website</li>
+          <li>Hi-Vis Finance website</li>
+          <li>CRM &amp; lead capture</li>
+          <li>Automation</li>
+          <li>AI / Business Brain</li>
+          <li>Analytics &amp; SEO foundation</li>
+          <li>Reporting &amp; connected workflows</li>
+        </ul>
+      </div>
+    </div>
+    <div class="diagram" style="margin-top:16px">
+      <p style="font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--dg-blue);margin-bottom:10px">Connected model</p>
+      <div class="flow">
+        <div class="box"><strong>AIM Financial</strong><span>Established brand</span></div>
+        <div class="arrow">→</div>
+        <div class="box core"><strong>DigitalGate</strong><span>Shared operating layer</span></div>
+        <div class="arrow">←</div>
+        <div class="box"><strong>Hi-Vis Finance</strong><span>Separable digital asset</span></div>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>3</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 4 — AIM FINANCIAL -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · AIM Financial</div>
+    </div>
+    <span class="kicker">AIM Financial</span>
+    <h2 class="page-title">Modernising the established business</h2>
+    <p class="lead">AIM Financial receives a native DigitalGate-powered digital foundation — modern presence, shared customer context and clearer operating rhythm.</p>
+    <div class="grid-2" style="margin-top:6px">
+      <div class="card">
+        <h3>Presence &amp; capture</h3>
+        <ul>
+          <li>New native DigitalGate-powered website</li>
+          <li>Forms and lead capture</li>
+          <li>Analytics instrumentation</li>
+          <li>SEO foundations</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>CRM &amp; operations</h3>
+        <ul>
+          <li>CRM foundation and pipelines</li>
+          <li>Lead and opportunity management</li>
+          <li>Core workflows &amp; reporting</li>
+          <li>User access for up to five users initially</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Intelligence</h3>
+        <ul>
+          <li>Automation for agreed core workflows</li>
+          <li>AI / Business Brain foundation</li>
+          <li>Connected business data</li>
+        </ul>
+      </div>
+      <div class="card accent">
+        <h3>Migration</h3>
+        <ul>
+          <li>DigitalGate organisation and platform setup</li>
+          <li>Structured migration from existing systems where appropriate</li>
+          <li>Initial CRM migration within reasonable agreed scope</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">Outcome: AIM Financial runs on clearer digital infrastructure — without losing the business Nathan intends to retain.</div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>4</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 5 — HI-VIS FINANCE -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Hi-Vis Finance</div>
+    </div>
+    <span class="kicker">Hi-Vis Finance</span>
+    <h2 class="page-title">Building a digital business asset from day one</h2>
+    <p class="lead">Hi-Vis Finance is approached differently. It should be built as a distinct business asset — not simply as a second website.</p>
+    <div class="grid-2" style="margin-top:4px">
+      <div class="card">
+        <h3>Distinct from day one</h3>
+        <ul>
+          <li>Independent brand presence</li>
+          <li>Dedicated website</li>
+          <li>Separate lead attribution</li>
+          <li>Separate analytics</li>
+          <li>Separate CRM structure where appropriate</li>
+          <li>Dedicated workflows and reporting</li>
+          <li>Clean data separation</li>
+        </ul>
+      </div>
+      <div class="card accent">
+        <h3>Future transferability</h3>
+        <ul>
+          <li>Ability to later operate independently</li>
+          <li>Brand, website, CRM data, analytics and workflows structured for separation</li>
+          <li>Ability to move to a separate DigitalGate subscription if sold</li>
+        </ul>
+        <p style="margin-top:8px;font-size:11px;color:var(--dg-mute)">If Hi-Vis Finance is sold and separated from AIM, the acquiring party would require its own DigitalGate platform subscription.</p>
+      </div>
+    </div>
+    <div class="diagram" style="margin-top:14px">
+      <p style="font-size:10px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--dg-blue);margin-bottom:10px;text-align:center">Structure</p>
+      <div class="org-tree">
+        <div class="org-node">Nathan / AIM Group</div>
+        <div class="org-children">
+          <div class="org-node">AIM Financial</div>
+          <div class="org-node">Hi-Vis Finance</div>
+        </div>
+        <div class="org-node platform">DigitalGate Platform</div>
+      </div>
+      <div class="detach"><strong>Later:</strong> Hi-Vis can detach cleanly — brand, data, workflows and subscription path prepared for transfer.</div>
+    </div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>5</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 6 — DIGITALGATE PLATFORM -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Platform</div>
+    </div>
+    <span class="kicker">DigitalGate Platform</span>
+    <h2 class="page-title">The operating layer behind both brands</h2>
+    <p class="lead">AIM and Hi-Vis will not just have websites sitting separately from the business systems. Website, CRM, automation and business data should work together.</p>
+    <div class="platform-grid">
+      <span>Business Brain</span>
+      <span>CRM</span>
+      <span>Contacts</span>
+      <span>Leads</span>
+      <span>Opportunities</span>
+      <span>Tasks</span>
+      <span>Automation</span>
+      <span>AI</span>
+      <span>Analytics</span>
+      <span>Website</span>
+      <span>SEO</span>
+      <span>Reporting</span>
+      <span>Integrations</span>
+      <span>Permissions</span>
+      <span>Workflows</span>
+      <span>Dashboards</span>
+    </div>
+    <div class="grid-2" style="margin-top:16px">
+      <div class="card accent">
+        <h3>Shared substrate</h3>
+        <p>Identity, customers, context, permissions, events, intelligence, automation and reporting attach to one platform — so adding capability extends the system instead of creating another island.</p>
+      </div>
+      <div class="card">
+        <h3>Brand-aware structure</h3>
+        <p>AIM and Hi-Vis keep distinct brand presence and attribution while sharing the DigitalGate operating layer during the initial engagement.</p>
+      </div>
+    </div>
+    <div class="callout">DigitalGate retains ownership of the platform, underlying technology, reusable modules and general IP. AIM retains ownership of its business data, content and client information.</div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>6</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 7 — IMPLEMENTATION SCOPE -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Scope</div>
+    </div>
+    <span class="kicker">Implementation scope</span>
+    <h2 class="page-title">What Stage 1 includes</h2>
+    <div class="grid-2" style="margin-top:8px;gap:10px">
+      <div class="stream">
+        <div class="num">01 · Discovery &amp; architecture</div>
+        <h3>Clarify the target state</h3>
+        <ul>
+          <li>Workshop with Nathan and Jessica</li>
+          <li>Map existing workflows</li>
+          <li>Review Lend usage</li>
+          <li>Map lead sources</li>
+          <li>Review current integrations</li>
+          <li>Define target state</li>
+        </ul>
+      </div>
+      <div class="stream">
+        <div class="num">02 · AIM Financial website</div>
+        <h3>Modernise the established brand</h3>
+        <ul>
+          <li>Design &amp; build</li>
+          <li>Content migration where appropriate</li>
+          <li>Lead capture</li>
+          <li>Analytics &amp; SEO foundations</li>
+          <li>DigitalGate integration</li>
+        </ul>
+      </div>
+      <div class="stream">
+        <div class="num">03 · Hi-Vis Finance website</div>
+        <h3>Build the separable asset</h3>
+        <ul>
+          <li>Design &amp; build</li>
+          <li>Lead capture</li>
+          <li>Analytics &amp; SEO foundations</li>
+          <li>Platform integration</li>
+          <li>Structure for future separation</li>
+        </ul>
+      </div>
+      <div class="stream">
+        <div class="num">04 · Platform configuration</div>
+        <h3>Stand up the operating layer</h3>
+        <ul>
+          <li>Organisation setup, users &amp; permissions</li>
+          <li>CRM, pipelines &amp; forms</li>
+          <li>Workflows &amp; dashboards</li>
+          <li>Business Brain foundation</li>
+        </ul>
+      </div>
+      <div class="stream">
+        <div class="num">05 · Initial CRM migration</div>
+        <h3>Move agreed data carefully</h3>
+        <ul>
+          <li>Assess current Lend data</li>
+          <li>Map fields</li>
+          <li>Import agreed data</li>
+          <li>Configure core CRM structure</li>
+          <li>Validate migration</li>
+        </ul>
+      </div>
+      <div class="stream">
+        <div class="num">06 · Initial automation</div>
+        <h3>Make enquiry flow work</h3>
+        <ul>
+          <li>Lead capture</li>
+          <li>Notifications</li>
+          <li>Task creation</li>
+          <li>Enquiry acknowledgement</li>
+          <li>Agreed core workflow automation</li>
+        </ul>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>7</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 8 — INTEGRATIONS -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Integrations</div>
+    </div>
+    <span class="kicker">Integrations</span>
+    <h2 class="page-title">Integration discovery &amp; advanced development</h2>
+    <p class="lead">DigitalGate will assess what should remain, integrate, be replaced, be migrated or be improved. Substantial bespoke third-party work is not automatically included.</p>
+    <div class="card" style="margin-top:4px">
+      <h3>Known external services in scope for assessment</h3>
+      <div class="pillars" style="margin-top:8px">
+        <span class="pill">Illion</span>
+        <span class="pill">BankStatements</span>
+        <span class="pill">Equifax</span>
+        <span class="pill">VedaCheck</span>
+        <span class="pill">Lender integrations</span>
+        <span class="pill">Verimoto</span>
+        <span class="pill">Olasio Vehicle Inspection</span>
+        <span class="pill">ABN Lookup</span>
+        <span class="pill">Meta</span>
+        <span class="pill">Adobe</span>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:12px">
+      <div class="card">
+        <h3>Included</h3>
+        <ul>
+          <li>Integration assessment during discovery</li>
+          <li>Lend integration requirements assessed during discovery</li>
+          <li>Clear recommendation on remain / integrate / replace / migrate / improve</li>
+        </ul>
+      </div>
+      <div class="card warn">
+        <h3>Not automatically included</h3>
+        <ul>
+          <li>Custom API development</li>
+          <li>Vendor certification</li>
+          <li>Third-party licensing or commercial agreements</li>
+          <li>Substantial bespoke development</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">Integration assessment is included. Substantial bespoke integration development is separately scoped where required.<br /><br />Existing integrations such as Illion, BankStatements, Equifax, VedaCheck, lender integrations, Verimoto, Olasio and other third-party services are subject to technical and commercial assessment. Any significant bespoke integration work discovered will be separately scoped and approved before development.</div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>8</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 9 — ROADMAP -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Roadmap</div>
+    </div>
+    <span class="kicker">Implementation roadmap</span>
+    <h2 class="page-title">How Stage 1 progresses</h2>
+    <p class="lead">A practical sequence from discovery to launch — paced by discovery findings and agreed priorities.</p>
+    <div class="timeline" style="margin-top:10px">
+      <div class="phase"><div class="ph">Phase 1</div><h3>Discovery &amp; Architecture</h3></div>
+      <div class="phase"><div class="ph">Phase 2</div><h3>Platform Foundation</h3></div>
+      <div class="phase"><div class="ph">Phase 3</div><h3>Website Design &amp; Build</h3></div>
+      <div class="phase"><div class="ph">Phase 4</div><h3>CRM Configuration &amp; Migration</h3></div>
+      <div class="phase"><div class="ph">Phase 5</div><h3>Automation &amp; Analytics</h3></div>
+      <div class="phase"><div class="ph">Phase 6</div><h3>Testing, Launch &amp; Optimisation</h3></div>
+    </div>
+    <div class="card accent" style="margin-top:16px">
+      <h3>Working method</h3>
+      <p>Discovery shapes architecture. Platform foundation comes before content polish. Migration and automation follow a validated CRM structure. Launch is deliberate — then we optimise against real usage.</p>
+    </div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>9</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 10 — FOUNDING 10 -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Founding 10</div>
+    </div>
+    <span class="kicker">Founding 10 partnership</span>
+    <h2 class="page-title">AIM Financial Founding 10 benefits</h2>
+    <p class="lead">Founding 10 is limited access — not discounted access dressed up as a sale. It is early partnership with direct founder involvement.</p>
+    <div class="grid-2" style="margin-top:6px">
+      <div class="card accent">
+        <h3>Commercial &amp; access</h3>
+        <ul>
+          <li>Preferential platform pricing</li>
+          <li>Heavily reduced implementation investment</li>
+          <li>Priority onboarding</li>
+          <li>Early access to new DigitalGate functionality</li>
+          <li>Founding 10 recognition</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Influence &amp; evolution</h3>
+        <ul>
+          <li>Direct founder involvement</li>
+          <li>Ability to help influence useful platform features</li>
+          <li>Priority consideration for platform improvements that can benefit other DigitalGate customers</li>
+          <li>Ongoing platform evolution</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">General platform improvements may become part of the DigitalGate product roadmap.<br /><br />AIM-exclusive bespoke functionality may be separately scoped.</div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>10</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 11 — INVESTMENT -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Investment</div>
+    </div>
+    <span class="kicker">Investment</span>
+    <h2 class="page-title">Clear commercial terms for Stage 1</h2>
+    <div class="price-hero">
+      <div class="price-block">
+        <div class="label">Founding 10 Implementation Investment</div>
+        <div class="amount">$9,950<small>ex GST</small></div>
+        <p class="note">One-time Stage 1 implementation for AIM Financial, Hi-Vis Finance and DigitalGate platform foundation.</p>
+      </div>
+      <div class="price-block">
+        <div class="label">DigitalGate Platform</div>
+        <div class="amount">$997<small>ex GST / month</small></div>
+        <p class="note">Ongoing platform access for the agreed AIM group structure, including AIM Financial and Hi-Vis Finance during the initial engagement.</p>
+      </div>
+    </div>
+    <div class="price-total">
+      <div class="lt">First-year investment · 12-month initial term<br /><span style="font-weight:500;color:var(--dg-mute);font-size:11px">$9,950 + ($997 × 12)</span></div>
+      <div class="rt">$21,914<span>ex GST</span></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>Implementation includes</h3>
+      <div class="grid-2" style="gap:8px 16px;margin-top:6px">
+        <ul>
+          <li>AIM Financial website</li>
+          <li>Hi-Vis Finance website</li>
+          <li>DigitalGate platform setup</li>
+          <li>Discovery</li>
+          <li>CRM configuration</li>
+          <li>Agreed initial migration</li>
+        </ul>
+        <ul>
+          <li>Core automation</li>
+          <li>Analytics</li>
+          <li>SEO foundations</li>
+          <li>AI / Business Brain foundation</li>
+          <li>Hi-Vis sale-ready architecture</li>
+        </ul>
+      </div>
+    </div>
+    <p class="body" style="margin-top:12px;font-size:11.5px;color:var(--dg-mute)">Initial CRM migration is included within reasonable agreed scope. Significant bespoke integration work is not automatically included.</p>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>11</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 12 — STAGE 2 -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Future · Stage 2</div>
+    </div>
+    <span class="kicker">Stage 2</span>
+    <h2 class="page-title">Managed IT &amp; Cybersecurity</h2>
+    <p class="lead">Once Stage 1 is underway, DigitalGate will separately assess and propose managed IT and cybersecurity for AIM Financial.</p>
+    <div class="grid-3" style="margin-top:8px">
+      <div class="card"><h3>Microsoft estate</h3><ul><li>Microsoft 365</li><li>Business Premium</li><li>Microsoft administration</li></ul></div>
+      <div class="card"><h3>Security controls</h3><ul><li>Intune</li><li>MFA</li><li>Conditional Access</li><li>Endpoint management</li><li>Cybersecurity</li></ul></div>
+      <div class="card"><h3>Operations</h3><ul><li>Backups</li><li>Email security</li><li>Device management</li><li>Helpdesk</li><li>Onboarding / offboarding</li><li>Monitoring and patching</li></ul></div>
+    </div>
+    <div class="callout" style="margin-top:20px">Stage 2 will be separately scoped and approved.<br /><br />No Stage 2 pricing is included in this proposal.</div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>12</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 13 — COMMERCIAL TERMS -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Commercial terms</div>
+    </div>
+    <span class="kicker">Commercial terms / scope</span>
+    <h2 class="page-title">Boundaries that keep the engagement clean</h2>
+    <div class="grid-2" style="margin-top:6px">
+      <div class="card">
+        <h3>Commercial</h3>
+        <ul class="terms">
+          <li>All pricing stated ex GST</li>
+          <li>12-month initial platform term</li>
+          <li>Payment terms to be confirmed on acceptance (DigitalGate commercial standards)</li>
+          <li>Implementation commences following acceptance and initial payment</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Scope</h3>
+        <ul class="terms">
+          <li>Scope subject to reasonable discovery findings</li>
+          <li>Significant third-party integration development excluded unless specifically approved</li>
+          <li>Third-party licence fees excluded unless explicitly stated</li>
+          <li>Paid advertising spend excluded</li>
+          <li>Ongoing high-volume SEO/content campaigns excluded unless separately contracted</li>
+          <li>Managed IT is excluded from Stage 1</li>
+        </ul>
+      </div>
+      <div class="card accent">
+        <h3>Intellectual property &amp; data</h3>
+        <ul class="terms">
+          <li>DigitalGate owns underlying platform IP, reusable modules and general platform technology</li>
+          <li>AIM owns its business data, content and client information</li>
+          <li>Hi-Vis Finance brand, website, CRM data, analytics, workflows and digital assets structured for later separation or transfer</li>
+          <li>If Hi-Vis is sold and separated, the acquiring party requires its own DigitalGate platform subscription</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Confidentiality</h3>
+        <ul class="terms">
+          <li>This proposal is confidential to AIM Financial and DigitalGate</li>
+          <li>Both parties will treat commercial and operational information with appropriate care</li>
+        </ul>
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="tm">DigitalGate · Founding 10</span>
+      <span>13</span>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE 14 — NEXT STEPS -->
+<section class="page">
+  <div class="inner">
+    <div class="page-header">
+      <div class="brand">
+        <img class="icon" src="assets/icon-dark-transparent.png" alt="" />
+        <img class="word" src="assets/logo-dark-transparent.png" alt="DigitalGate" style="height:13px" />
+      </div>
+      <div class="meta">Stage 1 · Next steps</div>
+    </div>
+    <span class="kicker">Next steps</span>
+    <h2 class="page-title">How we begin</h2>
+    <div class="steps" style="margin-top:10px">
+      <ol>
+        <li>Accept the Stage 1 proposal</li>
+        <li>Confirm Founding 10 terms</li>
+        <li>Complete onboarding</li>
+        <li>Schedule Nathan + Jessica discovery session</li>
+        <li>Begin DigitalGate platform and website implementation</li>
+      </ol>
+    </div>
+    <div class="contact">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <img src="assets/icon-on-dark.png" alt="" style="width:28px;height:28px;object-fit:contain" />
+        <img src="assets/logo-on-dark.png" alt="DigitalGate" style="height:12px;width:auto;object-fit:contain" />
+      </div>
+      <div class="brandline">The Gateway to Your Digital World™</div>
+      <div class="who">Ben Roe</div>
+      <div class="role">Founder &amp; Platform Architect</div>
+      <div class="coords">
+        ben@digitalgate.com.au<br />
+        0405 227 227<br />
+        digitalgate.com.au
+      </div>
+    </div>
+    <div class="page-footer">
+      <span class="tm">AIM Financial × DigitalGate · Founding 10 Proposal — Stage 1</span>
+      <span>14</span>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
