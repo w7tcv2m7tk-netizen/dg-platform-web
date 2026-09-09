@@ -7,6 +7,7 @@ import { SUPPORT_EMAIL } from "@/lib/support";
 import type { SupportChatMessage } from "@/lib/support-chat";
 
 const POLL_MS = 4000;
+const AIDA_AVATAR = "/aida/aida-avatar.webp";
 
 function formatTime(at: string) {
   const d = new Date(at.includes("T") ? at : at.replace(" ", "T"));
@@ -155,16 +156,26 @@ export function SupportChatPanel({
   return (
     <div className={shellClass}>
       <div className="border-b border-slate-800 bg-gradient-to-r from-slate-950 to-slate-900 px-4 py-3">
-        <h3 className="text-sm font-semibold text-white">Live support</h3>
-        <p className="text-xs text-slate-400">
-          DigitalGate Assist can reply instantly
-          {userName ? ` · ${userName}` : ""} — humans follow up here and by email
+        <div className="flex items-center gap-3">
+          <img
+            src={AIDA_AVATAR}
+            alt="Aida"
+            className="h-10 w-10 shrink-0 rounded-full border border-white/10 object-cover shadow-sm"
+          />
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-white">Ask Aida</h3>
+            <p className="text-xs text-slate-400">Business Advisor & Platform Support</p>
+          </div>
+        </div>
+        <p className="mt-2 text-xs text-slate-400">
+          Ask Aida for practical business advice, help using DigitalGate or support
+          {userName ? ` · ${userName}` : ""}. A human can take over here when needed.
         </p>
       </div>
 
       <div ref={scrollRef} className="flex flex-1 flex-col gap-2 overflow-y-auto p-4">
         {loading ? (
-          <p className="m-auto text-sm text-slate-500">Loading chat…</p>
+          <p className="m-auto text-sm text-slate-500">Loading Aida…</p>
         ) : !linked ? (
           <div className="m-auto max-w-xs text-center text-sm text-slate-400">
             <p>{error}</p>
@@ -180,9 +191,18 @@ export function SupportChatPanel({
         ) : error && !messages.length ? (
           <p className="m-auto text-sm text-amber-300">{error}</p>
         ) : messages.length === 0 ? (
-          <p className="m-auto text-center text-sm text-slate-500">
-            Say hello — Assist usually replies within a few seconds; the team follows up on business days.
-          </p>
+          <div className="m-auto max-w-xs text-center">
+            <img
+              src={AIDA_AVATAR}
+              alt=""
+              aria-hidden="true"
+              className="mx-auto mb-3 h-14 w-14 rounded-full border border-white/10 object-cover opacity-90"
+            />
+            <p className="text-sm font-medium text-slate-300">How can I help?</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Ask me about your business, growth priorities, DigitalGate, how to do something, or anything that is not working as expected.
+            </p>
+          </div>
         ) : (
           messages.map((msg) => {
             const isClient = msg.role === "client";
@@ -199,7 +219,7 @@ export function SupportChatPanel({
                 }`}
               >
                 <span className="mb-1 block text-[10px] opacity-75">
-                  {msg.sender} · {formatTime(msg.at)}
+                  {isAi ? "Aida" : msg.sender} · {formatTime(msg.at)}
                 </span>
                 <span
                   dangerouslySetInnerHTML={{
@@ -220,7 +240,7 @@ export function SupportChatPanel({
           rows={2}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder={linked ? "Type your message…" : `Email ${SUPPORT_EMAIL}`}
+          placeholder={linked ? "Ask Aida anything…" : `Email ${SUPPORT_EMAIL}`}
           disabled={!linked || sending}
           className="min-h-[44px] flex-1 resize-none rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 disabled:opacity-50"
         />
@@ -258,15 +278,25 @@ export function SupportChatWidget({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        aria-label={open ? "Close live support chat" : "Open live support chat"}
+        aria-label={open ? "Close Ask Aida" : "Ask Aida for business advice or platform support"}
         aria-expanded={open}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--org-primary,#3b82f6)] text-xl text-white shadow-lg shadow-[0_10px_15px_-3px_color-mix(in_srgb,var(--org-primary,#3b82f6)_30%,transparent)] transition hover:-translate-y-0.5 hover:brightness-110"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/95 p-1.5 pr-4 text-white shadow-xl backdrop-blur transition hover:-translate-y-0.5 hover:border-white/20"
       >
-        {open ? "×" : "💬"}
+        <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-900">
+          {open ? (
+            <span className="text-2xl leading-none">×</span>
+          ) : (
+            <img src={AIDA_AVATAR} alt="" aria-hidden="true" className="h-full w-full object-cover" />
+          )}
+        </span>
+        <span className="text-left leading-tight">
+          <span className="block text-sm font-semibold">Ask Aida</span>
+          <span className="block text-[11px] text-slate-400">Business Advisor</span>
+        </span>
       </button>
 
       {open ? (
-        <div className="fixed bottom-24 right-6 z-50 flex h-[min(520px,calc(100vh-120px))] w-[min(380px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+        <div className="fixed bottom-24 right-6 z-50 flex h-[min(560px,calc(100vh-120px))] w-[min(400px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
           <SupportChatPanel
             userName={userName}
             initialDraft={initialDraft}
