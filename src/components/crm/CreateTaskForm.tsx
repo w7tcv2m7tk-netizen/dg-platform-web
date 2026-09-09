@@ -26,6 +26,7 @@ export function CreateTaskForm({
     const title = String(data.get("title") ?? "").trim();
     const description = String(data.get("description") ?? "").trim();
     const dueAtRaw = String(data.get("dueAt") ?? "").trim();
+    const priority = String(data.get("priority") ?? "").trim();
 
     if (!title) {
       setPending(false);
@@ -40,6 +41,7 @@ export function CreateTaskForm({
         title,
         description: description || undefined,
         dueAt: dueAtRaw ? new Date(dueAtRaw).toISOString() : undefined,
+        priority: priority || undefined,
         entityType,
         entityId,
         sourceApp: "crm",
@@ -69,24 +71,35 @@ export function CreateTaskForm({
           name="title"
           required
           className="dg-input mt-1"
-          placeholder="Follow up call"
+          placeholder="Follow up with client"
         />
       </label>
       {!compact ? (
         <label className="block">
-          <span className="text-sm text-slate-400">Description</span>
+          <span className="text-sm text-slate-400">Details / notes</span>
           <textarea
             name="description"
-            rows={2}
+            rows={4}
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-            placeholder="Optional context"
+            placeholder="Add context, desired outcome and the next action so this task is useful when you come back to it."
           />
         </label>
       ) : null}
-      <label className="block">
-        <span className="text-sm text-slate-400">Due</span>
-        <input name="dueAt" type="datetime-local" className="dg-input mt-1" />
-      </label>
+      <div className={compact ? "space-y-3" : "grid gap-4 sm:grid-cols-2"}>
+        <label className="block">
+          <span className="text-sm text-slate-400">Due</span>
+          <input name="dueAt" type="datetime-local" className="dg-input mt-1" />
+        </label>
+        <label className="block">
+          <span className="text-sm text-slate-400">Priority</span>
+          <select name="priority" className="dg-input mt-1" defaultValue="">
+            <option value="">Normal</option>
+            <option value="low">Low</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </label>
+      </div>
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
       <button
         type="submit"
