@@ -164,18 +164,18 @@ export function SupportChatPanel({
           />
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-white">Ask Aida</h3>
-            <p className="text-xs text-slate-400">DigitalGate Platform Support</p>
+            <p className="text-xs text-slate-400">Business Advisor & Platform Support</p>
           </div>
         </div>
         <p className="mt-2 text-xs text-slate-400">
-          Ask Aida about using DigitalGate, troubleshooting or support enquiries
+          Ask Aida for practical business advice, help using DigitalGate or support
           {userName ? ` · ${userName}` : ""}. A human can take over here when needed.
         </p>
       </div>
 
       <div ref={scrollRef} className="flex flex-1 flex-col gap-2 overflow-y-auto p-4">
         {loading ? (
-          <p className="m-auto text-sm text-slate-500">Loading support…</p>
+          <p className="m-auto text-sm text-slate-500">Loading Aida…</p>
         ) : !linked ? (
           <div className="m-auto max-w-xs text-center text-sm text-slate-400">
             <p>{error}</p>
@@ -200,7 +200,7 @@ export function SupportChatPanel({
             />
             <p className="text-sm font-medium text-slate-300">How can I help?</p>
             <p className="mt-1 text-sm text-slate-500">
-              Ask me about the platform, how to do something, or anything that is not working as expected.
+              Ask me about your business, growth priorities, DigitalGate, how to do something, or anything that is not working as expected.
             </p>
           </div>
         ) : (
@@ -240,7 +240,7 @@ export function SupportChatPanel({
           rows={2}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder={linked ? "Ask Aida for support…" : `Email ${SUPPORT_EMAIL}`}
+          placeholder={linked ? "Ask Aida anything…" : `Email ${SUPPORT_EMAIL}`}
           disabled={!linked || sending}
           className="min-h-[44px] flex-1 resize-none rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-500 disabled:opacity-50"
         />
@@ -278,7 +278,7 @@ export function SupportChatWidget({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        aria-label={open ? "Close Ask Aida support" : "Ask Aida for platform support"}
+        aria-label={open ? "Close Ask Aida" : "Ask Aida for business advice or platform support"}
         aria-expanded={open}
         className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/95 p-1.5 pr-4 text-white shadow-xl backdrop-blur transition hover:-translate-y-0.5 hover:border-white/20"
       >
@@ -291,7 +291,7 @@ export function SupportChatWidget({
         </span>
         <span className="text-left leading-tight">
           <span className="block text-sm font-semibold">Ask Aida</span>
-          <span className="block text-[11px] text-slate-400">Platform Support</span>
+          <span className="block text-[11px] text-slate-400">Business Advisor</span>
         </span>
       </button>
 
