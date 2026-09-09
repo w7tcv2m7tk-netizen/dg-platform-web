@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
   // can be read at runtime on Vercel (Studio "Reset footer to default").
   outputFileTracingIncludes: {
     "/api/v1/websites/[id]/default-footer": ["./marketing/pages/footer.html"],
+    "/marketing/preview/business-brain": [
+      "./marketing/pages/business-brain-page.html",
+    ],
   },
   // Dreamscape HTTPS proxy (Fixie/QuotaGuard) uses undici ProxyAgent on Node only.
   serverExternalPackages: ["undici", "imapflow"],
