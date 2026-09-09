@@ -88,6 +88,7 @@ model Organisation {
   platformSubscription        PlatformSubscription?
   platformSubscriptionEvents  PlatformSubscriptionEvent[]
   stripeWebhookReceipts       StripeWebhookReceipt[]
+  aidaConversations           AidaConversation[]
 
   @@map("organisations")
 }
@@ -1879,4 +1880,29 @@ model SupportMessage {
 
   @@index([conversationId, id])
   @@map("support_messages")
+}
+
+/**
+ * Anonymous public-website Ask Aida conversations (DigitalGate marketing site).
+ * Token hash is the only credential; organisationId is always server-resolved.
+ */
+model AidaConversation {
+  id             String   @id @default(cuid())
+  organisationId String   @map("organisation_id")
+  tokenHash      String   @unique @map("token_hash")
+  status         String   @default("open")
+  messages       Json
+  visitorContext Json?    @map("visitor_context")
+  contactId      String?  @map("contact_id")
+  leadId         String?  @map("lead_id")
+  pageSlug       String?  @map("page_slug")
+  expiresAt      DateTime @map("expires_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, createdAt])
+  @@index([expiresAt])
+  @@map("aida_conversations")
 }

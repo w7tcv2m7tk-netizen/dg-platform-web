@@ -81,6 +81,7 @@ const MUST_BE_PUBLIC = [
   "/api/indexnow",
   // Public capture
   "/api/public/website-form",
+  "/api/public/aida",
   "/api/health",
 ];
 

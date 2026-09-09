@@ -2,6 +2,7 @@ import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import {
   PLATFORM_DOCS_CATALOG,
+  filterPublicAidaDocs,
   getPlatformDocBySlug,
   isAllowlistedPlatformDocPath,
   type PlatformDocEntry,
@@ -140,4 +141,17 @@ export async function loadPlatformDocCorpus(): Promise<
     }),
   );
   return results.filter((r): r is NonNullable<typeof r> => r != null);
+}
+
+/** Public Ask Aida corpus — platform marketing/product docs only, never staff SOPs. */
+export async function loadPublicAidaDocCorpus(): Promise<
+  Array<{
+    slug: string;
+    title: string;
+    relativePath: string;
+    content: string;
+  }>
+> {
+  const all = await loadPlatformDocCorpus();
+  return filterPublicAidaDocs(all);
 }

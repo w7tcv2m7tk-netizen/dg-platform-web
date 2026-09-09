@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import type {
   PublicStayUnitPayload,
@@ -36,6 +37,13 @@ import { WantdSiteFooter, WantdSiteHeader } from "@/components/websites/WantdSit
 import { WantdWantInput } from "@/components/websites/WantdWantInput";
 import { WantdIcon, WantdWordmark } from "@/components/websites/WantdPublicArt";
 import { wantdPublicSiteCss } from "@/components/websites/wantd-public-site-css";
+
+const AskAidaWidget = dynamic(
+  () =>
+    import("@/components/websites/AskAidaWidget").then((m) => ({
+      default: m.AskAidaWidget,
+    })),
+);
 
 function asString(v: unknown, fallback = ""): string {
   return typeof v === "string" ? v : fallback;
@@ -1586,6 +1594,9 @@ export function WebsitePageRenderer({
           businessName={businessName}
           tagline={footerSlogan}
         />
+      ) : null}
+      {siteSlug.toLowerCase() === "digitalgate" ? (
+        <AskAidaWidget siteSlug={siteSlug} pageSlug={pageSlug} />
       ) : null}
     </div>
   );
