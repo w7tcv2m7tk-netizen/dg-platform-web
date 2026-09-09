@@ -16,7 +16,7 @@ import { getWebsiteBySlug } from "../websites/crud";
 import { DG_CONSULT_ZOOM_URL } from "./consultation-emails";
 import { assertConsultationSlotAvailable } from "./consultation-availability";
 
-export type DgEnquiryType = "contact" | "founding_10" | "consultation";
+export type DgEnquiryType = "contact" | "founding_10" | "consultation" | "aida";
 
 export interface DgEnquiryInput {
   type: DgEnquiryType;
@@ -59,6 +59,7 @@ function titleFor(input: DgEnquiryInput): string {
   const who = biz ? `${input.name.trim()} (${biz})` : input.name.trim();
   if (input.type === "founding_10") return `Founding 10 application — ${who}`;
   if (input.type === "consultation") return `Platform consultation — ${who}`;
+  if (input.type === "aida") return `Aida website conversation — ${who}`;
   return `Contact enquiry — ${who}`;
 }
 
@@ -146,14 +147,14 @@ export async function captureDgEnquiry(
       lastName,
       email,
       phone: input.phone?.trim() || undefined,
-      source: "website_form",
+      source: input.type === "aida" ? "aida_website" : "website_form",
     });
     contactId = contact.id;
   }
 
   const lead = await createLead({
     organisationId,
-    source: "website_form",
+    source: input.type === "aida" ? "aida_website" : "website_form",
     title: titleFor(input),
     description: descriptionFor(input),
     contactId,
@@ -161,14 +162,16 @@ export async function captureDgEnquiry(
     metadata: {
       lead_type: input.type,
       stage: "new",
-      capture_path: "gen2_dg_enquiry",
+      capture_path: input.type === "aida" ? "aida_website" : "gen2_dg_enquiry",
       site_slug: siteSlug,
       page_slug:
         input.type === "founding_10"
           ? "founding-customers"
           : input.type === "consultation"
             ? "strategy-session"
-            : "contact",
+            : input.type === "aida"
+              ? "aida"
+              : "contact",
       contact_name: name,
       email,
       phone: input.phone?.trim() || undefined,
@@ -217,7 +220,9 @@ export async function captureDgEnquiry(
       ? "Founding 10 Application"
       : input.type === "consultation"
         ? "Platform Consultation"
-        : "Contact Enquiry";
+        : input.type === "aida"
+          ? "Aida website conversation"
+          : "Contact Enquiry";
 
   const kvRows: { label: string; value: string }[] = [
     { label: "Type", value: typeLabel },
