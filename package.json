@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm run test:website-studio-save-isolation && eslint packages/platform-core/src/websites/chrome.ts src/app/api/v1/websites/[id]/chrome/route.ts src/app/api/v1/websites/[id]/route.ts scripts/test-website-studio-save-isolation.mjs",
+    "prebuild": "npm run test:website-studio-save-isolation && npm run test:website-studio-publication && eslint packages/platform-core/src/websites/chrome.ts src/app/api/v1/websites/[id]/chrome/route.ts src/app/api/v1/websites/[id]/route.ts scripts/test-website-studio-save-isolation.mjs src/lib/website-studio-publication.ts src/lib/website-studio-preview.ts scripts/test-website-studio-publication.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -23,6 +23,7 @@
     "test:re-lead-wp-boundary": "node --test scripts/test-re-lead-wp-boundary.mjs",
     "test:booking-unit-reassignment": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-booking-unit-reassignment.mjs",
     "test:website-studio-save-isolation": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-website-studio-save-isolation.mjs",
+    "test:website-studio-publication": "node --experimental-strip-types --test scripts/test-website-studio-publication.mjs",
     "db:generate": "prisma generate --schema=packages/database/prisma",
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma",
     "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma",
