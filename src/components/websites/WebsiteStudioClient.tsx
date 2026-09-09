@@ -830,7 +830,20 @@ export function WebsiteStudioClient({
           <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <h2 className="text-xs uppercase tracking-wide text-slate-500">
-                Header &amp; footer HTML
+                Header HTML{" "}
+                <span
+                  className={
+                    headerDraft.trim().length
+                      ? "text-emerald-400"
+                      : "text-amber-300"
+                  }
+                >
+                  (
+                  {headerDraft.trim().length
+                    ? `${headerDraft.trim().length.toLocaleString()} chars`
+                    : "empty"}
+                  )
+                </span>
               </h2>
               <button
                 type="button"
@@ -842,67 +855,19 @@ export function WebsiteStudioClient({
               </button>
             </div>
             <p className="mb-2 text-[11px] text-slate-500">
-              Custom HTML rendered around every page on this site. Supports{" "}
+              Rendered above every page on this site. Supports{" "}
               <code className="text-slate-400">&lt;style&gt;</code> blocks. Per-page
-              show/hide is on the SEO tab. Leave empty to fall back to the theme
-              logo/icon.
+              show/hide is on the SEO tab; empty falls back to the theme logo/icon.
             </p>
-            <div className="space-y-3">
-              <label className="block">
-                <span className="mb-1 block text-[11px] uppercase tracking-wide text-slate-500">
-                  Header HTML{" "}
-                  <span
-                    className={
-                      headerDraft.trim().length
-                        ? "text-emerald-400"
-                        : "text-amber-300"
-                    }
-                  >
-                    (
-                    {headerDraft.trim().length
-                      ? `${headerDraft.trim().length.toLocaleString()} chars`
-                      : "empty"}
-                    )
-                  </span>
-                </span>
-                <textarea
-                  value={headerDraft}
-                  onChange={(e) => setHeaderDraft(e.target.value)}
-                  disabled={busy || savingChrome}
-                  rows={6}
-                  spellCheck={false}
-                  placeholder="<header>…</header>"
-                  className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
-                />
-              </label>
-              <label className="block">
-                <span className="mb-1 block text-[11px] uppercase tracking-wide text-slate-500">
-                  Footer HTML{" "}
-                  <span
-                    className={
-                      footerDraft.trim().length
-                        ? "text-emerald-400"
-                        : "text-amber-300"
-                    }
-                  >
-                    (
-                    {footerDraft.trim().length
-                      ? `${footerDraft.trim().length.toLocaleString()} chars`
-                      : "empty"}
-                    )
-                  </span>
-                </span>
-                <textarea
-                  value={footerDraft}
-                  onChange={(e) => setFooterDraft(e.target.value)}
-                  disabled={busy || savingChrome}
-                  rows={6}
-                  spellCheck={false}
-                  placeholder="<footer>…</footer>"
-                  className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
-                />
-              </label>
-            </div>
+            <textarea
+              value={headerDraft}
+              onChange={(e) => setHeaderDraft(e.target.value)}
+              disabled={busy || savingChrome}
+              rows={8}
+              spellCheck={false}
+              placeholder="<header>…</header>"
+              className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
+            />
           </div>
 
           <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
@@ -943,6 +908,49 @@ export function WebsiteStudioClient({
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <h2 className="text-xs uppercase tracking-wide text-slate-500">
+                Footer HTML{" "}
+                <span
+                  className={
+                    footerDraft.trim().length
+                      ? "text-emerald-400"
+                      : "text-amber-300"
+                  }
+                >
+                  (
+                  {footerDraft.trim().length
+                    ? `${footerDraft.trim().length.toLocaleString()} chars`
+                    : "empty"}
+                  )
+                </span>
+              </h2>
+              <button
+                type="button"
+                disabled={busy || savingChrome}
+                onClick={() => void saveSiteChrome()}
+                className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+              >
+                {savingChrome ? "Saving…" : "Save header & footer"}
+              </button>
+            </div>
+            <p className="mb-2 text-[11px] text-slate-500">
+              Rendered below every page on this site. Supports{" "}
+              <code className="text-slate-400">&lt;style&gt;</code> blocks. Per-page
+              show/hide is on the SEO tab; empty falls back to the theme logo/icon.
+            </p>
+            <textarea
+              value={footerDraft}
+              onChange={(e) => setFooterDraft(e.target.value)}
+              disabled={busy || savingChrome}
+              rows={8}
+              spellCheck={false}
+              placeholder="<footer>…</footer>"
+              className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
+            />
           </div>
         </section>
 
