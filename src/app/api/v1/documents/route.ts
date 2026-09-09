@@ -11,7 +11,7 @@ import {
 } from "@dg/platform-core/assets/org-brand-storage";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED_TYPES = new Set([
@@ -35,6 +35,8 @@ const KINDS = new Set<DocumentKind>([
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "documents.read");
+  if (denied) return denied;
 
   const url = new URL(req.url);
   const kind = url.searchParams.get("kind")?.trim() || undefined;
@@ -68,6 +70,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "documents.write");
+  if (denied) return denied;
 
   let form: FormData;
   try {
