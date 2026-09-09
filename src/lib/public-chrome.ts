@@ -3,6 +3,8 @@
  * HTML so each page ships CSS once, then render a light footer.
  */
 
+import { sanitisePublicCss, sanitisePublicHtml } from "@/lib/public-html";
+
 export type PublicSiteChrome = {
   headerHtml?: string;
   footerHtml?: string;
@@ -34,7 +36,7 @@ export function extractStyleBlocks(html: string): { cssBlocks: string[]; html: s
   const stripped = html.replace(
     /<style\b[^>]*>([\s\S]*?)<\/style>/gi,
     (_, css: string) => {
-      const trimmed = css.trim();
+      const trimmed = sanitisePublicCss(css.trim());
       if (trimmed) cssBlocks.push(trimmed);
       return "";
     },
@@ -55,20 +57,23 @@ function dedupeCss(blocks: string[]): string {
 }
 
 /**
- * Strip inline <style> from header + footer and return one CSS blob.
- * Identical header/footer styles (common on imported chrome) are kept once.
+ * Sanitize and strip inline <style> from header + footer, then return one CSS
+ * blob. Identical header/footer styles (common on imported chrome) are kept
+ * once. Stored Studio source remains unchanged; this is the public render
+ * boundary.
  */
 export function preparePublicChrome(
   chrome: PublicSiteChrome | null | undefined,
 ): PublicSiteChrome | null {
   if (!chrome) return null;
-  const headerRaw = chrome.headerHtml?.trim() || "";
-  const footerRaw = chrome.footerHtml?.trim() || "";
+  const headerRaw = sanitisePublicHtml(chrome.headerHtml?.trim() || "");
+  const footerRaw = sanitisePublicHtml(chrome.footerHtml?.trim() || "");
   const header = extractStyleBlocks(headerRaw);
   const footer = extractStyleBlocks(footerRaw);
   const styleCss = dedupeCss([...header.cssBlocks, ...footer.cssBlocks]);
-  // Author site-wide CSS is appended last so it can override chrome styles.
-  const customCss = chrome.customCss?.trim() || "";
+  // Author site-wide CSS is appended last so it can override chrome styles,
+  // after removing legacy script-capable CSS primitives.
+  const customCss = sanitisePublicCss(chrome.customCss?.trim() || "");
   const chromeCss = [styleCss, customCss].filter(Boolean).join("\n");
   return {
     ...chrome,
