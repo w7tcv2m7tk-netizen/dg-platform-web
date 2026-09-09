@@ -91,6 +91,7 @@ export * from "./real-estate/contact-roles";
 export * from "./marketing/business-audit-emails";
 export * from "./marketing/public-business-audit";
 export * from "./marketing/dg-enquiry-capture";
+export * from "./aida";
 export * from "./marketing/consultation-emails";
 export * from "./marketing/consultation-automation";
 export * from "./marketing/consultation-availability";

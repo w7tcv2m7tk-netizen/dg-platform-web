@@ -58,7 +58,17 @@ export type PlatformEventType =
   | "platform_referral.credit_accrued"
   | "platform_referral.cash_payout_requested"
   | "platform_referral.cash_payout_failed"
-  | "platform_referral.connect_updated";
+  | "platform_referral.connect_updated"
+  | "aida_opened"
+  | "aida_conversation_started"
+  | "aida_quick_action_selected"
+  | "aida_message_sent"
+  | "aida_business_fit_started"
+  | "aida_lead_capture_started"
+  | "aida_lead_created"
+  | "aida_handoff_requested"
+  | "aida_booking_started"
+  | "aida_error";
 
 export interface PlatformEvent<TPayload = Record<string, unknown>> {
   type: PlatformEventType;
