@@ -68,6 +68,7 @@ export function WebsiteStudioClient({
   const [footerDraft, setFooterDraft] = useState(initialChrome?.footerHtml ?? "");
   const [cssDraft, setCssDraft] = useState(initialChrome?.customCss ?? "");
   const [savingChrome, setSavingChrome] = useState(false);
+  const [aiMarkupBusy, setAiMarkupBusy] = useState<string | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null,
   );
@@ -374,6 +375,46 @@ export function WebsiteStudioClient({
     }
     setFooterDraft(footerHtml);
     await saveSiteChrome({ footerHtml }, "Footer");
+  }
+
+  async function requestAiMarkup(
+    kind: "page-html" | "header" | "footer" | "css",
+    current: string,
+  ): Promise<string | null> {
+    try {
+      const res = await fetch(`/api/v1/websites/${website.id}/ai-markup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, current, siteName: website.name }),
+      });
+      const json = (await res.json()) as {
+        data?: { content?: string };
+        error?: { message?: string };
+      };
+      if (!res.ok || !json.data?.content) {
+        setStatus(json.error?.message || "AI could not draft that");
+        return null;
+      }
+      return json.data.content;
+    } catch {
+      setStatus("AI request failed");
+      return null;
+    }
+  }
+
+  async function runChromeAi(
+    kind: "header" | "footer" | "css",
+    current: string,
+    apply: (value: string) => void,
+  ) {
+    setAiMarkupBusy(kind);
+    setStatus(`AI is drafting the ${kind === "css" ? "site CSS" : kind}…`);
+    const content = await requestAiMarkup(kind, current);
+    if (content != null) {
+      apply(content);
+      setStatus(`AI drafted the ${kind === "css" ? "site CSS" : kind} — review and save`);
+    }
+    setAiMarkupBusy(null);
   }
 
   async function duplicatePage(targetPageId: string) {
@@ -854,14 +895,25 @@ export function WebsiteStudioClient({
                   )
                 </span>
               </h2>
-              <button
-                type="button"
-                disabled={busy || savingChrome}
-                onClick={() => void saveSiteChrome({ headerHtml: headerDraft }, "Header")}
-                className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
-              >
-                {savingChrome ? "Saving…" : "Save header"}
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={busy || savingChrome || aiMarkupBusy !== null}
+                  onClick={() => void runChromeAi("header", headerDraft, setHeaderDraft)}
+                  title="Let AI improve the header — review, then save"
+                  className="rounded border border-violet-500/60 px-2 py-1 text-[11px] text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
+                >
+                  {aiMarkupBusy === "header" ? "Thinking…" : "Use AI"}
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || savingChrome}
+                  onClick={() => void saveSiteChrome({ headerHtml: headerDraft }, "Header")}
+                  className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+                >
+                  {savingChrome ? "Saving…" : "Save header"}
+                </button>
+              </div>
             </div>
             <p className="mb-2 text-[11px] text-slate-500">
               Rendered above every page on this site. Supports{" "}
@@ -913,6 +965,8 @@ export function WebsiteStudioClient({
                   }
                   disabled={busy}
                   onSave={(html) => savePageHtml(pageHtmlComponent.id, html)}
+                  websiteId={website.id}
+                  siteName={website.name}
                 />
               </>
             ) : null}
@@ -967,6 +1021,15 @@ export function WebsiteStudioClient({
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
+                  disabled={busy || savingChrome || aiMarkupBusy !== null}
+                  onClick={() => void runChromeAi("footer", footerDraft, setFooterDraft)}
+                  title="Let AI improve the footer — review, then save"
+                  className="rounded border border-violet-500/60 px-2 py-1 text-[11px] text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
+                >
+                  {aiMarkupBusy === "footer" ? "Thinking…" : "Use AI"}
+                </button>
+                <button
+                  type="button"
                   disabled={busy || savingChrome}
                   onClick={() => void resetFooterToDefault()}
                   title="Reload the canonical DigitalGate footer and save it"
@@ -1018,14 +1081,25 @@ export function WebsiteStudioClient({
                   )
                 </span>
               </h2>
-              <button
-                type="button"
-                disabled={busy || savingChrome}
-                onClick={() => void saveSiteChrome({ customCss: cssDraft }, "Site CSS")}
-                className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
-              >
-                {savingChrome ? "Saving…" : "Save CSS"}
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={busy || savingChrome || aiMarkupBusy !== null}
+                  onClick={() => void runChromeAi("css", cssDraft, setCssDraft)}
+                  title="Let AI improve the site CSS — review, then save"
+                  className="rounded border border-violet-500/60 px-2 py-1 text-[11px] text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
+                >
+                  {aiMarkupBusy === "css" ? "Thinking…" : "Use AI"}
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || savingChrome}
+                  onClick={() => void saveSiteChrome({ customCss: cssDraft }, "Site CSS")}
+                  className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+                >
+                  {savingChrome ? "Saving…" : "Save CSS"}
+                </button>
+              </div>
             </div>
             <p className="mb-2 text-[11px] text-slate-500">
               Global CSS injected on every page of this site (after the
@@ -1088,14 +1162,39 @@ function PageHtmlEditor({
   html,
   disabled,
   onSave,
+  websiteId,
+  siteName,
 }: {
   html: string;
   disabled?: boolean;
   onSave: (html: string) => void | Promise<void>;
+  websiteId: string;
+  siteName?: string;
 }) {
   const [draft, setDraft] = useState(html);
   const [saving, setSaving] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const len = draft.trim().length;
+
+  async function runAi() {
+    setAiBusy(true);
+    try {
+      const res = await fetch(`/api/v1/websites/${websiteId}/ai-markup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "page-html", current: draft, siteName }),
+      });
+      const json = (await res.json()) as {
+        data?: { content?: string };
+        error?: { message?: string };
+      };
+      if (res.ok && json.data?.content) setDraft(json.data.content);
+    } catch {
+      /* leave draft unchanged on failure */
+    }
+    setAiBusy(false);
+  }
+
   return (
     <div>
       <div className="mb-1 flex items-center justify-between gap-2">
@@ -1105,18 +1204,29 @@ function PageHtmlEditor({
             ({len ? `${len.toLocaleString()} chars` : "empty"})
           </span>
         </span>
-        <button
-          type="button"
-          disabled={disabled || saving}
-          onClick={async () => {
-            setSaving(true);
-            await onSave(draft);
-            setSaving(false);
-          }}
-          className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
-        >
-          {saving ? "Saving…" : "Save page"}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            disabled={disabled || saving || aiBusy}
+            onClick={() => void runAi()}
+            title="Let AI improve this page's HTML and copy — review, then save"
+            className="rounded border border-violet-500/60 px-2 py-1 text-[11px] text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
+          >
+            {aiBusy ? "Thinking…" : "Use AI"}
+          </button>
+          <button
+            type="button"
+            disabled={disabled || saving}
+            onClick={async () => {
+              setSaving(true);
+              await onSave(draft);
+              setSaving(false);
+            }}
+            className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+          >
+            {saving ? "Saving…" : "Save page"}
+          </button>
+        </div>
       </div>
       <textarea
         value={draft}
