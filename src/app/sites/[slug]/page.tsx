@@ -33,24 +33,41 @@ function resolveHome(site: NonNullable<Awaited<ReturnType<typeof getWebsiteBySlu
   return pages.find((p) => p.intent === "home" || p.slug === "home") || pages[0];
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug } = await params;
+  const search = await searchParams;
+  const previewRequested = search.preview === "1";
   const site = await getWebsiteBySlug(slug);
-  if (!site) return { title: "Site" };
+  if (!site) return { title: "Site", robots: { index: false, follow: false } };
   const home = resolveHome(site);
+  if (!home) return { title: "Site", robots: { index: false, follow: false } };
+  const previewAuthorised = previewRequested
+    ? await canPreviewWebsiteOrganisation(site.organisationId)
+    : false;
+  if (
+    !canRenderStudioContent({
+      siteStatus: site.status,
+      pageStatus: home.status,
+      previewRequested,
+      previewAuthorised,
+    })
+  ) {
+    return { title: "Site", robots: { index: false, follow: false } };
+  }
   return publicPageMetadata({
     siteSlug: slug,
     siteName: site.name,
     pageSlug: "home",
-    title: home?.seo?.title || site.seo?.title || site.name,
-    description: home?.seo?.description || site.seo?.description || site.name,
-    ogTitle: home?.seo?.ogTitle || site.seo?.ogTitle,
-    ogDescription: home?.seo?.ogDescription || site.seo?.ogDescription,
-    ogImage: home?.seo?.ogImage || site.seo?.ogImage,
+    title: home.seo?.title || site.seo?.title || site.name,
+    description: home.seo?.description || site.seo?.description || site.name,
+    ogTitle: home.seo?.ogTitle || site.seo?.ogTitle,
+    ogDescription: home.seo?.ogDescription || site.seo?.ogDescription,
+    ogImage: home.seo?.ogImage || site.seo?.ogImage,
     iconUrl: (site.theme as { iconUrl?: string } | null | undefined)?.iconUrl,
-    keywords: home?.seo?.keywords?.length
+    keywords: home.seo?.keywords?.length
       ? home.seo.keywords
       : site.seo?.keywords,
+    noindex: previewRequested && previewAuthorised ? true : Boolean(home.seo?.noindex),
   });
 }
 
