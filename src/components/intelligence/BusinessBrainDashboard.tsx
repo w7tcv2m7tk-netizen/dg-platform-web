@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { IntelligenceFlow } from "@/components/intelligence/IntelligenceFlow";
 import { IntelligenceHierarchy } from "@/components/intelligence/IntelligenceHierarchy";
+import { AidaAvatar } from "@/components/brand/AidaAvatar";
 import {
   BUSINESS_BRAIN_KNOWLEDGE_LAYERS,
   type BusinessBrainDashboardBundle,
@@ -81,6 +82,18 @@ export function BusinessBrainDashboard({ data }: { data: BusinessBrainDashboardB
         <p className="mt-2 text-sm text-slate-300">
           What DigitalGate understands about your business — identity, people, operations,
           commercial context, knowledge, technology and AI permissions.
+        </p>
+        <p className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+          <AidaAvatar size={20} ring={false} />
+          <span>
+            Aida reads from your Business Brain to advise you.{" "}
+            <Link
+              href="/dashboard/advisor"
+              className="font-medium text-violet-300/90 hover:text-violet-200"
+            >
+              Ask Aida →
+            </Link>
+          </span>
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-3">

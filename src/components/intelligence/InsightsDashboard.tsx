@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { IntelligenceFlow } from "@/components/intelligence/IntelligenceFlow";
 import { IntelligenceHierarchy } from "@/components/intelligence/IntelligenceHierarchy";
+import { AidaAvatar } from "@/components/brand/AidaAvatar";
+import { AIDA } from "@/lib/aida";
 import type { GeneratedIntelligence } from "@dg/platform-core";
 
 function toneClass(tone: "positive" | "neutral" | "warning") {
@@ -21,18 +23,25 @@ export function InsightsDashboard({
     <div className="space-y-6">
       {!intelligence ? (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100/90">
-          Connect CRM, website, and finance systems so DigitalGate can notice patterns in your
-          business activity.
+          Aida is learning your business — connect CRM, website, and finance systems so she can
+          notice patterns in your activity.
         </div>
       ) : null}
 
       <section className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-slate-950/40 to-slate-950/40 px-6 py-6">
-        <p className="text-xs font-medium uppercase tracking-widest text-violet-300/90">Insights</p>
-        <h2 className="mt-2 text-xl font-bold text-white">What DigitalGate is noticing</h2>
-        <p className="mt-2 text-sm text-slate-300">
-          {intelligence?.dailyBriefing ??
-            `Insights for ${organisationName} appear when live business data is connected.`}
-        </p>
+        <div className="flex items-start gap-3">
+          <AidaAvatar size={40} />
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-widest text-violet-300/90">
+              Insights · {AIDA.name}
+            </p>
+            <h2 className="mt-1 text-xl font-bold text-white">What Aida is noticing</h2>
+            <p className="mt-2 text-sm text-slate-300">
+              {intelligence?.dailyBriefing ??
+                `Insights for ${organisationName} appear when live business data is connected.`}
+            </p>
+          </div>
+        </div>
       </section>
 
       {intelligence?.insights.length ? (

@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { useChatWidget } from "@/components/platform/ChatWidgetProvider";
 import { SetupProgressBar } from "@/components/overview/SetupProgressBar";
+import { AidaAvatar } from "@/components/brand/AidaAvatar";
 import type { BusinessOverview } from "@dg/platform-core";
 
 function StatusDot({ status }: { status: string }) {
@@ -179,11 +180,12 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
       {/* Priorities — largest card */}
       <section className="dg-card lg:col-span-2 border-emerald-500/15 bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/20">
         <div className="flex items-start gap-3">
-          <span className="text-2xl" aria-hidden>
-            🤖
-          </span>
+          <AidaAvatar size={44} />
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold text-white">AI Business Advisor</h2>
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-violet-300/90">
+              AI Business Advisor
+            </p>
+            <h2 className="text-lg font-semibold text-white">Aida</h2>
             <p className="mt-1 text-sm text-slate-400">
               {overview.greeting}. Your business is performing well. There are three things I
               recommend focusing on today:

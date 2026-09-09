@@ -5,6 +5,8 @@ import { useState, useTransition } from "react";
 
 import { IntelligenceFlow } from "@/components/intelligence/IntelligenceFlow";
 import { IntelligenceHierarchy } from "@/components/intelligence/IntelligenceHierarchy";
+import { AidaAvatar, AidaMark } from "@/components/brand/AidaAvatar";
+import { AIDA } from "@/lib/aida";
 import type {
   AdvisorActionPriority,
   AdvisorContextId,
@@ -277,10 +279,17 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
 
       {/* Ask your Advisor */}
       <section className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-slate-950/50 to-slate-950/40 px-6 py-6">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300/90">
-          Ask your Advisor
-        </p>
-        <h2 className="mt-2 text-lg font-semibold text-white">What would you like help with?</h2>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300/90">
+              Ask your Advisor
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-white">
+              What would you like help with?
+            </h2>
+          </div>
+          <AidaMark className="hidden shrink-0 sm:inline-flex" />
+        </div>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-[minmax(0,14rem)_1fr]">
           <label className="block text-sm">
@@ -351,6 +360,11 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
 
         {liveAnswer ? (
           <div className="mt-6 rounded-xl border border-violet-500/20 bg-violet-500/5 px-4 py-4">
+            <div className="mb-3 flex items-center gap-2">
+              <AidaAvatar size={24} ring={false} />
+              <span className="text-xs font-semibold text-white">{AIDA.name}</span>
+              <span className="text-[11px] text-slate-500">· {AIDA.role}</span>
+            </div>
             <p className="text-xs font-medium uppercase tracking-widest text-violet-300/80">
               {liveAnswer.question}
             </p>

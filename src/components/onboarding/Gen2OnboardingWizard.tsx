@@ -1,8 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { AIDA } from "@/lib/aida";
 import {
   annualPriceFromMonthlyCents,
   BILLING_COMMERCIAL_CONFIG,
@@ -431,8 +434,33 @@ export function Gen2OnboardingWizard({
         ) : null}
 
         {step === "welcome" ? (
-          <section className="space-y-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
-            <h2 className="text-xl font-semibold text-white">Welcome to DigitalGate</h2>
+          <section className="space-y-5 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
+            <div className="flex flex-col items-center gap-5 rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-slate-950/40 to-slate-950/40 p-6 sm:flex-row sm:items-center sm:text-left">
+              <div className="relative w-36 shrink-0">
+                <div
+                  className="absolute inset-x-3 bottom-0 top-8 rounded-full bg-gradient-to-b from-violet-500/25 to-blue-500/10 blur-2xl"
+                  aria-hidden
+                />
+                <Image
+                  src={AIDA.assets.portrait}
+                  alt={`${AIDA.name}, ${AIDA.role}`}
+                  width={360}
+                  height={540}
+                  priority
+                  className="relative mx-auto h-auto w-36 object-contain"
+                />
+              </div>
+              <div className="text-center sm:text-left">
+                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-violet-300/90">
+                  {AIDA.positioning}
+                </p>
+                <h2 className="mt-1 text-2xl font-bold text-white">Meet Aida.</h2>
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-300">
+                  {AIDA.description}
+                </p>
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-white">Welcome to DigitalGate</h3>
             <p className="text-sm text-slate-300">
               We&apos;ll set up your Business Operating Platform in about 15–20 minutes. You can
               leave and continue anytime — progress is saved.

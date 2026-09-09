@@ -6,6 +6,7 @@ import { resolveIndustryFromAppId } from "@dg/platform-core";
 import type { BusinessOverview } from "@dg/platform-core";
 
 import { SetupProgressBar } from "@/components/overview/SetupProgressBar";
+import { AidaAvatar } from "@/components/brand/AidaAvatar";
 
 const CORE_BUSINESS_APPS = [
   { id: "crm", name: "CRM", href: "/apps/crm", description: "Contacts, pipeline, and follow-ups" },
@@ -143,8 +144,16 @@ export function FoundingOperatorHome({
       </section>
 
       <section className="dg-card border-sky-500/20 bg-gradient-to-br from-slate-900 to-slate-950">
-        <h2 className="font-semibold text-white">AI Advisor</h2>
-        <p className="mt-2 text-sm leading-relaxed text-slate-300">
+        <div className="flex items-center gap-3">
+          <AidaAvatar size={40} />
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-violet-300/90">
+              AI Business Advisor
+            </p>
+            <h2 className="font-semibold text-white">Aida</h2>
+          </div>
+        </div>
+        <p className="mt-3 text-sm leading-relaxed text-slate-300">
           I&apos;ve reviewed your business. Here&apos;s what I&apos;d focus on today…
         </p>
         <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-400">
