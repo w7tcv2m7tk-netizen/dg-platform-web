@@ -10,8 +10,16 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
 type Ctx = { params: Promise<{ id: string }> };
+
+function forbidden(action: string) {
+  return NextResponse.json(
+    { error: { code: "forbidden", message: `Insufficient permissions for websites.${action}` } },
+    { status: 403 },
+  );
+}
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -22,6 +30,7 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 export async function GET(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  if (!canAccessWebsiteStudio(session, "view")) return forbidden("view");
 
   const { id } = await ctx.params;
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
@@ -45,6 +54,7 @@ export async function GET(req: Request, ctx: Ctx) {
 export async function PATCH(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  if (!canAccessWebsiteStudio(session, "edit")) return forbidden("edit");
 
   const { id } = await ctx.params;
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
@@ -170,6 +180,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
 export async function DELETE(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  if (!canAccessWebsiteStudio(session, "delete")) return forbidden("delete");
 
   const { id } = await ctx.params;
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
