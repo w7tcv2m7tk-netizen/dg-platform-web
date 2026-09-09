@@ -17,7 +17,7 @@ import { groupWebsitePages } from "@/components/websites/page-groups";
 import { StudioSeoPanel } from "@/components/websites/StudioSeoPanel";
 import { WordPressImportPanel } from "@/components/websites/WordPressImportPanel";
 
-type StudioTab = "edit" | "seo" | "import";
+type StudioTab = "edit" | "import";
 
 const SUGGESTED_PROMPTS = [
   "Make it more premium",
@@ -76,18 +76,18 @@ export function WebsiteStudioClient({
   );
   const [tab, setTab] = useState<StudioTab>(() => {
     const t = searchParams.get("tab");
-    if (t === "seo" || t === "edit") return t;
+    if (t === "edit") return t;
     if (t === "import" && showWordPressImport) return t;
     return "edit";
   });
 
   useEffect(() => {
     const t = searchParams.get("tab");
-    if (t === "seo" || t === "edit") setTab(t);
+    if (t === "edit") setTab(t);
     if (t === "import" && showWordPressImport) setTab(t);
     if (searchParams.get("live") === "1") {
       setShowLivePanel(true);
-      if (t !== "seo" && t !== "import") setTab("edit");
+      if (t !== "import") setTab("edit");
     }
     const fromQuery = searchParams.get("page");
     if (fromQuery && website.pages) {
@@ -318,9 +318,12 @@ export function WebsiteStudioClient({
     setBusy(false);
   }
 
-  async function saveSiteChrome() {
+  async function saveSiteChrome(
+    fields: Partial<{ headerHtml: string; footerHtml: string; customCss: string }>,
+    label: string,
+  ) {
     setSavingChrome(true);
-    setStatus("Saving header & footer…");
+    setStatus(`Saving ${label}…`);
     const meta = website.metadata;
     const existingChrome =
       meta &&
@@ -329,12 +332,9 @@ export function WebsiteStudioClient({
       typeof meta.chrome === "object"
         ? (meta.chrome as Record<string, unknown>)
         : {};
-    const chrome = {
-      ...existingChrome,
-      headerHtml: headerDraft,
-      footerHtml: footerDraft,
-      customCss: cssDraft,
-    };
+    // Merge only the edited field into the current chrome so each button saves
+    // independently (Save header / Save footer / Save CSS).
+    const chrome = { ...existingChrome, ...fields };
     const res = await fetch(`/api/v1/websites/${website.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -346,10 +346,10 @@ export function WebsiteStudioClient({
     };
     if (json.data) {
       setWebsite(json.data);
-      setStatus("Header & footer saved");
+      setStatus(`${label} saved`);
       router.refresh();
     } else {
-      setStatus(json.error?.message || "Could not save header & footer");
+      setStatus(json.error?.message || `Could not save ${label}`);
     }
     setSavingChrome(false);
   }
@@ -539,7 +539,6 @@ export function WebsiteStudioClient({
         {(
           [
             { id: "edit" as const, label: "Edit" },
-            { id: "seo" as const, label: "SEO" },
             ...(showWordPressImport
               ? [{ id: "import" as const, label: "WordPress" }]
               : []),
@@ -560,47 +559,6 @@ export function WebsiteStudioClient({
         ))}
       </div>
 
-      {tab === "seo" ? (
-        <div className="space-y-4">
-          <div className="space-y-3">
-            {pageGroups.map((group) => (
-              <div key={group.id} className="space-y-1.5">
-                <p className="text-[11px] uppercase tracking-wide text-slate-500">
-                  {group.label}{" "}
-                  <span className="text-slate-600">({group.pages.length})</span>
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {group.pages.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setPageId(p.id)}
-                      className={`rounded-md px-2.5 py-1 text-xs ${
-                        pageId === p.id
-                          ? "bg-slate-800 text-white"
-                          : "border border-slate-700 text-slate-400 hover:text-slate-200"
-                      }`}
-                    >
-                      {p.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          <StudioSeoPanel
-            website={website}
-            pageId={pageId}
-            disabled={busy}
-            onSaved={(next, message) => {
-              setWebsite(next);
-              setStatus(message);
-              router.refresh();
-            }}
-          />
-        </div>
-      ) : null}
-
       {tab === "import" && showWordPressImport ? (
         <WordPressImportPanel
           website={website}
@@ -616,7 +574,7 @@ export function WebsiteStudioClient({
       ) : null}
 
       {tab === "edit" ? (
-      <div className="grid gap-6 lg:grid-cols-[14rem_minmax(0,1fr)_17rem]">
+      <div className="grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)_24rem]">
         <aside className="space-y-3">
           <h2 className="text-xs uppercase tracking-wide text-slate-500">Pages</h2>
           <div className="space-y-2 max-h-[70vh] overflow-y-auto pr-1">
@@ -745,13 +703,6 @@ export function WebsiteStudioClient({
             >
               Domains
             </Link>
-            <button
-              type="button"
-              onClick={() => setTab("seo")}
-              className="block text-sm text-slate-400 hover:text-slate-200"
-            >
-              SEO
-            </button>
           </div>
         </aside>
 
@@ -884,10 +835,10 @@ export function WebsiteStudioClient({
               <button
                 type="button"
                 disabled={busy || savingChrome}
-                onClick={() => void saveSiteChrome()}
+                onClick={() => void saveSiteChrome({ headerHtml: headerDraft }, "Header")}
                 className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
               >
-                {savingChrome ? "Saving…" : "Save header & footer"}
+                {savingChrome ? "Saving…" : "Save header"}
               </button>
             </div>
             <p className="mb-2 text-[11px] text-slate-500">
@@ -994,10 +945,10 @@ export function WebsiteStudioClient({
               <button
                 type="button"
                 disabled={busy || savingChrome}
-                onClick={() => void saveSiteChrome()}
+                onClick={() => void saveSiteChrome({ footerHtml: footerDraft }, "Footer")}
                 className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
               >
-                {savingChrome ? "Saving…" : "Save header & footer"}
+                {savingChrome ? "Saving…" : "Save footer"}
               </button>
             </div>
             <p className="mb-2 text-[11px] text-slate-500">
@@ -1037,10 +988,10 @@ export function WebsiteStudioClient({
               <button
                 type="button"
                 disabled={busy || savingChrome}
-                onClick={() => void saveSiteChrome()}
+                onClick={() => void saveSiteChrome({ customCss: cssDraft }, "Site CSS")}
                 className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
               >
-                {savingChrome ? "Saving…" : "Save site CSS"}
+                {savingChrome ? "Saving…" : "Save CSS"}
               </button>
             </div>
             <p className="mb-2 text-[11px] text-slate-500">
@@ -1061,21 +1012,38 @@ export function WebsiteStudioClient({
         </section>
 
         <aside className="space-y-3">
-          <h2 className="text-xs uppercase tracking-wide text-slate-500">
-            Edit component
-          </h2>
           {selected ? (
-            <ComponentPropsEditor
-              key={selected.id}
-              component={selected}
-              disabled={busy}
-              onSave={saveComponentProps}
-            />
-          ) : (
-            <p className="text-sm text-slate-500">
-              Select a component to edit fields, or use AI prompts above.
-            </p>
-          )}
+            <div className="space-y-2 rounded-md border border-slate-700 bg-slate-950/60 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs uppercase tracking-wide text-slate-500">
+                  Edit component
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setSelectedComponentId(null)}
+                  className="text-[11px] text-sky-400 hover:underline"
+                >
+                  Close
+                </button>
+              </div>
+              <ComponentPropsEditor
+                key={selected.id}
+                component={selected}
+                disabled={busy}
+                onSave={saveComponentProps}
+              />
+            </div>
+          ) : null}
+          <StudioSeoPanel
+            website={website}
+            pageId={pageId}
+            disabled={busy}
+            onSaved={(next, message) => {
+              setWebsite(next);
+              setStatus(message);
+              router.refresh();
+            }}
+          />
         </aside>
       </div>
       ) : null}
@@ -1114,7 +1082,7 @@ function PageHtmlEditor({
           }}
           className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
         >
-          {saving ? "Saving…" : "Save page HTML"}
+          {saving ? "Saving…" : "Save page"}
         </button>
       </div>
       <textarea
