@@ -354,6 +354,28 @@ export function WebsiteStudioClient({
     setSavingChrome(false);
   }
 
+  async function resetFooterToDefault() {
+    setStatus("Loading default footer…");
+    let footerHtml: string;
+    try {
+      const res = await fetch(`/api/v1/websites/${website.id}/default-footer`);
+      const json = (await res.json()) as {
+        data?: { footerHtml?: string };
+        error?: { message?: string };
+      };
+      if (!res.ok || !json.data?.footerHtml) {
+        setStatus(json.error?.message || "Could not load default footer");
+        return;
+      }
+      footerHtml = json.data.footerHtml;
+    } catch {
+      setStatus("Could not load default footer");
+      return;
+    }
+    setFooterDraft(footerHtml);
+    await saveSiteChrome({ footerHtml }, "Footer");
+  }
+
   async function duplicatePage(targetPageId: string) {
     setBusy(true);
     setStatus("Duplicating page…");
@@ -942,14 +964,25 @@ export function WebsiteStudioClient({
                   )
                 </span>
               </h2>
-              <button
-                type="button"
-                disabled={busy || savingChrome}
-                onClick={() => void saveSiteChrome({ footerHtml: footerDraft }, "Footer")}
-                className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
-              >
-                {savingChrome ? "Saving…" : "Save footer"}
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={busy || savingChrome}
+                  onClick={() => void resetFooterToDefault()}
+                  title="Reload the canonical DigitalGate footer and save it"
+                  className="rounded border border-slate-600 px-2 py-1 text-[11px] text-slate-300 hover:bg-slate-800 disabled:opacity-50"
+                >
+                  Reset to default
+                </button>
+                <button
+                  type="button"
+                  disabled={busy || savingChrome}
+                  onClick={() => void saveSiteChrome({ footerHtml: footerDraft }, "Footer")}
+                  className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+                >
+                  {savingChrome ? "Saving…" : "Save footer"}
+                </button>
+              </div>
             </div>
             <p className="mb-2 text-[11px] text-slate-500">
               Rendered below every page on this site. Supports{" "}
