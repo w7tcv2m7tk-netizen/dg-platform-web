@@ -109,6 +109,14 @@ test("Website Studio guards dirty drafts before unload and destructive navigatio
   assert.match(guard, /response\.ok/);
 });
 
+test("Website Studio normalises network failures into recoverable JSON errors", async () => {
+  const guard = await readFile("src/components/websites/WebsiteStudioUnsavedChangesGuard.tsx", "utf8");
+  assert.match(guard, /NETWORK_ERROR_MESSAGE/);
+  assert.match(guard, /catch\s*\{\s*return networkFailureResponse\(\)/s);
+  assert.match(guard, /status:\s*503/);
+  assert.match(guard, /Content-Type\": \"application\/json/);
+});
+
 test("Website Studio page is wrapped in the unsaved-changes boundary", async () => {
   const source = await readFile("src/app/(shell)/apps/websites/studio/[id]/page.tsx", "utf8");
   assert.match(source, /WebsiteStudioUnsavedChangesGuard/);
