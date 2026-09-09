@@ -7,10 +7,7 @@
  * even when Studio content is plain or carries an older story block.
  */
 
-import {
-  insightsPartForSlug,
-  renderInsightsArticle,
-} from "./digitalgate-insights-article";
+import { insightsPartForSlug } from "./digitalgate-insights-article";
 
 export type DigitalgateVisualPageKind =
   | "insights-part-1"
@@ -396,19 +393,20 @@ export function enhanceDigitalgateVisualHtml(
   const kind = digitalgateVisualPageKind(pageSlug);
   if (!kind) return html;
 
-  let out = refreshStaleSeriesChrome(html);
-
-  // Insights Parts 1–4: recompose the Website Studio article into the dedicated
-  // four-chapter Insights presentation (one shared shell, frozen tokens). The
-  // renderer owns hero, geometry, typography, signature diagram and navigation;
-  // Website Studio remains the content authority. Idempotent (own marker guard).
-  const insightsPart = insightsPartForSlug(pageSlug);
-  if (insightsPart) {
-    return renderInsightsArticle(out, insightsPart);
+  // Insights Parts 1–4 are WYSIWYG: Website Studio is the single source of truth.
+  // Whatever HTML is pasted into Studio for these pages is rendered live and
+  // UNMODIFIED — no render-time re-composition, stripping, or injected visuals.
+  // To change one of these articles (copy, layout, diagrams, styling), edit its
+  // HTML in Website Studio; the change reflects on the live page as-is.
+  if (insightsPartForSlug(pageSlug)) {
+    return html;
   }
 
-  // Business Brain / Automation retain the existing primitives (redesigned in
-  // later, separately verified #48 PRs).
+  let out = refreshStaleSeriesChrome(html);
+
+  // Business Brain / Automation retain the existing additive primitives (they
+  // inject a visual only when Studio content lacks one; they never replace
+  // pasted content). Flip these to WYSIWYG too if/when desired.
   if (hasCurrentVisual(out, kind)) {
     return out;
   }
