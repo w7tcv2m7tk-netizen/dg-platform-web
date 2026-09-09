@@ -7,7 +7,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -16,6 +16,8 @@ interface RouteParams {
 export async function GET(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "documents.read");
+  if (denied) return denied;
 
   const { id } = await params;
   const document = await getOrgDocument(session.organisationId, id);
@@ -31,6 +33,8 @@ export async function GET(req: Request, { params }: RouteParams) {
 export async function PATCH(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "documents.write");
+  if (denied) return denied;
 
   const { id } = await params;
   let body: {
@@ -67,6 +71,8 @@ export async function PATCH(req: Request, { params }: RouteParams) {
 export async function DELETE(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "documents.write");
+  if (denied) return denied;
 
   const { id } = await params;
   const document = await archiveOrgDocument(session.organisationId, id);
