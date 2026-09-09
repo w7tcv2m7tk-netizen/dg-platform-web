@@ -112,6 +112,32 @@ function SeoFields({
   );
 }
 
+const SEO_KEYS: Array<keyof WebsiteSeo> = [
+  "title",
+  "description",
+  "keywords",
+  "ogTitle",
+  "ogDescription",
+  "ogImage",
+  "schemaType",
+  "publishedAt",
+  "modifiedAt",
+  "authorName",
+  "noindex",
+  "showHeader",
+  "showFooter",
+];
+
+function buildSeoPatch(current: WebsiteSeo, next: WebsiteSeo): Partial<WebsiteSeo> {
+  const patch: Record<string, unknown> = {};
+  for (const key of SEO_KEYS) {
+    if (JSON.stringify(current[key]) !== JSON.stringify(next[key])) {
+      patch[key] = next[key];
+    }
+  }
+  return patch as Partial<WebsiteSeo>;
+}
+
 export function StudioSeoPanel({
   website,
   pageId,
@@ -204,27 +230,49 @@ export function StudioSeoPanel({
     if (!page) return;
     setBusy(true);
     setError("");
-    const res = await fetch(
-      `/api/v1/websites/${website.id}/pages/${page.id}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          seo: pageSeo,
-          title: pageTitle.trim() || undefined,
-          slug: pageSlug.trim() !== page.slug ? pageSlug.trim() : undefined,
-        }),
-      },
-    );
-    const json = (await res.json()) as {
-      data?: { id: string };
-      error?: { message?: string };
+
+    const title = pageTitle.trim();
+    const slug = pageSlug.trim();
+    const scalarPatch = {
+      title: title && title !== page.title ? title : undefined,
+      slug: slug && slug !== page.slug ? slug : undefined,
     };
-    if (!res.ok) {
-      setError(json.error?.message || "Could not save page SEO");
-      setBusy(false);
-      return;
+    const seoPatch = buildSeoPatch(page.seo ?? {}, pageSeo);
+
+    if (scalarPatch.title || scalarPatch.slug) {
+      const res = await fetch(
+        `/api/v1/websites/${website.id}/pages/${page.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(scalarPatch),
+        },
+      );
+      const json = (await res.json()) as { error?: { message?: string } };
+      if (!res.ok) {
+        setError(json.error?.message || "Could not save page title or slug");
+        setBusy(false);
+        return;
+      }
     }
+
+    if (Object.keys(seoPatch).length > 0) {
+      const res = await fetch(
+        `/api/v1/websites/${website.id}/pages/${page.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ seoPatch }),
+        },
+      );
+      const json = (await res.json()) as { error?: { message?: string } };
+      if (!res.ok) {
+        setError(json.error?.message || "Could not save page SEO");
+        setBusy(false);
+        return;
+      }
+    }
+
     const refresh = await fetch(`/api/v1/websites/${website.id}`);
     const refreshed = (await refresh.json()) as { data?: SerializedWebsite };
     if (refreshed.data) onSaved(refreshed.data, "Page SEO saved");
