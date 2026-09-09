@@ -1,7 +1,10 @@
 import {
   organisationHasWebsitesBuilder,
   deleteWebsitePage,
+  patchWebsitePageComponent,
+  patchWebsitePageSeo,
   updateWebsitePage,
+  type WebsiteSeo,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -69,9 +72,57 @@ export async function PATCH(req: Request, ctx: Ctx) {
     components?: unknown[];
     seo?: Record<string, unknown>;
     status?: string;
+    componentPatch?: {
+      componentId?: string;
+      props?: Record<string, unknown>;
+    };
+    seoPatch?: Partial<WebsiteSeo>;
   } | null;
 
   try {
+    if (body?.componentPatch) {
+      const componentId = body.componentPatch.componentId?.trim();
+      const props = body.componentPatch.props;
+      if (!componentId || !props || typeof props !== "object" || Array.isArray(props)) {
+        return NextResponse.json(
+          { error: { code: "validation_error", message: "componentPatch requires componentId and props" } },
+          { status: 400 },
+        );
+      }
+      const updated = await patchWebsitePageComponent({
+        organisationId: session.organisationId,
+        websiteId: id,
+        pageId,
+        actorId: session.clerkUserId,
+        componentId,
+        props,
+      });
+      if (!updated) {
+        return NextResponse.json(
+          { error: { code: "not_found", message: "Page or component not found" } },
+          { status: 404 },
+        );
+      }
+      return NextResponse.json({ data: updated });
+    }
+
+    if (body?.seoPatch) {
+      const updated = await patchWebsitePageSeo({
+        organisationId: session.organisationId,
+        websiteId: id,
+        pageId,
+        actorId: session.clerkUserId,
+        patch: body.seoPatch,
+      });
+      if (!updated) {
+        return NextResponse.json(
+          { error: { code: "not_found", message: "Page not found" } },
+          { status: 404 },
+        );
+      }
+      return NextResponse.json({ data: updated });
+    }
+
     const updated = await updateWebsitePage({
       organisationId: session.organisationId,
       websiteId: id,
@@ -93,14 +144,16 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
     return NextResponse.json({ data: updated });
   } catch (err) {
+    const message = err instanceof Error ? err.message : "Update failed";
+    const conflict = message.toLowerCase().includes("concurrent");
     return NextResponse.json(
       {
         error: {
-          code: "validation_error",
-          message: err instanceof Error ? err.message : "Update failed",
+          code: conflict ? "write_conflict" : "validation_error",
+          message,
         },
       },
-      { status: 400 },
+      { status: conflict ? 409 : 400 },
     );
   }
 }
