@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run test:website-studio-save-isolation && eslint packages/platform-core/src/websites/chrome.ts src/app/api/v1/websites/[id]/chrome/route.ts src/app/api/v1/websites/[id]/route.ts scripts/test-website-studio-save-isolation.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -24,7 +25,7 @@
     "test:website-studio-save-isolation": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-website-studio-save-isolation.mjs",
     "db:generate": "prisma generate --schema=packages/database/prisma",
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma",
-    "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma",
+    "db:studio": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma",
     "setup:stripe-webhook": "node scripts/setup-stripe-webhook.mjs",
     "commerce:smoke": "node scripts/commerce-smoke-test.mjs",
     "abr:smoke": "node scripts/abr-smoke.mjs",
