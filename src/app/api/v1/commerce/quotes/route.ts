@@ -1,11 +1,13 @@
 import { createQuote, listQuotes } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "commerce.read");
+  if (denied) return denied;
 
   const quotes = await listQuotes(session.organisationId);
   return NextResponse.json({ data: quotes });
@@ -14,6 +16,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "commerce.manage");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => null);
   const lineItems = Array.isArray(body?.lineItems) ? body.lineItems : [];
