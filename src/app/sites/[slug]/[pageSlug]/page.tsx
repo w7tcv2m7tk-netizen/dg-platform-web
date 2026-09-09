@@ -17,6 +17,10 @@ import {
   publicSiteJsonLd,
 } from "@/lib/public-website-seo";
 import {
+  canPreviewWebsiteOrganisation,
+  canRenderStudioContent,
+} from "@/lib/website-studio-preview";
+import {
   isRetiredPublicOnboarding,
   PublicOnboardingRetired,
 } from "@/components/founding/PublicOnboardingRetired";
@@ -51,7 +55,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PublicSitePage({ params, searchParams }: Props) {
   const { slug, pageSlug } = await params;
   const { preview } = await searchParams;
-  const allowDraft = preview === "1";
+  const previewRequested = preview === "1";
+
+  let site = await getWebsiteBySlug(slug);
+  if (!site) notFound();
+
+  const previewAuthorised = previewRequested
+    ? await canPreviewWebsiteOrganisation(site.organisationId)
+    : false;
+  const allowDraft = previewRequested && previewAuthorised;
 
   if (pageSlug === "home") {
     redirect(allowDraft ? `/sites/${slug}?preview=1` : `/sites/${slug}`);
@@ -64,10 +76,6 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
         : `/sites/${slug}/garden-studio`,
     );
   }
-
-  let site = await getWebsiteBySlug(slug);
-  if (!site) notFound();
-  if (!allowDraft && site.status !== "published") notFound();
 
   let page = (site.pages ?? []).find((p) => p.slug === pageSlug);
   if (!page) {
@@ -88,6 +96,16 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
     }
   }
   if (!page) notFound();
+  if (
+    !canRenderStudioContent({
+      siteStatus: site.status,
+      pageStatus: page.status,
+      previewRequested,
+      previewAuthorised,
+    })
+  ) {
+    notFound();
+  }
 
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
@@ -167,6 +185,20 @@ export default async function PublicSitePage({ params, searchParams }: Props) {
       <style dangerouslySetInnerHTML={{ __html: websiteRendererCss }} />
       {chromeCss ? (
         <style id="wb-chrome-css" dangerouslySetInnerHTML={{ __html: chromeCss }} />
+      ) : null}
+      {allowDraft && (site.status !== "published" || page.status !== "published") ? (
+        <div
+          style={{
+            background: "#92400e",
+            color: "#fff",
+            textAlign: "center",
+            padding: "0.5rem",
+            fontFamily: "system-ui, sans-serif",
+            fontSize: "0.85rem",
+          }}
+        >
+          Preview · draft — not published
+        </div>
       ) : null}
       {funnelTemplate === "hideaway_circle" ? (
         <div

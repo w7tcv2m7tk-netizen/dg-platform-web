@@ -18,6 +18,10 @@ import {
   publicPageMetadata,
   publicSiteJsonLd,
 } from "@/lib/public-website-seo";
+import {
+  canPreviewWebsiteOrganisation,
+  canRenderStudioContent,
+} from "@/lib/website-studio-preview";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -56,14 +60,28 @@ export default async function PublicSiteHomePage({
 }: Props) {
   const { slug } = await params;
   const search = await searchParams;
-  const allowDraft = search.preview === "1";
+  const previewRequested = search.preview === "1";
 
   const site = await getWebsiteBySlug(slug);
   if (!site) notFound();
-  if (!allowDraft && site.status !== "published") notFound();
 
   const home = resolveHome(site);
   if (!home) notFound();
+
+  const previewAuthorised = previewRequested
+    ? await canPreviewWebsiteOrganisation(site.organisationId)
+    : false;
+  const allowDraft = previewRequested && previewAuthorised;
+  if (
+    !canRenderStudioContent({
+      siteStatus: site.status,
+      pageStatus: home.status,
+      previewRequested,
+      previewAuthorised,
+    })
+  ) {
+    notFound();
+  }
 
   const theme = site.theme ?? {};
   const siteMeta = site.metadata as Record<string, unknown> | null | undefined;
@@ -145,7 +163,7 @@ export default async function PublicSiteHomePage({
       {chromeCss ? (
         <style id="wb-chrome-css" dangerouslySetInnerHTML={{ __html: chromeCss }} />
       ) : null}
-      {allowDraft && site.status !== "published" ? (
+      {allowDraft && (site.status !== "published" || home.status !== "published") ? (
         <div
           style={{
             background: "#92400e",
