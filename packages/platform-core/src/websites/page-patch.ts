@@ -44,6 +44,25 @@ export function patchWebsitePageComponentList(
   return found ? next : null;
 }
 
+export function isolateWebsitePageComponentSnapshot(input: {
+  current: WebsiteComponent[];
+  incoming: WebsiteComponent[];
+}): { componentId: string; props: Record<string, unknown> } | "unchanged" | "conflict" {
+  if (input.current.length !== input.incoming.length) return "conflict";
+
+  const incomingById = new Map(input.incoming.map((component) => [component.id, component]));
+  const changed: WebsiteComponent[] = [];
+  for (const current of input.current) {
+    const incoming = incomingById.get(current.id);
+    if (!incoming || incoming.type !== current.type) return "conflict";
+    if (JSON.stringify(incoming) !== JSON.stringify(current)) changed.push(incoming);
+  }
+
+  if (changed.length === 0) return "unchanged";
+  if (changed.length !== 1) return "conflict";
+  return { componentId: changed[0].id, props: changed[0].props ?? {} };
+}
+
 async function loadTenantPage(input: {
   organisationId: string;
   websiteId: string;
@@ -107,17 +126,53 @@ export async function patchWebsitePageComponent(input: {
   actorId?: string;
   componentId: string;
   props: Record<string, unknown>;
+  replaceProps?: boolean;
 }) {
   return optimisticPageUpdate({
     ...input,
     buildData: (page) => {
-      const components = patchWebsitePageComponentList(
-        normalizeComponents(page.components),
-        input.componentId,
-        input.props,
-      );
-      if (!components) return null;
-      return { components: components as unknown as Prisma.InputJsonValue };
+      const current = normalizeComponents(page.components);
+      const index = current.findIndex((component) => component.id === input.componentId);
+      if (index < 0) return null;
+      const component = current[index];
+      const next = [...current];
+      next[index] = {
+        ...component,
+        props: input.replaceProps
+          ? input.props
+          : { ...(component.props ?? {}), ...input.props },
+      };
+      return { components: next as unknown as Prisma.InputJsonValue };
+    },
+  });
+}
+
+export async function patchWebsitePageComponentSnapshot(input: {
+  organisationId: string;
+  websiteId: string;
+  pageId: string;
+  actorId?: string;
+  components: WebsiteComponent[];
+}) {
+  return optimisticPageUpdate({
+    ...input,
+    buildData: (page) => {
+      const isolated = isolateWebsitePageComponentSnapshot({
+        current: normalizeComponents(page.components),
+        incoming: normalizeComponents(input.components),
+      });
+      if (isolated === "unchanged") return {};
+      if (isolated === "conflict") {
+        throw new Error(
+          "Page components changed since this editor loaded. Refresh before saving so newer component changes are not overwritten.",
+        );
+      }
+      const current = normalizeComponents(page.components);
+      const index = current.findIndex((component) => component.id === isolated.componentId);
+      if (index < 0) return null;
+      const next = [...current];
+      next[index] = { ...current[index], props: isolated.props };
+      return { components: next as unknown as Prisma.InputJsonValue };
     },
   });
 }
