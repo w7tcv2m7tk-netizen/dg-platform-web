@@ -53,8 +53,7 @@ export async function GET() {
 
   const slug = await resolveHostSlug();
   const site = slug
-    ? (await getWebsiteBySlug(slug, { publishedOnly: true })) ||
-      (await getWebsiteBySlug(slug))
+    ? await getWebsiteBySlug(slug, { publishedOnly: true })
     : null;
 
   if (!host || !site) {
