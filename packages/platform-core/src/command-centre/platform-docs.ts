@@ -527,7 +527,7 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     slug: "google-gbp",
     title: "Google Business Profile",
     summary:
-      "GBP OAuth + location sync. One allowlisted Cloud project (742705345842) — do not apply for another.",
+      "GBP OAuth + location sync. One allowlisted Cloud project (742705345842) with Business Profile APIs enabled — do not apply for another.",
     group: "connectors",
     relativePath: "connectors/GOOGLE-GBP.md",
   },

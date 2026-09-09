@@ -11,9 +11,16 @@ export const GOOGLE_GBP_ALLOWLISTED_PROJECT_NUMBER = "742705345842";
 /** Website Google associated with the allowlisted project. */
 export const GOOGLE_GBP_ALLOWLISTED_WEBSITE = "https://digitalgate.com.au/";
 
+/**
+ * Account Management + Business Information + Google My Business (reviews)
+ * are enabled on the allowlisted project (confirmed).
+ */
+export const GOOGLE_GBP_BUSINESS_PROFILE_APIS_ENABLED = true;
+
 export type GoogleGbpAllowlistedProject = {
   projectNumber: string;
   website: string;
+  businessProfileApisEnabled: boolean;
   /** True when GOOGLE_CLIENT_ID is issued from the allowlisted project. */
   clientFromAllowlistedProject: boolean | null;
 };
@@ -36,6 +43,7 @@ export function inspectGoogleGbpAllowlistedProject(
   return {
     projectNumber: GOOGLE_GBP_ALLOWLISTED_PROJECT_NUMBER,
     website: GOOGLE_GBP_ALLOWLISTED_WEBSITE,
+    businessProfileApisEnabled: GOOGLE_GBP_BUSINESS_PROFILE_APIS_ENABLED,
     clientFromAllowlistedProject: trimmed
       ? googleClientIdMatchesAllowlistedProject(trimmed)
       : null,

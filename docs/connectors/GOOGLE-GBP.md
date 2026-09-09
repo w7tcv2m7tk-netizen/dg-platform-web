@@ -16,8 +16,9 @@ Google Business Profile APIs are **allowlisted per business, one Cloud project o
 | Project number (Google’s letter called this Project ID) | `742705345842` |
 | Associated website | https://digitalgate.com.au/ |
 | Confirmed | GBP API Team — one project per business |
+| Business Profile APIs | **Enabled** — Account Management, Business Information, Google My Business (reviews) |
 
-**Use this project for:** OAuth client (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`), My Business Account Management API, My Business Business Information API, and Google My Business API (reviews). Gmail OAuth shares the same client.
+**Use this project for:** OAuth client (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`) and the enabled Business Profile APIs. Gmail OAuth shares the same client.
 
 **Do not:** create a second Cloud project and request GBP access again. Google will refuse it and point back here.
 
@@ -39,7 +40,7 @@ Code constant: `GOOGLE_GBP_ALLOWLISTED_PROJECT_NUMBER` in `packages/platform-cor
 
 Distinct from `GOOGLE_GEOCODING_API_KEY` / `GOOGLE_PLACES_API_KEY`.
 
-Cloud Console (project `742705345842` only): enable **My Business Account Management API**, **My Business Business Information API**, and (for reviews) **Google My Business API**.
+Cloud Console (project `742705345842` only): **My Business Account Management API**, **My Business Business Information API**, and **Google My Business API** are already enabled. Do not enable them on a different project.
 
 ---
 
@@ -54,13 +55,14 @@ Cloud Console (project `742705345842` only): enable **My Business Account Manage
 | Cache reviews → Reputation Universal Review feed | Best-effort when v4 Reviews API succeeds |
 | Reply publish / insights / posts | Not yet |
 
-Default scope `https://www.googleapis.com/auth/business.manage` is sufficient for accounts, locations, and reviews **when** the Cloud project has the APIs enabled and the Google user has manager access on the location.
+Default scope `https://www.googleapis.com/auth/business.manage` is sufficient for accounts, locations, and reviews **when** the Google user has manager access on the location. The allowlisted project already has the APIs enabled — remaining review failures are login role, OAuth client on the wrong project, or location path.
 
 ---
 
 ## Honest gaps
 
-- If reviews return `PERMISSION_DENIED` / `404`, we **keep location metadata** and surface `reviewsBlockedReason` in UI — no fake review scores.
+- If reviews return `PERMISSION_DENIED` / `404`, we **keep location metadata** and surface `reviewsBlockedReason` in UI — no fake review scores. Copy does **not** tell operators to enable APIs (they are already on).
+- After tokens were issued on another project, **Reconnect Google** so the allowlisted client is used.
 - Location `name` from Business Information (`locations/{id}`) is normalised to `accounts/{accountId}/locations/{id}` for the Reviews v4 parent path.
 - Sync cache lives on `organisation.settings.connectors.google-gbp` (encrypted tokens + plaintext snapshot). Reviews capped at 200.
 

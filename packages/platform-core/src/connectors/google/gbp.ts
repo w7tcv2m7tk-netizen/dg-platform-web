@@ -2,7 +2,7 @@
  * Google Business Profile — accounts, locations, profile fields, optional reviews.
  *
  * Auth scope: `business.manage` (see auth.ts). Reviews use My Business API v4;
- * if Cloud Console APIs or location access block reviews, we still sync location metadata.
+ * if the login lacks manager access or a location path is wrong, we still sync location metadata.
  * APIs + OAuth client must live on the allowlisted project (see ./project.ts).
  */
 
@@ -18,6 +18,7 @@ import {
   parseGbpAccounts,
   parseGbpLocations,
   parseGbpReviews,
+  summarizeGbpReviewBlock,
   toGbpReviewsParent,
   type GbpAccountSummary,
   type GbpLocationSummary,
@@ -249,7 +250,7 @@ export async function syncOrgGoogleGbp(
       reviews.push(...revRes.reviews);
     }
     if (!reviewsOk && reviewErrors.length) {
-      reviewsBlockedReason = summarizeReviewBlock(reviewErrors);
+      reviewsBlockedReason = summarizeGbpReviewBlock(reviewErrors);
       errors.push(...reviewErrors.slice(0, 3));
     } else if (reviewsOk && reviewErrors.length) {
       errors.push(...reviewErrors.slice(0, 2));
@@ -303,23 +304,6 @@ export async function syncOrgGoogleGbp(
     reviewsOk,
     errors,
   };
-}
-
-function summarizeReviewBlock(errors: string[]): string {
-  const joined = errors.join(" · ");
-  if (/PERMISSION_DENIED|ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient/i.test(joined)) {
-    return (
-      "Reviews API denied — confirm My Business API is enabled on the Google Cloud project " +
-      "and the login has manager access. Scope business.manage is requested; location metadata still syncs."
-    );
-  }
-  if (/404|not found|NOT_FOUND/i.test(joined)) {
-    return (
-      "Reviews endpoint unavailable for these locations (API not enabled or location id mismatch). " +
-      "Location metadata still synced."
-    );
-  }
-  return `Reviews sync failed (${errors[0]}). Location metadata still synced.`;
 }
 
 function buildSyncMessage(input: {

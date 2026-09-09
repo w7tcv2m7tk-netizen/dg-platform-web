@@ -24,6 +24,7 @@ type GoogleStatus = {
     allowlistedProject?: {
       projectNumber: string;
       website: string;
+      businessProfileApisEnabled: boolean;
       clientFromAllowlistedProject: boolean | null;
     };
   };
@@ -203,6 +204,9 @@ export function GoogleGbpConnectorPanel({
           {platform.allowlistedProject ? (
             <li>
               Allowlisted Cloud project {platform.allowlistedProject.projectNumber}
+              {platform.allowlistedProject.businessProfileApisEnabled
+                ? " · Business Profile APIs enabled"
+                : ""}
               {platform.allowlistedProject.clientFromAllowlistedProject === true ? (
                 <span className="text-emerald-400"> — OAuth client matches</span>
               ) : platform.allowlistedProject.clientFromAllowlistedProject === false ? (
