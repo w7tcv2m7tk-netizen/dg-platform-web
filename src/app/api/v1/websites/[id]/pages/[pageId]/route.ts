@@ -2,6 +2,7 @@ import {
   organisationHasWebsitesBuilder,
   deleteWebsitePage,
   patchWebsitePageComponent,
+  patchWebsitePageComponentSnapshot,
   patchWebsitePageSeo,
   updateWebsitePage,
   type WebsiteSeo,
@@ -123,6 +124,64 @@ export async function PATCH(req: Request, ctx: Ctx) {
       return NextResponse.json({ data: updated });
     }
 
+    // Backwards-compatible protection for the current Studio component editor.
+    // It historically posts the whole component snapshot even when one card is
+    // edited. Isolate that single component server-side; if multiple components
+    // differ from Neon, fail closed instead of replaying stale page content.
+    const componentsOnly =
+      Array.isArray(body?.components) &&
+      body?.title === undefined &&
+      body?.slug === undefined &&
+      body?.seo === undefined &&
+      body?.status === undefined;
+    if (componentsOnly) {
+      const updated = await patchWebsitePageComponentSnapshot({
+        organisationId: session.organisationId,
+        websiteId: id,
+        pageId,
+        actorId: session.clerkUserId,
+        components: body.components as never,
+      });
+      if (!updated) {
+        return NextResponse.json(
+          { error: { code: "not_found", message: "Page not found" } },
+          { status: 404 },
+        );
+      }
+      return NextResponse.json({ data: updated });
+    }
+
+    // The existing page chrome controls post the whole page SEO snapshot even
+    // though they only own showHeader/showFooter. Ignore any stale unrelated SEO
+    // fields and merge only those two chrome keys against current Neon state.
+    const seoOnly =
+      body?.seo &&
+      body?.title === undefined &&
+      body?.slug === undefined &&
+      body?.components === undefined &&
+      body?.status === undefined;
+    if (seoOnly) {
+      const patch: Partial<WebsiteSeo> = {};
+      if (typeof body.seo?.showHeader === "boolean") patch.showHeader = body.seo.showHeader;
+      if (typeof body.seo?.showFooter === "boolean") patch.showFooter = body.seo.showFooter;
+      if (Object.keys(patch).length > 0) {
+        const updated = await patchWebsitePageSeo({
+          organisationId: session.organisationId,
+          websiteId: id,
+          pageId,
+          actorId: session.clerkUserId,
+          patch,
+        });
+        if (!updated) {
+          return NextResponse.json(
+            { error: { code: "not_found", message: "Page not found" } },
+            { status: 404 },
+          );
+        }
+        return NextResponse.json({ data: updated });
+      }
+    }
+
     const updated = await updateWebsitePage({
       organisationId: session.organisationId,
       websiteId: id,
@@ -145,7 +204,9 @@ export async function PATCH(req: Request, ctx: Ctx) {
     return NextResponse.json({ data: updated });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Update failed";
-    const conflict = message.toLowerCase().includes("concurrent");
+    const conflict =
+      message.toLowerCase().includes("concurrent") ||
+      message.toLowerCase().includes("changed since this editor loaded");
     return NextResponse.json(
       {
         error: {
