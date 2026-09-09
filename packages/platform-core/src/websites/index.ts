@@ -6,6 +6,7 @@ export * from "./funnels";
 export * from "./generate";
 export * from "./crud";
 export * from "./chrome";
+export * from "./page-patch";
 export * from "./page-chrome";
 export * from "./assist";
 export * from "./seo-suggest";
