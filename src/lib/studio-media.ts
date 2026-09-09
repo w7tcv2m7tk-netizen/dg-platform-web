@@ -1,5 +1,5 @@
 /**
- * Curated media available in Website Studio's "Images" panel. URLs are absolute
+ * Curated media available in Design Studio → Images. URLs are absolute
  * (app host) so they resolve when pasted into Studio HTML and rendered on the
  * public site. Extend this registry to add more images.
  */

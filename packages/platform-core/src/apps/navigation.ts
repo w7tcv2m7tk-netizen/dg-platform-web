@@ -159,6 +159,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
       { path: "/apps/websites", label: "Websites", matchAlso: ["/apps/websites/studio"] },
       { path: "/apps/websites/funnels", label: "Funnels" },
       { path: "/apps/websites/content", label: "Content" },
+      { path: "/apps/websites/images", label: "Images" },
       { path: "/apps/websites/logo", label: "Brand" },
       { path: "/apps/websites/health", label: "Health" },
     ],

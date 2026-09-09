@@ -15,7 +15,6 @@ import {
 import { MakeItLivePanel } from "@/components/websites/MakeItLivePanel";
 import { groupWebsitePages } from "@/components/websites/page-groups";
 import { StudioSeoPanel } from "@/components/websites/StudioSeoPanel";
-import { StudioImagesPanel } from "@/components/websites/StudioImagesPanel";
 import { WordPressImportPanel } from "@/components/websites/WordPressImportPanel";
 
 type StudioTab = "edit" | "import";
@@ -599,29 +598,29 @@ export function WebsiteStudioClient({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1 border-b border-slate-800 pb-2">
-        {(
-          [
-            { id: "edit" as const, label: "Edit" },
-            ...(showWordPressImport
-              ? [{ id: "import" as const, label: "WordPress" }]
-              : []),
-          ] as const
-        ).map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            className={`rounded-md px-3 py-1.5 text-sm ${
-              tab === t.id
-                ? "bg-slate-800 text-white"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {showWordPressImport ? (
+        <div className="flex flex-wrap gap-1 border-b border-slate-800 pb-2">
+          {(
+            [
+              { id: "edit" as const, label: "Edit" },
+              { id: "import" as const, label: "WordPress" },
+            ] as const
+          ).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              className={`rounded-md px-3 py-1.5 text-sm ${
+                tab === t.id
+                  ? "bg-slate-800 text-white"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {tab === "import" && showWordPressImport ? (
         <WordPressImportPanel
@@ -1118,7 +1117,13 @@ export function WebsiteStudioClient({
             />
           </div>
 
-          <StudioImagesPanel />
+          <p className="text-[11px] text-slate-500">
+            Need a hosted image?{" "}
+            <Link href="/apps/websites/images" className="text-sky-400 hover:underline">
+              Open Images
+            </Link>{" "}
+            to copy a URL or <code className="text-slate-400">&lt;img&gt;</code> tag.
+          </p>
         </section>
 
         <aside className="space-y-3">
