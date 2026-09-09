@@ -30,12 +30,27 @@ type Props = {
   searchParams: Promise<{ preview?: string }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { slug, pageSlug } = await params;
+  const search = await searchParams;
+  const previewRequested = search.preview === "1";
   const site = await getWebsiteBySlug(slug);
-  if (!site) return { title: "Site" };
+  if (!site) return { title: "Site", robots: { index: false, follow: false } };
   const page = (site.pages ?? []).find((p) => p.slug === pageSlug);
-  if (!page) return { title: site.name };
+  if (!page) return { title: "Site", robots: { index: false, follow: false } };
+  const previewAuthorised = previewRequested
+    ? await canPreviewWebsiteOrganisation(site.organisationId)
+    : false;
+  if (
+    !canRenderStudioContent({
+      siteStatus: site.status,
+      pageStatus: page.status,
+      previewRequested,
+      previewAuthorised,
+    })
+  ) {
+    return { title: "Site", robots: { index: false, follow: false } };
+  }
   return publicPageMetadata({
     siteSlug: slug,
     siteName: site.name,
@@ -49,6 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     keywords: page.seo?.keywords?.length
       ? page.seo.keywords
       : site.seo?.keywords,
+    noindex: previewRequested && previewAuthorised ? true : Boolean(page.seo?.noindex),
   });
 }
 
