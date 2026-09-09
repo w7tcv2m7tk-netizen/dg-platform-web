@@ -7,6 +7,8 @@
  *   GOOGLE_REDIRECT_URI (default https://app.digitalgate.com.au/api/connectors/google/callback)
  *   GOOGLE_OAUTH_SCOPES (optional)
  *
+ * OAuth client + Business Profile APIs must live on the **one** allowlisted
+ * Cloud project (`GOOGLE_GBP_ALLOWLISTED_PROJECT_NUMBER` in ./project.ts).
  * Distinct from GOOGLE_GEOCODING_API_KEY / GOOGLE_PLACES_API_KEY.
  */
 

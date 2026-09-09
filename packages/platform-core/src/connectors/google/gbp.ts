@@ -3,6 +3,7 @@
  *
  * Auth scope: `business.manage` (see auth.ts). Reviews use My Business API v4;
  * if Cloud Console APIs or location access block reviews, we still sync location metadata.
+ * APIs + OAuth client must live on the allowlisted project (see ./project.ts).
  */
 
 import {

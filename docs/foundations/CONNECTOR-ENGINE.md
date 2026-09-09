@@ -206,7 +206,7 @@ Google Business Profile · **ABR** (ABN verify / entity enrichment — **not** r
 |-----------|----------|---------------|------------------------------|
 | **ABR** (`abr`) | business | **Live** (GUID-gated) — SearchByABNv202001 / SearchByASICv201408 | Verify ABN/ACN, enrich entity for Setup + Discovery |
 | **ASIC** (`asic`) | business | Stub — `pending_provider_approval` | AU names/companies registration after DSP approval + test pass |
-| **Google GBP** | business | OAuth + locations sync · reviews best-effort | Digital Identity + Reputation |
+| **Google GBP** | business | OAuth + locations sync · reviews best-effort · **one allowlisted GCP project** (`742705345842`) — [GOOGLE-GBP.md](../connectors/GOOGLE-GBP.md) | Digital Identity + Reputation |
 | **Dreamscape** | ops / infra | Sandbox-first reseller | Domains / hosting / SSL / mailbox (Infrastructure) |
 
 Profile shape:

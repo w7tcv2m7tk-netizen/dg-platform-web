@@ -21,6 +21,8 @@ Canonical: `docs/foundations/CONNECTOR-ENGINE.md` · philosophy: `docs/foundatio
 
 Twilio / Resend / ElevenLabs: DigitalGate owns the **provider relationship**; the org may own **numbers, mailboxes, messaging identities, routing**.
 
+**Google Business Profile:** Google allowlists **one Cloud project per business**. DigitalGate’s project is `742705345842` (website https://digitalgate.com.au/). Use that project for `GOOGLE_CLIENT_ID` / Business Profile APIs. **Do not apply for a second GBP project.** Canon: `docs/connectors/GOOGLE-GBP.md`.
+
 ## Credential rule
 
 **Never duplicate platform credentials at organisation level** unless the external provider genuinely requires customer-owned credentials, or BYOK is an explicit commercial product.

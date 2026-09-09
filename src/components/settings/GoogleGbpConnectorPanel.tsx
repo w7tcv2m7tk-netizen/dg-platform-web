@@ -21,6 +21,11 @@ type GoogleStatus = {
     clientIdSet: boolean;
     secretSet: boolean;
     redirectUri: string;
+    allowlistedProject?: {
+      projectNumber: string;
+      website: string;
+      clientFromAllowlistedProject: boolean | null;
+    };
   };
   organisation: {
     id: string;
@@ -195,6 +200,26 @@ export function GoogleGbpConnectorPanel({
           <li className="font-mono text-xs text-slate-500">
             Redirect: {platform.redirectUri}
           </li>
+          {platform.allowlistedProject ? (
+            <li>
+              Allowlisted Cloud project {platform.allowlistedProject.projectNumber}
+              {platform.allowlistedProject.clientFromAllowlistedProject === true ? (
+                <span className="text-emerald-400"> — OAuth client matches</span>
+              ) : platform.allowlistedProject.clientFromAllowlistedProject === false ? (
+                <span className="text-amber-400">
+                  {" "}
+                  — GOOGLE_CLIENT_ID is not from this project. Create the OAuth client
+                  on {platform.allowlistedProject.projectNumber} (do not apply for
+                  another GBP project).
+                </span>
+              ) : (
+                <span className="text-slate-500">
+                  {" "}
+                  — add GOOGLE_CLIENT_ID from this project
+                </span>
+              )}
+            </li>
+          ) : null}
           {org ? (
             <>
               <li>

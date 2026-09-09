@@ -7,6 +7,28 @@
 
 ---
 
+## Allowlisted Cloud project (lock)
+
+Google Business Profile APIs are **allowlisted per business, one Cloud project only**. DigitalGate already has access. **Do not apply for another project.**
+
+| Field | Value |
+|-------|--------|
+| Project number (Google’s letter called this Project ID) | `742705345842` |
+| Associated website | https://digitalgate.com.au/ |
+| Confirmed | GBP API Team — one project per business |
+
+**Use this project for:** OAuth client (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`), My Business Account Management API, My Business Business Information API, and Google My Business API (reviews). Gmail OAuth shares the same client.
+
+**Do not:** create a second Cloud project and request GBP access again. Google will refuse it and point back here.
+
+**Find it in Cloud Console:** search by project **number** `742705345842` (the string project id may differ). Console: [project 742705345842](https://console.cloud.google.com/?project=742705345842).
+
+If you need help from Google, choose **General API Question** and cite this project — do not submit a new API-access application.
+
+Code constant: `GOOGLE_GBP_ALLOWLISTED_PROJECT_NUMBER` in `packages/platform-core/src/connectors/google/project.ts`. Operator Connectors status checks that `GOOGLE_CLIENT_ID` is issued from this project.
+
+---
+
 ## Env
 
 | Variable | Purpose |
@@ -17,7 +39,7 @@
 
 Distinct from `GOOGLE_GEOCODING_API_KEY` / `GOOGLE_PLACES_API_KEY`.
 
-Cloud Console: enable **My Business Account Management API**, **My Business Business Information API**, and (for reviews) **Google My Business API**.
+Cloud Console (project `742705345842` only): enable **My Business Account Management API**, **My Business Business Information API**, and (for reviews) **Google My Business API**.
 
 ---
 
@@ -50,7 +72,7 @@ Default scope `https://www.googleapis.com/auth/business.manage` is sufficient fo
 |-------|--------|-------|
 | `/api/connectors/google/connect` | GET | Start OAuth |
 | `/api/connectors/google/callback` | GET | Exchange + best-effort first sync |
-| `/api/v1/connectors/google/status` | GET | Config + probe + cached health/locations |
+| `/api/v1/connectors/google/status` | GET | Config + probe + cached health/locations + allowlisted Cloud project check |
 | `/api/v1/connectors/google/locations` | GET | Cached accounts/locations |
 | `/api/v1/connectors/google/sync` | POST | Pull accounts, locations, reviews |
 | `/api/v1/connectors/google/disconnect` | POST | Clear org tokens + snapshot |

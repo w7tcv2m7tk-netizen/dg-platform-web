@@ -5,6 +5,8 @@
  *   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (shared with GBP)
  *   GOOGLE_GMAIL_REDIRECT_URI (default …/api/connectors/google-gmail/callback)
  *   GOOGLE_GMAIL_OAUTH_SCOPES (optional override)
+ *
+ * Same Cloud project as GBP — see ./project.ts. Do not create a second OAuth app.
  */
 
 import { decryptSecret, encryptSecret } from "../../crypto/secret-field";
