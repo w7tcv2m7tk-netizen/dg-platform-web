@@ -2,8 +2,20 @@ import Link from "next/link";
 import { listTasks, sessionHasFeature } from "@dg/platform-core";
 
 import { CreateTaskForm } from "@/components/crm/CreateTaskForm";
-import { TasksList } from "@/components/crm/TasksList";
+import { TasksList, type TaskListItem } from "@/components/crm/TasksList";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+
+function endOfToday() {
+  const value = new Date();
+  value.setHours(23, 59, 59, 999);
+  return value.getTime();
+}
+
+function startOfToday() {
+  const value = new Date();
+  value.setHours(0, 0, 0, 0);
+  return value.getTime();
+}
 
 export default async function CrmTasksPage() {
   const session = await getAuthorisedPlatformPageSession("crm.tasks.read");
@@ -29,14 +41,27 @@ export default async function CrmTasksPage() {
     listTasks({
       organisationId: session.organisationId,
       status: "open",
-      limit: 50,
+      limit: 100,
     }),
     listTasks({
       organisationId: session.organisationId,
       status: "completed",
-      limit: 25,
+      limit: 50,
     }),
   ]);
+
+  const now = Date.now();
+  const todayStart = startOfToday();
+  const todayEnd = endOfToday();
+  const openTasks = openResult.items as TaskListItem[];
+  const overdue = openTasks.filter((task) => task.dueAt && new Date(task.dueAt).getTime() < now);
+  const today = openTasks.filter((task) => {
+    if (!task.dueAt) return false;
+    const due = new Date(task.dueAt).getTime();
+    return due >= todayStart && due <= todayEnd && due >= now;
+  });
+  const upcoming = openTasks.filter((task) => task.dueAt && new Date(task.dueAt).getTime() > todayEnd);
+  const unscheduled = openTasks.filter((task) => !task.dueAt);
 
   return (
     <>
@@ -50,39 +75,68 @@ export default async function CrmTasksPage() {
           {completedResult.meta.total} completed
         </p>
       </header>
-      <main className="dg-page-main">
-        <div className="grid gap-8 lg:grid-cols-2">
-          {canWrite ? (
-            <div className="dg-card">
-              <h2 className="font-semibold text-white">Create task</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Follow-ups and reminders. Link to a contact from the contact page for timeline
-                activity.
-              </p>
-              <div className="mt-4">
-                <CreateTaskForm />
-              </div>
+      <main className="dg-page-main space-y-8">
+        {canWrite ? (
+          <section className="dg-card">
+            <h2 className="font-semibold text-white">Create task</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Add enough detail that the next action is obvious when you return to it.
+            </p>
+            <div className="mt-4">
+              <CreateTaskForm />
             </div>
-          ) : null}
+          </section>
+        ) : null}
+
+        <section className="grid gap-6 xl:grid-cols-2">
+          <div className="dg-card border-amber-900/50">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-semibold text-white">Overdue</h2>
+              <span className="text-sm text-amber-400">{overdue.length}</span>
+            </div>
+            <TasksList tasks={overdue} canWrite={canWrite} emptyLabel="Nothing overdue." />
+          </div>
 
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Open</h2>
-            <TasksList
-              tasks={openResult.items}
-              canWrite={canWrite}
-              emptyLabel="No open tasks. Create one to track follow-through."
-            />
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-semibold text-white">Today</h2>
+              <span className="text-sm text-slate-400">{today.length}</span>
+            </div>
+            <TasksList tasks={today} canWrite={canWrite} emptyLabel="Nothing else due today." />
           </div>
 
-          <div className="dg-card lg:col-span-2">
-            <h2 className="font-semibold text-white">Completed</h2>
+          <div className="dg-card">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-semibold text-white">Upcoming</h2>
+              <span className="text-sm text-slate-400">{upcoming.length}</span>
+            </div>
+            <TasksList tasks={upcoming} canWrite={canWrite} emptyLabel="No upcoming tasks." />
+          </div>
+
+          <div className="dg-card">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-semibold text-white">No due date</h2>
+              <span className="text-sm text-slate-400">{unscheduled.length}</span>
+            </div>
             <TasksList
-              tasks={completedResult.items}
+              tasks={unscheduled}
               canWrite={canWrite}
-              emptyLabel="No completed tasks yet."
+              emptyLabel="Every open task has a due date."
             />
           </div>
-        </div>
+        </section>
+
+        <section className="dg-card">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-white">Completed</h2>
+            <span className="text-sm text-slate-400">{completedResult.items.length}</span>
+          </div>
+          <TasksList
+            tasks={completedResult.items as TaskListItem[]}
+            canWrite={canWrite}
+            emptyLabel="No completed tasks yet."
+          />
+        </section>
       </main>
     </>
   );
