@@ -5,6 +5,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 type EditableControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 
 const LEAVE_MESSAGE = "You have unsaved Website Studio changes. Leave without saving them?";
+const NETWORK_ERROR_MESSAGE = "Network request failed. Check your connection and try again.";
 
 function isTrackedControl(node: EventTarget | null): node is EditableControl {
   if (node instanceof HTMLTextAreaElement || node instanceof HTMLSelectElement) return true;
@@ -42,6 +43,13 @@ function requestValues(body: BodyInit | null | undefined): Set<string> {
     values.add(body);
   }
   return values;
+}
+
+function networkFailureResponse(): Response {
+  return new Response(JSON.stringify({ error: { message: NETWORK_ERROR_MESSAGE } }), {
+    status: 503,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 export function WebsiteStudioUnsavedChangesGuard({ children }: { children: ReactNode }) {
@@ -115,7 +123,12 @@ export function WebsiteStudioUnsavedChangesGuard({ children }: { children: React
 
     const originalFetch = window.fetch.bind(window);
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-      const response = await originalFetch(input, init);
+      let response: Response;
+      try {
+        response = await originalFetch(input, init);
+      } catch {
+        return networkFailureResponse();
+      }
       if (response.ok && init?.method && init.method.toUpperCase() !== "GET") {
         const savedValues = requestValues(init.body);
         if (savedValues.size) {
