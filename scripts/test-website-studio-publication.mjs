@@ -23,6 +23,10 @@ test("authorised Studio preview can render unpublished content", () => {
   assert.equal(canRenderStudioContent({ siteStatus: "draft", pageStatus: "draft", previewRequested: true, previewAuthorised: true }), true);
 });
 
+test("preview authorisation alone cannot expose drafts without an explicit preview request", () => {
+  assert.equal(canRenderStudioContent({ siteStatus: "draft", pageStatus: "draft", previewRequested: false, previewAuthorised: true }), false);
+});
+
 test("unauthorised preview query still permits already-published content", () => {
   assert.equal(canRenderStudioContent({ siteStatus: "published", pageStatus: "published", previewRequested: true, previewAuthorised: false }), true);
 });
