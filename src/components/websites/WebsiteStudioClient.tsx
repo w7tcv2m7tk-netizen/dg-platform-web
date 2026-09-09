@@ -53,6 +53,19 @@ export function WebsiteStudioClient({
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const initialChrome =
+    initial.metadata &&
+    typeof initial.metadata === "object" &&
+    initial.metadata.chrome &&
+    typeof initial.metadata.chrome === "object"
+      ? (initial.metadata.chrome as {
+          headerHtml?: string | null;
+          footerHtml?: string | null;
+        })
+      : null;
+  const [headerDraft, setHeaderDraft] = useState(initialChrome?.headerHtml ?? "");
+  const [footerDraft, setFooterDraft] = useState(initialChrome?.footerHtml ?? "");
+  const [savingChrome, setSavingChrome] = useState(false);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null,
   );
@@ -268,6 +281,41 @@ export function WebsiteStudioClient({
         : "Header and footer hidden on this page",
     );
     setBusy(false);
+  }
+
+  async function saveSiteChrome() {
+    setSavingChrome(true);
+    setStatus("Saving header & footer…");
+    const meta = website.metadata;
+    const existingChrome =
+      meta &&
+      typeof meta === "object" &&
+      meta.chrome &&
+      typeof meta.chrome === "object"
+        ? (meta.chrome as Record<string, unknown>)
+        : {};
+    const chrome = {
+      ...existingChrome,
+      headerHtml: headerDraft,
+      footerHtml: footerDraft,
+    };
+    const res = await fetch(`/api/v1/websites/${website.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ metadata: { chrome } }),
+    });
+    const json = (await res.json()) as {
+      data?: SerializedWebsite;
+      error?: { message?: string };
+    };
+    if (json.data) {
+      setWebsite(json.data);
+      setStatus("Header & footer saved");
+      router.refresh();
+    } else {
+      setStatus(json.error?.message || "Could not save header & footer");
+    }
+    setSavingChrome(false);
   }
 
   async function duplicatePage(targetPageId: string) {
@@ -782,62 +830,79 @@ export function WebsiteStudioClient({
           <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
               <h2 className="text-xs uppercase tracking-wide text-slate-500">
-                Site chrome status
+                Header &amp; footer HTML
               </h2>
+              <button
+                type="button"
+                disabled={busy || savingChrome}
+                onClick={() => void saveSiteChrome()}
+                className="rounded bg-sky-600 px-2.5 py-1 text-[11px] font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+              >
+                {savingChrome ? "Saving…" : "Save header & footer"}
+              </button>
             </div>
-            {(() => {
-              const chrome =
-                website.metadata &&
-                typeof website.metadata === "object" &&
-                website.metadata.chrome &&
-                typeof website.metadata.chrome === "object"
-                  ? (website.metadata.chrome as {
-                      headerHtml?: string | null;
-                      footerHtml?: string | null;
-                    })
-                  : null;
-              const headerLen = chrome?.headerHtml?.trim()?.length ?? 0;
-              const footerLen = chrome?.footerHtml?.trim()?.length ?? 0;
-              const hasBrand =
-                Boolean(website.theme?.logoUrl || website.theme?.iconUrl);
-              return (
-                <div className="space-y-3 text-sm text-slate-400">
-                  <p className="text-xs">
-                    Per-page show/hide controls are in the{" "}
-                    <span className="text-amber-200/90">Header &amp; footer</span>{" "}
-                    panel above (and on the SEO tab).
-                  </p>
-                  <ul className="space-y-1 text-xs">
-                    <li>
-                      Header HTML:{" "}
-                      <span className={headerLen ? "text-emerald-400" : "text-amber-300"}>
-                        {headerLen ? `${headerLen.toLocaleString()} chars` : "not set"}
-                      </span>
-                    </li>
-                    <li>
-                      Footer HTML:{" "}
-                      <span className={footerLen ? "text-emerald-400" : "text-amber-300"}>
-                        {footerLen ? `${footerLen.toLocaleString()} chars` : "not set"}
-                      </span>
-                    </li>
-                    <li>
-                      Brand fallback:{" "}
-                      <span className={hasBrand ? "text-emerald-400" : "text-slate-500"}>
-                        {hasBrand
-                          ? "theme logo/icon available if HTML chrome is empty"
-                          : "no theme logo — set Business Profile brand"}
-                      </span>
-                    </li>
-                  </ul>
-                  {!headerLen && !footerLen ? (
-                    <p className="text-xs text-amber-200/90">
-                      Re-import chrome from marketing sources or paste header/footer HTML into site
-                      metadata to restore icons and layout.
-                    </p>
-                  ) : null}
-                </div>
-              );
-            })()}
+            <p className="mb-2 text-[11px] text-slate-500">
+              Custom HTML rendered around every page on this site. Supports{" "}
+              <code className="text-slate-400">&lt;style&gt;</code> blocks. Per-page
+              show/hide is on the SEO tab. Leave empty to fall back to the theme
+              logo/icon.
+            </p>
+            <div className="space-y-3">
+              <label className="block">
+                <span className="mb-1 block text-[11px] uppercase tracking-wide text-slate-500">
+                  Header HTML{" "}
+                  <span
+                    className={
+                      headerDraft.trim().length
+                        ? "text-emerald-400"
+                        : "text-amber-300"
+                    }
+                  >
+                    (
+                    {headerDraft.trim().length
+                      ? `${headerDraft.trim().length.toLocaleString()} chars`
+                      : "empty"}
+                    )
+                  </span>
+                </span>
+                <textarea
+                  value={headerDraft}
+                  onChange={(e) => setHeaderDraft(e.target.value)}
+                  disabled={busy || savingChrome}
+                  rows={6}
+                  spellCheck={false}
+                  placeholder="<header>…</header>"
+                  className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-[11px] uppercase tracking-wide text-slate-500">
+                  Footer HTML{" "}
+                  <span
+                    className={
+                      footerDraft.trim().length
+                        ? "text-emerald-400"
+                        : "text-amber-300"
+                    }
+                  >
+                    (
+                    {footerDraft.trim().length
+                      ? `${footerDraft.trim().length.toLocaleString()} chars`
+                      : "empty"}
+                    )
+                  </span>
+                </span>
+                <textarea
+                  value={footerDraft}
+                  onChange={(e) => setFooterDraft(e.target.value)}
+                  disabled={busy || savingChrome}
+                  rows={6}
+                  spellCheck={false}
+                  placeholder="<footer>…</footer>"
+                  className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 font-mono text-[11px] text-slate-200 outline-none focus:border-sky-500 disabled:opacity-50"
+                />
+              </label>
+            </div>
           </div>
 
           <div className="rounded-md border border-slate-700 bg-slate-950/60 p-3">
