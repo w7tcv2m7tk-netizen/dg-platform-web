@@ -1,38 +1,22 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
 import {
   canAccessCommandCentre,
   getServicesOverview,
   listServiceTemplates,
+  sessionHasFeature,
 } from "@dg/platform-core";
 
 import { ApplyServiceTemplateForm } from "@/components/services/ApplyServiceTemplateForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
 
 export default async function ServicesOverviewPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
+  const session = await getAuthorisedPlatformPageSession("services.jobs.read");
+  if (!session) notFound();
 
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
-
-  if (!session) {
-    return (
-      <main className="dg-page-main">
-        <p className="text-slate-400">Sign in required.</p>
-      </main>
-    );
-  }
+  const canWriteJobs = sessionHasFeature(session, "services.jobs.write");
+  const canReadCommerce = sessionHasFeature(session, "commerce.read");
 
   const { prisma } = await import("@dg/database");
   const [overview, org] = await Promise.all([
@@ -103,13 +87,20 @@ export default async function ServicesOverviewPage() {
             <p className="text-xs uppercase tracking-wide text-slate-500">Completed</p>
             <p className="mt-1 text-3xl font-semibold text-white">{overview.counts.completed}</p>
           </div>
-          <Link
-            href="/apps/commerce/quotes"
-            className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500"
-          >
-            <p className="text-xs uppercase tracking-wide text-slate-500">Quotes</p>
-            <p className="mt-1 text-3xl font-semibold text-white">{overview.counts.quotes}</p>
-          </Link>
+          {canReadCommerce ? (
+            <Link
+              href="/apps/commerce/quotes"
+              className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500"
+            >
+              <p className="text-xs uppercase tracking-wide text-slate-500">Quotes</p>
+              <p className="mt-1 text-3xl font-semibold text-white">{overview.counts.quotes}</p>
+            </Link>
+          ) : (
+            <div className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Quotes</p>
+              <p className="mt-1 text-lg font-semibold text-slate-500">Unavailable</p>
+            </div>
+          )}
         </div>
 
         <p className="text-xs text-slate-500">{overview.honestyNote}</p>
@@ -120,11 +111,13 @@ export default async function ServicesOverviewPage() {
             Not separate Services modules — same objects as the rest of DigitalGate.
           </p>
           <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-            <li>
-              <Link href="/apps/commerce/quotes" className="text-sky-400 hover:underline">
-                Quotes → Commerce
-              </Link>
-            </li>
+            {canReadCommerce ? (
+              <li>
+                <Link href="/apps/commerce/quotes" className="text-sky-400 hover:underline">
+                  Quotes → Commerce
+                </Link>
+              </li>
+            ) : null}
             <li>
               <Link href="/apps/crm/contacts" className="text-sky-400 hover:underline">
                 Customers → CRM
@@ -212,14 +205,20 @@ export default async function ServicesOverviewPage() {
               One Services App — industry is configuration. Applying a template sets workflow, job
               types, and profile services.
             </p>
-            <ApplyServiceTemplateForm
-              currentKey={overview.templateKey}
-              templates={templates.map((t) => ({
-                key: t.key,
-                label: t.label,
-                description: t.description,
-              }))}
-            />
+            {canWriteJobs ? (
+              <ApplyServiceTemplateForm
+                currentKey={overview.templateKey}
+                templates={templates.map((t) => ({
+                  key: t.key,
+                  label: t.label,
+                  description: t.description,
+                }))}
+              />
+            ) : (
+              <p className="text-sm text-slate-500">
+                You have read-only access to Services templates.
+              </p>
+            )}
           </section>
 
           <section className="dg-card">
