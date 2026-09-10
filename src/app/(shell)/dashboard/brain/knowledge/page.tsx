@@ -18,10 +18,21 @@ function importanceClasses(importance: string) {
   return "border-slate-700 bg-slate-900/60 text-slate-300";
 }
 
-export default async function BusinessBrainKnowledgePage() {
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function BusinessBrainKnowledgePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { session } = await getPlatformPageContext();
   const items = session ? await listKnowledgeInbox(session.organisationId, 250) : [];
   const canGovern = Boolean(session && isOrgAdminRole(session.role));
+  const params = await searchParams;
+  const notice = firstParam(params.notice);
+  const tone = firstParam(params.tone) === "error" ? "error" : "success";
 
   const counts = items.reduce<Record<string, number>>((result, item) => {
     result[item.type] = (result[item.type] ?? 0) + 1;
@@ -54,6 +65,18 @@ export default async function BusinessBrainKnowledgePage() {
       </header>
 
       <main className="dg-page-main space-y-6">
+        {notice ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className={`dg-card ${tone === "error" ? "border-red-500/30" : "border-emerald-500/30"}`}
+          >
+            <p className={`text-sm ${tone === "error" ? "text-red-300" : "text-emerald-300"}`}>
+              {notice}
+            </p>
+          </div>
+        ) : null}
+
         {!session ? (
           <div className="dg-card border-amber-500/30">
             <p className="text-sm text-amber-300">Sign in to review Business Brain knowledge.</p>
