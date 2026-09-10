@@ -1,6 +1,11 @@
 import Link from "next/link";
 
-export default function DocumentsSigningPage() {
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+
+export default async function DocumentsSigningPage() {
+  const session = await getAuthorisedPlatformPageSession("documents.read");
+  if (!session) return null;
+
   return (
     <>
       <header className="dg-page-header">
