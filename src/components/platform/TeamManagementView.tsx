@@ -7,6 +7,7 @@ import {
 import { enrichMembersWithClerkAccount } from "@dg/platform-core/org/membership-profile-clerk";
 
 import { TeamInviteForm } from "@/components/platform/TeamInviteForm";
+import { TeamPermissionsEditor } from "@/components/platform/TeamPermissionsEditor";
 import { TeamProfileEditor } from "@/components/platform/TeamProfileEditor";
 import { TeamRoleSelect } from "@/components/platform/TeamRoleSelect";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
@@ -51,7 +52,8 @@ export async function TeamManagementView({ context }: TeamManagementViewProps) {
       )
     : [];
 
-  const isOwner = session?.role === "owner" || session?.role === "admin";
+  const isOwnerOrAdmin = session?.role === "owner" || session?.role === "admin";
+  const canManagePermissions = session?.role === "owner";
   const backHref = context === "business" ? "/dashboard/business" : "/dashboard/settings";
   const backLabel = context === "business" ? "← Business Profile" : "← Settings";
   const title = context === "business" ? "Team" : "Team & access";
@@ -86,7 +88,7 @@ export async function TeamManagementView({ context }: TeamManagementViewProps) {
             </li>
           </ul>
           <p className="mt-3 text-xs text-slate-500">
-            Permissions are enforced in the API, not only by hiding sidebar items.
+            Permissions are enforced in the API, not only by hiding sidebar items. The Organisation Owner can add granular access for individual teammates below.
           </p>
         </div>
 
@@ -105,18 +107,18 @@ export async function TeamManagementView({ context }: TeamManagementViewProps) {
             {members.map((member) => {
               const isMe = member.clerkUserId === session.clerkUserId;
               return (
-                <div key={member.id} className="space-y-2">
+                <div key={member.id} className="space-y-3">
                   <div className="flex items-center justify-between gap-2 px-1">
                     <span className="text-xs text-slate-500">Role</span>
                     <TeamRoleSelect
                       membershipId={member.id}
                       role={member.role}
-                      disabled={!isOwner || isMe || member.role === "owner"}
+                      disabled={!isOwnerOrAdmin || isMe || member.role === "owner"}
                     />
                   </div>
                   <TeamProfileEditor
-                    canEdit={isMe || isOwner}
-                    canRemove={isOwner && !isMe}
+                    canEdit={isMe || isOwnerOrAdmin}
+                    canRemove={isOwnerOrAdmin && !isMe}
                     member={{
                       id: member.id,
                       displayName: member.displayName,
@@ -133,6 +135,11 @@ export async function TeamManagementView({ context }: TeamManagementViewProps) {
                         | string
                         | undefined,
                     }}
+                  />
+                  <TeamPermissionsEditor
+                    membershipId={member.id}
+                    permissions={member.permissions}
+                    disabled={!canManagePermissions || member.role === "owner"}
                   />
                 </div>
               );
@@ -152,7 +159,7 @@ export async function TeamManagementView({ context }: TeamManagementViewProps) {
             a Clerk email and land in this organisation at the chosen role when
             they first sign in.
           </p>
-          <TeamInviteForm canInvite={Boolean(isOwner)} />
+          <TeamInviteForm canInvite={Boolean(isOwnerOrAdmin)} />
         </div>
       </main>
     </>

@@ -3,6 +3,7 @@ export * from "./memberships";
 export * from "./team-invites";
 export * from "./client-org";
 export * from "./membership-profile";
+export * from "./membership-permissions";
 export * from "./setup-status";
 export * from "./onboarding-profile";
 export * from "./portal-profile";
