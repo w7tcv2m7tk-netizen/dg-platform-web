@@ -1,5 +1,6 @@
 import {
   createPaymentRequest,
+  isLinkedCommerceRecordNotFoundError,
   listOrganisationPaymentRequests,
   listPaymentRequestsForEntity,
 } from "@dg/platform-core";
@@ -53,6 +54,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ data: result }, { status: 201 });
   } catch (err) {
+    if (isLinkedCommerceRecordNotFoundError(err)) {
+      return NextResponse.json(
+        { error: { code: err.code, message: err.message } },
+        { status: 422 },
+      );
+    }
     const message = err instanceof Error ? err.message : "Payment request failed";
     return NextResponse.json(
       { error: { code: "payment_error", message } },

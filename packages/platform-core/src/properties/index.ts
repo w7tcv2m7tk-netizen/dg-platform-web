@@ -261,8 +261,92 @@ async function mergeResolvedAddress(input: CreatePropertyInput): Promise<CreateP
   };
 }
 
+export type LinkedPropertyRelation = "owner_contact" | "lead";
+
+export class LinkedPropertyRecordNotFoundError extends Error {
+  readonly code: `linked_${LinkedPropertyRelation}_not_found`;
+  readonly relation: LinkedPropertyRelation;
+
+  constructor(relation: LinkedPropertyRelation) {
+    super(`Linked ${relation.replace(/_/g, " ")} not found in this organisation`);
+    this.name = "LinkedPropertyRecordNotFoundError";
+    this.relation = relation;
+    this.code = `linked_${relation}_not_found`;
+  }
+}
+
+export function isLinkedPropertyRecordNotFoundError(
+  error: unknown,
+): error is LinkedPropertyRecordNotFoundError {
+  return (
+    error instanceof LinkedPropertyRecordNotFoundError ||
+    (error instanceof Error && error.name === "LinkedPropertyRecordNotFoundError")
+  );
+}
+
+function normalizeOptionalRelationId(value: string | null | undefined): string | null | undefined {
+  if (value === undefined) return undefined;
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  return trimmed || null;
+}
+
+async function assertPropertyOwnerContactInOrganisation(
+  organisationId: string,
+  ownerContactId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const contact = await prisma.contact.findFirst({
+    where: { id: ownerContactId, organisationId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!contact) {
+    throw new LinkedPropertyRecordNotFoundError("owner_contact");
+  }
+}
+
+async function assertPropertyLeadInOrganisation(
+  organisationId: string,
+  leadId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const lead = await prisma.lead.findFirst({
+    where: { id: leadId, organisationId },
+    select: { id: true },
+  });
+  if (!lead) {
+    throw new LinkedPropertyRecordNotFoundError("lead");
+  }
+}
+
+async function resolvePropertyRelationshipIds(
+  organisationId: string,
+  input: {
+    ownerContactId?: string | null;
+    leadId?: string | null;
+  },
+): Promise<{
+  ownerContactId?: string | null;
+  leadId?: string | null;
+}> {
+  const ownerContactId = normalizeOptionalRelationId(input.ownerContactId);
+  const leadId = normalizeOptionalRelationId(input.leadId);
+
+  if (ownerContactId) {
+    await assertPropertyOwnerContactInOrganisation(organisationId, ownerContactId);
+  }
+  if (leadId) {
+    await assertPropertyLeadInOrganisation(organisationId, leadId);
+  }
+
+  return { ownerContactId, leadId };
+}
+
 export async function createProperty(input: CreatePropertyInput) {
   const { prisma } = await import("@dg/database");
+  const links = await resolvePropertyRelationshipIds(input.organisationId, {
+    ownerContactId: input.ownerContactId,
+    leadId: input.leadId,
+  });
   const resolvedInput = await mergeResolvedAddress(input);
 
   const meta = resolvedInput.metadata ?? {};
@@ -285,8 +369,8 @@ export async function createProperty(input: CreatePropertyInput) {
       propertyType: resolvedInput.propertyType,
       bedrooms: resolvedInput.bedrooms,
       bathrooms: resolvedInput.bathrooms,
-      ownerContactId: resolvedInput.ownerContactId,
-      leadId: resolvedInput.leadId,
+      ownerContactId: links.ownerContactId ?? null,
+      leadId: links.leadId ?? null,
       listingPriceCents: resolvedInput.listingPriceCents,
       currency: resolvedInput.currency ?? "AUD",
       metadata: meta as Prisma.InputJsonValue,

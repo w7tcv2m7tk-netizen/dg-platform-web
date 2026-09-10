@@ -9,6 +9,60 @@ import type {
   UpdateFinanceApplicationInput,
 } from "./types";
 
+export type LinkedFinanceRelation = "contact";
+
+export class LinkedFinanceRecordNotFoundError extends Error {
+  readonly code: `linked_${LinkedFinanceRelation}_not_found`;
+  readonly relation: LinkedFinanceRelation;
+
+  constructor(relation: LinkedFinanceRelation) {
+    super(`Linked ${relation} not found in this organisation`);
+    this.name = "LinkedFinanceRecordNotFoundError";
+    this.relation = relation;
+    this.code = `linked_${relation}_not_found`;
+  }
+}
+
+export function isLinkedFinanceRecordNotFoundError(
+  error: unknown,
+): error is LinkedFinanceRecordNotFoundError {
+  return (
+    error instanceof LinkedFinanceRecordNotFoundError ||
+    (error instanceof Error && error.name === "LinkedFinanceRecordNotFoundError")
+  );
+}
+
+function normalizeOptionalRelationId(value: string | null | undefined): string | null | undefined {
+  if (value === undefined) return undefined;
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  return trimmed || null;
+}
+
+async function assertFinanceContactInOrganisation(
+  organisationId: string,
+  contactId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const contact = await prisma.contact.findFirst({
+    where: { id: contactId, organisationId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!contact) {
+    throw new LinkedFinanceRecordNotFoundError("contact");
+  }
+}
+
+async function resolveFinanceRelationshipIds(
+  organisationId: string,
+  input: { contactId?: string | null },
+): Promise<{ contactId?: string | null }> {
+  const contactId = normalizeOptionalRelationId(input.contactId);
+  if (contactId) {
+    await assertFinanceContactInOrganisation(organisationId, contactId);
+  }
+  return { contactId };
+}
+
 function serialize(row: FinanceApplication): FinanceApplicationRecord {
   return {
     id: row.id,
@@ -59,12 +113,15 @@ export async function listFinanceApplications(options: ListFinanceApplicationsOp
 
 export async function createFinanceApplication(input: CreateFinanceApplicationInput) {
   const { prisma } = await import("@dg/database");
+  const links = await resolveFinanceRelationshipIds(input.organisationId, {
+    contactId: input.contactId,
+  });
   const row = await prisma.financeApplication.create({
     data: {
       organisationId: input.organisationId,
       title: input.title.trim(),
       stage: input.stage?.trim() || "enquiry",
-      contactId: input.contactId || null,
+      contactId: links.contactId ?? null,
       loanAmountCents: input.loanAmountCents ?? null,
       lenderName: input.lenderName?.trim() || null,
       notes: input.notes?.trim() || null,
@@ -91,13 +148,17 @@ export async function updateFinanceApplication(input: UpdateFinanceApplicationIn
   });
   if (!existing) return null;
 
+  const links = await resolveFinanceRelationshipIds(input.organisationId, {
+    contactId: input.contactId,
+  });
+
   const data: Prisma.FinanceApplicationUpdateInput = {};
   if (input.title !== undefined) data.title = input.title.trim();
   if (input.stage !== undefined) data.stage = input.stage.trim();
   if (input.status !== undefined) data.status = input.status;
   if (input.contactId !== undefined) {
-    data.contact = input.contactId
-      ? { connect: { id: input.contactId } }
+    data.contact = links.contactId
+      ? { connect: { id: links.contactId } }
       : { disconnect: true };
   }
   if (input.loanAmountCents !== undefined) data.loanAmountCents = input.loanAmountCents;

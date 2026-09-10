@@ -3,6 +3,7 @@ import type { Prisma } from "@dg/database";
 import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
 import { bootPaymentConnectors, defaultPaymentProviderId, requirePaymentConnector } from "./connectors";
+import { resolveCommerceRelationshipIds } from "./document-engine";
 import type {
   CommerceCurrency,
   CommerceLineItem,
@@ -35,6 +36,11 @@ export async function createPaymentRequest(
   input: CreatePaymentRequestInput,
 ): Promise<PaymentRequestResult> {
   const { prisma } = await import("@dg/database");
+  const links = await resolveCommerceRelationshipIds(input.organisationId, {
+    contactId: input.contactId,
+    quoteId: input.quoteId,
+    invoiceId: input.invoiceId,
+  });
 
   const currency = (input.currency ?? "AUD") as CommerceCurrency;
   const lineItems = serializeLineItems(input.lineItems);
@@ -48,9 +54,9 @@ export async function createPaymentRequest(
       sourceApp: input.sourceApp,
       sourceEntityType: input.sourceEntity?.type,
       sourceEntityId: input.sourceEntity?.id,
-      contactId: input.contactId,
-      quoteId: input.quoteId,
-      invoiceId: input.invoiceId,
+      contactId: links.contactId ?? null,
+      quoteId: links.quoteId ?? null,
+      invoiceId: links.invoiceId ?? null,
       status: "pending",
       currency,
       subtotalCents,
@@ -70,9 +76,9 @@ export async function createPaymentRequest(
   const resolvedUrls = defaultCheckoutUrls(paymentRequest.id);
 
   let customerEmail: string | undefined;
-  if (input.contactId) {
+  if (links.contactId) {
     const contact = await prisma.contact.findFirst({
-      where: { id: input.contactId, organisationId: input.organisationId },
+      where: { id: links.contactId, organisationId: input.organisationId },
       select: { email: true },
     });
     customerEmail = contact?.email ?? undefined;
