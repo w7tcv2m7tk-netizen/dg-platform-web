@@ -45,7 +45,7 @@ export default async function BusinessBrainKnowledgePage() {
             ← Business Brain
           </Link>
           <Link href="/apps/documents/library" className="text-sky-400 hover:underline">
-            Upload business documents →
+            Documents library →
           </Link>
           <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
             AI Advisor →
@@ -129,7 +129,7 @@ export default async function BusinessBrainKnowledgePage() {
                       Add to Knowledge Inbox
                     </button>
                     <Link href="/apps/documents/library" className="text-sm text-sky-400 hover:underline">
-                      Or upload a business document →
+                      Store supporting files separately in Documents →
                     </Link>
                   </div>
                 </form>
