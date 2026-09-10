@@ -14,6 +14,7 @@ export const GOOGLE_GBP_ALLOWLISTED_WEBSITE = "https://digitalgate.com.au/";
 /**
  * Account Management + Business Information + Google My Business (reviews)
  * are enabled on the allowlisted project (confirmed).
+ * Production GOOGLE_CLIENT_ID prefix is this project number (confirmed).
  */
 export const GOOGLE_GBP_BUSINESS_PROFILE_APIS_ENABLED = true;
 

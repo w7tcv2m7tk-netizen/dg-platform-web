@@ -17,8 +17,9 @@ Google Business Profile APIs are **allowlisted per business, one Cloud project o
 | Associated website | https://digitalgate.com.au/ |
 | Confirmed | GBP API Team — one project per business |
 | Business Profile APIs | **Enabled** — Account Management, Business Information, Google My Business (reviews) |
+| Production OAuth client | **On this project** — Vercel `GOOGLE_CLIENT_ID` prefix `742705345842-` (confirmed) |
 
-**Use this project for:** OAuth client (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`) and the enabled Business Profile APIs. Gmail OAuth shares the same client.
+**Use this project for:** OAuth client (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`) and the enabled Business Profile APIs. Gmail OAuth shares the same client. Production already does.
 
 **Do not:** create a second Cloud project and request GBP access again. Google will refuse it and point back here.
 
@@ -55,14 +56,14 @@ Cloud Console (project `742705345842` only): **My Business Account Management AP
 | Cache reviews → Reputation Universal Review feed | Best-effort when v4 Reviews API succeeds |
 | Reply publish / insights / posts | Not yet |
 
-Default scope `https://www.googleapis.com/auth/business.manage` is sufficient for accounts, locations, and reviews **when** the Google user has manager access on the location. The allowlisted project already has the APIs enabled — remaining review failures are login role, OAuth client on the wrong project, or location path.
+Default scope `https://www.googleapis.com/auth/business.manage` is sufficient for accounts, locations, and reviews **when** the Google user has manager access on the location. Project, APIs, and production OAuth client are already correct — remaining review failures are login role or location path.
 
 ---
 
 ## Honest gaps
 
 - If reviews return `PERMISSION_DENIED` / `404`, we **keep location metadata** and surface `reviewsBlockedReason` in UI — no fake review scores. Copy does **not** tell operators to enable APIs (they are already on).
-- After tokens were issued on another project, **Reconnect Google** so the allowlisted client is used.
+- Production OAuth is already on this project. If an org connected with a stale grant, **Reconnect Google** as an owner/manager, then Sync locations.
 - Location `name` from Business Information (`locations/{id}`) is normalised to `accounts/{accountId}/locations/{id}` for the Reviews v4 parent path.
 - Sync cache lives on `organisation.settings.connectors.google-gbp` (encrypted tokens + plaintext snapshot). Reviews capped at 200.
 
