@@ -19,12 +19,10 @@ function handler(source, name) {
 test("all organisation app mutations require settings.manage", () => {
   assert.match(apps, /function requireAppSettingsManage[\s\S]*module:\s*"settings"[\s\S]*action:\s*"manage"[\s\S]*scope:\s*"organisation"/);
   const patch = handler(apps, "PATCH");
-  for (const action of ["apply_plan", "toggle", "set", "reset"]) {
-    const start = patch.indexOf(`body.action === "${action}"`);
-    assert.ok(start >= 0, `${action} branch must exist`);
-    const slice = patch.slice(start, start + 1200);
-    assert.match(slice, /requireAppSettingsManage\(session\)/, `${action} must enforce app settings authority`);
-  }
+  assert.match(patch, /if \(body\.action === "apply_plan" && body\.plan\) \{\s*const denied = requireAppSettingsManage\(session\)/);
+  assert.match(patch, /else if \(body\.action === "toggle" && typeof body\.appId === "string"\) \{\s*const denied = requireAppSettingsManage\(session\)/);
+  assert.match(patch, /else if \(body\.action === "set" && Array\.isArray\(body\.enabled\)\) \{\s*const denied = requireAppSettingsManage\(session\)/);
+  assert.match(patch, /else if \(body\.action === "reset"\) \{\s*const denied = requireAppSettingsManage\(session\)/);
 });
 
 test("organisation goal writes require organisation-scope settings.edit", () => {
