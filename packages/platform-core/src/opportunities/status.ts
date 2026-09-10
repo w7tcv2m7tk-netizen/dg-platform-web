@@ -67,8 +67,15 @@ export async function updateOpportunityStatus(input: {
     } as unknown as Prisma.InputJsonValue,
   });
 
+  const eventType =
+    input.status === "won"
+      ? ("opportunity.won" as const)
+      : input.status === "lost"
+        ? ("opportunity.lost" as const)
+        : ("opportunity.reopened" as const);
+
   await platformEvents.publish({
-    type: "opportunity.status_changed",
+    type: eventType,
     organisationId: input.organisationId,
     actorId: input.actorId,
     entityType: "Opportunity",
