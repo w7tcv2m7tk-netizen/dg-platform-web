@@ -8,6 +8,10 @@ const route = fs.readFileSync(
   path.join(root, "src/app/api/v1/onboarding/gen2/route.ts"),
   "utf8",
 );
+const page = fs.readFileSync(
+  path.join(root, "src/app/(shell)/onboarding/page.tsx"),
+  "utf8",
+);
 
 assert.match(
   route,
@@ -72,6 +76,27 @@ assert.match(
   route,
   /markStepComplete === "stripe"[\s\S]*subscriptionActivatedAt: new Date\(\)\.toISOString\(\)/,
   "activation timestamp must be generated server-side after verification",
+);
+
+assert.match(
+  page,
+  /params\.checkout === "success"[\s\S]*getOrganisationBillingStatus\(session\.organisationId\)/,
+  "checkout return page must verify canonical billing before surfacing success",
+);
+assert.match(
+  page,
+  /billing\?\.hasStripeCustomer && VERIFIED_CHECKOUT_KINDS\.has\(billing\.kind\)/,
+  "checkout return page must require the same verified Stripe billing kinds",
+);
+assert.match(
+  page,
+  /if \(checkoutVerified\)[\s\S]*checkoutStatus = "success"[\s\S]*checkoutPending = true/,
+  "unverified successful returns must enter a pending state rather than impersonating activation",
+);
+assert.match(
+  page,
+  /if \(checkoutPending\)[\s\S]*Confirming subscription[\s\S]*Check confirmation/,
+  "pending Stripe confirmation must show a truthful recovery path",
 );
 
 console.log("Onboarding checkout verification regression tests passed");
