@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import path from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import "./test-command-centre-concurrency.mjs";
+import "./test-onboarding-stripe-authority.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
