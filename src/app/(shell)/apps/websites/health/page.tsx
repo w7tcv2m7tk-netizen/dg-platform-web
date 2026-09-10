@@ -15,7 +15,7 @@ import {
   getWpHealthSite,
   listWpHealthSites,
 } from "@/lib/dg-api";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import {
   HealthCentreDashboard,
   HealthCentreError,
@@ -84,7 +84,7 @@ function healthActionHref(
 
 export default async function WebsiteHealthPage({ searchParams }: PageProps) {
   const { site: siteId, view } = await searchParams;
-  const { session } = await getPlatformPageContext();
+  const session = await getAuthorisedPlatformPageSession("websites.read");
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
@@ -94,9 +94,10 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
     session && allowed
       ? await listWebsitesWithPages(session.organisationId)
       : [];
-  const domains = session
-    ? await listOrganisationDomains(session.organisationId)
-    : [];
+  const domains =
+    session && allowed
+      ? await listOrganisationDomains(session.organisationId)
+      : [];
 
   // WordPress health is an explicit legacy migration/connector diagnostic view only.
   const showWpConnector =

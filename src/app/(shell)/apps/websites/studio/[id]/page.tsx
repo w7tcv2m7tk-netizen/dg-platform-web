@@ -11,13 +11,13 @@ import {
 
 import { WebsiteStudioClient } from "@/components/websites/WebsiteStudioClient";
 import { WebsiteStudioUnsavedChangesGuard } from "@/components/websites/WebsiteStudioUnsavedChangesGuard";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 type Props = { params: Promise<{ id: string }> };
 
 export default async function WebsiteStudioPage({ params }: Props) {
   const { id } = await params;
-  const { session } = await getPlatformPageContext();
+  const session = await getAuthorisedPlatformPageSession("websites.read");
 
   if (!session) {
     return (

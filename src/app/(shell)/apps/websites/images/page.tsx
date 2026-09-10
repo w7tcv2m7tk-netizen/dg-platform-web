@@ -5,10 +5,10 @@ import {
 } from "@dg/platform-core";
 
 import { StudioImagesPanel } from "@/components/websites/StudioImagesPanel";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function ImagesLibraryPage() {
-  const { session } = await getPlatformPageContext();
+  const session = await getAuthorisedPlatformPageSession("websites.read");
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
