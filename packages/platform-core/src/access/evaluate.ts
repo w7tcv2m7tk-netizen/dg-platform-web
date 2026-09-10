@@ -232,6 +232,8 @@ export function featureIdToPermissionCheck(featureId: string): PermissionCheck |
   let action: PermissionAction = "view";
   if (tail === "read" || tail === "view") action = "view";
   else if (tail === "write" || tail === "create") action = "create";
+  else if (tail === "send" || tail === "import") action = "create";
+  else if (tail === "configure") action = "manage";
   else if (tail === "update" || tail === "edit") action = "edit";
   else if (tail === "delete" || tail === "remove") action = "delete";
   else if (tail === "manage" || tail === "admin") action = "manage";
@@ -242,10 +244,16 @@ export function featureIdToPermissionCheck(featureId: string): PermissionCheck |
   else if (rest.includes("delete")) action = "delete";
   else if (rest.includes("manage")) action = "manage";
 
+  const organisationMutationTail =
+    tail === "send" || tail === "import" || tail === "configure";
+
   return {
     module,
     action,
-    scope: action === "view" ? "organisation" : "assigned",
+    scope:
+      action === "view" || organisationMutationTail
+        ? "organisation"
+        : "assigned",
     subModule: rest.length > 1 ? rest.slice(0, -1).join(".") : undefined,
   };
 }
