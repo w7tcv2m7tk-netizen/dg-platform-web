@@ -36,6 +36,41 @@ export interface ListContactsOptions {
   offset?: number;
 }
 
+export const LINKED_COMPANY_NOT_FOUND = "linked_company_not_found";
+
+export class LinkedCompanyNotFoundError extends Error {
+  readonly code = LINKED_COMPANY_NOT_FOUND;
+
+  constructor() {
+    super("Linked company not found in this organisation");
+    this.name = "LinkedCompanyNotFoundError";
+  }
+}
+
+export function isLinkedCompanyNotFoundError(
+  error: unknown,
+): error is LinkedCompanyNotFoundError {
+  return (
+    error instanceof LinkedCompanyNotFoundError ||
+    (error instanceof Error && error.name === "LinkedCompanyNotFoundError")
+  );
+}
+
+/** Reject company IDs that do not belong to the contact's organisation. */
+export async function assertCompanyInOrganisation(
+  organisationId: string,
+  companyId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const company = await prisma.company.findFirst({
+    where: { id: companyId, organisationId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!company) {
+    throw new LinkedCompanyNotFoundError();
+  }
+}
+
 function serializeContact(contact: Contact) {
   return {
     id: contact.id,
@@ -166,6 +201,10 @@ export async function ensureContactForLeadFields(input: {
 
 export async function createContact(input: CreateContactInput) {
   const { prisma } = await import("@dg/database");
+  const companyId = input.companyId?.trim() || null;
+  if (companyId) {
+    await assertCompanyInOrganisation(input.organisationId, companyId);
+  }
 
   const contact = await prisma.contact.create({
     data: {
@@ -176,7 +215,7 @@ export async function createContact(input: CreateContactInput) {
       phone: input.phone?.trim() || null,
       source: input.source?.trim() || "manual",
       tags: input.tags?.trim() || null,
-      companyId: input.companyId || null,
+      companyId,
     },
   });
 
@@ -277,9 +316,13 @@ export async function updateContact(input: UpdateContactInput) {
     data.status = input.status;
   }
   if (input.companyId !== undefined && input.companyId !== existing.companyId) {
-    changes.companyId = { before: existing.companyId, after: input.companyId };
-    data.company = input.companyId
-      ? { connect: { id: input.companyId } }
+    const nextCompanyId = input.companyId?.trim() || null;
+    if (nextCompanyId) {
+      await assertCompanyInOrganisation(input.organisationId, nextCompanyId);
+    }
+    changes.companyId = { before: existing.companyId, after: nextCompanyId };
+    data.company = nextCompanyId
+      ? { connect: { id: nextCompanyId } }
       : { disconnect: true };
   }
 

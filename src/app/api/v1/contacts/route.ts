@@ -1,4 +1,8 @@
-import { createContact, listContacts } from "@dg/platform-core";
+import {
+  createContact,
+  isLinkedCompanyNotFoundError,
+  listContacts,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
@@ -49,17 +53,32 @@ export async function POST(req: Request) {
     );
   }
 
-  const contact = await createContact({
-    organisationId: session.organisationId,
-    actorId: session.clerkUserId,
-    firstName: body.firstName,
-    lastName: body.lastName,
-    email: body.email,
-    phone: body.phone,
-    source: body.source,
-    tags: body.tags,
-    companyId: body.companyId,
-  });
+  try {
+    const contact = await createContact({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email,
+      phone: body.phone,
+      source: body.source,
+      tags: body.tags,
+      companyId: body.companyId,
+    });
 
-  return NextResponse.json({ data: contact }, { status: 201 });
+    return NextResponse.json({ data: contact }, { status: 201 });
+  } catch (error) {
+    if (isLinkedCompanyNotFoundError(error)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+        },
+        { status: 422 },
+      );
+    }
+    throw error;
+  }
 }
