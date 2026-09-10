@@ -14,7 +14,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 export const runtime = "nodejs";
 
@@ -32,6 +32,8 @@ function parseHostingMode(
 export async function GET(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "infrastructure.read");
+  if (denied) return denied;
   const { id } = await ctx.params;
 
   const domain = await getOrganisationDomain(session.organisationId, id);
@@ -90,6 +92,8 @@ export async function GET(req: Request, ctx: Ctx) {
 export async function POST(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "infrastructure.write");
+  if (denied) return denied;
   const { id } = await ctx.params;
 
   const domain = await getOrganisationDomain(session.organisationId, id);

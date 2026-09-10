@@ -4,7 +4,7 @@ import {
   getInfrastructureBackupOverview,
 } from "@dg/platform-core";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 export const runtime = "nodejs";
 
@@ -15,6 +15,11 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const download = url.searchParams.get("download") === "1";
+  const denied = requireFeature(
+    session,
+    download ? "infrastructure.write" : "infrastructure.read",
+  );
+  if (denied) return denied;
 
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
