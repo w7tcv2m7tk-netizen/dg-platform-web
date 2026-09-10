@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { currentUser } from "@clerk/nextjs/server";
 import {
   getActiveServiceTemplate,
   getContact,
@@ -8,13 +7,14 @@ import {
   listOrganisationActivities,
   listOrganisationMembers,
   listQuotesForEntity,
+  sessionHasFeature,
 } from "@dg/platform-core";
 
 import { AddServiceJobNoteForm } from "@/components/services/AddServiceJobNoteForm";
 import { EditServiceJobForm } from "@/components/services/EditServiceJobForm";
 import { JobChecklistPhotosPanel } from "@/components/services/JobChecklistPhotosPanel";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
 
 interface PageProps {
@@ -23,22 +23,12 @@ interface PageProps {
 
 export default async function ServiceJobDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
-
+  const session = await getAuthorisedPlatformPageSession("services.jobs.read");
   if (!session) notFound();
+
+  const canWriteJobs = sessionHasFeature(session, "services.jobs.write");
+  const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
+  const canReadCommerce = sessionHasFeature(session, "commerce.read");
 
   const job = await getServiceJob(session.organisationId, id);
   if (!job) notFound();
@@ -50,9 +40,13 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
         where: { id: session.organisationId },
         select: { settings: true, timezone: true },
       }),
-      listOrganisationMembers(session.organisationId),
-      listQuotesForEntity(session.organisationId, "ServiceJob", job.id),
-      job.contactId
+      canWriteJobs
+        ? listOrganisationMembers(session.organisationId)
+        : Promise.resolve([]),
+      canReadCommerce
+        ? listQuotesForEntity(session.organisationId, "ServiceJob", job.id)
+        : Promise.resolve([]),
+      canReadCommerce && job.contactId
         ? prisma.commerceQuote.findMany({
             where: { organisationId: session.organisationId, contactId: job.contactId },
             orderBy: { createdAt: "desc" },
@@ -69,9 +63,10 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
 
   const timeZone = org?.timezone || SERVICES_DEFAULT_TZ;
   const template = getActiveServiceTemplate(org?.settings);
-  const contact = job.contactId
-    ? await getContact(session.organisationId, job.contactId)
-    : null;
+  const contact =
+    canReadContacts && job.contactId
+      ? await getContact(session.organisationId, job.contactId)
+      : null;
 
   const quoteMap = new Map<
     string,
@@ -84,30 +79,32 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
       createdAt: string;
     }
   >();
-  for (const q of [...entityQuotes, ...contactQuotes]) {
-    quoteMap.set(q.id, {
-      id: q.id,
-      quoteNumber: q.quoteNumber,
-      status: q.status,
-      totalCents: q.totalCents,
-      currency: q.currency,
-      createdAt:
-        typeof q.createdAt === "string" ? q.createdAt : q.createdAt.toISOString(),
-    });
-  }
-  if (job.quoteId && !quoteMap.has(job.quoteId)) {
-    const linked = await prisma.commerceQuote.findFirst({
-      where: { id: job.quoteId, organisationId: session.organisationId },
-    });
-    if (linked) {
-      quoteMap.set(linked.id, {
-        id: linked.id,
-        quoteNumber: linked.quoteNumber,
-        status: linked.status,
-        totalCents: linked.totalCents,
-        currency: linked.currency,
-        createdAt: linked.createdAt.toISOString(),
+  if (canReadCommerce) {
+    for (const q of [...entityQuotes, ...contactQuotes]) {
+      quoteMap.set(q.id, {
+        id: q.id,
+        quoteNumber: q.quoteNumber,
+        status: q.status,
+        totalCents: q.totalCents,
+        currency: q.currency,
+        createdAt:
+          typeof q.createdAt === "string" ? q.createdAt : q.createdAt.toISOString(),
       });
+    }
+    if (job.quoteId && !quoteMap.has(job.quoteId)) {
+      const linked = await prisma.commerceQuote.findFirst({
+        where: { id: job.quoteId, organisationId: session.organisationId },
+      });
+      if (linked) {
+        quoteMap.set(linked.id, {
+          id: linked.id,
+          quoteNumber: linked.quoteNumber,
+          status: linked.status,
+          totalCents: linked.totalCents,
+          currency: linked.currency,
+          createdAt: linked.createdAt.toISOString(),
+        });
+      }
     }
   }
 
@@ -134,32 +131,58 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <div className="dg-card">
-          <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Stage</p>
-          <UpdateJobStageForm
-            jobId={job.id}
-            currentStage={job.stage}
-            stages={template.workflow}
+        {canWriteJobs ? (
+          <div className="dg-card">
+            <p className="mb-2 text-xs uppercase tracking-wide text-slate-500">Stage</p>
+            <UpdateJobStageForm
+              jobId={job.id}
+              currentStage={job.stage}
+              stages={template.workflow}
+            />
+          </div>
+        ) : null}
+        {canWriteJobs ? (
+          <EditServiceJobForm
+            job={job}
+            jobTypes={template.jobTypes}
+            jobFields={template.jobFields}
+            members={memberOptions}
+            quotes={[...quoteMap.values()]}
+            contact={
+              contact
+                ? {
+                    id: contact.id,
+                    label: [contact.firstName, contact.lastName].filter(Boolean).join(" "),
+                  }
+                : null
+            }
+            customerLabel={template.terminology.customer}
+            quoteLabel={template.terminology.quote}
           />
-        </div>
-        <EditServiceJobForm
-          job={job}
-          jobTypes={template.jobTypes}
-          jobFields={template.jobFields}
-          members={memberOptions}
-          quotes={[...quoteMap.values()]}
-          contact={
-            contact
-              ? {
-                  id: contact.id,
-                  label: [contact.firstName, contact.lastName].filter(Boolean).join(" "),
-                }
-              : null
-          }
-          customerLabel={template.terminology.customer}
-          quoteLabel={template.terminology.quote}
+        ) : (
+          <section className="dg-card space-y-2">
+            <h2 className="font-semibold text-white">Job</h2>
+            {contact ? (
+              <p className="text-sm text-slate-300">
+                {template.terminology.customer}:{" "}
+                {[contact.firstName, contact.lastName].filter(Boolean).join(" ")}
+              </p>
+            ) : null}
+            {canReadCommerce && quoteMap.size > 0 ? (
+              <p className="text-sm text-slate-400">
+                {template.terminology.quote}:{" "}
+                {[...quoteMap.values()]
+                  .map((q) => q.quoteNumber || q.id.slice(0, 8))
+                  .join(", ")}
+              </p>
+            ) : null}
+          </section>
+        )}
+        <JobChecklistPhotosPanel
+          jobId={job.id}
+          metadata={job.metadata}
+          canWrite={canWriteJobs}
         />
-        <JobChecklistPhotosPanel jobId={job.id} metadata={job.metadata} />
         <section className="dg-card">
           <h2 className="font-semibold text-white">Activity</h2>
           {!activitiesResult.items.length ? (
@@ -180,7 +203,7 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
               ))}
             </ul>
           )}
-          <AddServiceJobNoteForm jobId={job.id} />
+          {canWriteJobs ? <AddServiceJobNoteForm jobId={job.id} /> : null}
         </section>
       </main>
     </>
