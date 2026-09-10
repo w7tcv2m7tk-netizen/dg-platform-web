@@ -8,6 +8,7 @@ import {
   healthTrendFromHistory,
   loadHealthHistory,
   metricsContextFromLiveMetrics,
+  sessionCan,
   type AnalyticsBundle,
   type OrganisationBusinessProfile,
   type OverviewConnectorProbes,
@@ -47,6 +48,37 @@ const DEFAULT_TWIN_SCORES: AnalyticsTwinScores = {
   businessHealth: 0,
 };
 
+function redactFinancialReporting(bundle: AnalyticsBundle): AnalyticsBundle {
+  return {
+    ...bundle,
+    keyMetrics: bundle.keyMetrics.map((metric) =>
+      metric.id === "revenue"
+        ? {
+            ...metric,
+            value: "—",
+            context: "Restricted by your permissions",
+            status: "unavailable",
+            href: undefined,
+          }
+        : metric,
+    ),
+    dataSources: bundle.dataSources.filter((source) => source.id !== "stripe"),
+    predefinedDashboards: bundle.predefinedDashboards.map((dashboard) =>
+      dashboard.id === "executive"
+        ? {
+            ...dashboard,
+            description: "Leads, pipeline, conversion, health and growth",
+            metrics: dashboard.metrics.filter((metric) => metric !== "Revenue"),
+          }
+        : dashboard,
+    ),
+    reportTemplates: bundle.reportTemplates.map((report) => ({
+      ...report,
+      sections: report.sections.filter((section) => section !== "Revenue"),
+    })),
+  };
+}
+
 export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
   const { session: platformSession } = await getPlatformPageContext();
   const organisationName = platformSession?.organisationName ?? "Your business";
@@ -64,9 +96,16 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
     };
   }
 
+  const canViewOrganisationFinancials = sessionCan(platformSession, {
+    module: "commerce",
+    action: "view",
+    scope: "organisation",
+  });
   const enabledAppIds = await getOrgEnabledAppIds();
   const [metrics, connectors, profile, healthHistory, reviewsBundle] = await Promise.all([
-    gatherOverviewLiveMetrics(platformSession.organisationId),
+    gatherOverviewLiveMetrics(platformSession.organisationId, {
+      includeFinancials: canViewOrganisationFinancials,
+    }),
     fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
     getOrganisationBusinessProfile(platformSession.organisationId),
     loadHealthHistory(platformSession.organisationId),
@@ -102,7 +141,7 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
   }
 
   const healthTrend = healthTrendFromHistory(healthHistory, twinScores.businessHealth);
-  const bundle = buildAnalyticsBundle({
+  const rawBundle = buildAnalyticsBundle({
     organisationName,
     metrics,
     connectors,
@@ -110,6 +149,9 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
     reputationScore: reputationFromFeed.score,
     profile,
   });
+  const bundle = canViewOrganisationFinancials
+    ? rawBundle
+    : redactFinancialReporting(rawBundle);
 
   return {
     bundle,

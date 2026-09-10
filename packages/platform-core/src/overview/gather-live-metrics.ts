@@ -43,11 +43,13 @@ function endOfToday() {
 /** Aggregate live KPIs from Postgres for Business Overview. */
 export async function gatherOverviewLiveMetrics(
   organisationId: string,
+  options: { includeFinancials?: boolean } = {},
 ): Promise<OverviewLiveMetrics> {
   const { prisma } = await import("@dg/database");
   const weekStart = startOfWeek();
   const todayEnd = endOfToday();
   const now = new Date();
+  const includeFinancials = options.includeFinancials !== false;
 
   const [
     setupStatus,
@@ -64,7 +66,7 @@ export async function gatherOverviewLiveMetrics(
     consultationCount,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
-    getCommerceFinancialSnapshot(organisationId),
+    includeFinancials ? getCommerceFinancialSnapshot(organisationId) : Promise.resolve(null),
     listLeads({ organisationId, leadType: "vendor", limit: 1 }),
     listLeads({ organisationId, leadType: "buyer", limit: 1 }),
     prisma.lead.count({
@@ -131,11 +133,11 @@ export async function gatherOverviewLiveMetrics(
     listedPropertyCount: listedProperties.meta.total,
     pipelineValueCents: pipelineAgg._sum.listingPriceCents ?? 0,
     openTasksDue,
-    revenueMtdCents: financial.revenueMtdCents,
-    revenueYtdCents: financial.revenueYtdCents,
-    outstandingArCents: financial.outstandingArCents,
-    overdueArCents: financial.overdueArCents,
-    activeSubscriptions: financial.activeSubscriptions,
+    revenueMtdCents: financial?.revenueMtdCents ?? 0,
+    revenueYtdCents: financial?.revenueYtdCents ?? 0,
+    outstandingArCents: financial?.outstandingArCents ?? 0,
+    overdueArCents: financial?.overdueArCents ?? 0,
+    activeSubscriptions: financial?.activeSubscriptions ?? 0,
     openOpportunityCount,
     openLeadCount,
     consultationCount,
