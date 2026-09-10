@@ -51,6 +51,12 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "edit",
+    scope: "organisation",
+  });
+  if (denied) return denied;
   const blocked = await rejectDemoLiveAction(session);
   if (blocked) return blocked;
 
@@ -60,12 +66,12 @@ export async function PATCH(req: Request) {
     : undefined;
 
   if (body.profile && typeof body.profile === "object") {
-    const denied = requirePermission(session, {
+    const profileDenied = requirePermission(session, {
       module: "settings",
       action: "manage",
       scope: "organisation",
     });
-    if (denied) return denied;
+    if (profileDenied) return profileDenied;
     await updateOrganisationBusinessProfile(session.organisationId, body.profile);
   }
 
