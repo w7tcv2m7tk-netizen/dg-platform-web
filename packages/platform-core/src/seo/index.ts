@@ -102,6 +102,8 @@ export async function runOrgSeoAudit(input: {
   websiteUrl?: string | null;
   actorId?: string;
   persist?: boolean;
+  /** Load Gen 2 Studio pages only when the caller has website view authority. */
+  includeNativeStudio?: boolean;
 }): Promise<OrgSeoAuditResult> {
   const profile = await getOrganisationBusinessProfile(input.organisationId);
   const websiteUrl =
@@ -134,14 +136,16 @@ export async function runOrgSeoAudit(input: {
   });
 
   let nativeHealth: SiteHealthSnapshot | null = null;
-  try {
-    const sites = await listWebsitesWithPages(input.organisationId);
-    const primary = sites[0];
-    if (primary) {
-      nativeHealth = buildNativeWebsiteHealth({ website: primary });
+  if (input.includeNativeStudio) {
+    try {
+      const sites = await listWebsitesWithPages(input.organisationId);
+      const primary = sites[0];
+      if (primary) {
+        nativeHealth = buildNativeWebsiteHealth({ website: primary });
+      }
+    } catch {
+      nativeHealth = null;
     }
-  } catch {
-    nativeHealth = null;
   }
 
   const seoBase = presence.scores.seo ?? 0;
