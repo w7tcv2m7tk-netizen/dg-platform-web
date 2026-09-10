@@ -103,6 +103,31 @@ assert.match(
   "unconfirmed Stripe returns must show a truthful pending state",
 );
 
+const checkoutFinalisation = wizard.slice(
+  wizard.indexOf('if (checkoutStatus !== "success") return;'),
+  wizard.indexOf("const save = useCallback"),
+);
+assert.match(
+  checkoutFinalisation,
+  /JSON\.stringify\(\{ markStepComplete: "stripe" \}\)/,
+  "checkout finalisation must send only the server-owned Stripe completion request",
+);
+assert.doesNotMatch(
+  checkoutFinalisation,
+  /subscriptionActivatedAt|checklist:\s*\{\s*subscription/,
+  "checkout finalisation must not submit browser-authored Stripe proof",
+);
+assert.match(
+  checkoutFinalisation,
+  /if \(!res\.ok \|\| !json\.data\?\.progress\)[\s\S]*setError\(/,
+  "failed checkout finalisation must surface a customer-visible error",
+);
+assert.match(
+  checkoutFinalisation,
+  /catch[\s\S]*setError\(/,
+  "network failure during checkout finalisation must surface a customer-visible error",
+);
+
 const implementationHandoff = wizard.slice(
   wizard.indexOf("async function completeImplementation"),
   wizard.indexOf("function toggleApp"),
