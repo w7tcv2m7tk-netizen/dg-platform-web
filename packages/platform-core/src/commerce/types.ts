@@ -137,7 +137,7 @@ export interface PaymentRequestResult {
 export interface CreateQuoteInput {
   organisationId: string;
   actorId?: string;
-  contactId?: string;
+  contactId?: string | null;
   sourceApp: string;
   sourceEntity?: CommerceSourceEntity;
   lineItems: CommerceLineItem[];
@@ -153,8 +153,8 @@ export interface CreateQuoteInput {
 export interface CreateInvoiceInput {
   organisationId: string;
   actorId?: string;
-  contactId?: string;
-  quoteId?: string;
+  contactId?: string | null;
+  quoteId?: string | null;
   sourceApp: string;
   sourceEntity?: CommerceSourceEntity;
   lineItems: CommerceLineItem[];

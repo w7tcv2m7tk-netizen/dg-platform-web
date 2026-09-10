@@ -14,6 +14,8 @@ export {
   createQuote,
   createInvoice,
   acceptQuote,
+  LinkedCommerceRecordNotFoundError,
+  isLinkedCommerceRecordNotFoundError,
   listQuotes,
   listQuotesForEntity,
   listInvoices,
