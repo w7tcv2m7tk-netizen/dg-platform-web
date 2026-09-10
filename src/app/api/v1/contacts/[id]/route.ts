@@ -1,6 +1,7 @@
 import {
   deleteContact,
   getContact,
+  isLinkedCompanyNotFoundError,
   listContactActivities,
   updateContact,
 } from "@dg/platform-core";
@@ -58,28 +59,43 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     );
   }
 
-  const updated = await updateContact({
-    organisationId: session.organisationId,
-    contactId: id,
-    actorId: session.clerkUserId,
-    firstName: body.firstName,
-    lastName: body.lastName,
-    email: body.email,
-    phone: body.phone,
-    source: body.source,
-    tags: body.tags,
-    status: body.status,
-    companyId: body.companyId,
-  });
+  try {
+    const updated = await updateContact({
+      organisationId: session.organisationId,
+      contactId: id,
+      actorId: session.clerkUserId,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email,
+      phone: body.phone,
+      source: body.source,
+      tags: body.tags,
+      status: body.status,
+      companyId: body.companyId,
+    });
 
-  if (!updated) {
-    return NextResponse.json(
-      { error: { code: "contact_not_found", message: "Contact not found" } },
-      { status: 404 },
-    );
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "contact_not_found", message: "Contact not found" } },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: updated });
+  } catch (error) {
+    if (isLinkedCompanyNotFoundError(error)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+        },
+        { status: 422 },
+      );
+    }
+    throw error;
   }
-
-  return NextResponse.json({ data: updated });
 }
 
 export async function DELETE(req: Request, { params }: RouteParams) {
