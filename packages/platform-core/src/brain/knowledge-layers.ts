@@ -14,7 +14,7 @@ export const BUSINESS_BRAIN_KNOWLEDGE_LAYERS = [
     id: "business",
     label: "Business Knowledge",
     summary:
-      "How this organisation works — plans, SOPs, brand, pricing, policies and uploaded documents.",
+      "How this organisation works — approved facts, decisions, strategies, processes, policies and principles.",
   },
   {
     id: "live",
@@ -62,5 +62,5 @@ export const BUSINESS_BRAIN_CONNECTED_SOURCES = [
   { id: "reviews", label: "Reputation", href: "/apps/reviews" },
   { id: "social", label: "Social", href: "/apps/social" },
   { id: "automation", label: "Automation", href: "/apps/automation" },
-  { id: "connectors", label: "Connectors", href: "/dashboard/settings/connectors" },
+  { id: "connectors", label: "Connected Services", href: "/dashboard/settings/connected-services" },
 ] as const;
