@@ -7,7 +7,12 @@ import {
 } from "@dg/platform-core";
 
 import { fetchPortalMe } from "@/lib/dg-api";
-import { isNextResponse, rejectDemoLiveAction, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  rejectDemoLiveAction,
+  requirePermission,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -20,6 +25,12 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "edit",
+    scope: "organisation",
+  });
+  if (denied) return denied;
   const blocked = await rejectDemoLiveAction(session);
   if (blocked) return blocked;
 
@@ -51,6 +62,12 @@ export async function PATCH(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "edit",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const portal = await fetchPortalMe(session.email, session.clerkUserId);
   const result = await syncOrganisationFromPortal({
