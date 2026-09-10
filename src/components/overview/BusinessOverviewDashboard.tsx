@@ -104,10 +104,10 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
     <div className="space-y-6">
       {!overview.scoresLive ? (
         <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-sm text-blue-200/90">
-          Intelligence preview — connect your website, Google, and CRM for live Business Health™
+          Intelligence preview — connect the business services you use to unlock live Business Health™
           scores.{" "}
-          <Link href="/dashboard/settings/connectors" className="underline hover:text-white">
-            Connectors →
+          <Link href="/dashboard/settings/connected-services" className="underline hover:text-white">
+            Connected Services →
           </Link>
         </div>
       ) : null}
