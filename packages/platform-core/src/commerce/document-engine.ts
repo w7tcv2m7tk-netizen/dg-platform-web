@@ -17,6 +17,86 @@ import type {
   QuoteStatus,
 } from "./types";
 
+export type LinkedCommerceRelation = "contact" | "quote";
+
+export class LinkedCommerceRecordNotFoundError extends Error {
+  readonly code: `linked_${LinkedCommerceRelation}_not_found`;
+  readonly relation: LinkedCommerceRelation;
+
+  constructor(relation: LinkedCommerceRelation) {
+    super(`Linked ${relation} not found in this organisation`);
+    this.name = "LinkedCommerceRecordNotFoundError";
+    this.relation = relation;
+    this.code = `linked_${relation}_not_found`;
+  }
+}
+
+export function isLinkedCommerceRecordNotFoundError(
+  error: unknown,
+): error is LinkedCommerceRecordNotFoundError {
+  return (
+    error instanceof LinkedCommerceRecordNotFoundError ||
+    (error instanceof Error && error.name === "LinkedCommerceRecordNotFoundError")
+  );
+}
+
+function normalizeOptionalRelationId(value: string | null | undefined): string | null | undefined {
+  if (value === undefined) return undefined;
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  return trimmed || null;
+}
+
+async function assertCommerceContactInOrganisation(
+  organisationId: string,
+  contactId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const contact = await prisma.contact.findFirst({
+    where: { id: contactId, organisationId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!contact) {
+    throw new LinkedCommerceRecordNotFoundError("contact");
+  }
+}
+
+async function assertCommerceQuoteInOrganisation(
+  organisationId: string,
+  quoteId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const quote = await prisma.commerceQuote.findFirst({
+    where: { id: quoteId, organisationId },
+    select: { id: true },
+  });
+  if (!quote) {
+    throw new LinkedCommerceRecordNotFoundError("quote");
+  }
+}
+
+async function resolveCommerceRelationshipIds(
+  organisationId: string,
+  input: {
+    contactId?: string | null;
+    quoteId?: string | null;
+  },
+): Promise<{
+  contactId?: string | null;
+  quoteId?: string | null;
+}> {
+  const contactId = normalizeOptionalRelationId(input.contactId);
+  const quoteId = normalizeOptionalRelationId(input.quoteId);
+
+  if (contactId) {
+    await assertCommerceContactInOrganisation(organisationId, contactId);
+  }
+  if (quoteId) {
+    await assertCommerceQuoteInOrganisation(organisationId, quoteId);
+  }
+
+  return { contactId, quoteId };
+}
+
 function serializeLineItems(items: CommerceLineItem[]) {
   return items.map((item, index) => ({ ...item, sortOrder: index }));
 }
@@ -56,6 +136,9 @@ async function prepareLineItems(
 
 export async function createQuote(input: CreateQuoteInput) {
   const { prisma } = await import("@dg/database");
+  const links = await resolveCommerceRelationshipIds(input.organisationId, {
+    contactId: input.contactId,
+  });
   const currency = (input.currency ?? "AUD") as CommerceCurrency;
   const { items, taxInclusive, totals } = await prepareLineItems(
     input.organisationId,
@@ -71,7 +154,7 @@ export async function createQuote(input: CreateQuoteInput) {
   const quote = await prisma.commerceQuote.create({
     data: {
       organisationId: input.organisationId,
-      contactId: input.contactId,
+      contactId: links.contactId ?? null,
       quoteNumber: nextDocNumber("Q", count),
       status: "draft",
       sourceApp: input.sourceApp,
@@ -101,6 +184,10 @@ export async function createQuote(input: CreateQuoteInput) {
 
 export async function createInvoice(input: CreateInvoiceInput) {
   const { prisma } = await import("@dg/database");
+  const links = await resolveCommerceRelationshipIds(input.organisationId, {
+    contactId: input.contactId,
+    quoteId: input.quoteId,
+  });
   const currency = (input.currency ?? "AUD") as CommerceCurrency;
   const { items, taxInclusive, totals } = await prepareLineItems(
     input.organisationId,
@@ -116,8 +203,8 @@ export async function createInvoice(input: CreateInvoiceInput) {
   const invoice = await prisma.commerceInvoice.create({
     data: {
       organisationId: input.organisationId,
-      contactId: input.contactId,
-      quoteId: input.quoteId,
+      contactId: links.contactId ?? null,
+      quoteId: links.quoteId ?? null,
       invoiceNumber: nextDocNumber("INV", count),
       status: "draft",
       sourceApp: input.sourceApp,
