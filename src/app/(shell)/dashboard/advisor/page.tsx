@@ -39,7 +39,7 @@ export default async function AiAdvisorPage() {
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
           <Link href="/dashboard" className="text-sky-400 hover:underline">
-            Open Command Centre →
+            Business Overview →
           </Link>
           <Link href="/dashboard/brain" className="text-sky-400 hover:underline">
             Explore Business Brain →
