@@ -21,13 +21,14 @@ export type BuildBusinessBrainDashboardInput = {
 
 function buildUnderstandingSummary(context: BusinessContext): string[] {
   const { identity, brandVoice, contact, goals } = context;
+  const activeGoals = goals.filter((goal) => goal.status === "active");
   return [
     identity.industry ? `Industry: ${identity.industry.replace(/_/g, " ")}` : null,
     brandVoice.services ? `Offers: ${brandVoice.services}` : null,
     brandVoice.targetAudience ? `Audience: ${brandVoice.targetAudience}` : null,
     brandVoice.tone ? `Brand voice: ${brandVoice.tone}` : null,
     identity.locations[0]?.formatted ? `Location: ${identity.locations[0].formatted}` : null,
-    goals.length ? `Goals: ${goals.length} active` : null,
+    activeGoals.length ? `Goals: ${activeGoals.length} active` : null,
     contact.businessEmail ? `Contact: ${contact.businessEmail}` : null,
     context.twin.connectedSystems.length
       ? `Connected systems: ${context.twin.connectedSystems.length}`

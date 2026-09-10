@@ -105,6 +105,7 @@ export function buildBusinessBrain(input: {
   const contact = context.contact;
   const voice = context.brandVoice;
   const profile = context.profile;
+  const activeGoals = context.goals.filter((goal) => goal.status === "active");
   const connectorCount = input.connectorCount ?? context.twin.connectedSystems.length;
   const hasApprovedKnowledge = Boolean(input.hasApprovedKnowledge);
   const commsEnabled = hasAdvancedCommsEntitlement({
@@ -122,7 +123,7 @@ export function buildBusinessBrain(input: {
         field("name", "Company information", Boolean(identity.businessName), "/dashboard/business", identity.businessName),
         field("brand", "Brand", Boolean(identity.iconUrl || identity.logoUrl), "/dashboard/business", identity.brandColours?.join(" · "), Boolean(identity.brandColours?.length)),
         field("strategy", "Strategy", Boolean(voice.tagline && voice.tone), "/dashboard/business", voice.tagline || voice.tone, Boolean(voice.tagline || voice.tone)),
-        field("goals", "Goals", context.goals.length > 0, "/dashboard/goals", `${context.goals.length} goal${context.goals.length === 1 ? "" : "s"}`),
+        field("goals", "Goals", activeGoals.length > 0, "/dashboard/goals", activeGoals.length ? `${activeGoals.length} active goal${activeGoals.length === 1 ? "" : "s"}` : undefined),
         field("industry", "Industry", Boolean(identity.industry), "/dashboard/business", identity.industry),
       ],
     ),
