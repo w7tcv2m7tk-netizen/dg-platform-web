@@ -7,6 +7,7 @@ import {
   getBusinessContext,
   getOrganisationBusinessProfile,
   getPlatformSetupStatus,
+  listApprovedKnowledge,
   listOrganisationActivities,
   metricsContextFromLiveMetrics,
   type BusinessBrainDashboardBundle,
@@ -21,14 +22,16 @@ export async function loadBusinessBrainPageData(): Promise<BusinessBrainDashboar
   if (!session) return null;
 
   const enabledAppIds = await getOrgEnabledAppIds();
-  const [profile, metrics, connectors, setupStatus, reviewsBundle, activities] = await Promise.all([
-    getOrganisationBusinessProfile(session.organisationId),
-    gatherOverviewLiveMetrics(session.organisationId),
-    fetchOverviewConnectorProbes(enabledAppIds, session.organisationId),
-    getPlatformSetupStatus(session.organisationId),
-    loadReviewsSessionAndFeed(),
-    listOrganisationActivities({ organisationId: session.organisationId, limit: 1 }),
-  ]);
+  const [profile, metrics, connectors, setupStatus, reviewsBundle, activities, approvedKnowledge] =
+    await Promise.all([
+      getOrganisationBusinessProfile(session.organisationId),
+      gatherOverviewLiveMetrics(session.organisationId),
+      fetchOverviewConnectorProbes(enabledAppIds, session.organisationId),
+      getPlatformSetupStatus(session.organisationId),
+      loadReviewsSessionAndFeed(),
+      listOrganisationActivities({ organisationId: session.organisationId, limit: 1 }),
+      listApprovedKnowledge({ organisationId: session.organisationId, limit: 1 }),
+    ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
 
@@ -76,6 +79,7 @@ export async function loadBusinessBrainPageData(): Promise<BusinessBrainDashboar
     context,
     setup: setupStatus,
     connectorCount: context.twin.connectedSystems.length,
+    hasApprovedKnowledge: approvedKnowledge.length > 0,
     scores: twinScores,
     twinCompleteness,
     metricsLive: Boolean(metrics),
