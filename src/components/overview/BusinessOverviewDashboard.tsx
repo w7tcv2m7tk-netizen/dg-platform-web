@@ -79,8 +79,26 @@ function GoalRow({
   );
 }
 
+function advisorIntroduction(overview: BusinessOverview) {
+  const priorityCount = overview.priorities.length;
+
+  if (!overview.scoresLive) {
+    if (priorityCount === 0) {
+      return `${overview.greeting}. Business intelligence is still in preview while live signals are being connected. There are no priorities to show yet.`;
+    }
+    return `${overview.greeting}. Business intelligence is still in preview while live signals are being connected. ${priorityCount === 1 ? "Here is 1 setup priority" : `Here are ${priorityCount} setup priorities`} to focus on next:`;
+  }
+
+  if (priorityCount === 0) {
+    return `${overview.greeting}. Live business signals are available, and there are no new priorities to highlight right now.`;
+  }
+
+  return `${overview.greeting}. Based on your live business signals, ${priorityCount === 1 ? "there is 1 priority" : `there are ${priorityCount} priorities`} worth focusing on today:`;
+}
+
 export function BusinessOverviewDashboard({ overview }: { overview: BusinessOverview }) {
   const { openSupportChat } = useChatWidget();
+  const priorityCount = overview.priorities.length;
 
   return (
     <div className="space-y-6">
@@ -184,20 +202,19 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
           </span>
           <div className="min-w-0 flex-1">
             <h2 className="text-lg font-semibold text-white">AI Business Advisor</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              {overview.greeting}. Your business is performing well. There are three things I
-              recommend focusing on today:
-            </p>
-            <ol className="mt-4 space-y-3">
-              {overview.priorities.map((p) => (
-                <li key={p.rank} className="flex gap-3 text-sm text-slate-200">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600/20 text-xs font-bold text-blue-300">
-                    {p.rank}
-                  </span>
-                  <span>{p.text}</span>
-                </li>
-              ))}
-            </ol>
+            <p className="mt-1 text-sm text-slate-400">{advisorIntroduction(overview)}</p>
+            {priorityCount > 0 ? (
+              <ol className="mt-4 space-y-3">
+                {overview.priorities.map((p) => (
+                  <li key={p.rank} className="flex gap-3 text-sm text-slate-200">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600/20 text-xs font-bold text-blue-300">
+                      {p.rank}
+                    </span>
+                    <span>{p.text}</span>
+                  </li>
+                ))}
+              </ol>
+            ) : null}
             {overview.prioritiesImpact ? (
               <p className="mt-4 text-sm font-medium text-emerald-400">
                 Potential impact: {overview.prioritiesImpact}
