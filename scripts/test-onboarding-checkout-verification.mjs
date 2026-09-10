@@ -26,13 +26,47 @@ assert.match(
 );
 assert.match(
   route,
-  /subscriptionActivatedAt: _clientActivation/,
-  "client-supplied subscription activation timestamps must be stripped",
+  /safeClientProgress\(body\.progress\)/,
+  "browser progress must pass through an explicit allowlist",
 );
-assert.match(
+assert.doesNotMatch(
   route,
-  /stripeCheckoutSessionId: _clientCheckoutSession/,
-  "client-supplied Stripe checkout session IDs must be stripped",
+  /\.\.\.safeProgress/,
+  "arbitrary residual browser progress must not be persisted",
+);
+assert.doesNotMatch(
+  route,
+  /currentStep:\s*isGen2OnboardingStep\(body\.currentStep\)/,
+  "browser must not directly select persisted onboarding currentStep",
+);
+
+const helper = route.slice(
+  route.indexOf("function safeClientProgress"),
+  route.indexOf("export async function GET"),
+);
+for (const protectedField of [
+  "subscriptionActivatedAt",
+  "stripeCheckoutSessionId",
+  "completedSteps",
+  "completedAt",
+  "currentStep",
+  "founding",
+]) {
+  assert.equal(
+    helper.includes(protectedField),
+    false,
+    `${protectedField} must remain server-owned`,
+  );
+}
+assert.equal(
+  helper.includes('"subscription"'),
+  false,
+  "subscription checklist proof must remain server-owned",
+);
+assert.equal(
+  helper.includes('"connect_website"'),
+  false,
+  "website connection checklist proof must not be fabricated by the browser",
 );
 assert.match(
   route,
