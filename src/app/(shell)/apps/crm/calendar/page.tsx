@@ -1,13 +1,12 @@
 import Link from "next/link";
 import {
+  getOrganisationById,
   listConsultationAgenda,
   listTasks,
   sessionHasFeature,
 } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
-
-const DISPLAY_TIME_ZONE = "Australia/Brisbane";
 
 type CalendarItem = {
   id: string;
@@ -19,18 +18,28 @@ type CalendarItem = {
   overdue: boolean;
 };
 
-function dayKey(iso: string) {
+function safeTimeZone(value: string | null | undefined) {
+  const candidate = value?.trim() || "UTC";
+  try {
+    new Intl.DateTimeFormat("en-AU", { timeZone: candidate }).format(new Date());
+    return candidate;
+  } catch {
+    return "UTC";
+  }
+}
+
+function dayKey(iso: string, timeZone: string) {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: DISPLAY_TIME_ZONE,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(new Date(iso));
 }
 
-function dayHeading(iso: string) {
+function dayHeading(iso: string, timeZone: string) {
   return new Intl.DateTimeFormat("en-AU", {
-    timeZone: DISPLAY_TIME_ZONE,
+    timeZone,
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -38,21 +47,21 @@ function dayHeading(iso: string) {
   }).format(new Date(iso));
 }
 
-function timeLabel(iso: string) {
+function timeLabel(iso: string, timeZone: string) {
   return new Intl.DateTimeFormat("en-AU", {
-    timeZone: DISPLAY_TIME_ZONE,
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(iso));
 }
 
-function groupByDay(items: CalendarItem[]) {
+function groupByDay(items: CalendarItem[], timeZone: string) {
   const groups: Array<{ key: string; heading: string; items: CalendarItem[] }> = [];
   for (const item of items) {
-    const key = dayKey(item.startsAt);
+    const key = dayKey(item.startsAt, timeZone);
     const last = groups[groups.length - 1];
     if (last?.key === key) last.items.push(item);
-    else groups.push({ key, heading: dayHeading(item.startsAt), items: [item] });
+    else groups.push({ key, heading: dayHeading(item.startsAt, timeZone), items: [item] });
   }
   return groups;
 }
@@ -61,6 +70,8 @@ export default async function CrmCalendarPage() {
   const session = await getAuthorisedPlatformPageSession("crm.calendar.read");
   if (!session) return null;
 
+  const organisation = await getOrganisationById(session.organisationId);
+  const displayTimeZone = safeTimeZone(organisation?.timezone);
   const canReadTasks = sessionHasFeature(session, "crm.tasks.read");
   const canReadOpportunities = sessionHasFeature(session, "crm.opportunities.read");
 
@@ -81,7 +92,10 @@ export default async function CrmCalendarPage() {
       kind: "task",
       startsAt: task.dueAt,
       title: task.title,
-      detail: [task.priority ? `${task.priority} priority` : null, task.entityType].filter(Boolean).join(" · ") || "CRM task",
+      detail:
+        [task.priority ? `${task.priority} priority` : null, task.entityType]
+          .filter(Boolean)
+          .join(" · ") || "CRM task",
       href: `/apps/crm/tasks/${task.id}`,
       overdue: new Date(task.dueAt).getTime() < now,
     });
@@ -97,14 +111,16 @@ export default async function CrmCalendarPage() {
       kind: "consultation",
       startsAt: consultation.startsAt,
       title: consultation.contactName || consultation.title || "Consultation",
-      detail: ["Consultation", consultation.stage?.replace(/_/g, " "), consultation.status].filter(Boolean).join(" · "),
+      detail: ["Consultation", consultation.stage?.replace(/_/g, " "), consultation.status]
+        .filter(Boolean)
+        .join(" · "),
       href: `/apps/crm/opportunities/${consultation.opportunityId}`,
       overdue: false,
     });
   }
 
   dated.sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
-  const groups = groupByDay(dated);
+  const groups = groupByDay(dated, displayTimeZone);
   const unscheduledTasks = (taskResult?.items ?? []).filter((task) => !task.dueAt);
   const unscheduledConsultations = consultationAgenda?.unscheduled ?? [];
 
@@ -128,13 +144,18 @@ export default async function CrmCalendarPage() {
               <p className="mt-1 max-w-3xl text-sm text-slate-400">
                 Calendar is a read-only Core view over canonical CRM records. Edit a task or consultation at its source record so there is no duplicate calendar data.
               </p>
+              <p className="mt-1 text-xs text-slate-500">Times shown in {displayTimeZone}.</p>
             </div>
             <div className="flex flex-wrap gap-3 text-sm">
               {canReadTasks ? (
-                <Link href="/apps/crm/tasks" className="text-sky-400 hover:underline">Tasks →</Link>
+                <Link href="/apps/crm/tasks" className="text-sky-400 hover:underline">
+                  Tasks →
+                </Link>
               ) : null}
               {canReadOpportunities ? (
-                <Link href="/apps/crm/consultations" className="text-sky-400 hover:underline">Consultations →</Link>
+                <Link href="/apps/crm/consultations" className="text-sky-400 hover:underline">
+                  Consultations →
+                </Link>
               ) : null}
             </div>
           </div>
@@ -159,15 +180,22 @@ export default async function CrmCalendarPage() {
               <ul className="mt-2 divide-y divide-slate-800">
                 {group.items.map((item) => (
                   <li key={item.id} className="py-3">
-                    <Link href={item.href} className="block rounded-lg p-2 transition hover:bg-slate-900/70">
+                    <Link
+                      href={item.href}
+                      className="block rounded-lg p-2 transition hover:bg-slate-900/70"
+                    >
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <p className="font-medium text-white">
-                          <span className="mr-2 tabular-nums text-sky-300">{timeLabel(item.startsAt)}</span>
+                          <span className="mr-2 tabular-nums text-sky-300">
+                            {timeLabel(item.startsAt, displayTimeZone)}
+                          </span>
                           {item.title}
                         </p>
                         <div className="flex items-center gap-2 text-xs uppercase tracking-wide">
                           {item.overdue ? (
-                            <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-amber-200">Overdue</span>
+                            <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-amber-200">
+                              Overdue
+                            </span>
                           ) : null}
                           <span className="text-slate-500">{item.kind}</span>
                         </div>
@@ -190,7 +218,10 @@ export default async function CrmCalendarPage() {
             <ul className="mt-3 divide-y divide-slate-800">
               {unscheduledTasks.map((task) => (
                 <li key={`unscheduled-task:${task.id}`} className="py-3">
-                  <Link href={`/apps/crm/tasks/${task.id}`} className="text-sky-400 hover:underline">
+                  <Link
+                    href={`/apps/crm/tasks/${task.id}`}
+                    className="text-sky-400 hover:underline"
+                  >
                     {task.title}
                   </Link>
                   <p className="text-xs text-slate-500">Task · no due date</p>
@@ -198,7 +229,10 @@ export default async function CrmCalendarPage() {
               ))}
               {unscheduledConsultations.map((consultation) => (
                 <li key={`unscheduled-consultation:${consultation.opportunityId}`} className="py-3">
-                  <Link href={`/apps/crm/opportunities/${consultation.opportunityId}`} className="text-sky-400 hover:underline">
+                  <Link
+                    href={`/apps/crm/opportunities/${consultation.opportunityId}`}
+                    className="text-sky-400 hover:underline"
+                  >
                     {consultation.contactName || consultation.title || "Consultation"}
                   </Link>
                   <p className="text-xs text-slate-500">Consultation · time TBC</p>
