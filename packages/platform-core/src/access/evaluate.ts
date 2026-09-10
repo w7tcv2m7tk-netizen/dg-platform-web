@@ -244,10 +244,16 @@ export function featureIdToPermissionCheck(featureId: string): PermissionCheck |
   else if (rest.includes("delete")) action = "delete";
   else if (rest.includes("manage")) action = "manage";
 
+  const organisationMutationTail =
+    tail === "send" || tail === "import" || tail === "configure";
+
   return {
     module,
     action,
-    scope: action === "view" ? "organisation" : "assigned",
+    scope:
+      action === "view" || organisationMutationTail
+        ? "organisation"
+        : "assigned",
     subModule: rest.length > 1 ? rest.slice(0, -1).join(".") : undefined,
   };
 }
