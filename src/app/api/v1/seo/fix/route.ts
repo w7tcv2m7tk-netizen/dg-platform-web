@@ -1,7 +1,8 @@
 import { fixOrgSeoFromAudit } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
 /**
  * POST /api/v1/seo/fix
@@ -10,6 +11,21 @@ import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const denied = requireFeature(session, "seo.write");
+  if (denied) return denied;
+
+  if (!canAccessWebsiteStudio(session, "edit")) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "forbidden",
+          message: "Website Studio edit permission is required to apply SEO metadata.",
+        },
+      },
+      { status: 403 },
+    );
+  }
 
   let websiteUrl: string | undefined;
   let findings: unknown;
