@@ -57,12 +57,18 @@ export default async function BillingSettingsPage({
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="dg-card">
             <h2 className="font-semibold text-white">Current plan</h2>
-            <div className="mt-4">
-              <BillingStatusPanel
-                status={billingStatus}
-                purchaseFallback={portal?.purchase_label ?? profile?.purchaseLabel}
-              />
-            </div>
+            {billingStatus ? (
+              <div className="mt-4">
+                <BillingStatusPanel
+                  status={billingStatus}
+                  purchaseFallback={portal?.purchase_label ?? profile?.purchaseLabel}
+                />
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-slate-400">
+                Billing status is not available for this organisation.
+              </p>
+            )}
             <div className="mt-4 flex flex-wrap gap-2">
               {canManageBilling ? (
                 <Link
@@ -94,9 +100,7 @@ export default async function BillingSettingsPage({
               {enabledIds.length} app{enabledIds.length === 1 ? "" : "s"} on your sidebar
             </p>
             {enabledIds.length === 0 ? (
-              <p className="mt-3 text-sm text-slate-500">
-                No apps enabled yet.
-              </p>
+              <p className="mt-3 text-sm text-slate-500">No apps enabled yet.</p>
             ) : (
               <ul className="mt-3 space-y-1 text-sm text-slate-300">
                 {enabledIds.map((id) => (
@@ -124,7 +128,7 @@ export default async function BillingSettingsPage({
               ? "Download invoices and update your payment method in the Stripe Customer Portal. Portal access requires a linked Stripe customer — not only a sidebar plan preview."
               : "Invoice and payment-method changes are restricted to an organisation owner."}
           </p>
-          {canManageBilling ? (
+          {canManageBilling && billingStatus ? (
             <BillingActions
               platformTier={billingStatus.platformTier}
               hasBillingCustomer={billingStatus.hasStripeCustomer}
