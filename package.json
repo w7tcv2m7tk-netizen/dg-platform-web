@@ -31,7 +31,7 @@
     "test:website-studio-responsive": "node --test scripts/test-website-studio-responsive.mjs",
     "db:generate": "prisma generate --schema=packages/database/prisma",
     "db:push": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma",
-    "db:studio": "dotenv -e .env.local -- prisma db push --schema=packages/database/prisma",
+    "db:studio": "dotenv -e .env.local -- prisma studio --schema=packages/database/prisma",
     "setup:stripe-webhook": "node scripts/setup-stripe-webhook.mjs",
     "commerce:smoke": "node scripts/commerce-smoke-test.mjs",
     "abr:smoke": "node scripts/abr-smoke.mjs",
@@ -59,6 +59,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv-cli": "^8.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.12",
     "prisma": "^6.19.0",
     "tailwindcss": "^4",
     "typescript": "^5"
