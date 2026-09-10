@@ -4,7 +4,11 @@ import {
   BrandAssetStorageError,
   storeOrgBrandAsset,
 } from "@dg/platform-core/assets/org-brand-storage";
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requirePermission,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 
 const DEFAULT_MAX_BYTES = 400 * 1024;
 const HARD_MAX_BYTES = 2 * 1024 * 1024;
@@ -19,6 +23,12 @@ const ALLOWED_TYPES = new Set([
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "edit",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const url = new URL(req.url);
   const maxKb = Number(url.searchParams.get("maxKb") ?? "");
