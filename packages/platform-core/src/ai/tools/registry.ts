@@ -24,7 +24,7 @@ export const AI_TOOL_REGISTRY: Record<string, AiToolDefinition> = {
     label: "Create follow-up task",
     description:
       "Creates an open CRM task from an Advisor recommendation (e.g. respond to overdue enquiries).",
-    requiredFeatures: [],
+    requiredFeatures: ["crm.tasks.write"],
     risk: "write",
     requiresApproval: true,
   },

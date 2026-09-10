@@ -2,10 +2,6 @@ import {
   TASK_STATUSES,
   completeTask,
   createTask,
-  getCompany,
-  getContact,
-  getOpportunity,
-  getServiceJob,
   getTask,
   listTasks,
   updateTask,
@@ -14,94 +10,10 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { validateTaskTarget } from "@/lib/task-target-authority";
 
 function isTaskStatus(value: unknown): value is TaskStatus {
   return typeof value === "string" && (TASK_STATUSES as readonly string[]).includes(value);
-}
-
-async function validateTaskTarget(options: {
-  session: Awaited<ReturnType<typeof requirePlatformAuth>>;
-  entityType: string;
-  entityId: string;
-  requireTargetWrite?: boolean;
-}) {
-  const { session, entityType, entityId, requireTargetWrite = false } = options;
-  if (isNextResponse(session)) return session;
-
-  if (entityType === "Contact") {
-    const denied = requireFeature(
-      session,
-      requireTargetWrite ? "crm.contacts.write" : "crm.contacts.read",
-    );
-    if (denied) return denied;
-    const record = await getContact(session.organisationId, entityId);
-    return record
-      ? null
-      : NextResponse.json(
-          { error: { code: "linked_contact_not_found", message: "Linked contact not found" } },
-          { status: 422 },
-        );
-  }
-
-  if (entityType === "Company") {
-    const denied = requireFeature(
-      session,
-      requireTargetWrite ? "crm.companies.write" : "crm.companies.read",
-    );
-    if (denied) return denied;
-    const record = await getCompany(session.organisationId, entityId);
-    return record
-      ? null
-      : NextResponse.json(
-          { error: { code: "linked_company_not_found", message: "Linked company not found" } },
-          { status: 422 },
-        );
-  }
-
-  if (entityType === "Opportunity") {
-    const denied = requireFeature(
-      session,
-      requireTargetWrite ? "crm.opportunities.write" : "crm.opportunities.read",
-    );
-    if (denied) return denied;
-    const record = await getOpportunity(session.organisationId, entityId);
-    return record
-      ? null
-      : NextResponse.json(
-          {
-            error: {
-              code: "linked_opportunity_not_found",
-              message: "Linked opportunity not found",
-            },
-          },
-          { status: 422 },
-        );
-  }
-
-  if (entityType === "ServiceJob") {
-    const denied = requireFeature(
-      session,
-      requireTargetWrite ? "services.jobs.write" : "services.jobs.read",
-    );
-    if (denied) return denied;
-    const record = await getServiceJob(session.organisationId, entityId);
-    return record
-      ? null
-      : NextResponse.json(
-          { error: { code: "linked_job_not_found", message: "Linked job not found" } },
-          { status: 422 },
-        );
-  }
-
-  return NextResponse.json(
-    {
-      error: {
-        code: "unsupported_entity_type",
-        message: "Tasks cannot be linked to this entity type",
-      },
-    },
-    { status: 422 },
-  );
 }
 
 export async function GET(req: Request) {

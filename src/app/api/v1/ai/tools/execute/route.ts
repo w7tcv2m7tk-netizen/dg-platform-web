@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { assertEntitlement, executeAiTool, getAiTool } from "@dg/platform-core";
+import { assertEntitlement, executeAiTool, getAiTool, taskLinkPairError } from "@dg/platform-core";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { validateTaskTarget } from "@/lib/task-target-authority";
 
 /**
  * POST /api/v1/ai/tools/execute
@@ -56,11 +57,40 @@ export async function POST(req: Request) {
     );
   }
 
-  if (!getAiTool(toolId)) {
+  const tool = getAiTool(toolId);
+  if (!tool) {
     return NextResponse.json(
       { error: { code: "unknown_tool", message: `Unknown tool: ${toolId}` } },
       { status: 404 },
     );
+  }
+
+  for (const featureId of tool.requiredFeatures) {
+    const denied = requireFeature(session, featureId);
+    if (denied) return denied;
+  }
+
+  if (tool.id === "crm.create_follow_up_task") {
+    const entityType =
+      typeof body.params?.entityType === "string" ? body.params.entityType : undefined;
+    const entityId =
+      typeof body.params?.entityId === "string" ? body.params.entityId : undefined;
+    const pairError = taskLinkPairError(entityType, entityId);
+    if (pairError) {
+      return NextResponse.json(
+        { error: { code: pairError.code, message: pairError.message } },
+        { status: 422 },
+      );
+    }
+    if (entityType && entityId) {
+      const targetDenied = await validateTaskTarget({
+        session,
+        entityType,
+        entityId,
+        requireTargetWrite: true,
+      });
+      if (targetDenied) return targetDenied;
+    }
   }
 
   const result = await executeAiTool({
@@ -81,7 +111,12 @@ export async function POST(req: Request) {
           ? 403
           : result.code === "unknown_tool"
             ? 404
-            : result.code === "validation_error"
+            : result.code === "validation_error" ||
+                result.code === "unsupported_entity_type" ||
+                result.code === "linked_contact_not_found" ||
+                result.code === "linked_company_not_found" ||
+                result.code === "linked_opportunity_not_found" ||
+                result.code === "linked_job_not_found"
               ? 422
               : 500;
     return NextResponse.json(

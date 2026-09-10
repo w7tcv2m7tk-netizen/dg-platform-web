@@ -389,3 +389,11 @@ export async function completeTask(
 
   return serializeTask(updated);
 }
+
+export {
+  TASK_LINK_ENTITY_TYPES,
+  isTaskLinkEntityType,
+  resolveTaskLinkTarget,
+  taskLinkPairError,
+} from "./target";
+export type { TaskLinkEntityType, TaskLinkErrorCode, TaskLinkTargetResult } from "./target";
