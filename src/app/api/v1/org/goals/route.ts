@@ -8,11 +8,23 @@ import {
   type OrganisationGoalPatch,
 } from "@dg/platform-core";
 
-import { isNextResponse, requirePlatformSession } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requirePermission,
+  requirePlatformSession,
+} from "@/lib/platform-api";
 import {
   tenantWriteEntitlementBlock,
   writeEntitlementResponse,
 } from "@/lib/write-entitlement";
+
+function requireOrganisationGoalWrite(session: Parameters<typeof requirePermission>[0]) {
+  return requirePermission(session, {
+    module: "settings",
+    action: "edit",
+    scope: "organisation",
+  });
+}
 
 export async function GET() {
   const session = await requirePlatformSession();
@@ -24,6 +36,8 @@ export async function GET() {
 export async function POST(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
+  const denied = requireOrganisationGoalWrite(session);
+  if (denied) return denied;
 
   const block = await tenantWriteEntitlementBlock(session);
   if (block) return writeEntitlementResponse(block);
@@ -49,6 +63,8 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
+  const denied = requireOrganisationGoalWrite(session);
+  if (denied) return denied;
 
   const block = await tenantWriteEntitlementBlock(session);
   if (block) return writeEntitlementResponse(block);
@@ -79,6 +95,8 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
+  const denied = requireOrganisationGoalWrite(session);
+  if (denied) return denied;
 
   const block = await tenantWriteEntitlementBlock(session);
   if (block) return writeEntitlementResponse(block);
