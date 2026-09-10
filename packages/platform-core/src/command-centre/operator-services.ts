@@ -33,14 +33,39 @@ function requireOperator(operator: PlatformOperatorContext): void {
   }
 }
 
+/**
+ * Command Centre pages are frequently prefetched together by Next.js RSC navigation.
+ * Their cross-tenant aggregates are intentionally expensive and production currently
+ * runs Prisma with a three-connection pool. Queue the heavy operator reads per runtime
+ * instance so route prefetches cannot multiply that fan-out and starve the pool.
+ *
+ * Keep this boundary staff-only: normal tenant APIs are not throttled by this queue.
+ */
+let commandCentreReadTail: Promise<void> = Promise.resolve();
+
+async function queueCommandCentreRead<T>(work: () => Promise<T>): Promise<T> {
+  const previous = commandCentreReadTail;
+  let release!: () => void;
+  commandCentreReadTail = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  await previous.catch(() => undefined);
+  try {
+    return await work();
+  } finally {
+    release();
+  }
+}
+
 export async function getOperatorCommandCentreOpsHome(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return getCommandCentreOpsHome();
+  return queueCommandCentreRead(() => getCommandCentreOpsHome());
 }
 
 export async function getOperatorClientIntelligence(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return getClientIntelligence();
+  return queueCommandCentreRead(() => getClientIntelligence());
 }
 
 export async function generateOperatorClientAdvisorInsight(
@@ -48,7 +73,7 @@ export async function generateOperatorClientAdvisorInsight(
   input: { organisationId: string; question?: string },
 ) {
   requireOperator(operator);
-  return generateClientAdvisorInsight(input);
+  return queueCommandCentreRead(() => generateClientAdvisorInsight(input));
 }
 
 export async function getOperatorCommandBenchmarks(
@@ -56,7 +81,7 @@ export async function getOperatorCommandBenchmarks(
   input?: { organisationId?: string },
 ) {
   requireOperator(operator);
-  return getCommandBenchmarks(input);
+  return queueCommandCentreRead(() => getCommandBenchmarks(input));
 }
 
 export async function getOperatorGrowthReports(
@@ -64,12 +89,12 @@ export async function getOperatorGrowthReports(
   input?: { period?: GrowthReportPeriod; organisationId?: string },
 ) {
   requireOperator(operator);
-  return getGrowthReports(input);
+  return queueCommandCentreRead(() => getGrowthReports(input));
 }
 
 export async function getOperatorClientExpansionOpportunities(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return getClientExpansionOpportunities();
+  return queueCommandCentreRead(() => getClientExpansionOpportunities());
 }
 
 /**
@@ -83,7 +108,7 @@ export async function getOperatorGrowthFollowUpQueue(
   input?: { idleDays?: number; limit?: number },
 ) {
   requireOperator(operator);
-  return getGrowthFollowUpQueue(input);
+  return queueCommandCentreRead(() => getGrowthFollowUpQueue(input));
 }
 
 export async function getOperatorGrowthConversionSnapshot(
@@ -91,7 +116,7 @@ export async function getOperatorGrowthConversionSnapshot(
   input?: { days?: number },
 ) {
   requireOperator(operator);
-  return getGrowthConversionSnapshot(input);
+  return queueCommandCentreRead(() => getGrowthConversionSnapshot(input));
 }
 
 export async function listOperatorPlatformOpportunities(
@@ -99,22 +124,24 @@ export async function listOperatorPlatformOpportunities(
   input?: { limit?: number },
 ) {
   requireOperator(operator);
-  return listPlatformOpportunities({ scope: "staff", limit: input?.limit });
+  return queueCommandCentreRead(() =>
+    listPlatformOpportunities({ scope: "staff", limit: input?.limit }),
+  );
 }
 
 export async function getOperatorPlatformAlertsCentre(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return getPlatformAlertsCentre();
+  return queueCommandCentreRead(() => getPlatformAlertsCentre());
 }
 
 export async function getOperatorPlatformAlertsBadgeCount(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return getPlatformAlertsBadgeCount();
+  return queueCommandCentreRead(() => getPlatformAlertsBadgeCount());
 }
 
 export async function getOperatorCommandFeatureFlagsOverview(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return getCommandFeatureFlagsOverview();
+  return queueCommandCentreRead(() => getCommandFeatureFlagsOverview());
 }
 
 export async function updateOperatorOrganisationFeatureFlags(
@@ -127,22 +154,22 @@ export async function updateOperatorOrganisationFeatureFlags(
 
 export async function getOperatorCommandMrrAttribution(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return getCommandMrrAttribution();
+  return queueCommandCentreRead(() => getCommandMrrAttribution());
 }
 
 export async function getOperatorCommissionsWorkspace(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return buildCommissionsWorkspace();
+  return queueCommandCentreRead(() => buildCommissionsWorkspace());
 }
 
 export async function getOperatorPartnerDashboardWorkspace(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return buildPartnerDashboardWorkspace();
+  return queueCommandCentreRead(() => buildPartnerDashboardWorkspace());
 }
 
 export async function getOperatorPartnerReferralsWorkspace(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return buildReferralsWorkspace();
+  return queueCommandCentreRead(() => buildReferralsWorkspace());
 }
 
 export async function listOperatorPaidCommissions(
@@ -150,7 +177,9 @@ export async function listOperatorPaidCommissions(
   input?: { limit?: number },
 ) {
   requireOperator(operator);
-  return listAllCommissions({ status: "PAID", limit: input?.limit ?? 100 });
+  return queueCommandCentreRead(() =>
+    listAllCommissions({ status: "PAID", limit: input?.limit ?? 100 }),
+  );
 }
 
 /**
@@ -170,23 +199,23 @@ export async function completeOperatorCommandTask(
 
 export async function getOperatorDeliveryDashboard(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  const [metrics, projects, tasks] = await Promise.all([
-    getDeliveryDashboardMetrics({ managerView: true }),
-    listDeliveryProjects({ managerView: true }),
-    listDeliveryTasks({ managerView: true }),
-  ]);
-  return { metrics, projects, tasks };
+  return queueCommandCentreRead(async () => {
+    const metrics = await getDeliveryDashboardMetrics({ managerView: true });
+    const projects = await listDeliveryProjects({ managerView: true });
+    const tasks = await listDeliveryTasks({ managerView: true });
+    return { metrics, projects, tasks };
+  });
 }
 
 export async function getOperatorDeliverySectionWorkspace(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  const [projects, metrics, alerts, tasks] = await Promise.all([
-    listDeliveryProjects({ managerView: true, limit: 100 }),
-    getDeliveryDashboardMetrics({ managerView: true }),
-    getCommandCentreDeliveryAlerts(),
-    listDeliveryTasks({ managerView: true }),
-  ]);
-  return { projects, metrics, alerts, tasks };
+  return queueCommandCentreRead(async () => {
+    const projects = await listDeliveryProjects({ managerView: true, limit: 100 });
+    const metrics = await getDeliveryDashboardMetrics({ managerView: true });
+    const alerts = await getCommandCentreDeliveryAlerts();
+    const tasks = await listDeliveryTasks({ managerView: true });
+    return { projects, metrics, alerts, tasks };
+  });
 }
 
 export async function listOperatorDeliveryProjects(
@@ -194,12 +223,14 @@ export async function listOperatorDeliveryProjects(
   input?: { limit?: number },
 ) {
   requireOperator(operator);
-  return listDeliveryProjects({ managerView: true, limit: input?.limit });
+  return queueCommandCentreRead(() =>
+    listDeliveryProjects({ managerView: true, limit: input?.limit }),
+  );
 }
 
 export async function listOperatorDeliveryTasks(operator: PlatformOperatorContext) {
   requireOperator(operator);
-  return listDeliveryTasks({ managerView: true });
+  return queueCommandCentreRead(() => listDeliveryTasks({ managerView: true }));
 }
 
 export async function getOperatorDeliveryProject(
@@ -207,7 +238,7 @@ export async function getOperatorDeliveryProject(
   projectId: string,
 ) {
   requireOperator(operator);
-  return getDeliveryProject(projectId);
+  return queueCommandCentreRead(() => getDeliveryProject(projectId));
 }
 
 export async function listOperatorDeliveryPartners(
@@ -215,5 +246,7 @@ export async function listOperatorDeliveryPartners(
   input?: { limit?: number },
 ) {
   requireOperator(operator);
-  return listPartners({ partnerType: "IMPLEMENTATION_PARTNER", limit: input?.limit ?? 100 });
+  return queueCommandCentreRead(() =>
+    listPartners({ partnerType: "IMPLEMENTATION_PARTNER", limit: input?.limit ?? 100 }),
+  );
 }
