@@ -2,6 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import {
   approveKnowledgeItem,
   isOrgAdminRole,
@@ -11,6 +12,26 @@ import {
 } from "@dg/platform-core";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+
+const SAFE_KNOWLEDGE_ERRORS = new Set([
+  "You must be signed in to review Business Brain knowledge.",
+  "Only organisation owners and admins can manage Business Brain knowledge.",
+  "Invalid knowledge item.",
+  "Add a title and the knowledge DigitalGate should remember.",
+  "Invalid knowledge classification.",
+]);
+
+function knowledgeNoticeHref(tone: "success" | "error", notice: string) {
+  const params = new URLSearchParams({ tone, notice });
+  return `/dashboard/brain/knowledge?${params.toString()}`;
+}
+
+function customerSafeKnowledgeError(error: unknown) {
+  if (error instanceof Error && SAFE_KNOWLEDGE_ERRORS.has(error.message)) {
+    return error.message;
+  }
+  return "We couldn’t save that Business Brain change. Please try again.";
+}
 
 async function requireKnowledgeApprover() {
   const { session, clerkUserId } = await getPlatformPageContext();
@@ -38,78 +59,105 @@ function readText(formData: FormData, key: string, maxLength: number) {
 }
 
 export async function proposeKnowledgeAction(formData: FormData) {
-  const { session, actorId } = await requireKnowledgeApprover();
-  const title = readText(formData, "title", 160);
-  const statement = readText(formData, "statement", 5000);
-  const type = readText(formData, "type", 50) || "fact";
-  const importance = readText(formData, "importance", 20) || "medium";
+  let failure: string | null = null;
 
-  if (!title || !statement) {
-    throw new Error("Add a title and the knowledge DigitalGate should remember.");
+  try {
+    const { session, actorId } = await requireKnowledgeApprover();
+    const title = readText(formData, "title", 160);
+    const statement = readText(formData, "statement", 5000);
+    const type = readText(formData, "type", 50) || "fact";
+    const importance = readText(formData, "importance", 20) || "medium";
+
+    if (!title || !statement) {
+      throw new Error("Add a title and the knowledge DigitalGate should remember.");
+    }
+
+    const allowedTypes = new Set(["fact", "decision", "strategy", "policy", "process", "principle"]);
+    const allowedImportance = new Set(["low", "medium", "high", "critical"]);
+    if (!allowedTypes.has(type) || !allowedImportance.has(importance)) {
+      throw new Error("Invalid knowledge classification.");
+    }
+
+    const sourceRef = `user-entry:${randomUUID()}`;
+    const sourceId = await upsertKnowledgeSource({
+      organisationId: session.organisationId,
+      sourceType: "user_entry",
+      title,
+      sourceApp: "business_brain",
+      sourceRef,
+      capturedAt: new Date(),
+      metadata: { enteredBy: actorId },
+    });
+
+    await proposeKnowledgeItem({
+      organisationId: session.organisationId,
+      type,
+      title,
+      statement,
+      importance,
+      sourceId,
+      sourceRef,
+      sourceExcerpt: statement.slice(0, 500),
+      createdBy: actorId,
+      metadata: { sourceType: "user_entry" },
+    });
+
+    revalidatePath("/dashboard/brain");
+    revalidatePath("/dashboard/brain/knowledge");
+  } catch (error) {
+    failure = customerSafeKnowledgeError(error);
   }
 
-  const allowedTypes = new Set(["fact", "decision", "strategy", "policy", "process", "principle"]);
-  const allowedImportance = new Set(["low", "medium", "high", "critical"]);
-  if (!allowedTypes.has(type) || !allowedImportance.has(importance)) {
-    throw new Error("Invalid knowledge classification.");
-  }
-
-  const sourceRef = `user-entry:${randomUUID()}`;
-  const sourceId = await upsertKnowledgeSource({
-    organisationId: session.organisationId,
-    sourceType: "user_entry",
-    title,
-    sourceApp: "business_brain",
-    sourceRef,
-    capturedAt: new Date(),
-    metadata: { enteredBy: actorId },
-  });
-
-  await proposeKnowledgeItem({
-    organisationId: session.organisationId,
-    type,
-    title,
-    statement,
-    importance,
-    sourceId,
-    sourceRef,
-    sourceExcerpt: statement.slice(0, 500),
-    createdBy: actorId,
-    metadata: { sourceType: "user_entry" },
-  });
-
-  revalidatePath("/dashboard/brain");
-  revalidatePath("/dashboard/brain/knowledge");
+  if (failure) redirect(knowledgeNoticeHref("error", failure));
+  redirect(knowledgeNoticeHref("success", "Knowledge added for review."));
 }
 
 export async function approveKnowledgeAction(formData: FormData) {
-  const { session, actorId } = await requireKnowledgeApprover();
-  const itemId = readItemId(formData);
+  let failure: string | null = null;
 
-  await approveKnowledgeItem({
-    organisationId: session.organisationId,
-    itemId,
-    actorId,
-  });
+  try {
+    const { session, actorId } = await requireKnowledgeApprover();
+    const itemId = readItemId(formData);
 
-  revalidatePath("/dashboard/brain");
-  revalidatePath("/dashboard/brain/knowledge");
-  revalidatePath("/dashboard/advisor");
+    await approveKnowledgeItem({
+      organisationId: session.organisationId,
+      itemId,
+      actorId,
+    });
+
+    revalidatePath("/dashboard/brain");
+    revalidatePath("/dashboard/brain/knowledge");
+    revalidatePath("/dashboard/advisor");
+  } catch (error) {
+    failure = customerSafeKnowledgeError(error);
+  }
+
+  if (failure) redirect(knowledgeNoticeHref("error", failure));
+  redirect(knowledgeNoticeHref("success", "Knowledge approved and available to Business Brain."));
 }
 
 export async function rejectKnowledgeAction(formData: FormData) {
-  const { session, actorId } = await requireKnowledgeApprover();
-  const itemId = readItemId(formData);
-  const reason = formData.get("reason");
+  let failure: string | null = null;
 
-  await rejectKnowledgeItem({
-    organisationId: session.organisationId,
-    itemId,
-    actorId,
-    reason: typeof reason === "string" && reason.trim() ? reason.trim().slice(0, 500) : undefined,
-  });
+  try {
+    const { session, actorId } = await requireKnowledgeApprover();
+    const itemId = readItemId(formData);
+    const reason = formData.get("reason");
 
-  revalidatePath("/dashboard/brain");
-  revalidatePath("/dashboard/brain/knowledge");
-  revalidatePath("/dashboard/advisor");
+    await rejectKnowledgeItem({
+      organisationId: session.organisationId,
+      itemId,
+      actorId,
+      reason: typeof reason === "string" && reason.trim() ? reason.trim().slice(0, 500) : undefined,
+    });
+
+    revalidatePath("/dashboard/brain");
+    revalidatePath("/dashboard/brain/knowledge");
+    revalidatePath("/dashboard/advisor");
+  } catch (error) {
+    failure = customerSafeKnowledgeError(error);
+  }
+
+  if (failure) redirect(knowledgeNoticeHref("error", failure));
+  redirect(knowledgeNoticeHref("success", "Knowledge rejected and kept out of approved Business Brain truth."));
 }
