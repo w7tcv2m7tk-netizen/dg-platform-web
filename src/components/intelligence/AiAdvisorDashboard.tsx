@@ -251,9 +251,9 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
     <div className="space-y-8">
       {!data.scoresLive ? (
         <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-sm text-blue-200/90">
-          Advisor deepens as CRM, website, and finance signals land.{" "}
-          <Link href="/dashboard/settings/connectors" className="underline hover:text-white">
-            Connectors →
+          Advisor deepens as DigitalGate activity and relevant connected-service signals build.{" "}
+          <Link href="/dashboard/settings/connected-services" className="underline hover:text-white">
+            Connected Services →
           </Link>
         </div>
       ) : null}
@@ -359,27 +359,14 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
             </p>
             <p className="mt-3 text-xs text-slate-500">
               {liveAnswer.source === "llm"
-                ? `Answered by Model Router · Transport selected: ${
-                    liveAnswer.transportSelected ??
-                    (liveAnswer.model ? `openai · ${liveAnswer.model}` : "unknown")
-                  }`
+                ? "Live AI response"
                 : liveAnswer.source === "no_llm"
-                  ? liveAnswer.transportsAvailable?.length
-                    ? `Briefing fallback — Model Router unavailable (${liveAnswer.transportsAvailable.join(", ")})${
-                        liveAnswer.transportSelected
-                          ? ` · Transport selected: ${liveAnswer.transportSelected}`
-                          : ""
-                      }`
-                    : "Briefing fallback — Model Router not configured (check AI_GATEWAY_API_KEY / OPENAI / ANTHROPIC on Vercel)"
+                  ? "Using the latest Business Brain briefing while live AI is unavailable."
                   : liveAnswer.source === "llm_error"
-                    ? `Model Router error${liveAnswer.llmError ? `: ${liveAnswer.llmError}` : ""}${
-                        liveAnswer.transportSelected
-                          ? ` · Transport selected: ${liveAnswer.transportSelected}`
-                          : ""
-                      }`
+                    ? "Live AI was unavailable, so DigitalGate used the latest Business Brain briefing."
                     : liveAnswer.source === "error"
                       ? "Request failed"
-                      : "Briefing fallback"}
+                      : "Business Brain briefing"}
             </p>
           </div>
         ) : activeAnswer ? (
@@ -406,7 +393,7 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
               What DigitalGate thinks you should do next
             </h2>
             <p className="mt-1 text-sm text-slate-400">
-              Prioritisation from Twin, Brain, Health and live signals — execute in Command Centre.
+              Prioritisation from Twin, Brain, Health and available signals — execute in Command Centre.
             </p>
           </div>
           <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
