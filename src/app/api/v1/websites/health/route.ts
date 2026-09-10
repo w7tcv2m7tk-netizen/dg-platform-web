@@ -1,15 +1,45 @@
-import { fetchWpSiteHealth, getWpHealthSite } from "@/lib/dg-api";
+import {
+  normalizeSiteHealthSnapshot,
+  organisationHasWordPressConnector,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
+import { fetchWpSiteHealth, getWpHealthSite } from "@/lib/dg-api";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
-import { normalizeSiteHealthSnapshot } from "@dg/platform-core";
 
-/** Live site health from WordPress connector(s) */
+/** Explicit WordPress connector diagnostic — not a normal Gen 2 health path. */
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const { searchParams } = new URL(req.url);
+  if (searchParams.get("view") !== "wordpress") {
+    return NextResponse.json(
+      {
+        error: {
+          code: "not_found",
+          message: "WordPress health is an explicit diagnostic view only",
+        },
+      },
+      { status: 404 },
+    );
+  }
+
+  const hasConnector = await organisationHasWordPressConnector(
+    session.organisationId,
+  );
+  if (!hasConnector) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "not_found",
+          message: "WordPress health is an explicit diagnostic view only",
+        },
+      },
+      { status: 404 },
+    );
+  }
+
   const siteId = searchParams.get("site");
   const site = getWpHealthSite(siteId);
   const result = await fetchWpSiteHealth(site.id);

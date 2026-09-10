@@ -163,28 +163,10 @@ export async function fetchPortalMe(
     }
   }
 
-  const headers = apiHeaders(clerkUserId, email);
-  const base = getApiBase();
-  if (!base || !headers) {
-    return fallback;
-  }
-
-  try {
-    const url = `${base}/portal/me?email=${encodeURIComponent(email)}`;
-    // Short SWR — shell remounts / soft navs should not block on a fresh WP round-trip every time.
-    // Org switch and onboarding still force fresh reads via revalidateTag("portal-me").
-    const res = await fetch(url, {
-      headers,
-      next: { revalidate: 45, tags: ["portal-me", clerkUserId ? `portal-me-${clerkUserId}` : "portal-me-anon"] },
-    });
-    const data = (await res.json().catch(() => null)) as PortalProfile | null;
-    if (!res.ok || !data || typeof data.linked !== "boolean") {
-      return fallback;
-    }
-    return data;
-  } catch {
-    return fallback;
-  }
+  // Native Gen 2 runtime is Neon-only. A leftover DG_API_BASE_URL must not
+  // silently reopen a WordPress /portal/me read on ordinary shell or API loads.
+  // Explicit WordPress → Gen 2 migration/import routes keep their own clients.
+  return fallback;
 }
 
 export type OnboardingPayload = {
@@ -227,19 +209,8 @@ export async function submitOnboarding(payload: OnboardingPayload) {
 }
 
 export async function pingApi(): Promise<{ ok: boolean; base: string | null }> {
-  const base = getApiBase();
-  if (!base) {
-    return { ok: true, base: null };
-  }
-  try {
-    const res = await fetch(`${base}/onboarding`, {
-      method: "OPTIONS",
-      cache: "no-store",
-    });
-    return { ok: res.ok || res.status === 204 || res.status === 405, base };
-  } catch {
-    return { ok: false, base };
-  }
+  // Platform health must not round-trip to a leftover WordPress hub.
+  return { ok: true, base: null };
 }
 
 export type WpConnectorOverride = {
