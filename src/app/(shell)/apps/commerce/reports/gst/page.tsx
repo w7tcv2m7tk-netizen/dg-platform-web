@@ -1,11 +1,10 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
 import { getGstReport, parseReportRange } from "@dg/platform-core";
 
 import { ReportDateRangeFilter } from "@/components/commerce/ReportDateRangeFilter";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 function money(cents: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -20,30 +19,8 @@ export default async function GstReportPage({
   searchParams: Promise<{ from?: string; to?: string }>;
 }) {
   const sp = await searchParams;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
-
-  if (!session) {
-    return (
-      <main className="dg-page-main">
-        <p className="text-slate-300">Database not configured.</p>
-      </main>
-    );
-  }
+  const session = await getAuthorisedPlatformPageSession("commerce.read");
+  if (!session) notFound();
 
   const range = parseReportRange(sp.from, sp.to);
   const report = await getGstReport(session.organisationId, range);

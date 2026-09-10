@@ -1,32 +1,15 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
 import { listOrganisationPaymentRequests } from "@dg/platform-core";
 
 import { CommercePaymentsList } from "@/components/commerce/CommercePaymentsList";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function CommercePaymentsPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
+  const session = await getAuthorisedPlatformPageSession("commerce.read");
+  if (!session) notFound();
 
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
-
-  const payments = session
-    ? await listOrganisationPaymentRequests(session.organisationId)
-    : [];
+  const payments = await listOrganisationPaymentRequests(session.organisationId);
 
   return (
     <>
@@ -44,14 +27,12 @@ export default async function CommercePaymentsPage() {
       </header>
       <main className="dg-page-main space-y-6">
         <CommercePaymentsList items={payments} />
-        {session ? (
-          <Link
-            href="/apps/re/vendor-leads"
-            className="inline-block text-sm text-blue-400 hover:underline"
-          >
-            Create from vendor leads →
-          </Link>
-        ) : null}
+        <Link
+          href="/apps/re/vendor-leads"
+          className="inline-block text-sm text-blue-400 hover:underline"
+        >
+          Create from vendor leads →
+        </Link>
       </main>
     </>
   );

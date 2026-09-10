@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
 import {
   getBusinessContext,
   getContact,
   getInvoice,
+  sessionHasFeature,
   type CommerceBuyerDetails,
   type CommerceLineItem,
 } from "@dg/platform-core";
@@ -17,7 +16,7 @@ import {
   VoidInvoiceButton,
 } from "@/components/commerce/CommerceDocumentActions";
 import { CommerceDocumentView } from "@/components/commerce/CommerceDocumentView";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function InvoiceDetailPage({
   params,
@@ -25,30 +24,11 @@ export default async function InvoiceDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
+  const session = await getAuthorisedPlatformPageSession("commerce.read");
+  if (!session) notFound();
 
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
-
-  if (!session) {
-    return (
-      <main className="dg-page-main">
-        <p className="text-slate-300">Database not configured.</p>
-      </main>
-    );
-  }
+  const canManage = sessionHasFeature(session, "commerce.manage");
+  const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
 
   const invoice = await getInvoice(session.organisationId, id);
   if (!invoice) notFound();
@@ -60,7 +40,7 @@ export default async function InvoiceDetailPage({
       locale: "en-AU",
       currency: invoice.currency,
     }),
-    invoice.contactId
+    canReadContacts && invoice.contactId
       ? getContact(session.organisationId, invoice.contactId)
       : Promise.resolve(null),
   ]);
@@ -90,9 +70,13 @@ export default async function InvoiceDetailPage({
           </div>
           <div className="flex flex-wrap gap-2">
             <PrintDocumentButton />
-            <SendInvoiceButton invoiceId={invoice.id} status={invoice.status} />
-            <MarkInvoicePaidButton invoiceId={invoice.id} status={invoice.status} />
-            <VoidInvoiceButton invoiceId={invoice.id} status={invoice.status} />
+            {canManage ? (
+              <>
+                <SendInvoiceButton invoiceId={invoice.id} status={invoice.status} />
+                <MarkInvoicePaidButton invoiceId={invoice.id} status={invoice.status} />
+                <VoidInvoiceButton invoiceId={invoice.id} status={invoice.status} />
+              </>
+            ) : null}
           </div>
         </div>
       </header>
