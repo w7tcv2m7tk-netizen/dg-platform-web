@@ -102,6 +102,13 @@ export function Gen2OnboardingWizard({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [checkoutVerified, setCheckoutVerified] = useState(
+    Boolean(initial.subscriptionActivatedAt),
+  );
+  const [checkoutVerifying, setCheckoutVerifying] = useState(
+    checkoutStatus === "success" && !initial.subscriptionActivatedAt,
+  );
+  const [checkoutVerificationError, setCheckoutVerificationError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   const stepIndex = GEN2_ONBOARDING_STEPS.indexOf(step);
@@ -180,6 +187,7 @@ export function Gen2OnboardingWizard({
       if (p) {
         setProgress(p);
         setStep(p.currentStep);
+        if (p.subscriptionActivatedAt) setCheckoutVerified(true);
       }
       if (prof) {
         setProfile({
@@ -221,26 +229,32 @@ export function Gen2OnboardingWizard({
   }, []);
 
   useEffect(() => {
-    if (checkoutStatus !== "success") return;
+    if (checkoutStatus !== "success" || checkoutVerified) return;
     void (async () => {
+      setCheckoutVerifying(true);
+      setCheckoutVerificationError(null);
       const res = await fetch("/api/v1/onboarding/gen2", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           markStepComplete: "stripe",
-          progress: {
-            subscriptionActivatedAt: new Date().toISOString(),
-            checklist: { subscription: true },
-          },
+          progress: { checklist: { subscription: true } },
         }),
       });
       const json = await res.json().catch(() => ({}));
       if (res.ok && json.data?.progress) {
         setProgress(json.data.progress);
+        setCheckoutVerified(true);
         setStep("connect");
+      } else {
+        setCheckoutVerificationError(
+          json.error?.message ||
+            "Your Stripe checkout has returned, but confirmation is still processing.",
+        );
       }
+      setCheckoutVerifying(false);
     })();
-  }, [checkoutStatus]);
+  }, [checkoutStatus, checkoutVerified]);
 
   const save = useCallback(
     async (payload: Record<string, unknown>) => {
@@ -437,11 +451,29 @@ export function Gen2OnboardingWizard({
       </header>
 
       <main className="dg-page-main mx-auto max-w-2xl space-y-6 px-4 pb-16 sm:px-6">
-        {checkoutStatus === "success" ? (
+        {checkoutVerified ? (
           <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
             Your DigitalGate subscription is active. {trialDays}-day free trial has started —
             nothing charged today. Continue connecting your business below.
           </p>
+        ) : null}
+        {checkoutStatus === "success" && !checkoutVerified ? (
+          <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
+            <p>
+              {checkoutVerifying
+                ? "Confirming your Stripe checkout…"
+                : checkoutVerificationError ?? "Confirming your Stripe checkout…"}
+            </p>
+            {checkoutVerificationError ? (
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="mt-2 font-medium text-sky-50 underline underline-offset-2"
+              >
+                Check again
+              </button>
+            ) : null}
+          </div>
         ) : null}
         {checkoutStatus === "cancelled" ? (
           <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
