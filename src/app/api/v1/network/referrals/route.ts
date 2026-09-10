@@ -7,11 +7,13 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "crm.contacts.read");
+  if (denied) return denied;
 
   const referrals = await listOrganisationBusinessReferrals(session.organisationId);
   return NextResponse.json({ data: { referrals } });
@@ -20,6 +22,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "crm.contacts.write");
+  if (denied) return denied;
 
   const body = await req.json().catch(() => ({}));
 

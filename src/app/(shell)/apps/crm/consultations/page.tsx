@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
 import {
   listConsultationAgenda,
+  sessionHasFeature,
   type ConsultationAgendaItem,
 } from "@dg/platform-core";
 
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 const BRISBANE = "Australia/Brisbane";
 
@@ -44,16 +44,19 @@ function groupByDay(items: ConsultationAgendaItem[]) {
     if (!item.startsAt) continue;
     const key = dayKey(item.startsAt);
     const last = groups[groups.length - 1];
-    if (last && last.key === key) {
-      last.items.push(item);
-    } else {
-      groups.push({ key, heading: dayHeading(item.startsAt), items: [item] });
-    }
+    if (last && last.key === key) last.items.push(item);
+    else groups.push({ key, heading: dayHeading(item.startsAt), items: [item] });
   }
   return groups;
 }
 
-function ConsultationRow({ item }: { item: ConsultationAgendaItem }) {
+function ConsultationRow({
+  item,
+  canWrite,
+}: {
+  item: ConsultationAgendaItem;
+  canWrite: boolean;
+}) {
   return (
     <li className="py-3">
       <div className="flex items-start justify-between gap-3">
@@ -88,56 +91,28 @@ function ConsultationRow({ item }: { item: ConsultationAgendaItem }) {
             </a>
           ) : null}
         </div>
-        <CrmDeleteButton
-          resource="opportunities"
-          id={item.opportunityId}
-          name={item.contactName || item.title || "this consultation"}
-          compact
-        />
+        {canWrite ? (
+          <CrmDeleteButton
+            resource="opportunities"
+            id={item.opportunityId}
+            name={item.contactName || item.title || "this consultation"}
+            compact
+          />
+        ) : null}
       </div>
     </li>
   );
 }
 
 export default async function CrmConsultationsPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
+  const session = await getAuthorisedPlatformPageSession("crm.opportunities.read");
+  if (!session) return null;
+  const canWrite = sessionHasFeature(session, "crm.opportunities.write");
 
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
-
-  if (!session) {
-    return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Consultations</h1>
-          <p className="text-sm text-slate-400">CRM Core App</p>
-        </header>
-        <main className="dg-page-main">
-          <div className="dg-card max-w-2xl">
-            <p className="text-slate-300">Sign in to view consultations.</p>
-          </div>
-        </main>
-      </>
-    );
-  }
-
-  const agenda = await listConsultationAgenda({
-    organisationId: session.organisationId,
-  });
+  const agenda = await listConsultationAgenda({ organisationId: session.organisationId });
   const upcomingGroups = groupByDay(agenda.upcoming);
   const pastGroups = groupByDay(agenda.past);
-  const total =
-    agenda.upcoming.length + agenda.past.length + agenda.unscheduled.length;
+  const total = agenda.upcoming.length + agenda.past.length + agenda.unscheduled.length;
 
   return (
     <>
@@ -152,11 +127,13 @@ export default async function CrmConsultationsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
+        {!canWrite ? (
+          <div className="dg-card text-sm text-slate-400">You have read-only access to CRM opportunities and consultations.</div>
+        ) : null}
         <div className="dg-card">
           <h2 className="font-semibold text-white">Upcoming</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Platform Consultation bookings. Confirmation emails CC{" "}
-            consultations@digitalgate.com.au.
+            Platform Consultation bookings. Confirmation emails CC consultations@digitalgate.com.au.
           </p>
           {upcomingGroups.length === 0 ? (
             <p className="mt-4 text-sm text-slate-500">No upcoming consultations.</p>
@@ -164,12 +141,10 @@ export default async function CrmConsultationsPage() {
             <div className="mt-4 space-y-6">
               {upcomingGroups.map((group) => (
                 <section key={group.key}>
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
-                    {group.heading}
-                  </h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">{group.heading}</h3>
                   <ul className="mt-1 divide-y divide-slate-800">
                     {group.items.map((item) => (
-                      <ConsultationRow key={item.opportunityId} item={item} />
+                      <ConsultationRow key={item.opportunityId} item={item} canWrite={canWrite} />
                     ))}
                   </ul>
                 </section>
@@ -183,7 +158,7 @@ export default async function CrmConsultationsPage() {
             <h2 className="font-semibold text-white">Time TBC</h2>
             <ul className="mt-2 divide-y divide-slate-800">
               {agenda.unscheduled.map((item) => (
-                <ConsultationRow key={item.opportunityId} item={item} />
+                <ConsultationRow key={item.opportunityId} item={item} canWrite={canWrite} />
               ))}
             </ul>
           </div>
@@ -195,12 +170,10 @@ export default async function CrmConsultationsPage() {
             <div className="mt-4 space-y-6">
               {pastGroups.map((group) => (
                 <section key={group.key}>
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
-                    {group.heading}
-                  </h3>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">{group.heading}</h3>
                   <ul className="mt-1 divide-y divide-slate-800">
                     {group.items.map((item) => (
-                      <ConsultationRow key={item.opportunityId} item={item} />
+                      <ConsultationRow key={item.opportunityId} item={item} canWrite={canWrite} />
                     ))}
                   </ul>
                 </section>
