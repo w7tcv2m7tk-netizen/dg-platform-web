@@ -12,6 +12,10 @@ const page = fs.readFileSync(
   path.join(root, "src/app/(shell)/onboarding/page.tsx"),
   "utf8",
 );
+const wizard = fs.readFileSync(
+  path.join(root, "src/components/onboarding/Gen2OnboardingWizard.tsx"),
+  "utf8",
+);
 
 assert.match(
   route,
@@ -99,4 +103,19 @@ assert.match(
   "unconfirmed Stripe returns must show a truthful pending state",
 );
 
-console.log("Onboarding checkout verification regression tests passed");
+const implementationHandoff = wizard.slice(
+  wizard.indexOf("async function completeImplementation"),
+  wizard.indexOf("function toggleApp"),
+);
+assert.match(
+  implementationHandoff,
+  /const saved = await save\(/,
+  "implementation handoff must retain the server save result",
+);
+assert.match(
+  implementationHandoff,
+  /if \(!saved\) return;[\s\S]*router\.push\("\/implementation"\)/,
+  "implementation navigation must only occur after onboarding completion persists",
+);
+
+console.log("Onboarding checkout and implementation handoff regression tests passed");

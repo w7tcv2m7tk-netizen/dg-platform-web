@@ -389,10 +389,11 @@ export function Gen2OnboardingWizard({
   }
 
   async function completeImplementation() {
-    await save({
+    const saved = await save({
       markStepComplete: "implementation",
       progress: { checklist: { implementation: true } },
     });
+    if (!saved) return;
     router.push("/implementation");
   }
 
