@@ -58,7 +58,7 @@ export async function updateOpportunityStatus(input: {
   await writeAuditLog({
     organisationId: input.organisationId,
     actorId: input.actorId,
-    action: "update_status",
+    action: "update",
     entityType: "Opportunity",
     entityId: input.opportunityId,
     changes: {
