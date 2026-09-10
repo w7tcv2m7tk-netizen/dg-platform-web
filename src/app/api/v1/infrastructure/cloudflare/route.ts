@@ -6,7 +6,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 export const runtime = "nodejs";
 
@@ -14,6 +14,8 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "infrastructure.read");
+  if (denied) return denied;
 
   const overview = await getCloudflareInfrastructureOverview();
   return NextResponse.json({ data: { overview } });
@@ -26,6 +28,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "infrastructure.write");
+  if (denied) return denied;
 
   const body = (await req.json().catch(() => null)) as {
     action?: string;

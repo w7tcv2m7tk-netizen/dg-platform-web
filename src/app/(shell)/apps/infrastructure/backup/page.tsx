@@ -1,10 +1,9 @@
-import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
-import { getInfrastructureBackupOverview } from "@dg/platform-core";
+import { notFound } from "next/navigation";
+import { getInfrastructureBackupOverview, sessionHasFeature } from "@dg/platform-core";
 
 import { WebsiteBackupExportButton } from "@/components/infrastructure/WebsiteBackupExportButton";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 function statusClass(status: string) {
   if (status === "covered") return "text-emerald-400";
@@ -13,25 +12,11 @@ function statusClass(status: string) {
 }
 
 export default async function InfrastructureBackupPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+  const session = await getAuthorisedPlatformPageSession("infrastructure.read");
+  if (!session) notFound();
 
-  const overview = session
-    ? await getInfrastructureBackupOverview(session.organisationId)
-    : null;
+  const canExport = sessionHasFeature(session, "infrastructure.write");
+  const overview = await getInfrastructureBackupOverview(session.organisationId);
 
   return (
     <>
@@ -43,10 +28,6 @@ export default async function InfrastructureBackupPage() {
         </p>
       </header>
       <main className="dg-page-main max-w-3xl space-y-6">
-        {!session || !overview ? (
-          <p className="text-sm text-slate-400">Sign in to see backup status for this organisation.</p>
-        ) : (
-          <>
             <ul className="space-y-3">
               {overview.layers.map((layer) => (
                 <li
@@ -83,7 +64,7 @@ export default async function InfrastructureBackupPage() {
               ) : (
                 <p className="text-sm text-slate-400">No sites in this organisation yet.</p>
               )}
-              <WebsiteBackupExportButton />
+              {canExport ? <WebsiteBackupExportButton /> : null}
             </section>
 
             {overview.wordpressSites.length ? (
@@ -103,8 +84,6 @@ export default async function InfrastructureBackupPage() {
                 </ul>
               </section>
             ) : null}
-          </>
-        )}
       </main>
     </>
   );

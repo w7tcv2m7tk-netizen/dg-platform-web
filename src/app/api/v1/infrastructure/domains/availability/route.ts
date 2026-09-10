@@ -11,7 +11,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 /**
  * Node only — Dreamscape auth uses node:crypto; undici proxy needs Node.
@@ -31,6 +31,8 @@ export const runtime = "nodejs";
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "infrastructure.read");
+  if (denied) return denied;
 
   const url = new URL(req.url);
   const q = url.searchParams.get("q")?.trim() ?? "";

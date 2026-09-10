@@ -1,12 +1,17 @@
+import { notFound } from "next/navigation";
 import { getEmailInfrastructureOverview } from "@dg/platform-core";
 
 import { EmailInfrastructureConsole } from "@/components/infrastructure/EmailInfrastructureConsole";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 /**
  * Email Infrastructure — prepare sending domain, apply auth DNS, verify.
  * @see docs/foundations/EMAIL-INFRASTRUCTURE.md
  */
 export default async function EmailInfrastructurePage() {
+  const session = await getAuthorisedPlatformPageSession("infrastructure.read");
+  if (!session) notFound();
+
   const overview = await getEmailInfrastructureOverview();
 
   return (

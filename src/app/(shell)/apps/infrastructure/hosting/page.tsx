@@ -1,36 +1,21 @@
-import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   listOrganisationDomains,
   listWebsites,
   resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function HostingStatusPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
+  const session = await getAuthorisedPlatformPageSession("infrastructure.read");
+  if (!session) notFound();
 
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
-
-  const sites = session ? await listWebsites(session.organisationId) : [];
-  const domains = session
-    ? await listOrganisationDomains(session.organisationId)
-    : [];
+  const [sites, domains] = await Promise.all([
+    listWebsites(session.organisationId),
+    listOrganisationDomains(session.organisationId),
+  ]);
 
   const published = sites.filter((s) => s.status === "published");
   const linkedDomains = domains.filter((d) => d.websiteId);
