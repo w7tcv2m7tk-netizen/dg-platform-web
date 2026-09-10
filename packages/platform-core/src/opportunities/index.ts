@@ -27,6 +27,57 @@ export interface CreateOpportunityInput {
   metadata?: Record<string, unknown>;
 }
 
+export type LinkedOpportunityRelation = "contact" | "company" | "lead" | "property";
+
+export class LinkedOpportunityRecordNotFoundError extends Error {
+  readonly code: `linked_${LinkedOpportunityRelation}_not_found`;
+  readonly relation: LinkedOpportunityRelation;
+
+  constructor(relation: LinkedOpportunityRelation) {
+    super(`Linked ${relation} not found in this organisation`);
+    this.name = "LinkedOpportunityRecordNotFoundError";
+    this.relation = relation;
+    this.code = `linked_${relation}_not_found`;
+  }
+}
+
+async function assertOpportunityRelationships(input: CreateOpportunityInput): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const organisationId = input.organisationId;
+
+  if (input.contactId) {
+    const contact = await prisma.contact.findFirst({
+      where: { id: input.contactId, organisationId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!contact) throw new LinkedOpportunityRecordNotFoundError("contact");
+  }
+
+  if (input.companyId) {
+    const company = await prisma.company.findFirst({
+      where: { id: input.companyId, organisationId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!company) throw new LinkedOpportunityRecordNotFoundError("company");
+  }
+
+  if (input.leadId) {
+    const lead = await prisma.lead.findFirst({
+      where: { id: input.leadId, organisationId },
+      select: { id: true },
+    });
+    if (!lead) throw new LinkedOpportunityRecordNotFoundError("lead");
+  }
+
+  if (input.propertyId) {
+    const property = await prisma.property.findFirst({
+      where: { id: input.propertyId, organisationId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!property) throw new LinkedOpportunityRecordNotFoundError("property");
+  }
+}
+
 export interface ListOpportunitiesOptions {
   organisationId: string;
   status?: string;
@@ -111,6 +162,8 @@ export async function getOpportunityForLead(
 
 export async function createOpportunity(input: CreateOpportunityInput) {
   const { prisma } = await import("@dg/database");
+
+  await assertOpportunityRelationships(input);
 
   if (input.leadId) {
     const existing = await prisma.opportunity.findFirst({
