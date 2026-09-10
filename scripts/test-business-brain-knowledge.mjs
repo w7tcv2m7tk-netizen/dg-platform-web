@@ -24,6 +24,17 @@ describe("Business Brain governed knowledge contract", () => {
     assert.doesNotMatch(retrieval.split("export async function approveKnowledgeItem")[0], /status IN \('approved', 'proposed'\)/);
   });
 
+  it("grounds free-text Advisor reasoning in approved organisational knowledge", async () => {
+    const boundary = await text("packages/platform-core/src/advisor/ask-advisor-with-knowledge.ts");
+    const exports = await text("packages/platform-core/src/advisor/index.ts");
+    assert.match(boundary, /getApprovedKnowledgeContext/);
+    assert.match(boundary, /organisationId: input\.organisationId/);
+    assert.match(boundary, /approvedKnowledge\.promptContext/);
+    assert.match(boundary, /askBusinessAdvisorBase/);
+    assert.match(exports, /ask-advisor-with-knowledge/);
+    assert.doesNotMatch(exports, /export \* from "\.\/ask-advisor"/);
+  });
+
   it("creates extracted knowledge as proposed, never auto-approved", async () => {
     const source = await text("packages/platform-core/src/knowledge/index.ts");
     const propose = source.slice(
