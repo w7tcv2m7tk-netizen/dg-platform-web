@@ -170,6 +170,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
             industry={canReadCompanies ? company?.industry : undefined}
             referrals={businessReferrals}
             complianceNote={BUSINESS_REFERRAL_COMPLIANCE_NOTE}
+            canWrite={canWriteContacts}
           />
 
           <div className="dg-card">
