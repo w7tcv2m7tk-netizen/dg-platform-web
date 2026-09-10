@@ -55,6 +55,14 @@ export default async function OnboardingPage({
         : null;
 
   if (!session) {
+    const redirectParams = new URLSearchParams();
+    if (invite) redirectParams.set("invite", invite);
+    if (params.journey) redirectParams.set("journey", params.journey);
+    if (params.checkout) redirectParams.set("checkout", params.checkout);
+    const query = redirectParams.toString();
+    const onboardingPath = query ? `/onboarding?${query}` : "/onboarding";
+    const loginHref = `/login?redirect_url=${encodeURIComponent(onboardingPath)}`;
+
     return (
       <main className="dg-page-main mx-auto max-w-lg px-6 py-16">
         <h1 className="text-2xl font-bold text-white">Sign in to continue</h1>
@@ -62,7 +70,7 @@ export default async function OnboardingPage({
           Gen 2 onboarding runs inside your DigitalGate organisation.
         </p>
         <a
-          href="/login?redirect_url=/onboarding"
+          href={loginHref}
           className="mt-6 inline-block rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
         >
           Sign in
