@@ -58,26 +58,22 @@ export function publicSiteIcons(
       apple: Array<{ url: string; type?: string; sizes?: string }>;
     }
   | undefined {
-  const mapped = PUBLIC_SITE_ICONS[slug];
-  if (mapped) {
+  const custom = explicit?.trim();
+  if (custom) {
+    const type = custom.endsWith(".svg") ? "image/svg+xml" : "image/png";
     return {
-      icon: [
-        { url: mapped.favicon32, type: "image/png", sizes: "32x32" },
-        { url: mapped.icon, type: "image/png" },
-      ],
-      apple: [{ url: mapped.apple, type: "image/png", sizes: "180x180" }],
+      icon: [{ url: custom, type }],
+      apple: [{ url: custom, type: "image/png", sizes: "180x180" }],
     };
   }
-  const custom = explicit?.trim();
-  if (!custom) return undefined;
+  const mapped = PUBLIC_SITE_ICONS[slug];
+  if (!mapped) return undefined;
   return {
     icon: [
-      {
-        url: custom,
-        type: custom.endsWith(".svg") ? "image/svg+xml" : "image/png",
-      },
+      { url: mapped.favicon32, type: "image/png", sizes: "32x32" },
+      { url: mapped.icon, type: "image/png" },
     ],
-    apple: [{ url: custom, type: "image/png", sizes: "180x180" }],
+    apple: [{ url: mapped.apple, type: "image/png", sizes: "180x180" }],
   };
 }
 

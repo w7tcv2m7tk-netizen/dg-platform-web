@@ -249,12 +249,22 @@ export default async function middleware(req: NextRequest, event: unknown) {
       });
     }
 
+    // Browsers prefer the first <link rel="icon">, which Next injects as
+    // /favicon.ico (DigitalGate green D). Public hosts must use the host-aware
+    // /icon route (business profile mark) instead.
+    if (path === "/favicon.ico") {
+      const url = req.nextUrl.clone();
+      url.pathname = "/icon";
+      const rewrite = NextResponse.rewrite(url);
+      rewrite.headers.set("x-dg-custom-host", hostname);
+      return rewrite;
+    }
+
     if (
       path === "/apple-icon" ||
       path.startsWith("/apple-icon/") ||
       path === "/icon" ||
       path.startsWith("/icon/") ||
-      path === "/favicon.ico" ||
       path === "/manifest.webmanifest"
     ) {
       const passthrough = NextResponse.next();

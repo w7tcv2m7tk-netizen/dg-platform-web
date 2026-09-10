@@ -1,4 +1,4 @@
-import { getPublicStayUnit, getWebsiteForPublicRender, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug, ensureHideawayCircleWebsitePage } from "@dg/platform-core";
+import { getPublicStayUnit, getPublicSiteBrand, getWebsiteForPublicRender, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug, ensureHideawayCircleWebsitePage } from "@dg/platform-core";
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -179,6 +179,7 @@ export async function generateMetadata({
         ? host.replace(/^www\./, "")
         : host;
     const theme = site.theme as { iconUrl?: string } | null | undefined;
+    const brand = await getPublicSiteBrand(site.slug);
     const seo = page?.seo ?? {};
     return publicPageMetadata({
       siteSlug: site.slug,
@@ -191,7 +192,7 @@ export async function generateMetadata({
       ogDescription: seo.ogDescription,
       keywords: seo.keywords?.length ? seo.keywords : site.seo?.keywords,
       canonicalHost,
-      iconUrl: theme?.iconUrl,
+      iconUrl: brand?.iconUrl || theme?.iconUrl,
       publishedAt: seo.publishedAt,
       modifiedAt: seo.modifiedAt,
       schemaType: seo.schemaType,
