@@ -492,13 +492,13 @@ function buildPreviewOverview(
     greeting: greetingForHour(hour, firstName),
     businessHealth: 0,
     businessHealthDelta: 0,
-    businessHealthDeltaLabel: "Connect database for live scores",
+    businessHealthDeltaLabel: "Connect business services for live scores",
     lastUpdatedLabel: formatTimelineTime(new Date().toISOString()),
     scoresLive: false,
-    dailyBriefing: `Good morning ${firstName}. Connect your database and WordPress site to unlock live Business Health scores and AI briefings.`,
+    dailyBriefing: `${greetingForHour(hour, firstName)}. Connect the systems your business uses to unlock live Business Health scores and AI briefings.`,
     priorities: [
-      { rank: 1, text: "Complete platform setup and import contacts." },
-      { rank: 2, text: "Connect your WordPress site via Connectors." },
+      { rank: 1, text: "Complete platform setup and add or import contacts." },
+      { rank: 2, text: "Connect the services your business uses in Connected Services." },
       { rank: 3, text: "Enable the apps relevant to your business." },
     ],
     scoreBreakdown: [
