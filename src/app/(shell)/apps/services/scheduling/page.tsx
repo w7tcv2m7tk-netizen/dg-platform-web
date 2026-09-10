@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
 import {
   getActiveServiceTemplate,
   listOrganisationMembers,
   listServiceJobs,
+  sessionHasFeature,
 } from "@dg/platform-core";
 
 import { ScheduleJobQuickForm } from "@/components/services/ScheduleJobQuickForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import {
   dayKeyRange,
   formatDayHeading,
@@ -26,28 +27,10 @@ function memberLabel(m: {
 }
 
 export default async function ServicesSchedulingPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
+  const session = await getAuthorisedPlatformPageSession("services.jobs.read");
+  if (!session) notFound();
 
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
-
-  if (!session) {
-    return (
-      <main className="dg-page-main">
-        <p className="text-slate-400">Sign in required.</p>
-      </main>
-    );
-  }
+  const canWriteJobs = sessionHasFeature(session, "services.jobs.write");
 
   const { prisma } = await import("@dg/database");
   const [org, members] = await Promise.all([
@@ -137,14 +120,16 @@ export default async function ServicesSchedulingPage() {
                         : " · Unassigned"}
                     </p>
                   </Link>
-                  <ScheduleJobQuickForm
-                    jobId={job.id}
-                    defaultDay={startKey}
-                    members={members.map((m) => ({
-                      clerkUserId: m.clerkUserId,
-                      label: memberLabel(m),
-                    }))}
-                  />
+                  {canWriteJobs ? (
+                    <ScheduleJobQuickForm
+                      jobId={job.id}
+                      defaultDay={startKey}
+                      members={members.map((m) => ({
+                        clerkUserId: m.clerkUserId,
+                        label: memberLabel(m),
+                      }))}
+                    />
+                  ) : null}
                 </li>
               ))}
             </ul>
