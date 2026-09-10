@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { TaskStatus } from "@dg/platform-core";
 
 import { CompleteTaskButton } from "@/components/crm/CompleteTaskButton";
+import { formatDateTimeInTimeZone } from "@/lib/organisation-timezone";
 
 export type TaskListItem = {
   id: string;
@@ -20,11 +21,6 @@ export type TaskListItem = {
   relatedHref?: string | null;
 };
 
-function formatDue(dueAt: string | null) {
-  if (!dueAt) return "No due date";
-  return new Date(dueAt).toLocaleString("en-AU");
-}
-
 function isOverdue(task: TaskListItem) {
   if (task.status !== "open" || !task.dueAt) return false;
   return new Date(task.dueAt).getTime() < Date.now();
@@ -37,10 +33,12 @@ function priorityLabel(priority: string | null) {
 
 export function TasksList({
   tasks,
+  timeZone,
   canWrite = false,
   emptyLabel = "No tasks.",
 }: {
   tasks: TaskListItem[];
+  timeZone: string;
   canWrite?: boolean;
   emptyLabel?: string;
 }) {
@@ -90,7 +88,7 @@ export function TasksList({
                 ) : null}
                 <p className="mt-2 text-xs text-slate-500">
                   <span className={overdue ? "text-amber-400" : undefined}>
-                    {formatDue(task.dueAt)}
+                    {task.dueAt ? formatDateTimeInTimeZone(task.dueAt, timeZone) : "No due date"}
                     {overdue ? " · overdue" : ""}
                   </span>
                   {` · ${priorityLabel(task.priority)}`}
