@@ -3,7 +3,7 @@
  * @see docs/ai/AI-ARCHITECTURE.md
  */
 
-import { createTask } from "../../tasks";
+import { createTask, resolveTaskLinkTarget, taskLinkPairError } from "../../tasks";
 import { getAiTool, type AiToolDefinition } from "./registry";
 import { recordAiLedgerEvent } from "../usage";
 
@@ -39,6 +39,11 @@ export type AiToolExecuteResult =
         | "approval_required"
         | "forbidden"
         | "validation_error"
+        | "unsupported_entity_type"
+        | "linked_contact_not_found"
+        | "linked_company_not_found"
+        | "linked_opportunity_not_found"
+        | "linked_job_not_found"
         | "execution_error";
       message: string;
       tool?: AiToolDefinition;
@@ -62,6 +67,37 @@ export async function executeAiTool(
   }
 
   const correlationId = input.correlationId?.trim() || newCorrelationId();
+
+  if (tool.id === "crm.create_follow_up_task") {
+    const entityType = input.params?.entityType?.trim() || undefined;
+    const entityId = input.params?.entityId?.trim() || undefined;
+    const pairError = taskLinkPairError(entityType, entityId);
+    if (pairError) {
+      return {
+        ok: false,
+        code: pairError.code,
+        message: pairError.message,
+        tool,
+        correlationId,
+      };
+    }
+    if (entityType && entityId) {
+      const target = await resolveTaskLinkTarget(
+        input.organisationId,
+        entityType,
+        entityId,
+      );
+      if (!target.ok) {
+        return {
+          ok: false,
+          code: target.code,
+          message: target.message,
+          tool,
+          correlationId,
+        };
+      }
+    }
+  }
 
   if (tool.requiresApproval && input.confirmed !== true) {
     await recordAiLedgerEvent({

@@ -5,6 +5,11 @@ import test from "node:test";
 const page = fs.readFileSync("src/app/(shell)/apps/crm/tasks/page.tsx", "utf8");
 const list = fs.readFileSync("src/components/crm/TasksList.tsx", "utf8");
 const route = fs.readFileSync("src/app/api/v1/tasks/route.ts", "utf8");
+const targetAuthority = fs.readFileSync("src/lib/task-target-authority.ts", "utf8");
+const targetLookup = fs.readFileSync(
+  "packages/platform-core/src/tasks/target.ts",
+  "utf8",
+);
 
 test("Tasks SSR requires read authority before task queries", () => {
   assert.match(page, /getAuthorisedPlatformPageSession\("crm\.tasks\.read"\)/);
@@ -31,15 +36,19 @@ test("linked Task targets are tenant-validated and object-authorised", () => {
     "services.jobs.read",
     "services.jobs.write",
   ]) {
-    assert.ok(route.includes(`"${feature}"`), `missing explicit ${feature} authority`);
+    assert.ok(
+      targetAuthority.includes(`"${feature}"`),
+      `missing explicit ${feature} authority`,
+    );
   }
 
-  assert.doesNotMatch(route, /\$\{suffix\}/);
-  assert.match(route, /getContact\(session\.organisationId, entityId\)/);
-  assert.match(route, /getCompany\(session\.organisationId, entityId\)/);
-  assert.match(route, /getOpportunity\(session\.organisationId, entityId\)/);
-  assert.match(route, /getServiceJob\(session\.organisationId, entityId\)/);
-  assert.match(route, /unsupported_entity_type/);
+  assert.doesNotMatch(targetAuthority, /\$\{suffix\}/);
+  assert.match(route, /validateTaskTarget/);
+  assert.match(targetLookup, /getContact\(organisationId, entityId\)/);
+  assert.match(targetLookup, /getCompany\(organisationId, entityId\)/);
+  assert.match(targetLookup, /getOpportunity\(organisationId, entityId\)/);
+  assert.match(targetLookup, /getServiceJob\(organisationId, entityId\)/);
+  assert.match(targetLookup, /unsupported_entity_type/);
 });
 
 test("creating linked activity requires target write authority", () => {
