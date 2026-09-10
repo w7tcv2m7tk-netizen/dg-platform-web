@@ -14,6 +14,10 @@ export type TaskListItem = {
   entityId: string | null;
   priority: string | null;
   createdAt: string;
+  relatedKind?: "Customer" | "Business" | "Opportunity" | null;
+  relatedName?: string | null;
+  relatedBusiness?: string | null;
+  relatedHref?: string | null;
 };
 
 function formatDue(dueAt: string | null) {
@@ -48,6 +52,7 @@ export function TasksList({
     <ul className="mt-4 space-y-3">
       {tasks.map((task) => {
         const overdue = isOverdue(task);
+        const hasRelatedContext = Boolean(task.relatedName || task.relatedBusiness);
         return (
           <li key={task.id} className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -65,6 +70,24 @@ export function TasksList({
                 ) : (
                   <p className="mt-1 text-sm text-slate-600">No additional details.</p>
                 )}
+                {hasRelatedContext ? (
+                  <p className="mt-2 text-sm text-slate-300">
+                    <span className="text-slate-500">{task.relatedKind ?? "Related"}:</span>{" "}
+                    {task.relatedName ? (
+                      task.relatedHref ? (
+                        <Link href={task.relatedHref} className="font-medium text-sky-400 hover:underline">
+                          {task.relatedName}
+                        </Link>
+                      ) : (
+                        <span className="font-medium text-white">{task.relatedName}</span>
+                      )
+                    ) : null}
+                    {task.relatedName && task.relatedBusiness ? " · " : null}
+                    {task.relatedBusiness ? (
+                      <span className="font-medium text-slate-200">{task.relatedBusiness}</span>
+                    ) : null}
+                  </p>
+                ) : null}
                 <p className="mt-2 text-xs text-slate-500">
                   <span className={overdue ? "text-amber-400" : undefined}>
                     {formatDue(task.dueAt)}
