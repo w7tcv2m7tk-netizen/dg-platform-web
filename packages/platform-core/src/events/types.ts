@@ -19,6 +19,7 @@ export type PlatformEventType =
   | "opportunity.stage_changed"
   | "opportunity.won"
   | "opportunity.lost"
+  | "opportunity.reopened"
   | "task.created"
   | "task.completed"
   | "property.created"
