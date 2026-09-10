@@ -1,7 +1,7 @@
 import { createActivity, listOrganisationActivities } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -24,6 +24,13 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const denied = requirePermission(session, {
+    module: "growth",
+    action: "create",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const body = (await req.json().catch(() => null)) as {
     title?: string;

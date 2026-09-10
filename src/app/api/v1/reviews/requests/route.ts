@@ -1,11 +1,18 @@
 import { queueReviewRequest } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const denied = requirePermission(session, {
+    module: "growth",
+    action: "create",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const body = await req.json().catch(() => ({}));
   const candidateId = typeof body.candidateId === "string" ? body.candidateId.trim() : "";
