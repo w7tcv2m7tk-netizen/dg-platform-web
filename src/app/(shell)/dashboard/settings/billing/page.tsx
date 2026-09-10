@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   getOrganisationBillingStatus,
   getOrganisationBusinessProfile,
+  sessionCan,
 } from "@dg/platform-core";
 
 import { BillingActions } from "@/components/settings/BillingActions";
@@ -17,14 +19,26 @@ export default async function BillingSettingsPage({
 }) {
   const params = searchParams ? await searchParams : {};
   const { portal, session } = await getPlatformPageContext();
+  if (!session) notFound();
+
+  const canViewBilling = sessionCan(session, {
+    module: "billing",
+    action: "view",
+    scope: "organisation",
+  });
+  if (!canViewBilling) notFound();
+
+  const canManageBilling = sessionCan(session, {
+    module: "billing",
+    action: "manage",
+    scope: "organisation",
+  });
 
   const enabledIds = await getOrgEnabledAppIds();
-  const [profile, billingStatus] = session
-    ? await Promise.all([
-        getOrganisationBusinessProfile(session.organisationId),
-        getOrganisationBillingStatus(session.organisationId),
-      ])
-    : [null, null];
+  const [profile, billingStatus] = await Promise.all([
+    getOrganisationBusinessProfile(session.organisationId),
+    getOrganisationBillingStatus(session.organisationId),
+  ]);
 
   return (
     <>
@@ -38,30 +52,26 @@ export default async function BillingSettingsPage({
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <BillingCheckoutBanner checkout={params.checkout} />
+        {canManageBilling ? <BillingCheckoutBanner checkout={params.checkout} /> : null}
 
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="dg-card">
             <h2 className="font-semibold text-white">Current plan</h2>
-            {billingStatus ? (
-              <div className="mt-4">
-                <BillingStatusPanel
-                  status={billingStatus}
-                  purchaseFallback={portal?.purchase_label ?? profile?.purchaseLabel}
-                />
-              </div>
-            ) : (
-              <p className="mt-4 text-sm text-slate-400">
-                Sign in with a configured organisation to see billing status.
-              </p>
-            )}
+            <div className="mt-4">
+              <BillingStatusPanel
+                status={billingStatus}
+                purchaseFallback={portal?.purchase_label ?? profile?.purchaseLabel}
+              />
+            </div>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Link
-                href="/dashboard/apps?sync=1"
-                className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-200 hover:border-blue-500"
-              >
-                Sync purchase →
-              </Link>
+              {canManageBilling ? (
+                <Link
+                  href="/dashboard/apps?sync=1"
+                  className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-200 hover:border-blue-500"
+                >
+                  Sync purchase →
+                </Link>
+              ) : null}
               <a
                 href={PRICING_PAGE_URL}
                 target="_blank"
@@ -71,6 +81,11 @@ export default async function BillingSettingsPage({
                 View pricing ↗
               </a>
             </div>
+            {!canManageBilling ? (
+              <p className="mt-3 text-xs text-slate-500">
+                Billing is read-only for your role. An organisation owner can change the plan or open the Stripe Customer Portal.
+              </p>
+            ) : null}
           </div>
 
           <div className="dg-card">
@@ -80,7 +95,7 @@ export default async function BillingSettingsPage({
             </p>
             {enabledIds.length === 0 ? (
               <p className="mt-3 text-sm text-slate-500">
-                No apps enabled yet — open Apps & Platform to apply a tier preview.
+                No apps enabled yet.
               </p>
             ) : (
               <ul className="mt-3 space-y-1 text-sm text-slate-300">
@@ -91,22 +106,25 @@ export default async function BillingSettingsPage({
                 ))}
               </ul>
             )}
-            <Link
-              href="/dashboard/apps"
-              className="mt-4 inline-block text-sm text-blue-400 hover:underline"
-            >
-              Manage apps & plan →
-            </Link>
+            {canManageBilling ? (
+              <Link
+                href="/dashboard/apps"
+                className="mt-4 inline-block text-sm text-blue-400 hover:underline"
+              >
+                Manage apps & plan →
+              </Link>
+            ) : null}
           </div>
         </div>
 
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="font-semibold text-white">Invoices & payment method</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Download invoices and update your payment method in the Stripe Customer Portal.
-            Portal access requires a linked Stripe customer — not only a sidebar plan preview.
+            {canManageBilling
+              ? "Download invoices and update your payment method in the Stripe Customer Portal. Portal access requires a linked Stripe customer — not only a sidebar plan preview."
+              : "Invoice and payment-method changes are restricted to an organisation owner."}
           </p>
-          {billingStatus ? (
+          {canManageBilling ? (
             <BillingActions
               platformTier={billingStatus.platformTier}
               hasBillingCustomer={billingStatus.hasStripeCustomer}
