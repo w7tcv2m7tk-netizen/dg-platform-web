@@ -1,21 +1,33 @@
 import Link from "next/link";
-import { getTask, sessionHasFeature } from "@dg/platform-core";
+import {
+  getCompany,
+  getContact,
+  getOpportunity,
+  getTask,
+  listOrganisationMembers,
+  sessionHasFeature,
+} from "@dg/platform-core";
 import { notFound } from "next/navigation";
 
 import { EditTaskForm } from "@/components/crm/EditTaskForm";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
-function relatedHref(entityType: string | null, entityId: string | null) {
-  if (!entityType || !entityId) return null;
-  if (entityType === "Contact") return `/apps/crm/contacts/${entityId}`;
-  if (entityType === "Company") return `/apps/crm/companies/${entityId}`;
-  if (entityType === "Opportunity") return `/apps/crm/opportunities/${entityId}`;
-  if (entityType === "ServiceJob") return `/apps/services/jobs/${entityId}`;
-  return null;
-}
-
 function formatDate(value: string | null) {
   return value ? new Date(value).toLocaleString("en-AU") : "—";
+}
+
+function contactLabel(contact: {
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+}) {
+  return (
+    [contact.firstName, contact.lastName].filter(Boolean).join(" ") ||
+    contact.email ||
+    contact.phone ||
+    "Contact"
+  );
 }
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -27,7 +39,69 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   if (!task) notFound();
 
   const canWrite = sessionHasFeature(session, "crm.tasks.write");
-  const href = relatedHref(task.entityType, task.entityId);
+  const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
+  const canReadCompanies = sessionHasFeature(session, "crm.companies.read");
+  const canReadOpportunities = sessionHasFeature(session, "crm.opportunities.read");
+
+  const [members, directContact, directCompany, opportunity] = await Promise.all([
+    task.assignedUserId
+      ? listOrganisationMembers(session.organisationId)
+      : Promise.resolve([]),
+    task.entityType === "Contact" && task.entityId && canReadContacts
+      ? getContact(session.organisationId, task.entityId)
+      : Promise.resolve(null),
+    task.entityType === "Company" && task.entityId && canReadCompanies
+      ? getCompany(session.organisationId, task.entityId)
+      : Promise.resolve(null),
+    task.entityType === "Opportunity" && task.entityId && canReadOpportunities
+      ? getOpportunity(session.organisationId, task.entityId)
+      : Promise.resolve(null),
+  ]);
+
+  const opportunityContact =
+    opportunity?.contactId && canReadContacts
+      ? await getContact(session.organisationId, opportunity.contactId)
+      : null;
+  const contactForCompany = directContact ?? opportunityContact;
+  const relatedCompanyId =
+    directCompany?.id ?? opportunity?.companyId ?? contactForCompany?.companyId ?? null;
+  const relatedCompany =
+    relatedCompanyId && canReadCompanies
+      ? directCompany ?? (await getCompany(session.organisationId, relatedCompanyId))
+      : null;
+
+  const assignedMember = task.assignedUserId
+    ? members.find(
+        (member) =>
+          member.id === task.assignedUserId || member.clerkUserId === task.assignedUserId,
+      ) ?? null
+    : null;
+  const assignedLabel = assignedMember
+    ? assignedMember.displayName || assignedMember.email || "Assigned teammate"
+    : task.assignedUserId
+      ? "Assigned teammate"
+      : "Unassigned";
+
+  let relatedLabel = "None";
+  let relatedHref: string | null = null;
+  let relatedActionLabel: string | null = null;
+
+  if (task.entityType === "Contact" && directContact) {
+    relatedLabel = [contactLabel(directContact), relatedCompany?.name].filter(Boolean).join(" · ");
+    relatedHref = `/apps/crm/contacts/${directContact.id}`;
+    relatedActionLabel = "Open contact";
+  } else if (task.entityType === "Company" && directCompany) {
+    relatedLabel = directCompany.name;
+    relatedHref = `/apps/crm/companies/${directCompany.id}`;
+    relatedActionLabel = "Open company";
+  } else if (task.entityType === "Opportunity" && opportunity) {
+    const customer = opportunityContact ? contactLabel(opportunityContact) : null;
+    relatedLabel = [customer, relatedCompany?.name, opportunity.title].filter(Boolean).join(" · ");
+    relatedHref = `/apps/crm/opportunities/${opportunity.id}`;
+    relatedActionLabel = "Open opportunity";
+  } else if (task.entityType && task.entityId) {
+    relatedLabel = "Linked record unavailable or restricted";
+  }
 
   return (
     <>
@@ -42,9 +116,9 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
               {task.status} · {task.priority || "normal priority"}
             </p>
           </div>
-          {href ? (
-            <Link href={href} className="dg-btn dg-btn-secondary">
-              Open related {task.entityType}
+          {relatedHref && relatedActionLabel ? (
+            <Link href={relatedHref} className="dg-btn dg-btn-secondary">
+              {relatedActionLabel}
             </Link>
           ) : null}
         </div>
@@ -90,22 +164,24 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
           <h2 className="font-semibold text-white">Context</h2>
           <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
             <div>
-              <dt className="text-slate-500">Assigned user</dt>
-              <dd className="mt-1 text-slate-300">{task.assignedUserId || "Unassigned"}</dd>
+              <dt className="text-slate-500">Assigned to</dt>
+              <dd className="mt-1 text-slate-300">{assignedLabel}</dd>
             </div>
             <div>
               <dt className="text-slate-500">Source</dt>
               <dd className="mt-1 text-slate-300">{task.sourceApp || "CRM"}</dd>
             </div>
-            <div>
+            <div className="sm:col-span-2">
               <dt className="text-slate-500">Related record</dt>
               <dd className="mt-1 text-slate-300">
-                {task.entityType && task.entityId ? `${task.entityType} · ${task.entityId}` : "None"}
+                {relatedHref ? (
+                  <Link href={relatedHref} className="text-blue-400 hover:underline">
+                    {relatedLabel}
+                  </Link>
+                ) : (
+                  relatedLabel
+                )}
               </dd>
-            </div>
-            <div>
-              <dt className="text-slate-500">Task ID</dt>
-              <dd className="mt-1 break-all text-slate-300">{task.id}</dd>
             </div>
           </dl>
         </section>
