@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCompany, listCompanyContacts } from "@dg/platform-core";
+import { getCompany, listCompanyContacts, sessionHasFeature } from "@dg/platform-core";
 
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 import { EditCompanyForm } from "@/components/crm/EditCompanyForm";
@@ -13,13 +13,16 @@ interface PageProps {
 export default async function CompanyDetailPage({ params }: PageProps) {
   const { id } = await params;
   const session = await getAuthorisedPlatformPageSession("crm.companies.read");
-
   if (!session) notFound();
 
   const company = await getCompany(session.organisationId, id);
   if (!company) notFound();
 
-  const contacts = await listCompanyContacts(session.organisationId, id);
+  const canWrite = sessionHasFeature(session, "crm.companies.write");
+  const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
+  const contacts = canReadContacts
+    ? await listCompanyContacts(session.organisationId, id)
+    : [];
 
   return (
     <>
@@ -35,21 +38,33 @@ export default async function CompanyDetailPage({ params }: PageProps) {
       <main className="dg-page-main">
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Edit company</h2>
-            <div className="mt-4">
-              <EditCompanyForm company={company} />
-            </div>
-            <CrmDeleteButton
-              resource="companies"
-              id={company.id}
-              name={company.name}
-              redirectTo="/apps/crm/companies"
-            />
+            <h2 className="font-semibold text-white">
+              {canWrite ? "Edit company" : "Company details"}
+            </h2>
+            {canWrite ? (
+              <>
+                <div className="mt-4">
+                  <EditCompanyForm company={company} />
+                </div>
+                <CrmDeleteButton
+                  resource="companies"
+                  id={company.id}
+                  name={company.name}
+                  redirectTo="/apps/crm/companies"
+                />
+              </>
+            ) : (
+              <p className="mt-3 text-sm text-slate-400">You have read-only access to this company.</p>
+            )}
           </div>
 
           <div className="dg-card">
             <h2 className="font-semibold text-white">Contacts</h2>
-            {!contacts?.length ? (
+            {!canReadContacts ? (
+              <p className="mt-3 text-sm text-slate-400">
+                Contact access is not enabled for your role.
+              </p>
+            ) : !contacts.length ? (
               <p className="mt-3 text-sm text-slate-400">
                 No contacts linked yet — assign companyId when creating or editing a contact.
               </p>
