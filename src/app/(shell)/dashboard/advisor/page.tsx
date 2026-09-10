@@ -30,12 +30,12 @@ export default async function AiAdvisorPage() {
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">AI Advisor</h1>
         <p className="mt-1 text-base font-medium text-violet-100/90">
-          Turn Business Brain context and live business signals into decisions.
+          Turn Business Brain context and available business signals into decisions.
         </p>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
           DigitalGate&apos;s Advisor understands the business through its Digital Twin, Business
-          Brain, Goals, connected systems, Business Health and live activity — then helps determine
-          what matters, why it matters and what to do next.
+          Brain, Goals, connected systems, Business Health and available activity — then helps
+          determine what matters, why it matters and what to do next.
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
           <Link href="/dashboard" className="text-sky-400 hover:underline">
