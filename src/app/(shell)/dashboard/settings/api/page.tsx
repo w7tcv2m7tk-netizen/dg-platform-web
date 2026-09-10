@@ -1,28 +1,14 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
-import { getPlatformApiCatalog,} from "@dg/platform-core";
+import { notFound } from "next/navigation";
+import { getPlatformApiCatalog } from "@dg/platform-core";
 
 import { PlatformApiKeysPanel } from "@/components/platform/PlatformApiKeysPanel";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { sessionIsOrgAdmin } from "@/lib/platform-api";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function PlatformApiSettingsPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+  const { session } = await getPlatformPageContext();
+  if (!session || !sessionIsOrgAdmin(session)) notFound();
 
   const catalog = getPlatformApiCatalog();
   const baseUrl = catalog.baseUrl;
@@ -53,14 +39,10 @@ export default async function PlatformApiSettingsPage() {
           <h2 className="font-semibold text-white">API keys</h2>
           <p className="mt-2 text-sm text-slate-400">
             Create keys for server-to-server access scoped to{" "}
-            {session?.organisationName ?? "your organisation"}.
+            {session.organisationName}.
           </p>
           <div className="mt-4">
-            {session ? (
-              <PlatformApiKeysPanel />
-            ) : (
-              <p className="text-sm text-amber-300">Database session required to manage keys.</p>
-            )}
+            <PlatformApiKeysPanel />
           </div>
         </div>
 
