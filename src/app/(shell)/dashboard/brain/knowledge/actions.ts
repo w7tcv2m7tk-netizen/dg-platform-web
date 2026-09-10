@@ -9,6 +9,7 @@ import {
   isOrgAdminRole,
   proposeKnowledgeItem,
   rejectKnowledgeItem,
+  supersedeKnowledgeItem,
   upsertKnowledgeSource,
 } from "@dg/platform-core";
 
@@ -59,25 +60,31 @@ function readText(formData: FormData, key: string, maxLength: number) {
   return value.trim().slice(0, maxLength);
 }
 
+function readKnowledgeDraft(formData: FormData) {
+  const title = readText(formData, "title", 160);
+  const statement = readText(formData, "statement", 5000);
+  const type = readText(formData, "type", 50) || "fact";
+  const importance = readText(formData, "importance", 20) || "medium";
+
+  if (!title || !statement) {
+    throw new Error("Add a title and the knowledge DigitalGate should remember.");
+  }
+
+  const allowedTypes = new Set(["fact", "decision", "strategy", "policy", "process", "principle"]);
+  const allowedImportance = new Set(["low", "medium", "high", "critical"]);
+  if (!allowedTypes.has(type) || !allowedImportance.has(importance)) {
+    throw new Error("Invalid knowledge classification.");
+  }
+
+  return { title, statement, type, importance };
+}
+
 export async function proposeKnowledgeAction(formData: FormData) {
   let failure: string | null = null;
 
   try {
     const { session, actorId } = await requireKnowledgeApprover();
-    const title = readText(formData, "title", 160);
-    const statement = readText(formData, "statement", 5000);
-    const type = readText(formData, "type", 50) || "fact";
-    const importance = readText(formData, "importance", 20) || "medium";
-
-    if (!title || !statement) {
-      throw new Error("Add a title and the knowledge DigitalGate should remember.");
-    }
-
-    const allowedTypes = new Set(["fact", "decision", "strategy", "policy", "process", "principle"]);
-    const allowedImportance = new Set(["low", "medium", "high", "critical"]);
-    if (!allowedTypes.has(type) || !allowedImportance.has(importance)) {
-      throw new Error("Invalid knowledge classification.");
-    }
+    const { title, statement, type, importance } = readKnowledgeDraft(formData);
 
     const sourceRef = `user-entry:${randomUUID()}`;
     const sourceId = await upsertKnowledgeSource({
@@ -185,4 +192,54 @@ export async function archiveKnowledgeAction(formData: FormData) {
 
   if (failure) redirect(knowledgeNoticeHref("error", failure));
   redirect(knowledgeNoticeHref("success", "Knowledge archived and removed from current Business Brain truth."));
+}
+
+export async function replaceKnowledgeAction(formData: FormData) {
+  let failure: string | null = null;
+
+  try {
+    const { session, actorId } = await requireKnowledgeApprover();
+    const existingItemId = readItemId(formData);
+    const { title, statement, type, importance } = readKnowledgeDraft(formData);
+
+    const sourceRef = `user-replacement:${randomUUID()}`;
+    const sourceId = await upsertKnowledgeSource({
+      organisationId: session.organisationId,
+      sourceType: "user_entry",
+      title,
+      sourceApp: "business_brain",
+      sourceRef,
+      capturedAt: new Date(),
+      metadata: { enteredBy: actorId, replacesKnowledgeItemId: existingItemId },
+    });
+
+    const replacement = await proposeKnowledgeItem({
+      organisationId: session.organisationId,
+      type,
+      title,
+      statement,
+      importance,
+      sourceId,
+      sourceRef,
+      sourceExcerpt: statement.slice(0, 500),
+      createdBy: actorId,
+      metadata: { sourceType: "user_entry", replacesKnowledgeItemId: existingItemId },
+    });
+
+    await supersedeKnowledgeItem({
+      organisationId: session.organisationId,
+      existingItemId,
+      replacementItemId: replacement.id,
+      actorId,
+    });
+
+    revalidatePath("/dashboard/brain");
+    revalidatePath("/dashboard/brain/knowledge");
+    revalidatePath("/dashboard/advisor");
+  } catch (error) {
+    failure = customerSafeKnowledgeError(error);
+  }
+
+  if (failure) redirect(knowledgeNoticeHref("error", failure));
+  redirect(knowledgeNoticeHref("success", "Approved knowledge replaced. The previous version remains in history as superseded."));
 }
