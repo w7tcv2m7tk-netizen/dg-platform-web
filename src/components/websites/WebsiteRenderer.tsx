@@ -17,6 +17,8 @@ import {
 } from "@/components/websites/HideawayCircleCapture";
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { RoeBookingCapture } from "@/components/websites/RoeBookingCapture";
+import { StrategySessionCapture } from "@/components/websites/StrategySessionCapture";
+import { isDgStrategySessionPage } from "@/lib/dg-strategy-session";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { HtmlWithDgForms } from "@/components/websites/HtmlWithDgForms";
 import { DgHomepageScrollScenes } from "@/components/websites/DgHomepageScrollScenes";
@@ -1279,12 +1281,14 @@ export function WebsitePageRenderer({
       : pageSlug === "buyer-consultation"
         ? ("buyer_consultation" as const)
         : null;
+  const isDgStrategySession = isDgStrategySessionPage(siteSlug, pageSlug);
   /** Product subdomain funnels are chromeless capture apps — never render Studio HTML stubs. */
-  const renderComponents = isProductFunnel
-    ? []
-    : bookingKind
-      ? components.filter((c) => c.type !== "html" && c.type !== "contact_form")
-      : components;
+  const renderComponents =
+    isProductFunnel || isDgStrategySession
+      ? []
+      : bookingKind
+        ? components.filter((c) => c.type !== "html" && c.type !== "contact_form")
+        : components;
   const primary = theme.primaryColor || "#1e3a5f";
   const accent = theme.accentColor || "#c4a35a";
   const bg = theme.backgroundColor || "#0c1222";
@@ -1566,6 +1570,9 @@ export function WebsitePageRenderer({
               kind={bookingKind}
               logoUrl={theme.logoUrl || theme.iconUrl}
             />
+          ) : null}
+          {isDgStrategySession ? (
+            <StrategySessionCapture siteSlug={siteSlug || "digitalgate"} />
           ) : null}
           {wantdComponents.map((c) => (
             <WebsiteComponentView

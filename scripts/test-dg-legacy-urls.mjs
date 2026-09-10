@@ -51,7 +51,11 @@ for (const slug of [
 assert.equal(redirects["/solutions"], "/pricing");
 assert.equal(redirects["/services"], "/pricing");
 assert.equal(redirects["/growth-systems"], "/pricing");
-assert.equal(redirects["/strategy-session"], "/contact");
+assert.equal(
+  redirects["/strategy-session"],
+  undefined,
+  "/strategy-session is the live Strategy Session booking page — must not redirect to /contact",
+);
 assert.equal(redirects["/calendar-page"], "/contact");
 assert.equal(redirects["/calendar"], "/contact");
 assert.equal(redirects["/disclaimer"], "/legal-notice");
