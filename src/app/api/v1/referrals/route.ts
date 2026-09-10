@@ -10,7 +10,11 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requirePlatformAuth,
+  sessionIsOrgAdmin,
+} from "@/lib/platform-api";
 
 function appBaseUrl(req: Request) {
   const env =
@@ -48,6 +52,18 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
 
   if (body.action === "cash_payout" || body.action === "cash_payout_stub") {
+    if (!sessionIsOrgAdmin(session)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "forbidden",
+            message: "Only organisation administrators can request cash payouts",
+          },
+        },
+        { status: 403 },
+      );
+    }
+
     const result = await requestCashPayout({
       organisationId: session.organisationId,
       actorId: session.clerkUserId,
