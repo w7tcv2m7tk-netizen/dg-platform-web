@@ -10,6 +10,106 @@ import type {
   UpdateServiceJobInput,
 } from "./types";
 
+export type LinkedJobRelation = "contact" | "lead" | "quote";
+
+export class LinkedJobRecordNotFoundError extends Error {
+  readonly code: `linked_${LinkedJobRelation}_not_found`;
+  readonly relation: LinkedJobRelation;
+
+  constructor(relation: LinkedJobRelation) {
+    super(`Linked ${relation} not found in this organisation`);
+    this.name = "LinkedJobRecordNotFoundError";
+    this.relation = relation;
+    this.code = `linked_${relation}_not_found`;
+  }
+}
+
+export function isLinkedJobRecordNotFoundError(
+  error: unknown,
+): error is LinkedJobRecordNotFoundError {
+  return (
+    error instanceof LinkedJobRecordNotFoundError ||
+    (error instanceof Error && error.name === "LinkedJobRecordNotFoundError")
+  );
+}
+
+function normalizeOptionalRelationId(value: string | null | undefined): string | null | undefined {
+  if (value === undefined) return undefined;
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  return trimmed || null;
+}
+
+async function assertJobContactInOrganisation(
+  organisationId: string,
+  contactId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const contact = await prisma.contact.findFirst({
+    where: { id: contactId, organisationId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!contact) {
+    throw new LinkedJobRecordNotFoundError("contact");
+  }
+}
+
+async function assertJobLeadInOrganisation(
+  organisationId: string,
+  leadId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const lead = await prisma.lead.findFirst({
+    where: { id: leadId, organisationId },
+    select: { id: true },
+  });
+  if (!lead) {
+    throw new LinkedJobRecordNotFoundError("lead");
+  }
+}
+
+async function assertJobQuoteInOrganisation(
+  organisationId: string,
+  quoteId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const quote = await prisma.commerceQuote.findFirst({
+    where: { id: quoteId, organisationId },
+    select: { id: true },
+  });
+  if (!quote) {
+    throw new LinkedJobRecordNotFoundError("quote");
+  }
+}
+
+async function resolveJobRelationshipIds(
+  organisationId: string,
+  input: {
+    contactId?: string | null;
+    leadId?: string | null;
+    quoteId?: string | null;
+  },
+): Promise<{
+  contactId?: string | null;
+  leadId?: string | null;
+  quoteId?: string | null;
+}> {
+  const contactId = normalizeOptionalRelationId(input.contactId);
+  const leadId = normalizeOptionalRelationId(input.leadId);
+  const quoteId = normalizeOptionalRelationId(input.quoteId);
+
+  if (contactId) {
+    await assertJobContactInOrganisation(organisationId, contactId);
+  }
+  if (leadId) {
+    await assertJobLeadInOrganisation(organisationId, leadId);
+  }
+  if (quoteId) {
+    await assertJobQuoteInOrganisation(organisationId, quoteId);
+  }
+
+  return { contactId, leadId, quoteId };
+}
+
 /** Stages before a job is on the calendar — setting a start time advances to scheduled. */
 const PRE_SCHEDULE_STAGES = new Set([
   "new_enquiry",
@@ -123,6 +223,12 @@ export async function createServiceJob(input: CreateServiceJobInput) {
   const title = input.title.trim();
   if (!title) throw new Error("title is required");
 
+  const links = await resolveJobRelationshipIds(input.organisationId, {
+    contactId: input.contactId,
+    leadId: input.leadId,
+    quoteId: input.quoteId,
+  });
+
   const stage = resolveCreateStage(input);
 
   const row = await prisma.serviceJob.create({
@@ -133,8 +239,9 @@ export async function createServiceJob(input: CreateServiceJobInput) {
       status: input.status ?? "open",
       jobType: input.jobType?.trim() || null,
       description: input.description?.trim() || null,
-      contactId: input.contactId ?? null,
-      leadId: input.leadId ?? null,
+      contactId: links.contactId ?? null,
+      leadId: links.leadId ?? null,
+      quoteId: links.quoteId ?? null,
       assignedUserId: input.assignedUserId ?? null,
       siteAddress: input.siteAddress?.trim() || null,
       scheduledStartAt: input.scheduledStartAt ? new Date(input.scheduledStartAt) : null,
@@ -197,16 +304,25 @@ export async function updateServiceJob(input: UpdateServiceJobInput) {
   });
   if (!existing) return null;
 
+  const links = await resolveJobRelationshipIds(input.organisationId, {
+    contactId: input.contactId,
+    leadId: input.leadId,
+    quoteId: input.quoteId,
+  });
+
   const data: Prisma.ServiceJobUpdateInput = {};
   if (input.title !== undefined) data.title = input.title.trim();
   if (input.stage !== undefined) data.stage = input.stage;
   if (input.status !== undefined) data.status = input.status;
   if (input.jobType !== undefined) data.jobType = input.jobType;
   if (input.description !== undefined) data.description = input.description;
-  if (input.contactId !== undefined) {
-    data.contact = input.contactId
-      ? { connect: { id: input.contactId } }
+  if (links.contactId !== undefined) {
+    data.contact = links.contactId
+      ? { connect: { id: links.contactId } }
       : { disconnect: true };
+  }
+  if (links.leadId !== undefined) {
+    data.leadId = links.leadId;
   }
   if (input.siteAddress !== undefined) data.siteAddress = input.siteAddress;
   if (input.scheduledStartAt !== undefined) {
@@ -218,7 +334,7 @@ export async function updateServiceJob(input: UpdateServiceJobInput) {
     data.scheduledEndAt = input.scheduledEndAt ? new Date(input.scheduledEndAt) : null;
   }
   if (input.assignedUserId !== undefined) data.assignedUserId = input.assignedUserId;
-  if (input.quoteId !== undefined) data.quoteId = input.quoteId;
+  if (links.quoteId !== undefined) data.quoteId = links.quoteId;
   if (input.metadata !== undefined) {
     data.metadata = input.metadata as Prisma.InputJsonValue;
   }
