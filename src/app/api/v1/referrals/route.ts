@@ -24,12 +24,27 @@ function appBaseUrl(req: Request) {
   return new URL(req.url).origin;
 }
 
+function requireReferralAdmin(session: Parameters<typeof sessionIsOrgAdmin>[0]) {
+  if (sessionIsOrgAdmin(session)) return null;
+  return NextResponse.json(
+    {
+      error: {
+        code: "forbidden",
+        message: "Organisation administrator access required",
+      },
+    },
+    { status: 403 },
+  );
+}
+
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
   const url = new URL(req.url);
   if (url.searchParams.get("syncConnect") === "1") {
+    const denied = requireReferralAdmin(session);
+    if (denied) return denied;
     await syncStripeConnectAccount({
       organisationId: session.organisationId,
       actorId: session.clerkUserId,
@@ -69,7 +84,6 @@ export async function POST(req: Request) {
       actorId: session.clerkUserId,
     });
     if (!result.ok) {
-      // Resolve reason → copy before `"message" in result` narrows away Connect reasons.
       const fallback =
         result.reason === "below_threshold"
           ? "Balance is below the cash payout threshold"
@@ -91,17 +105,8 @@ export async function POST(req: Request) {
   }
 
   if (body.action === "connect_onboarding") {
-    if (session.role !== "owner" && session.role !== "admin") {
-      return NextResponse.json(
-        {
-          error: {
-            code: "forbidden",
-            message: "Only owners and admins can connect a bank account",
-          },
-        },
-        { status: 403 },
-      );
-    }
+    const denied = requireReferralAdmin(session);
+    if (denied) return denied;
     try {
       const result = await createStripeConnectOnboardingLink({
         organisationId: session.organisationId,
@@ -138,6 +143,8 @@ export async function POST(req: Request) {
   }
 
   if (body.action === "connect_sync") {
+    const denied = requireReferralAdmin(session);
+    if (denied) return denied;
     const result = await syncStripeConnectAccount({
       organisationId: session.organisationId,
       actorId: session.clerkUserId,
@@ -146,17 +153,8 @@ export async function POST(req: Request) {
   }
 
   if (body.action === "set_referral_tier") {
-    if (session.role !== "owner" && session.role !== "admin") {
-      return NextResponse.json(
-        {
-          error: {
-            code: "forbidden",
-            message: "Only owners and admins can change referral tier",
-          },
-        },
-        { status: 403 },
-      );
-    }
+    const denied = requireReferralAdmin(session);
+    if (denied) return denied;
     const tier = normalizeReferralTier(body.tier);
     const programme = await updateOrganisationReferralProgramme({
       organisationId: session.organisationId,
