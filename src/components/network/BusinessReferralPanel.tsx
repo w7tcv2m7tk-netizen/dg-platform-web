@@ -25,11 +25,13 @@ export function BusinessReferralPanel({
   industry,
   referrals,
   complianceNote,
+  canWrite,
 }: {
   contactId: string;
   industry?: string | null;
   referrals: Referral[];
   complianceNote: string;
+  canWrite: boolean;
 }) {
   const router = useRouter();
   const [type, setType] = useState<(typeof TYPES)[number]["value"]>("free");
@@ -42,6 +44,7 @@ export function BusinessReferralPanel({
 
   async function createReferral(e: React.FormEvent) {
     e.preventDefault();
+    if (!canWrite) return;
     setPending(true);
     setError(null);
     try {
@@ -77,6 +80,7 @@ export function BusinessReferralPanel({
   }
 
   async function advance(referralId: string) {
+    if (!canWrite) return;
     setPending(true);
     setError(null);
     try {
@@ -107,77 +111,79 @@ export function BusinessReferralPanel({
         B2B network introduction on this Contact (person) — not Platform Refer &amp; Earn
       </p>
 
-      <form onSubmit={createReferral} className="mt-4 space-y-3">
-        <label className="block text-sm">
-          <span className="text-slate-400">Recipient business</span>
-          <input
-            required
-            value={recipientBusiness}
-            onChange={(e) => setRecipient(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
-            placeholder="e.g. Coastal Conveyancing"
-          />
-        </label>
-        <label className="block text-sm">
-          <span className="text-slate-400">Referral type</span>
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value as typeof type)}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+      {canWrite ? (
+        <form onSubmit={createReferral} className="mt-4 space-y-3">
+          <label className="block text-sm">
+            <span className="text-slate-400">Recipient business</span>
+            <input
+              required
+              value={recipientBusiness}
+              onChange={(e) => setRecipient(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+              placeholder="e.g. Coastal Conveyancing"
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="text-slate-400">Referral type</span>
+            <select
+              value={type}
+              onChange={(e) => setType(e.target.value as typeof type)}
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+            >
+              {TYPES.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
+              ))}
+            </select>
+          </label>
+          {needsDisclosure ? (
+            <>
+              <label className="block text-sm">
+                <span className="text-slate-400">Fee disclosure (required)</span>
+                <input
+                  required
+                  value={feeDisclosure}
+                  onChange={(e) => setFee(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+                  placeholder="e.g. $150 fixed / 10% of invoice"
+                />
+              </label>
+              <label className="flex items-start gap-2 text-sm text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={disclosed}
+                  onChange={(e) => setDisclosed(e.target.checked)}
+                  className="mt-1"
+                />
+                <span>All parties acknowledge this fee type (invisible commissions are not allowed)</span>
+              </label>
+            </>
+          ) : null}
+          <label className="block text-sm">
+            <span className="text-slate-400">Notes</span>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={pending}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
           >
-            {TYPES.map((t) => (
-              <option key={t.value} value={t.value}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        {needsDisclosure ? (
-          <>
-            <label className="block text-sm">
-              <span className="text-slate-400">Fee disclosure (required)</span>
-              <input
-                required
-                value={feeDisclosure}
-                onChange={(e) => setFee(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
-                placeholder="e.g. $150 fixed / 10% of invoice"
-              />
-            </label>
-            <label className="flex items-start gap-2 text-sm text-slate-300">
-              <input
-                type="checkbox"
-                checked={disclosed}
-                onChange={(e) => setDisclosed(e.target.checked)}
-                className="mt-1"
-              />
-              <span>All parties acknowledge this fee type (invisible commissions are not allowed)</span>
-            </label>
-          </>
-        ) : null}
-        <label className="block text-sm">
-          <span className="text-slate-400">Notes</span>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={2}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
-        >
-          {pending ? "Saving…" : "Create referral"}
-        </button>
-      </form>
+            {pending ? "Saving…" : "Create referral"}
+          </button>
+        </form>
+      ) : (
+        <p className="mt-4 text-sm text-slate-400">Referral history is read-only for your role.</p>
+      )}
 
-      {(needsDisclosure || industry) && (
+      {canWrite && (needsDisclosure || industry) ? (
         <p className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/90">
           {complianceNote}
         </p>
-      )}
+      ) : null}
 
       {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
 
@@ -189,30 +195,30 @@ export function BusinessReferralPanel({
           <p className="mt-3 text-sm text-slate-400">No business referrals on this Contact yet.</p>
         ) : (
           <ul className="mt-3 space-y-3">
-            {referrals.map((r) => (
+            {referrals.map((referral) => (
               <li
-                key={r.id}
+                key={referral.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 px-3 py-2"
               >
                 <div>
-                  <p className="text-sm font-medium text-white">{r.recipientBusiness}</p>
+                  <p className="text-sm font-medium text-white">{referral.recipientBusiness}</p>
                   <p className="text-xs text-slate-500">
-                    {r.type} · {r.status}
-                    {r.feeDisclosure ? ` · ${r.feeDisclosure}` : ""}
+                    {referral.type} · {referral.status}
+                    {referral.feeDisclosure ? ` · ${referral.feeDisclosure}` : ""}
                   </p>
                 </div>
-                {r.status !== "revenue" ? (
+                {canWrite && referral.status !== "revenue" ? (
                   <button
                     type="button"
                     disabled={pending}
-                    onClick={() => advance(r.id)}
+                    onClick={() => advance(referral.id)}
                     className="rounded-lg border border-slate-700 px-3 py-1 text-xs text-slate-200 hover:border-slate-600 disabled:opacity-50"
                   >
                     Advance
                   </button>
-                ) : (
+                ) : referral.status === "revenue" ? (
                   <span className="text-xs text-emerald-300">Complete</span>
-                )}
+                ) : null}
               </li>
             ))}
           </ul>
