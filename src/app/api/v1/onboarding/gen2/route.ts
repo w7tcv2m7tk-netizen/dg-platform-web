@@ -2,6 +2,7 @@ import {
   createOrganisationGoal,
   createPlatformCheckoutSession,
   getGen2OnboardingProgress,
+  getOrganisationBillingStatus,
   getOrganisationBusinessProfile,
   getOrganisationGoals,
   saveGen2OnboardingProgress,
@@ -27,6 +28,8 @@ const GOAL_METRIC_HINTS: Record<
   ai_visibility: { metric: "ai_visibility", target: 80 },
   website_performance: { metric: "business_health", target: 80 },
 };
+
+const VERIFIED_CHECKOUT_KINDS = new Set(["trial", "subscribed", "cancel_at_period_end"]);
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -65,6 +68,26 @@ export async function PATCH(req: Request) {
     ? (body.markStepComplete as Gen2OnboardingStep)
     : undefined;
 
+  if (markStepComplete === "stripe") {
+    const billing = await getOrganisationBillingStatus(session.organisationId);
+    if (
+      !billing ||
+      !billing.hasStripeCustomer ||
+      !VERIFIED_CHECKOUT_KINDS.has(billing.kind)
+    ) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "checkout_not_confirmed",
+            message:
+              "Your Stripe checkout has not been confirmed yet. Please try again in a moment.",
+          },
+        },
+        { status: 409 },
+      );
+    }
+  }
+
   if (body.profile && typeof body.profile === "object") {
     const profileDenied = requirePermission(session, {
       module: "settings",
@@ -99,8 +122,21 @@ export async function PATCH(req: Request) {
     }
   }
 
+  const requestedProgress =
+    typeof body.progress === "object" && body.progress
+      ? (body.progress as Record<string, unknown>)
+      : {};
+  const {
+    subscriptionActivatedAt: _clientActivation,
+    stripeCheckoutSessionId: _clientCheckoutSession,
+    ...safeProgress
+  } = requestedProgress;
+
   const progress = await saveGen2OnboardingProgress(session.organisationId, {
-    ...(typeof body.progress === "object" && body.progress ? body.progress : {}),
+    ...safeProgress,
+    ...(markStepComplete === "stripe"
+      ? { subscriptionActivatedAt: new Date().toISOString() }
+      : {}),
     markStepComplete,
     currentStep: isGen2OnboardingStep(body.currentStep) ? body.currentStep : undefined,
   });
