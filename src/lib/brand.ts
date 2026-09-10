@@ -72,8 +72,8 @@ export function publicSiteIcons(
   };
 
   // Lead with host-aware Next routes. Safari / Chrome "Add to Dock" pick the
-  // largest advertised icon — Next still injects DigitalGate /favicon.ico at
-  // 256x256 first, so a 512 PNG must appear or the green D wins.
+  // largest advertised icon. A leftover DigitalGate /favicon.ico at 256x256
+  // wins unless a 512 PNG is listed.
   pushIcon("/icon", "512x512", "image/png");
   apple.push({ url: "/apple-icon", type: "image/png", sizes: "180x180" });
 

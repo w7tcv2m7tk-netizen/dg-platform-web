@@ -33,6 +33,9 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return [
+      // After removing the static DigitalGate app/favicon.ico, browsers that
+      // still request /favicon.ico by convention get the host-aware /icon route.
+      { source: "/favicon.ico", destination: "/icon" },
       { source: "/acquisition", destination: "/partner/dashboard" },
       { source: "/acquisition/:path*", destination: "/partner/:path*" },
       { source: "/delivery", destination: "/partner/delivery" },

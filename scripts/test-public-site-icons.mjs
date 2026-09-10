@@ -4,7 +4,7 @@
  */
 
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -48,12 +48,30 @@ describe("public page Apple web-app title", () => {
 });
 
 describe("public-host favicon rewrite", () => {
-  it("rewrites /favicon.ico to the host-aware /icon route", () => {
+  it("does not ship a static DigitalGate app/favicon.ico", () => {
+    assert.equal(
+      existsSync(path.join(__dirname, "../src/app/favicon.ico")),
+      false,
+      "src/app/favicon.ico is served at the Vercel edge and skips middleware",
+    );
+  });
+
+  it("rewrites /favicon.ico to the host-aware /icon route on every host", () => {
     const source = readFileSync(
       path.join(__dirname, "../src/middleware.ts"),
       "utf8",
     );
     assert.match(source, /path === "\/favicon\.ico"/);
     assert.match(source, /url\.pathname = "\/icon"/);
+    assert.match(source, /"\/favicon\.ico"/);
+  });
+
+  it("also rewrites /favicon.ico in next.config so the matcher cannot skip it", () => {
+    const source = readFileSync(
+      path.join(__dirname, "../next.config.ts"),
+      "utf8",
+    );
+    assert.match(source, /source:\s*"\/favicon\.ico"/);
+    assert.match(source, /destination:\s*"\/icon"/);
   });
 });

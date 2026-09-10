@@ -165,6 +165,21 @@ const BRAND_TO_FUNNEL_REDIRECTS: Array<{
 
 export default async function middleware(req: NextRequest, event: unknown) {
   const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
+  const path = req.nextUrl.pathname;
+
+  // Conventional /favicon.ico must never serve src/app/favicon.ico (DigitalGate
+  // green D) on tenant hosts. The default matcher skips *.ico, so this path is
+  // also listed in config.matcher. Rewrite on every host — including Vercel
+  // previews — to the host-aware /icon route.
+  if (path === "/favicon.ico") {
+    const url = req.nextUrl.clone();
+    url.pathname = "/icon";
+    const rewrite = NextResponse.rewrite(url);
+    if (hostname && !isPlatformHost(hostname)) {
+      rewrite.headers.set("x-dg-custom-host", hostname);
+    }
+    return rewrite;
+  }
 
   // Proxy Clerk FAPI via the instance custom host so Dashboard Proxy Configuration
   // can validate (generic frontend-api.clerk.dev returns host_invalid).
@@ -188,8 +203,6 @@ export default async function middleware(req: NextRequest, event: unknown) {
 
   // Custom domain → public site renderer (multi-tenant host header)
   if (hostname && !isPlatformHost(hostname)) {
-    const path = req.nextUrl.pathname;
-
     // 410 junk before www/http canonicalization so leftover paths like
     // /cgi-bin never hop through a rewrite that can 5xx.
     const legacy = applyPublicLegacyResponse(req, hostname);
@@ -249,17 +262,6 @@ export default async function middleware(req: NextRequest, event: unknown) {
       });
     }
 
-    // Browsers prefer the first <link rel="icon">, which Next injects as
-    // /favicon.ico (DigitalGate green D). Public hosts must use the host-aware
-    // /icon route (business profile mark) instead.
-    if (path === "/favicon.ico") {
-      const url = req.nextUrl.clone();
-      url.pathname = "/icon";
-      const rewrite = NextResponse.rewrite(url);
-      rewrite.headers.set("x-dg-custom-host", hostname);
-      return rewrite;
-    }
-
     if (
       path === "/apple-icon" ||
       path.startsWith("/apple-icon/") ||
@@ -298,6 +300,8 @@ export default async function middleware(req: NextRequest, event: unknown) {
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Default matcher skips *.ico. Without this, /favicon.ico never rewrites.
+    "/favicon.ico",
     "/(api|trpc)(.*)",
     // Clerk FAPI proxy — must be a static string for Next matcher parsing
     "/__clerk/(.*)",
