@@ -98,6 +98,7 @@ export function buildBusinessBrain(input: {
   context: BusinessContext;
   setup?: PlatformSetupStatus | null;
   connectorCount?: number;
+  hasApprovedKnowledge?: boolean;
 }): BusinessBrainSnapshot {
   const { context, setup } = input;
   const identity = context.identity;
@@ -105,6 +106,7 @@ export function buildBusinessBrain(input: {
   const voice = context.brandVoice;
   const profile = context.profile;
   const connectorCount = input.connectorCount ?? context.twin.connectedSystems.length;
+  const hasApprovedKnowledge = Boolean(input.hasApprovedKnowledge);
   const commsEnabled = hasAdvancedCommsEntitlement({
     enabledAppIds: context.enabledAppIds,
   });
@@ -160,19 +162,19 @@ export function buildBusinessBrain(input: {
     dimension(
       "knowledge",
       "Knowledge",
-      "Documents, FAQs, training and internal knowledge.",
+      "Approved organisational knowledge, brand context and market understanding.",
       [
         field("voice", "Brand voice", Boolean(voice.tone || voice.tagline), "/dashboard/business", voice.tone),
-        field("docs", "Internal knowledge", commsEnabled, "/apps/ai-communications/knowledge", commsEnabled ? "Knowledge Base available" : undefined),
+        field("knowledge", "Organisational knowledge", hasApprovedKnowledge, "/dashboard/brain/knowledge", hasApprovedKnowledge ? "Approved knowledge available" : undefined),
         field("competitors", "Market context", Boolean(voice.competitors), "/dashboard/business", voice.competitors),
       ],
     ),
     dimension(
       "technology",
       "Technology",
-      "Software, connectors, websites, domains and data sources.",
+      "Software, connected services, websites, domains and data sources.",
       [
-        field("connectors", "Connectors", connectorCount > 0, "/dashboard/settings/connectors", connectorCount ? `${connectorCount} connected` : undefined),
+        field("connectors", "Connected services", connectorCount > 0, "/dashboard/settings/connected-services", connectorCount ? `${connectorCount} connected` : undefined),
         field("sites", "Websites", Boolean(setup?.hasPublishedWebsite || context.twin.websites.length), "/apps/websites", setup?.hasPublishedWebsite ? "Published site" : undefined),
         field("apps", "Enabled Apps", context.enabledAppIds.length > 0, "/dashboard/apps", `${context.enabledAppIds.length} Apps`),
       ],
