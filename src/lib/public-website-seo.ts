@@ -136,6 +136,11 @@ export function publicPageMetadata(input: PublicPageSeoInput): Metadata {
       description: ogDescription,
       images: [ogImage],
     },
+    appleWebApp: {
+      capable: true,
+      title: input.siteName,
+      statusBarStyle: input.siteSlug === "wantd" ? "default" : "black-translucent",
+    },
   };
 }
 
