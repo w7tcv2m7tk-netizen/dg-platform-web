@@ -1,4 +1,4 @@
-import { deleteOpportunity, getOpportunity } from "@dg/platform-core";
+import { deleteOpportunity, getOpportunity, updateOpportunityStage } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
@@ -24,6 +24,56 @@ export async function GET(req: Request, { params }: RouteParams) {
   }
 
   return NextResponse.json({ data: row });
+}
+
+export async function PATCH(req: Request, { params }: RouteParams) {
+  const session = await requirePlatformAuth(req);
+  if (isNextResponse(session)) return session;
+
+  const denied = requireFeature(session, "crm.opportunities.write");
+  if (denied) return denied;
+
+  let body: { stage?: unknown };
+  try {
+    body = (await req.json()) as { stage?: unknown };
+  } catch {
+    return NextResponse.json(
+      { error: { code: "invalid_json", message: "Invalid JSON body" } },
+      { status: 400 },
+    );
+  }
+
+  if (typeof body.stage !== "string") {
+    return NextResponse.json(
+      { error: { code: "invalid_stage", message: "Stage is required" } },
+      { status: 422 },
+    );
+  }
+
+  const stage = body.stage.trim().replace(/\s+/g, "_").toLowerCase();
+  if (!stage || stage.length > 80) {
+    return NextResponse.json(
+      { error: { code: "invalid_stage", message: "Use a stage between 1 and 80 characters" } },
+      { status: 422 },
+    );
+  }
+
+  const { id } = await params;
+  const updated = await updateOpportunityStage(
+    session.organisationId,
+    id,
+    stage,
+    session.clerkUserId,
+  );
+
+  if (!updated) {
+    return NextResponse.json(
+      { error: { code: "not_found", message: "Opportunity not found" } },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({ data: updated });
 }
 
 export async function DELETE(req: Request, { params }: RouteParams) {
