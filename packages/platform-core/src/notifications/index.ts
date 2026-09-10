@@ -207,18 +207,21 @@ export async function markNotificationsRead(input: {
   if (!process.env.DATABASE_URL) return { updated: 0 };
   const { prisma } = await import("@dg/database");
   const now = new Date();
+  const recipientWhere: Prisma.NotificationWhereInput = {
+    OR: [
+      { recipientUserId: null },
+      ...(input.recipientUserId
+        ? [{ recipientUserId: input.recipientUserId }]
+        : []),
+    ],
+  };
 
   if (input.all) {
     const result = await prisma.notification.updateMany({
       where: {
         organisationId: input.organisationId,
         readAt: null,
-        OR: [
-          { recipientUserId: null },
-          ...(input.recipientUserId
-            ? [{ recipientUserId: input.recipientUserId }]
-            : []),
-        ],
+        ...recipientWhere,
       },
       data: { readAt: now },
     });
@@ -233,6 +236,7 @@ export async function markNotificationsRead(input: {
       organisationId: input.organisationId,
       id: { in: ids },
       readAt: null,
+      ...recipientWhere,
     },
     data: { readAt: now },
   });
