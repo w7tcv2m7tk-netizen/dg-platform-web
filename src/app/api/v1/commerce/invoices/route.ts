@@ -1,4 +1,8 @@
-import { createInvoice, listInvoices } from "@dg/platform-core";
+import {
+  createInvoice,
+  isLinkedCommerceRecordNotFoundError,
+  listInvoices,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
@@ -29,22 +33,32 @@ export async function POST(req: Request) {
     );
   }
 
-  const invoice = await createInvoice({
-    organisationId: session.organisationId,
-    actorId: session.clerkUserId,
-    contactId: body?.contactId,
-    quoteId: body?.quoteId,
-    sourceApp: body?.sourceApp ?? "commerce",
-    sourceEntity: body?.sourceEntity,
-    lineItems,
-    currency: body?.currency,
-    dueAt: body?.dueAt ? new Date(body.dueAt) : undefined,
-    notes: body?.notes,
-    taxInclusive:
-      typeof body?.taxInclusive === "boolean" ? body.taxInclusive : undefined,
-    buyer: body?.buyer,
-    metadata: body?.metadata,
-  });
+  try {
+    const invoice = await createInvoice({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+      contactId: body?.contactId,
+      quoteId: body?.quoteId,
+      sourceApp: body?.sourceApp ?? "commerce",
+      sourceEntity: body?.sourceEntity,
+      lineItems,
+      currency: body?.currency,
+      dueAt: body?.dueAt ? new Date(body.dueAt) : undefined,
+      notes: body?.notes,
+      taxInclusive:
+        typeof body?.taxInclusive === "boolean" ? body.taxInclusive : undefined,
+      buyer: body?.buyer,
+      metadata: body?.metadata,
+    });
 
-  return NextResponse.json({ data: invoice }, { status: 201 });
+    return NextResponse.json({ data: invoice }, { status: 201 });
+  } catch (error) {
+    if (isLinkedCommerceRecordNotFoundError(error)) {
+      return NextResponse.json(
+        { error: { code: error.code, message: error.message } },
+        { status: 422 },
+      );
+    }
+    throw error;
+  }
 }
