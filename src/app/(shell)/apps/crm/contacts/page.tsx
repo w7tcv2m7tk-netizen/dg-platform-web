@@ -140,12 +140,14 @@ export default async function CrmContactsPage() {
                           {new Date(contact.updatedAt).toLocaleDateString("en-AU")}
                         </p>
                       </Link>
-                      <CrmDeleteButton
-                        resource="contacts"
-                        id={contact.id}
-                        name={displayName || contact.email || "this contact"}
-                        compact
-                      />
+                      {canWriteContacts ? (
+                        <CrmDeleteButton
+                          resource="contacts"
+                          id={contact.id}
+                          name={displayName || contact.email || "this contact"}
+                          compact
+                        />
+                      ) : null}
                     </li>
                   );
                 })}
