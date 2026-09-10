@@ -91,7 +91,7 @@ export default async function BusinessProfilePage({
                 on Start Your Business, then confirm logo on this profile
               </li>
               <li>
-                <Link href="/dashboard/websites" className="text-sky-400 hover:underline">
+                <Link href="/apps/websites" className="text-sky-400 hover:underline">
                   Set up your agency website
                 </Link>{" "}
                 natively in DigitalGate
