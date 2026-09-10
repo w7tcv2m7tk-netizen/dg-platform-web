@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   approveKnowledgeItem,
+  archiveKnowledgeItem,
   isOrgAdminRole,
   proposeKnowledgeItem,
   rejectKnowledgeItem,
@@ -160,4 +161,28 @@ export async function rejectKnowledgeAction(formData: FormData) {
 
   if (failure) redirect(knowledgeNoticeHref("error", failure));
   redirect(knowledgeNoticeHref("success", "Knowledge rejected and kept out of approved Business Brain truth."));
+}
+
+export async function archiveKnowledgeAction(formData: FormData) {
+  let failure: string | null = null;
+
+  try {
+    const { session, actorId } = await requireKnowledgeApprover();
+    const itemId = readItemId(formData);
+
+    await archiveKnowledgeItem({
+      organisationId: session.organisationId,
+      itemId,
+      actorId,
+    });
+
+    revalidatePath("/dashboard/brain");
+    revalidatePath("/dashboard/brain/knowledge");
+    revalidatePath("/dashboard/advisor");
+  } catch (error) {
+    failure = customerSafeKnowledgeError(error);
+  }
+
+  if (failure) redirect(knowledgeNoticeHref("error", failure));
+  redirect(knowledgeNoticeHref("success", "Knowledge archived and removed from current Business Brain truth."));
 }
