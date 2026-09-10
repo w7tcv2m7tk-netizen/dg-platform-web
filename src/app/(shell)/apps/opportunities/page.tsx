@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
 import { listPlatformOpportunities } from "@dg/platform-core";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 function severityClass(severity: string) {
   switch (severity) {
@@ -22,20 +21,7 @@ function severityClass(severity: string) {
  * Command Centre orchestrates the same engine for staff; this is the tenant workspace.
  */
 export default async function OpportunitiesAppPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
+  const session = await getAuthorisedPlatformPageSession("opportunities.view");
 
   const data =
     process.env.DATABASE_URL && session?.organisationId
