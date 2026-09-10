@@ -21,7 +21,7 @@ export default async function CompanyDetailPage({ params }: PageProps) {
   const canWrite = sessionHasFeature(session, "crm.companies.write");
   const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
   const contacts = canReadContacts
-    ? await listCompanyContacts(session.organisationId, id)
+    ? (await listCompanyContacts(session.organisationId, id)) ?? []
     : [];
 
   return (
