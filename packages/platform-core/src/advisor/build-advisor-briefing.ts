@@ -349,13 +349,15 @@ function buildRecommendations(input: BuildAdvisorBriefingInput): AdvisorRecommen
         id: "connect",
         priority: 1,
         category: "Platform",
-        title: "Connect core business systems",
-        whatISee: "Core business systems are not fully connected yet.",
+        title: "Enrich Advisor with business signals",
+        whatISee: "DigitalGate has limited operating signals for this organisation so far.",
         whyItMatters:
-          "Advisor needs live CRM, website, and finance signals to reason about your business accurately.",
-        whatIRecommend: "Connect your website, CRM, and review sources first.",
-        whatDigitalGateCanDo: "Run connector setup and sync live business data into the Business Brain.",
-        actionLabel: "Connect systems →",
+          "Advisor can already use Business Brain and native DigitalGate activity; connected services add more evidence and depth.",
+        whatIRecommend:
+          "Keep using your enabled DigitalGate apps and connect relevant external services where they add useful data.",
+        whatDigitalGateCanDo:
+          "Combine native platform activity with Business Brain context and relevant connected-service signals as they become available.",
+        actionLabel: "Review Connected Services →",
         href: "/dashboard/settings/connectors",
       }),
     );
@@ -391,7 +393,7 @@ function answerForQuestion(
         question: "What should I know about my business today?",
         summary:
           intelligence?.dailyBriefing ??
-          `${greetingForName(firstName)}. Connect your business systems so Advisor can reason from live signals.`,
+          `${greetingForName(firstName)}. I’m using your Business Brain and the signals currently available in DigitalGate. Connected services can add more evidence as activity builds.`,
         recommendations: withFallback(recommendations.slice(0, 3), recommendations, 3),
       };
     case "focus_this_week":
@@ -400,7 +402,7 @@ function answerForQuestion(
         question: "What should I focus on today?",
         summary:
           intelligence?.priorities.map((p) => p.text).join(" ") ||
-          "Focus on connecting live data first, then clear any overdue follow-ups and benchmark gaps.",
+          "Focus on the highest-value next step in Business Brain and your enabled apps; add connected services where they will improve the evidence.",
         recommendations: withFallback(recommendations.slice(0, 3), recommendations, 3),
       };
     case "leads_dropped":
@@ -412,7 +414,7 @@ function answerForQuestion(
             ? "No new enquiries were recorded this week in connected CRM feeds. That may reflect marketing activity, seasonality, or a capture gap — not necessarily lost demand."
             : metrics && metrics.newLeadsThisWeek > 0
               ? `Lead flow is active (${metrics.newLeadsThisWeek} this week). If volume feels lower than usual, compare marketing activity and benchmark lead generation.`
-              : "Connect CRM and marketing sources to diagnose lead flow with evidence.",
+              : "DigitalGate does not have enough lead activity yet to diagnose the change with evidence. Use CRM activity and connect relevant marketing sources where useful.",
         recommendations: withFallback(
           recommendations.filter(
             (r) =>
@@ -447,7 +449,7 @@ function answerForQuestion(
         summary:
           health?.overallScore != null
             ? `Business Health is ${health.overallScore}/100. Focus on the weakest components and clear high-priority recommended actions first.`
-            : "Connect more business signals so Business Health can synthesise a reliable score.",
+            : "Business Health needs more operating evidence before it can produce a reliable score. Keep using DigitalGate and add relevant connected services where useful.",
         recommendations: withFallback(
           recommendations.filter(
             (r) => r.category === "Health" || r.id.includes("health") || r.id.includes("brain"),
@@ -479,7 +481,7 @@ function answerForQuestion(
           input.brain ? `Business Brain ${input.brain.percent}% complete.` : null,
           metrics
             ? `${metrics.newLeadsThisWeek} new leads this week · ${metrics.openOpportunityCount} open opportunities.`
-            : "Connect CRM and finance for a fuller owner summary.",
+            : "Operating activity is still limited, so this summary is based on Business Brain and the DigitalGate signals currently available.",
           recommendations[0] ? `Top priority: ${recommendations[0].title}.` : null,
         ]
           .filter(Boolean)
@@ -492,7 +494,7 @@ function answerForQuestion(
         question: "How does my business compare with others?",
         summary: benchmarks
           ? `Your Benchmark Score is ${benchmarks.benchmarkScore ?? "—"}/100 — better than ${benchmarks.overallPercentile ?? "—"}% of ${benchmarks.cohortLabel}. Strongest: ${benchmarks.strongest.map((s) => s.label).join(", ") || "connect more data"}. Biggest gap: ${benchmarks.opportunities[0]?.label ?? "none flagged"}.`
-          : "Open Benchmarks after connecting live scores to compare against similar businesses.",
+          : "Benchmarks will become more useful as DigitalGate gathers enough operating evidence to compare reliably.",
         recommendations: withFallback(
           benchmarks?.recommendedActions.slice(0, 2).map((action, index) =>
             rec({
@@ -520,14 +522,16 @@ function answerForQuestion(
             ? "Protecting conversion on existing enquiries usually beats adding new traffic when follow-up is overdue."
             : benchmarks?.opportunities[0]
               ? `Closing the ${benchmarks.opportunities[0].label.toLowerCase()} gap is likely your highest leverage move right now.`
-              : "Connect finance and CRM data to rank revenue impact with evidence.",
+              : "DigitalGate needs more operating evidence to rank revenue impact reliably.",
         recommendations: withFallback(recommendations.slice(0, 3), recommendations, 3),
       };
     default:
       return {
         id: "today",
         question: "What should I know about my business today?",
-        summary: intelligence?.dailyBriefing ?? "Connect live business data to unlock Advisor reasoning.",
+        summary:
+          intelligence?.dailyBriefing ??
+          "Advisor is using Business Brain and the signals currently available in DigitalGate.",
         recommendations: withFallback(recommendations.slice(0, 3), recommendations, 3),
       };
   }
