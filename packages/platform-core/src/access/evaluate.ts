@@ -214,6 +214,11 @@ export function featureIdToPermissionCheck(featureId: string): PermissionCheck |
     command: "intelligence",
     twin: "intelligence",
     advisor: "intelligence",
+    /**
+     * Tenant Opportunity Engine™ app (`/apps/opportunities`).
+     * Distinct from `crm.opportunities.*`, which already maps through `crm`.
+     */
+    opportunities: "intelligence",
     billing: "billing",
     team: "team",
     settings: "settings",
