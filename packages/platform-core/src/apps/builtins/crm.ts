@@ -14,6 +14,7 @@ export const crmApp: AppManifest = {
     { path: "/apps/crm/pipeline", label: "Pipeline" },
     { path: "/apps/crm/consultations", label: "Consultations" },
     { path: "/apps/crm/tasks", label: "Tasks" },
+    { path: "/apps/crm/calendar", label: "Calendar" },
     { path: "/apps/crm/timeline", label: "Timeline" },
   ],
   navigation: [
@@ -23,6 +24,7 @@ export const crmApp: AppManifest = {
     { href: "/apps/crm/pipeline", label: "Pipeline", icon: "⇢" },
     { href: "/apps/crm/consultations", label: "Consultations", icon: "◷" },
     { href: "/apps/crm/tasks", label: "Tasks", icon: "☑" },
+    { href: "/apps/crm/calendar", label: "Calendar", icon: "▦" },
     { href: "/apps/crm/timeline", label: "Timeline", icon: "▤" },
   ],
   permissions: [
@@ -43,6 +45,7 @@ export const crmApp: AppManifest = {
     "crm.opportunities.write",
     "crm.tasks.read",
     "crm.tasks.write",
+    "crm.calendar.read",
     "crm.timeline.read",
     "crm.tags.write",
   ],
