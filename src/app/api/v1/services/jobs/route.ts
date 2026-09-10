@@ -1,5 +1,6 @@
 import {
   createServiceJob,
+  isLinkedJobRecordNotFoundError,
   listServiceJobs,
   isServiceTemplateKey,
 } from "@dg/platform-core";
@@ -66,28 +67,44 @@ export async function POST(req: Request) {
       ? body.templateKey
       : undefined;
 
-  const job = await createServiceJob({
-    organisationId: session.organisationId,
-    actorId: session.clerkUserId,
-    title: body.title,
-    stage: typeof body.stage === "string" ? body.stage : undefined,
-    jobType: typeof body.jobType === "string" ? body.jobType : undefined,
-    description: typeof body.description === "string" ? body.description : undefined,
-    contactId: typeof body.contactId === "string" ? body.contactId : undefined,
-    leadId: typeof body.leadId === "string" ? body.leadId : undefined,
-    siteAddress: typeof body.siteAddress === "string" ? body.siteAddress : undefined,
-    scheduledStartAt:
-      typeof body.scheduledStartAt === "string" ? body.scheduledStartAt : undefined,
-    scheduledEndAt:
-      typeof body.scheduledEndAt === "string" ? body.scheduledEndAt : undefined,
-    assignedUserId:
-      typeof body.assignedUserId === "string" ? body.assignedUserId : undefined,
-    templateKey,
-    metadata:
-      body.metadata && typeof body.metadata === "object"
-        ? (body.metadata as Record<string, unknown>)
-        : undefined,
-  });
+  try {
+    const job = await createServiceJob({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+      title: body.title,
+      stage: typeof body.stage === "string" ? body.stage : undefined,
+      jobType: typeof body.jobType === "string" ? body.jobType : undefined,
+      description: typeof body.description === "string" ? body.description : undefined,
+      contactId: typeof body.contactId === "string" ? body.contactId : undefined,
+      leadId: typeof body.leadId === "string" ? body.leadId : undefined,
+      quoteId: typeof body.quoteId === "string" ? body.quoteId : undefined,
+      siteAddress: typeof body.siteAddress === "string" ? body.siteAddress : undefined,
+      scheduledStartAt:
+        typeof body.scheduledStartAt === "string" ? body.scheduledStartAt : undefined,
+      scheduledEndAt:
+        typeof body.scheduledEndAt === "string" ? body.scheduledEndAt : undefined,
+      assignedUserId:
+        typeof body.assignedUserId === "string" ? body.assignedUserId : undefined,
+      templateKey,
+      metadata:
+        body.metadata && typeof body.metadata === "object"
+          ? (body.metadata as Record<string, unknown>)
+          : undefined,
+    });
 
-  return NextResponse.json({ data: job }, { status: 201 });
+    return NextResponse.json({ data: job }, { status: 201 });
+  } catch (error) {
+    if (isLinkedJobRecordNotFoundError(error)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+        },
+        { status: 422 },
+      );
+    }
+    throw error;
+  }
 }

@@ -1,4 +1,8 @@
-import { getServiceJob, updateServiceJob } from "@dg/platform-core";
+import {
+  getServiceJob,
+  isLinkedJobRecordNotFoundError,
+  updateServiceJob,
+} from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requireIndustryAppBeta, requirePlatformAuth } from "@/lib/platform-api";
@@ -45,69 +49,95 @@ export async function PATCH(req: Request, ctx: Ctx) {
     );
   }
 
-  const job = await updateServiceJob({
-    organisationId: session.organisationId,
-    jobId: id,
-    actorId: session.clerkUserId,
-    title: typeof body.title === "string" ? body.title : undefined,
-    stage: typeof body.stage === "string" ? body.stage : undefined,
-    status:
-      body.status === "open" ||
-      body.status === "won" ||
-      body.status === "lost" ||
-      body.status === "cancelled"
-        ? body.status
-        : undefined,
-    jobType: typeof body.jobType === "string" ? body.jobType : body.jobType === null ? null : undefined,
-    description:
-      typeof body.description === "string"
-        ? body.description
-        : body.description === null
-          ? null
+  try {
+    const job = await updateServiceJob({
+      organisationId: session.organisationId,
+      jobId: id,
+      actorId: session.clerkUserId,
+      title: typeof body.title === "string" ? body.title : undefined,
+      stage: typeof body.stage === "string" ? body.stage : undefined,
+      status:
+        body.status === "open" ||
+        body.status === "won" ||
+        body.status === "lost" ||
+        body.status === "cancelled"
+          ? body.status
           : undefined,
-    contactId:
-      typeof body.contactId === "string"
-        ? body.contactId
-        : body.contactId === null
-          ? null
+      jobType: typeof body.jobType === "string" ? body.jobType : body.jobType === null ? null : undefined,
+      description:
+        typeof body.description === "string"
+          ? body.description
+          : body.description === null
+            ? null
+            : undefined,
+      contactId:
+        typeof body.contactId === "string"
+          ? body.contactId
+          : body.contactId === null
+            ? null
+            : undefined,
+      leadId:
+        typeof body.leadId === "string"
+          ? body.leadId
+          : body.leadId === null
+            ? null
+            : undefined,
+      siteAddress:
+        typeof body.siteAddress === "string"
+          ? body.siteAddress
+          : body.siteAddress === null
+            ? null
+            : undefined,
+      scheduledStartAt:
+        typeof body.scheduledStartAt === "string"
+          ? body.scheduledStartAt
+          : body.scheduledStartAt === null
+            ? null
+            : undefined,
+      scheduledEndAt:
+        typeof body.scheduledEndAt === "string"
+          ? body.scheduledEndAt
+          : body.scheduledEndAt === null
+            ? null
+            : undefined,
+      assignedUserId:
+        typeof body.assignedUserId === "string"
+          ? body.assignedUserId
+          : body.assignedUserId === null
+            ? null
+            : undefined,
+      quoteId:
+        typeof body.quoteId === "string"
+          ? body.quoteId
+          : body.quoteId === null
+            ? null
+            : undefined,
+      metadata:
+        body.metadata && typeof body.metadata === "object"
+          ? (body.metadata as Record<string, unknown>)
           : undefined,
-    siteAddress:
-      typeof body.siteAddress === "string"
-        ? body.siteAddress
-        : body.siteAddress === null
-          ? null
-          : undefined,
-    scheduledStartAt:
-      typeof body.scheduledStartAt === "string"
-        ? body.scheduledStartAt
-        : body.scheduledStartAt === null
-          ? null
-          : undefined,
-    scheduledEndAt:
-      typeof body.scheduledEndAt === "string"
-        ? body.scheduledEndAt
-        : body.scheduledEndAt === null
-          ? null
-          : undefined,
-    assignedUserId:
-      typeof body.assignedUserId === "string"
-        ? body.assignedUserId
-        : body.assignedUserId === null
-          ? null
-          : undefined,
-    quoteId: typeof body.quoteId === "string" ? body.quoteId : undefined,
-    metadata:
-      body.metadata && typeof body.metadata === "object"
-        ? (body.metadata as Record<string, unknown>)
-        : undefined,
-  });
+    });
 
-  if (!job) {
-    return NextResponse.json(
-      { error: { code: "not_found", message: "Job not found" } },
-      { status: 404 },
-    );
+    if (!job) {
+      return NextResponse.json(
+        { error: { code: "not_found", message: "Job not found" } },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: job });
+  } catch (error) {
+    if (isLinkedJobRecordNotFoundError(error)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+        },
+        { status: 422 },
+      );
+    }
+    throw error;
   }
-
-  return NextResponse.json({ data: job });
 }

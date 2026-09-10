@@ -80,8 +80,9 @@ export type CreateServiceJobInput = {
   status?: ServiceJobStatus;
   jobType?: string;
   description?: string;
-  contactId?: string;
-  leadId?: string;
+  contactId?: string | null;
+  leadId?: string | null;
+  quoteId?: string | null;
   siteAddress?: string;
   scheduledStartAt?: string;
   scheduledEndAt?: string;
@@ -100,6 +101,7 @@ export type UpdateServiceJobInput = {
   jobType?: string | null;
   description?: string | null;
   contactId?: string | null;
+  leadId?: string | null;
   siteAddress?: string | null;
   scheduledStartAt?: string | null;
   scheduledEndAt?: string | null;
