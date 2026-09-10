@@ -4,6 +4,8 @@ import {
   getGen2OnboardingProgress,
   getOrganisationBusinessProfile,
   getOrganisationGoals,
+  getPlatformSubscriptionStrict,
+  markGen2SubscriptionActivated,
   saveGen2OnboardingProgress,
   updateOrganisationBusinessProfile,
   type Gen2OnboardingStep,
@@ -27,6 +29,47 @@ const GOAL_METRIC_HINTS: Record<
   ai_visibility: { metric: "ai_visibility", target: 80 },
   website_performance: { metric: "business_health", target: 80 },
 };
+
+const SAFE_CHECKLIST_KEYS = new Set([
+  "business_identity",
+  "business_profile",
+  "goals",
+  "plan",
+  "apps",
+  "implementation",
+]);
+
+function safeProgressPatch(raw: unknown) {
+  if (!raw || typeof raw !== "object") return {};
+  const source = raw as Record<string, unknown>;
+  const patch: Record<string, unknown> = {};
+
+  if (["starter", "professional", "business"].includes(String(source.platformTier))) {
+    patch.platformTier = source.platformTier;
+  }
+  if (source.billingCadence === "monthly" || source.billingCadence === "annual") {
+    patch.billingCadence = source.billingCadence;
+  }
+  if (Array.isArray(source.industryApps)) {
+    patch.industryApps = source.industryApps
+      .filter((value): value is string => typeof value === "string" && value.length <= 80)
+      .slice(0, 20);
+  }
+  if (Array.isArray(source.premiumApps)) {
+    patch.premiumApps = source.premiumApps
+      .filter((value): value is string => typeof value === "string" && value.length <= 80)
+      .slice(0, 20);
+  }
+  if (source.checklist && typeof source.checklist === "object") {
+    const checklist: Record<string, boolean> = {};
+    for (const [key, value] of Object.entries(source.checklist as Record<string, unknown>)) {
+      if (SAFE_CHECKLIST_KEYS.has(key) && value === true) checklist[key] = true;
+    }
+    if (Object.keys(checklist).length > 0) patch.checklist = checklist;
+  }
+
+  return patch;
+}
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -99,10 +142,32 @@ export async function PATCH(req: Request) {
     }
   }
 
+  // Stripe completion is billing-authoritative. A browser return flag must not be
+  // able to self-certify payment/trial activation or write system-owned progress.
+  if (markStepComplete === "stripe") {
+    const subscription = await getPlatformSubscriptionStrict(session.organisationId);
+    if (!subscription || !["TRIALING", "ACTIVE"].includes(subscription.status)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "subscription_not_confirmed",
+            message: "Stripe subscription has not been confirmed yet.",
+          },
+        },
+        { status: 409 },
+      );
+    }
+    const current = await getGen2OnboardingProgress(session.organisationId);
+    const progress = await markGen2SubscriptionActivated(
+      session.organisationId,
+      current.stripeCheckoutSessionId,
+    );
+    return NextResponse.json({ data: { progress } });
+  }
+
   const progress = await saveGen2OnboardingProgress(session.organisationId, {
-    ...(typeof body.progress === "object" && body.progress ? body.progress : {}),
+    ...safeProgressPatch(body.progress),
     markStepComplete,
-    currentStep: isGen2OnboardingStep(body.currentStep) ? body.currentStep : undefined,
   });
 
   return NextResponse.json({ data: { progress } });
