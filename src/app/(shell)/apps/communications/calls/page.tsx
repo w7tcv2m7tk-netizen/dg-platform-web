@@ -1,6 +1,10 @@
 import { CommunicationsChannelPlaceholder } from "@/components/communications/CommunicationsChannelPlaceholder";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
-export default function CommunicationsCallsPage() {
+export default async function CommunicationsCallsPage() {
+  const session = await getAuthorisedPlatformPageSession("communications.read");
+  if (!session) return null;
+
   return (
     <CommunicationsChannelPlaceholder
       active="calls"
