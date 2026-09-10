@@ -57,7 +57,7 @@ export function publicAidaProductBriefing(pricingBrief?: string): string {
     "Business Brain gives DigitalGate contextual understanding of an organisation so AI can provide more relevant insight than a generic assistant. Business Brain provides the context; Aida helps turn that context into understanding, recommendations and opportunities.",
     "Core capabilities (high level): CRM, websites (Design Studio), automation, communications (email/SMS), analytics, payments/commerce, AI / Business Brain, and industry capabilities (e.g. real estate, accommodation) where relevant.",
     "DigitalGate connects a business’s existing tools and data rather than asking every customer to replace everything at once.",
-    "Public website links you may offer (same host): / (home), /pricing, /contact, /founding-customers, /about. Strategy-session / booking paths currently go to /contact.",
+    "Public website links you may offer (same host): / (home), /pricing, /contact, /founding-customers, /about, /strategy-session. /strategy-session is the self-serve Strategy Session booking page. /contact is for general enquiries.",
     "Do not invent integrations, certifications, guarantees, customer names, results, or unpublished features.",
     pricing,
   ].join("\n");

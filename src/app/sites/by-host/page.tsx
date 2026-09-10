@@ -1,4 +1,5 @@
 import { getPublicStayUnit, getWebsiteForPublicRender, resolveFunnelTemplate, resolvePageChromeVisibility, resolveStayUnitSlug, ensureHideawayCircleWebsitePage } from "@dg/platform-core";
+import type { SerializedWebsite, SerializedWebsitePage } from "@dg/platform-core";
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -33,6 +34,14 @@ import {
   getPublicFoundingResellerInvitation,
 } from "@dg/platform-core";
 import { publicOgImageForSlug } from "@/lib/brand";
+import {
+  DG_STRATEGY_SESSION_DESCRIPTION,
+  DG_STRATEGY_SESSION_HERO,
+  DG_STRATEGY_SESSION_SEO_TITLE,
+  DG_STRATEGY_SESSION_SLUG,
+  DG_STRATEGY_SESSION_TITLE,
+  isDgStrategySessionPage,
+} from "@/lib/dg-strategy-session";
 import {
   jsonLdScriptHtml,
   publicPageJsonLdGraph,
@@ -135,6 +144,34 @@ function resolvePage(
   );
 }
 
+function nativeDgStrategySessionPage(
+  site: SerializedWebsite,
+): SerializedWebsitePage {
+  const now = new Date().toISOString();
+  return {
+    id: "native-strategy-session",
+    websiteId: site.id,
+    title: DG_STRATEGY_SESSION_TITLE,
+    slug: DG_STRATEGY_SESSION_SLUG,
+    intent: "custom",
+    status: "published",
+    sortOrder: 7,
+    seo: {
+      title: DG_STRATEGY_SESSION_SEO_TITLE,
+      description: DG_STRATEGY_SESSION_DESCRIPTION,
+      ogTitle: DG_STRATEGY_SESSION_TITLE,
+      ogDescription: DG_STRATEGY_SESSION_DESCRIPTION,
+      ogImage: DG_STRATEGY_SESSION_HERO,
+      schemaType: "webpage",
+      showHeader: true,
+      showFooter: true,
+    },
+    components: [],
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
 function publicPagePath(page: { slug: string; intent?: string | null }): string {
   if (!page.slug || page.slug === "home" || page.intent === "home") return "/";
   return `/${page.slug.replace(/^\/+/, "")}`;
@@ -172,7 +209,12 @@ export async function generateMetadata({
         robots: { index: false, follow: false },
       };
     }
-    const page = resolvePage(site, pageSlug);
+    const resolved = resolvePage(site, pageSlug);
+    const page =
+      isDgStrategySessionPage(slug, pageSlug) &&
+      (!resolved || resolved.slug !== DG_STRATEGY_SESSION_SLUG)
+        ? nativeDgStrategySessionPage(site)
+        : resolved;
     const host = await resolveRequestHost();
     const canonicalHost =
       isDgPublicHost(host) || isRoePublicHost(host) || isAetherraPublicHost(host)
@@ -180,15 +222,22 @@ export async function generateMetadata({
         : host;
     const theme = site.theme as { iconUrl?: string } | null | undefined;
     const seo = page?.seo ?? {};
+    const strategySeo = isDgStrategySessionPage(slug, pageSlug);
     return publicPageMetadata({
       siteSlug: site.slug,
       siteName: site.slug === "wantd" ? "Wantd" : site.name,
-      pageSlug: page?.slug || "home",
-      pageTitle: page?.title,
-      title: decodeHtmlEntities(seo.title || site.seo?.title || site.name),
-      description: seo.description || site.seo?.description || site.name,
-      ogTitle: seo.ogTitle,
-      ogDescription: seo.ogDescription,
+      pageSlug: page?.slug || (strategySeo ? DG_STRATEGY_SESSION_SLUG : "home"),
+      pageTitle: page?.title || (strategySeo ? DG_STRATEGY_SESSION_TITLE : undefined),
+      title: decodeHtmlEntities(
+        seo.title ||
+          (strategySeo ? DG_STRATEGY_SESSION_SEO_TITLE : site.seo?.title || site.name),
+      ),
+      description:
+        seo.description ||
+        (strategySeo ? DG_STRATEGY_SESSION_DESCRIPTION : site.seo?.description || site.name),
+      ogTitle: seo.ogTitle || (strategySeo ? DG_STRATEGY_SESSION_TITLE : undefined),
+      ogDescription:
+        seo.ogDescription || (strategySeo ? DG_STRATEGY_SESSION_DESCRIPTION : undefined),
       keywords: seo.keywords?.length ? seo.keywords : site.seo?.keywords,
       canonicalHost,
       iconUrl: theme?.iconUrl,
@@ -197,7 +246,7 @@ export async function generateMetadata({
       schemaType: seo.schemaType,
       authorName: seo.authorName,
       noindex: seo.noindex,
-      ogImage: seo.ogImage || site.seo?.ogImage,
+      ogImage: seo.ogImage || (strategySeo ? DG_STRATEGY_SESSION_HERO : site.seo?.ogImage),
     });
   } catch (err) {
     unstable_rethrow(err);
@@ -365,6 +414,12 @@ async function renderSite(
   }
 
   let page = resolvePage(site, pageSlug);
+  if (
+    isDgStrategySessionPage(slug, pageSlug) &&
+    (!page || page.slug !== DG_STRATEGY_SESSION_SLUG)
+  ) {
+    page = nativeDgStrategySessionPage(site);
+  }
   if (
     !page &&
     pageSlug === "hideaway-circle" &&

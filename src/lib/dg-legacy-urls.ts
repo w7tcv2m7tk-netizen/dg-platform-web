@@ -45,7 +45,6 @@ export const DG_LEGACY_REDIRECTS: Record<string, string> = {
   "/services/visibility-systems/real-estate-seo": "/ai-visibility-framework",
   "/services/advertising-systems/google-ads-for-real-estate-agents": "/insights",
   "/growth-systems": "/pricing",
-  "/strategy-session": "/contact",
   "/calendar-page": "/contact",
   "/calendar": "/contact",
   "/book": "/contact",
