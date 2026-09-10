@@ -8,7 +8,11 @@ import {
   FOUNDING_SOURCE_LABELS,
   FOUNDING_STAGE_LABELS,
   FOUNDING_STAGE_NEXT_ACTION,
+  FOUNDING_STAGE_WAITING_ON,
   FOUNDING_STAGES,
+  FOUNDING_WAITING_ON_LABEL,
+  describeFoundingProgress,
+  foundingAgreementUrl,
   foundingPersonalInviteUrl,
   foundingSetupUrl,
   isFoundingInvitationStage,
@@ -27,6 +31,10 @@ export function FoundingStageActions({
   source,
   invitationStatus,
   invitationSentAt,
+  agreementEmailSentAt,
+  agreementSignedAt,
+  onboardingInviteSentAt,
+  hasOpenedPlatform,
 }: {
   opportunityId: string;
   stage: string;
@@ -35,6 +43,10 @@ export function FoundingStageActions({
   source?: FoundingSource | null;
   invitationStatus?: FoundingInvitationStatus | null;
   invitationSentAt?: string | null;
+  agreementEmailSentAt?: string | null;
+  agreementSignedAt?: string | null;
+  onboardingInviteSentAt?: string | null;
+  hasOpenedPlatform?: boolean;
 }) {
   const router = useRouter();
   const current = normaliseFoundingStage(stage);
@@ -42,7 +54,15 @@ export function FoundingStageActions({
   const [message, setMessage] = useState("");
   const personal = entryType === "personal_invitation" || isFoundingInvitationStage(current);
   const inviteUrl = inviteToken ? foundingPersonalInviteUrl(inviteToken) : null;
+  const agreementUrl = inviteToken ? foundingAgreementUrl(inviteToken) : null;
   const withdrawn = invitationStatus === "withdrawn";
+  const waitingOn = FOUNDING_STAGE_WAITING_ON[current];
+  const progress = describeFoundingProgress(current, {
+    agreementEmailSentAt,
+    agreementSignedAt,
+    onboardingInviteSentAt,
+    hasOpenedPlatform,
+  });
 
   async function run(action: string, nextStage?: FoundingStage) {
     setStatus("saving");
@@ -65,6 +85,13 @@ export function FoundingStageActions({
           ? "Invitation email resent — ask the prospect to check their inbox."
           : "Invitation email sent.",
       );
+    } else if (action === "send_agreement") {
+      setStatus("success");
+      setMessage(
+        agreementEmailSentAt
+          ? "Agreement email resent — follow them up to confirm the terms."
+          : "Agreement email sent — waiting on them to confirm the terms.",
+      );
     } else {
       setStatus("success");
       setMessage("Saved.");
@@ -85,6 +112,14 @@ export function FoundingStageActions({
   return (
     <div className="dg-card space-y-3 lg:col-span-2">
       <h2 className="font-semibold text-white">Founding 10 pipeline</h2>
+      <p
+        className={`text-sm font-medium ${
+          waitingOn === "customer" ? "text-amber-200" : "text-sky-300"
+        }`}
+      >
+        {FOUNDING_WAITING_ON_LABEL[waitingOn]}
+      </p>
+      <p className="text-sm text-slate-200">{progress}</p>
       <p className="text-sm text-slate-400">{FOUNDING_STAGE_NEXT_ACTION[current]}</p>
       <dl className="grid gap-2 text-xs text-slate-400 sm:grid-cols-2">
         <div>
@@ -180,8 +215,22 @@ export function FoundingStageActions({
           onClick={() => void run("send_agreement")}
           disabled={status === "saving"}
         >
-          Send agreement
+          {agreementEmailSentAt ? "Resend agreement" : "Send agreement"}
         </button>
+        {agreementUrl ? (
+          <button
+            type="button"
+            className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200"
+            onClick={() => {
+              void navigator.clipboard.writeText(agreementUrl).then(
+                () => setMessage("Agreement link copied — send it to them directly."),
+                () => setMessage(agreementUrl),
+              );
+            }}
+          >
+            Copy agreement link
+          </button>
+        ) : null}
         <button
           type="button"
           className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200"

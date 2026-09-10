@@ -197,6 +197,20 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               source={foundingSource}
               invitationStatus={invitationStatus}
               invitationSentAt={invitationSentAt}
+              agreementEmailSentAt={
+                typeof meta.agreement_email_sent_at === "string"
+                  ? meta.agreement_email_sent_at
+                  : null
+              }
+              agreementSignedAt={
+                typeof meta.agreement_signed_at === "string" ? meta.agreement_signed_at : null
+              }
+              onboardingInviteSentAt={
+                typeof meta.onboarding_invite_sent_at === "string"
+                  ? meta.onboarding_invite_sent_at
+                  : null
+              }
+              hasOpenedPlatform={typeof meta.founding_customer_organisation_id === "string"}
             />
           ) : staff && canWrite && canReadContacts && contact && opportunity.contactId ? (
             <InviteToFounding10Form

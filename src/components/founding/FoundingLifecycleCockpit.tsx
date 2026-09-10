@@ -154,10 +154,16 @@ export function FoundingLifecycleCockpit({ data }: { data: FoundingLifecycleWork
                               ? ` · ${formatShortDate(customer.invitationSentAt) ?? ""}`
                               : ` · Updated ${formatShortDate(customer.updatedAt) ?? ""}`}
                           </p>
-                          <p className="mt-2 text-sm text-slate-300">
-                            <span className="text-slate-500">Next action:</span>{" "}
-                            {customer.nextAction}
+                          <p
+                            className={`mt-2 text-xs font-medium ${
+                              customer.waitingOn === "customer"
+                                ? "text-amber-200"
+                                : "text-sky-300"
+                            }`}
+                          >
+                            {customer.waitingOnLabel}
                           </p>
+                          <p className="mt-1 text-sm text-slate-300">{customer.statusDetail}</p>
                           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
                             <Link
                               href={`/apps/crm/opportunities/${customer.id}`}
@@ -214,6 +220,7 @@ export function FoundingLifecycleCockpit({ data }: { data: FoundingLifecycleWork
                   <tr>
                     <th className="px-3 py-2">Customer</th>
                     <th className="px-3 py-2">Stage</th>
+                    <th className="px-3 py-2">Waiting on</th>
                     <th className="px-3 py-2">Health</th>
                     <th className="px-3 py-2">Next action</th>
                     <th className="px-3 py-2" />
@@ -231,8 +238,15 @@ export function FoundingLifecycleCockpit({ data }: { data: FoundingLifecycleWork
                         ) : null}
                       </td>
                       <td className="px-3 py-2.5 text-slate-300">{row.stageLabel}</td>
+                      <td
+                        className={`px-3 py-2.5 ${
+                          row.waitingOn === "customer" ? "text-amber-200" : "text-sky-300"
+                        }`}
+                      >
+                        {row.waitingOnLabel}
+                      </td>
                       <td className="px-3 py-2.5 text-slate-400">{healthDot(row.health)}</td>
-                      <td className="px-3 py-2.5 text-slate-400">{row.nextAction}</td>
+                      <td className="px-3 py-2.5 text-slate-400">{row.statusDetail}</td>
                       <td className="px-3 py-2.5 text-right">
                         <Link
                           href={`/apps/crm/opportunities/${row.id}`}
