@@ -65,10 +65,10 @@ export function BusinessBrainDashboard({ data }: { data: BusinessBrainDashboardB
     <div className="space-y-6">
       {!data.scoresLive ? (
         <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3 text-sm text-sky-100/90">
-          Connect CRM, Business Profile, and live systems so DigitalGate can build a complete
-          picture of your business.{" "}
-          <Link href="/dashboard/settings/connectors" className="underline hover:text-white">
-            Connectors →
+          Keep your Business Profile current, use your enabled DigitalGate apps, and connect relevant
+          external services to deepen DigitalGate&apos;s picture of your business.{" "}
+          <Link href="/dashboard/settings/connected-services" className="underline hover:text-white">
+            Connected Services →
           </Link>
         </div>
       ) : null}
@@ -181,8 +181,8 @@ export function BusinessBrainDashboard({ data }: { data: BusinessBrainDashboardB
             Understanding dimensions
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Seven dimensions of business understanding — each deepens as you connect profile, apps
-            and live data.
+            Seven dimensions of business understanding — each deepens as your profile, apps and
+            available business activity grow.
           </p>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -197,20 +197,21 @@ export function BusinessBrainDashboard({ data }: { data: BusinessBrainDashboardB
           Business Knowledge
         </h2>
         <p className="mt-1 text-sm text-slate-400">
-          How your business works — plans, SOPs, brand guidelines, policies and approved documents.
-          This is private to your organisation and distinct from DigitalGate&apos;s Platform Docs.
+          How your business works — decisions, principles, strategies, facts and approved
+          organisational knowledge. This is private to your organisation and distinct from
+          DigitalGate&apos;s Platform Docs.
         </p>
         <div className="mt-4 rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-4 py-6 text-center">
-          <p className="text-sm font-medium text-white">Your business documents</p>
+          <p className="text-sm font-medium text-white">Teach DigitalGate how your business works</p>
           <p className="mt-2 text-xs text-slate-500">
-            Upload business plans, procedures, handbooks and SOPs so Advisor, Communications and
-            Automation understand how you operate.
+            Add current organisational knowledge and review discoveries from authorised sources
+            before they become approved truth used by Business Brain and Advisor.
           </p>
           <Link
-            href="/dashboard/business"
+            href="/dashboard/brain/knowledge"
             className="mt-4 inline-block text-sm text-sky-400 hover:underline"
           >
-            Start from Business Profile →
+            Add or review knowledge →
           </Link>
         </div>
       </section>
@@ -240,7 +241,7 @@ export function BusinessBrainDashboard({ data }: { data: BusinessBrainDashboardB
           Connected context
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Live systems feeding the Twin and Brain. Enable more Apps to deepen understanding.
+          DigitalGate apps and relevant connected services contributing business context.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {data.connectedSources.map((source) => (
