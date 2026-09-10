@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { isOrgAdminRole, listKnowledgeInbox } from "@dg/platform-core";
+import { isOrgAdminRole, listApprovedKnowledge, listKnowledgeInbox } from "@dg/platform-core";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import {
   approveKnowledgeAction,
+  archiveKnowledgeAction,
   proposeKnowledgeAction,
   rejectKnowledgeAction,
 } from "./actions";
@@ -28,13 +29,18 @@ export default async function BusinessBrainKnowledgePage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { session } = await getPlatformPageContext();
-  const items = session ? await listKnowledgeInbox(session.organisationId, 250) : [];
+  const [items, approvedItems] = session
+    ? await Promise.all([
+        listKnowledgeInbox(session.organisationId, 250),
+        listApprovedKnowledge({ organisationId: session.organisationId, limit: 250 }),
+      ])
+    : [[], []];
   const canGovern = Boolean(session && isOrgAdminRole(session.role));
   const params = await searchParams;
   const notice = firstParam(params.notice);
   const tone = firstParam(params.tone) === "error" ? "error" : "success";
 
-  const counts = items.reduce<Record<string, number>>((result, item) => {
+  const counts = [...items, ...approvedItems].reduce<Record<string, number>>((result, item) => {
     result[item.type] = (result[item.type] ?? 0) + 1;
     return result;
   }, {});
@@ -47,9 +53,9 @@ export default async function BusinessBrainKnowledgePage({
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Knowledge Inbox</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Add what DigitalGate should understand about your business, and review knowledge discovered
-          from authorised sources before it becomes approved organisational truth used by Business Brain
-          and Advisor.
+          Add what DigitalGate should understand about your business, review knowledge discovered from
+          authorised sources, and manage the approved organisational truth used by Business Brain and
+          Advisor.
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
           <Link href="/dashboard/brain" className="text-sky-400 hover:underline">
@@ -159,11 +165,16 @@ export default async function BusinessBrainKnowledgePage({
               </section>
             ) : null}
 
-            <section className="grid gap-3 sm:grid-cols-3">
+            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <div className="dg-card">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Waiting for review</p>
                 <p className="mt-2 text-3xl font-semibold text-white">{items.length}</p>
-                <p className="mt-1 text-xs text-slate-500">Nothing here is treated as approved truth yet.</p>
+                <p className="mt-1 text-xs text-slate-500">Proposed knowledge is not used as truth yet.</p>
+              </div>
+              <div className="dg-card">
+                <p className="text-xs uppercase tracking-wide text-slate-500">Approved knowledge</p>
+                <p className="mt-2 text-3xl font-semibold text-white">{approvedItems.length}</p>
+                <p className="mt-1 text-xs text-slate-500">Current organisational truth available to the Brain.</p>
               </div>
               <div className="dg-card">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Knowledge types</p>
@@ -176,18 +187,18 @@ export default async function BusinessBrainKnowledgePage({
                   {canGovern ? "Can manage knowledge" : "Review only"}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  Approval is limited to organisation owners and admins.
+                  Approval and archiving are limited to organisation owners and admins.
                 </p>
               </div>
             </section>
 
             {items.length === 0 ? (
               <section className="dg-card">
-                <h2 className="text-base font-semibold text-white">Inbox clear</h2>
+                <h2 className="text-base font-semibold text-white">Review queue clear</h2>
                 <p className="mt-2 text-sm text-slate-400">
                   There is no proposed knowledge waiting for review. Approved knowledge remains available
-                  to Business Brain; add organisational knowledge above or bring in new authorised sources
-                  when the business changes.
+                  below; add organisational knowledge above or bring in new authorised sources when the
+                  business changes.
                 </p>
               </section>
             ) : (
@@ -261,6 +272,71 @@ export default async function BusinessBrainKnowledgePage({
                 ))}
               </section>
             )}
+
+            <section className="space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Approved organisational knowledge</h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  This is the current approved truth Business Brain and Advisor may use. Archive knowledge
+                  that is no longer current; add updated knowledge above when the business changes.
+                </p>
+              </div>
+
+              {approvedItems.length === 0 ? (
+                <div className="dg-card">
+                  <p className="text-sm text-slate-400">
+                    No organisational knowledge has been approved yet. Add knowledge above and approve it
+                    from the review queue before Advisor can treat it as current truth.
+                  </p>
+                </div>
+              ) : (
+                approvedItems.map((item) => (
+                  <article key={item.id} className="dg-card border-emerald-500/15">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[11px] font-medium text-emerald-300">
+                            Approved
+                          </span>
+                          <span className="rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-1 text-[11px] font-medium text-sky-300">
+                            {label(item.type)}
+                          </span>
+                          <span className={`rounded-full border px-2 py-1 text-[11px] font-medium ${importanceClasses(item.importance)}`}>
+                            {label(item.importance)}
+                          </span>
+                          {item.knowledgeKey ? (
+                            <span className="text-[11px] font-mono text-slate-500">{item.knowledgeKey}</span>
+                          ) : null}
+                        </div>
+                        <h3 className="mt-3 text-base font-semibold text-white">{item.title}</h3>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-300">
+                          {item.statement}
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                          {item.sourceRef ? <span>Source: {item.sourceRef}</span> : null}
+                          {item.scope.length ? <span>Scope: {item.scope.join(" · ")}</span> : null}
+                          {item.approvedAt ? <span>Approved: {item.approvedAt.toLocaleDateString("en-AU")}</span> : null}
+                        </div>
+                      </div>
+                    </div>
+
+                    {canGovern ? (
+                      <div className="mt-5 flex justify-end border-t border-slate-800 pt-4">
+                        <form action={archiveKnowledgeAction}>
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <button
+                            type="submit"
+                            className="rounded-lg border border-slate-700 px-3 py-2 text-sm font-medium text-slate-300 hover:border-amber-500/50 hover:text-amber-200"
+                          >
+                            Archive knowledge
+                          </button>
+                        </form>
+                      </div>
+                    ) : null}
+                  </article>
+                ))
+              )}
+            </section>
           </>
         )}
       </main>
