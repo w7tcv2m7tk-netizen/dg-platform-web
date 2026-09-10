@@ -120,6 +120,12 @@ export async function captureDgEnquiry(
   }
 
   if (input.type === "consultation") {
+    if (!input.phone?.trim()) {
+      return { ok: false, code: "validation_error", message: "phone is required" };
+    }
+    if (!input.businessName?.trim()) {
+      return { ok: false, code: "validation_error", message: "business name is required" };
+    }
     const slot = await assertConsultationSlotAvailable({
       organisationId,
       dateIso: input.date,
