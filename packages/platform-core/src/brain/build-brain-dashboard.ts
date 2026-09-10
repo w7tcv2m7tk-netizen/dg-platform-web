@@ -13,6 +13,7 @@ export type BuildBusinessBrainDashboardInput = {
   context: BusinessContext;
   setup?: PlatformSetupStatus | null;
   connectorCount?: number;
+  hasApprovedKnowledge?: boolean;
   scores?: OrgScoresResult | null;
   twinCompleteness?: number | null;
   metricsLive?: boolean;
@@ -98,6 +99,7 @@ export function buildBusinessBrainDashboard(
     context: input.context,
     setup: input.setup,
     connectorCount: input.connectorCount,
+    hasApprovedKnowledge: input.hasApprovedKnowledge,
   });
 
   const enabled = new Set(input.context.enabledAppIds);
