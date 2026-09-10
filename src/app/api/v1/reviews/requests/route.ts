@@ -1,4 +1,4 @@
-import { queueReviewRequest } from "@dg/platform-core";
+import { getContact, queueReviewRequest } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
@@ -23,11 +23,27 @@ export async function POST(req: Request) {
     );
   }
 
+  const contactId = typeof body.contactId === "string" ? body.contactId.trim() : "";
+  if (contactId) {
+    const contact = await getContact(session.organisationId, contactId);
+    if (!contact) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "linked_contact_not_found",
+            message: "Linked contact not found",
+          },
+        },
+        { status: 422 },
+      );
+    }
+  }
+
   const result = await queueReviewRequest({
     organisationId: session.organisationId,
     actorId: session.clerkUserId,
     candidateId,
-    contactId: typeof body.contactId === "string" ? body.contactId : null,
+    contactId: contactId || null,
     channel: body.channel === "sms" || body.channel === "manual" ? body.channel : "email",
     note: typeof body.note === "string" ? body.note : undefined,
   });
