@@ -264,6 +264,20 @@ export async function authenticatePlatformOrConnector(
   return { mode: "session", session };
 }
 
+/**
+ * Same authority as `requireOrgAdmin` — owners/admins, or an explicit
+ * organisation-scope `team.manage` grant. API-key principals never qualify.
+ */
+export function sessionIsOrgAdmin(session: PlatformSession): boolean {
+  if (session.clerkUserId.startsWith("api_key:")) return false;
+  if (["owner", "admin"].includes(session.role)) return true;
+  return requirePermission(session, {
+    module: "team",
+    action: "manage",
+    scope: "organisation",
+  }) === null;
+}
+
 /** Organisation owners/admins only (Clerk sessions — not API keys). */
 export function requireOrgAdmin(session: PlatformSession): NextResponse | null {
   if (session.clerkUserId.startsWith("api_key:")) {
@@ -273,7 +287,7 @@ export function requireOrgAdmin(session: PlatformSession): NextResponse | null {
     );
   }
 
-  if (["owner", "admin"].includes(session.role)) return null;
+  if (sessionIsOrgAdmin(session)) return null;
 
   return requirePermission(session, {
     module: "team",
