@@ -1,33 +1,15 @@
-import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { getOrganisationBusinessProfile } from "@dg/platform-core";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
 import { LogoDesignStudioClient } from "@/components/websites/LogoDesignStudioClient";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function LogoDesignStudioPage({
   searchParams,
 }: {
   searchParams?: Promise<{ from?: string }>;
 }) {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
-
+  const session = await getAuthorisedPlatformPageSession("websites.read");
   const profile = session
     ? ((await getOrganisationBusinessProfile(session.organisationId)) ?? {})
     : null;

@@ -9,7 +9,8 @@ import {
 } from "@dg/platform-core";
 
 import { CreateWebsiteForm } from "@/components/websites/CreateWebsiteForm";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
 function statusBadge(status: string) {
   if (status === "published") {
@@ -22,7 +23,8 @@ function statusBadge(status: string) {
 }
 
 export default async function WebsitesHomePage() {
-  const { session } = await getPlatformPageContext();
+  const session = await getAuthorisedPlatformPageSession("websites.read");
+  const canCreate = session ? canAccessWebsiteStudio(session, "create") : false;
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
@@ -193,12 +195,14 @@ export default async function WebsitesHomePage() {
                 )}
               </section>
 
-              <section className="space-y-4">
-                <h2 className="text-lg font-semibold text-white">
-                  {sites.length === 0 ? "Create your first website" : "Create another"}
-                </h2>
-                <CreateWebsiteForm suggestedTemplate={suggestedTemplate} />
-              </section>
+              {canCreate ? (
+                <section className="space-y-4">
+                  <h2 className="text-lg font-semibold text-white">
+                    {sites.length === 0 ? "Create your first website" : "Create another"}
+                  </h2>
+                  <CreateWebsiteForm suggestedTemplate={suggestedTemplate} />
+                </section>
+              ) : null}
             </div>
           </div>
         )}
