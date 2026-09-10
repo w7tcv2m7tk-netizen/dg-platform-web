@@ -2,6 +2,120 @@ import type { PmLease, PmMaintenanceRequest, PmProperty, Prisma } from "@dg/data
 
 import { writeAuditLog } from "../audit";
 
+export type LinkedPmRelation =
+  | "property"
+  | "owner_contact"
+  | "tenant_contact"
+  | "contact";
+
+export class LinkedPmRecordNotFoundError extends Error {
+  readonly code: `linked_${LinkedPmRelation}_not_found`;
+  readonly relation: LinkedPmRelation;
+
+  constructor(relation: LinkedPmRelation) {
+    super(`Linked ${relation.replace(/_/g, " ")} not found in this organisation`);
+    this.name = "LinkedPmRecordNotFoundError";
+    this.relation = relation;
+    this.code = `linked_${relation}_not_found`;
+  }
+}
+
+export function isLinkedPmRecordNotFoundError(
+  error: unknown,
+): error is LinkedPmRecordNotFoundError {
+  return (
+    error instanceof LinkedPmRecordNotFoundError ||
+    (error instanceof Error && error.name === "LinkedPmRecordNotFoundError")
+  );
+}
+
+function normalizeOptionalRelationId(value: string | null | undefined): string | null | undefined {
+  if (value === undefined) return undefined;
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  return trimmed || null;
+}
+
+async function assertPmPropertyInOrganisation(
+  organisationId: string,
+  propertyId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const property = await prisma.pmProperty.findFirst({
+    where: { id: propertyId, organisationId },
+    select: { id: true },
+  });
+  if (!property) {
+    throw new LinkedPmRecordNotFoundError("property");
+  }
+}
+
+async function assertPmContactInOrganisation(
+  organisationId: string,
+  contactId: string,
+  relation: Extract<LinkedPmRelation, "owner_contact" | "tenant_contact" | "contact">,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const contact = await prisma.contact.findFirst({
+    where: { id: contactId, organisationId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!contact) {
+    throw new LinkedPmRecordNotFoundError(relation);
+  }
+}
+
+async function resolvePmLeaseRelationshipIds(
+  organisationId: string,
+  input: {
+    propertyId?: string | null;
+    ownerContactId?: string | null;
+    tenantContactId?: string | null;
+  },
+): Promise<{
+  propertyId?: string | null;
+  ownerContactId?: string | null;
+  tenantContactId?: string | null;
+}> {
+  const propertyId = normalizeOptionalRelationId(input.propertyId);
+  const ownerContactId = normalizeOptionalRelationId(input.ownerContactId);
+  const tenantContactId = normalizeOptionalRelationId(input.tenantContactId);
+
+  if (propertyId) {
+    await assertPmPropertyInOrganisation(organisationId, propertyId);
+  }
+  if (ownerContactId) {
+    await assertPmContactInOrganisation(organisationId, ownerContactId, "owner_contact");
+  }
+  if (tenantContactId) {
+    await assertPmContactInOrganisation(organisationId, tenantContactId, "tenant_contact");
+  }
+
+  return { propertyId, ownerContactId, tenantContactId };
+}
+
+async function resolvePmMaintenanceRelationshipIds(
+  organisationId: string,
+  input: {
+    propertyId?: string | null;
+    contactId?: string | null;
+  },
+): Promise<{
+  propertyId?: string | null;
+  contactId?: string | null;
+}> {
+  const propertyId = normalizeOptionalRelationId(input.propertyId);
+  const contactId = normalizeOptionalRelationId(input.contactId);
+
+  if (propertyId) {
+    await assertPmPropertyInOrganisation(organisationId, propertyId);
+  }
+  if (contactId) {
+    await assertPmContactInOrganisation(organisationId, contactId, "contact");
+  }
+
+  return { propertyId, contactId };
+}
+
 export type PmPropertyRecord = {
   id: string;
   organisationId: string;
@@ -221,17 +335,22 @@ export async function listPmLeases(organisationId: string) {
 
 export async function createPmLease(input: CreatePmLeaseInput) {
   const { prisma } = await import("@dg/database");
+  const links = await resolvePmLeaseRelationshipIds(input.organisationId, {
+    propertyId: input.propertyId,
+    ownerContactId: input.ownerContactId,
+    tenantContactId: input.tenantContactId,
+  });
   const row = await prisma.pmLease.create({
     data: {
       organisationId: input.organisationId,
-      propertyId: input.propertyId || null,
+      propertyId: links.propertyId ?? null,
       title: input.title.trim(),
       addressLine1: input.addressLine1?.trim() || null,
       suburb: input.suburb?.trim() || null,
       stage: input.stage?.trim() || "application",
       status: input.status?.trim() || "active",
-      ownerContactId: input.ownerContactId || null,
-      tenantContactId: input.tenantContactId || null,
+      ownerContactId: links.ownerContactId ?? null,
+      tenantContactId: links.tenantContactId ?? null,
       rentCents: input.rentCents ?? null,
       startDate: input.startDate ? new Date(input.startDate) : null,
       endDate: input.endDate ? new Date(input.endDate) : null,
@@ -256,11 +375,17 @@ export async function updatePmLease(input: UpdatePmLeaseInput) {
   });
   if (!existing) return null;
 
+  const links = await resolvePmLeaseRelationshipIds(input.organisationId, {
+    propertyId: input.propertyId,
+    ownerContactId: input.ownerContactId,
+    tenantContactId: input.tenantContactId,
+  });
+
   const data: Prisma.PmLeaseUpdateInput = {};
   if (input.title !== undefined) data.title = input.title.trim();
   if (input.propertyId !== undefined) {
-    data.property = input.propertyId
-      ? { connect: { id: input.propertyId } }
+    data.property = links.propertyId
+      ? { connect: { id: links.propertyId } }
       : { disconnect: true };
   }
   if (input.addressLine1 !== undefined) data.addressLine1 = input.addressLine1;
@@ -268,13 +393,13 @@ export async function updatePmLease(input: UpdatePmLeaseInput) {
   if (input.stage !== undefined) data.stage = input.stage.trim();
   if (input.status !== undefined) data.status = input.status.trim();
   if (input.ownerContactId !== undefined) {
-    data.ownerContact = input.ownerContactId
-      ? { connect: { id: input.ownerContactId } }
+    data.ownerContact = links.ownerContactId
+      ? { connect: { id: links.ownerContactId } }
       : { disconnect: true };
   }
   if (input.tenantContactId !== undefined) {
-    data.tenantContact = input.tenantContactId
-      ? { connect: { id: input.tenantContactId } }
+    data.tenantContact = links.tenantContactId
+      ? { connect: { id: links.tenantContactId } }
       : { disconnect: true };
   }
   if (input.rentCents !== undefined) data.rentCents = input.rentCents;
@@ -313,11 +438,15 @@ export async function listPmMaintenance(organisationId: string) {
 
 export async function createPmMaintenance(input: CreatePmMaintenanceInput) {
   const { prisma } = await import("@dg/database");
+  const links = await resolvePmMaintenanceRelationshipIds(input.organisationId, {
+    propertyId: input.propertyId,
+    contactId: input.contactId,
+  });
   const row = await prisma.pmMaintenanceRequest.create({
     data: {
       organisationId: input.organisationId,
-      propertyId: input.propertyId || null,
-      contactId: input.contactId || null,
+      propertyId: links.propertyId ?? null,
+      contactId: links.contactId ?? null,
       title: input.title.trim(),
       status: input.status?.trim() || "open",
       priority: input.priority?.trim() || "normal",
@@ -342,16 +471,21 @@ export async function updatePmMaintenance(input: UpdatePmMaintenanceInput) {
   });
   if (!existing) return null;
 
+  const links = await resolvePmMaintenanceRelationshipIds(input.organisationId, {
+    propertyId: input.propertyId,
+    contactId: input.contactId,
+  });
+
   const data: Prisma.PmMaintenanceRequestUpdateInput = {};
   if (input.title !== undefined) data.title = input.title.trim();
   if (input.propertyId !== undefined) {
-    data.property = input.propertyId
-      ? { connect: { id: input.propertyId } }
+    data.property = links.propertyId
+      ? { connect: { id: links.propertyId } }
       : { disconnect: true };
   }
   if (input.contactId !== undefined) {
-    data.contact = input.contactId
-      ? { connect: { id: input.contactId } }
+    data.contact = links.contactId
+      ? { connect: { id: links.contactId } }
       : { disconnect: true };
   }
   if (input.status !== undefined) data.status = input.status.trim();

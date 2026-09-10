@@ -1,5 +1,6 @@
 import {
   createFinanceApplication,
+  isLinkedFinanceRecordNotFoundError,
   listFinanceApplications,
   updateFinanceApplication,
 } from "@dg/platform-core";
@@ -49,25 +50,35 @@ export async function POST(req: Request) {
         ? Number.parseInt(loanRaw, 10)
         : undefined;
 
-  const app = await createFinanceApplication({
-    organisationId: session.organisationId,
-    actorId: session.clerkUserId,
-    title: body.title,
-    stage: typeof body.stage === "string" ? body.stage : undefined,
-    contactId: typeof body.contactId === "string" ? body.contactId : undefined,
-    loanAmountCents:
-      loanAmountCents !== undefined && !Number.isNaN(loanAmountCents)
-        ? loanAmountCents
-        : undefined,
-    lenderName: typeof body.lenderName === "string" ? body.lenderName : undefined,
-    notes: typeof body.notes === "string" ? body.notes : undefined,
-    metadata:
-      body.metadata && typeof body.metadata === "object"
-        ? (body.metadata as Record<string, unknown>)
-        : undefined,
-  });
+  try {
+    const app = await createFinanceApplication({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+      title: body.title,
+      stage: typeof body.stage === "string" ? body.stage : undefined,
+      contactId: typeof body.contactId === "string" ? body.contactId : undefined,
+      loanAmountCents:
+        loanAmountCents !== undefined && !Number.isNaN(loanAmountCents)
+          ? loanAmountCents
+          : undefined,
+      lenderName: typeof body.lenderName === "string" ? body.lenderName : undefined,
+      notes: typeof body.notes === "string" ? body.notes : undefined,
+      metadata:
+        body.metadata && typeof body.metadata === "object"
+          ? (body.metadata as Record<string, unknown>)
+          : undefined,
+    });
 
-  return NextResponse.json({ data: app }, { status: 201 });
+    return NextResponse.json({ data: app }, { status: 201 });
+  } catch (error) {
+    if (isLinkedFinanceRecordNotFoundError(error)) {
+      return NextResponse.json(
+        { error: { code: error.code, message: error.message } },
+        { status: 422 },
+      );
+    }
+    throw error;
+  }
 }
 
 export async function PATCH(req: Request) {
@@ -96,52 +107,62 @@ export async function PATCH(req: Request) {
           ? null
           : undefined;
 
-  const updated = await updateFinanceApplication({
-    organisationId: session.organisationId,
-    applicationId: body.id,
-    actorId: session.clerkUserId,
-    title: typeof body.title === "string" ? body.title : undefined,
-    stage: typeof body.stage === "string" ? body.stage : undefined,
-    status:
-      body.status === "open" ||
-      body.status === "closed" ||
-      body.status === "won" ||
-      body.status === "lost"
-        ? body.status
-        : undefined,
-    contactId:
-      typeof body.contactId === "string"
-        ? body.contactId
-        : body.contactId === null
-          ? null
+  try {
+    const updated = await updateFinanceApplication({
+      organisationId: session.organisationId,
+      applicationId: body.id,
+      actorId: session.clerkUserId,
+      title: typeof body.title === "string" ? body.title : undefined,
+      stage: typeof body.stage === "string" ? body.stage : undefined,
+      status:
+        body.status === "open" ||
+        body.status === "closed" ||
+        body.status === "won" ||
+        body.status === "lost"
+          ? body.status
           : undefined,
-    loanAmountCents:
-      loanAmountCents !== undefined &&
-      (loanAmountCents === null || !Number.isNaN(loanAmountCents))
-        ? loanAmountCents
-        : undefined,
-    lenderName:
-      typeof body.lenderName === "string"
-        ? body.lenderName
-        : body.lenderName === null
-          ? null
+      contactId:
+        typeof body.contactId === "string"
+          ? body.contactId
+          : body.contactId === null
+            ? null
+            : undefined,
+      loanAmountCents:
+        loanAmountCents !== undefined &&
+        (loanAmountCents === null || !Number.isNaN(loanAmountCents))
+          ? loanAmountCents
           : undefined,
-    notes:
-      typeof body.notes === "string" ? body.notes : body.notes === null ? null : undefined,
-    metadata:
-      body.metadata && typeof body.metadata === "object"
-        ? (body.metadata as Record<string, unknown>)
-        : body.metadata === null
-          ? null
-          : undefined,
-  });
+      lenderName:
+        typeof body.lenderName === "string"
+          ? body.lenderName
+          : body.lenderName === null
+            ? null
+            : undefined,
+      notes:
+        typeof body.notes === "string" ? body.notes : body.notes === null ? null : undefined,
+      metadata:
+        body.metadata && typeof body.metadata === "object"
+          ? (body.metadata as Record<string, unknown>)
+          : body.metadata === null
+            ? null
+            : undefined,
+    });
 
-  if (!updated) {
-    return NextResponse.json(
-      { error: { code: "not_found", message: "Application not found" } },
-      { status: 404 },
-    );
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "not_found", message: "Application not found" } },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: updated });
+  } catch (error) {
+    if (isLinkedFinanceRecordNotFoundError(error)) {
+      return NextResponse.json(
+        { error: { code: error.code, message: error.message } },
+        { status: 422 },
+      );
+    }
+    throw error;
   }
-
-  return NextResponse.json({ data: updated });
 }

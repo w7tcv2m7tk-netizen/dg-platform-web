@@ -8,6 +8,104 @@ import type {
   CreateCommercialPropertyInput,
 } from "./types";
 
+export type LinkedCommercialRelation =
+  | "commercial_property"
+  | "landlord_contact"
+  | "tenant_contact";
+
+export class LinkedCommercialRecordNotFoundError extends Error {
+  readonly code: `linked_${LinkedCommercialRelation}_not_found`;
+  readonly relation: LinkedCommercialRelation;
+
+  constructor(relation: LinkedCommercialRelation) {
+    super(`Linked ${relation.replace(/_/g, " ")} not found in this organisation`);
+    this.name = "LinkedCommercialRecordNotFoundError";
+    this.relation = relation;
+    this.code = `linked_${relation}_not_found`;
+  }
+}
+
+export function isLinkedCommercialRecordNotFoundError(
+  error: unknown,
+): error is LinkedCommercialRecordNotFoundError {
+  return (
+    error instanceof LinkedCommercialRecordNotFoundError ||
+    (error instanceof Error && error.name === "LinkedCommercialRecordNotFoundError")
+  );
+}
+
+function normalizeOptionalRelationId(value: string | null | undefined): string | null | undefined {
+  if (value === undefined) return undefined;
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  return trimmed || null;
+}
+
+async function assertCommercialPropertyInOrganisation(
+  organisationId: string,
+  commercialPropertyId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const property = await prisma.commercialProperty.findFirst({
+    where: { id: commercialPropertyId, organisationId },
+    select: { id: true },
+  });
+  if (!property) {
+    throw new LinkedCommercialRecordNotFoundError("commercial_property");
+  }
+}
+
+async function assertCommercialContactInOrganisation(
+  organisationId: string,
+  contactId: string,
+  relation: Extract<LinkedCommercialRelation, "landlord_contact" | "tenant_contact">,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const contact = await prisma.contact.findFirst({
+    where: { id: contactId, organisationId, deletedAt: null },
+    select: { id: true },
+  });
+  if (!contact) {
+    throw new LinkedCommercialRecordNotFoundError(relation);
+  }
+}
+
+async function resolveCommercialLeaseRelationshipIds(
+  organisationId: string,
+  input: {
+    commercialPropertyId?: string | null;
+    landlordContactId?: string | null;
+    tenantContactId?: string | null;
+  },
+): Promise<{
+  commercialPropertyId?: string | null;
+  landlordContactId?: string | null;
+  tenantContactId?: string | null;
+}> {
+  const commercialPropertyId = normalizeOptionalRelationId(input.commercialPropertyId);
+  const landlordContactId = normalizeOptionalRelationId(input.landlordContactId);
+  const tenantContactId = normalizeOptionalRelationId(input.tenantContactId);
+
+  if (commercialPropertyId) {
+    await assertCommercialPropertyInOrganisation(organisationId, commercialPropertyId);
+  }
+  if (landlordContactId) {
+    await assertCommercialContactInOrganisation(
+      organisationId,
+      landlordContactId,
+      "landlord_contact",
+    );
+  }
+  if (tenantContactId) {
+    await assertCommercialContactInOrganisation(
+      organisationId,
+      tenantContactId,
+      "tenant_contact",
+    );
+  }
+
+  return { commercialPropertyId, landlordContactId, tenantContactId };
+}
+
 function serializeProperty(row: CommercialProperty): CommercialPropertyRecord {
   return {
     id: row.id,
@@ -92,14 +190,19 @@ export async function listCommercialLeases(organisationId: string) {
 
 export async function createCommercialLease(input: CreateCommercialLeaseInput) {
   const { prisma } = await import("@dg/database");
+  const links = await resolveCommercialLeaseRelationshipIds(input.organisationId, {
+    commercialPropertyId: input.commercialPropertyId,
+    landlordContactId: input.landlordContactId,
+    tenantContactId: input.tenantContactId,
+  });
   const row = await prisma.commercialLease.create({
     data: {
       organisationId: input.organisationId,
       title: input.title.trim(),
-      commercialPropertyId: input.commercialPropertyId || null,
+      commercialPropertyId: links.commercialPropertyId ?? null,
       stage: input.stage?.trim() || "prospect",
-      landlordContactId: input.landlordContactId || null,
-      tenantContactId: input.tenantContactId || null,
+      landlordContactId: links.landlordContactId ?? null,
+      tenantContactId: links.tenantContactId ?? null,
       rentCents: input.rentCents ?? null,
       startDate: input.startDate ? new Date(input.startDate) : null,
       endDate: input.endDate ? new Date(input.endDate) : null,

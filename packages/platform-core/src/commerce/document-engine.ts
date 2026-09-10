@@ -17,7 +17,7 @@ import type {
   QuoteStatus,
 } from "./types";
 
-export type LinkedCommerceRelation = "contact" | "quote";
+export type LinkedCommerceRelation = "contact" | "quote" | "invoice";
 
 export class LinkedCommerceRecordNotFoundError extends Error {
   readonly code: `linked_${LinkedCommerceRelation}_not_found`;
@@ -74,18 +74,35 @@ async function assertCommerceQuoteInOrganisation(
   }
 }
 
-async function resolveCommerceRelationshipIds(
+async function assertCommerceInvoiceInOrganisation(
+  organisationId: string,
+  invoiceId: string,
+): Promise<void> {
+  const { prisma } = await import("@dg/database");
+  const invoice = await prisma.commerceInvoice.findFirst({
+    where: { id: invoiceId, organisationId },
+    select: { id: true },
+  });
+  if (!invoice) {
+    throw new LinkedCommerceRecordNotFoundError("invoice");
+  }
+}
+
+export async function resolveCommerceRelationshipIds(
   organisationId: string,
   input: {
     contactId?: string | null;
     quoteId?: string | null;
+    invoiceId?: string | null;
   },
 ): Promise<{
   contactId?: string | null;
   quoteId?: string | null;
+  invoiceId?: string | null;
 }> {
   const contactId = normalizeOptionalRelationId(input.contactId);
   const quoteId = normalizeOptionalRelationId(input.quoteId);
+  const invoiceId = normalizeOptionalRelationId(input.invoiceId);
 
   if (contactId) {
     await assertCommerceContactInOrganisation(organisationId, contactId);
@@ -93,8 +110,11 @@ async function resolveCommerceRelationshipIds(
   if (quoteId) {
     await assertCommerceQuoteInOrganisation(organisationId, quoteId);
   }
+  if (invoiceId) {
+    await assertCommerceInvoiceInOrganisation(organisationId, invoiceId);
+  }
 
-  return { contactId, quoteId };
+  return { contactId, quoteId, invoiceId };
 }
 
 function serializeLineItems(items: CommerceLineItem[]) {

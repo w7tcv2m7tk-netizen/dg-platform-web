@@ -1,6 +1,7 @@
 import {
   createProperty,
   createPropertyFromLead,
+  isLinkedPropertyRecordNotFoundError,
   listProperties,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -74,20 +75,30 @@ export async function POST(req: Request) {
     );
   }
 
-  const property = await createProperty({
-    organisationId: session.organisationId,
-    actorId: session.clerkUserId,
-    addressLine1: rawAddress,
-    addressLine2: body.addressLine2,
-    suburb: suburb || "Gold Coast",
-    state,
-    postcode,
-    status: body.status,
-    propertyType: body.propertyType,
-    ownerContactId: body.ownerContactId,
-    leadId: body.leadId,
-    listingPriceCents: body.listingPriceCents,
-  });
+  try {
+    const property = await createProperty({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+      addressLine1: rawAddress,
+      addressLine2: body.addressLine2,
+      suburb: suburb || "Gold Coast",
+      state,
+      postcode,
+      status: body.status,
+      propertyType: body.propertyType,
+      ownerContactId: body.ownerContactId,
+      leadId: body.leadId,
+      listingPriceCents: body.listingPriceCents,
+    });
 
-  return NextResponse.json({ data: property }, { status: 201 });
+    return NextResponse.json({ data: property }, { status: 201 });
+  } catch (error) {
+    if (isLinkedPropertyRecordNotFoundError(error)) {
+      return NextResponse.json(
+        { error: { code: error.code, message: error.message } },
+        { status: 422 },
+      );
+    }
+    throw error;
+  }
 }

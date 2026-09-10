@@ -1,5 +1,6 @@
 import {
   createPmMaintenance,
+  isLinkedPmRecordNotFoundError,
   listPmMaintenance,
   updatePmMaintenance,
 } from "@dg/platform-core";
@@ -34,18 +35,28 @@ export async function POST(req: Request) {
     );
   }
 
-  const request = await createPmMaintenance({
-    organisationId: session.organisationId,
-    actorId: session.clerkUserId,
-    title: body.title,
-    propertyId: typeof body.propertyId === "string" ? body.propertyId : undefined,
-    contactId: typeof body.contactId === "string" ? body.contactId : undefined,
-    status: typeof body.status === "string" ? body.status : undefined,
-    priority: typeof body.priority === "string" ? body.priority : undefined,
-    notes: typeof body.notes === "string" ? body.notes : undefined,
-  });
+  try {
+    const request = await createPmMaintenance({
+      organisationId: session.organisationId,
+      actorId: session.clerkUserId,
+      title: body.title,
+      propertyId: typeof body.propertyId === "string" ? body.propertyId : undefined,
+      contactId: typeof body.contactId === "string" ? body.contactId : undefined,
+      status: typeof body.status === "string" ? body.status : undefined,
+      priority: typeof body.priority === "string" ? body.priority : undefined,
+      notes: typeof body.notes === "string" ? body.notes : undefined,
+    });
 
-  return NextResponse.json({ data: request }, { status: 201 });
+    return NextResponse.json({ data: request }, { status: 201 });
+  } catch (error) {
+    if (isLinkedPmRecordNotFoundError(error)) {
+      return NextResponse.json(
+        { error: { code: error.code, message: error.message } },
+        { status: 422 },
+      );
+    }
+    throw error;
+  }
 }
 
 export async function PATCH(req: Request) {
@@ -64,34 +75,44 @@ export async function PATCH(req: Request) {
     );
   }
 
-  const updated = await updatePmMaintenance({
-    organisationId: session.organisationId,
-    requestId: body.id,
-    actorId: session.clerkUserId,
-    title: typeof body.title === "string" ? body.title : undefined,
-    propertyId:
-      typeof body.propertyId === "string"
-        ? body.propertyId
-        : body.propertyId === null
-          ? null
-          : undefined,
-    contactId:
-      typeof body.contactId === "string"
-        ? body.contactId
-        : body.contactId === null
-          ? null
-          : undefined,
-    status: typeof body.status === "string" ? body.status : undefined,
-    priority: typeof body.priority === "string" ? body.priority : undefined,
-    notes: typeof body.notes === "string" ? body.notes : body.notes === null ? null : undefined,
-  });
+  try {
+    const updated = await updatePmMaintenance({
+      organisationId: session.organisationId,
+      requestId: body.id,
+      actorId: session.clerkUserId,
+      title: typeof body.title === "string" ? body.title : undefined,
+      propertyId:
+        typeof body.propertyId === "string"
+          ? body.propertyId
+          : body.propertyId === null
+            ? null
+            : undefined,
+      contactId:
+        typeof body.contactId === "string"
+          ? body.contactId
+          : body.contactId === null
+            ? null
+            : undefined,
+      status: typeof body.status === "string" ? body.status : undefined,
+      priority: typeof body.priority === "string" ? body.priority : undefined,
+      notes: typeof body.notes === "string" ? body.notes : body.notes === null ? null : undefined,
+    });
 
-  if (!updated) {
-    return NextResponse.json(
-      { error: { code: "not_found", message: "Maintenance request not found" } },
-      { status: 404 },
-    );
+    if (!updated) {
+      return NextResponse.json(
+        { error: { code: "not_found", message: "Maintenance request not found" } },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: updated });
+  } catch (error) {
+    if (isLinkedPmRecordNotFoundError(error)) {
+      return NextResponse.json(
+        { error: { code: error.code, message: error.message } },
+        { status: 422 },
+      );
+    }
+    throw error;
   }
-
-  return NextResponse.json({ data: updated });
 }
