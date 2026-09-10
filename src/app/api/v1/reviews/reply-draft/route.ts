@@ -5,7 +5,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -41,6 +41,13 @@ export async function POST(req: Request) {
   const persist = body.persist !== false;
   let activityId: string | undefined;
   if (persist) {
+    const denied = requirePermission(session, {
+      module: "growth",
+      action: "create",
+      scope: "organisation",
+    });
+    if (denied) return denied;
+
     const activity = await createActivity({
       organisationId: session.organisationId,
       actorId: session.clerkUserId,
