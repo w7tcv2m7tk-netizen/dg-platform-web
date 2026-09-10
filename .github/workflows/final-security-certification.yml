@@ -28,10 +28,11 @@ jobs:
       - name: Canonical unit suite
         run: npm run test:unit
 
-      - name: Residual authority and isolation regressions
+      - name: Final authority, isolation and role regressions
         run: >-
           node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test
           scripts/test-feature-tail-authority.mjs
           scripts/test-residual-relationship-isolation.mjs
           scripts/test-review-request-contact-isolation.mjs
           scripts/test-notification-recipient-isolation.mjs
+          scripts/test-final-permission-matrix.mjs
