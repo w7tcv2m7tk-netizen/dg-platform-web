@@ -1,10 +1,15 @@
+import { notFound } from "next/navigation";
+
 import { DnsConsole } from "@/components/infrastructure/DnsConsole";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 /**
  * DNS Infrastructure — zone inspect, suggested hosting records, Apply website DNS.
  * Auth / email DNS stays under Email. Domain search/register under Domains.
  */
-export default function DnsInfrastructurePage() {
+export default async function DnsInfrastructurePage() {
+  const session = await getAuthorisedPlatformPageSession("infrastructure.read");
+  if (!session) notFound();
   return (
     <>
       <header className="dg-page-header">

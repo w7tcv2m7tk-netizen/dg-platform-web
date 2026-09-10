@@ -1,8 +1,13 @@
+import { notFound } from "next/navigation";
 import { getCloudflareInfrastructureOverview } from "@dg/platform-core";
 
 import { CloudflareConsole } from "@/components/infrastructure/CloudflareConsole";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function InfrastructureCloudflarePage() {
+  const session = await getAuthorisedPlatformPageSession("infrastructure.read");
+  if (!session) notFound();
+
   const overview = await getCloudflareInfrastructureOverview();
 
   return (
