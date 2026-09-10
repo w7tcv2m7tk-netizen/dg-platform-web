@@ -160,7 +160,7 @@ export function GoogleGbpConnectorPanel({
             </>
           ) : null}
           <a
-            href="/api/connectors/google/connect"
+            href="/api/connectors/google/connect?returnTo=/dashboard/settings/connectors"
             className={`rounded-full px-4 py-1.5 text-xs font-semibold text-white ${
               platform?.configured
                 ? "bg-blue-600 hover:bg-blue-500"

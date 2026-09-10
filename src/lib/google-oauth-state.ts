@@ -4,6 +4,8 @@ type GoogleOAuthStateInner = {
   o: string;
   e: number;
   n: string;
+  /** Allowlisted post-OAuth return path (no query). */
+  r?: string;
 };
 
 function signingSecret(): string {
@@ -34,16 +36,25 @@ function signPayload(payloadJson: string, secret: string): string {
   return createHmac("sha256", secret).update(payloadJson).digest("hex");
 }
 
-/** Single URL-safe token — org id travels with Google (no cookies). */
-export function createGoogleOAuthState(organisationId: string): string {
+/** Single URL-safe token — org id (+ optional return path) travels with Google. */
+export function createGoogleOAuthState(
+  organisationId: string,
+  options?: { returnTo?: string | null },
+): string {
   const secret = signingSecret();
   if (!secret) {
     throw new Error("No secret available to sign Google OAuth state");
   }
+  const requested = options?.returnTo?.trim() ?? "";
+  const returnTo =
+    requested.startsWith("/") && !requested.startsWith("//")
+      ? requested.split("?")[0]?.split("#")[0]
+      : undefined;
   const inner: GoogleOAuthStateInner = {
     o: organisationId,
     e: Date.now() + 30 * 60 * 1000,
     n: randomBytes(8).toString("hex"),
+    ...(returnTo ? { r: returnTo } : {}),
   };
   const payloadJson = JSON.stringify(inner);
   const envelope = {
@@ -55,7 +66,9 @@ export function createGoogleOAuthState(organisationId: string): string {
 
 export function parseGoogleOAuthState(
   state: string,
-): { ok: true; organisationId: string } | { ok: false; message: string } {
+):
+  | { ok: true; organisationId: string; returnTo: string | null }
+  | { ok: false; message: string } {
   const secret = signingSecret();
   if (!secret) {
     return { ok: false, message: "OAuth state secret not configured" };
@@ -99,7 +112,11 @@ export function parseGoogleOAuthState(
             fromB64url(body).toString("utf8"),
           ) as GoogleOAuthStateInner;
           if (payload?.o && typeof payload.e === "number" && Date.now() <= payload.e) {
-            return { ok: true, organisationId: payload.o };
+            return {
+              ok: true,
+              organisationId: payload.o,
+              returnTo: typeof payload.r === "string" ? payload.r : null,
+            };
           }
         }
       } catch {
@@ -139,7 +156,11 @@ export function parseGoogleOAuthState(
         message: "OAuth state expired — try Connect Google again",
       };
     }
-    return { ok: true, organisationId: payload.o };
+    return {
+      ok: true,
+      organisationId: payload.o,
+      returnTo: typeof payload.r === "string" ? payload.r : null,
+    };
   } catch {
     return { ok: false, message: "OAuth state payload invalid" };
   }

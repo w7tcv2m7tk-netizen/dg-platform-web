@@ -295,10 +295,9 @@ export function ConnectedServicesCatalog() {
                     : "Connected"
                   : null,
                 enables: "Reputation · Business Health · local visibility",
-                primaryHref: gbpConnected
-                  ? "/dashboard/settings/connectors"
-                  : "/api/connectors/google/connect",
-                primaryLabel: gbpConnected ? "Manage" : "Connect",
+                primaryHref:
+                  "/api/connectors/google/connect?returnTo=/dashboard/settings/connected-services",
+                primaryLabel: gbpConnected ? "Reconnect" : "Connect",
               },
               {
                 id: "wordpress",

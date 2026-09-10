@@ -3,10 +3,16 @@ import {
   saveOrgGoogleGbpConnectorTokens,
   syncOrgGoogleGbp,
 } from "@dg/platform-core";
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import { parseGoogleOAuthState } from "@/lib/google-oauth-state";
+import {
+  DEFAULT_GBP_OAUTH_RETURN,
+  OAUTH_RETURN_COOKIE,
+  OAUTH_RETURN_COOKIE_MAX_AGE_SEC,
+  gbpOAuthReturnPath,
+  withGbpOAuthFlash,
+} from "@/lib/oauth-return-path";
 import { tenantWriteEntitlementBlock } from "@/lib/write-entitlement";
 
 export const dynamic = "force-dynamic";
@@ -15,23 +21,32 @@ export const dynamic = "force-dynamic";
  * Google OAuth redirect —
  * https://app.digitalgate.com.au/api/connectors/google/callback
  *
- * Organisation id travels in signed OAuth `state` (not cookies), so the
- * Google round-trip cannot drop org context. Callback is a public Clerk route.
+ * Organisation id + return path travel in signed OAuth `state`.
+ * Do not send a successful connect through /login — Clerk force-redirects
+ * that to Overview (/dashboard).
  */
 export async function GET(req: NextRequest) {
-  // Always return to the host Google hit — ignore a wrong NEXT_PUBLIC_APP_URL.
   const base = req.nextUrl.origin;
-  const connectorsOk = () =>
-    NextResponse.redirect(
-      new URL("/dashboard/settings/connectors?google=connected", base),
-    );
-  const fail = (msg: string) =>
-    NextResponse.redirect(
-      new URL(
-        `/dashboard/settings/connectors?google=error&message=${encodeURIComponent(msg)}`,
-        base,
-      ),
-    );
+
+  const finish = (
+    returnTo: string,
+    status: "connected" | "error",
+    message?: string,
+  ) => {
+    const dest = withGbpOAuthFlash(returnTo, status, message);
+    const res = NextResponse.redirect(new URL(dest, base));
+    res.cookies.set(OAUTH_RETURN_COOKIE, dest, {
+      path: "/",
+      maxAge: OAUTH_RETURN_COOKIE_MAX_AGE_SEC,
+      sameSite: "lax",
+      httpOnly: true,
+      secure: base.startsWith("https://"),
+    });
+    return res;
+  };
+
+  let returnTo = DEFAULT_GBP_OAUTH_RETURN;
+  const fail = (msg: string) => finish(returnTo, "error", msg);
 
   const code = req.nextUrl.searchParams.get("code");
   const state = req.nextUrl.searchParams.get("state");
@@ -47,6 +62,7 @@ export async function GET(req: NextRequest) {
   if (!parsed.ok) {
     return fail(parsed.message);
   }
+  returnTo = gbpOAuthReturnPath(parsed.returnTo);
   const organisationId = parsed.organisationId;
 
   const writeBlock = await tenantWriteEntitlementBlock({ organisationId });
@@ -75,13 +91,5 @@ export async function GET(req: NextRequest) {
     /* sync can be retried from Settings / Reputation sources */
   }
 
-  const { userId } = await auth();
-  if (!userId) {
-    const after = `/dashboard/settings/connectors?google=connected`;
-    return NextResponse.redirect(
-      new URL(`/login?redirect_url=${encodeURIComponent(after)}`, base),
-    );
-  }
-
-  return connectorsOk();
+  return finish(returnTo, "connected");
 }

@@ -74,7 +74,7 @@ Default scope `https://www.googleapis.com/auth/business.manage` is sufficient fo
 | Route | Method | Notes |
 |-------|--------|-------|
 | `/api/connectors/google/connect` | GET | Start OAuth |
-| `/api/connectors/google/callback` | GET | Exchange + best-effort first sync |
+| `/api/connectors/google/callback` | GET | Exchange + best-effort first sync · return to Connected Services (not Overview) |
 | `/api/v1/connectors/google/status` | GET | Config + probe + cached health/locations + allowlisted Cloud project check |
 | `/api/v1/connectors/google/locations` | GET | Cached accounts/locations |
 | `/api/v1/connectors/google/sync` | POST | Pull accounts, locations, reviews |

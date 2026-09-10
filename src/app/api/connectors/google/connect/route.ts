@@ -12,6 +12,7 @@ import {
 } from "@/lib/write-entitlement";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { createGoogleOAuthState } from "@/lib/google-oauth-state";
+import { gbpOAuthReturnPath } from "@/lib/oauth-return-path";
 
 export const dynamic = "force-dynamic";
 
@@ -64,9 +65,11 @@ export async function GET(req: Request) {
   const writeBlock = await tenantWriteEntitlementBlock(session);
   if (writeBlock) return writeEntitlementResponse(writeBlock);
 
+  const returnTo = gbpOAuthReturnPath(new URL(req.url).searchParams.get("returnTo"));
+
   let state: string;
   try {
-    state = createGoogleOAuthState(session.organisationId);
+    state = createGoogleOAuthState(session.organisationId, { returnTo });
   } catch (err) {
     return NextResponse.json(
       {

@@ -3,6 +3,11 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { AUTH_AFTER_SIGN_IN_URL, AUTH_SIGN_IN_URL } from "@/lib/auth-routes";
 import {
+  OAUTH_RETURN_COOKIE,
+  isDashboardOverviewPath,
+  sanitizeOAuthReturnDestination,
+} from "@/lib/oauth-return-path";
+import {
   CLERK_PROXY_PATH,
   clerkFrontendApiOrigin,
   inAppSignInUrl,
@@ -282,7 +287,24 @@ export default async function middleware(req: NextRequest, event: unknown) {
 
   const response = await clerkHandler(req, event as never);
   if (!response) return response;
-  return keepAuthOnAppOrigin(req, response);
+  const kept = keepAuthOnAppOrigin(req, response);
+  return recoverOAuthReturnFromOverview(req, kept);
+}
+
+/** After Google OAuth, Clerk may force-redirect to Overview — send them back. */
+function recoverOAuthReturnFromOverview(req: NextRequest, response: Response): Response {
+  if (req.method !== "GET") return response;
+  if (!isDashboardOverviewPath(req.nextUrl.pathname)) return response;
+  const dest = sanitizeOAuthReturnDestination(
+    req.cookies.get(OAUTH_RETURN_COOKIE)?.value,
+  );
+  if (!dest) return response;
+  const redirect = NextResponse.redirect(new URL(dest, req.url));
+  redirect.cookies.set(OAUTH_RETURN_COOKIE, "", {
+    path: "/",
+    maxAge: 0,
+  });
+  return redirect;
 }
 
 export const config = {
