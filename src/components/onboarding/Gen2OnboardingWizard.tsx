@@ -101,6 +101,7 @@ export function Gen2OnboardingWizard({
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   const stepIndex = GEN2_ONBOARDING_STEPS.indexOf(step);
@@ -110,6 +111,11 @@ export function Gen2OnboardingWizard({
   const cadence: BillingCadence = progress.billingCadence ?? "monthly";
   const industry = progress.industryApps ?? [];
   const premium = progress.premiumApps ?? [];
+  const identityReady =
+    Boolean(profile.businessName.trim()) &&
+    Boolean(profile.industryVertical.trim()) &&
+    Boolean(profile.email.trim());
+  const profileReady = Boolean(profile.services.trim()) && Boolean(profile.targetCustomers.trim());
 
   const appsMonthly = useMemo(() => {
     let sum = 0;
@@ -134,10 +140,13 @@ export function Gen2OnboardingWizard({
     (async () => {
       const res = await fetch("/api/v1/onboarding/gen2");
       const json = await res.json().catch(() => ({}));
-      if (cancelled || !res.ok) {
+      if (cancelled) return;
+      if (!res.ok) {
+        setLoadError("We couldn't load all of your saved onboarding details. Try again before continuing.");
         setLoaded(true);
         return;
       }
+      setLoadError(null);
       const p = json.data?.progress as Gen2OnboardingProgress | undefined;
       const prof = json.data?.profile as {
         businessName?: string;
@@ -158,12 +167,16 @@ export function Gen2OnboardingWizard({
           country?: string;
         };
         brandVoice?: {
+          tagline?: string;
+          tone?: string;
           services?: string;
           targetAudience?: string;
-          tagline?: string;
           competitors?: string;
         };
       } | null;
+      const goals = Array.isArray(json.data?.goals)
+        ? (json.data.goals as Array<{ title?: string | null }>)
+        : [];
       if (p) {
         setProgress(p);
         setStep(p.currentStep);
@@ -177,7 +190,7 @@ export function Gen2OnboardingWizard({
           industryVertical: prof.industryVertical ?? "",
           phone: prof.businessPhone ?? prof.contactPhone ?? "",
           email: prof.businessEmail ?? prof.contactEmail ?? "",
-          description: "",
+          description: prof.brandVoice?.tone ?? "",
           addressLine1: prof.address?.street ?? "",
           city: prof.address?.city ?? "",
           state: prof.address?.state ?? "",
@@ -190,6 +203,16 @@ export function Gen2OnboardingWizard({
           challenges: prof.brandVoice?.competitors ?? "",
         });
       }
+      const existingGoalTitles = new Set(
+        goals
+          .map((goal) => goal.title?.trim().toLowerCase())
+          .filter((title): title is string => Boolean(title)),
+      );
+      setSelectedGoals(
+        GEN2_GOAL_OPTIONS.filter((goal) => existingGoalTitles.has(goal.label.toLowerCase())).map(
+          (goal) => goal.id,
+        ),
+      );
       setLoaded(true);
     })();
     return () => {
@@ -280,7 +303,8 @@ export function Gen2OnboardingWizard({
       markStepComplete: "business_profile",
       profile: {
         brandVoice: {
-          services: [profile.description, profile.services].filter(Boolean).join("\n\n"),
+          tone: profile.description,
+          services: profile.services,
           targetAudience: profile.targetCustomers,
           tagline: profile.differentiators,
           competitors: profile.challenges,
@@ -424,6 +448,18 @@ export function Gen2OnboardingWizard({
             Checkout was cancelled. You can review your order and activate when ready.
           </p>
         ) : null}
+        {loadError ? (
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <p>{loadError}</p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-2 font-medium text-amber-50 underline underline-offset-2"
+            >
+              Try again
+            </button>
+          </div>
+        ) : null}
         {error ? (
           <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
             {error}
@@ -458,7 +494,7 @@ export function Gen2OnboardingWizard({
           <section className="space-y-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
             <p className="text-sm text-slate-400">
               Pre-filled from your Founding application where available. Edit anything that&apos;s
-              wrong.
+              wrong. Legal business name, industry and business email are required to continue.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {(
@@ -489,7 +525,7 @@ export function Gen2OnboardingWizard({
             </div>
             <button
               type="button"
-              disabled={saving || !profile.businessName.trim()}
+              disabled={saving || !identityReady}
               onClick={() => void completeIdentity()}
               className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
             >
@@ -501,16 +537,16 @@ export function Gen2OnboardingWizard({
         {step === "business_profile" ? (
           <section className="space-y-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
             <p className="text-sm text-slate-400">
-              This becomes your Business Brain foundation — Overview, Advisor, Visibility and
-              Opportunity Engine all read from here.
+              This becomes your Business Brain foundation. Tell DigitalGate what you do and who
+              you serve; the remaining context is optional and can be refined later.
             </p>
             {(
               [
-                ["description", "Business description"],
-                ["services", "Services / products"],
-                ["targetCustomers", "Target customers"],
-                ["differentiators", "Key differentiators"],
-                ["challenges", "Current challenges / growth priorities"],
+                ["description", "Brand tone / style"],
+                ["services", "What you do — services / products"],
+                ["targetCustomers", "Who you serve — target customers"],
+                ["differentiators", "Tagline / positioning"],
+                ["challenges", "Key competitors"],
               ] as const
             ).map(([key, label]) => (
               <label key={key} className="block text-xs text-slate-500">
@@ -525,7 +561,7 @@ export function Gen2OnboardingWizard({
             ))}
             <button
               type="button"
-              disabled={saving}
+              disabled={saving || !profileReady}
               onClick={() => void completeProfile()}
               className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
             >
