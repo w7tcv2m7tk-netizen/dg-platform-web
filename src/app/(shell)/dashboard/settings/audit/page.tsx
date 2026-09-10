@@ -1,23 +1,39 @@
 import Link from "next/link";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { currentUser } from "@clerk/nextjs/server";
-import { listAuditLogs,} from "@dg/platform-core";
+import { notFound } from "next/navigation";
+import {
+  buildAccessContext,
+  hasPermission,
+  listAuditLogs,
+  type PlatformSession,
+} from "@dg/platform-core";
+
+import { getPlatformPageContext } from "@/lib/platform-page-context";
+
+function sessionCanViewOrgAudit(session: PlatformSession): boolean {
+  if (session.clerkUserId.startsWith("api_key:")) return false;
+  if (["owner", "admin"].includes(session.role)) return true;
+  const ctx = buildAccessContext({
+    role: session.role,
+    organisationId: session.organisationId,
+    principalId: session.clerkUserId,
+    enabledAppIds: [],
+    grants: session.permissionGrants,
+  });
+  return hasPermission(ctx, {
+    module: "team",
+    action: "manage",
+    scope: "organisation",
+  });
+}
 
 export default async function AuditLogPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
+  const { session } = await getPlatformPageContext();
+  if (!session || !sessionCanViewOrgAudit(session)) notFound();
 
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
-
-  const logs = session
-    ? await listAuditLogs({ organisationId: session.organisationId, limit: 100 })
-    : null;
+  const logs = await listAuditLogs({
+    organisationId: session.organisationId,
+    limit: 100,
+  });
 
   return (
     <>
@@ -32,9 +48,7 @@ export default async function AuditLogPage() {
       </header>
       <main className="dg-page-main">
         <div className="dg-card overflow-x-auto">
-          {!session || !logs ? (
-            <p className="text-sm text-slate-400">Sign in to view your organisation audit log.</p>
-          ) : logs.items.length === 0 ? (
+          {logs.items.length === 0 ? (
             <p className="text-sm text-slate-400">No audit entries yet.</p>
           ) : (
             <table className="w-full text-left text-sm">
