@@ -223,21 +223,25 @@ export function Gen2OnboardingWizard({
   useEffect(() => {
     if (checkoutStatus !== "success") return;
     void (async () => {
-      const res = await fetch("/api/v1/onboarding/gen2", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          markStepComplete: "stripe",
-          progress: {
-            subscriptionActivatedAt: new Date().toISOString(),
-            checklist: { subscription: true },
-          },
-        }),
-      });
-      const json = await res.json().catch(() => ({}));
-      if (res.ok && json.data?.progress) {
+      setError(null);
+      try {
+        const res = await fetch("/api/v1/onboarding/gen2", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ markStepComplete: "stripe" }),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok || !json.data?.progress) {
+          setError(
+            json.error?.message ||
+              "We confirmed your checkout but couldn't finish onboarding. Refresh this page to try again.",
+          );
+          return;
+        }
         setProgress(json.data.progress);
         setStep("connect");
+      } catch {
+        setError("We confirmed your checkout but couldn't finish onboarding. Refresh this page to try again.");
       }
     })();
   }, [checkoutStatus]);
