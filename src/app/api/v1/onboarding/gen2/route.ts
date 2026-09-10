@@ -30,6 +30,46 @@ const GOAL_METRIC_HINTS: Record<
 };
 
 const VERIFIED_CHECKOUT_KINDS = new Set(["trial", "subscribed", "cancel_at_period_end"]);
+const CLIENT_CHECKLIST_KEYS = new Set([
+  "business_identity",
+  "business_profile",
+  "goals",
+  "plan",
+  "apps",
+  "implementation",
+]);
+
+function safeClientProgress(raw: unknown) {
+  if (!raw || typeof raw !== "object") return {};
+  const source = raw as Record<string, unknown>;
+  const safe: Record<string, unknown> = {};
+
+  if (["starter", "professional", "business"].includes(String(source.platformTier))) {
+    safe.platformTier = source.platformTier;
+  }
+  if (source.billingCadence === "monthly" || source.billingCadence === "annual") {
+    safe.billingCadence = source.billingCadence;
+  }
+  if (Array.isArray(source.industryApps)) {
+    safe.industryApps = source.industryApps
+      .filter((value): value is string => typeof value === "string" && value.length <= 80)
+      .slice(0, 20);
+  }
+  if (Array.isArray(source.premiumApps)) {
+    safe.premiumApps = source.premiumApps
+      .filter((value): value is string => typeof value === "string" && value.length <= 80)
+      .slice(0, 20);
+  }
+  if (source.checklist && typeof source.checklist === "object") {
+    const checklist: Record<string, boolean> = {};
+    for (const [key, value] of Object.entries(source.checklist as Record<string, unknown>)) {
+      if (CLIENT_CHECKLIST_KEYS.has(key) && value === true) checklist[key] = true;
+    }
+    if (Object.keys(checklist).length > 0) safe.checklist = checklist;
+  }
+
+  return safe;
+}
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -122,23 +162,12 @@ export async function PATCH(req: Request) {
     }
   }
 
-  const requestedProgress =
-    typeof body.progress === "object" && body.progress
-      ? (body.progress as Record<string, unknown>)
-      : {};
-  const {
-    subscriptionActivatedAt: _clientActivation,
-    stripeCheckoutSessionId: _clientCheckoutSession,
-    ...safeProgress
-  } = requestedProgress;
-
   const progress = await saveGen2OnboardingProgress(session.organisationId, {
-    ...safeProgress,
+    ...safeClientProgress(body.progress),
     ...(markStepComplete === "stripe"
       ? { subscriptionActivatedAt: new Date().toISOString() }
       : {}),
     markStepComplete,
-    currentStep: isGen2OnboardingStep(body.currentStep) ? body.currentStep : undefined,
   });
 
   return NextResponse.json({ data: { progress } });
