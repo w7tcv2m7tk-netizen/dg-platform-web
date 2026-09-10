@@ -18,6 +18,7 @@ import {
 
 import { CrmAiAssistPanel } from "@/components/crm/CrmAiAssistPanel";
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
+import { OpportunityStageForm } from "@/components/crm/OpportunityStageForm";
 import { FoundingStageActions } from "@/components/founding/FoundingStageActions";
 import { InviteToFounding10Form } from "@/components/founding/InviteToFounding10Form";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
@@ -156,6 +157,12 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
                 </dd>
               </div>
             </dl>
+            {canWrite && !founding ? (
+              <OpportunityStageForm
+                opportunityId={opportunity.id}
+                initialStage={opportunity.stage}
+              />
+            ) : null}
           </div>
 
           <div className="dg-card">
