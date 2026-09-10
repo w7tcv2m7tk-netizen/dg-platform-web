@@ -23,7 +23,7 @@ import {
 
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIds } from "@/lib/org-apps";
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 const VALID_ACTIONS: AiGenerateAction[] = [
   "social_post",
@@ -38,6 +38,30 @@ const VALID_ACTIONS: AiGenerateAction[] = [
   "listing_description",
 ];
 
+const CRM_ACTIONS: AiGenerateAction[] = [
+  "lead_follow_up",
+  "lead_summary",
+  "opportunity_follow_up",
+  "opportunity_summary",
+  "contact_follow_up",
+  "contact_summary",
+];
+
+function crmAssistRequiredFeatures(action: AiGenerateAction): string[] {
+  if (action === "lead_follow_up" || action === "lead_summary") {
+    // Lead assist may enrich its response from the linked Contact.
+    return ["crm.leads.read", "crm.contacts.read"];
+  }
+  if (action === "opportunity_follow_up" || action === "opportunity_summary") {
+    // Opportunity assist may enrich from both the linked Lead and Contact.
+    return ["crm.opportunities.read", "crm.leads.read", "crm.contacts.read"];
+  }
+  if (action === "contact_follow_up" || action === "contact_summary") {
+    return ["crm.contacts.read"];
+  }
+  return [];
+}
+
 async function loadTwinContext(session: {
   organisationId: string;
   organisationName: string;
@@ -51,9 +75,7 @@ async function loadTwinContext(session: {
     getOrganisationBusinessProfile(session.organisationId),
   ]);
 
-  if (!metrics) {
-    return { enabledAppIds, twinSnapshot: null, profile };
-  }
+  if (!metrics) return { enabledAppIds, twinSnapshot: null, profile };
 
   const { snapshot } = buildLiveTwinWithScores({
     organisationId: session.organisationId,
@@ -70,25 +92,15 @@ async function loadTwinContext(session: {
 
 async function resolveCrmEntity(
   organisationId: string,
-  body: {
-    leadId?: string;
-    opportunityId?: string;
-    contactId?: string;
-  },
+  body: { leadId?: string; opportunityId?: string; contactId?: string },
 ): Promise<CrmAssistEntity | null> {
   if (body.opportunityId) {
     const opportunity = await getOpportunity(organisationId, body.opportunityId);
     if (!opportunity) return null;
     const [contact, lead, leadActivities] = await Promise.all([
-      opportunity.contactId
-        ? getContact(organisationId, opportunity.contactId)
-        : Promise.resolve(null),
-      opportunity.leadId
-        ? getLead(organisationId, opportunity.leadId)
-        : Promise.resolve(null),
-      opportunity.leadId
-        ? listLeadActivities(organisationId, opportunity.leadId)
-        : Promise.resolve([]),
+      opportunity.contactId ? getContact(organisationId, opportunity.contactId) : Promise.resolve(null),
+      opportunity.leadId ? getLead(organisationId, opportunity.leadId) : Promise.resolve(null),
+      opportunity.leadId ? listLeadActivities(organisationId, opportunity.leadId) : Promise.resolve([]),
     ]);
     return {
       kind: "opportunity",
@@ -113,15 +125,11 @@ async function resolveCrmEntity(
     const lead = await getLead(organisationId, body.leadId);
     if (!lead) return null;
     const [contact, activities] = await Promise.all([
-      lead.contactId
-        ? getContact(organisationId, lead.contactId)
-        : Promise.resolve(null),
+      lead.contactId ? getContact(organisationId, lead.contactId) : Promise.resolve(null),
       listLeadActivities(organisationId, lead.id),
     ]);
     const contactName =
-      (contact
-        ? [contact.firstName, contact.lastName].filter(Boolean).join(" ")
-        : null) ||
+      (contact ? [contact.firstName, contact.lastName].filter(Boolean).join(" ") : null) ||
       (lead.metadata?.contact_name as string | undefined) ||
       (lead.metadata?.wp_name as string | undefined) ||
       null;
@@ -135,10 +143,8 @@ async function resolveCrmEntity(
       description: lead.description,
       propertyAddress: lead.propertyAddress,
       contactName,
-      contactEmail:
-        contact?.email ?? (lead.metadata?.email as string | undefined) ?? null,
-      contactPhone:
-        contact?.phone ?? (lead.metadata?.phone as string | undefined) ?? null,
+      contactEmail: contact?.email ?? (lead.metadata?.email as string | undefined) ?? null,
+      contactPhone: contact?.phone ?? (lead.metadata?.phone as string | undefined) ?? null,
       notes: (activities ?? []).slice(0, 5).map((a) => a.title),
     };
   }
@@ -167,7 +173,6 @@ export async function GET(req: Request) {
   if (isNextResponse(session)) return session;
 
   const { enabledAppIds, twinSnapshot, profile } = await loadTwinContext(session);
-
   const context = await getBusinessContext({
     organisationId: session.organisationId,
     organisationName: session.organisationName,
@@ -228,39 +233,49 @@ export async function POST(req: Request) {
     );
   }
 
-  const crmActions: AiGenerateAction[] = [
-    "lead_follow_up",
-    "lead_summary",
-    "opportunity_follow_up",
-    "opportunity_summary",
-    "contact_follow_up",
-    "contact_summary",
-  ];
-  if (
-    crmActions.includes(action) &&
-    !body.leadId &&
-    !body.opportunityId &&
-    !body.contactId
-  ) {
-    return NextResponse.json(
-      {
-        error: {
-          code: "missing_entity",
-          message: "leadId, opportunityId, or contactId required for CRM assist",
+  if (CRM_ACTIONS.includes(action)) {
+    if (!body.leadId && !body.opportunityId && !body.contactId) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "missing_entity",
+            message: "leadId, opportunityId, or contactId required for CRM assist",
+          },
         },
-      },
-      { status: 422 },
-    );
+        { status: 422 },
+      );
+    }
+
+    for (const feature of crmAssistRequiredFeatures(action)) {
+      const denied = requireFeature(session, feature);
+      if (denied) return denied;
+    }
+
+    // Prevent a caller from selecting an action with one permission set while supplying
+    // a different CRM entity type. The resolver prioritises IDs, so reject mismatches.
+    const actionEntity = action.startsWith("opportunity_")
+      ? "opportunity"
+      : action.startsWith("lead_")
+        ? "lead"
+        : "contact";
+    const suppliedEntity = body.opportunityId
+      ? "opportunity"
+      : body.leadId
+        ? "lead"
+        : body.contactId
+          ? "contact"
+          : null;
+    if (suppliedEntity !== actionEntity) {
+      return NextResponse.json(
+        { error: { code: "invalid_entity", message: `A ${actionEntity} id is required for this action` } },
+        { status: 422 },
+      );
+    }
   }
 
   if (action === "listing_description" && !body.propertyId) {
     return NextResponse.json(
-      {
-        error: {
-          code: "missing_entity",
-          message: "propertyId required for listing description assist",
-        },
-      },
+      { error: { code: "missing_entity", message: "propertyId required for listing description assist" } },
       { status: 422 },
     );
   }
@@ -282,7 +297,7 @@ export async function POST(req: Request) {
     entity = buildListingDescriptionAssistEntity(property, body.listingDraft).entity;
   }
 
-  if (crmActions.includes(action) && !entity) {
+  if (CRM_ACTIONS.includes(action) && !entity) {
     return NextResponse.json(
       { error: { code: "not_found", message: "CRM entity not found" } },
       { status: 404 },
@@ -297,11 +312,7 @@ export async function POST(req: Request) {
     profileOverride: profile,
   });
 
-  const result = await generateAiAssist({
-    context,
-    action,
-    entity,
-  });
+  const result = await generateAiAssist({ context, action, entity });
 
   return NextResponse.json({
     data: {
