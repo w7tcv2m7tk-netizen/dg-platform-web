@@ -88,9 +88,11 @@ export default async function DashboardPage() {
         <h1 className="mt-1 text-2xl font-bold text-white">
           {foundingCustomerMode
             ? "Here's what matters"
-            : `Welcome back to ${overview.organisationName}`}
+            : platformSession
+              ? `Welcome back to ${overview.organisationName}`
+              : "Welcome to DigitalGate"}
         </h1>
-        {!foundingCustomerMode ? (
+        {platformSession && !foundingCustomerMode ? (
           <div className="mt-3 flex flex-wrap items-center justify-center gap-4 md:justify-start">
             <div className="flex flex-wrap items-baseline justify-center gap-2 md:justify-start">
               <span className="text-sm text-slate-400">Business Health:</span>
@@ -120,31 +122,43 @@ export default async function DashboardPage() {
               Business Brain →
             </Link>
           </div>
-        ) : (
+        ) : foundingCustomerMode ? (
           <p className="mt-2 text-sm text-slate-400">
             {overview.organisationName} · Updated {overview.lastUpdatedLabel}
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-slate-400">
+            Sign in to open your live Business Overview.
           </p>
         )}
       </header>
       <main className="dg-page-main">
         {!platformSession ? (
-          <div className="dg-card mb-6 border-amber-500/30">
-            <p className="text-amber-300">
-              Sign in to load your workspace overview.
+          <div className="dg-card mb-6 border-sky-500/30">
+            <h2 className="font-semibold text-white">Your business workspace is ready when you are</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Sign in to load your organisation&apos;s Business Health, priorities, goals, activity and AI recommendations.
             </p>
+            <Link
+              href="/login"
+              className="mt-4 inline-block rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+            >
+              Sign in →
+            </Link>
           </div>
-        ) : null}
-        {platformSession ? (
-          <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />
-        ) : null}
-        {foundingCustomerMode ? (
-          <FoundingOperatorHome
-            overview={overview}
-            enabledAppIds={enabledAppIds}
-            openOpportunityCount={liveMetrics?.openOpportunityCount ?? 0}
-          />
         ) : (
-          <BusinessOverviewDashboard overview={overview} />
+          <>
+            <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />
+            {foundingCustomerMode ? (
+              <FoundingOperatorHome
+                overview={overview}
+                enabledAppIds={enabledAppIds}
+                openOpportunityCount={liveMetrics?.openOpportunityCount ?? 0}
+              />
+            ) : (
+              <BusinessOverviewDashboard overview={overview} />
+            )}
+          </>
         )}
       </main>
     </>
