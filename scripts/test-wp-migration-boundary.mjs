@@ -39,6 +39,11 @@ const unitMigration = fs.readFileSync(
   "packages/platform-core/src/accommodation/wordpress-migration.ts",
   "utf8",
 );
+const dgApi = fs.readFileSync("src/lib/dg-api.ts", "utf8");
+const websitesHealthApi = fs.readFileSync(
+  "src/app/api/v1/websites/health/route.ts",
+  "utf8",
+);
 const platformPageContext = fs.readFileSync("src/lib/platform-page-context.ts", "utf8");
 const platformShellLoader = fs.readFileSync("src/components/PlatformShellLoader.tsx", "utf8");
 const nativePortalProfile = fs.readFileSync("src/lib/native-portal-profile.ts", "utf8");
@@ -156,6 +161,32 @@ test("native booking edits fail closed on unit reassignment until atomic move ex
   assert.match(
     route,
     /\(!existing\s*\|\|\s*patch\.accommodation_id\s*!==\s*existing\.accommodationWpId\)/,
+  );
+});
+
+test("fetchPortalMe fails closed instead of reading WordPress /portal/me", () => {
+  const fn = dgApi.slice(dgApi.indexOf("export async function fetchPortalMe"));
+  const nextExport = fn.indexOf("\nexport ", 10);
+  const body = nextExport >= 0 ? fn.slice(0, nextExport) : fn;
+  assert.match(body, /resolvePortalProfileFromNeon/);
+  assert.doesNotMatch(body, /getApiBase\(\)/);
+  assert.doesNotMatch(body, /fetch\s*\(/);
+});
+
+test("platform health ping does not round-trip to a leftover WordPress hub", () => {
+  const fn = dgApi.slice(dgApi.indexOf("export async function pingApi"));
+  const nextExport = fn.indexOf("\nexport ", 10);
+  const body = nextExport >= 0 ? fn.slice(0, nextExport) : fn;
+  assert.doesNotMatch(body, /\/onboarding/);
+  assert.doesNotMatch(body, /fetch\s*\(/);
+});
+
+test("WordPress site health API requires an explicit diagnostic view and org connector", () => {
+  assert.match(websitesHealthApi, /searchParams\.get\("view"\) !== "wordpress"/);
+  assert.match(websitesHealthApi, /organisationHasWordPressConnector/);
+  assert.ok(
+    websitesHealthApi.indexOf("organisationHasWordPressConnector") <
+      websitesHealthApi.indexOf("fetchWpSiteHealth"),
   );
 });
 
