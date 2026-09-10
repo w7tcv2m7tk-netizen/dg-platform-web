@@ -2,7 +2,11 @@ import Link from "next/link";
 import { isOrgAdminRole, listKnowledgeInbox } from "@dg/platform-core";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
-import { approveKnowledgeAction, rejectKnowledgeAction } from "./actions";
+import {
+  approveKnowledgeAction,
+  proposeKnowledgeAction,
+  rejectKnowledgeAction,
+} from "./actions";
 
 function label(value: string) {
   return value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
@@ -32,12 +36,16 @@ export default async function BusinessBrainKnowledgePage() {
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Knowledge Inbox</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          DigitalGate has identified things your business may want to remember. Review them before
-          they become approved organisational knowledge used by Business Brain and Advisor.
+          Add what DigitalGate should understand about your business, and review knowledge discovered
+          from authorised sources before it becomes approved organisational truth used by Business Brain
+          and Advisor.
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
           <Link href="/dashboard/brain" className="text-sky-400 hover:underline">
             ← Business Brain
+          </Link>
+          <Link href="/apps/documents/library" className="text-sky-400 hover:underline">
+            Upload business documents →
           </Link>
           <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
             AI Advisor →
@@ -52,6 +60,82 @@ export default async function BusinessBrainKnowledgePage() {
           </div>
         ) : (
           <>
+            {canGovern ? (
+              <section className="dg-card border-sky-500/20">
+                <p className="text-xs font-medium uppercase tracking-widest text-sky-400/90">
+                  Teach Business Brain
+                </p>
+                <h2 className="mt-2 text-lg font-semibold text-white">Add organisational knowledge</h2>
+                <p className="mt-1 max-w-3xl text-sm text-slate-400">
+                  Add a fact, decision, strategy, policy, process or principle that DigitalGate should
+                  remember. New entries join the inbox as proposed knowledge so they still pass through
+                  the same approval boundary before Advisor can use them.
+                </p>
+                <form action={proposeKnowledgeAction} className="mt-5 grid gap-4 lg:grid-cols-2">
+                  <label className="block text-sm lg:col-span-2">
+                    <span className="text-slate-300">Title</span>
+                    <input
+                      name="title"
+                      required
+                      maxLength={160}
+                      placeholder="e.g. Customer response standard"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-white outline-none placeholder:text-slate-600 focus:border-sky-500"
+                    />
+                  </label>
+                  <label className="block text-sm">
+                    <span className="text-slate-300">Knowledge type</span>
+                    <select
+                      name="type"
+                      defaultValue="fact"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-white"
+                    >
+                      <option value="fact">Fact</option>
+                      <option value="decision">Decision</option>
+                      <option value="strategy">Strategy</option>
+                      <option value="policy">Policy</option>
+                      <option value="process">Process</option>
+                      <option value="principle">Principle</option>
+                    </select>
+                  </label>
+                  <label className="block text-sm">
+                    <span className="text-slate-300">Importance</span>
+                    <select
+                      name="importance"
+                      defaultValue="medium"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-white"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </label>
+                  <label className="block text-sm lg:col-span-2">
+                    <span className="text-slate-300">What should DigitalGate remember?</span>
+                    <textarea
+                      name="statement"
+                      required
+                      maxLength={5000}
+                      rows={5}
+                      placeholder="Write the current organisational truth clearly enough for Advisor and other approved AI capabilities to reason from it."
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-white outline-none placeholder:text-slate-600 focus:border-sky-500"
+                    />
+                  </label>
+                  <div className="flex flex-wrap items-center gap-3 lg:col-span-2">
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-sky-400"
+                    >
+                      Add to Knowledge Inbox
+                    </button>
+                    <Link href="/apps/documents/library" className="text-sm text-sky-400 hover:underline">
+                      Or upload a business document →
+                    </Link>
+                  </div>
+                </form>
+              </section>
+            ) : null}
+
             <section className="grid gap-3 sm:grid-cols-3">
               <div className="dg-card">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Waiting for review</p>
@@ -66,7 +150,7 @@ export default async function BusinessBrainKnowledgePage() {
               <div className="dg-card">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Your role</p>
                 <p className="mt-2 text-lg font-semibold text-white">
-                  {canGovern ? "Can approve knowledge" : "Review only"}
+                  {canGovern ? "Can manage knowledge" : "Review only"}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
                   Approval is limited to organisation owners and admins.
@@ -79,17 +163,17 @@ export default async function BusinessBrainKnowledgePage() {
                 <h2 className="text-base font-semibold text-white">Inbox clear</h2>
                 <p className="mt-2 text-sm text-slate-400">
                   There is no proposed knowledge waiting for review. Approved knowledge remains available
-                  to Business Brain; new authorised sources can add fresh candidates later.
+                  to Business Brain; add organisational knowledge above or bring in new authorised sources
+                  when the business changes.
                 </p>
               </section>
             ) : (
               <section className="space-y-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Review what DigitalGate found</h2>
+                  <h2 className="text-lg font-semibold text-white">Review proposed knowledge</h2>
                   <p className="mt-1 text-sm text-slate-400">
                     Approve only what should become current organisational truth. Reject outdated, incorrect
-                    or overly specific history. We can add merge and supersession assistance as the review
-                    workflow matures.
+                    or overly specific history. Proposed knowledge is excluded from Advisor until approved.
                   </p>
                 </div>
 
