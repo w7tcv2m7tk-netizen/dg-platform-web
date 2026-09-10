@@ -14,48 +14,49 @@ function loadEvaluate() {
 }
 
 describe("feature tail authority mapping", () => {
-  it("maps communications email send to create authority", async () => {
+  it("maps communications email send to organisation-scoped create authority", async () => {
     const { featureIdToPermissionCheck } = await loadEvaluate();
     assert.deepEqual(featureIdToPermissionCheck("communications.email.send"), {
       module: "communications",
       action: "create",
-      scope: "assigned",
+      scope: "organisation",
       subModule: "email",
     });
   });
 
-  it("maps CRM contact import to create authority", async () => {
+  it("maps CRM contact import to organisation-scoped create authority", async () => {
     const { featureIdToPermissionCheck } = await loadEvaluate();
     assert.deepEqual(featureIdToPermissionCheck("crm.contacts.import"), {
       module: "crm",
       action: "create",
-      scope: "assigned",
+      scope: "organisation",
       subModule: "contacts",
     });
   });
 
-  it("maps communications agent configure to manage authority", async () => {
+  it("maps communications agent configure to organisation-scoped manage authority", async () => {
     const { featureIdToPermissionCheck } = await loadEvaluate();
     assert.deepEqual(featureIdToPermissionCheck("comms.agents.configure"), {
       module: "communications",
       action: "manage",
-      scope: "assigned",
+      scope: "organisation",
       subModule: "agents",
     });
   });
 
-  it("does not let organisation-view-only member grants satisfy mutating tails", async () => {
+  it("denies default Members while retaining Admin authority", async () => {
     const { buildAccessContext, featureIdToPermissionCheck, hasPermission } =
       await loadEvaluate();
 
-    const ctx = buildAccessContext({
+    const member = buildAccessContext({
       role: "member",
       organisationId: "org_test",
       enabledAppIds: [],
-      grants: [
-        { module: "communications", action: "view", scope: "organisation" },
-        { module: "crm", action: "view", scope: "organisation" },
-      ],
+    });
+    const admin = buildAccessContext({
+      role: "admin",
+      organisationId: "org_test",
+      enabledAppIds: [],
     });
 
     for (const featureId of [
@@ -65,7 +66,8 @@ describe("feature tail authority mapping", () => {
     ]) {
       const check = featureIdToPermissionCheck(featureId);
       assert.ok(check);
-      assert.equal(hasPermission(ctx, check), false, featureId);
+      assert.equal(hasPermission(member, check), false, `member: ${featureId}`);
+      assert.equal(hasPermission(admin, check), true, `admin: ${featureId}`);
     }
   });
 });
