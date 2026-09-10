@@ -1,16 +1,17 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
 import {
   getActiveServiceTemplate,
   listContacts,
   listOrganisationMembers,
   listServiceJobs,
+  sessionHasFeature,
 } from "@dg/platform-core";
 
 import { CreateServiceJobForm } from "@/components/services/CreateServiceJobForm";
 import { JobsListFilters } from "@/components/services/JobsListFilters";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import {
   formatDateTime,
   SERVICES_DEFAULT_TZ,
@@ -38,28 +39,11 @@ interface PageProps {
 
 export default async function ServicesJobsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
+  const session = await getAuthorisedPlatformPageSession("services.jobs.read");
+  if (!session) notFound();
 
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-      })
-    : null;
-
-  if (!session) {
-    return (
-      <main className="dg-page-main">
-        <p className="text-slate-400">Sign in required.</p>
-      </main>
-    );
-  }
+  const canWriteJobs = sessionHasFeature(session, "services.jobs.write");
+  const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
 
   const filters = {
     q: params.q?.trim() ?? "",
@@ -102,8 +86,12 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
       scheduledTo,
       sort: scheduledFrom || scheduledTo ? "scheduled" : "updated",
     }),
-    listContacts({ organisationId: session.organisationId, limit: 100 }),
-    listOrganisationMembers(session.organisationId),
+    canWriteJobs && canReadContacts
+      ? listContacts({ organisationId: session.organisationId, limit: 100 })
+      : Promise.resolve({ items: [] }),
+    canWriteJobs
+      ? listOrganisationMembers(session.organisationId)
+      : Promise.resolve([]),
   ]);
 
   const assigneeByClerkId = new Map(
@@ -129,6 +117,7 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
         <p className="text-sm text-slate-400">
           {meta.total} result{meta.total === 1 ? "" : "s"} · {template.label} workflow
         </p>
+        {canWriteJobs ? (
         <CreateServiceJobForm
           jobTypes={template.jobTypes}
           stages={template.workflow}
@@ -141,6 +130,7 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
           templateKey={template.key}
           jobLabel={template.terminology.job}
         />
+        ) : null}
       </div>
       <JobsListFilters
           filters={filters}
@@ -191,11 +181,13 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
                         : " · Unassigned"}
                     </p>
                   </div>
+                  {canWriteJobs ? (
                   <UpdateJobStageForm
                     jobId={job.id}
                     currentStage={job.stage}
                     stages={template.workflow}
                   />
+                  ) : null}
                 </li>
               ))}
             </ul>

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   getContactsByIds,
-  getOrganisationById,
   listCompanies,
   listOpportunities,
   listTasks,
@@ -10,8 +9,19 @@ import {
 
 import { CreateTaskForm } from "@/components/crm/CreateTaskForm";
 import { TasksList, type TaskListItem } from "@/components/crm/TasksList";
-import { dateKeyInTimeZone, safeTimeZone } from "@/lib/organisation-timezone";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+
+function endOfToday() {
+  const value = new Date();
+  value.setHours(23, 59, 59, 999);
+  return value.getTime();
+}
+
+function startOfToday() {
+  const value = new Date();
+  value.setHours(0, 0, 0, 0);
+  return value.getTime();
+}
 
 function chunks<T>(values: T[], size: number): T[][] {
   const result: T[][] = [];
@@ -212,8 +222,7 @@ export default async function CrmTasksPage() {
   }
 
   const canWrite = sessionHasFeature(session, "crm.tasks.write");
-  const [organisation, openResult, completedResult] = await Promise.all([
-    getOrganisationById(session.organisationId),
+  const [openResult, completedResult] = await Promise.all([
     listTasks({
       organisationId: session.organisationId,
       status: "open",
@@ -225,7 +234,6 @@ export default async function CrmTasksPage() {
       limit: 50,
     }),
   ]);
-  const displayTimeZone = safeTimeZone(organisation?.timezone);
 
   const [openTasks, completedTasks] = await Promise.all([
     hydrateTaskRelations(openResult.items as TaskListItem[], session),
@@ -233,16 +241,15 @@ export default async function CrmTasksPage() {
   ]);
 
   const now = Date.now();
-  const todayKey = dateKeyInTimeZone(new Date(), displayTimeZone);
+  const todayStart = startOfToday();
+  const todayEnd = endOfToday();
   const overdue = openTasks.filter((task) => task.dueAt && new Date(task.dueAt).getTime() < now);
   const today = openTasks.filter((task) => {
     if (!task.dueAt) return false;
-    return dateKeyInTimeZone(task.dueAt, displayTimeZone) === todayKey && new Date(task.dueAt).getTime() >= now;
+    const due = new Date(task.dueAt).getTime();
+    return due >= todayStart && due <= todayEnd && due >= now;
   });
-  const upcoming = openTasks.filter((task) => {
-    if (!task.dueAt) return false;
-    return dateKeyInTimeZone(task.dueAt, displayTimeZone) > todayKey;
-  });
+  const upcoming = openTasks.filter((task) => task.dueAt && new Date(task.dueAt).getTime() > todayEnd);
   const unscheduled = openTasks.filter((task) => !task.dueAt);
 
   return (
@@ -256,7 +263,6 @@ export default async function CrmTasksPage() {
           {session.organisationName} · {openResult.meta.total} open ·{" "}
           {completedResult.meta.total} completed
         </p>
-        <p className="mt-1 text-xs text-slate-500">Times shown in {displayTimeZone}.</p>
       </header>
       <main className="dg-page-main space-y-8">
         {canWrite ? (
@@ -277,7 +283,7 @@ export default async function CrmTasksPage() {
               <h2 className="font-semibold text-white">Overdue</h2>
               <span className="text-sm text-amber-400">{overdue.length}</span>
             </div>
-            <TasksList tasks={overdue} timeZone={displayTimeZone} canWrite={canWrite} emptyLabel="Nothing overdue." />
+            <TasksList tasks={overdue} canWrite={canWrite} emptyLabel="Nothing overdue." />
           </div>
 
           <div className="dg-card">
@@ -285,7 +291,7 @@ export default async function CrmTasksPage() {
               <h2 className="font-semibold text-white">Today</h2>
               <span className="text-sm text-slate-400">{today.length}</span>
             </div>
-            <TasksList tasks={today} timeZone={displayTimeZone} canWrite={canWrite} emptyLabel="Nothing else due today." />
+            <TasksList tasks={today} canWrite={canWrite} emptyLabel="Nothing else due today." />
           </div>
 
           <div className="dg-card">
@@ -293,7 +299,7 @@ export default async function CrmTasksPage() {
               <h2 className="font-semibold text-white">Upcoming</h2>
               <span className="text-sm text-slate-400">{upcoming.length}</span>
             </div>
-            <TasksList tasks={upcoming} timeZone={displayTimeZone} canWrite={canWrite} emptyLabel="No upcoming tasks." />
+            <TasksList tasks={upcoming} canWrite={canWrite} emptyLabel="No upcoming tasks." />
           </div>
 
           <div className="dg-card">
@@ -303,7 +309,6 @@ export default async function CrmTasksPage() {
             </div>
             <TasksList
               tasks={unscheduled}
-              timeZone={displayTimeZone}
               canWrite={canWrite}
               emptyLabel="Every open task has a due date."
             />
@@ -315,7 +320,7 @@ export default async function CrmTasksPage() {
             <h2 className="font-semibold text-white">Completed</h2>
             <span className="text-sm text-slate-400">{completedTasks.length}</span>
           </div>
-          <TasksList tasks={completedTasks} timeZone={displayTimeZone} canWrite={canWrite} emptyLabel="No completed tasks yet." />
+          <TasksList tasks={completedTasks} canWrite={canWrite} emptyLabel="No completed tasks yet." />
         </section>
       </main>
     </>

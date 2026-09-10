@@ -43,9 +43,11 @@ function readPhotos(metadata: Record<string, unknown> | null): PhotoItem[] {
 export function JobChecklistPhotosPanel({
   jobId,
   metadata,
+  canWrite = false,
 }: {
   jobId: string;
   metadata: Record<string, unknown> | null;
+  canWrite?: boolean;
 }) {
   const router = useRouter();
   const initialChecklist = useMemo(() => readChecklist(metadata), [metadata]);
@@ -139,8 +141,11 @@ export function JobChecklistPhotosPanel({
                 <input
                   type="checkbox"
                   checked={item.done}
-                  disabled={pending}
-                  onChange={() => void toggleItem(item.id)}
+                  disabled={!canWrite || pending}
+                  onChange={() => {
+                    if (!canWrite) return;
+                    void toggleItem(item.id);
+                  }}
                   className="mt-1"
                 />
                 <span
@@ -152,6 +157,7 @@ export function JobChecklistPhotosPanel({
             ))}
           </ul>
         )}
+        {canWrite ? (
         <form onSubmit={addItem} className="mt-3 flex flex-wrap gap-2">
           <input
             value={newLabel}
@@ -167,6 +173,7 @@ export function JobChecklistPhotosPanel({
             Add
           </button>
         </form>
+        ) : null}
       </div>
 
       <div>
@@ -193,6 +200,7 @@ export function JobChecklistPhotosPanel({
                   <p className="truncate text-xs text-slate-400">
                     {photo.caption || photo.url}
                   </p>
+                  {canWrite ? (
                   <button
                     type="button"
                     disabled={pending}
@@ -201,11 +209,13 @@ export function JobChecklistPhotosPanel({
                   >
                     Remove
                   </button>
+                  ) : null}
                 </div>
               </li>
             ))}
           </ul>
         )}
+        {canWrite ? (
         <form onSubmit={addPhoto} className="mt-3 space-y-2">
           <input
             value={photoUrl}
@@ -229,6 +239,7 @@ export function JobChecklistPhotosPanel({
             </button>
           </div>
         </form>
+        ) : null}
       </div>
 
       {error ? <p className="text-sm text-red-400">{error}</p> : null}

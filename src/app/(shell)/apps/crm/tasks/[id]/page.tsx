@@ -3,7 +3,6 @@ import {
   getCompany,
   getContact,
   getOpportunity,
-  getOrganisationById,
   getTask,
   listOrganisationMembers,
   sessionHasFeature,
@@ -11,8 +10,11 @@ import {
 import { notFound } from "next/navigation";
 
 import { EditTaskForm } from "@/components/crm/EditTaskForm";
-import { formatDateTimeInTimeZone, safeTimeZone } from "@/lib/organisation-timezone";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+
+function formatDate(value: string | null) {
+  return value ? new Date(value).toLocaleString("en-AU") : "—";
+}
 
 function contactLabel(contact: {
   firstName?: string | null;
@@ -33,12 +35,8 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   const session = await getAuthorisedPlatformPageSession("crm.tasks.read");
   if (!session) notFound();
 
-  const [task, organisation] = await Promise.all([
-    getTask(session.organisationId, id),
-    getOrganisationById(session.organisationId),
-  ]);
+  const task = await getTask(session.organisationId, id);
   if (!task) notFound();
-  const displayTimeZone = safeTimeZone(organisation?.timezone);
 
   const canWrite = sessionHasFeature(session, "crm.tasks.write");
   const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
@@ -117,7 +115,6 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
             <p className="mt-1 text-sm text-slate-400">
               {task.status} · {task.priority || "normal priority"}
             </p>
-            <p className="mt-1 text-xs text-slate-500">Times shown in {displayTimeZone}.</p>
           </div>
           {relatedHref && relatedActionLabel ? (
             <Link href={relatedHref} className="dg-btn dg-btn-secondary">
@@ -131,19 +128,19 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="dg-card">
             <p className="text-xs uppercase tracking-wide text-slate-500">Due</p>
-            <p className="mt-2 text-sm text-white">{formatDateTimeInTimeZone(task.dueAt, displayTimeZone)}</p>
+            <p className="mt-2 text-sm text-white">{formatDate(task.dueAt)}</p>
           </div>
           <div className="dg-card">
             <p className="text-xs uppercase tracking-wide text-slate-500">Created</p>
-            <p className="mt-2 text-sm text-white">{formatDateTimeInTimeZone(task.createdAt, displayTimeZone)}</p>
+            <p className="mt-2 text-sm text-white">{formatDate(task.createdAt)}</p>
           </div>
           <div className="dg-card">
             <p className="text-xs uppercase tracking-wide text-slate-500">Updated</p>
-            <p className="mt-2 text-sm text-white">{formatDateTimeInTimeZone(task.updatedAt, displayTimeZone)}</p>
+            <p className="mt-2 text-sm text-white">{formatDate(task.updatedAt)}</p>
           </div>
           <div className="dg-card">
             <p className="text-xs uppercase tracking-wide text-slate-500">Completed</p>
-            <p className="mt-2 text-sm text-white">{formatDateTimeInTimeZone(task.completedAt, displayTimeZone)}</p>
+            <p className="mt-2 text-sm text-white">{formatDate(task.completedAt)}</p>
           </div>
         </section>
 
