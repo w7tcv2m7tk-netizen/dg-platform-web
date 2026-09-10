@@ -70,6 +70,25 @@ function unpaidPaidApps(
   return appIds.filter((appId) => !paidAppActivationAllowed(appId, settings, staffOrOperator));
 }
 
+function requireAppSettingsManage(
+  session: Parameters<typeof requirePermission>[0],
+): ReturnType<typeof requirePermission> {
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (
+    denied &&
+    session.role !== "owner" &&
+    session.role !== "admin" &&
+    session.role !== "dg:staff"
+  ) {
+    return denied;
+  }
+  return null;
+}
+
 export async function GET() {
   const session = await requirePlatformSession();
   if (isNextResponse(session)) return session;
@@ -160,13 +179,8 @@ export async function PATCH(req: Request) {
   }
 
   if (body.action === "apply_plan" && body.plan) {
-    const denied = requirePermission(session, {
-      module: "settings",
-      action: "manage",
-      scope: "organisation",
-    });
-    if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff")
-      return denied;
+    const denied = requireAppSettingsManage(session);
+    if (denied) return denied;
     const requested = appIdsFromPlanSelection(body.plan);
     const unpaid = unpaidPaidApps(requested, settings, staffOrOperator);
     if (unpaid.length) {
@@ -182,13 +196,8 @@ export async function PATCH(req: Request) {
     }
     enabled = requested;
   } else if (body.action === "toggle" && typeof body.appId === "string") {
-    const denied = requirePermission(session, {
-      module: "settings",
-      action: "manage",
-      scope: "organisation",
-    });
-    if (denied && session.role !== "owner" && session.role !== "admin" && session.role !== "dg:staff")
-      return denied;
+    const denied = requireAppSettingsManage(session);
+    if (denied) return denied;
     const set = new Set(enabled);
     const turningOn = body.enabled === true || (body.enabled !== false && !set.has(body.appId));
     if (turningOn && !paidAppActivationAllowed(body.appId, settings, staffOrOperator)) {
@@ -208,6 +217,8 @@ export async function PATCH(req: Request) {
     else set.add(body.appId);
     enabled = [...set];
   } else if (body.action === "set" && Array.isArray(body.enabled)) {
+    const denied = requireAppSettingsManage(session);
+    if (denied) return denied;
     const requested = body.enabled.filter((id: unknown) => typeof id === "string") as string[];
     const unpaid = unpaidPaidApps(requested, settings, staffOrOperator);
     if (unpaid.length) {
@@ -223,6 +234,8 @@ export async function PATCH(req: Request) {
     }
     enabled = requested;
   } else if (body.action === "reset") {
+    const denied = requireAppSettingsManage(session);
+    if (denied) return denied;
     enabled = getDefaultEnabledAppIds();
   } else {
     return NextResponse.json(
