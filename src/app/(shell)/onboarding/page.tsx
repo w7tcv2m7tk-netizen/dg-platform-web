@@ -50,23 +50,6 @@ export default async function OnboardingPage({
     ? await getGen2OnboardingProgress(session.organisationId)
     : null;
 
-  const requestedCheckoutSuccess = params.checkout === "success";
-  const billing =
-    session && requestedCheckoutSuccess
-      ? await getOrganisationBillingStatus(session.organisationId)
-      : null;
-  const checkoutConfirmed = Boolean(
-    billing &&
-      billing.hasStripeCustomer &&
-      VERIFIED_CHECKOUT_KINDS.has(billing.kind),
-  );
-  const checkoutPending = Boolean(session && requestedCheckoutSuccess && !checkoutConfirmed);
-  const checkoutStatus = checkoutConfirmed
-    ? ("success" as const)
-    : params.checkout === "cancelled"
-      ? ("cancelled" as const)
-      : null;
-
   if (!session) {
     const redirectParams = new URLSearchParams();
     if (invite) redirectParams.set("invite", invite);
@@ -92,40 +75,67 @@ export default async function OnboardingPage({
     );
   }
 
-  return (
-    <>
-      {checkoutPending ? (
-        <div className="dg-page-main mx-auto max-w-2xl px-4 pt-4 sm:px-6">
-          <div className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
-            <p className="font-medium">Confirming your subscription…</p>
-            <p className="mt-1 text-sky-200/90">
-              Stripe returned successfully, but DigitalGate is still waiting for the verified billing update. Refresh this page in a moment; onboarding will only advance once the subscription is confirmed.
-            </p>
-            <a href="/onboarding?checkout=success" className="mt-2 inline-block font-medium text-sky-100 underline underline-offset-2">
-              Refresh confirmation
-            </a>
-          </div>
+  const requestedCheckoutSuccess = params.checkout === "success";
+  const billing = requestedCheckoutSuccess
+    ? await getOrganisationBillingStatus(session.organisationId).catch(() => null)
+    : null;
+  const checkoutConfirmed = Boolean(
+    billing &&
+      billing.hasStripeCustomer &&
+      VERIFIED_CHECKOUT_KINDS.has(billing.kind),
+  );
+  const checkoutPending = requestedCheckoutSuccess && !checkoutConfirmed;
+  const checkoutStatus = checkoutConfirmed
+    ? ("success" as const)
+    : params.checkout === "cancelled"
+      ? ("cancelled" as const)
+      : null;
+
+  if (checkoutPending) {
+    return (
+      <main className="dg-page-main mx-auto max-w-lg px-6 py-16">
+        <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">
+            Confirming your subscription
+          </p>
+          <h1 className="mt-2 text-2xl font-bold text-white">Stripe checkout received</h1>
+          <p className="mt-3 text-sm text-slate-300">
+            Your checkout returned successfully. DigitalGate is waiting for Stripe&apos;s verified
+            billing update before activating the next onboarding step.
+          </p>
+          <p className="mt-2 text-sm text-slate-400">
+            Checking again is safe and will not create another subscription.
+          </p>
+          <a
+            href="/onboarding?checkout=success"
+            className="mt-5 inline-block rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
+          >
+            Check confirmation
+          </a>
         </div>
-      ) : null}
-      <Gen2OnboardingWizard
-        initial={{
-          ...(progress ?? {
-            version: 1 as const,
-            currentStep: "welcome" as const,
-            completedSteps: [],
-            startedAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            platformTier: "professional" as const,
-            billingCadence: "monthly" as const,
-            industryApps: [],
-            premiumApps: [],
-            checklist: {},
-          }),
-          founding: founding || progress?.founding,
-        }}
-        founding={founding}
-        checkoutStatus={checkoutStatus}
-      />
-    </>
+      </main>
+    );
+  }
+
+  return (
+    <Gen2OnboardingWizard
+      initial={{
+        ...(progress ?? {
+          version: 1 as const,
+          currentStep: "welcome" as const,
+          completedSteps: [],
+          startedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          platformTier: "professional" as const,
+          billingCadence: "monthly" as const,
+          industryApps: [],
+          premiumApps: [],
+          checklist: {},
+        }),
+        founding: founding || progress?.founding,
+      }}
+      founding={founding}
+      checkoutStatus={checkoutStatus}
+    />
   );
 }
