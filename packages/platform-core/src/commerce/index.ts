@@ -25,6 +25,8 @@ export {
   declineQuote,
   voidInvoice,
   markInvoicePaid,
+  LinkedCommerceRecordNotFoundError,
+  isLinkedCommerceRecordNotFoundError,
 } from "./document-engine";
 export {
   listProducts,
