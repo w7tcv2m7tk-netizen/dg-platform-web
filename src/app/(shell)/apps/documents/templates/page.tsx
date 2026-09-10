@@ -2,7 +2,12 @@ import Link from "next/link";
 
 import { REAL_ESTATE_DOCUMENT_TEMPLATES } from "@dg/platform-core";
 
-export default function DocumentsTemplatesPage() {
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+
+export default async function DocumentsTemplatesPage() {
+  const session = await getAuthorisedPlatformPageSession("documents.read");
+  if (!session) return null;
+
   return (
     <>
       <header className="dg-page-header">
