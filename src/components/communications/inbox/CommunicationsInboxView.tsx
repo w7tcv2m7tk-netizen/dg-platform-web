@@ -4,11 +4,13 @@ import {
   getContact,
   getConversationMessages,
   getOrgGoogleGmailConnectorTokens,
+  getOrgMicrosoft365ConnectorTokens,
   listCommunicationConversations,
   sessionHasFeature,
   type ConversationSummary,
   type InboxFolderId,
 } from "@dg/platform-core";
+import { getOrgAppleIcloudConnectorCredentials } from "@dg/platform-core/connectors/apple-icloud";
 
 import {
   CommunicationsInboxWorkspace,
@@ -67,21 +69,37 @@ export async function loadCommunicationsInbox(searchParams: {
   const q = searchParams.q?.trim() ?? "";
   const selectedKey = searchParams.c?.trim() || null;
 
-  const [allConversations, gmailTokens] = process.env.DATABASE_URL
-    ? await Promise.all([
-        listCommunicationConversations({
-          organisationId: session.organisationId,
-          folder: "all",
-          q: q || undefined,
-          limit: 150,
-        }),
-        getOrgGoogleGmailConnectorTokens(session.organisationId),
-      ])
-    : [[], null];
+  const [allConversations, gmailTokens, microsoftTokens, icloudCredentials] =
+    process.env.DATABASE_URL
+      ? await Promise.all([
+          listCommunicationConversations({
+            organisationId: session.organisationId,
+            folder: "all",
+            q: q || undefined,
+            limit: 150,
+          }),
+          getOrgGoogleGmailConnectorTokens(session.organisationId),
+          getOrgMicrosoft365ConnectorTokens(session.organisationId),
+          getOrgAppleIcloudConnectorCredentials(session.organisationId),
+        ])
+      : [[], null, null, null];
 
-  const mailboxConnected = Boolean(
-    gmailTokens?.accessToken || gmailTokens?.refreshToken,
+  const gmailConnected = Boolean(gmailTokens?.accessToken || gmailTokens?.refreshToken);
+  const microsoftConnected = Boolean(
+    microsoftTokens?.accessToken || microsoftTokens?.refreshToken,
   );
+  const icloudConnected = Boolean(
+    icloudCredentials?.email && icloudCredentials?.appPassword,
+  );
+  const mailboxConnected = gmailConnected || microsoftConnected || icloudConnected;
+  const mailboxLabel = gmailConnected
+    ? (gmailTokens?.label ?? null)
+    : microsoftConnected
+      ? (microsoftTokens?.label ?? null)
+      : icloudConnected
+        ? (icloudCredentials?.label ?? icloudCredentials?.email ?? null)
+        : null;
+
   const folderCounts = buildCounts(allConversations);
   const conversations = allConversations.filter((c) => matchesFolder(c, folder));
 
@@ -128,7 +146,7 @@ export async function loadCommunicationsInbox(searchParams: {
     contact,
     folderCounts,
     mailboxConnected,
-    mailboxLabel: gmailTokens?.label ?? null,
+    mailboxLabel,
   };
 }
 
@@ -192,7 +210,7 @@ export async function CommunicationsInboxView({
           <p className="text-xs text-slate-500">
             Mailbox not connected —{" "}
             <Link href="/apps/communications/mailboxes" className="text-sky-400 hover:underline">
-              connect Google Workspace
+              connect a business mailbox
             </Link>{" "}
             to sync inbound mail. Manual sends still appear here.
           </p>
