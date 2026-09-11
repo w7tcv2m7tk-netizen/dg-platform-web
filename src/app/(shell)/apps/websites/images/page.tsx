@@ -11,6 +11,8 @@ import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 export default async function ImagesLibraryPage() {
   const session = await getAuthorisedPlatformPageSession("websites.read");
   const canEdit = session ? canAccessWebsiteStudio(session, "edit") : false;
+  const showDigitalGateMedia =
+    session?.organisationName.trim().toLowerCase() === "digitalgate";
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
@@ -36,7 +38,10 @@ export default async function ImagesLibraryPage() {
           </div>
         ) : canEdit ? (
           <>
-            <StudioImagesPanel initialUploaded={uploaded} />
+            <StudioImagesPanel
+              initialUploaded={uploaded}
+              showDigitalGateMedia={showDigitalGateMedia}
+            />
             <p className="text-sm text-slate-500">
               Use these images in a site under{" "}
               <Link href="/apps/websites" className="text-slate-300 underline">
