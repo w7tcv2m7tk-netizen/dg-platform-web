@@ -28,7 +28,11 @@ export default async function WebsitesHomePage() {
   const canCreate = session ? canAccessWebsiteStudio(session, "create") : false;
   const canEdit = session ? canAccessWebsiteStudio(session, "edit") : false;
   const canEditBrand = session
-    ? sessionCan(session, "settings", "edit", "organisation")
+    ? sessionCan(session, {
+        module: "settings",
+        action: "edit",
+        scope: "organisation",
+      })
     : false;
 
   const allowed = session
