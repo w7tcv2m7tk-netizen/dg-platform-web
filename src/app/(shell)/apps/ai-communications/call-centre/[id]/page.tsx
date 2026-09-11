@@ -2,16 +2,28 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getCommunicationSession,
+  getOrganisationById,
   listSessionActions,
   listSessionMessages,
   sessionHasFeature,
 } from "@dg/platform-core";
 
+import { safeTimeZone } from "@/lib/organisation-timezone";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
-function formatDate(iso: string | null) {
+function formatDate(iso: string | null, timeZone: string) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  return new Date(iso).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone,
+  });
+}
+
+function actionLabel(entityType: string | null) {
+  if (!entityType) return "DigitalGate action";
+  const label = entityType.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ");
+  return `${label} action`;
 }
 
 export default async function CallDetailPage({
@@ -20,25 +32,16 @@ export default async function CallDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await getAuthorisedPlatformPageSession("comms.call_centre.read");
-  const { id } = await params;
-  if (!session) {
-    return (
-      <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Conversation</h1>
-        </header>
-        <main className="dg-page-main">
-          <div className="dg-card">
-            <p className="text-sm text-slate-400">Sign in to view this conversation.</p>
-          </div>
-        </main>
-      </>
-    );
-  }
+  if (!session) notFound();
 
-  const row = await getCommunicationSession(session.organisationId, id);
+  const { id } = await params;
+  const [row, organisation] = await Promise.all([
+    getCommunicationSession(session.organisationId, id),
+    getOrganisationById(session.organisationId),
+  ]);
   if (!row) notFound();
 
+  const displayTimeZone = safeTimeZone(organisation?.timezone);
   const canHear = sessionHasFeature(session, "comms.voice.recording");
   const canViewContacts = sessionHasFeature(session, "crm.contacts.read");
   const canViewOpportunities = sessionHasFeature(session, "crm.opportunities.read");
@@ -52,18 +55,18 @@ export default async function CallDetailPage({
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Conversation</h1>
         <p className="text-sm text-slate-400">
-          {row.agentName ?? "Agent"} · {row.direction} {row.channel}
+          {row.agentName ?? "Agent"} · {row.direction} {row.channel} · times in {displayTimeZone}
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         <div className="dg-card grid gap-3 text-sm sm:grid-cols-2">
           <p>
             <span className="text-slate-500">When: </span>
-            <span className="text-white">{formatDate(row.startedAt)}</span>
+            <span className="text-white">{formatDate(row.startedAt, displayTimeZone)}</span>
           </p>
           <p>
             <span className="text-slate-500">Status: </span>
-            <span className="text-white">{row.status}</span>
+            <span className="text-white">{row.status.replace(/_/g, " ")}</span>
           </p>
           <p>
             <span className="text-slate-500">Duration: </span>
@@ -216,22 +219,21 @@ export default async function CallDetailPage({
         </div>
 
         <div className="dg-card">
-          <h2 className="font-semibold text-white">AI actions</h2>
+          <h2 className="font-semibold text-white">Business actions</h2>
           {!actions.length ? (
-            <p className="mt-2 text-sm text-slate-500">No DigitalGate tools were invoked.</p>
+            <p className="mt-2 text-sm text-slate-500">No DigitalGate actions were recorded.</p>
           ) : (
             <ul className="mt-3 space-y-2 text-sm">
               {actions.map((action) => (
                 <li key={action.id} className="rounded-lg border border-slate-800 px-3 py-2">
                   <p className="text-white">
-                    {action.status === "ok" ? "✓" : "✗"} {action.tool.replace(/_/g, " ")}
+                    {action.status === "ok" ? "✓" : "!"} {actionLabel(action.entityType ?? null)}
                   </p>
-                  {action.entityType && action.entityId ? (
-                    <p className="text-xs text-slate-500">
-                      {action.entityType} {action.entityId}
+                  {action.status !== "ok" ? (
+                    <p className="text-xs text-rose-400">
+                      This action could not be completed. Review the related record or try again.
                     </p>
                   ) : null}
-                  {action.error ? <p className="text-xs text-rose-400">{action.error}</p> : null}
                 </li>
               ))}
             </ul>
