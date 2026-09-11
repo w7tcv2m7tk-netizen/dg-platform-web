@@ -92,3 +92,23 @@ test("legacy migration health does not expose connector plumbing to customers", 
   assert.doesNotMatch(source, /<dt[^>]*>Code:/);
   assert.match(source, /Check the migration connection and try again/);
 });
+
+test("Studio mutation APIs keep implementation details out of customer feedback", async () => {
+  const paths = [
+    "src/app/api/v1/websites/[id]/route.ts",
+    "src/app/api/v1/websites/[id]/assist/route.ts",
+    "src/app/api/v1/websites/[id]/pages/route.ts",
+    "src/app/api/v1/websites/[id]/pages/[pageId]/route.ts",
+  ];
+  const sources = await Promise.all(
+    paths.map((path) => readFile(new URL(`../${path}`, import.meta.url), "utf8")),
+  );
+  const combined = sources.join("\n");
+  assert.doesNotMatch(combined, /Insufficient permissions for websites\./);
+  assert.doesNotMatch(combined, /Website Builder disabled/);
+  assert.doesNotMatch(combined, /pageId required/);
+  assert.doesNotMatch(combined, /pageIds required/);
+  assert.doesNotMatch(combined, /message:\s*err instanceof Error/);
+  assert.match(sources[0], /generator: \{ source: ["']Aida["'] \}/);
+  assert.match(sources[1], /source: ["']Aida["']/);
+});

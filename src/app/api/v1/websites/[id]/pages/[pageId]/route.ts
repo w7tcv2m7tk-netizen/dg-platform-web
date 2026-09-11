@@ -14,9 +14,16 @@ import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
 type Ctx = { params: Promise<{ id: string; pageId: string }> };
 
-function forbidden(action: string) {
+function forbidden() {
   return NextResponse.json(
-    { error: { code: "forbidden", message: `Insufficient permissions for websites.${action}` } },
+    { error: { code: "forbidden", message: "You do not have permission to change this page." } },
+    { status: 403 },
+  );
+}
+
+function featureDisabled() {
+  return NextResponse.json(
+    { error: { code: "feature_disabled", message: "Design Studio isn't enabled for this business yet." } },
     { status: 403 },
   );
 }
@@ -24,16 +31,11 @@ function forbidden(action: string) {
 export async function DELETE(_req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(_req);
   if (isNextResponse(session)) return session;
-  if (!canAccessWebsiteStudio(session, "delete")) return forbidden("delete");
+  if (!canAccessWebsiteStudio(session, "delete")) return forbidden();
 
   const { id, pageId } = await ctx.params;
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
-  if (!allowed) {
-    return NextResponse.json(
-      { error: { code: "feature_disabled", message: "Website Builder disabled" } },
-      { status: 403 },
-    );
-  }
+  if (!allowed) return featureDisabled();
 
   const result = await deleteWebsitePage({
     organisationId: session.organisationId,
@@ -44,8 +46,12 @@ export async function DELETE(_req: Request, ctx: Ctx) {
 
   if (!result.ok) {
     const status = result.code === "not_found" ? 404 : 400;
+    const message =
+      result.code === "not_found"
+        ? "Page not found."
+        : "This page could not be deleted. Check its current state and try again.";
     return NextResponse.json(
-      { error: { code: result.code, message: result.message } },
+      { error: { code: result.code, message } },
       { status },
     );
   }
@@ -56,16 +62,11 @@ export async function DELETE(_req: Request, ctx: Ctx) {
 export async function PATCH(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  if (!canAccessWebsiteStudio(session, "edit")) return forbidden("edit");
+  if (!canAccessWebsiteStudio(session, "edit")) return forbidden();
 
   const { id, pageId } = await ctx.params;
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
-  if (!allowed) {
-    return NextResponse.json(
-      { error: { code: "feature_disabled", message: "Website Builder disabled" } },
-      { status: 403 },
-    );
-  }
+  if (!allowed) return featureDisabled();
 
   const body = (await req.json().catch(() => null)) as {
     title?: string;
@@ -83,7 +84,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       const props = body.componentPatch.props;
       if (!componentId || !props || typeof props !== "object" || Array.isArray(props)) {
         return NextResponse.json(
-          { error: { code: "validation_error", message: "componentPatch requires componentId and props" } },
+          { error: { code: "validation_error", message: "Choose a valid component and try again." } },
           { status: 400 },
         );
       }
@@ -97,7 +98,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       });
       if (!updated) {
         return NextResponse.json(
-          { error: { code: "not_found", message: "Page or component not found" } },
+          { error: { code: "not_found", message: "Page or component not found." } },
           { status: 404 },
         );
       }
@@ -114,7 +115,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       });
       if (!updated) {
         return NextResponse.json(
-          { error: { code: "not_found", message: "Page not found" } },
+          { error: { code: "not_found", message: "Page not found." } },
           { status: 404 },
         );
       }
@@ -137,7 +138,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       });
       if (!updated) {
         return NextResponse.json(
-          { error: { code: "not_found", message: "Page not found" } },
+          { error: { code: "not_found", message: "Page not found." } },
           { status: 404 },
         );
       }
@@ -164,7 +165,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
         });
         if (!updated) {
           return NextResponse.json(
-            { error: { code: "not_found", message: "Page not found" } },
+            { error: { code: "not_found", message: "Page not found." } },
             { status: 404 },
           );
         }
@@ -186,19 +187,26 @@ export async function PATCH(req: Request, ctx: Ctx) {
 
     if (!updated) {
       return NextResponse.json(
-        { error: { code: "not_found", message: "Page not found" } },
+        { error: { code: "not_found", message: "Page not found." } },
         { status: 404 },
       );
     }
 
     return NextResponse.json({ data: updated });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Update failed";
+    const detail = err instanceof Error ? err.message.toLowerCase() : "";
     const conflict =
-      message.toLowerCase().includes("concurrent") ||
-      message.toLowerCase().includes("changed since this editor loaded");
+      detail.includes("concurrent") ||
+      detail.includes("changed since this editor loaded");
     return NextResponse.json(
-      { error: { code: conflict ? "write_conflict" : "validation_error", message } },
+      {
+        error: {
+          code: conflict ? "write_conflict" : "validation_error",
+          message: conflict
+            ? "This page changed since the editor loaded. Refresh before saving so newer changes are not overwritten."
+            : "This page could not be updated. Review the changes and try again.",
+        },
+      },
       { status: conflict ? 409 : 400 },
     );
   }
