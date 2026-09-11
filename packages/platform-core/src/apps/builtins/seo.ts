@@ -33,7 +33,7 @@ export const aiVisibilityApp: AppManifest = {
   id: "ai-visibility",
   name: "AI Visibility",
   description:
-    "Website readiness for AI answer engines — schema, Open Graph, and technical signals (not live citation monitoring)",
+    "Website readiness for AI answer engines using verified schema, Open Graph and technical website signals",
   tier: "growth",
   version: "1.1.0",
   icon: "✦",
@@ -42,11 +42,9 @@ export const aiVisibilityApp: AppManifest = {
     { href: "/apps/ai-visibility", label: "AI Visibility", icon: "✦" },
   ],
   permissions: [{ id: "ai_vis.view", label: "View AI visibility" }],
-  features: ["ai_vis.score.read", "ai_vis.scan.run", "ai_vis.citations.read"],
+  features: ["ai_vis.score.read", "ai_vis.scan.run"],
   entities: ["Company", "Activity"],
-  automationTriggers: [
-    { id: "ai_vis.citation_found", label: "New AI citation detected" },
-  ],
+  automationTriggers: [],
   automationActions: [
     { id: "ai_vis.run_scan", label: "Run visibility scan" },
   ],
