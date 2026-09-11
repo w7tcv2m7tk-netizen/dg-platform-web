@@ -9,6 +9,8 @@ export async function GET(req: Request) {
 
   const rules = listAutomationRules().map((rule) => ({
     id: rule.id,
+    trigger: rule.trigger,
+    action: rule.action,
     enabled: rule.enabled,
   }));
 
