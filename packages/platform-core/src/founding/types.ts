@@ -1,3 +1,4 @@
+import type { NegotiatedCommercialOffer } from "../billing/commercial-offer";
 import type { FoundingStage } from "./pipeline";
 
 export const FOUNDING_ONBOARDING_STEPS = [
@@ -111,6 +112,8 @@ export type FoundingOnboardingRecord = {
   completedSteps: FoundingOnboardingStep[];
   answers: FoundingOnboardingAnswers;
   agreementSignedAt?: string;
+  /** Immutable commercial terms displayed at the time the Founding Agreement was signed. */
+  commercialOfferSnapshot?: NegotiatedCommercialOffer;
   startedAt?: string;
   submittedAt?: string;
   updatedAt: string;
@@ -204,7 +207,7 @@ export const FOUNDING_PERSONAL_INVITE_BENEFITS = [
   "Direct access to me as the founder",
   "Input into product and roadmap priorities",
   "Preferential Professional Services terms where applicable",
-  "Standard published Platform + Apps pricing (14-day trial; annual ≈ 10 months)",
+  "Standard published Platform + Apps pricing unless a written negotiated offer is attached",
   "Selected members may be invited into the DigitalGate Founding Acquisition Partner Programme (not automatic)",
 ];
 
