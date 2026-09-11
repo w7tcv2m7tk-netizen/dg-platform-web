@@ -38,6 +38,7 @@ export type AnalyticsPageData = {
   healthTrend: number[];
   connectors: OverviewConnectorProbes;
   profile: OrganisationBusinessProfile | null;
+  canViewOrganisationFinancials: boolean;
 };
 
 const DEFAULT_TWIN_SCORES: AnalyticsTwinScores = {
@@ -93,6 +94,7 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
       healthTrend: [],
       connectors: {},
       profile: null,
+      canViewOrganisationFinancials: false,
     };
   }
 
@@ -161,5 +163,6 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
     healthTrend,
     connectors,
     profile,
+    canViewOrganisationFinancials,
   };
 }
