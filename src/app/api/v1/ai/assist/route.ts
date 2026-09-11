@@ -170,16 +170,15 @@ export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
-  const { enabledAppIds, twinSnapshot, profile } = await loadTwinContext(session);
-  const context = await getBusinessContext({
-    organisationId: session.organisationId,
-    organisationName: session.organisationName,
-    enabledAppIds,
-    twinSnapshot,
-    profileOverride: profile,
-  });
+  const gate = await assertEntitlement(session.organisationId, "useAi");
+  if (!gate.ok) {
+    return NextResponse.json(
+      { error: { code: gate.code, message: gate.message } },
+      { status: 403 },
+    );
+  }
 
-  return NextResponse.json({ data: { context } });
+  return NextResponse.json({ data: { available: true } });
 }
 
 export async function POST(req: Request) {
@@ -193,7 +192,6 @@ export async function POST(req: Request) {
         error: {
           code: gate.code,
           message: gate.message,
-          entitlement: gate.entitlement.level,
         },
       },
       { status: 403 },
@@ -311,7 +309,6 @@ export async function POST(req: Request) {
       action,
       output: result.output,
       source: result.source,
-      entity,
     },
   });
 }
