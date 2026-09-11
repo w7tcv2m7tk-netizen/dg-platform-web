@@ -7,13 +7,13 @@ import {
   workspaceStageForProspectStage,
 } from "@dg/platform-core";
 
-import { EditProspectForm } from "@/components/command/EditProspectForm";
 import {
-  ArchiveProspectButton,
-  ConvertProspectToOrgButton,
-  RunProspectAuditButton,
-} from "@/components/command/GrowthEngineActions";
-import { ProspectStageSelect } from "@/components/command/ProspectStageSelect";
+  ProspectArchiveControl,
+  ProspectAuditButton,
+  ProspectConvertToCrmButton,
+  ProspectEditControl,
+  ProspectStageControl,
+} from "@/components/prospecting/ProspectingCustomerActions";
 
 const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
 
@@ -48,10 +48,14 @@ export async function ProspectingPipelineSurface({
   organisationId,
   showArchived,
   variant,
+  canWrite = false,
+  canConvertToCrm = false,
 }: {
   organisationId: string;
   showArchived: boolean;
   variant: "apps" | "command";
+  canWrite?: boolean;
+  canConvertToCrm?: boolean;
 }) {
   const discoveryHref = "/apps/prospecting/discovery";
   const scoresHref = "/apps/prospecting/scores";
@@ -142,6 +146,9 @@ export async function ProspectingPipelineSurface({
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
           Manage businesses from initial discovery through qualification and conversion into CRM.
         </p>
+        {!canWrite ? (
+          <p className="mt-2 text-xs text-slate-500">Read-only access — pipeline changes are disabled.</p>
+        ) : null}
         <p className="mt-3 text-lg font-semibold text-white">
           {activeCount} {showArchived ? "archived" : "active"} prospect
           {activeCount === 1 ? "" : "s"}
@@ -160,10 +167,14 @@ export async function ProspectingPipelineSurface({
             </Link>
           )}
           {" · "}
-          <Link href={discoveryHref} className="text-sky-400 hover:underline">
-            Discovery
-          </Link>
-          {" · "}
+          {canWrite ? (
+            <>
+              <Link href={discoveryHref} className="text-sky-400 hover:underline">
+                Discovery
+              </Link>
+              {" · "}
+            </>
+          ) : null}
           <Link href={scoresHref} className="text-sky-400 hover:underline">
             Opportunity Scoring
           </Link>
@@ -172,10 +183,9 @@ export async function ProspectingPipelineSurface({
 
       <main className="dg-page-main space-y-8">
         {!process.env.DATABASE_URL ? (
-          <p className="text-sm text-amber-200">DATABASE_URL required for pipeline.</p>
+          <p className="text-sm text-amber-200">Prospect Pipeline is temporarily unavailable.</p>
         ) : (
           <>
-            {/* Compact stage strip — always present */}
             <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-4">
               <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
                 Pipeline
@@ -212,10 +222,7 @@ export async function ProspectingPipelineSurface({
                           {requiringAction > 0 ? requiringAction : "—"}
                         </td>
                         <td className="py-2.5">
-                          <a
-                            href={`#stage-${stage.id}`}
-                            className="text-sky-400 hover:underline"
-                          >
+                          <a href={`#stage-${stage.id}`} className="text-sky-400 hover:underline">
                             {stage.actionLabel}
                           </a>
                         </td>
@@ -234,26 +241,30 @@ export async function ProspectingPipelineSurface({
               <section className="rounded-xl border border-dashed border-slate-700 bg-slate-950/30 px-6 py-10 text-center">
                 <p className="text-lg font-semibold text-white">Your prospect pipeline is empty.</p>
                 <p className="mx-auto mt-3 max-w-lg text-sm text-slate-400">
-                  Run Business Discovery to find potential customers, or add a prospect.
+                  {canWrite
+                    ? "Run Business Discovery to find potential customers, or add a prospect."
+                    : "No prospects are in this pipeline yet."}
                 </p>
                 <p className="mx-auto mt-2 max-w-lg text-sm text-slate-500">
                   DigitalGate keeps prospects separate from your CRM until they&apos;re qualified and
                   converted.
                 </p>
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                  <Link
-                    href={discoveryHref}
-                    className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
-                  >
-                    Discover businesses
-                  </Link>
-                  <Link
-                    href={`${discoveryHref}#add-prospect`}
-                    className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-slate-400"
-                  >
-                    Add prospect
-                  </Link>
-                </div>
+                {canWrite ? (
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                    <Link
+                      href={discoveryHref}
+                      className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+                    >
+                      Discover businesses
+                    </Link>
+                    <Link
+                      href={`${discoveryHref}#add-prospect`}
+                      className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-slate-400"
+                    >
+                      Add prospect
+                    </Link>
+                  </div>
+                ) : null}
                 <p className="mt-4">
                   <a href="#how-pipeline-works" className="text-sm text-sky-400 hover:underline">
                     How the Prospect Pipeline works →
@@ -262,7 +273,6 @@ export async function ProspectingPipelineSurface({
               </section>
             ) : null}
 
-            {/* Board */}
             {activeCount > 0 || showArchived ? (
               <div className="flex gap-3 overflow-x-auto pb-4">
                 {stageRows.map(({ stage, items }) => (
@@ -279,7 +289,7 @@ export async function ProspectingPipelineSurface({
                         {items.length} · {stage.actionLabel}
                       </p>
                     </header>
-                    <ul className="space-y-2 p-2 min-h-[4rem]">
+                    <ul className="min-h-[4rem] space-y-2 p-2">
                       {items.length === 0 ? (
                         <li className="px-2 py-3 text-xs text-slate-600">{stage.description}</li>
                       ) : (
@@ -288,12 +298,9 @@ export async function ProspectingPipelineSurface({
                             key={prospect.id}
                             className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-3"
                           >
-                            <p className="text-sm font-medium text-white">
-                              {prospect.businessName}
-                            </p>
+                            <p className="text-sm font-medium text-white">{prospect.businessName}</p>
                             <p className="mt-0.5 text-[11px] text-slate-500">
-                              {[prospect.location, prospect.industry].filter(Boolean).join(" · ") ||
-                                "—"}
+                              {[prospect.location, prospect.industry].filter(Boolean).join(" · ") || "—"}
                             </p>
 
                             <div className="mt-2 flex flex-wrap items-baseline gap-2">
@@ -330,45 +337,41 @@ export async function ProspectingPipelineSurface({
                                 </Link>
                                 {prospect.contactPhone || prospect.contactEmail ? (
                                   <a
-                                    href={
-                                      prospect.contactPhone
-                                        ? `tel:${prospect.contactPhone}`
-                                        : `mailto:${prospect.contactEmail}`
-                                    }
+                                    href={prospect.contactPhone ? `tel:${prospect.contactPhone}` : `mailto:${prospect.contactEmail}`}
                                     className="rounded-md border border-emerald-700/50 px-2 py-1 text-[11px] text-emerald-300 hover:border-emerald-500"
                                   >
                                     Contact
                                   </a>
-                                ) : (
-                                  <RunProspectAuditButton
-                                    prospectId={prospect.id}
-                                    label="Enrich"
-                                  />
-                                )}
-                                <ProspectStageSelect
-                                  prospectId={prospect.id}
-                                  stage={prospect.stage}
-                                  stages={STAGES}
-                                />
-                                <EditProspectForm prospect={prospect} />
-                                {CONVERT_STAGES.has(prospect.stage) ? (
-                                  <ConvertProspectToOrgButton prospectId={prospect.id} />
+                                ) : canWrite ? (
+                                  <ProspectAuditButton prospectId={prospect.id} label="Enrich" />
                                 ) : null}
-                                <ArchiveProspectButton
-                                  prospectId={prospect.id}
-                                  businessName={prospect.businessName}
-                                  archived={false}
-                                />
+                                {canWrite ? (
+                                  <>
+                                    <ProspectStageControl
+                                      prospectId={prospect.id}
+                                      stage={prospect.stage}
+                                      stages={STAGES}
+                                    />
+                                    <ProspectEditControl prospect={prospect} />
+                                    {canConvertToCrm && CONVERT_STAGES.has(prospect.stage) ? (
+                                      <ProspectConvertToCrmButton prospectId={prospect.id} />
+                                    ) : null}
+                                    <ProspectArchiveControl
+                                      prospectId={prospect.id}
+                                      businessName={prospect.businessName}
+                                    />
+                                  </>
+                                ) : null}
                               </div>
-                            ) : (
+                            ) : canWrite ? (
                               <div className="mt-2">
-                                <ArchiveProspectButton
+                                <ProspectArchiveControl
                                   prospectId={prospect.id}
                                   businessName={prospect.businessName}
                                   archived
                                 />
                               </div>
-                            )}
+                            ) : null}
                           </li>
                         ))
                       )}
@@ -377,7 +380,6 @@ export async function ProspectingPipelineSurface({
                 ))}
               </div>
             ) : (
-              /* Empty: still show skeleton columns so the framework is visible */
               <div className="flex gap-3 overflow-x-auto pb-4 opacity-70">
                 {PROSPECT_WORKSPACE_STAGES.map((stage) => (
                   <section
@@ -407,28 +409,23 @@ export async function ProspectingPipelineSurface({
                   <span className="text-slate-200">Discovery</span> — Find businesses.
                 </li>
                 <li>
-                  <span className="text-slate-200">Prospect Pipeline</span> — Manage and qualify
-                  them.
+                  <span className="text-slate-200">Prospect Pipeline</span> — Manage and qualify them.
                 </li>
                 <li>
-                  <span className="text-slate-200">Opportunity Score™</span> — Determine which ones
-                  matter.
+                  <span className="text-slate-200">Opportunity Score™</span> — Determine which ones matter.
                 </li>
                 <li>
-                  <span className="text-slate-200">CRM</span> — Convert qualified prospects into
-                  relationships.
+                  <span className="text-slate-200">CRM</span> — Convert qualified prospects into relationships.
                 </li>
                 <li>
-                  <span className="text-slate-200">Opportunity</span> — Manage the commercial
-                  opportunity.
+                  <span className="text-slate-200">Opportunity</span> — Manage the commercial opportunity.
                 </li>
                 <li>
                   <span className="text-slate-200">Automation</span> — Follow up and progress it.
                 </li>
               </ol>
               <p className="mt-3 text-xs text-slate-500">
-                Prospect ≠ CRM Company. The pipeline keeps scraped and researched businesses out of
-                CRM until you convert.
+                Prospect ≠ CRM Company. The pipeline keeps scraped and researched businesses out of CRM until you convert.
               </p>
             </section>
           </>
