@@ -3,7 +3,6 @@ import {
   getCompany,
   getContact,
   getOpportunity,
-  scheduleOutboundEmail,
   sendMessage,
   type CommsChannel,
 } from "@dg/platform-core";
@@ -132,71 +131,15 @@ export async function POST(req: Request) {
   const scheduledRaw =
     typeof body?.scheduledAt === "string" ? body.scheduledAt.trim() : "";
   if (scheduledRaw) {
-    if (channel !== "email") {
-      return NextResponse.json(
-        {
-          error: {
-            code: "validation_error",
-            message: "Scheduling is only supported for email",
-          },
+    return NextResponse.json(
+      {
+        error: {
+          code: "scheduling_unavailable",
+          message: "Scheduled delivery is temporarily unavailable. Send the email now instead.",
         },
-        { status: 422 },
-      );
-    }
-    const scheduledAt = new Date(scheduledRaw);
-    if (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now()) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "validation_error",
-            message: "scheduledAt must be a future datetime",
-          },
-        },
-        { status: 422 },
-      );
-    }
-
-    try {
-      const record = await scheduleOutboundEmail({
-        organisationId: session.organisationId,
-        to: to.trim(),
-        subject: typeof body?.subject === "string" ? body.subject : undefined,
-        body: messageBody.trim(),
-        scheduledAt,
-        contactId: contactId || undefined,
-        opportunityId: opportunityId || undefined,
-        companyId: companyId || undefined,
-        sentBy: session.clerkUserId,
-        source: "manual",
-        whySent:
-          typeof metadata.whySent === "string"
-            ? metadata.whySent
-            : "Scheduled send from Communications",
-        metadata,
-      });
-      return NextResponse.json(
-        {
-          data: {
-            id: record?.id ?? `sched_${Date.now()}`,
-            channel: "email",
-            status: "scheduled",
-            provider: "resend",
-            scheduledAt: scheduledAt.toISOString(),
-          },
-        },
-        { status: 202 },
-      );
-    } catch (err) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "validation_error",
-            message: err instanceof Error ? err.message : "Could not schedule email",
-          },
-        },
-        { status: 422 },
-      );
-    }
+      },
+      { status: 409 },
+    );
   }
 
   const result = await sendMessage({
