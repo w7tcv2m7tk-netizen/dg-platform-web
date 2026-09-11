@@ -2,6 +2,7 @@ import {
   CloudflareApiError,
   InfrastructureNotConfiguredError,
   getCloudflareInfrastructureOverview,
+  hasPlatformAuthority,
   purgeCloudflareCache,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -10,12 +11,35 @@ import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platf
 
 export const runtime = "nodejs";
 
-/** GET /api/v1/infrastructure/cloudflare — zone status + analytics */
+function requireCloudflareOperator(session: {
+  organisationId: string;
+  role?: string | null;
+  clerkUserId?: string | null;
+}) {
+  if (
+    hasPlatformAuthority({
+      organisationId: session.organisationId,
+      role: session.role,
+      principalId: session.clerkUserId,
+    })
+  ) {
+    return null;
+  }
+
+  return NextResponse.json(
+    { error: { code: "forbidden", message: "Platform operator access required." } },
+    { status: 403 },
+  );
+}
+
+/** GET /api/v1/infrastructure/cloudflare — platform zone status + analytics */
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
   const denied = requireFeature(session, "infrastructure.read");
   if (denied) return denied;
+  const operatorDenied = requireCloudflareOperator(session);
+  if (operatorDenied) return operatorDenied;
 
   const overview = await getCloudflareInfrastructureOverview();
   return NextResponse.json({ data: { overview } });
@@ -30,6 +54,8 @@ export async function POST(req: Request) {
   if (isNextResponse(session)) return session;
   const denied = requireFeature(session, "infrastructure.write");
   if (denied) return denied;
+  const operatorDenied = requireCloudflareOperator(session);
+  if (operatorDenied) return operatorDenied;
 
   const body = (await req.json().catch(() => null)) as {
     action?: string;
