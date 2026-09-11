@@ -112,10 +112,23 @@ function filterPlatformAdminLinks(
 
 /** Progressive disclosure — strip config-heavy routes for ordinary members. */
 function filterAppRoutesForMember(app: AppNavTreeItem, ctx: AccessContext): AppNavTreeItem | null {
+  // Cloudflare operates at DigitalGate platform scope. Keep it in the operator
+  // navigation, but never render the route in a customer organisation sidebar.
+  if (app.id === "infrastructure" && !isPlatformStaff(ctx)) {
+    const routes = app.routes.filter(
+      (route) => route.path !== "/apps/infrastructure/cloudflare",
+    );
+    app = {
+      ...app,
+      routes,
+      primaryHref: routes[0]?.path ?? app.primaryHref,
+    };
+  }
+
   if (!isOrgMemberOnly(ctx)) return app;
 
   if (app.id === "infrastructure") {
-    // Members: no DNS/Cloudflare/admin infra unless explicitly granted manage
+    // Members: no infrastructure administration unless explicitly granted manage.
     if (!hasPermission(ctx, { module: "infrastructure", action: "manage", scope: "organisation" })) {
       return null;
     }
