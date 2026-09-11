@@ -19,7 +19,9 @@ export default async function ImagesLibraryPage() {
 
   const [uploaded, profile] = await Promise.all([
     session && allowed ? listStudioLibraryImages(session.organisationId) : Promise.resolve([]),
-    session ? getOrganisationBusinessProfile(session.organisationId) : Promise.resolve(null),
+    session && allowed
+      ? getOrganisationBusinessProfile(session.organisationId)
+      : Promise.resolve(null),
   ]);
 
   const organisationNames = [
