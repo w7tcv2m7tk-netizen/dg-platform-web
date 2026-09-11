@@ -16,6 +16,7 @@ import {
   listWpHealthSites,
 } from "@/lib/dg-api";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 import {
   HealthCentreDashboard,
   HealthCentreError,
@@ -67,6 +68,7 @@ function healthActionHref(
 export default async function WebsiteHealthPage({ searchParams }: PageProps) {
   const { site: siteId, view } = await searchParams;
   const session = await getAuthorisedPlatformPageSession("websites.read");
+  const canEdit = session ? canAccessWebsiteStudio(session, "edit") : false;
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
@@ -129,9 +131,11 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                 No websites yet — create one to see publishing, domain, DNS, SSL,
                 form-to-CRM and SEO checks.
               </p>
-              <Link href="/apps/websites" className="text-sm text-sky-400 hover:underline">
-                Create a site →
-              </Link>
+              {canEdit ? (
+                <Link href="/apps/websites" className="text-sm text-sky-400 hover:underline">
+                  Create a site →
+                </Link>
+              ) : null}
             </div>
           ) : (
             <ul className="space-y-6 max-w-4xl">
@@ -161,8 +165,8 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                       </div>
                       <div className="flex items-center gap-3">
                         <p className="text-2xl font-bold text-white">{snapshot.score}</p>
-                        <Link href={`/apps/websites/studio/${site.id}?live=1`} className="text-sm text-sky-400 hover:underline">
-                          Studio / Make it live →
+                        <Link href={`/apps/websites/studio/${site.id}`} className="text-sm text-sky-400 hover:underline">
+                          {canEdit ? "Studio / Make it live →" : "Open website →"}
                         </Link>
                       </div>
                     </div>
@@ -182,7 +186,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                         </thead>
                         <tbody>
                           {snapshot.checks.map((check) => {
-                            const action = healthActionHref(site.id, check.id);
+                            const action = canEdit ? healthActionHref(site.id, check.id) : null;
                             return (
                               <tr key={check.id} className="border-b border-slate-800/60">
                                 <td className="py-2.5 pr-4 text-slate-200">{check.label}</td>
@@ -213,7 +217,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                             : " · not measured yet"}
                         </p>
                       </div>
-                      <PageSpeedRefreshButton websiteId={site.id} />
+                      {canEdit ? <PageSpeedRefreshButton websiteId={site.id} /> : null}
                     </div>
                   </li>
                 );

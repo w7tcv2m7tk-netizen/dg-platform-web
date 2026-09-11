@@ -54,7 +54,7 @@ test("Studio API and preview entry points are wired through the access guard", a
     ["src/app/api/v1/websites/[id]/seo-suggest/route.ts", ["view"]],
     ["src/app/api/v1/websites/[id]/ai-markup/route.ts", ["view"]],
     ["src/app/api/v1/websites/[id]/ai-component/route.ts", ["view"]],
-    ["src/app/api/v1/websites/[id]/pagespeed/route.ts", ["view"]],
+    ["src/app/api/v1/websites/[id]/pagespeed/route.ts", ["edit"]],
     ["src/app/api/v1/websites/[id]/default-footer/route.ts", ["view"]],
     ["src/app/api/v1/websites/images/route.ts", ["view", "edit"]],
     ["src/app/api/v1/websites/images/[id]/route.ts", ["delete"]],
@@ -68,4 +68,14 @@ test("Studio API and preview entry points are wired through the access guard", a
       assert.match(source, new RegExp(`canAccessWebsiteStudio\\(session, ["']${action}["']\\)`));
     }
   }
+});
+
+test("Website Health keeps mutation controls off read-only sessions", async () => {
+  const source = await readFile(
+    new URL("../src/app/(shell)/apps/websites/health/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /canAccessWebsiteStudio\(session, ["']edit["']\)/);
+  assert.match(source, /canEdit \? <PageSpeedRefreshButton/);
+  assert.match(source, /const action = canEdit \? healthActionHref/);
 });
