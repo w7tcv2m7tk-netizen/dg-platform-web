@@ -1,5 +1,4 @@
 import {
-  DreamscapeApiError,
   applyWebsiteHostingDns,
   attachDomainToWebsite,
   attachVercelWebsiteHostnames,
@@ -17,6 +16,26 @@ import { NextResponse } from "next/server";
 import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
 
 export const runtime = "nodejs";
+
+function customerDomain(domain: {
+  id: string;
+  name: string;
+  status: string;
+  managed: boolean;
+  websiteId: string | null;
+  dnsConfiguredAt: string | null;
+  sslState: string;
+}) {
+  return {
+    id: domain.id,
+    name: domain.name,
+    status: domain.status,
+    managed: domain.managed,
+    websiteId: domain.websiteId,
+    dnsConfiguredAt: domain.dnsConfiguredAt,
+    sslState: domain.sslState,
+  };
+}
 
 /** GET /api/v1/infrastructure/go-live?websiteId=&domain= */
 export async function GET(req: Request) {
@@ -41,8 +60,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     data: {
       checklist,
-      domains,
-      targets,
+      domains: domains.map(customerDomain),
       suggestedDns: websiteHostingDnsRecords(suggestedDomain, "full", targets),
     },
   });
@@ -50,7 +68,7 @@ export async function GET(req: Request) {
 
 /**
  * POST /api/v1/infrastructure/go-live
- * Connect domain → optional DNS hosting records → publish website → checklist
+ * Connect domain → optional DNS hosting records → publish website → checklist.
  */
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -69,7 +87,7 @@ export async function POST(req: Request) {
 
   if (!body?.websiteId) {
     return NextResponse.json(
-      { error: { code: "validation_error", message: "websiteId is required" } },
+      { error: { code: "validation_error", message: "Choose a website before going live." } },
       { status: 400 },
     );
   }
@@ -93,12 +111,7 @@ export async function POST(req: Request) {
 
   if (!domainRow) {
     return NextResponse.json(
-      {
-        error: {
-          code: "validation_error",
-          message: "domainId or domain is required",
-        },
-      },
+      { error: { code: "validation_error", message: "Choose or connect a domain before going live." } },
       { status: 400 },
     );
   }
@@ -109,21 +122,21 @@ export async function POST(req: Request) {
     websiteId: body.websiteId,
   });
 
-  let dns = null;
-  let vercel = null;
+  let dns: {
+    state: "not_requested" | "applied" | "manual" | "failed";
+    records?: ReturnType<typeof websiteHostingDnsRecords>;
+    fellBack?: boolean;
+  } = { state: "not_requested" };
   const warnings: string[] = [];
-  const skipDreamscapeDns = shouldSkipDreamscapeDnsApply({
+
+  const useManualDns = shouldSkipDreamscapeDnsApply({
     hostname: domainRow.name,
     source: domainRow.source,
   });
 
-  if (body.applyDns && skipDreamscapeDns) {
+  if (body.applyDns && useManualDns) {
     const targets = await resolveWebsiteHostingDnsTargets(domainRow.name);
-    const suggested = websiteHostingDnsRecords(
-      domainRow.name,
-      "subdomain",
-      targets,
-    );
+    const suggested = websiteHostingDnsRecords(domainRow.name, "subdomain", targets);
     domainRow = await upsertInfrastructureDomain({
       organisationId: session.organisationId,
       name: domainRow.name,
@@ -135,21 +148,10 @@ export async function POST(req: Request) {
         ...(domainRow.metadata ?? {}),
         dnsTargets: targets,
         dnsModeApplied: "external_subdomain",
-        dnsInstructions: `Dreamscape SOAP skipped — ${domainRow.name} is not a reseller apex zone. Set CNAME on the apex DNS (usually Cloudflare) → ${targets.cnameTarget}.`,
       },
     });
-    dns = {
-      skipped: true,
-      reason: "external_subdomain",
-      records: suggested,
-      modeApplied: "subdomain",
-      note: `Skipped Dreamscape DNS apply for ${domainRow.name} (subdomain / product funnel). Keep CNAME at Cloudflare/registrar → ${targets.cnameTarget}, then rely on Vercel attach for SSL.`,
-      suggested,
-      targets,
-    };
-    warnings.push(
-      `DNS: Dreamscape skipped for ${domainRow.name} — not a reseller apex. Keep CNAME ${suggested[0]?.name || "host"} → ${targets.cnameTarget} at Cloudflare/registrar.`,
-    );
+    dns = { state: "manual", records: suggested };
+    warnings.push("This domain uses external DNS. Apply the suggested DNS record at your DNS host, then allow time for verification.");
   } else if (body.applyDns) {
     try {
       const result = await applyWebsiteHostingDns({
@@ -168,72 +170,47 @@ export async function POST(req: Request) {
           dnsTargets: result.targets,
         },
       });
-      dns = {
-        records: result.records,
-        modeApplied: result.modeApplied,
-        fellBack: result.fellBack,
-        note: result.note,
-        targets: result.targets,
-      };
-      if (result.fellBack && result.note) warnings.push(result.note);
-      else if (result.note) warnings.push(result.note);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "DNS apply failed";
-      const hint =
-        err instanceof DreamscapeApiError ? err.hint : undefined;
+      dns = { state: "applied", records: result.records, fellBack: result.fellBack };
+      if (result.fellBack) {
+        warnings.push("Some DNS changes require manual completion. Review the suggested records before going live.");
+      }
+    } catch {
       const targets = await resolveWebsiteHostingDnsTargets(domainRow.name);
-      const suggested = websiteHostingDnsRecords(
-        domainRow.name,
-        "full",
-        targets,
-      );
-      dns = {
-        error: message,
-        hint,
-        suggested,
-        targets,
-      };
-      warnings.push(
-        `DNS apply failed: ${message}${hint ? ` — ${hint}` : ""}. Retry from Domains → Inspect DNS / Apply www only, or set records manually at the registrar.`,
-      );
+      const suggested = websiteHostingDnsRecords(domainRow.name, "full", targets);
+      dns = { state: "failed", records: suggested };
+      warnings.push("DNS could not be updated automatically. Apply the suggested records at your DNS host and try again.");
     }
   }
 
+  let hostingState: "not_requested" | "attached" | "pending" = "not_requested";
   if (body.attachVercel !== false) {
-    vercel = await attachVercelWebsiteHostnames(domainRow.name);
-    const anyOk = vercel.apex.ok || vercel.www.ok;
-    const configured = vercel.apex.configured || vercel.www.configured;
-    if (anyOk) {
-      domainRow = await upsertInfrastructureDomain({
-        organisationId: session.organisationId,
-        name: domainRow.name,
-        sslState: "pending",
-        metadata: {
-          ...(domainRow.metadata ?? {}),
-          vercelDomain: vercel,
-        },
-      });
-      const apexVerified = vercel.apex.ok ? vercel.apex.verified : null;
-      const wwwVerified = vercel.www.ok ? vercel.www.verified : null;
-      if (apexVerified === false || wwwVerified === false) {
-        warnings.push(
-          "SSL pending: hostname attached but not verified yet — wait for DNS propagation.",
-        );
+    try {
+      const hosting = await attachVercelWebsiteHostnames(domainRow.name);
+      const anyOk = hosting.apex.ok || hosting.www.ok;
+      if (anyOk) {
+        domainRow = await upsertInfrastructureDomain({
+          organisationId: session.organisationId,
+          name: domainRow.name,
+          sslState: "pending",
+          metadata: {
+            ...(domainRow.metadata ?? {}),
+            vercelDomain: hosting,
+          },
+        });
+        const awaitingVerification =
+          (hosting.apex.ok && hosting.apex.verified === false) ||
+          (hosting.www.ok && hosting.www.verified === false);
+        hostingState = awaitingVerification ? "pending" : "attached";
+        if (awaitingVerification) {
+          warnings.push("Hosting is connected and SSL is waiting for DNS verification.");
+        }
+      } else {
+        hostingState = "pending";
+        warnings.push("Hosting connection is still pending. Try again after DNS changes have propagated.");
       }
-    } else if (!configured) {
-      const msg =
-        (!vercel.apex.ok && vercel.apex.message) ||
-        (!vercel.www.ok && vercel.www.message) ||
-        "SSL pending: Vercel attach not configured (VERCEL_TOKEN + VERCEL_PROJECT_ID).";
-      warnings.push(msg);
-    } else {
-      const msg =
-        (!vercel.apex.ok && vercel.apex.message) ||
-        (!vercel.www.ok && vercel.www.message) ||
-        "unknown error";
-      warnings.push(
-        `SSL pending: Vercel attach failed (${msg}). Add the hostname manually in Vercel → Domains.`,
-      );
+    } catch {
+      hostingState = "pending";
+      warnings.push("Hosting connection is still pending. Try again shortly.");
     }
   }
 
@@ -255,10 +232,10 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     data: {
-      domain: domainRow,
+      domain: customerDomain(domainRow),
       website,
       dns,
-      vercel,
+      hosting: { state: hostingState },
       checklist,
       warnings,
     },
