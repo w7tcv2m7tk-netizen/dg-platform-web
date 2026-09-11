@@ -18,7 +18,7 @@ export default async function AnalyticsConnectorsPage() {
           <h2 className="font-semibold text-white">Your data sources</h2>
           <p className="mt-1 text-sm text-slate-400">
             Analytics and Intelligence only show metrics from connected systems. Unconnected sources
-            explain what unlocks — never fake campaign or traffic data.
+            explain what they unlock — never fake campaign or traffic data.
           </p>
           <div className="mt-4">
             <AnalyticsDataSourcesList
@@ -27,8 +27,8 @@ export default async function AnalyticsConnectorsPage() {
             />
           </div>
           <p className="mt-4 text-sm">
-            <Link href="/dashboard/settings/connectors" className="text-sky-400 hover:underline">
-              Manage connectors →
+            <Link href="/dashboard/settings/connected-services" className="text-sky-400 hover:underline">
+              Manage connected services →
             </Link>
           </p>
         </section>
@@ -36,7 +36,7 @@ export default async function AnalyticsConnectorsPage() {
         <section className="dg-card border-slate-700/80">
           <h2 className="font-semibold text-white">Digital Twin completeness</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Each connected source deepens your Digital Twin, Business Health, Benchmarks and Advisor
+            Each connected source deepens your Digital Twin, Business Health, Benchmarks and Aida
             recommendations.
           </p>
           <Link href="/dashboard/twin" className="mt-3 inline-block text-sm text-sky-400 hover:underline">
