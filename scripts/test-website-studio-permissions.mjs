@@ -134,3 +134,16 @@ test("Design Studio home and create flow stay permission-truthful", async () => 
   assert.match(create, /canEditBrand/);
   assert.match(create, /current brand\. Brand changes require Settings edit access/);
 });
+
+test("Content overview keeps create and edit actions off read-only sessions", async () => {
+  const source = await readFile(
+    new URL("../src/app/(shell)/apps/websites/content/page.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /canAccessWebsiteStudio\(session, ["']create["']\)/);
+  assert.match(source, /canAccessWebsiteStudio\(session, ["']edit["']\)/);
+  assert.match(source, /\{canCreate \? \(/);
+  assert.match(source, /\{canEdit \? ["']Open Studio["'] : ["']View website["']\}/);
+  assert.match(source, /\{canEdit \? ["']Edit page →["'] : ["']View page →["']\}/);
+  assert.match(source, /\{canEdit \? \([\s\S]*?SEO →/);
+});
