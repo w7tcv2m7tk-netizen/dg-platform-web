@@ -1,5 +1,4 @@
 import {
-  getMicrosoftOAuthRedirectUri,
   getOrgMicrosoft365ConnectorTokens,
   microsoftCredentialsConfigured,
   probeOrgMicrosoft365Connection,
@@ -25,30 +24,29 @@ export async function GET(req: Request) {
   const orgTokens = await getOrgMicrosoft365ConnectorTokens(session.organisationId);
   const connected = Boolean(orgTokens?.accessToken || orgTokens?.refreshToken);
 
-  let orgProbe: Awaited<ReturnType<typeof probeOrgMicrosoft365Connection>> | null =
-    null;
-  if (connected) {
-    orgProbe = await probeOrgMicrosoft365Connection(session.organisationId);
-  }
+  const orgProbe = connected
+    ? await probeOrgMicrosoft365Connection(session.organisationId)
+    : null;
+  const health = orgTokens?.health ?? null;
 
   return NextResponse.json({
     data: {
       platform: {
         configured,
-        clientIdSet: Boolean(process.env.MICROSOFT_CLIENT_ID?.trim()),
-        secretSet: Boolean(process.env.MICROSOFT_CLIENT_SECRET?.trim()),
-        redirectUri: getMicrosoftOAuthRedirectUri(),
       },
       organisation: {
-        id: session.organisationId,
         name: session.organisationName,
         connected,
         email: orgTokens?.label ?? orgProbe?.email ?? null,
-        expiresAt: orgTokens?.expiresAt ?? null,
         connectedAt: orgTokens?.connectedAt ?? null,
-        scope: orgTokens?.scope ?? null,
-        probe: orgProbe,
-        health: orgTokens?.health ?? null,
+        health: health
+          ? {
+              status: health.status,
+              lastSyncAt: health.lastSyncAt ?? null,
+              messagesSynced: health.messagesSynced,
+              hasIssue: Boolean(health.lastError),
+            }
+          : null,
       },
     },
   });
