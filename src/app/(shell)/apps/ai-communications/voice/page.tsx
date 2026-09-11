@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { listCommunicationAgents } from "@dg/platform-core";
+import { listCommunicationAgents, sessionHasFeature } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
@@ -9,29 +9,33 @@ export default async function VoiceAgentsPage() {
   if (!session) notFound();
 
   const agents = await listCommunicationAgents(session.organisationId);
+  const canConfigure = sessionHasFeature(session, "comms.agents.configure");
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Voice Agents</h1>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · AI employees for your business — voice provider underneath,
-          DigitalGate intelligence on top
+          {session.organisationName} · AI employees powered by your DigitalGate Business Brain
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <div className="flex justify-end">
-          <Link
-            href="/apps/ai-communications/agents"
-            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white"
-          >
-            Create voice agent
-          </Link>
-        </div>
+        {canConfigure ? (
+          <div className="flex justify-end">
+            <Link
+              href="/apps/ai-communications/agents"
+              className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white"
+            >
+              Create voice agent
+            </Link>
+          </div>
+        ) : null}
         {!agents.length ? (
           <div className="dg-card">
             <p className="text-sm text-slate-400">
-              Create a receptionist, sales, or support agent in Agent Builder, then publish it.
+              {canConfigure
+                ? "Create a receptionist, sales, or support agent in Agent Builder, then publish it."
+                : "No voice agents are available for your organisation yet."}
             </p>
           </div>
         ) : (
@@ -45,20 +49,21 @@ export default async function VoiceAgentsPage() {
                       {agent.description || "No description"}
                     </p>
                     <p className="mt-2 text-xs text-slate-500">
-                      {agent.type} · {agent.language} · {agent.provider}
-                      {agent.providerAgentId ? ` · ${agent.providerAgentId}` : ""}
+                      {agent.type.replace(/_/g, " ")} · {agent.language}
                     </p>
                   </div>
                   <span className="rounded-full border border-slate-700 px-2 py-0.5 text-xs text-slate-300">
                     {agent.status}
                   </span>
                 </div>
-                <Link
-                  href={`/apps/ai-communications/agents?id=${agent.id}`}
-                  className="mt-3 inline-block text-sm text-sky-400 hover:underline"
-                >
-                  Open in Agent Builder →
-                </Link>
+                {canConfigure ? (
+                  <Link
+                    href={`/apps/ai-communications/agents?id=${agent.id}`}
+                    className="mt-3 inline-block text-sm text-sky-400 hover:underline"
+                  >
+                    Open in Agent Builder →
+                  </Link>
+                ) : null}
               </li>
             ))}
           </ul>

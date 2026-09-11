@@ -1,9 +1,4 @@
-import {
-  AGENT_STARTER_TEMPLATES,
-  getCommunicationAgent,
-  postCallWebhookUrl,
-  publicAppOrigin,
-} from "@dg/platform-core";
+import { AGENT_STARTER_TEMPLATES, getCommunicationAgent } from "@dg/platform-core";
 import { notFound } from "next/navigation";
 
 import { AgentBuilderForm } from "@/components/ai-communications/AgentBuilderForm";
@@ -25,7 +20,7 @@ export default async function AgentBuilderPage({
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Agent Builder</h1>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · AI employee builder — Provider → Identity → Behaviour → Business Brain → DigitalGate tools
+          {session.organisationName} · configure your AI employee’s identity, behaviour, Business Brain access and DigitalGate tools
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -45,11 +40,6 @@ export default async function AgentBuilderPage({
             config: t.config,
           }))}
         />
-        <p className="text-xs text-slate-500">
-          After publish, point ElevenLabs post-call webhook at{" "}
-          <code className="text-slate-400">{postCallWebhookUrl()}</code> (origin{" "}
-          <code className="text-slate-400">{publicAppOrigin()}</code>).
-        </p>
       </main>
     </>
   );
