@@ -89,7 +89,7 @@ export default async function AnalyticsDashboardPage({
         <section className="dg-card">
           <h2 className="font-semibold text-white">Predefined dashboards</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Start with curated views. Custom dashboard builder comes later.
+            Curated executive, sales, marketing and operations views built from live connected data.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {bundle.predefinedDashboards.map((dashboard) => {
@@ -156,10 +156,6 @@ export default async function AnalyticsDashboardPage({
             </div>
           </section>
         ) : null}
-
-        <section className="rounded-xl border border-dashed border-slate-700 px-4 py-4 text-sm text-slate-500">
-          Create dashboard — coming soon. Predefined views use live connected data only.
-        </section>
       </main>
     </>
   );
