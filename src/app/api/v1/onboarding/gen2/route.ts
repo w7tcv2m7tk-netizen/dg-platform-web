@@ -1,9 +1,12 @@
 import {
+  createNegotiatedCommercialCheckoutSession,
   createOrganisationGoal,
   createPlatformCheckoutSession,
+  getFoundingOnboarding,
   getGen2OnboardingProgress,
   getOrganisationBillingStatus,
   getOrganisationBusinessProfile,
+  getOrganisationCommercialOffer,
   getOrganisationGoals,
   saveGen2OnboardingProgress,
   updateOrganisationBusinessProfile,
@@ -71,14 +74,23 @@ function safeClientProgress(raw: unknown) {
   return safe;
 }
 
+async function effectiveCommercialOffer(organisationId: string) {
+  const [founding, current] = await Promise.all([
+    getFoundingOnboarding(organisationId),
+    getOrganisationCommercialOffer(organisationId),
+  ]);
+  return founding?.commercialOfferSnapshot ?? current;
+}
+
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
-  const [progress, profile, goals] = await Promise.all([
+  const [progress, profile, goals, commercialOffer] = await Promise.all([
     getGen2OnboardingProgress(session.organisationId),
     getOrganisationBusinessProfile(session.organisationId),
     getOrganisationGoals(session.organisationId).catch(() => []),
+    effectiveCommercialOffer(session.organisationId),
   ]);
 
   return NextResponse.json({
@@ -86,6 +98,7 @@ export async function GET(req: Request) {
       progress,
       profile,
       goals,
+      commercialOffer,
       organisationName: session.organisationName,
     },
   });
@@ -162,8 +175,19 @@ export async function PATCH(req: Request) {
     }
   }
 
+  const offer = await effectiveCommercialOffer(session.organisationId);
+  const clientProgress = safeClientProgress(body.progress);
+  const lockedProgress = offer
+    ? {
+        ...clientProgress,
+        platformTier: offer.platformTier,
+        billingCadence: offer.cadence,
+        industryApps: offer.industryApps,
+        premiumApps: offer.premiumApps,
+      }
+    : clientProgress;
   const progress = await saveGen2OnboardingProgress(session.organisationId, {
-    ...safeClientProgress(body.progress),
+    ...lockedProgress,
     ...(markStepComplete === "stripe"
       ? { subscriptionActivatedAt: new Date().toISOString() }
       : {}),
@@ -187,44 +211,62 @@ export async function POST(req: Request) {
   });
   if (denied) return denied;
 
-  const progress = await getGen2OnboardingProgress(session.organisationId);
+  const [progress, offer] = await Promise.all([
+    getGen2OnboardingProgress(session.organisationId),
+    effectiveCommercialOffer(session.organisationId),
+  ]);
   const body = await req.json().catch(() => ({}));
-  const platformTier =
+  const platformTier = offer?.platformTier ??
     (body.platformTier as string | undefined) ??
     progress.platformTier ??
     "professional";
-  const billingCadence =
-    body.billingCadence === "annual" || progress.billingCadence === "annual"
+  const billingCadence = offer?.cadence ??
+    (body.billingCadence === "annual" || progress.billingCadence === "annual"
       ? ("annual" as const)
-      : ("monthly" as const);
+      : ("monthly" as const));
+  const industryApps = offer?.industryApps ?? body.industryApps ?? progress.industryApps;
+  const premiumApps = offer?.premiumApps ?? body.premiumApps ?? progress.premiumApps;
 
   try {
-    const checkout = await createPlatformCheckoutSession({
-      organisationId: session.organisationId,
-      email: session.email,
-      platformTier,
-      industryApps: body.industryApps ?? progress.industryApps,
-      premiumApps: body.premiumApps ?? progress.premiumApps,
-      businessName: session.organisationName,
-      billingCadence,
-      successPath: "/onboarding?checkout=success",
-      cancelPath: "/onboarding?checkout=cancelled",
-    });
+    const checkout = offer
+      ? await createNegotiatedCommercialCheckoutSession({
+          organisationId: session.organisationId,
+          email: session.email,
+          businessName: session.organisationName,
+          offer,
+          successPath: "/onboarding?checkout=success",
+          cancelPath: "/onboarding?checkout=cancelled",
+        })
+      : await createPlatformCheckoutSession({
+          organisationId: session.organisationId,
+          email: session.email,
+          platformTier,
+          industryApps,
+          premiumApps,
+          businessName: session.organisationName,
+          billingCadence,
+          successPath: "/onboarding?checkout=success",
+          cancelPath: "/onboarding?checkout=cancelled",
+        });
 
     await saveGen2OnboardingProgress(session.organisationId, {
       platformTier: platformTier as "starter" | "professional" | "business",
       billingCadence,
-      industryApps: body.industryApps ?? progress.industryApps,
-      premiumApps: body.premiumApps ?? progress.premiumApps,
+      industryApps,
+      premiumApps,
       stripeCheckoutSessionId: checkout.sessionId,
       markStepComplete: "order_summary",
     });
 
     return NextResponse.json({ data: checkout });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Checkout failed";
+  } catch {
     return NextResponse.json(
-      { error: { code: "checkout_failed", message } },
+      {
+        error: {
+          code: "checkout_failed",
+          message: "We couldn't start subscription checkout. Please try again or contact DigitalGate.",
+        },
+      },
       { status: 422 },
     );
   }
