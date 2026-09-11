@@ -45,7 +45,7 @@ export default async function BusinessBrainPage() {
             Business Profile →
           </Link>
           <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
-            AI Advisor →
+            Ask Aida →
           </Link>
         </div>
       </header>
