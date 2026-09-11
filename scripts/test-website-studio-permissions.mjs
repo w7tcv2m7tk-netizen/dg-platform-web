@@ -79,3 +79,16 @@ test("Website Health keeps mutation controls off read-only sessions", async () =
   assert.match(source, /canEdit \? <PageSpeedRefreshButton/);
   assert.match(source, /const action = canEdit \? healthActionHref/);
 });
+
+test("legacy migration health does not expose connector plumbing to customers", async () => {
+  const source = await readFile(
+    new URL("../src/components/websites/HealthCentreDashboard.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.doesNotMatch(source, /connectorBaseUrl/);
+  assert.doesNotMatch(source, /roerealty\.com\.au/);
+  assert.doesNotMatch(source, /GET \/site\/health/);
+  assert.doesNotMatch(source, /DG Platform plugin/);
+  assert.doesNotMatch(source, /<dt[^>]*>Code:/);
+  assert.match(source, /Check the migration connection and try again/);
+});
