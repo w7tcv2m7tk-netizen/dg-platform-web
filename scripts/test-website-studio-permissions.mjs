@@ -112,3 +112,25 @@ test("Studio mutation APIs keep implementation details out of customer feedback"
   assert.match(sources[0], /generator: \{ source: ["']Aida["'] \}/);
   assert.match(sources[1], /source: ["']Aida["']/);
 });
+
+test("Design Studio home and create flow stay permission-truthful", async () => {
+  const home = await readFile(
+    new URL("../src/app/(shell)/apps/websites/page.tsx", import.meta.url),
+    "utf8",
+  );
+  const create = await readFile(
+    new URL("../src/components/websites/CreateWebsiteForm.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(home, /canAccessWebsiteStudio\(session, ["']edit["']\)/);
+  assert.match(home, /sessionCan\(session, ["']settings["'], ["']edit["'], ["']organisation["']\)/);
+  assert.match(home, /\{canEdit \? ["']Studio["'] : ["']View["']\}/);
+  assert.match(home, /\{canEdit \? \(/);
+  assert.match(home, /canEditBrand=\{canEditBrand\}/);
+  assert.doesNotMatch(create, /AI generation is not shipped/);
+  assert.doesNotMatch(create, /Created but missing id/);
+  assert.doesNotMatch(create, /Network error/);
+  assert.doesNotMatch(create, /Marketplace \(Wantd\)/);
+  assert.match(create, /canEditBrand/);
+  assert.match(create, /current brand\. Brand changes require Settings edit access/);
+});
