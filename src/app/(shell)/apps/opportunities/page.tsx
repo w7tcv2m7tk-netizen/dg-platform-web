@@ -16,42 +16,58 @@ function severityClass(severity: string) {
   }
 }
 
-/**
- * Core Opportunities module — full ranked list for the active org.
- * Command Centre orchestrates the same engine for staff; this is the tenant workspace.
- */
 export default async function OpportunitiesAppPage() {
   const session = await getAuthorisedPlatformPageSession("opportunities.view");
 
-  const data =
-    process.env.DATABASE_URL && session?.organisationId
-      ? await listPlatformOpportunities({
-          scope: "org",
-          organisationId: session.organisationId,
-          limit: 50,
-        })
-      : null;
+  let data: Awaited<ReturnType<typeof listPlatformOpportunities>> | null = null;
+  let loadFailed = false;
+
+  if (session?.organisationId) {
+    try {
+      data = await listPlatformOpportunities({
+        scope: "org",
+        organisationId: session.organisationId,
+        limit: 50,
+      });
+    } catch (error) {
+      loadFailed = true;
+      console.error("[opportunities] failed to load organisation opportunities", error);
+    }
+  }
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Opportunities</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Everything worth acting on for this business — ranked by urgency and score. Command
-          Centre prioritises what matters most today; this module is the full list.
+          {session?.organisationName ?? "Your organisation"} · growth opportunities identified across your enabled DigitalGate workflows, ranked to help your team decide what to act on next.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-            Sign in and connect the database to see opportunities for your organisation.
+            Sign in to view opportunities for your organisation.
           </div>
-        ) : !data ? (
+        ) : loadFailed || !data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-            Database not connected — opportunities unavailable.
+            Opportunities are temporarily unavailable. Try again shortly.
           </div>
         ) : (
           <>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/30 px-5 py-4">
+              <p className="text-sm text-slate-300">
+                Opportunities brings together useful commercial signals from enabled apps so your team can prioritise follow-up without hunting across the platform.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                <Link href="/apps/crm/opportunities" className="text-sky-400 hover:underline">
+                  Open CRM opportunities →
+                </Link>
+                <Link href="/apps/prospecting" className="text-sky-400 hover:underline">
+                  Open Prospecting →
+                </Link>
+              </div>
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-red-500/25 bg-red-500/5 px-5 py-4">
                 <p className="text-xs uppercase tracking-wide text-red-300">Need attention</p>
@@ -63,10 +79,13 @@ export default async function OpportunitiesAppPage() {
               </div>
             </div>
 
-            <p className="text-xs text-slate-500">{data.honestyNote}</p>
-
             {!data.items.length ? (
-              <p className="text-sm text-slate-500">No opportunities detected for this business yet.</p>
+              <div className="rounded-xl border border-slate-800 bg-slate-950/30 px-5 py-5">
+                <p className="text-sm font-medium text-white">No opportunities detected yet</p>
+                <p className="mt-1 text-sm text-slate-400">
+                  As DigitalGate receives useful signals from CRM, Prospecting and other enabled apps, prioritised opportunities will appear here.
+                </p>
+              </div>
             ) : (
               <div className="overflow-x-auto rounded-xl border border-slate-800">
                 <table className="min-w-full text-left text-sm">
@@ -84,7 +103,7 @@ export default async function OpportunitiesAppPage() {
                       <tr key={item.id} className="bg-slate-950/30">
                         <td className="px-4 py-3">
                           <p className="font-medium text-white">{item.title}</p>
-                          <p className="mt-0.5 text-xs text-slate-500 line-clamp-2">{item.summary}</p>
+                          <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">{item.summary}</p>
                           {item.impactLabel ? (
                             <p className="mt-1 text-xs text-slate-500">{item.impactLabel}</p>
                           ) : null}
