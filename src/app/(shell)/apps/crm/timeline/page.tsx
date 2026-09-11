@@ -1,10 +1,12 @@
 import Link from "next/link";
 import {
   formatTimelineDateTime,
+  getOrganisationById,
   listOrganisationActivities,
   sessionHasFeature,
 } from "@dg/platform-core";
 
+import { safeTimeZone } from "@/lib/organisation-timezone";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 function entityHref(
@@ -44,10 +46,15 @@ export default async function CrmTimelinePage() {
     opportunities: sessionHasFeature(session, "crm.opportunities.read"),
   };
 
-  const { items, meta } = await listOrganisationActivities({
-    organisationId: session.organisationId,
-    limit: 100,
-  });
+  const [organisation, activityResult] = await Promise.all([
+    getOrganisationById(session.organisationId),
+    listOrganisationActivities({
+      organisationId: session.organisationId,
+      limit: 100,
+    }),
+  ]);
+  const displayTimeZone = safeTimeZone(organisation?.timezone);
+  const { items, meta } = activityResult;
 
   return (
     <>
@@ -57,7 +64,7 @@ export default async function CrmTimelinePage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Timeline</h1>
         <p className="text-sm text-slate-400">
-          Cross-app activity feed · {meta.total} event{meta.total === 1 ? "" : "s"}
+          Cross-app activity feed · {meta.total} event{meta.total === 1 ? "" : "s"} · times in {displayTimeZone}
         </p>
       </header>
       <main className="dg-page-main">
@@ -96,7 +103,7 @@ export default async function CrmTimelinePage() {
                         </>
                       ) : null}
                       {" · "}
-                      {formatTimelineDateTime(activity.createdAt)}
+                      {formatTimelineDateTime(activity.createdAt, displayTimeZone)}
                     </p>
                   </li>
                 );
