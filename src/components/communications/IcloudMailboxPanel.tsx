@@ -3,13 +3,7 @@
 import { useEffect, useState } from "react";
 
 type IcloudStatus = {
-  platform: {
-    configured: boolean;
-    auth: string;
-    imapHost: string;
-  };
   organisation: {
-    id: string;
     name: string;
     connected: boolean;
     email: string | null;
@@ -17,14 +11,13 @@ type IcloudStatus = {
     health: {
       status: string;
       lastSyncAt?: string | null;
-      lastError?: string | null;
       messagesSynced?: number;
-      message?: string | null;
+      hasIssue?: boolean;
     } | null;
   };
 };
 
-export function IcloudMailboxPanel() {
+export function IcloudMailboxPanel({ canManage }: { canManage: boolean }) {
   const [status, setStatus] = useState<IcloudStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,7 +33,7 @@ export function IcloudMailboxPanel() {
     const json = await res.json().catch(() => ({}));
     setLoading(false);
     if (!res.ok) {
-      setError(json.error?.message ?? "Could not load iCloud status");
+      setError("Could not load iCloud connection status.");
       return;
     }
     const data = json.data as IcloudStatus;
@@ -51,6 +44,7 @@ export function IcloudMailboxPanel() {
   }
 
   async function connect() {
+    if (!canManage) return;
     setBusy(true);
     setError(null);
     setSyncNote(null);
@@ -62,7 +56,7 @@ export function IcloudMailboxPanel() {
     const json = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(json.error?.message ?? "Could not connect iCloud");
+      setError("iCloud could not be connected. Check the details and try again.");
       return;
     }
     setAppPassword("");
@@ -71,16 +65,16 @@ export function IcloudMailboxPanel() {
   }
 
   async function disconnect() {
+    if (!canManage) return;
     setBusy(true);
     setError(null);
     setSyncNote(null);
     const res = await fetch("/api/v1/connectors/apple-icloud/disconnect", {
       method: "POST",
     });
-    const json = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(json.error?.message ?? "Could not disconnect iCloud");
+      setError("iCloud could not be disconnected. Please try again.");
       return;
     }
     setAppPassword("");
@@ -88,6 +82,7 @@ export function IcloudMailboxPanel() {
   }
 
   async function sync() {
+    if (!canManage) return;
     setBusy(true);
     setError(null);
     setSyncNote(null);
@@ -97,11 +92,11 @@ export function IcloudMailboxPanel() {
     const json = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) {
-      setError(json.data?.message ?? json.error?.message ?? "iCloud sync failed");
+      setError("iCloud sync could not be completed. Please try again.");
       await load();
       return;
     }
-    setSyncNote(json.data?.message ?? "Sync complete");
+    setSyncNote(typeof json.data?.message === "string" ? json.data.message : "Sync complete");
     await load();
   }
 
@@ -117,8 +112,8 @@ export function IcloudMailboxPanel() {
       <div>
         <h2 className="text-sm font-medium text-white">Apple iCloud Mail</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Connect with an Apple app-specific password (Apple does not offer public OAuth for
-          iCloud Mail). iCloud remains the mailbox — DigitalGate syncs into Communications.
+          Connect with an Apple app-specific password so DigitalGate can sync mail while iCloud
+          remains the mailbox provider.
         </p>
       </div>
 
@@ -145,32 +140,34 @@ export function IcloudMailboxPanel() {
                   : ""}
               </p>
             ) : (
-              <p>No sync yet — click Sync now to pull recent inbox/sent.</p>
+              <p>{canManage ? "No sync yet — use Sync now to pull recent mail." : "No sync recorded yet."}</p>
             )}
-            {org.health?.lastError ? (
-              <p className="text-amber-400">Last sync error: {org.health.lastError}</p>
+            {org.health?.hasIssue ? (
+              <p className="text-amber-400">The last mailbox sync needs attention.</p>
             ) : null}
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void sync()}
-              className="rounded-full bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600 disabled:opacity-50"
-            >
-              {busy ? "Working…" : "Sync now"}
-            </button>
-            <button
-              type="button"
-              disabled={busy}
-              onClick={() => void disconnect()}
-              className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-semibold text-slate-200 hover:border-red-500/60 hover:text-red-300 disabled:opacity-50"
-            >
-              Disconnect
-            </button>
-          </div>
+          {canManage ? (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void sync()}
+                className="rounded-full bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600 disabled:opacity-50"
+              >
+                {busy ? "Working…" : "Sync now"}
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void disconnect()}
+                className="rounded-full border border-slate-600 px-4 py-1.5 text-xs font-semibold text-slate-200 hover:border-red-500/60 hover:text-red-300 disabled:opacity-50"
+              >
+                Disconnect
+              </button>
+            </div>
+          ) : null}
         </div>
-      ) : (
+      ) : canManage ? (
         <form
           className="space-y-3"
           onSubmit={(e) => {
@@ -208,16 +205,7 @@ export function IcloudMailboxPanel() {
               required
             />
             <p className="mt-1 text-[11px] text-slate-500">
-              Create one at{" "}
-              <a
-                href="https://appleid.apple.com/account/manage"
-                target="_blank"
-                rel="noreferrer"
-                className="text-sky-400 hover:underline"
-              >
-                appleid.apple.com
-              </a>{" "}
-              → Sign-In and Security → App-Specific Passwords. Do not use your Apple ID password.
+              Use an Apple app-specific password, not your Apple ID password.
             </p>
           </div>
           <button
@@ -228,6 +216,8 @@ export function IcloudMailboxPanel() {
             {busy ? "Connecting…" : "Connect iCloud"}
           </button>
         </form>
+      ) : (
+        <p className="text-xs text-slate-500">Not connected for {org?.name ?? "this organisation"}.</p>
       )}
     </section>
   );
