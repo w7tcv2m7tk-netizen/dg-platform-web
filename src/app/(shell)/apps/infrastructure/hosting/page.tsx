@@ -3,15 +3,18 @@ import { notFound } from "next/navigation";
 import {
   listOrganisationDomains,
   listWebsites,
+  publicHttpsUrlForDomain,
   resolvePrimaryLinkedDomain,
 } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
 export default async function HostingStatusPage() {
   const session = await getAuthorisedPlatformPageSession("infrastructure.read");
   if (!session) notFound();
 
+  const canEditWebsites = canAccessWebsiteStudio(session, "edit");
   const [sites, domains] = await Promise.all([
     listWebsites(session.organisationId),
     listOrganisationDomains(session.organisationId),
@@ -27,7 +30,7 @@ export default async function HostingStatusPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Hosting</h1>
         <p className="text-sm text-slate-400">
-          Infrastructure service · platform hosting · auto SSL · custom domains
+          Website hosting · custom domains · DNS · automatic SSL
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -39,21 +42,11 @@ export default async function HostingStatusPage() {
         </div>
 
         <section className="rounded-lg border border-slate-700 bg-slate-900/40 p-5 max-w-2xl space-y-3">
-          <h2 className="text-base font-semibold text-white">How hosting works now</h2>
+          <h2 className="text-base font-semibold text-white">Hosting status</h2>
           <ul className="space-y-2 text-sm text-slate-300">
-            <li>
-              Sites render on DigitalGate Next.js at{" "}
-              <code className="text-slate-200">/sites/[slug]</code> (and custom
-              host when DNS is attached).
-            </li>
-            <li>
-              SSL provisions automatically after DNS points at the Vercel hosting
-              target.
-            </li>
-            <li>
-              Dedicated DG hosting productization (CDN controls, staging slots)
-              comes later — go-live path is live today.
-            </li>
+            <li>Published sites are hosted automatically by DigitalGate.</li>
+            <li>Custom domains go live after their DNS records are configured.</li>
+            <li>SSL is issued automatically after the domain is connected and DNS has propagated.</li>
           </ul>
           <div className="flex flex-wrap gap-3 pt-1">
             <Link
@@ -83,6 +76,7 @@ export default async function HostingStatusPage() {
             <ul className="space-y-2">
               {sites.map((site) => {
                 const domain = resolvePrimaryLinkedDomain(site, domains);
+                const liveUrl = publicHttpsUrlForDomain(domain?.name) ?? `/sites/${site.slug}`;
                 return (
                   <li
                     key={site.id}
@@ -98,10 +92,10 @@ export default async function HostingStatusPage() {
                       </p>
                     </div>
                     <Link
-                      href={`/apps/websites/studio/${site.id}`}
+                      href={canEditWebsites ? `/apps/websites/studio/${site.id}` : liveUrl}
                       className="text-sm text-sky-400 hover:underline"
                     >
-                      Make it live →
+                      {canEditWebsites ? "Make it live →" : "View website →"}
                     </Link>
                   </li>
                 );
