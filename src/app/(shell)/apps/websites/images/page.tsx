@@ -11,7 +11,6 @@ import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 export default async function ImagesLibraryPage() {
   const session = await getAuthorisedPlatformPageSession("websites.read");
   const canEdit = session ? canAccessWebsiteStudio(session, "edit") : false;
-  const canDelete = session ? canAccessWebsiteStudio(session, "delete") : false;
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
@@ -35,18 +34,9 @@ export default async function ImagesLibraryPage() {
               Design Studio isn&apos;t enabled for this business yet.
             </p>
           </div>
-        ) : (
+        ) : canEdit ? (
           <>
-            {!canEdit ? (
-              <p className="text-sm text-slate-500">
-                You have read-only access to this image library.
-              </p>
-            ) : null}
-            <StudioImagesPanel
-              initialUploaded={uploaded}
-              canUpload={canEdit}
-              canDelete={canDelete}
-            />
+            <StudioImagesPanel initialUploaded={uploaded} />
             <p className="text-sm text-slate-500">
               Use these images in a site under{" "}
               <Link href="/apps/websites" className="text-slate-300 underline">
@@ -55,6 +45,26 @@ export default async function ImagesLibraryPage() {
               .
             </p>
           </>
+        ) : (
+          <div className="max-w-2xl space-y-4">
+            <p className="text-sm text-slate-500">
+              You have read-only access to this image library.
+            </p>
+            {uploaded.length === 0 ? (
+              <p className="text-sm text-slate-400">No images have been uploaded for this business.</p>
+            ) : (
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {uploaded.map((image) => (
+                  <li key={image.id} className="rounded-lg border border-slate-800 bg-slate-900/40 p-3">
+                    <p className="truncate text-sm text-slate-200">{image.label}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {image.width && image.height ? `${image.width}×${image.height}` : "Image"}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
       </main>
     </>
