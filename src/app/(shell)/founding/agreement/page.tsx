@@ -4,6 +4,7 @@ import {
   claimFoundingInvite,
   getFoundingOnboarding,
   getOrganisationBusinessProfile,
+  getOrganisationCommercialOffer,
 } from "@dg/platform-core";
 
 import { FoundingAgreementForm } from "@/components/founding/FoundingAgreementForm";
@@ -26,10 +27,12 @@ export default async function FoundingAgreementPage({
     });
   }
 
-  const [record, profile] = await Promise.all([
+  const [record, profile, currentOffer] = await Promise.all([
     getFoundingOnboarding(session.organisationId),
     getOrganisationBusinessProfile(session.organisationId),
+    getOrganisationCommercialOffer(session.organisationId),
   ]);
+  const commercialOffer = record?.commercialOfferSnapshot ?? currentOffer;
 
   return (
     <>
@@ -52,6 +55,7 @@ export default async function FoundingAgreementPage({
               session.organisationName
             }
             alreadySigned={Boolean(record?.agreementSignedAt)}
+            commercialOffer={commercialOffer}
           />
         </Suspense>
       </main>

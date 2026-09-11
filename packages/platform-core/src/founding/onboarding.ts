@@ -1,5 +1,7 @@
 import type { Prisma } from "@dg/database";
 
+import { parseNegotiatedCommercialOffer } from "../billing/commercial-offer";
+import type { NegotiatedCommercialOffer } from "../billing/commercial-offer";
 import {
   FOUNDING_ONBOARDING_STEPS,
   type FoundingOnboardingAnswers,
@@ -144,6 +146,7 @@ export function parseFoundingOnboarding(value: unknown): FoundingOnboardingRecor
     completedSteps: completed,
     answers: parseAnswers(raw.answers),
     agreementSignedAt: asString(raw.agreementSignedAt),
+    commercialOfferSnapshot: parseNegotiatedCommercialOffer(raw.commercialOfferSnapshot) ?? undefined,
     startedAt: asString(raw.startedAt),
     submittedAt: asString(raw.submittedAt),
     updatedAt: asString(raw.updatedAt) || new Date().toISOString(),
@@ -191,6 +194,7 @@ export async function saveFoundingOnboarding(
     completedSteps?: FoundingOnboardingStep[];
     answers?: FoundingOnboardingAnswers;
     agreementSignedAt?: string;
+    commercialOfferSnapshot?: NegotiatedCommercialOffer;
     startedAt?: string;
     submittedAt?: string;
   },
@@ -206,6 +210,8 @@ export async function saveFoundingOnboarding(
     completedSteps: patch.completedSteps ?? existing.completedSteps,
     answers: { ...existing.answers, ...(patch.answers ?? {}) },
     agreementSignedAt: patch.agreementSignedAt ?? existing.agreementSignedAt,
+    commercialOfferSnapshot:
+      patch.commercialOfferSnapshot ?? existing.commercialOfferSnapshot,
     startedAt: patch.startedAt ?? existing.startedAt ?? new Date().toISOString(),
     submittedAt: patch.submittedAt ?? existing.submittedAt,
     updatedAt: new Date().toISOString(),
