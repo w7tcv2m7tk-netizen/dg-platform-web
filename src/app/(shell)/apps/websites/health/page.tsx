@@ -232,14 +232,9 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
             {healthResult?.ok ? (
               <HealthCentreDashboard
                 snapshot={normalizeSiteHealthSnapshot(healthResult.payload)}
-                connectorBaseUrl={wpSite.baseUrl}
               />
             ) : (
-              <HealthCentreError
-                code={healthResult?.code ?? "network_error"}
-                message={healthResult?.message ?? "Could not load WordPress migration connector health"}
-                connectorBaseUrl={wpSite.baseUrl}
-              />
+              <HealthCentreError />
             )}
           </>
         )}
