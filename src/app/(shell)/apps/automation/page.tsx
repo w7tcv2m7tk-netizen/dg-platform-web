@@ -3,7 +3,6 @@ import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
 import { getAppSetupHref } from "@dg/platform-core";
 
-import { AutomationBuilderPanel } from "@/components/automation/AutomationBuilderPanel";
 import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function AutomationPage() {
@@ -40,21 +39,51 @@ export default async function AutomationPage() {
           </Link>
         </div>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · triggers & actions registry — closed beta
+          {session?.organisationName ?? "DigitalGate"} · automated workflows and activity
         </p>
       </header>
       <main className="dg-page-main space-y-4">
-        <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm text-slate-400">
-          <p className="font-medium text-emerald-200">Platform automations (on)</p>
-          <p className="mt-1">
-            Founding-path defaults run in-process: vendor enquiry → contact →
-            opportunity → follow-up task → ack email → notify; opportunity
-            follow-up when opened without a lead; payment completed → notify.
-            Visual builder and durable org-rule CRUD remain next — not required
-            for Gate 1 dogfood.
+        <section className="dg-card">
+          <h2 className="font-semibold text-white">Automation is active</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            DigitalGate runs connected workflows automatically when supported business events occur.
           </p>
-        </div>
-        <AutomationBuilderPanel />
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+              <p className="font-medium text-white">Lead follow-up</p>
+              <p className="mt-1 text-sm text-slate-400">
+                New enquiries can create the connected CRM records, follow-up task and acknowledgement.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+              <p className="font-medium text-white">Opportunity follow-up</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Open opportunities can trigger follow-up activity when no lead is attached.
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+              <p className="font-medium text-white">Payment notifications</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Completed payment events can notify the relevant team workflow.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-2">
+          <Link href="/apps/automation/rules" className="dg-card hover:border-slate-700">
+            <h2 className="font-semibold text-white">Active rules</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              View the automation workflows currently available to your organisation.
+            </p>
+          </Link>
+          <Link href="/apps/automation/logs" className="dg-card hover:border-slate-700">
+            <h2 className="font-semibold text-white">Run history</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Review recent automation activity recorded for your organisation.
+            </p>
+          </Link>
+        </section>
       </main>
     </>
   );
