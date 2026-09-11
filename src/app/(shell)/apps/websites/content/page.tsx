@@ -5,9 +5,12 @@ import {
 } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
 export default async function ContentOverviewPage() {
   const session = await getAuthorisedPlatformPageSession("websites.read");
+  const canCreate = session ? canAccessWebsiteStudio(session, "create") : false;
+  const canEdit = session ? canAccessWebsiteStudio(session, "edit") : false;
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
@@ -23,27 +26,33 @@ export default async function ContentOverviewPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Content</h1>
         <p className="text-sm text-slate-400">
-          Live page map — open a site under Websites to edit components and SEO
+          {canEdit
+            ? "Live page map — open a site to edit components and SEO"
+            : "Live page map — review your website pages and SEO details"}
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">
             <p className="text-sm text-amber-100/90">
-              Enable Design Studio to manage structured content.
+              Design Studio isn&apos;t enabled for this business yet.
             </p>
           </div>
         ) : sites.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-600 bg-slate-950/40 p-6 max-w-xl space-y-3">
             <p className="text-sm text-slate-300">
-              No sites yet — create one under Websites, then edit pages here.
+              {canCreate
+                ? "No sites yet — create one under Websites to start building content."
+                : "No websites are available to review yet."}
             </p>
-            <Link
-              href="/apps/websites"
-              className="inline-block rounded-md bg-[var(--org-primary,#1e3a5f)] px-3 py-1.5 text-sm font-semibold text-white"
-            >
-              Create a site
-            </Link>
+            {canCreate ? (
+              <Link
+                href="/apps/websites"
+                className="inline-block rounded-md bg-[var(--org-primary,#1e3a5f)] px-3 py-1.5 text-sm font-semibold text-white"
+              >
+                Create a site
+              </Link>
+            ) : null}
           </div>
         ) : (
           <ul className="space-y-5 max-w-3xl">
@@ -70,7 +79,7 @@ export default async function ContentOverviewPage() {
                       href={`/apps/websites/studio/${site.id}`}
                       className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-3 py-1.5 text-sm font-semibold text-white"
                     >
-                      Open Studio
+                      {canEdit ? "Open Studio" : "View website"}
                     </Link>
                   </div>
                   <ul className="divide-y divide-slate-800 border border-slate-800 rounded-md overflow-hidden">
@@ -103,14 +112,16 @@ export default async function ContentOverviewPage() {
                               href={`/apps/websites/studio/${site.id}?page=${encodeURIComponent(page.slug)}`}
                               className="text-xs text-sky-400 hover:underline"
                             >
-                              Edit page →
+                              {canEdit ? "Edit page →" : "View page →"}
                             </Link>
-                            <Link
-                              href={`/apps/websites/studio/${site.id}?tab=seo&page=${encodeURIComponent(page.slug)}`}
-                              className="text-xs text-slate-500 hover:text-sky-400"
-                            >
-                              SEO →
-                            </Link>
+                            {canEdit ? (
+                              <Link
+                                href={`/apps/websites/studio/${site.id}?tab=seo&page=${encodeURIComponent(page.slug)}`}
+                                className="text-xs text-slate-500 hover:text-sky-400"
+                              >
+                                SEO →
+                              </Link>
+                            ) : null}
                           </div>
                         </li>
                       );
