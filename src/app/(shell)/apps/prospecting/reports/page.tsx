@@ -1,31 +1,35 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
   listGrowthProspectReports,
   organisationGrowthScope,
 } from "@dg/platform-core";
 
-import {
-  ConvertProspectToOrgButton,
-  CopyShareLinkButton,
-  MarkReportSentButton,
-} from "@/components/command/GrowthEngineActions";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
-
-const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
+import { CopyShareLinkButton } from "@/components/command/GrowthEngineActions";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 /**
- * Prospecting → Reports — opportunity reports under the acquisition OS.
- * Legacy /command/growth-engine/reports redirects here.
+ * Prospecting → Reports — customer-facing opportunity reports under the acquisition workspace.
  */
 export default async function ProspectingReportsPage() {
-  const db = Boolean(process.env.DATABASE_URL);
-  const { session } = await getPlatformPageContext();
-  const reports =
-    db && session?.organisationId
-      ? await listGrowthProspectReports(
-          organisationGrowthScope(session.organisationId),
-        )
-      : [];
+  const session = await getAuthorisedPlatformPageSession("prospecting.prospects.read");
+  if (!session) notFound();
+
+  let reports: Awaited<ReturnType<typeof listGrowthProspectReports>> = [];
+  let loadFailed = false;
+
+  if (process.env.DATABASE_URL) {
+    try {
+      reports = await listGrowthProspectReports(
+        organisationGrowthScope(session.organisationId),
+      );
+    } catch (error) {
+      console.error("[prospecting/reports] load failed", error);
+      loadFailed = true;
+    }
+  } else {
+    loadFailed = true;
+  }
 
   return (
     <>
@@ -35,20 +39,19 @@ export default async function ProspectingReportsPage() {
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Opportunity Reports</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Drafts and share links — send{" "}
-          <code className="text-slate-300">/opportunity/&lt;token&gt;</code> to prospects.
+          Review and share prospect-facing opportunity reports generated from DigitalGate evidence.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        {!db ? (
+        {loadFailed ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-            Configure DATABASE_URL to generate opportunity reports.
+            Opportunity reports are temporarily unavailable. Try again shortly.
           </div>
         ) : reports.length === 0 ? (
           <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-6">
             <p className="text-slate-300">No reports yet.</p>
             <p className="mt-2 text-sm text-slate-500">
-              Run a presence audit, then generate a report from Opportunities.
+              Audit prospects first, then use the available prospecting workflow to create a report from real opportunity evidence.
             </p>
             <Link
               href="/apps/prospecting/scores"
@@ -76,16 +79,12 @@ export default async function ProspectingReportsPage() {
                     <p className="mt-1 text-xs text-slate-500">
                       Generated {new Date(report.generatedAt).toLocaleString("en-AU")}
                       {report.sentAt
-                        ? ` · Sent ${new Date(report.sentAt).toLocaleString("en-AU")}`
+                        ? ` · Shared ${new Date(report.sentAt).toLocaleString("en-AU")}`
                         : " · Draft"}
                       {` · ${report.viewCount} view${report.viewCount === 1 ? "" : "s"}`}
-                      {report.firstViewedAt
-                        ? ` · First view ${new Date(report.firstViewedAt).toLocaleString("en-AU")}`
-                        : ""}
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    {!report.sentAt ? <MarkReportSentButton reportId={report.id} /> : null}
                     <CopyShareLinkButton sharePath={report.sharePath} />
                     <Link
                       href={`${report.sharePath}?preview=1`}
@@ -93,7 +92,7 @@ export default async function ProspectingReportsPage() {
                       rel="noopener noreferrer"
                       className="text-xs text-sky-400 hover:underline"
                     >
-                      Open preview →
+                      Preview report →
                     </Link>
                     <Link
                       href={report.sharePath}
@@ -101,7 +100,7 @@ export default async function ProspectingReportsPage() {
                       rel="noopener noreferrer"
                       className="text-xs text-slate-500 hover:text-sky-400 hover:underline"
                     >
-                      Open as prospect (counts view) →
+                      Open public report →
                     </Link>
                     <Link
                       href="/apps/prospecting/pipeline"
@@ -109,14 +108,6 @@ export default async function ProspectingReportsPage() {
                     >
                       Pipeline →
                     </Link>
-                    {CONVERT_STAGES.has(report.prospect.stage) ||
-                    report.prospect.convertedOrganisationId ? (
-                      <ConvertProspectToOrgButton
-                        prospectId={report.prospectId}
-                        convertedOrganisationId={report.prospect.convertedOrganisationId}
-                        label="Convert to org"
-                      />
-                    ) : null}
                   </div>
                 </div>
                 {report.executiveSummary ? (
