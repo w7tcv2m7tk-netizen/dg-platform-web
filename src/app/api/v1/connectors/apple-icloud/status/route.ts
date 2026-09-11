@@ -3,7 +3,11 @@ import {
 } from "@dg/platform-core/connectors/apple-icloud";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requireFeature,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -12,43 +16,28 @@ export const maxDuration = 30;
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requireFeature(session, "communications.read");
+  if (denied) return denied;
 
   const creds = await getOrgAppleIcloudConnectorCredentials(session.organisationId);
   const connected = Boolean(creds?.email && creds.appPassword);
-
-  let orgProbe: {
-    ok: boolean;
-    connected: boolean;
-    apiOk?: boolean;
-    email?: string | null;
-    message: string;
-  } | null = null;
-  // Skip live IMAP probe on every status load — expensive on serverless.
-  if (connected) {
-    orgProbe = {
-      ok: true,
-      connected: true,
-      apiOk: true,
-      email: creds?.email ?? null,
-      message: `iCloud connected · ${creds?.email}`,
-    };
-  }
+  const health = creds?.health ?? null;
 
   return NextResponse.json({
     data: {
-      platform: {
-        configured: true,
-        auth: "app_specific_password",
-        imapHost: "imap.mail.me.com",
-      },
       organisation: {
-        id: session.organisationId,
         name: session.organisationName,
         connected,
         email: creds?.label ?? creds?.email ?? null,
         connectedAt: creds?.connectedAt ?? null,
-        probe: orgProbe,
-        health: creds?.health ?? null,
+        health: health
+          ? {
+              status: health.status,
+              lastSyncAt: health.lastSyncAt ?? null,
+              messagesSynced: health.messagesSynced,
+              hasIssue: Boolean(health.lastError),
+            }
+          : null,
       },
     },
   });
