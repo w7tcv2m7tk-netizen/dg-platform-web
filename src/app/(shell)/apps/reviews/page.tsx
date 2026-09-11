@@ -1,9 +1,5 @@
 import Link from "next/link";
-import {
-  computeReputationScore,
-  extractReviewThemes,
-  REVIEW_SOURCE_CONCEPTS,
-} from "@dg/platform-core";
+import { computeReputationScore, extractReviewThemes } from "@dg/platform-core";
 
 import { ReviewThemesPanel } from "@/components/reviews/ReviewThemesPanel";
 import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
@@ -13,37 +9,20 @@ export default async function ReputationOverviewPage() {
   const { session, feed, feedStatus } = await loadReviewsSessionAndFeed();
   const score = computeReputationScore(feed);
   const themes = await extractReviewThemes(feed);
-  const connectedSources = REVIEW_SOURCE_CONCEPTS.filter((s) => {
-    if (s.id === "accommodation_wp") return Boolean(feedStatus.accConnected);
-    if (s.id === "google_business") return Boolean(feedStatus.gbpConnected);
-    return false;
-  });
-  const liveSourceCount = connectedSources.length;
+  const liveSourceCount = feedStatus.gbpConnected ? 1 : 0;
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Reputation</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Growth App — monitor connected reviews,
-          queue requests, score only from real data
+          {session?.organisationName ?? "DigitalGate"} · monitor customer reviews, understand recurring themes and track reputation from connected sources
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">
-          Founding Customer Early Access: Acc WordPress and Google Business Profile (locations + reviews when the API
-          allows) when connected. Meta, ProductReview, Trustpilot, TripAdvisor, and Yelp arrive
-          through the{" "}
-          <Link href="/dashboard/settings/connectors" className="text-sky-400 hover:underline">
-            Connector Framework
-          </Link>
-          . Core owns Universal Review plumbing; this App is the customer surface. Campaigns,
-          competitor analysis, and advanced AI respond UX remain Reputation Pro roadmap.
-        </div>
-
         {!session ? (
           <div className="dg-card">
-            <p className="text-sm text-slate-400">Sign in to load review feeds for your organisation.</p>
+            <p className="text-sm text-slate-400">Sign in to load review data for your organisation.</p>
           </div>
         ) : (
           <>
@@ -70,8 +49,8 @@ export default async function ReputationOverviewPage() {
                 <p className="mt-2 text-4xl font-bold text-white">{feed.length}</p>
                 <p className="mt-1 text-xs text-slate-500">
                   {feed.length > 0
-                    ? `${feedStatus.siteLabel ?? "Connected"} feed loaded`
-                    : feedStatus.message ?? "No reviews in feed yet"}
+                    ? `${feed.length} published review${feed.length === 1 ? "" : "s"}`
+                    : "No reviews in the feed yet"}
                 </p>
                 <Link
                   href="/apps/reviews/inbox"
@@ -81,70 +60,62 @@ export default async function ReputationOverviewPage() {
                 </Link>
               </div>
               <div className="dg-card">
-                <p className="text-xs uppercase tracking-wide text-slate-500">Sources</p>
-                <p className="mt-2 text-4xl font-bold text-white">
-                  {liveSourceCount}
-                  <span className="text-lg font-normal text-slate-500">
-                    /{REVIEW_SOURCE_CONCEPTS.length}
-                  </span>
-                </p>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Review source</p>
+                <p className="mt-2 text-4xl font-bold text-white">{liveSourceCount}</p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {liveSourceCount
-                    ? `${liveSourceCount} live · rest planned`
-                    : "None live yet"}
+                  {feedStatus.gbpConnected
+                    ? "Google Business Profile connected"
+                    : "Connect Google Business Profile"}
                 </p>
                 <Link
                   href="/apps/reviews/sources"
                   className="mt-3 inline-block text-xs text-sky-400 hover:underline"
                 >
-                  Manage sources →
+                  Manage source →
                 </Link>
               </div>
             </div>
 
             {feedStatus.emptyKind === "no_sources" ? (
               <ReviewsEmptyState
-                title="No review sources connected"
-                description="Connect Acc WordPress or Google Business Profile to centralise ratings. Score stays empty until rated reviews exist."
+                title="No review source connected"
+                description="Connect Google Business Profile to bring published reviews into DigitalGate. Reputation Score™ stays empty until rated reviews exist."
                 actions={[
-                  { href: "/apps/reviews/sources", label: "View sources →" },
-                  { href: "/dashboard/settings/connectors", label: "Connectors →" },
-                  { href: "/apps/reviews/requests", label: "Queue a request →" },
+                  { href: "/apps/reviews/sources", label: "Connect review source →" },
+                  { href: "/dashboard/settings/connected-services", label: "Connected Services →" },
                 ]}
               />
             ) : feedStatus.emptyKind === "sync_failed" ? (
               <ReviewsEmptyState
-                title="GBP sync failed"
-                description="Google is connected but sync did not return a usable review feed."
-                detail={feedStatus.message}
+                title="Review sync needs attention"
+                description="Google Business Profile is connected, but the latest sync did not return a usable review feed."
                 tone="danger"
                 actions={[
-                  { href: "/apps/reviews/sources", label: "Retry sync →" },
-                  { href: "/dashboard/settings/connectors", label: "Connector settings →" },
+                  { href: "/apps/reviews/sources", label: "Review source status →" },
+                  { href: "/dashboard/settings/connected-services", label: "Connected Services →" },
                 ]}
               />
             ) : feedStatus.emptyKind === "sync_blocked" ? (
               <ReviewsEmptyState
-                title="GBP connected — reviews blocked"
-                description="Location metadata may still be available. Reputation Score™ stays empty until Google returns rated reviews."
-                detail={feedStatus.gbpReviewsBlockedReason ?? feedStatus.message}
+                title="Reviews are not available yet"
+                description="Google Business Profile is connected, but review data is not currently available. Reputation Score™ remains empty until rated reviews can be retrieved."
                 tone="amber"
                 actions={[
-                  { href: "/apps/reviews/sources", label: "Source health →" },
+                  { href: "/apps/reviews/sources", label: "Review source status →" },
                   { href: "/apps/reviews/inbox", label: "Inbox →" },
                 ]}
               />
             ) : feed.length === 0 ? (
               <ReviewsEmptyState
-                title="Sources connected — feed empty"
-                description="Sync GBP or import Acc reviews to populate the Universal Review feed. No placeholder scores."
+                title="Source connected — no reviews yet"
+                description="Sync Google Business Profile to populate the review inbox. DigitalGate does not create placeholder review scores."
                 detail={
                   feedStatus.gbpLastSyncAt
-                    ? `Last GBP sync ${new Date(feedStatus.gbpLastSyncAt).toLocaleString("en-AU")}`
-                    : feedStatus.message
+                    ? `Last sync ${new Date(feedStatus.gbpLastSyncAt).toLocaleString("en-AU")}`
+                    : undefined
                 }
                 actions={[
-                  { href: "/apps/reviews/sources", label: "Sync sources →" },
+                  { href: "/apps/reviews/sources", label: "Sync review source →" },
                   { href: "/apps/reviews/inbox", label: "Open inbox →" },
                 ]}
               />
@@ -153,33 +124,13 @@ export default async function ReputationOverviewPage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <ReviewThemesPanel reviews={feed} initial={themes} />
               <div className="dg-card">
-                <h2 className="font-semibold text-white">Beta floor (honest)</h2>
+                <h2 className="font-semibold text-white">What you can do here</h2>
                 <ul className="mt-3 space-y-2 text-sm text-slate-400">
-                  <li>
-                    <span className="text-emerald-300">Live:</span> Acc{" "}
-                    <code className="text-slate-300">dg_reviews</code> via WordPress connector when
-                    available; request queue writes Activity on Contact/Organisation timeline
-                  </li>
-                  <li>
-                    <span className="text-amber-300">Stub hooks:</span> JobCompleted / stay /
-                    settlement → request candidates (email/SMS delivery later via Communications)
-                  </li>
-                  <li>
-                    <span className="text-blue-300">AI:</span> Theme extraction / reply draft when
-                    API keys exist; otherwise keyword stubs
-                  </li>
-                  <li>
-                    <span className="text-slate-500">Roadmap:</span> Reputation Pro — campaigns,
-                    competitor analysis, sentiment product UX
-                  </li>
+                  <li>Monitor published reviews from your connected Google Business Profile.</li>
+                  <li>Track Reputation Score™ using real ratings, volume and response data.</li>
+                  <li>Identify recurring customer themes to inform service and growth decisions.</li>
+                  <li>Use the review inbox to keep customer feedback visible alongside the rest of your business data.</li>
                 </ul>
-                <p className="mt-4 text-xs text-slate-500">
-                  Not SaaS Refer &amp; Earn — that stays in{" "}
-                  <Link href="/dashboard/network/refer-earn" className="text-sky-400 hover:underline">
-                    Settings → Refer &amp; Earn
-                  </Link>
-                  .
-                </p>
               </div>
             </div>
           </>

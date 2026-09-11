@@ -9,23 +9,18 @@ export default async function ReviewsInboxPage() {
   const platformSummary = Object.entries(feedStatus.byPlatform)
     .map(([key, count]) => `${key}: ${count}`)
     .join(" · ");
-  const healthBits = [
-    feedStatus.accConnected ? "Acc connected" : null,
-    feedStatus.gbpConnected
-      ? feedStatus.gbpReviewsBlockedReason
-        ? "GBP connected · reviews blocked"
-        : feedStatus.gbpLastSyncAt
-          ? "GBP connected"
-          : "GBP connected · not synced"
-      : null,
-  ].filter(Boolean);
+  const sourceStatus = feedStatus.gbpConnected
+    ? feedStatus.gbpLastSyncAt
+      ? "Google Business Profile connected"
+      : "Google Business Profile connected · not synced yet"
+    : null;
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Review inbox</h1>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Reputation — unified monitor
+          {session?.organisationName ?? "DigitalGate"} · published customer reviews in one place
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -35,74 +30,57 @@ export default async function ReviewsInboxPage() {
           </div>
         ) : feedStatus.emptyKind === "no_sources" ? (
           <ReviewsEmptyState
-            title="No review sources connected"
-            description="Connect Google Business Profile or the Acc WordPress connector to populate the Universal Review feed. Score stays empty until rated reviews exist — no placeholders."
-            detail={feedStatus.message}
+            title="No review source connected"
+            description="Connect Google Business Profile to bring published reviews into DigitalGate. Reputation Score™ remains empty until rated reviews exist."
             actions={[
-              { href: "/apps/reviews/sources", label: "Open sources →" },
-              { href: "/dashboard/settings/connectors", label: "Connectors →" },
+              { href: "/apps/reviews/sources", label: "Connect review source →" },
+              { href: "/dashboard/settings/connected-services", label: "Connected Services →" },
             ]}
           />
         ) : feedStatus.emptyKind === "sync_failed" ? (
           <ReviewsEmptyState
-            title="GBP sync failed"
-            description="Google is connected but the last sync did not return a usable feed. Retry from Sources, or check connector settings."
-            detail={feedStatus.message}
+            title="Review sync needs attention"
+            description="Google Business Profile is connected, but the latest sync did not return a usable review feed."
             tone="danger"
             actions={[
-              { href: "/apps/reviews/sources", label: "Retry on sources →" },
-              { href: "/dashboard/settings/connectors", label: "Connector settings →" },
+              { href: "/apps/reviews/sources", label: "Review source status →" },
+              { href: "/dashboard/settings/connected-services", label: "Connected Services →" },
             ]}
           />
         ) : feedStatus.emptyKind === "sync_blocked" ? (
           <ReviewsEmptyState
-            title="Reviews blocked by Google"
-            description="Location metadata may still sync. Reputation Score™ stays empty until the Reviews API returns rated reviews — we never invent scores."
-            detail={feedStatus.gbpReviewsBlockedReason ?? feedStatus.message}
+            title="Reviews are not available yet"
+            description="Google Business Profile is connected, but review data is not currently available. Reputation Score™ remains empty until rated reviews can be retrieved."
             tone="amber"
             actions={[
-              { href: "/apps/reviews/sources", label: "Source health →" },
-              { href: "/dashboard/settings/connectors", label: "Google connector →" },
+              { href: "/apps/reviews/sources", label: "Review source status →" },
+              { href: "/dashboard/settings/connected-services", label: "Connected Services →" },
             ]}
           />
         ) : feed.length === 0 ? (
           <ReviewsEmptyState
-            title="No reviews in the feed yet"
-            description="A source is connected, but the Universal Review feed has no published items. Sync GBP or import Acc reviews, then refresh this inbox."
+            title="No reviews in the inbox yet"
+            description="Google Business Profile is connected, but no published reviews are currently available in DigitalGate. Sync the source and refresh this inbox."
             detail={
-              [
-                healthBits.join(" · ") || null,
-                feedStatus.gbpLastSyncAt
-                  ? `Last GBP sync ${new Date(feedStatus.gbpLastSyncAt).toLocaleString("en-AU")}`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ") || feedStatus.message
+              feedStatus.gbpLastSyncAt
+                ? `Last sync ${new Date(feedStatus.gbpLastSyncAt).toLocaleString("en-AU")}`
+                : sourceStatus ?? undefined
             }
-            actions={[
-              { href: "/apps/reviews/sources", label: "Sync sources →" },
-              { href: "/apps/reviews/requests", label: "Queue a request →" },
-            ]}
+            actions={[{ href: "/apps/reviews/sources", label: "Sync review source →" }]}
           />
         ) : (
           <>
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <p className="text-sm text-slate-400">
-                {feedStatus.total} published
+                {feedStatus.total} published review{feedStatus.total === 1 ? "" : "s"}
                 {platformSummary ? ` · ${platformSummary}` : ""}
-                {feedStatus.siteLabel ? ` · ${feedStatus.siteLabel}` : ""}
-                {healthBits.length ? ` · ${healthBits.join(" · ")}` : ""}
+                {sourceStatus ? ` · ${sourceStatus}` : ""}
               </p>
               <Link href="/apps/reviews/sources" className="text-xs text-blue-400 hover:underline">
-                Sources →
+                Review source →
               </Link>
             </div>
-            {feedStatus.gbpReviewsBlockedReason && feedStatus.gbpConnected ? (
-              <p className="rounded-lg border border-amber-800/50 bg-amber-950/15 px-3 py-2 text-xs text-amber-200/90">
-                GBP reviews still blocked: {feedStatus.gbpReviewsBlockedReason}
-              </p>
-            ) : null}
-            <ReviewFeedList reviews={feed} businessName={session?.organisationName} />
+            <ReviewFeedList reviews={feed} businessName={session.organisationName} />
           </>
         )}
       </main>

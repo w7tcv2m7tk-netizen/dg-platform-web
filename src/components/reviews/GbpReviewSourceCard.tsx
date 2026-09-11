@@ -24,11 +24,9 @@ function formatSyncAt(iso: string | null): string | null {
 
 export function GbpReviewSourceCard({
   description,
-  connectorHint,
   initial,
 }: {
   description: string;
-  connectorHint?: string;
   initial: GbpSourceState;
 }) {
   const [state, setState] = useState(initial);
@@ -37,20 +35,24 @@ export function GbpReviewSourceCard({
   const [note, setNote] = useState<string | null>(null);
 
   const synced = Boolean(state.gbpLastSyncAt);
+  const needsAttention = Boolean(state.gbpReviewsBlockedReason || state.gbpLastError);
   const badge = !state.gbpConnected
-    ? { label: "available", className: "rounded-full bg-blue-500/15 px-2 py-0.5 text-xs text-blue-300" }
-    : state.gbpReviewsBlockedReason
+    ? {
+        label: "Available",
+        className: "rounded-full bg-blue-500/15 px-2 py-0.5 text-xs text-blue-300",
+      }
+    : needsAttention
       ? {
-          label: "connected · reviews blocked",
+          label: "Connected · attention needed",
           className: "rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300",
         }
-      : synced && (state.gbpLocations > 0 || state.gbpReviewsCached > 0)
+      : synced
         ? {
-            label: "connected",
+            label: "Connected",
             className: "rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-300",
           }
         : {
-            label: "connected · not synced",
+            label: "Connected · not synced",
             className: "rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-300",
           };
 
@@ -58,13 +60,18 @@ export function GbpReviewSourceCard({
     setBusy(true);
     setError(null);
     setNote(null);
+
     const res = await fetch("/api/v1/connectors/google/sync", { method: "POST" });
     const json = await res.json().catch(() => ({}));
     setBusy(false);
+
     if (!res.ok && !json.data) {
-      setError(json.error?.message ?? "Sync failed");
+      setError(
+        "We couldn’t sync Google Business Profile right now. Try again shortly or check Connected Services.",
+      );
       return;
     }
+
     const data = json.data ?? {};
     const blocked =
       typeof data.reviewsBlockedReason === "string" ? data.reviewsBlockedReason : null;
@@ -72,6 +79,7 @@ export function GbpReviewSourceCard({
       Array.isArray(data.errors) && data.errors.length
         ? String(data.errors[0])
         : data.health?.lastError ?? null;
+
     setState({
       gbpConnected: true,
       gbpLocations: Array.isArray(data.locations) ? data.locations.length : state.gbpLocations,
@@ -81,16 +89,22 @@ export function GbpReviewSourceCard({
       gbpLastSyncAt: data.syncedAt ?? new Date().toISOString(),
       gbpLastError: lastError,
     });
-    if (!res.ok) {
-      setError(data.message ?? lastError ?? "Sync completed with errors");
-      setNote(null);
+
+    if (!res.ok || lastError) {
+      setError(
+        "We couldn’t fully refresh Google Business Profile reviews. Try again shortly or check Connected Services.",
+      );
       return;
     }
+
     if (blocked) {
-      setNote(data.message ?? "Locations synced — reviews still blocked by Google API");
+      setNote(
+        "Google Business Profile is connected, but review data is not currently available.",
+      );
       return;
     }
-    setNote(data.message ?? "Sync complete");
+
+    setNote("Review sync complete.");
   }
 
   const lastSyncLabel = formatSyncAt(state.gbpLastSyncAt);
@@ -103,15 +117,13 @@ export function GbpReviewSourceCard({
           <span className={badge.className}>{badge.label}</span>
         </div>
         <p className="mt-1 text-sm text-slate-400">{description}</p>
-        {connectorHint ? <p className="mt-2 text-xs text-slate-500">{connectorHint}</p> : null}
 
         {state.gbpConnected ? (
           <dl className="mt-3 grid gap-1 text-xs text-slate-500 sm:grid-cols-2">
             <div>
               <dt className="inline text-slate-600">Status · </dt>
               <dd className="inline text-slate-300">
-                Connected
-                {synced ? "" : " — run sync to pull locations"}
+                Connected{synced ? "" : " — sync to refresh review data"}
               </dd>
             </div>
             <div>
@@ -123,20 +135,20 @@ export function GbpReviewSourceCard({
               <dd className="inline text-slate-300">{state.gbpLocations}</dd>
             </div>
             <div>
-              <dt className="inline text-slate-600">Reviews in feed · </dt>
+              <dt className="inline text-slate-600">Reviews in DigitalGate · </dt>
               <dd
                 className={
                   state.gbpReviewsAvailable
                     ? "inline text-emerald-400/90"
-                    : state.gbpReviewsBlockedReason
+                    : needsAttention
                       ? "inline text-amber-400/90"
                       : "inline text-slate-300"
                 }
               >
                 {state.gbpReviewsAvailable
                   ? state.gbpReviewsCached
-                  : state.gbpReviewsBlockedReason
-                    ? "Blocked"
+                  : needsAttention
+                    ? "Unavailable"
                     : synced
                       ? "0"
                       : "—"}
@@ -145,15 +157,9 @@ export function GbpReviewSourceCard({
           </dl>
         ) : null}
 
-        {state.gbpConnected && state.gbpReviewsBlockedReason ? (
+        {needsAttention ? (
           <p className="mt-3 rounded-lg border border-amber-800/50 bg-amber-950/20 px-3 py-2 text-xs text-amber-200/90">
-            Reviews blocked: {state.gbpReviewsBlockedReason}
-          </p>
-        ) : null}
-
-        {state.gbpConnected && state.gbpLastError && !state.gbpReviewsBlockedReason ? (
-          <p className="mt-3 rounded-lg border border-rose-800/50 bg-rose-950/20 px-3 py-2 text-xs text-rose-200/90">
-            Last sync error: {state.gbpLastError}
+            Google Business Profile is connected, but review data needs attention. Try syncing again or review the connection in Connected Services.
           </p>
         ) : null}
 
@@ -168,14 +174,17 @@ export function GbpReviewSourceCard({
             onClick={() => void sync()}
             className="rounded-lg bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-600 disabled:opacity-50"
           >
-            {busy ? "Syncing…" : "Sync GBP"}
+            {busy ? "Syncing…" : "Sync reviews"}
           </button>
         ) : null}
-        <Link href="/dashboard/settings/connectors" className="text-blue-400 hover:underline">
-          {state.gbpConnected ? "Connector settings" : "Connect Google"}
+        <Link
+          href="/dashboard/settings/connected-services"
+          className="text-blue-400 hover:underline"
+        >
+          Connected Services
         </Link>
         <Link href="/apps/reviews/inbox" className="text-blue-400 hover:underline">
-          Reputation inbox
+          Review inbox
         </Link>
       </div>
     </div>

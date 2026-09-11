@@ -12,32 +12,33 @@ export default async function ReputationScorePage() {
   const score = computeReputationScore(feed);
   const themes = await extractReviewThemes(feed);
 
+  const emptyDetail =
+    feedStatus.emptyKind === "sync_failed"
+      ? "We could not refresh review data right now. Try again from Review source."
+      : feedStatus.emptyKind === "sync_blocked"
+        ? "Google Business Profile is connected, but review data is not currently available."
+        : feedStatus.hasSource
+          ? "A source is connected. Reputation Score™ will appear when rated reviews are available."
+          : "Connect Google Business Profile first. Reputation Score™ remains empty until rated reviews exist.";
+
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Reputation Score™</h1>
         <p className="text-sm text-slate-400">
-          Score from connected review feeds only — empty until rated reviews exist
+          Score calculated from connected, rated customer reviews only.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="dg-card">
-            <p className="text-sm text-slate-400">Sign in to compute reputation.</p>
+            <p className="text-sm text-slate-400">Sign in to view your Reputation Score™.</p>
           </div>
         ) : score.score == null ? (
           <ReviewsEmptyState
             title="No Reputation Score™ yet"
             description={score.note}
-            detail={
-              feedStatus.emptyKind === "sync_blocked"
-                ? feedStatus.gbpReviewsBlockedReason
-                : feedStatus.emptyKind === "sync_failed"
-                  ? feedStatus.message
-                  : feedStatus.hasSource
-                    ? feedStatus.message
-                    : "Connect a source first — score stays empty until rated reviews exist."
-            }
+            detail={emptyDetail}
             tone={
               feedStatus.emptyKind === "sync_failed"
                 ? "danger"
@@ -46,7 +47,7 @@ export default async function ReputationScorePage() {
                   : "neutral"
             }
             actions={[
-              { href: "/apps/reviews/sources", label: "Sources →" },
+              { href: "/apps/reviews/sources", label: "Review source →" },
               { href: "/apps/reviews/inbox", label: "Open inbox →" },
             ]}
           />
