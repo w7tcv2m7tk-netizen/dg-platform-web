@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import {
+  applyFoundingCommercialOfferToCustomer,
   claimFoundingInvite,
   getFoundingOnboarding,
   getOrganisationBusinessProfile,
@@ -21,10 +22,16 @@ export default async function FoundingAgreementPage({
 
   const invite = params.invite?.trim();
   if (invite) {
-    await claimFoundingInvite({
+    const claimed = await claimFoundingInvite({
       customerOrganisationId: session.organisationId,
       inviteToken: invite,
     });
+    if (claimed?.opportunity) {
+      await applyFoundingCommercialOfferToCustomer({
+        customerOrganisationId: session.organisationId,
+        opportunityMetadata: claimed.opportunity.metadata,
+      });
+    }
   }
 
   const [record, profile, currentOffer] = await Promise.all([
