@@ -23,7 +23,12 @@ export async function GET(req: Request) {
 
   if (!process.env.DATABASE_URL) {
     return NextResponse.json(
-      { error: { code: "no_database", message: "DATABASE_URL not configured" } },
+      {
+        error: {
+          code: "backup_unavailable",
+          message: "Backup status is temporarily unavailable.",
+        },
+      },
       { status: 503 },
     );
   }
