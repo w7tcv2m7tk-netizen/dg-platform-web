@@ -41,7 +41,7 @@ export default async function CommsSettingsPage() {
           <h2 className="font-semibold text-white">Service status</h2>
           <p className="mt-1 text-sm text-slate-400">
             DigitalGate manages the underlying communication services. You only need to know whether
-            each capability is ready for your organisation.
+            each live capability is ready for your organisation.
           </p>
           <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
             <div>
@@ -55,14 +55,6 @@ export default async function CommsSettingsPage() {
               <dd className={statusTone(voiceReady)}>
                 {voiceReady ? "Connected" : "Needs setup"}
               </dd>
-            </div>
-            <div>
-              <dt className="text-slate-500">SMS</dt>
-              <dd className="text-slate-400">Not yet available</dd>
-            </div>
-            <div>
-              <dt className="text-slate-500">Business call history</dt>
-              <dd className="text-slate-400">Not yet available</dd>
             </div>
           </dl>
           {!emailReady || !voiceReady ? (
@@ -101,10 +93,9 @@ export default async function CommsSettingsPage() {
         ) : null}
 
         <div className="dg-card">
-          <h2 className="font-semibold text-white">Need another channel?</h2>
+          <h2 className="font-semibold text-white">Communications</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Additional communication channels will appear in DigitalGate when they are ready and
-            enabled for your organisation.
+            Return to the Communications workspace to use the channels and AI capabilities currently enabled for your organisation.
           </p>
           <Link
             href="/apps/communications"
