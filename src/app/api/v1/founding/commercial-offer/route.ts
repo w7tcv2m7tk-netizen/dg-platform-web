@@ -60,6 +60,8 @@ export async function POST(req: Request) {
   const opportunityId = typeof body?.opportunityId === "string" ? body.opportunityId.trim() : "";
   const label = typeof body?.label === "string" ? body.label.trim().slice(0, 160) : "";
   const amountCents = Number(body?.amountCents);
+  const oneOffAmountCents = Number(body?.oneOffAmountCents ?? 0);
+  const oneOffLabel = typeof body?.oneOffLabel === "string" ? body.oneOffLabel.trim().slice(0, 160) : "";
   const cadence = body?.cadence === "annual" ? "annual" : body?.cadence === "monthly" ? "monthly" : null;
   const platformTier =
     body?.platformTier === "starter" ||
@@ -75,6 +77,9 @@ export async function POST(req: Request) {
     !label ||
     !Number.isInteger(amountCents) ||
     amountCents <= 0 ||
+    !Number.isInteger(oneOffAmountCents) ||
+    oneOffAmountCents < 0 ||
+    (oneOffAmountCents > 0 && !oneOffLabel) ||
     !cadence ||
     !platformTier ||
     !Number.isInteger(seats) ||
@@ -110,6 +115,7 @@ export async function POST(req: Request) {
     premiumApps: stringList(body?.premiumApps),
     seats: Math.min(seats, 10000),
     trialDays,
+    ...(oneOffAmountCents > 0 ? { oneOffAmountCents, oneOffLabel } : {}),
     agreedAt: existing?.agreedAt ?? new Date().toISOString(),
     notes: typeof body?.notes === "string" ? body.notes.trim().slice(0, 2000) : undefined,
   };
