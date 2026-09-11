@@ -38,7 +38,7 @@ export default async function AnalyticsDashboardPage({
   const params = await searchParams;
   const dashboardId = params.dashboard ?? "executive";
   const data = await loadAnalyticsPageData();
-  const { bundle, metrics, twinScores } = data;
+  const { bundle, metrics, twinScores, canViewOrganisationFinancials } = data;
   const view = DASHBOARD_COPY[dashboardId] ?? DASHBOARD_COPY.executive;
 
   const filteredMetrics = bundle.keyMetrics.filter((metric) =>
@@ -46,14 +46,18 @@ export default async function AnalyticsDashboardPage({
   );
 
   const supplemental = [
-    {
-      id: "revenue_ytd",
-      label: "Revenue YTD",
-      value: metrics ? formatAudMoney(metrics.revenueYtdCents) : "—",
-      context: "Year to date",
-      status: "live" as const,
-      href: "/apps/commerce/invoices",
-    },
+    ...(canViewOrganisationFinancials
+      ? [
+          {
+            id: "revenue_ytd",
+            label: "Revenue YTD",
+            value: metrics ? formatAudMoney(metrics.revenueYtdCents) : "—",
+            context: "Year to date",
+            status: "live" as const,
+            href: "/apps/commerce/invoices",
+          },
+        ]
+      : []),
     {
       id: "overdue",
       label: "Overdue follow-ups",
@@ -62,14 +66,18 @@ export default async function AnalyticsDashboardPage({
       status: "live" as const,
       href: "/apps/crm/tasks",
     },
-    {
-      id: "outstanding_ar",
-      label: "Outstanding AR",
-      value: metrics ? formatAudMoney(metrics.outstandingArCents) : "—",
-      context: "Receivables",
-      status: "live" as const,
-      href: "/apps/commerce/invoices",
-    },
+    ...(canViewOrganisationFinancials
+      ? [
+          {
+            id: "outstanding_ar",
+            label: "Outstanding AR",
+            value: metrics ? formatAudMoney(metrics.outstandingArCents) : "—",
+            context: "Receivables",
+            status: "live" as const,
+            href: "/apps/commerce/invoices",
+          },
+        ]
+      : []),
   ];
 
   return (
