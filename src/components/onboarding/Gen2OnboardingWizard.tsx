@@ -16,6 +16,7 @@ import {
   type Gen2OnboardingProgress,
   type Gen2OnboardingStep,
   type Gen2PlatformTier,
+  type NegotiatedCommercialOffer,
 } from "@dg/platform-core";
 
 type ProfileDraft = {
@@ -85,6 +86,17 @@ const GROWTH_APP_OPTIONS = [
   { id: "reviews", label: "Reputation", monthlyCents: 2900 },
 ];
 
+function appLabel(id: string) {
+  return (
+    INDUSTRY_APP_OPTIONS.find((app) => app.id === id)?.label ??
+    GROWTH_APP_OPTIONS.find((app) => app.id === id)?.label ??
+    id
+      .split("-")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ")
+  );
+}
+
 export function Gen2OnboardingWizard({
   initial,
   founding = false,
@@ -99,6 +111,7 @@ export function Gen2OnboardingWizard({
   const [step, setStep] = useState<Gen2OnboardingStep>(initial.currentStep);
   const [profile, setProfile] = useState<ProfileDraft>(emptyProfile);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [commercialOffer, setCommercialOffer] = useState<NegotiatedCommercialOffer | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -108,9 +121,9 @@ export function Gen2OnboardingWizard({
   const checklist = gen2ChecklistStats(progress);
 
   const plan = GEN2_PLATFORM_PLANS.find((p) => p.id === (progress.platformTier ?? "professional"))!;
-  const cadence: BillingCadence = progress.billingCadence ?? "monthly";
-  const industry = progress.industryApps ?? [];
-  const premium = progress.premiumApps ?? [];
+  const cadence: BillingCadence = commercialOffer?.cadence ?? progress.billingCadence ?? "monthly";
+  const industry = commercialOffer?.industryApps ?? progress.industryApps ?? [];
+  const premium = commercialOffer?.premiumApps ?? progress.premiumApps ?? [];
   const identityReady =
     Boolean(profile.businessName.trim()) &&
     Boolean(profile.industryVertical.trim()) &&
@@ -131,8 +144,8 @@ export function Gen2OnboardingWizard({
   const platformMonthly = plan.monthlyCents;
   const totalMonthly = platformMonthly + appsMonthly;
   const totalAnnual = annualPriceFromMonthlyCents(totalMonthly);
-  const displayTotal = cadence === "annual" ? totalAnnual : totalMonthly;
-  const trialDays = BILLING_COMMERCIAL_CONFIG.trialDays;
+  const displayTotal = commercialOffer?.amountCents ?? (cadence === "annual" ? totalAnnual : totalMonthly);
+  const trialDays = commercialOffer?.trialDays ?? BILLING_COMMERCIAL_CONFIG.trialDays;
   const annualSaving = totalMonthly * 12 - totalAnnual;
 
   useEffect(() => {
@@ -148,6 +161,7 @@ export function Gen2OnboardingWizard({
       }
       setLoadError(null);
       const p = json.data?.progress as Gen2OnboardingProgress | undefined;
+      const offer = (json.data?.commercialOffer ?? null) as NegotiatedCommercialOffer | null;
       const prof = json.data?.profile as {
         businessName?: string;
         tradingName?: string;
@@ -177,8 +191,19 @@ export function Gen2OnboardingWizard({
       const goals = Array.isArray(json.data?.goals)
         ? (json.data.goals as Array<{ title?: string | null }>)
         : [];
+      setCommercialOffer(offer);
       if (p) {
-        setProgress(p);
+        setProgress(
+          offer
+            ? {
+                ...p,
+                platformTier: offer.platformTier,
+                billingCadence: offer.cadence,
+                industryApps: offer.industryApps,
+                premiumApps: offer.premiumApps,
+              }
+            : p,
+        );
         setStep(p.currentStep);
       }
       if (prof) {
@@ -402,6 +427,7 @@ export function Gen2OnboardingWizard({
   }
 
   function toggleApp(list: "industry" | "premium", id: string) {
+    if (commercialOffer) return;
     const key = list === "industry" ? "industryApps" : "premiumApps";
     const current = list === "industry" ? industry : premium;
     const next = current.includes(id)
@@ -444,8 +470,9 @@ export function Gen2OnboardingWizard({
       <main className="dg-page-main mx-auto max-w-2xl space-y-6 px-4 pb-16 sm:px-6">
         {checkoutStatus === "success" ? (
           <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
-            Your DigitalGate subscription is active. {trialDays}-day free trial has started —
-            nothing charged today. Continue connecting your business below.
+            {trialDays > 0
+              ? `Your DigitalGate subscription is active. Your ${trialDays}-day free trial has started — nothing charged today. Continue connecting your business below.`
+              : "Your DigitalGate subscription is active. Your agreed plan is now active. Continue connecting your business below."}
           </p>
         ) : null}
         {checkoutStatus === "cancelled" ? (
@@ -480,8 +507,14 @@ export function Gen2OnboardingWizard({
             </p>
             <ul className="list-disc space-y-2 pl-5 text-sm text-slate-400">
               <li>Confirm your business identity and Business Profile</li>
-              <li>Choose goals, plan and Apps</li>
-              <li>Activate with a {trialDays}-day free trial (card held, $0 today)</li>
+              <li>{commercialOffer ? "Confirm your agreed plan and included Apps" : "Choose goals, plan and Apps"}</li>
+              <li>
+                {commercialOffer
+                  ? trialDays > 0
+                    ? `Activate your agreed subscription with a ${trialDays}-day trial`
+                    : "Activate your agreed subscription securely with Stripe"
+                  : `Activate with a ${trialDays}-day free trial (card held, $0 today)`}
+              </li>
               <li>Connect systems, then DigitalGate runs implementation</li>
             </ul>
             <button
@@ -615,167 +648,278 @@ export function Gen2OnboardingWizard({
         ) : null}
 
         {step === "plan" ? (
-          <section className="space-y-4">
-            {GEN2_PLATFORM_PLANS.map((p) => (
+          commercialOffer ? (
+            <section className="space-y-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6">
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300">Your agreed plan</p>
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-semibold text-white">{commercialOffer.label}</h3>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Your commercial terms have already been agreed and are locked to your organisation.
+                  </p>
+                </div>
+                <p className="text-xl font-semibold text-white">
+                  {money(commercialOffer.amountCents)}/{commercialOffer.cadence === "annual" ? "yr" : "mo"}
+                </p>
+              </div>
+              {commercialOffer.seats ? (
+                <p className="text-sm text-slate-300">Includes up to {commercialOffer.seats} users.</p>
+              ) : null}
               <button
-                key={p.id}
                 type="button"
                 disabled={saving}
-                onClick={() => void completePlan(p.id)}
-                className={`w-full rounded-xl border px-5 py-4 text-left ${
-                  progress.platformTier === p.id
-                    ? "border-sky-500 bg-sky-500/10"
-                    : "border-slate-700 bg-slate-950/50 hover:border-slate-500"
-                }`}
+                onClick={() => void completePlan(commercialOffer.platformTier)}
+                className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
               >
-                <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="font-semibold text-white">{p.name}</h3>
-                  <p className="text-sm text-sky-300">{money(p.monthlyCents)}/mo</p>
-                </div>
-                <p className="mt-1 text-sm text-slate-400">{p.blurb}</p>
+                Continue
               </button>
-            ))}
-          </section>
+            </section>
+          ) : (
+            <section className="space-y-4">
+              {GEN2_PLATFORM_PLANS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void completePlan(p.id)}
+                  className={`w-full rounded-xl border px-5 py-4 text-left ${
+                    progress.platformTier === p.id
+                      ? "border-sky-500 bg-sky-500/10"
+                      : "border-slate-700 bg-slate-950/50 hover:border-slate-500"
+                  }`}
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3 className="font-semibold text-white">{p.name}</h3>
+                    <p className="text-sm text-sky-300">{money(p.monthlyCents)}/mo</p>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-400">{p.blurb}</p>
+                </button>
+              ))}
+            </section>
+          )
         ) : null}
 
         {step === "apps" ? (
-          <section className="space-y-6 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
-            <div>
-              <h3 className="font-semibold text-white">Included with your plan</h3>
-              <p className="mt-1 text-sm text-slate-400">
-                CRM, Communications, Documents, Websites, Commerce and Opportunities ship with the
-                platform.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-white">Industry Apps</h3>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                {INDUSTRY_APP_OPTIONS.map((a) => {
-                  const on = industry.includes(a.id);
-                  return (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => toggleApp("industry", a.id)}
-                      className={`rounded-lg border px-3 py-2 text-left text-sm ${
-                        on
-                          ? "border-sky-500 bg-sky-500/10 text-white"
-                          : "border-slate-700 text-slate-300"
-                      }`}
-                    >
-                      {a.label}
-                      <span className="mt-0.5 block text-xs text-slate-500">
-                        +{money(a.monthlyCents)}/mo
-                      </span>
-                    </button>
-                  );
-                })}
+          commercialOffer ? (
+            <section className="space-y-5 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
+              <div>
+                <h3 className="font-semibold text-white">Included in your agreed plan</h3>
+                <p className="mt-1 text-sm text-slate-400">
+                  Core CRM, Communications, Documents, Websites, Commerce and Opportunities are included. The Apps below are also included in your negotiated terms.
+                </p>
               </div>
-            </div>
-            <div>
-              <h3 className="font-semibold text-white">Growth Apps</h3>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                {GROWTH_APP_OPTIONS.map((a) => {
-                  const on = premium.includes(a.id);
-                  return (
-                    <button
-                      key={a.id}
-                      type="button"
-                      onClick={() => toggleApp("premium", a.id)}
-                      className={`rounded-lg border px-3 py-2 text-left text-sm ${
-                        on
-                          ? "border-sky-500 bg-sky-500/10 text-white"
-                          : "border-slate-700 text-slate-300"
-                      }`}
-                    >
-                      {a.label}
-                      <span className="mt-0.5 block text-xs text-slate-500">
-                        +{money(a.monthlyCents)}/mo
-                      </span>
-                    </button>
-                  );
-                })}
+              {[...industry, ...premium].length ? (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {[...industry, ...premium].map((id) => (
+                    <div key={id} className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-sm text-slate-200">
+                      ✓ {appLabel(id)}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400">No additional paid Apps are required for this agreement.</p>
+              )}
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void completeApps()}
+                className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+              >
+                Continue
+              </button>
+            </section>
+          ) : (
+            <section className="space-y-6 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
+              <div>
+                <h3 className="font-semibold text-white">Included with your plan</h3>
+                <p className="mt-1 text-sm text-slate-400">
+                  CRM, Communications, Documents, Websites, Commerce and Opportunities ship with the
+                  platform.
+                </p>
               </div>
-            </div>
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void completeApps()}
-              className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
-            >
-              Continue
-            </button>
-          </section>
+              <div>
+                <h3 className="font-semibold text-white">Industry Apps</h3>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {INDUSTRY_APP_OPTIONS.map((a) => {
+                    const on = industry.includes(a.id);
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => toggleApp("industry", a.id)}
+                        className={`rounded-lg border px-3 py-2 text-left text-sm ${
+                          on
+                            ? "border-sky-500 bg-sky-500/10 text-white"
+                            : "border-slate-700 text-slate-300"
+                        }`}
+                      >
+                        {a.label}
+                        <span className="mt-0.5 block text-xs text-slate-500">
+                          +{money(a.monthlyCents)}/mo
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <h3 className="font-semibold text-white">Growth Apps</h3>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {GROWTH_APP_OPTIONS.map((a) => {
+                    const on = premium.includes(a.id);
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => toggleApp("premium", a.id)}
+                        className={`rounded-lg border px-3 py-2 text-left text-sm ${
+                          on
+                            ? "border-sky-500 bg-sky-500/10 text-white"
+                            : "border-slate-700 text-slate-300"
+                        }`}
+                      >
+                        {a.label}
+                        <span className="mt-0.5 block text-xs text-slate-500">
+                          +{money(a.monthlyCents)}/mo
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void completeApps()}
+                className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+              >
+                Continue
+              </button>
+            </section>
+          )
         ) : null}
 
         {step === "billing_cadence" ? (
-          <section className="grid gap-4 sm:grid-cols-2">
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void completeCadence("monthly")}
-              className="rounded-xl border border-slate-700 bg-slate-950/50 px-5 py-5 text-left hover:border-sky-500"
-            >
-              <h3 className="font-semibold text-white">Monthly</h3>
-              <p className="mt-2 text-2xl font-bold text-white">{money(totalMonthly)}</p>
-              <p className="text-sm text-slate-400">per month</p>
-            </button>
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void completeCadence("annual")}
-              className="rounded-xl border border-emerald-500/40 bg-emerald-500/5 px-5 py-5 text-left hover:border-emerald-400"
-            >
-              <h3 className="font-semibold text-white">Annual</h3>
-              <p className="mt-2 text-2xl font-bold text-white">{money(totalAnnual)}</p>
-              <p className="text-sm text-emerald-300">
-                Save {money(annualSaving)} / year (
-                {BILLING_COMMERCIAL_CONFIG.annualDiscountPercent}% vs monthly)
-              </p>
-            </button>
-          </section>
+          commercialOffer ? (
+            <section className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-5 py-5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300">Agreed billing</p>
+              <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold text-white">{commercialOffer.cadence === "annual" ? "Annual" : "Monthly"}</h3>
+                  <p className="mt-1 text-sm text-slate-400">This billing cadence is part of your agreed commercial terms.</p>
+                </div>
+                <p className="text-2xl font-bold text-white">{money(commercialOffer.amountCents)}</p>
+              </div>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void completeCadence(commercialOffer.cadence)}
+                className="mt-5 rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+              >
+                Continue
+              </button>
+            </section>
+          ) : (
+            <section className="grid gap-4 sm:grid-cols-2">
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void completeCadence("monthly")}
+                className="rounded-xl border border-slate-700 bg-slate-950/50 px-5 py-5 text-left hover:border-sky-500"
+              >
+                <h3 className="font-semibold text-white">Monthly</h3>
+                <p className="mt-2 text-2xl font-bold text-white">{money(totalMonthly)}</p>
+                <p className="text-sm text-slate-400">per month</p>
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => void completeCadence("annual")}
+                className="rounded-xl border border-emerald-500/40 bg-emerald-500/5 px-5 py-5 text-left hover:border-emerald-400"
+              >
+                <h3 className="font-semibold text-white">Annual</h3>
+                <p className="mt-2 text-2xl font-bold text-white">{money(totalAnnual)}</p>
+                <p className="text-sm text-emerald-300">
+                  Save {money(annualSaving)} / year (
+                  {BILLING_COMMERCIAL_CONFIG.annualDiscountPercent}% vs monthly)
+                </p>
+              </button>
+            </section>
+          )
         ) : null}
 
         {step === "order_summary" || step === "stripe" ? (
           <section className="space-y-4 rounded-xl border border-slate-700/80 bg-slate-950/50 p-6">
             <h2 className="text-lg font-semibold text-white">Your DigitalGate setup</h2>
-            <dl className="space-y-2 text-sm">
-              <div className="flex justify-between text-slate-300">
-                <dt>Platform · {plan.name}</dt>
-                <dd>
-                  {money(
-                    cadence === "annual"
-                      ? annualPriceFromMonthlyCents(platformMonthly)
-                      : platformMonthly,
-                  )}
-                  /{cadence === "annual" ? "yr" : "mo"}
-                </dd>
+            {commercialOffer ? (
+              <dl className="space-y-2 text-sm">
+                <div className="flex justify-between gap-4 text-slate-300">
+                  <dt>{commercialOffer.label}</dt>
+                  <dd>{money(commercialOffer.amountCents)}/{commercialOffer.cadence === "annual" ? "yr" : "mo"}</dd>
+                </div>
+                <div className="flex justify-between gap-4 text-slate-300">
+                  <dt>Apps</dt>
+                  <dd>Included</dd>
+                </div>
+                {commercialOffer.seats ? (
+                  <div className="flex justify-between gap-4 text-slate-300">
+                    <dt>Users</dt>
+                    <dd>Up to {commercialOffer.seats}</dd>
+                  </div>
+                ) : null}
+                <div className="flex justify-between border-t border-slate-800 pt-2 text-white">
+                  <dt className="font-semibold">Total</dt>
+                  <dd className="font-semibold">{money(displayTotal)}/{commercialOffer.cadence === "annual" ? "yr" : "mo"}</dd>
+                </div>
+              </dl>
+            ) : (
+              <dl className="space-y-2 text-sm">
+                <div className="flex justify-between text-slate-300">
+                  <dt>Platform · {plan.name}</dt>
+                  <dd>
+                    {money(
+                      cadence === "annual"
+                        ? annualPriceFromMonthlyCents(platformMonthly)
+                        : platformMonthly,
+                    )}
+                    /{cadence === "annual" ? "yr" : "mo"}
+                  </dd>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <dt>Apps</dt>
+                  <dd>
+                    {money(
+                      cadence === "annual"
+                        ? annualPriceFromMonthlyCents(appsMonthly)
+                        : appsMonthly,
+                    )}
+                    /{cadence === "annual" ? "yr" : "mo"}
+                  </dd>
+                </div>
+                <div className="flex justify-between border-t border-slate-800 pt-2 text-white">
+                  <dt className="font-semibold">Total</dt>
+                  <dd className="font-semibold">
+                    {money(displayTotal)}/{cadence === "annual" ? "yr" : "mo"}
+                  </dd>
+                </div>
+              </dl>
+            )}
+            {trialDays > 0 ? (
+              <div className="rounded-lg border border-sky-500/25 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
+                <p className="font-medium">{trialDays}-day free trial</p>
+                <p className="mt-1 text-sky-200/90">
+                  Nothing is charged today. Stripe holds your payment method; billing starts after
+                  the trial. Cancel anytime before trial ends.
+                </p>
               </div>
-              <div className="flex justify-between text-slate-300">
-                <dt>Apps</dt>
-                <dd>
-                  {money(
-                    cadence === "annual"
-                      ? annualPriceFromMonthlyCents(appsMonthly)
-                      : appsMonthly,
-                  )}
-                  /{cadence === "annual" ? "yr" : "mo"}
-                </dd>
+            ) : commercialOffer ? (
+              <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                <p className="font-medium">Agreed subscription</p>
+                <p className="mt-1 text-emerald-200/90">
+                  Billing starts when you activate. Stripe securely manages your payment method and recurring subscription.
+                </p>
               </div>
-              <div className="flex justify-between border-t border-slate-800 pt-2 text-white">
-                <dt className="font-semibold">Total</dt>
-                <dd className="font-semibold">
-                  {money(displayTotal)}/{cadence === "annual" ? "yr" : "mo"}
-                </dd>
-              </div>
-            </dl>
-            <div className="rounded-lg border border-sky-500/25 bg-sky-500/10 px-4 py-3 text-sm text-sky-100">
-              <p className="font-medium">{trialDays}-day free trial</p>
-              <p className="mt-1 text-sky-200/90">
-                Nothing is charged today. Stripe holds your payment method; billing starts after
-                the trial. Cancel anytime before trial ends.
-              </p>
-            </div>
+            ) : null}
             <button
               type="button"
               disabled={saving}
