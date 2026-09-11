@@ -73,8 +73,8 @@ export default async function CommunicationsEmailPage() {
           </p>
         ) : null}
         <p className="max-w-xl text-xs text-slate-500">
-          Google / Microsoft remain the authoritative mailboxes. DigitalGate records association,
-          provenance, and next actions. Cross-business history lives on CRM → Timeline.
+          Your connected mailbox remains the authoritative source for email. DigitalGate records
+          association, provenance and next actions. Cross-business history lives on CRM → Timeline.
         </p>
       </main>
     </>
