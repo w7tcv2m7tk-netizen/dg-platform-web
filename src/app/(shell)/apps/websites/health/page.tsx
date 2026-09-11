@@ -210,14 +210,21 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                     <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-3">
                       <div>
                         <p className="text-xs uppercase tracking-wide text-slate-500">PageSpeed</p>
-                        <p className="mt-1 text-sm text-slate-300">
-                          Mobile {snapshot.pagespeed.mobile ?? "—"} · Desktop {snapshot.pagespeed.desktop ?? "—"}
-                          {snapshot.pagespeed.checkedAt
-                            ? ` · ${new Date(snapshot.pagespeed.checkedAt).toLocaleString("en-AU")}`
-                            : " · not measured yet"}
-                        </p>
+                        {canEdit ? (
+                          <PageSpeedRefreshButton
+                            websiteId={site.id}
+                            initial={{
+                              mobile: snapshot.pagespeed.mobile ?? null,
+                              desktop: snapshot.pagespeed.desktop ?? null,
+                              checkedAt: snapshot.pagespeed.checkedAt ?? null,
+                            }}
+                          />
+                        ) : (
+                          <p className="mt-1 text-sm text-slate-300">
+                            Mobile {snapshot.pagespeed.mobile ?? "—"} · Desktop {snapshot.pagespeed.desktop ?? "—"}
+                          </p>
+                        )}
                       </div>
-                      {canEdit ? <PageSpeedRefreshButton websiteId={site.id} /> : null}
                     </div>
                   </li>
                 );

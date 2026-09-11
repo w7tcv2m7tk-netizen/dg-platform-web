@@ -76,7 +76,7 @@ test("Website Health keeps mutation controls off read-only sessions", async () =
     "utf8",
   );
   assert.match(source, /canAccessWebsiteStudio\(session, ["']edit["']\)/);
-  assert.match(source, /canEdit \? <PageSpeedRefreshButton/);
+  assert.match(source, /canEdit \? \(\s*<PageSpeedRefreshButton/);
   assert.match(source, /const action = canEdit \? healthActionHref/);
 });
 
