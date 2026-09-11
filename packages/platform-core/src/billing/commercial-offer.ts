@@ -16,6 +16,8 @@ export type NegotiatedCommercialOffer = {
   premiumApps: string[];
   seats?: number;
   trialDays: number;
+  oneOffAmountCents?: number;
+  oneOffLabel?: string;
   agreedAt?: string;
   notes?: string;
 };
@@ -87,6 +89,12 @@ export function parseNegotiatedCommercialOffer(value: unknown): NegotiatedCommer
     typeof raw.trialDays === "number" && Number.isInteger(raw.trialDays) && raw.trialDays >= 0
       ? Math.min(raw.trialDays, 90)
       : 0;
+  const oneOffAmountCents =
+    typeof raw.oneOffAmountCents === "number" &&
+    Number.isInteger(raw.oneOffAmountCents) &&
+    raw.oneOffAmountCents > 0
+      ? raw.oneOffAmountCents
+      : undefined;
   return {
     version: 1,
     id,
@@ -100,6 +108,10 @@ export function parseNegotiatedCommercialOffer(value: unknown): NegotiatedCommer
     premiumApps: asStringArray(raw.premiumApps),
     seats,
     trialDays,
+    oneOffAmountCents,
+    oneOffLabel: oneOffAmountCents
+      ? asString(raw.oneOffLabel, 160) ?? "Implementation & setup"
+      : undefined,
     agreedAt: asString(raw.agreedAt, 64),
     notes: asString(raw.notes, 2000),
   };
@@ -184,26 +196,44 @@ export async function createNegotiatedCommercialCheckoutSession(input: {
     dg_commercial_offer_id: offer.id,
     dg_commercial_offer_label: offer.label,
     dg_subscription_amount_cents: String(offer.amountCents),
+    dg_one_off_amount_cents: String(offer.oneOffAmountCents ?? 0),
     organisation_id: input.organisationId,
   };
-  const sessionParams: Stripe.Checkout.SessionCreateParams = {
-    mode: "subscription",
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: offer.currency,
-          unit_amount: offer.amountCents,
-          recurring,
-          product_data: {
-            name: offer.label,
-            metadata: {
-              dg_commercial_offer_id: offer.id,
-            },
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+    {
+      quantity: 1,
+      price_data: {
+        currency: offer.currency,
+        unit_amount: offer.amountCents,
+        recurring,
+        product_data: {
+          name: offer.label,
+          metadata: {
+            dg_commercial_offer_id: offer.id,
           },
         },
       },
-    ],
+    },
+  ];
+  if (offer.oneOffAmountCents) {
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: offer.currency,
+        unit_amount: offer.oneOffAmountCents,
+        product_data: {
+          name: offer.oneOffLabel ?? "Implementation & setup",
+          metadata: {
+            dg_commercial_offer_id: offer.id,
+            dg_charge_type: "one_off_implementation",
+          },
+        },
+      },
+    });
+  }
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
+    mode: "subscription",
+    line_items: lineItems,
     success_url: `${base}${successPath.startsWith("/") ? successPath : `/${successPath}`}`,
     cancel_url: `${base}${cancelPath.startsWith("/") ? cancelPath : `/${cancelPath}`}`,
     payment_method_collection: "always",

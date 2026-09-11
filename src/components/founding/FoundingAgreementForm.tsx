@@ -54,10 +54,17 @@ export function FoundingAgreementForm({
       <div className="dg-card max-w-2xl">
         <p className="text-emerald-300">Founding Agreement recorded.</p>
         {commercialOffer ? (
-          <p className="mt-2 text-sm text-slate-300">
-            {commercialOffer.label} · {money(commercialOffer.amountCents)}/
-            {commercialOffer.cadence === "annual" ? "year" : "month"}
-          </p>
+          <div className="mt-2 space-y-1 text-sm text-slate-300">
+            <p>
+              {commercialOffer.label} · {money(commercialOffer.amountCents)}/
+              {commercialOffer.cadence === "annual" ? "year" : "month"}
+            </p>
+            {commercialOffer.oneOffAmountCents ? (
+              <p>
+                {commercialOffer.oneOffLabel ?? "Implementation & setup"} · {money(commercialOffer.oneOffAmountCents)} one-off
+              </p>
+            ) : null}
+          </div>
         ) : null}
         <Link href="/onboarding" className="mt-3 inline-block text-sky-400 hover:underline">
           Continue to onboarding →
@@ -92,6 +99,12 @@ export function FoundingAgreementForm({
               {commercialOffer.cadence === "annual" ? "year" : "month"}
             </p>
           </div>
+          {commercialOffer.oneOffAmountCents ? (
+            <div className="mt-4 flex flex-wrap justify-between gap-3 border-t border-emerald-500/20 pt-3 text-sm">
+              <span className="text-slate-300">{commercialOffer.oneOffLabel ?? "Implementation & setup"}</span>
+              <span className="font-semibold text-white">{money(commercialOffer.oneOffAmountCents)} one-off</span>
+            </div>
+          ) : null}
         </div>
       ) : null}
       <a
@@ -110,7 +123,7 @@ export function FoundingAgreementForm({
           onChange={(e) => setAgreed(e.target.checked)}
         />
         {commercialOffer
-          ? `I confirm the Founding 10 terms and the ${commercialOffer.label} commercial offer shown above, and want DigitalGate to proceed to onboarding.`
+          ? `I confirm the Founding 10 terms and the ${commercialOffer.label} commercial offer shown above, including any one-off fee shown, and want DigitalGate to proceed to onboarding.`
           : "I confirm the Founding 10 commercial terms (standard published Platform + Apps pricing, Founding programme benefits, Founding Acquisition Partner referral terms where invited, and programme participation) and want DigitalGate to proceed to onboarding."}
       </label>
       {message ? <p className="text-sm text-amber-300">{message}</p> : null}
