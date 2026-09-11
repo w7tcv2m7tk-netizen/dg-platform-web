@@ -6,7 +6,7 @@ import { formatAudMoney, loadAnalyticsPageData } from "@/lib/analytics-page-data
 
 export default async function AnalyticsReportsPage() {
   const data = await loadAnalyticsPageData();
-  const { bundle, metrics, twinScores, connectors, profile } = data;
+  const { bundle, metrics, twinScores, connectors, profile, canViewOrganisationFinancials } = data;
   const report = bundle.reportTemplates[0];
   const generatedAt = bundle.generatedAt;
 
@@ -21,18 +21,22 @@ export default async function AnalyticsReportsPage() {
           newLeadsThisWeek: metrics.newLeadsThisWeek,
           overdueFollowUps: metrics.overdueFollowUps,
           pipelineValueCents: metrics.pipelineValueCents,
-          revenueMtdCents: metrics.revenueMtdCents,
-          revenueYtdCents: metrics.revenueYtdCents,
-          outstandingArCents: metrics.outstandingArCents,
           listedPropertyCount: metrics.listedPropertyCount,
           openTasksDue: metrics.openTasksDue,
+          ...(canViewOrganisationFinancials
+            ? {
+                revenueMtdCents: metrics.revenueMtdCents,
+                revenueYtdCents: metrics.revenueYtdCents,
+                outstandingArCents: metrics.outstandingArCents,
+              }
+            : {}),
         }
       : null,
     scores: twinScores,
     connectors: {
       website: connectors.website?.ok ?? false,
       wordpress: connectors.wordpress?.ok ?? false,
-      stripe: connectors.stripeOk ?? false,
+      ...(canViewOrganisationFinancials ? { stripe: connectors.stripeOk ?? false } : {}),
     },
     profile: profile
       ? {
@@ -45,7 +49,9 @@ export default async function AnalyticsReportsPage() {
   const evidenceLines = [
     { label: "Leads", value: metrics ? String(metrics.vendorLeadCount + metrics.buyerLeadCount) : "—" },
     { label: "Pipeline", value: metrics ? formatAudMoney(metrics.pipelineValueCents) : "—" },
-    { label: "Revenue MTD", value: metrics ? formatAudMoney(metrics.revenueMtdCents) : "—" },
+    ...(canViewOrganisationFinancials
+      ? [{ label: "Revenue MTD", value: metrics ? formatAudMoney(metrics.revenueMtdCents) : "—" }]
+      : []),
     { label: "Contacts", value: metrics ? String(metrics.contactCount) : "—" },
     { label: "Tasks due", value: metrics ? String(metrics.openTasksDue) : "—" },
     { label: "Overdue follow-ups", value: metrics ? String(metrics.overdueFollowUps) : "—" },
