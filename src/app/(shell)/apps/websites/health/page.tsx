@@ -48,37 +48,19 @@ function healthActionHref(
 ): { href: string; label: string } | null {
   switch (checkId) {
     case "published":
-      return {
-        href: `/apps/websites/studio/${siteId}?live=1`,
-        label: "Publish in Studio",
-      };
+      return { href: `/apps/websites/studio/${siteId}?live=1`, label: "Publish in Studio" };
     case "custom_domain":
-      return {
-        href: `/apps/websites/studio/${siteId}?live=1`,
-        label: "Make it live",
-      };
+      return { href: `/apps/websites/studio/${siteId}?live=1`, label: "Make it live" };
     case "dns":
     case "ssl":
-      return {
-        href: "/apps/infrastructure/hosting",
-        label: "Fix go-live checklist",
-      };
+      return { href: "/apps/infrastructure/hosting", label: "Fix go-live checklist" };
     case "form_crm":
-      return {
-        href: `/apps/websites/studio/${siteId}?tab=edit`,
-        label: "Add form in Studio",
-      };
+      return { href: `/apps/websites/studio/${siteId}?tab=edit`, label: "Add form in Studio" };
     case "seo_title":
     case "seo_description":
-      return {
-        href: `/apps/websites/studio/${siteId}?tab=seo`,
-        label: "Fix SEO gaps",
-      };
+      return { href: `/apps/websites/studio/${siteId}?tab=seo`, label: "Fix SEO gaps" };
     default:
-      return {
-        href: `/apps/websites/studio/${siteId}`,
-        label: "Open Studio",
-      };
+      return { href: `/apps/websites/studio/${siteId}`, label: "Open Studio" };
   }
 }
 
@@ -90,14 +72,8 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
     ? await organisationHasWebsitesBuilder(session.organisationId)
     : false;
 
-  const sites =
-    session && allowed
-      ? await listWebsitesWithPages(session.organisationId)
-      : [];
-  const domains =
-    session && allowed
-      ? await listOrganisationDomains(session.organisationId)
-      : [];
+  const sites = session && allowed ? await listWebsitesWithPages(session.organisationId) : [];
+  const domains = session && allowed ? await listOrganisationDomains(session.organisationId) : [];
 
   // WordPress health is an explicit legacy migration/connector diagnostic view only.
   const showWpConnector =
@@ -115,14 +91,14 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
           {session?.organisationName ?? "DigitalGate"} ·{" "}
           {showWp
             ? "Legacy WordPress migration connector health"
-            : "Live Gen 2 checklist (publish, domain, DNS, SSL, forms, SEO)"}
+            : "Website checklist — publishing, domains, DNS, SSL, forms and SEO"}
         </p>
       </header>
       <main className="dg-page-main space-y-8">
         {showWp ? (
           <p className="text-sm text-slate-500">
             <Link href="/apps/websites/health" className="text-sky-400 hover:underline">
-              ← Gen 2 Health Centre
+              ← Website Health Centre
             </Link>
           </p>
         ) : showWpConnector ? (
@@ -142,10 +118,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
             <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">
               <p className="text-sm text-amber-100/90">
                 Design Studio isn&apos;t enabled for this business yet.{" "}
-                <Link
-                  href="/apps/websites"
-                  className="underline"
-                >
+                <Link href="/apps/websites" className="underline">
                   Back to Design Studio
                 </Link>
               </p>
@@ -153,13 +126,10 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
           ) : sites.length === 0 ? (
             <div className="rounded-lg border border-dashed border-slate-600 p-6 max-w-xl space-y-2">
               <p className="text-sm text-slate-300">
-                No Gen 2 sites yet — create one to see publish, domain, DNS,
-                SSL, form→CRM, and SEO checks.
+                No websites yet — create one to see publishing, domain, DNS, SSL,
+                form-to-CRM and SEO checks.
               </p>
-              <Link
-                href="/apps/websites"
-                className="text-sm text-sky-400 hover:underline"
-              >
+              <Link href="/apps/websites" className="text-sm text-sky-400 hover:underline">
                 Create a site →
               </Link>
             </div>
@@ -181,26 +151,17 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                     : null,
                 });
                 return (
-                  <li
-                    key={site.id}
-                    className="rounded-lg border border-slate-700 bg-slate-900/40 p-5 space-y-4"
-                  >
+                  <li key={site.id} className="rounded-lg border border-slate-700 bg-slate-900/40 p-5 space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
                         <p className="font-semibold text-white">{site.name}</p>
                         <p className="text-xs text-slate-500">
-                          /sites/{site.slug} · updated{" "}
-                          {new Date(site.updatedAt).toLocaleString("en-AU")}
+                          /sites/{site.slug} · updated {new Date(site.updatedAt).toLocaleString("en-AU")}
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <p className="text-2xl font-bold text-white">
-                          {snapshot.score}
-                        </p>
-                        <Link
-                          href={`/apps/websites/studio/${site.id}?live=1`}
-                          className="text-sm text-sky-400 hover:underline"
-                        >
+                        <p className="text-2xl font-bold text-white">{snapshot.score}</p>
+                        <Link href={`/apps/websites/studio/${site.id}?live=1`} className="text-sm text-sky-400 hover:underline">
                           Studio / Make it live →
                         </Link>
                       </div>
@@ -223,24 +184,14 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                           {snapshot.checks.map((check) => {
                             const action = healthActionHref(site.id, check.id);
                             return (
-                              <tr
-                                key={check.id}
-                                className="border-b border-slate-800/60"
-                              >
-                                <td className="py-2.5 pr-4 text-slate-200">
-                                  {check.label}
-                                </td>
-                                <td className="py-2.5 pr-4">
-                                  {statusBadge(check.status)}
-                                </td>
+                              <tr key={check.id} className="border-b border-slate-800/60">
+                                <td className="py-2.5 pr-4 text-slate-200">{check.label}</td>
+                                <td className="py-2.5 pr-4">{statusBadge(check.status)}</td>
                                 <td className="py-2.5 text-slate-400">
                                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                     <span>{check.detail}</span>
                                     {action && check.status !== "pass" ? (
-                                      <Link
-                                        href={action.href}
-                                        className="text-sky-400 hover:underline shrink-0"
-                                      >
+                                      <Link href={action.href} className="text-sky-400 hover:underline shrink-0">
                                         {action.label} →
                                       </Link>
                                     ) : null}
@@ -254,12 +205,9 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
                     </div>
                     <div className="flex flex-wrap items-end justify-between gap-3 rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-3">
                       <div>
-                        <p className="text-xs uppercase tracking-wide text-slate-500">
-                          PageSpeed
-                        </p>
+                        <p className="text-xs uppercase tracking-wide text-slate-500">PageSpeed</p>
                         <p className="mt-1 text-sm text-slate-300">
-                          Mobile {snapshot.pagespeed.mobile ?? "—"} · Desktop{" "}
-                          {snapshot.pagespeed.desktop ?? "—"}
+                          Mobile {snapshot.pagespeed.mobile ?? "—"} · Desktop {snapshot.pagespeed.desktop ?? "—"}
                           {snapshot.pagespeed.checkedAt
                             ? ` · ${new Date(snapshot.pagespeed.checkedAt).toLocaleString("en-AU")}`
                             : " · not measured yet"}
@@ -285,9 +233,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
             ) : (
               <HealthCentreError
                 code={healthResult?.code ?? "network_error"}
-                message={
-                  healthResult?.message ?? "Could not load WordPress migration connector health"
-                }
+                message={healthResult?.message ?? "Could not load WordPress migration connector health"}
                 connectorBaseUrl={wpSite.baseUrl}
               />
             )}
