@@ -7,7 +7,6 @@ import {
   domainNeedsAuEligibility,
   getDomainProvider,
   getOrganisationBusinessProfile,
-  getPersistedDreamscapeCustomerLink,
   listOrganisationDomains,
   resolveDreamscapeConfig,
   upsertDreamscapeCustomerForOrg,
@@ -19,7 +18,7 @@ import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platf
 
 export const runtime = "nodejs";
 
-/** GET /api/v1/infrastructure/domains — org domain inventory */
+/** GET /api/v1/infrastructure/domains — organisation domain inventory. */
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
@@ -27,25 +26,18 @@ export async function GET(req: Request) {
   if (denied) return denied;
 
   const data = await listOrganisationDomains(session.organisationId);
-  const link = await getPersistedDreamscapeCustomerLink(session.organisationId);
-  const { isSandbox, apiMode, soapEnv } = resolveDreamscapeConfig();
+  const { isSandbox } = resolveDreamscapeConfig();
 
   return NextResponse.json({
     data,
-    customerLink: link,
     provider: {
       configured: Boolean(getDomainProvider()),
       isSandbox,
-      apiMode,
-      soapEnv,
     },
   });
 }
 
-/**
- * POST /api/v1/infrastructure/domains
- * Body: { action: "register" | "connect", ... }
- */
+/** POST /api/v1/infrastructure/domains — connect or register a domain. */
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
@@ -69,7 +61,7 @@ export async function POST(req: Request) {
       {
         error: {
           code: "validation_error",
-          message: "action and domain are required",
+          message: "Choose an action and enter a domain name.",
         },
       },
       { status: 400 },
@@ -105,14 +97,13 @@ export async function POST(req: Request) {
       const link = await upsertDreamscapeCustomerForOrg({
         organisationId: session.organisationId,
       });
-      const contactId =
-        link.contactIdentifier || link.dreamscapeCustomerId;
+      const contactId = link.contactIdentifier || link.dreamscapeCustomerId;
       if (!contactId) {
         return NextResponse.json(
           {
             error: {
               code: "customer_required",
-              message: "Could not create provider contact from Business Profile",
+              message: "Complete your Business Profile before registering a domain.",
             },
           },
           { status: 400 },
@@ -135,7 +126,7 @@ export async function POST(req: Request) {
               error: {
                 code: "eligibility_required",
                 message:
-                  ".au registration requires ABN on Business Profile (Organisation settings).",
+                  ".au registration requires an ABN in your Business Profile.",
               },
             },
             { status: 400 },
@@ -145,9 +136,7 @@ export async function POST(req: Request) {
       }
 
       const provider = getDomainProvider();
-      if (!provider) {
-        throw new InfrastructureNotConfiguredError();
-      }
+      if (!provider) throw new InfrastructureNotConfiguredError();
 
       const registered = await provider.register({
         domain,
@@ -163,8 +152,7 @@ export async function POST(req: Request) {
         status: registered.status || "pending",
         source: "registered",
         providerId: registered.providerId,
-        providerDomainId:
-          registered.id !== domain ? registered.id : null,
+        providerDomainId: registered.id !== domain ? registered.id : null,
         providerCustomerId: contactId,
         websiteId: body?.websiteId ?? null,
         managed: true,
@@ -182,23 +170,32 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           data: row,
-          provider: registered,
           warning: gate.isSandbox
             ? null
-            : "Production registration submitted — reseller account may be charged.",
+            : "Production registration submitted and may incur a registrar charge.",
         },
         { status: 201 },
       );
     } catch (err) {
       if (err instanceof DomainRegisterBlockedError) {
         return NextResponse.json(
-          { error: { code: err.code, message: err.message } },
+          {
+            error: {
+              code: err.code,
+              message: "Domain registration isn't available for this request yet.",
+            },
+          },
           { status: 403 },
         );
       }
       if (err instanceof InfrastructureNotConfiguredError) {
         return NextResponse.json(
-          { error: { code: err.code, message: err.message } },
+          {
+            error: {
+              code: "provider_not_configured",
+              message: "Domain registration is temporarily unavailable.",
+            },
+          },
           { status: 503 },
         );
       }
@@ -206,10 +203,8 @@ export async function POST(req: Request) {
         return NextResponse.json(
           {
             error: {
-              code: err.code ?? "provider_error",
-              message: err.message,
-              hint: err.hint,
-              providerBodySnippet: err.providerBodySnippet,
+              code: "provider_error",
+              message: "We couldn't register that domain right now. Please try again.",
             },
           },
           { status: err.status === 400 ? 400 : 502 },
@@ -219,7 +214,7 @@ export async function POST(req: Request) {
         {
           error: {
             code: "provider_error",
-            message: err instanceof Error ? err.message : "Register failed",
+            message: "We couldn't register that domain right now. Please try again.",
           },
         },
         { status: 502 },
@@ -228,7 +223,12 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json(
-    { error: { code: "validation_error", message: "Unknown action" } },
+    {
+      error: {
+        code: "validation_error",
+        message: "Choose a valid domain action and try again.",
+      },
+    },
     { status: 400 },
   );
 }
