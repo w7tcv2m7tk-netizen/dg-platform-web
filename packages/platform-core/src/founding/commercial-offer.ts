@@ -4,7 +4,7 @@ import {
   setOrganisationCommercialOffer,
   type NegotiatedCommercialOffer,
 } from "../billing/commercial-offer";
-import { isFoundingPipeline } from "./pipeline";
+import { isFoundingPipeline, normaliseFoundingStage } from "./pipeline";
 import type { FoundingOpportunityMeta } from "./types";
 
 function asMeta(value: unknown): FoundingOpportunityMeta {
@@ -14,6 +14,25 @@ function asMeta(value: unknown): FoundingOpportunityMeta {
 
 export function foundingCommercialOfferFromMetadata(value: unknown): NegotiatedCommercialOffer | null {
   return parseNegotiatedCommercialOffer(asMeta(value).commercial_offer);
+}
+
+export function foundingCommercialOfferLocked(input: {
+  stage?: string | null;
+  metadata?: unknown;
+}): boolean {
+  const meta = asMeta(input.metadata);
+  if (meta.agreement_signed_at) return true;
+  const stage = normaliseFoundingStage(input.stage ?? "identified");
+  return [
+    "agreement_signed",
+    "onboarding_invited",
+    "onboarding_started",
+    "onboarding_complete",
+    "configuration",
+    "implementation",
+    "go_live",
+    "thirty_day_review",
+  ].includes(stage);
 }
 
 export async function setFoundingCommercialOffer(input: {
@@ -27,13 +46,13 @@ export async function setFoundingCommercialOffer(input: {
   const { prisma } = await import("@dg/database");
   const row = await prisma.opportunity.findFirst({
     where: { id: input.opportunityId, organisationId: input.organisationId },
-    select: { id: true, pipelineId: true, metadata: true },
+    select: { id: true, pipelineId: true, stage: true, metadata: true },
   });
   if (!row || !isFoundingPipeline(row.pipelineId)) throw new Error("Founding opportunity not found");
-  const meta = asMeta(row.metadata);
-  if (meta.agreement_signed_at) {
+  if (foundingCommercialOfferLocked({ stage: row.stage, metadata: row.metadata })) {
     throw new Error("Commercial terms are locked because the agreement has already been signed.");
   }
+  const meta = asMeta(row.metadata);
   await prisma.opportunity.update({
     where: { id: row.id },
     data: {
