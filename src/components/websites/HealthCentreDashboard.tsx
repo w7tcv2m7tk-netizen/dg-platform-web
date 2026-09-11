@@ -39,13 +39,7 @@ function StatCard({
   );
 }
 
-export function HealthCentreDashboard({
-  snapshot,
-  connectorBaseUrl,
-}: {
-  snapshot: SiteHealthSnapshot;
-  connectorBaseUrl: string;
-}) {
+export function HealthCentreDashboard({ snapshot }: { snapshot: SiteHealthSnapshot }) {
   const generated = snapshot.generatedAt
     ? new Date(snapshot.generatedAt).toLocaleString("en-AU")
     : "Unknown";
@@ -56,7 +50,7 @@ export function HealthCentreDashboard({
         <StatCard
           label="Website Health Score™"
           value={snapshot.score}
-          hint={snapshot.site || connectorBaseUrl.replace(/\/wp-json.*/, "")}
+          hint={snapshot.site || "Legacy migration site"}
         />
         <StatCard label="Pass" value={snapshot.pass} />
         <StatCard label="Warnings" value={snapshot.warn} />
@@ -69,7 +63,7 @@ export function HealthCentreDashboard({
             <div>
               <h2 className="font-semibold text-white">Health checks</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Platform checks from your live site · {generated}
+                Checks from the connected migration site · {generated}
               </p>
             </div>
             <p className={`text-3xl font-bold ${scoreColor(snapshot.score)}`}>
@@ -102,7 +96,7 @@ export function HealthCentreDashboard({
           <div className="dg-card">
             <h2 className="font-semibold text-white">PageSpeed</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Google PageSpeed Insights (cached on this site)
+              Google PageSpeed Insights cached for this migration site
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <StatCard
@@ -121,7 +115,7 @@ export function HealthCentreDashboard({
               </p>
             ) : (
               <p className="mt-3 text-xs text-slate-500">
-                Refresh scores from Health Centre, or wait for the overnight probe
+                No cached PageSpeed result is available yet.
               </p>
             )}
           </div>
@@ -140,35 +134,13 @@ export function HealthCentreDashboard({
   );
 }
 
-export function HealthCentreError({
-  code,
-  message,
-  connectorBaseUrl,
-}: {
-  code: string;
-  message: string;
-  connectorBaseUrl: string;
-}) {
+export function HealthCentreError() {
   return (
     <div className="dg-card border-amber-500/30 bg-amber-500/5">
-      <h2 className="font-semibold text-amber-200">Could not load site health</h2>
-      <p className="mt-2 text-sm text-slate-300">{message}</p>
-      <dl className="mt-4 space-y-1 text-xs text-slate-500">
-        <div>
-          <dt className="inline font-medium text-slate-400">Code:</dt>{" "}
-          <dd className="inline font-mono">{code}</dd>
-        </div>
-        <div>
-          <dt className="inline font-medium text-slate-400">Connector:</dt>{" "}
-          <dd className="inline font-mono">{connectorBaseUrl}</dd>
-        </div>
-      </dl>
-      {code === "not_found" ? (
-        <p className="mt-4 text-sm text-slate-400">
-          Deploy the latest DG Platform plugin on roerealty.com.au — it adds{" "}
-          <code className="text-slate-300">GET /site/health</code> to the dev API.
-        </p>
-      ) : null}
+      <h2 className="font-semibold text-amber-200">Could not load migration site health</h2>
+      <p className="mt-2 text-sm text-slate-300">
+        The connected migration site did not return health information. Check the migration connection and try again.
+      </p>
     </div>
   );
 }
