@@ -26,22 +26,8 @@ export const analyticsApp: AppManifest = {
     "analytics.snapshots.read",
   ],
   entities: ["Activity", "Campaign", "Document"],
-  automationTriggers: [
-    { id: "analytics.metric.threshold", label: "KPI crossed threshold" },
-    { id: "analytics.report.ready", label: "Scheduled report ready" },
-  ],
-  automationActions: [
-    { id: "analytics.send_report", label: "Email report snapshot" },
-  ],
-  aiTools: [
-    {
-      id: "analytics.insights",
-      label: "Explain metric change",
-      description: "AI narrative for week-over-week KPI movement",
-    },
-  ],
-  reports: [
-    { id: "analytics.kpi_snapshot", label: "KPI snapshot" },
-    { id: "analytics.channel_mix", label: "Channel performance" },
-  ],
+  automationTriggers: [],
+  automationActions: [],
+  aiTools: [],
+  reports: [{ id: "analytics.business_performance", label: "Business Performance Report" }],
 };
