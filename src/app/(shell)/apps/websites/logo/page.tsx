@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getOrganisationBusinessProfile } from "@dg/platform-core";
+import { getOrganisationBusinessProfile, sessionCan } from "@dg/platform-core";
 
 import { LogoDesignStudioClient } from "@/components/websites/LogoDesignStudioClient";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
@@ -13,6 +13,9 @@ export default async function LogoDesignStudioPage({
   const profile = session
     ? ((await getOrganisationBusinessProfile(session.organisationId)) ?? {})
     : null;
+  const canEditBrand = session
+    ? sessionCan(session, { module: "settings", action: "edit", scope: "organisation" })
+    : false;
   const fromCreate = (await searchParams)?.from === "website-create";
 
   return (
@@ -26,8 +29,8 @@ export default async function LogoDesignStudioPage({
       </header>
       <main className="dg-page-main space-y-6">
         {!session || !profile ? (
-          <p className="text-sm text-slate-400">Sign in to edit brand assets.</p>
-        ) : (
+          <p className="text-sm text-slate-400">Sign in to view brand assets.</p>
+        ) : canEditBrand ? (
           <>
             <LogoDesignStudioClient initial={profile} />
             {fromCreate ? (
@@ -39,7 +42,7 @@ export default async function LogoDesignStudioPage({
               </p>
             ) : (
               <p className="text-sm text-slate-500">
-                Same record as{" "}
+                These brand settings are shared with your{" "}
                 <Link href="/dashboard/business" className="text-slate-300 underline">
                   Business Profile
                 </Link>
@@ -47,6 +50,13 @@ export default async function LogoDesignStudioPage({
               </p>
             )}
           </>
+        ) : (
+          <div className="max-w-xl rounded-lg border border-slate-700 bg-slate-900/40 p-5">
+            <h2 className="font-semibold text-white">Read-only brand access</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              You can view this business&apos;s brand through its websites, but changing organisation-wide brand settings requires additional access.
+            </p>
+          </div>
         )}
       </main>
     </>
