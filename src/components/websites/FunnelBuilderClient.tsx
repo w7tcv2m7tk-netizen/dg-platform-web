@@ -11,8 +11,12 @@ import type { FunnelTemplateId } from "@dg/platform-core/websites/types";
 
 export function FunnelBuilderClient({
   funnels,
+  canCreate,
+  canDelete,
 }: {
   funnels: FunnelBuilderItem[];
+  canCreate: boolean;
+  canDelete: boolean;
 }) {
   const router = useRouter();
   const [template, setTemplate] = useState<FunnelTemplateId>("lead_capture");
@@ -24,6 +28,7 @@ export function FunnelBuilderClient({
 
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
+    if (!canCreate) return;
     setBusy(true);
     setError("");
     try {
@@ -53,15 +58,15 @@ export function FunnelBuilderClient({
         router.refresh();
         return;
       }
-      setError("Created but missing id");
+      setError("The funnel was created, but Studio could not open it. Refresh and try again.");
     } catch {
-      setError("Network error");
+      setError("Could not create the funnel. Check your connection and try again.");
     }
     setBusy(false);
   }
 
   async function onDelete(funnel: FunnelBuilderItem) {
-    if (!funnel.deletable) return;
+    if (!canDelete || !funnel.deletable) return;
     const ok = window.confirm(
       `Delete funnel “${funnel.name}”? This cannot be undone. Linked domains stay in Domains but will be detached.`,
     );
@@ -82,106 +87,110 @@ export function FunnelBuilderClient({
       }
       router.refresh();
     } catch {
-      setError("Network error while deleting");
+      setError("Could not delete the funnel. Check your connection and try again.");
     }
     setDeletingId(null);
   }
 
   return (
     <div className="space-y-8 max-w-3xl">
-      <form
-        onSubmit={(e) => void onCreate(e)}
-        className="space-y-4 rounded-lg border border-slate-700 bg-slate-900/40 p-5"
-      >
-        <div>
-          <h2 className="text-sm font-semibold text-white">New funnel</h2>
-          <p className="mt-1 text-xs text-slate-500">
-            Landing page → contact form → Contact + Lead in CRM. Preview at{" "}
-            <code className="text-slate-400">/sites/[slug]</code>, then{" "}
-            <strong className="font-medium text-slate-400">Publish</strong> and{" "}
-            <strong className="font-medium text-slate-400">Open live</strong> (or
-            attach a custom domain via Make it live).
-          </p>
-        </div>
+      {canCreate ? (
+        <form
+          onSubmit={(e) => void onCreate(e)}
+          className="space-y-4 rounded-lg border border-slate-700 bg-slate-900/40 p-5"
+        >
+          <div>
+            <h2 className="text-sm font-semibold text-white">New funnel</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              Landing page → contact form → CRM. Preview it in Studio, then publish
+              and connect a custom domain when you&apos;re ready.
+            </p>
+          </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
-          {FUNNEL_TEMPLATE_OPTIONS.map((t) => (
+          <div className="grid gap-2 sm:grid-cols-3">
+            {FUNNEL_TEMPLATE_OPTIONS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTemplate(t.id)}
+                className={`rounded-md border px-3 py-2.5 text-left transition ${
+                  template === t.id
+                    ? "border-sky-700/70 bg-sky-950/30"
+                    : "border-slate-700 bg-slate-950/40 hover:border-slate-600"
+                }`}
+              >
+                <span className="block text-sm text-white">{t.label}</span>
+                <span className="block text-[11px] text-slate-500 mt-0.5">
+                  {t.detail}
+                </span>
+                <span className="block text-[11px] text-sky-400/80 mt-1">
+                  CTA: {t.cta}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <div>
+            <label className="block text-sm text-slate-300 mb-1">
+              Name (optional)
+            </label>
+            <input
+              className="w-full rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-white"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Uses Business Profile name if blank"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-slate-300 mb-1">
+              Offer / headline support (optional)
+            </label>
+            <textarea
+              className="w-full rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-white min-h-[72px]"
+              value={offer}
+              onChange={(e) => setOffer(e.target.value)}
+              placeholder={
+                template === "appraisal_request"
+                  ? "e.g. Free appraisal for Currumbin vendors this month"
+                  : template === "booking_enquiry"
+                    ? "e.g. Mid-week stays from $189 — enquire for your dates"
+                    : "e.g. Free 15-minute consultation for new enquiries"
+              }
+            />
+          </div>
+
+          {error ? <p className="text-sm text-rose-400">{error}</p> : null}
+
+          <div className="flex flex-wrap items-center gap-3">
             <button
-              key={t.id}
-              type="button"
-              onClick={() => setTemplate(t.id)}
-              className={`rounded-md border px-3 py-2.5 text-left transition ${
-                template === t.id
-                  ? "border-sky-700/70 bg-sky-950/30"
-                  : "border-slate-700 bg-slate-950/40 hover:border-slate-600"
-              }`}
+              type="submit"
+              disabled={busy || Boolean(deletingId)}
+              className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
             >
-              <span className="block text-sm text-white">{t.label}</span>
-              <span className="block text-[11px] text-slate-500 mt-0.5">
-                {t.detail}
-              </span>
-              <span className="block text-[11px] text-sky-400/80 mt-1">
-                CTA: {t.cta}
-              </span>
+              {busy ? "Creating funnel…" : "Create funnel → Studio"}
             </button>
-          ))}
-        </div>
-
-        <div>
-          <label className="block text-sm text-slate-300 mb-1">
-            Name (optional)
-          </label>
-          <input
-            className="w-full rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-white"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Uses Business Profile name if blank"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm text-slate-300 mb-1">
-            Offer / headline support (optional)
-          </label>
-          <textarea
-            className="w-full rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-white min-h-[72px]"
-            value={offer}
-            onChange={(e) => setOffer(e.target.value)}
-            placeholder={
-              template === "appraisal_request"
-                ? "e.g. Free appraisal for Currumbin vendors this month"
-                : template === "booking_enquiry"
-                  ? "e.g. Mid-week stays from $189 — enquire for your dates"
-                  : "e.g. Free 15-minute consultation for new enquiries"
-            }
-          />
-        </div>
-
-        {error ? <p className="text-sm text-rose-400">{error}</p> : null}
-
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            disabled={busy || Boolean(deletingId)}
-            className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {busy ? "Creating funnel…" : "Create funnel → Studio"}
-          </button>
-          <Link
-            href="/apps/crm/contacts"
-            className="text-sm text-slate-400 hover:underline"
-          >
-            CRM contacts
-          </Link>
-        </div>
-      </form>
+            <Link
+              href="/apps/crm/contacts"
+              className="text-sm text-slate-400 hover:underline"
+            >
+              CRM contacts
+            </Link>
+          </div>
+        </form>
+      ) : (
+        <p className="text-sm text-slate-500">
+          You have read-only access to funnels for this business.
+        </p>
+      )}
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-white">Your funnels</h2>
         {funnels.length === 0 ? (
           <p className="text-sm text-slate-500">
-            No funnels yet — pick a template above. Submissions create CRM leads
-            with <code className="text-slate-400">website_funnel</code> source.
+            {canCreate
+              ? "No funnels yet — pick a template above to create one."
+              : "No funnels are available for this business."}
           </p>
         ) : (
           <ul className="divide-y divide-slate-800 rounded-lg border border-slate-700 overflow-hidden">
@@ -218,7 +227,7 @@ export function FunnelBuilderClient({
                     >
                       Studio
                     </Link>
-                    {f.deletable ? (
+                    {canDelete && f.deletable ? (
                       <button
                         type="button"
                         disabled={busy || Boolean(deletingId)}
