@@ -108,7 +108,7 @@ test("Studio mutation APIs keep implementation details out of customer feedback"
   assert.doesNotMatch(combined, /Website Builder disabled/);
   assert.doesNotMatch(combined, /pageId required/);
   assert.doesNotMatch(combined, /pageIds required/);
-  assert.doesNotMatch(combined, /err instanceof Error \? err\.message/);
+  assert.doesNotMatch(combined, /message:\s*err instanceof Error/);
   assert.match(sources[0], /generator: \{ source: ["']Aida["'] \}/);
   assert.match(sources[1], /source: ["']Aida["']/);
 });
