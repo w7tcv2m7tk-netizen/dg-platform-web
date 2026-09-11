@@ -143,7 +143,7 @@ export function FoundingOperatorHome({
       </section>
 
       <section className="dg-card border-sky-500/20 bg-gradient-to-br from-slate-900 to-slate-950">
-        <h2 className="font-semibold text-white">AI Advisor</h2>
+        <h2 className="font-semibold text-white">Aida</h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-300">
           I&apos;ve reviewed your business. Here&apos;s what I&apos;d focus on today…
         </p>
@@ -154,7 +154,7 @@ export function FoundingOperatorHome({
           href="/dashboard/advisor"
           className="mt-4 inline-flex rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
         >
-          Ask Advisor
+          Ask Aida
         </Link>
       </section>
 
@@ -211,7 +211,7 @@ export function FoundingOperatorHome({
             href="/dashboard/advisor"
             className="rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-sm text-slate-200 hover:border-blue-500/50 hover:text-white"
           >
-            Ask Advisor
+            Ask Aida
           </Link>
           <Link
             href="/dashboard/health"
