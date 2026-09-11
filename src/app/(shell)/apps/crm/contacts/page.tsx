@@ -1,5 +1,7 @@
 import Link from "next/link";
 import {
+  buildAccessContext,
+  hasPermission,
   listCompanies,
   listContacts,
   sessionHasFeature,
@@ -49,6 +51,21 @@ export default async function CrmContactsPage() {
   const canWriteContacts = sessionHasFeature(session, "crm.contacts.write");
   const canReadCompanies = sessionHasFeature(session, "crm.companies.read");
   const canWriteCompanies = sessionHasFeature(session, "crm.companies.write");
+  const canImportContacts = sessionHasFeature(session, "crm.contacts.import");
+  const accessContext = buildAccessContext({
+    role: session.role,
+    organisationId: session.organisationId,
+    principalId: session.clerkUserId,
+    enabledAppIds: [],
+    grants: session.permissionGrants,
+  });
+  const canExportContacts =
+    sessionHasFeature(session, "crm.contacts.export") &&
+    hasPermission(accessContext, {
+      module: "crm",
+      action: "export",
+      scope: "organisation",
+    });
 
   const { items, meta } = await listContacts({
     organisationId: session.organisationId,
@@ -80,9 +97,14 @@ export default async function CrmContactsPage() {
         </p>
       </header>
       <main className="dg-page-main">
-        <div className="mb-6">
-          <ContactImportExport />
-        </div>
+        {canImportContacts || canExportContacts ? (
+          <div className="mb-6">
+            <ContactImportExport
+              canImport={canImportContacts}
+              canExport={canExportContacts}
+            />
+          </div>
+        ) : null}
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="dg-card">
             <h2 className="font-semibold text-white">Add contact</h2>
