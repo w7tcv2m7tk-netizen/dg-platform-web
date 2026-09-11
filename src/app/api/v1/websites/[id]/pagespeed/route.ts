@@ -18,9 +18,9 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function POST(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  if (!canAccessWebsiteStudio(session, "view")) {
+  if (!canAccessWebsiteStudio(session, "edit")) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Insufficient permissions for websites.view" } },
+      { error: { code: "forbidden", message: "You do not have permission to refresh website health data." } },
       { status: 403 },
     );
   }
@@ -29,7 +29,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const allowed = await organisationHasWebsitesBuilder(session.organisationId);
   if (!allowed) {
     return NextResponse.json(
-      { error: { code: "feature_disabled", message: "Website Builder disabled" } },
+      { error: { code: "feature_disabled", message: "Design Studio isn't enabled for this business yet." } },
       { status: 403 },
     );
   }
@@ -64,12 +64,12 @@ export async function POST(req: Request, ctx: Ctx) {
       url,
     });
     return NextResponse.json({ data: pagespeed });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       {
         error: {
           code: "pagespeed_failed",
-          message: err instanceof Error ? err.message : "PageSpeed probe failed",
+          message: "PageSpeed could not be refreshed right now. Please try again.",
         },
       },
       { status: 502 },
