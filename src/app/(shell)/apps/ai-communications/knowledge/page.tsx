@@ -51,14 +51,14 @@ export default async function CommsKnowledgePage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Agent knowledge</h1>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · profile-sourced context for AI agents
+          {session.organisationName} · business context available to AI communications
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         <div className="dg-card">
-          <h2 className="font-semibold text-white">Business Profile pack</h2>
+          <h2 className="font-semibold text-white">Business Profile context</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Read-only snapshot from your Digital Business Identity — no vector database in this phase.
+            Read-only identity and brand context used alongside approved Business Brain knowledge.
           </p>
           <dl className="mt-4 space-y-3 text-sm">
             <div><dt className="text-slate-500">Business name</dt><dd className="text-white">{businessName ?? "—"}</dd></div>
@@ -100,8 +100,13 @@ export default async function CommsKnowledgePage() {
         ) : null}
 
         <div className="dg-card">
-          <p className="text-sm text-slate-400">Update source data in Business Profile to refresh what agents know about your business.</p>
-          <Link href="/dashboard/business" className="mt-3 inline-block text-sm text-blue-400 hover:underline">Edit Business Profile →</Link>
+          <p className="text-sm text-slate-400">
+            Keep your Business Profile current and review approved Business Brain knowledge so AI conversations use accurate business context.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-4 text-sm">
+            <Link href="/dashboard/business" className="text-blue-400 hover:underline">Edit Business Profile →</Link>
+            <Link href="/dashboard/brain" className="text-blue-400 hover:underline">Open Business Brain →</Link>
+          </div>
         </div>
       </main>
     </>

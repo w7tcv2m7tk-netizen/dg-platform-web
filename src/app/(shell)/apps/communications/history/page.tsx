@@ -55,6 +55,7 @@ export default async function CommunicationsHistoryPage({ searchParams }: PagePr
         limit: 100,
       })
     : [];
+  const canSendEmail = sessionHasFeature(session, "communications.email.send");
 
   return (
     <>
@@ -97,19 +98,20 @@ export default async function CommunicationsHistoryPage({ searchParams }: PagePr
             <>
               No communications match this filter for {session.organisationName}.
               <span className="mt-2 block">
-                History only shows emails DigitalGate recorded (Compose, Founding invites,
-                referrals). Gmail/Outlook mail appears after you{" "}
+                History shows communications recorded by DigitalGate and mailbox activity after you{" "}
                 <Link href="/apps/communications/mailboxes" className="text-sky-400 hover:underline">
-                  connect a mailbox
+                  connect a supported mailbox
                 </Link>
                 .
               </span>
-              <span className="mt-2 block">
-                <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
-                  Compose an email
-                </Link>{" "}
-                to create the first record.
-              </span>
+              {canSendEmail ? (
+                <span className="mt-2 block">
+                  <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
+                    Compose an email
+                  </Link>{" "}
+                  to create the first email record.
+                </span>
+              ) : null}
             </>
           }
         />
