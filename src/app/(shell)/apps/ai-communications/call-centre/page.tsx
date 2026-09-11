@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { listCommunicationAgents, listCommunicationSessions } from "@dg/platform-core";
+import {
+  getOrganisationById,
+  listCommunicationAgents,
+  listCommunicationSessions,
+} from "@dg/platform-core";
 
+import { safeTimeZone } from "@/lib/organisation-timezone";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
-function formatDate(iso: string | null) {
+function formatDate(iso: string | null, timeZone: string) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  return new Date(iso).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone,
+  });
 }
 
 function formatDuration(seconds: number | null) {
@@ -31,7 +40,8 @@ export default async function CallCentrePage({
   if (!session) notFound();
 
   const filters = await searchParams;
-  const [agents, result] = await Promise.all([
+  const [organisation, agents, result] = await Promise.all([
+    getOrganisationById(session.organisationId),
     listCommunicationAgents(session.organisationId),
     listCommunicationSessions({
       organisationId: session.organisationId,
@@ -43,13 +53,14 @@ export default async function CallCentrePage({
       limit: 50,
     }),
   ]);
+  const displayTimeZone = safeTimeZone(organisation?.timezone);
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Call Centre</h1>
         <p className="text-sm text-slate-400">
-          {session.organisationName} · operational control for AI communications
+          {session.organisationName} · AI communication activity · times in {displayTimeZone}
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -71,7 +82,7 @@ export default async function CallCentrePage({
               <option value="">All</option>
               {["in_progress", "completed", "missed", "failed", "transferred"].map((value) => (
                 <option key={value} value={value}>
-                  {value}
+                  {value.replace(/_/g, " ")}
                 </option>
               ))}
             </select>
@@ -138,12 +149,12 @@ export default async function CallCentrePage({
                         href={`/apps/ai-communications/call-centre/${row.id}`}
                         className="text-sky-400 hover:underline"
                       >
-                        {formatDate(row.startedAt ?? row.createdAt)}
+                        {formatDate(row.startedAt ?? row.createdAt, displayTimeZone)}
                       </Link>
                     </td>
                     <td className="py-3 pr-3 text-white">{row.agentName ?? "—"}</td>
                     <td className="py-3 pr-3 text-slate-300">{row.direction}</td>
-                    <td className="py-3 pr-3 text-slate-300">{row.status}</td>
+                    <td className="py-3 pr-3 text-slate-300">{row.status.replace(/_/g, " ")}</td>
                     <td className="py-3 pr-3 text-slate-300">
                       {(row.outcome ?? "—").replace(/_/g, " ")}
                     </td>
