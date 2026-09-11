@@ -9,12 +9,12 @@ export default async function CommunicationsSmsPage() {
     <CommunicationsChannelPlaceholder
       active="sms"
       title="SMS"
-      summary="Business messaging — same Communication Record as email and calls."
-      detail="SMS lands in Communications and on CRM Timeline. Connect SMS under Connected Services when available — DigitalGate manages the carrier connection; you do not configure provider APIs."
-      primaryHref="/dashboard/settings/connected-services"
-      primaryLabel="Connected Services"
-      secondaryHref="/apps/communications"
-      secondaryLabel="Open Inbox"
+      summary="SMS is not yet part of the current Communications launch surface."
+      detail="When SMS is available for your organisation, messages will appear in Communications and relevant CRM timelines alongside other customer conversations."
+      primaryHref="/apps/communications/inbox"
+      primaryLabel="Open Inbox"
+      secondaryHref="/dashboard/settings/connected-services"
+      secondaryLabel="Connected Services"
     />
   );
 }
