@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCloudflareInfrastructureOverview } from "@dg/platform-core";
+import { getCloudflareInfrastructureOverview, hasPlatformAuthority } from "@dg/platform-core";
 
 import { CloudflareConsole } from "@/components/infrastructure/CloudflareConsole";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
@@ -7,6 +7,15 @@ import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 export default async function InfrastructureCloudflarePage() {
   const session = await getAuthorisedPlatformPageSession("infrastructure.read");
   if (!session) notFound();
+  if (
+    !hasPlatformAuthority({
+      organisationId: session.organisationId,
+      role: session.role,
+      principalId: session.clerkUserId,
+    })
+  ) {
+    notFound();
+  }
 
   const overview = await getCloudflareInfrastructureOverview();
 
@@ -15,8 +24,7 @@ export default async function InfrastructureCloudflarePage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Cloudflare</h1>
         <p className="text-sm text-slate-400">
-          CDN, WAF, and edge cache — purge after publishes. Dreamscape remains V1 for domain
-          registration; Cloudflare sits in front of live sites.
+          Platform edge operations · CDN · WAF · cache management
         </p>
       </header>
       <main className="dg-page-main max-w-2xl">
