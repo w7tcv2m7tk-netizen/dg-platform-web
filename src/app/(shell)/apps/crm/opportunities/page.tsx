@@ -2,10 +2,13 @@ import Link from "next/link";
 import {
   canAccessCommandCentre,
   isWantOpportunityMetadata,
+  listCompanies,
+  listContacts,
   listOpportunities,
   sessionHasFeature,
 } from "@dg/platform-core";
 
+import { CreateOpportunityForm } from "@/components/crm/CreateOpportunityForm";
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
@@ -29,9 +32,32 @@ export default async function CrmOpportunitiesPage() {
   }
 
   const canWrite = sessionHasFeature(session, "crm.opportunities.write");
-  const { items, meta } = await listOpportunities({
-    organisationId: session.organisationId,
-  });
+  const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
+  const canReadCompanies = sessionHasFeature(session, "crm.companies.read");
+
+  const [opportunityResult, contactResult, companyResult] = await Promise.all([
+    listOpportunities({ organisationId: session.organisationId }),
+    canWrite && canReadContacts
+      ? listContacts({ organisationId: session.organisationId })
+      : Promise.resolve(null),
+    canWrite && canReadCompanies
+      ? listCompanies({ organisationId: session.organisationId, limit: 100 })
+      : Promise.resolve(null),
+  ]);
+  const { items, meta } = opportunityResult;
+
+  const contactOptions = (contactResult?.items ?? []).map((contact) => ({
+    id: contact.id,
+    label:
+      [contact.firstName, contact.lastName].filter(Boolean).join(" ") ||
+      contact.email ||
+      contact.phone ||
+      "Contact",
+  }));
+  const companyOptions = (companyResult?.items ?? []).map((company) => ({
+    id: company.id,
+    label: company.name,
+  }));
 
   const isWantd =
     session.organisationSlug === "wantd" ||
@@ -56,8 +82,21 @@ export default async function CrmOpportunitiesPage() {
             : " · website and platform enquiries land here"}
         </p>
       </header>
-      <main className="dg-page-main">
-        <div className="dg-card">
+      <main className="dg-page-main space-y-6">
+        {canWrite ? (
+          <section className="dg-card border-sky-500/20">
+            <h2 className="font-semibold text-white">Create opportunity</h2>
+            <p className="mt-1 max-w-3xl text-sm text-slate-400">
+              Add a qualified deal directly to CRM. You can link a customer or business now, then
+              progress the stage and record the final outcome from the opportunity record.
+            </p>
+            <div className="mt-4">
+              <CreateOpportunityForm contacts={contactOptions} companies={companyOptions} />
+            </div>
+          </section>
+        ) : null}
+
+        <section className="dg-card">
           {isWantd ? (
             <p className="text-sm text-slate-400">
               Property Wants land here as CRM Opportunities. Matching is manual for MVP — update
@@ -87,7 +126,9 @@ export default async function CrmOpportunitiesPage() {
             </p>
           )}
           {items.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">No opportunities yet.</p>
+            <p className="mt-4 text-sm text-slate-500">
+              No opportunities yet. {canWrite ? "Create the first one above or capture a new enquiry." : "New enquiries will appear here when qualified."}
+            </p>
           ) : (
             <ul className="mt-4 divide-y divide-slate-800">
               {items.map((opp) => {
@@ -132,7 +173,7 @@ export default async function CrmOpportunitiesPage() {
               })}
             </ul>
           )}
-        </div>
+        </section>
       </main>
     </>
   );
