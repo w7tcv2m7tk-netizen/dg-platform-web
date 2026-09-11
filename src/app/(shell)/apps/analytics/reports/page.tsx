@@ -35,7 +35,6 @@ export default async function AnalyticsReportsPage() {
     scores: twinScores,
     connectors: {
       website: connectors.website?.ok ?? false,
-      wordpress: connectors.wordpress?.ok ?? false,
       ...(canViewOrganisationFinancials ? { stripe: connectors.stripeOk ?? false } : {}),
     },
     profile: profile
@@ -115,15 +114,10 @@ export default async function AnalyticsReportsPage() {
           </section>
         ) : null}
 
-        <section className="rounded-xl border border-dashed border-slate-700 px-4 py-4 text-sm text-slate-500">
-          Scheduled reports and PDF export — coming soon. JSON export captures the current evidence
-          snapshot without inventing data.
-        </section>
-
         {!metrics ? (
           <section className="dg-card border-amber-500/30">
             <p className="text-sm text-amber-200">
-              Live metrics are unavailable. Export includes connector status only — no fabricated
+              Live metrics are unavailable. Export includes current connected-service status only — no fabricated
               numbers.
             </p>
           </section>
