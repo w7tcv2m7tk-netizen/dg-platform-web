@@ -13,7 +13,7 @@ const TEMPLATES: Array<{
   {
     id: "auto",
     label: "Auto (from profile)",
-    detail: "Uses industry vertical / enabled apps",
+    detail: "Uses your industry and enabled business capabilities",
   },
   {
     id: "real_estate",
@@ -27,7 +27,7 @@ const TEMPLATES: Array<{
   },
   {
     id: "marketplace",
-    label: "Marketplace (Wantd)",
+    label: "Marketplace",
     detail: "Home · How it works · Post a Want · About · FAQ · Contact",
   },
   {
@@ -40,9 +40,11 @@ const TEMPLATES: Array<{
 export function CreateWebsiteForm({
   defaultBrief,
   suggestedTemplate = "auto",
+  canEditBrand = false,
 }: {
   defaultBrief?: string;
   suggestedTemplate?: WebsiteTemplateId | "auto";
+  canEditBrand?: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -50,19 +52,15 @@ export function CreateWebsiteForm({
   const [template, setTemplate] = useState<WebsiteTemplateId | "auto">(
     suggestedTemplate,
   );
-  const [brandPath, setBrandPath] = useState<"have" | "ai" | "later">("later");
+  const [brandPath, setBrandPath] = useState<"have" | "brand" | "later">("later");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (brandPath === "have") {
+    if (canEditBrand && brandPath !== "later") {
       router.push("/apps/websites/logo?from=website-create");
-      return;
-    }
-    if (brandPath === "ai") {
-      router.push("/apps/websites/logo?intent=ai&from=website-create");
       return;
     }
 
@@ -84,7 +82,7 @@ export function CreateWebsiteForm({
         error?: { message?: string };
       };
       if (!res.ok) {
-        setError(json.error?.message || "Could not create website");
+        setError(json.error?.message || "Could not create the website. Please try again.");
         setLoading(false);
         return;
       }
@@ -94,9 +92,9 @@ export function CreateWebsiteForm({
         router.refresh();
         return;
       }
-      setError("Created but missing id");
+      setError("The website was created but Studio could not open it. Refresh and try again.");
     } catch {
-      setError("Network error");
+      setError("Could not reach Design Studio. Check your connection and try again.");
     }
     setLoading(false);
   }
@@ -108,43 +106,49 @@ export function CreateWebsiteForm({
     >
       <div>
         <p className="block text-sm text-slate-300 mb-2">Brand for this site</p>
-        <div className="grid gap-2">
-          {(
-            [
-              {
-                id: "have" as const,
-                label: "I already have a brand",
-                detail: "Upload logo and colours on Brand, then come back",
-              },
-              {
-                id: "ai" as const,
-                label: "Set brand first",
-                detail: "Opens Brand — upload logo and colours (AI generation is not shipped)",
-              },
-              {
-                id: "later" as const,
-                label: "I’ll do it later",
-                detail: "Build the site now with temporary identity — never blocked",
-              },
-            ] as const
-          ).map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              onClick={() => setBrandPath(opt.id)}
-              className={`rounded-md border px-3 py-2 text-left transition ${
-                brandPath === opt.id
-                  ? "border-sky-700/70 bg-sky-950/30"
-                  : "border-slate-700 bg-slate-950/40 hover:border-slate-600"
-              }`}
-            >
-              <span className="block text-sm text-white">{opt.label}</span>
-              <span className="block text-[11px] text-slate-500 mt-0.5">
-                {opt.detail}
-              </span>
-            </button>
-          ))}
-        </div>
+        {canEditBrand ? (
+          <div className="grid gap-2">
+            {(
+              [
+                {
+                  id: "have" as const,
+                  label: "I already have a brand",
+                  detail: "Review or update your logo and colours in Brand, then come back",
+                },
+                {
+                  id: "brand" as const,
+                  label: "Set brand first",
+                  detail: "Open Brand to upload your logo, icon and colours before creating the site",
+                },
+                {
+                  id: "later" as const,
+                  label: "I’ll do it later",
+                  detail: "Create the site now using your current Business Profile identity",
+                },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setBrandPath(opt.id)}
+                className={`rounded-md border px-3 py-2 text-left transition ${
+                  brandPath === opt.id
+                    ? "border-sky-700/70 bg-sky-950/30"
+                    : "border-slate-700 bg-slate-950/40 hover:border-slate-600"
+                }`}
+              >
+                <span className="block text-sm text-white">{opt.label}</span>
+                <span className="block text-[11px] text-slate-500 mt-0.5">
+                  {opt.detail}
+                </span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-md border border-slate-700 bg-slate-950/40 px-3 py-2 text-xs text-slate-400">
+            This site will use the organisation&apos;s current brand. Brand changes require Settings edit access.
+          </p>
+        )}
       </div>
       <div>
         <label className="block text-sm text-slate-300 mb-1">Site name (optional)</label>
@@ -153,7 +157,7 @@ export function CreateWebsiteForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Uses Business Profile name if blank"
-          disabled={brandPath !== "later"}
+          disabled={canEditBrand && brandPath !== "later"}
         />
       </div>
       <div>
@@ -164,7 +168,7 @@ export function CreateWebsiteForm({
               key={t.id}
               type="button"
               onClick={() => setTemplate(t.id)}
-              disabled={brandPath !== "later"}
+              disabled={canEditBrand && brandPath !== "later"}
               className={`rounded-md border px-3 py-2 text-left transition ${
                 template === t.id
                   ? "border-sky-700/70 bg-sky-950/30"
@@ -186,7 +190,7 @@ export function CreateWebsiteForm({
           value={brief}
           onChange={(e) => setBrief(e.target.value)}
           placeholder="e.g. Premium Currumbin agency focused on vendor appraisals…"
-          disabled={brandPath !== "later"}
+          disabled={canEditBrand && brandPath !== "later"}
         />
       </div>
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
@@ -197,18 +201,21 @@ export function CreateWebsiteForm({
       >
         {loading
           ? "Generating site…"
-          : brandPath === "later"
-            ? "Create from Business Profile"
-            : brandPath === "have"
-              ? "Continue to Brand →"
-              : "Open Brand →"}
+          : canEditBrand && brandPath !== "later"
+            ? "Continue to Brand →"
+            : "Create from Business Profile"}
       </button>
       <p className="text-xs text-slate-500">
-        Structured components (not HTML). Brand is optional —{" "}
-        <Link href="/apps/websites/logo" className="text-slate-300 underline">
-          Brand
-        </Link>{" "}
-        anytime for colours, logo, and icon.
+        Brand is optional. The site uses your current Business Profile identity by default.
+        {canEditBrand ? (
+          <>
+            {" "}
+            <Link href="/apps/websites/logo" className="text-slate-300 underline">
+              Open Brand
+            </Link>{" "}
+            anytime to update colours, logo and icon.
+          </>
+        ) : null}
       </p>
     </form>
   );
