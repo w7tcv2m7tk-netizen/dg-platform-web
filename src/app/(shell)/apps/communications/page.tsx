@@ -98,8 +98,8 @@ export default async function CommunicationsOverviewPage() {
               AI-powered communication capabilities available to your role.
             </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {aiComms.map(({ featureId: _featureId, ...item }) => (
-                <CardLink key={item.href} {...item} />
+              {aiComms.map((item) => (
+                <CardLink key={item.href} href={item.href} label={item.label} blurb={item.blurb} />
               ))}
             </div>
           </section>
@@ -110,8 +110,8 @@ export default async function CommunicationsOverviewPage() {
             <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Configuration</h2>
             <p className="mt-1 text-sm text-slate-400">Communication settings available to your role.</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {config.map(({ featureId: _featureId, ...item }) => (
-                <CardLink key={item.href} {...item} />
+              {config.map((item) => (
+                <CardLink key={item.href} href={item.href} label={item.label} blurb={item.blurb} />
               ))}
             </div>
           </section>
