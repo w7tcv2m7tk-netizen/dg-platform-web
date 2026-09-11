@@ -1,4 +1,5 @@
 import type { Prisma } from "@dg/database";
+import Stripe from "stripe";
 
 import type { BillingCadence, Gen2PlatformTier } from "../onboarding/gen2-journey";
 
@@ -39,6 +40,14 @@ function asStringArray(value: unknown): string[] {
     .map((item) => (typeof item === "string" ? item.trim() : ""))
     .filter(Boolean)
     .slice(0, 50);
+}
+
+function appBaseUrl() {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    process.env.VERCEL_URL?.trim()?.replace(/^/, "https://") ||
+    "http://localhost:3000"
+  ).replace(/\/$/, "");
 }
 
 export function parseNegotiatedCommercialOffer(value: unknown): NegotiatedCommercialOffer | null {
@@ -140,4 +149,81 @@ export async function setOrganisationCommercialOffer(input: {
     },
   });
   return offer;
+}
+
+export async function createNegotiatedCommercialCheckoutSession(input: {
+  organisationId: string;
+  email: string;
+  businessName?: string;
+  offer: NegotiatedCommercialOffer;
+  successPath?: string;
+  cancelPath?: string;
+}) {
+  const offer = parseNegotiatedCommercialOffer(input.offer);
+  if (!offer) throw new Error("Invalid negotiated commercial offer");
+  const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
+  if (!secretKey) throw new Error("Stripe billing is not available");
+  const stripe = new Stripe(secretKey);
+  const { prisma } = await import("@dg/database");
+  const org = await prisma.organisation.findUnique({
+    where: { id: input.organisationId },
+    select: { billingCustomerId: true },
+  });
+  if (!org) throw new Error("Organisation not found");
+
+  const base = appBaseUrl();
+  const successPath = input.successPath ?? "/dashboard/apps?sync=1&checkout=success";
+  const cancelPath = input.cancelPath ?? "/dashboard/settings/billing?checkout=cancelled";
+  const recurring: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.Recurring =
+    offer.cadence === "annual" ? { interval: "year" } : { interval: "month" };
+  const sharedMetadata = {
+    dg_platform_tier: offer.platformTier,
+    dg_billing_cadence: offer.cadence,
+    dg_industry_apps: offer.industryApps.join(","),
+    dg_premium_apps: offer.premiumApps.join(","),
+    dg_commercial_offer_id: offer.id,
+    dg_commercial_offer_label: offer.label,
+    dg_subscription_amount_cents: String(offer.amountCents),
+    organisation_id: input.organisationId,
+  };
+  const sessionParams: Stripe.Checkout.SessionCreateParams = {
+    mode: "subscription",
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: offer.currency,
+          unit_amount: offer.amountCents,
+          recurring,
+          product_data: {
+            name: offer.label,
+            metadata: {
+              dg_commercial_offer_id: offer.id,
+            },
+          },
+        },
+      },
+    ],
+    success_url: `${base}${successPath.startsWith("/") ? successPath : `/${successPath}`}`,
+    cancel_url: `${base}${cancelPath.startsWith("/") ? cancelPath : `/${cancelPath}`}`,
+    payment_method_collection: "always",
+    metadata: {
+      dg_platform_checkout: "true",
+      ...sharedMetadata,
+      contact_email: input.email,
+      business_name: input.businessName ?? "",
+    },
+    subscription_data: {
+      metadata: {
+        ...sharedMetadata,
+        dg_platform_subscription: "true",
+      },
+      ...(offer.trialDays > 0 ? { trial_period_days: offer.trialDays } : {}),
+    },
+  };
+  if (org.billingCustomerId) sessionParams.customer = org.billingCustomerId;
+  else sessionParams.customer_email = input.email;
+
+  const session = await stripe.checkout.sessions.create(sessionParams);
+  return { url: session.url, sessionId: session.id, offer };
 }
