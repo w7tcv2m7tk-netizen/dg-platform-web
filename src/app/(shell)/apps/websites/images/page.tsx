@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  getOrganisationBusinessProfile,
   listStudioLibraryImages,
   organisationHasWebsitesBuilder,
 } from "@dg/platform-core";
@@ -11,15 +12,23 @@ import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 export default async function ImagesLibraryPage() {
   const session = await getAuthorisedPlatformPageSession("websites.read");
   const canEdit = session ? canAccessWebsiteStudio(session, "edit") : false;
-  const showDigitalGateMedia =
-    session?.organisationName.trim().toLowerCase() === "digitalgate";
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
     : false;
 
-  const uploaded =
-    session && allowed ? await listStudioLibraryImages(session.organisationId) : [];
+  const [uploaded, profile] = await Promise.all([
+    session && allowed ? listStudioLibraryImages(session.organisationId) : Promise.resolve([]),
+    session ? getOrganisationBusinessProfile(session.organisationId) : Promise.resolve(null),
+  ]);
+
+  const businessName =
+    profile && typeof profile.businessName === "string"
+      ? profile.businessName.trim().toLowerCase()
+      : "";
+  const showDigitalGateMedia =
+    session?.organisationName.trim().toLowerCase() === "digitalgate" ||
+    businessName === "digitalgate";
 
   return (
     <>
