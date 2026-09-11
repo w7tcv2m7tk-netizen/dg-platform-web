@@ -12,6 +12,7 @@ import {
 import { WebsiteStudioClient } from "@/components/websites/WebsiteStudioClient";
 import { WebsiteStudioUnsavedChangesGuard } from "@/components/websites/WebsiteStudioUnsavedChangesGuard";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -36,7 +37,7 @@ export default async function WebsiteStudioPage({ params }: Props) {
         </header>
         <main className="dg-page-main">
           <p className="text-slate-400">
-            Enable <code>websites.builder</code> to edit a site.{" "}
+            Design Studio isn&apos;t enabled for this business yet.{" "}
             <Link href="/apps/websites" className="underline">
               Back to Design Studio
             </Link>
@@ -49,9 +50,12 @@ export default async function WebsiteStudioPage({ params }: Props) {
   const website = await getWebsite(session.organisationId, id);
   if (!website) notFound();
 
+  const canEdit = canAccessWebsiteStudio(session, "edit");
   const [domains, showWordPressImport] = await Promise.all([
     listOrganisationDomains(session.organisationId),
-    organisationHasWordPressConnector(session.organisationId),
+    canEdit
+      ? organisationHasWordPressConnector(session.organisationId)
+      : Promise.resolve(false),
   ]);
   const linkedDomain =
     resolvePrimaryLinkedDomain(website, domains)?.name ?? null;
@@ -65,7 +69,12 @@ export default async function WebsiteStudioPage({ params }: Props) {
           {linkedDomain ? ` · ${linkedDomain}` : ""}
         </p>
       </header>
-      <main className="dg-page-main">
+      <main className="dg-page-main space-y-4">
+        {!canEdit ? (
+          <p className="text-sm text-slate-500">
+            You have read-only access to this website.
+          </p>
+        ) : null}
         <Suspense
           fallback={
             <p className="text-sm text-slate-500">Loading studio…</p>
@@ -76,6 +85,7 @@ export default async function WebsiteStudioPage({ params }: Props) {
               initial={website}
               linkedDomain={linkedDomain}
               showWordPressImport={showWordPressImport}
+              canEdit={canEdit}
             />
           </WebsiteStudioUnsavedChangesGuard>
         </Suspense>
