@@ -40,12 +40,10 @@ function toLibraryImage(row: {
   return { ...row, deletable: true };
 }
 
-/**
- * Hosted image library for Design Studio: curated + organisation uploads,
- * with copy-ready URLs and <img> snippets.
- */
+/** Hosted image library for Design Studio. Organisation uploads are tenant-scoped. */
 export function StudioImagesPanel({
   initialUploaded = [],
+  showDigitalGateMedia = false,
 }: {
   initialUploaded?: Array<{
     id: string;
@@ -55,6 +53,7 @@ export function StudioImagesPanel({
     height: number;
     alt: string;
   }>;
+  showDigitalGateMedia?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -233,7 +232,7 @@ export function StudioImagesPanel({
         </p>
         {uploaded.length === 0 ? (
           <p className="text-sm text-slate-500">
-            Nothing uploaded yet — files you add here are available to paste into Studio HTML.
+            Nothing uploaded yet — files you add here are available to use in Studio.
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
@@ -244,19 +243,21 @@ export function StudioImagesPanel({
         )}
       </div>
 
-      <div>
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-violet-300/80">
-          Aida — AI Business Advisor
-        </p>
-        <p className="mb-2 text-[11px] text-slate-500">
-          Platform images — copy only; they cannot be deleted.
-        </p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {AIDA_MEDIA.map((m) => (
-            <Tile key={m.id} m={m} />
-          ))}
+      {showDigitalGateMedia ? (
+        <div>
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-violet-300/80">
+            Aida — AI Business Advisor
+          </p>
+          <p className="mb-2 text-[11px] text-slate-500">
+            DigitalGate brand images — copy only; they cannot be deleted.
+          </p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+            {AIDA_MEDIA.map((m) => (
+              <Tile key={m.id} m={m} />
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
