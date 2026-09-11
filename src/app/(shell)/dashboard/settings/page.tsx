@@ -18,7 +18,7 @@ export default async function PlatformSettingsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">
-          Connected services and platform configuration
+          Your organisation, connected services, access and billing
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -28,9 +28,9 @@ export default async function PlatformSettingsPage() {
           purchaseLabel={portal?.purchase_label}
         />
         <p className="text-sm text-slate-400">
-          <a href="/dashboard/business" className="text-blue-400 hover:underline">
+          <Link href="/dashboard/business" className="text-blue-400 hover:underline">
             Open full Business Profile →
-          </a>
+          </Link>
         </p>
 
         <AppearanceSettings />
@@ -45,38 +45,21 @@ export default async function PlatformSettingsPage() {
             </p>
             <h2 className="mt-2 text-lg font-semibold text-white">Connect your business</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Link the systems you already use. DigitalGate manages platform infrastructure —
-              you connect your mailbox, presence, and industry tools.
+              Link the systems you already use. DigitalGate manages the platform infrastructure —
+              you connect your mailbox, presence and industry tools here.
             </p>
             <span className="mt-4 inline-block text-sm font-medium text-sky-400">
-              Connect your business →
+              Manage connected services →
             </span>
           </Link>
 
-          <Link
-            href="/dashboard/settings/api"
-            className="dg-card block border-blue-500/20 bg-gradient-to-br from-slate-900 to-blue-950/20 hover:border-blue-500/40 lg:col-span-2"
-          >
-            <p className="text-xs font-medium uppercase tracking-wide text-blue-400">API</p>
-            <h2 className="mt-2 text-lg font-semibold text-white">REST API &amp; integration keys</h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Create <code className="text-slate-300">dg_live_</code> keys for CRM, leads, commerce, and
-              automations. Base URL: <code className="text-slate-300">/api/v1</code>
-            </p>
-            <span className="mt-4 inline-block text-sm font-medium text-blue-400">Manage API keys →</span>
-          </Link>
-
           <div className="dg-card">
-            <h2 className="font-semibold text-white">This organisation</h2>
+            <h2 className="font-semibold text-white">Organisation</h2>
             {session ? (
               <dl className="mt-4 space-y-3 text-sm">
                 <div>
                   <dt className="text-slate-500">Name</dt>
                   <dd className="text-slate-200">{session.organisationName}</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">Slug</dt>
-                  <dd className="font-mono text-slate-300">{session.organisationSlug}</dd>
                 </div>
                 <div>
                   <dt className="text-slate-500">Signed in as</dt>
@@ -99,77 +82,61 @@ export default async function PlatformSettingsPage() {
           <div className="dg-card">
             <h2 className="font-semibold text-white">Apps</h2>
             <p className="mt-2 text-sm text-slate-400">
-              {enabledIds.length} app{enabledIds.length === 1 ? "" : "s"} enabled for your
-              organisation sidebar.
+              {enabledIds.length} app{enabledIds.length === 1 ? "" : "s"} enabled for your organisation.
             </p>
             <Link
               href="/dashboard/apps"
               className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
             >
-              Manage apps & plan →
+              Manage apps &amp; plan →
             </Link>
           </div>
 
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Setup</h2>
+            <h2 className="font-semibold text-white">Team &amp; access</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Self-serve checklist for CRM, connectors, and first workflows.
+              Manage the people who can access your DigitalGate organisation.
             </p>
             <Link
-              href="/dashboard/business"
+              href="/dashboard/settings/team"
               className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
             >
-              Business Profile →
+              Manage team →
             </Link>
           </div>
 
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Quick links</h2>
-            <ul className="mt-3 space-y-2 text-sm">
-              <li>
-                <Link href="/dashboard/settings/billing" className="text-blue-400 hover:underline">
-                  Billing →
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/dashboard/settings/connected-services"
-                  className="text-blue-400 hover:underline"
-                >
-                  Connected Services →
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/settings/connectors" className="text-blue-400 hover:underline">
-                  Advanced Connectors →
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/settings/api" className="text-blue-400 hover:underline">
-                  API →
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/settings/team" className="text-blue-400 hover:underline">
-                  Team & access →
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/settings/audit" className="text-blue-400 hover:underline">
-                  Audit log →
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard/network/refer-earn" className="text-blue-400 hover:underline">
-                  Refer &amp; Earn →
-                </Link>
-              </li>
-              <li>
-                <Link href="/support" className="text-blue-400 hover:underline">
-                  Support →
-                </Link>
-              </li>
-            </ul>
+            <h2 className="font-semibold text-white">Billing</h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Review your plan, subscription and invoices.
+            </p>
+            <Link
+              href="/dashboard/settings/billing"
+              className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
+            >
+              Billing &amp; invoices →
+            </Link>
+          </div>
+
+          <div className="dg-card lg:col-span-2">
+            <h2 className="font-semibold text-white">More settings</h2>
+            <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+              <Link href="/dashboard/settings/notifications" className="text-blue-400 hover:underline">
+                Notifications →
+              </Link>
+              <Link href="/dashboard/settings/security" className="text-blue-400 hover:underline">
+                Security →
+              </Link>
+              <Link href="/dashboard/settings/api" className="text-blue-400 hover:underline">
+                API &amp; integration keys →
+              </Link>
+              <Link href="/dashboard/settings/audit" className="text-blue-400 hover:underline">
+                Audit log →
+              </Link>
+              <Link href="/support" className="text-blue-400 hover:underline">
+                Help &amp; support →
+              </Link>
+            </div>
           </div>
         </div>
       </main>
