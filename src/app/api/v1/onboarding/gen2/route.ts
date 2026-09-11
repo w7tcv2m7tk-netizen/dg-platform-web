@@ -42,6 +42,14 @@ const CLIENT_CHECKLIST_KEYS = new Set([
   "implementation",
 ]);
 
+async function effectiveCommercialOffer(organisationId: string) {
+  const [programmeRecord, current] = await Promise.all([
+    getFoundingOnboarding(organisationId),
+    getOrganisationCommercialOffer(organisationId),
+  ]);
+  return programmeRecord?.commercialOfferSnapshot ?? current;
+}
+
 function safeClientProgress(raw: unknown) {
   if (!raw || typeof raw !== "object") return {};
   const source = raw as Record<string, unknown>;
@@ -72,14 +80,6 @@ function safeClientProgress(raw: unknown) {
   }
 
   return safe;
-}
-
-async function effectiveCommercialOffer(organisationId: string) {
-  const [founding, current] = await Promise.all([
-    getFoundingOnboarding(organisationId),
-    getOrganisationCommercialOffer(organisationId),
-  ]);
-  return founding?.commercialOfferSnapshot ?? current;
 }
 
 export async function GET(req: Request) {
