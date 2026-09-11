@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import {
+  applyFoundingCommercialOfferToCustomer,
+  findFoundingOpportunityByInviteToken,
   getOrganisationCommercialOffer,
   markFoundingAgreementSigned,
   saveFoundingOnboarding,
@@ -12,11 +14,21 @@ export async function POST(req: Request) {
   if (isNextResponse(session)) return session;
 
   const body = (await req.json().catch(() => null)) as { inviteToken?: string } | null;
-  const offer = await getOrganisationCommercialOffer(session.organisationId);
+  const inviteToken = body?.inviteToken?.trim();
+  let offer = await getOrganisationCommercialOffer(session.organisationId);
+  if (!offer && inviteToken) {
+    const opportunity = await findFoundingOpportunityByInviteToken(inviteToken);
+    if (opportunity) {
+      offer = await applyFoundingCommercialOfferToCustomer({
+        customerOrganisationId: session.organisationId,
+        opportunityMetadata: opportunity.metadata,
+      });
+    }
+  }
   let record = await markFoundingAgreementSigned({
     customerOrganisationId: session.organisationId,
     actorId: session.clerkUserId,
-    inviteToken: body?.inviteToken?.trim(),
+    inviteToken,
   });
   if (offer) {
     record = await saveFoundingOnboarding(session.organisationId, {
