@@ -123,7 +123,7 @@ test("Design Studio home and create flow stay permission-truthful", async () => 
     "utf8",
   );
   assert.match(home, /canAccessWebsiteStudio\(session, ["']edit["']\)/);
-  assert.match(home, /sessionCan\(session, ["']settings["'], ["']edit["'], ["']organisation["']\)/);
+  assert.match(home, /sessionCan\(session, \{[\s\S]*?module: ["']settings["'][\s\S]*?action: ["']edit["'][\s\S]*?scope: ["']organisation["'][\s\S]*?\}\)/);
   assert.match(home, /\{canEdit \? ["']Studio["'] : ["']View["']\}/);
   assert.match(home, /\{canEdit \? \(/);
   assert.match(home, /canEditBrand=\{canEditBrand\}/);
