@@ -22,13 +22,14 @@ export default async function ImagesLibraryPage() {
     session ? getOrganisationBusinessProfile(session.organisationId) : Promise.resolve(null),
   ]);
 
-  const businessName =
-    profile && typeof profile.businessName === "string"
-      ? profile.businessName.trim().toLowerCase()
-      : "";
-  const showDigitalGateMedia =
-    session?.organisationName.trim().toLowerCase() === "digitalgate" ||
-    businessName === "digitalgate";
+  const organisationNames = [
+    session?.organisationName,
+    profile?.businessName,
+    profile?.tradingName,
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => value.trim().toLowerCase());
+  const showDigitalGateMedia = organisationNames.includes("digitalgate");
 
   return (
     <>
