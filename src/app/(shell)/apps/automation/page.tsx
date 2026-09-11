@@ -74,7 +74,7 @@ export default async function AutomationPage() {
           <Link href="/apps/automation/rules" className="dg-card hover:border-slate-700">
             <h2 className="font-semibold text-white">Active rules</h2>
             <p className="mt-1 text-sm text-slate-400">
-              View the automation workflows currently available to your organisation.
+              View the automation workflows currently active in DigitalGate.
             </p>
           </Link>
           <Link href="/apps/automation/logs" className="dg-card hover:border-slate-700">
