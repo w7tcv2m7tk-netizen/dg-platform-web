@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  getOrganisationById,
   listConsultationAgenda,
   sessionHasFeature,
   type ConsultationAgendaItem,
@@ -8,44 +9,51 @@ import {
 import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
-const BRISBANE = "Australia/Brisbane";
+function safeTimeZone(value: string | null | undefined) {
+  const candidate = value?.trim() || "UTC";
+  try {
+    new Intl.DateTimeFormat("en-AU", { timeZone: candidate }).format(new Date());
+    return candidate;
+  } catch {
+    return "UTC";
+  }
+}
 
-function dayKey(iso: string): string {
+function dayKey(iso: string, timeZone: string): string {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: BRISBANE,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(new Date(iso));
 }
 
-function dayHeading(iso: string): string {
+function dayHeading(iso: string, timeZone: string): string {
   return new Intl.DateTimeFormat("en-AU", {
-    timeZone: BRISBANE,
+    timeZone,
     weekday: "long",
     day: "numeric",
     month: "long",
   }).format(new Date(iso));
 }
 
-function timeLabel(item: ConsultationAgendaItem): string {
-  if (item.appointment?.timeLabel) return item.appointment.timeLabel;
+function timeLabel(item: ConsultationAgendaItem, timeZone: string): string {
   if (!item.startsAt) return "Time TBC";
   return new Intl.DateTimeFormat("en-AU", {
-    timeZone: BRISBANE,
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(item.startsAt));
 }
 
-function groupByDay(items: ConsultationAgendaItem[]) {
+function groupByDay(items: ConsultationAgendaItem[], timeZone: string) {
   const groups: { key: string; heading: string; items: ConsultationAgendaItem[] }[] = [];
   for (const item of items) {
     if (!item.startsAt) continue;
-    const key = dayKey(item.startsAt);
+    const key = dayKey(item.startsAt, timeZone);
     const last = groups[groups.length - 1];
     if (last && last.key === key) last.items.push(item);
-    else groups.push({ key, heading: dayHeading(item.startsAt), items: [item] });
+    else groups.push({ key, heading: dayHeading(item.startsAt, timeZone), items: [item] });
   }
   return groups;
 }
@@ -53,9 +61,11 @@ function groupByDay(items: ConsultationAgendaItem[]) {
 function ConsultationRow({
   item,
   canWrite,
+  timeZone,
 }: {
   item: ConsultationAgendaItem;
   canWrite: boolean;
+  timeZone: string;
 }) {
   return (
     <li className="py-3">
@@ -67,7 +77,7 @@ function ConsultationRow({
           >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="font-medium text-white">
-                <span className="mr-2 tabular-nums text-sky-300">{timeLabel(item)}</span>
+                <span className="mr-2 tabular-nums text-sky-300">{timeLabel(item, timeZone)}</span>
                 {item.contactName}
               </p>
               <p className="text-xs uppercase tracking-wide text-slate-500">
@@ -76,8 +86,8 @@ function ConsultationRow({
             </div>
             <p className="mt-1 text-sm text-slate-400">
               {item.contactEmail ? `${item.contactEmail} · ` : ""}
-              {item.appointment?.timezone || "AEST"}
-              {item.meetingLink ? " · Zoom" : ""}
+              {timeZone}
+              {item.meetingLink ? " · Online meeting" : ""}
             </p>
           </Link>
           {item.meetingLink ? (
@@ -87,7 +97,7 @@ function ConsultationRow({
               rel="noreferrer"
               className="mt-1 inline-block text-sm text-sky-400 hover:underline"
             >
-              Open Zoom
+              Open meeting
             </a>
           ) : null}
         </div>
@@ -108,10 +118,12 @@ export default async function CrmConsultationsPage() {
   const session = await getAuthorisedPlatformPageSession("crm.opportunities.read");
   if (!session) return null;
   const canWrite = sessionHasFeature(session, "crm.opportunities.write");
+  const organisation = await getOrganisationById(session.organisationId);
+  const displayTimeZone = safeTimeZone(organisation?.timezone);
 
   const agenda = await listConsultationAgenda({ organisationId: session.organisationId });
-  const upcomingGroups = groupByDay(agenda.upcoming);
-  const pastGroups = groupByDay(agenda.past);
+  const upcomingGroups = groupByDay(agenda.upcoming, displayTimeZone);
+  const pastGroups = groupByDay(agenda.past, displayTimeZone);
   const total = agenda.upcoming.length + agenda.past.length + agenda.unscheduled.length;
 
   return (
@@ -123,7 +135,7 @@ export default async function CrmConsultationsPage() {
         <h1 className="mt-2 text-2xl font-bold text-white">Consultations</h1>
         <p className="text-sm text-slate-400">
           {session.organisationName} · {agenda.upcoming.length} upcoming
-          {total ? ` · ${total} booked` : ""} · times in AEST
+          {total ? ` · ${total} booked` : ""} · times in {displayTimeZone}
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -133,7 +145,7 @@ export default async function CrmConsultationsPage() {
         <div className="dg-card">
           <h2 className="font-semibold text-white">Upcoming</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Platform Consultation bookings. Confirmation emails CC consultations@digitalgate.com.au.
+            Scheduled consultation opportunities for this organisation.
           </p>
           {upcomingGroups.length === 0 ? (
             <p className="mt-4 text-sm text-slate-500">No upcoming consultations.</p>
@@ -144,7 +156,12 @@ export default async function CrmConsultationsPage() {
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">{group.heading}</h3>
                   <ul className="mt-1 divide-y divide-slate-800">
                     {group.items.map((item) => (
-                      <ConsultationRow key={item.opportunityId} item={item} canWrite={canWrite} />
+                      <ConsultationRow
+                        key={item.opportunityId}
+                        item={item}
+                        canWrite={canWrite}
+                        timeZone={displayTimeZone}
+                      />
                     ))}
                   </ul>
                 </section>
@@ -158,7 +175,12 @@ export default async function CrmConsultationsPage() {
             <h2 className="font-semibold text-white">Time TBC</h2>
             <ul className="mt-2 divide-y divide-slate-800">
               {agenda.unscheduled.map((item) => (
-                <ConsultationRow key={item.opportunityId} item={item} canWrite={canWrite} />
+                <ConsultationRow
+                  key={item.opportunityId}
+                  item={item}
+                  canWrite={canWrite}
+                  timeZone={displayTimeZone}
+                />
               ))}
             </ul>
           </div>
@@ -173,7 +195,12 @@ export default async function CrmConsultationsPage() {
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-300">{group.heading}</h3>
                   <ul className="mt-1 divide-y divide-slate-800">
                     {group.items.map((item) => (
-                      <ConsultationRow key={item.opportunityId} item={item} canWrite={canWrite} />
+                      <ConsultationRow
+                        key={item.opportunityId}
+                        item={item}
+                        canWrite={canWrite}
+                        timeZone={displayTimeZone}
+                      />
                     ))}
                   </ul>
                 </section>
