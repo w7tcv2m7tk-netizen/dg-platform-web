@@ -1,7 +1,12 @@
-import { AGENT_STARTER_TEMPLATES, getCommunicationAgent } from "@dg/platform-core";
+import {
+  AGENT_STARTER_TEMPLATES,
+  getCommunicationAgent,
+  getOrganisationById,
+} from "@dg/platform-core";
 import { notFound } from "next/navigation";
 
 import { AgentBuilderForm } from "@/components/ai-communications/AgentBuilderForm";
+import { safeTimeZone } from "@/lib/organisation-timezone";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function AgentBuilderPage({
@@ -13,7 +18,11 @@ export default async function AgentBuilderPage({
   if (!session) notFound();
 
   const { id } = await searchParams;
-  const agent = id ? await getCommunicationAgent(session.organisationId, id) : null;
+  const [agent, organisation] = await Promise.all([
+    id ? getCommunicationAgent(session.organisationId, id) : Promise.resolve(null),
+    getOrganisationById(session.organisationId),
+  ]);
+  const defaultTimezone = safeTimeZone(organisation?.timezone);
 
   return (
     <>
@@ -26,6 +35,7 @@ export default async function AgentBuilderPage({
       <main className="dg-page-main space-y-6">
         <AgentBuilderForm
           agent={agent}
+          defaultTimezone={defaultTimezone}
           templates={AGENT_STARTER_TEMPLATES.map((t) => ({
             id: t.id,
             label: t.label,
