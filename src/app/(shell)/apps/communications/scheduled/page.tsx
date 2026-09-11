@@ -16,7 +16,7 @@ export default async function CommunicationsScheduledPage() {
   const canSendEmail = sessionHasFeature(session, "communications.email.send");
 
   if (process.env.DATABASE_URL && canSendEmail) {
-    // Hobby cron is daily — authorised senders may flush this org's due rows when the page is opened.
+    // Preserve delivery of records that were already queued before customer scheduling was disabled.
     await processDueScheduledEmails({
       organisationId: session.organisationId,
       limit: 25,
@@ -39,23 +39,15 @@ export default async function CommunicationsScheduledPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Scheduled</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Timed sends waiting to go out. Due items flush for authorised senders when this page is
-          opened (and via the daily cron).
+          Emails already queued for later delivery. New manual scheduling is temporarily unavailable
+          while reliable due-time delivery is being completed.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         <CommunicationsList
           rows={rows}
           showScheduledAt
-          empty={
-            <>
-              Nothing scheduled. Use{" "}
-              <Link href="/apps/communications/compose" className="text-sky-400 hover:underline">
-                Compose
-              </Link>{" "}
-              → Send later to queue an email.
-            </>
-          }
+          empty={<>No emails are currently queued for later delivery.</>}
         />
       </main>
     </>

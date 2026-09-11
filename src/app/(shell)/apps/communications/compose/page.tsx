@@ -58,7 +58,7 @@ export default async function CommunicationsComposePage({ searchParams }: PagePr
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Compose email</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Manual send with CRM context. Use Send later for Scheduled. AI Assist drafts come next.
+          Send a manual email with CRM context and your organisation signature.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
