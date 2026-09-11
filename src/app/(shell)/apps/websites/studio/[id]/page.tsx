@@ -59,6 +59,7 @@ export default async function WebsiteStudioPage({ params }: Props) {
   ]);
   const linkedDomain =
     resolvePrimaryLinkedDomain(website, domains)?.name ?? null;
+  const previewHref = `/sites/${website.slug}${website.status === "published" ? "" : "?preview=1"}`;
 
   return (
     <>
@@ -69,26 +70,46 @@ export default async function WebsiteStudioPage({ params }: Props) {
           {linkedDomain ? ` · ${linkedDomain}` : ""}
         </p>
       </header>
-      <main className="dg-page-main space-y-4">
+      <main className="dg-page-main">
         {!canEdit ? (
-          <p className="text-sm text-slate-500">
-            You have read-only access to this website.
-          </p>
-        ) : null}
-        <Suspense
-          fallback={
-            <p className="text-sm text-slate-500">Loading studio…</p>
-          }
-        >
-          <WebsiteStudioUnsavedChangesGuard>
-            <WebsiteStudioClient
-              initial={website}
-              linkedDomain={linkedDomain}
-              showWordPressImport={showWordPressImport}
-              canEdit={canEdit}
-            />
-          </WebsiteStudioUnsavedChangesGuard>
-        </Suspense>
+          <div className="max-w-xl space-y-4 rounded-lg border border-slate-700 bg-slate-900/40 p-5">
+            <div>
+              <h2 className="font-semibold text-white">Read-only website access</h2>
+              <p className="mt-1 text-sm text-slate-400">
+                You can view this website, but editing and publishing controls are not available with your current access.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={previewHref}
+                target="_blank"
+                className="rounded-md border border-slate-600 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
+              >
+                {website.status === "published" ? "Open live" : "Preview"}
+              </Link>
+              <Link
+                href="/apps/websites"
+                className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200"
+              >
+                Back to Websites
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <Suspense
+            fallback={
+              <p className="text-sm text-slate-500">Loading studio…</p>
+            }
+          >
+            <WebsiteStudioUnsavedChangesGuard>
+              <WebsiteStudioClient
+                initial={website}
+                linkedDomain={linkedDomain}
+                showWordPressImport={showWordPressImport}
+              />
+            </WebsiteStudioUnsavedChangesGuard>
+          </Suspense>
+        )}
       </main>
     </>
   );
