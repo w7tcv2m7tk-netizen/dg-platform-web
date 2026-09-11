@@ -37,6 +37,14 @@ function customerDomain(domain: {
   };
 }
 
+type CustomerDnsRecord = {
+  type: string;
+  name: string;
+  content: string;
+  priority?: number;
+  purpose?: string;
+};
+
 /** GET /api/v1/infrastructure/go-live?websiteId=&domain= */
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -124,7 +132,7 @@ export async function POST(req: Request) {
 
   let dns: {
     state: "not_requested" | "applied" | "manual" | "failed";
-    records?: ReturnType<typeof websiteHostingDnsRecords>;
+    records?: CustomerDnsRecord[];
     fellBack?: boolean;
   } = { state: "not_requested" };
   const warnings: string[] = [];
