@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import {
   assertEntitlement,
-  buildAiSystemPrompt,
   buildListingDescriptionAssistEntity,
   buildLiveTwinWithScores,
   gatherOverviewLiveMetrics,
@@ -14,7 +13,6 @@ import {
   getProperty,
   listContactActivities,
   listLeadActivities,
-  llmConfigured,
   metricsContextFromLiveMetrics,
   type AiGenerateAction,
   type CrmAssistEntity,
@@ -181,13 +179,7 @@ export async function GET(req: Request) {
     profileOverride: profile,
   });
 
-  return NextResponse.json({
-    data: {
-      context,
-      systemPrompt: buildAiSystemPrompt(context),
-      llmConfigured: llmConfigured(),
-    },
-  });
+  return NextResponse.json({ data: { context } });
 }
 
 export async function POST(req: Request) {
@@ -319,13 +311,7 @@ export async function POST(req: Request) {
       action,
       output: result.output,
       source: result.source,
-      provider: result.provider ?? null,
-      model: result.model ?? null,
-      latencyMs: result.latencyMs ?? null,
-      fallbackError: result.error ?? null,
       entity,
-      systemPrompt: buildAiSystemPrompt(context),
-      llmConfigured: llmConfigured(),
     },
   });
 }
