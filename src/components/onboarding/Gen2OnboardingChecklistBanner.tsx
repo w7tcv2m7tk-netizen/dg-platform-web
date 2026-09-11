@@ -5,7 +5,7 @@ import {
   getGen2OnboardingProgress,
 } from "@dg/platform-core";
 
-/** Persistent getting-started checklist until Gen 2 onboarding is complete. */
+/** Persistent getting-started checklist until onboarding is complete. */
 export async function Gen2OnboardingChecklistBanner({
   organisationId,
 }: {
@@ -22,7 +22,7 @@ export async function Gen2OnboardingChecklistBanner({
           Continue your setup
         </p>
         <p className="mt-1 text-sm text-slate-200">
-          Finish Gen 2 onboarding to activate your trial and configure DigitalGate.
+          Finish setup to configure DigitalGate for your business.
         </p>
         <Link
           href="/onboarding"
