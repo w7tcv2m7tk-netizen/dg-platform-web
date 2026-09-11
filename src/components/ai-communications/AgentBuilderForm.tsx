@@ -3,8 +3,6 @@
 import {
   AGENT_STARTER_TEMPLATES,
   AGENT_TOOL_GROUPS,
-  ELEVENLABS_CONVAI_LLMS,
-  VOICE_PROVIDER_OPTIONS,
   type AgentBuilderConfig,
 } from "@dg/platform-core";
 import { useRouter } from "next/navigation";
@@ -64,9 +62,11 @@ function lines(value?: string[] | string | null) {
 export function AgentBuilderForm({
   agent,
   templates = [RECEPTIONIST_FALLBACK],
+  defaultTimezone,
 }: {
   agent?: AgentRecord | null;
   templates?: StarterTemplate[];
+  defaultTimezone: string;
 }) {
   const router = useRouter();
   const { pending, error, setError, run, startTransition } = usePendingAction();
@@ -98,7 +98,7 @@ export function AgentBuilderForm({
       type: template.type,
       greeting: template.greeting,
       language: template.language,
-      timezone: template.timezone,
+      timezone: defaultTimezone,
       voiceId: template.voiceId ?? null,
       systemPrompt: template.systemPrompt ?? null,
       config: template.config,
@@ -127,12 +127,12 @@ export function AgentBuilderForm({
       name: String(data.get("name") || "").trim(),
       description: String(data.get("description") || "").trim() || null,
       type: String(data.get("type") || "receptionist"),
-      provider: String(data.get("provider") || "elevenlabs").trim() || "elevenlabs",
+      provider: String(data.get("provider") || active?.provider || "elevenlabs").trim() || "elevenlabs",
       voiceId: String(data.get("voiceId") || "") || null,
-      model: String(data.get("model") || "") || null,
+      model: String(data.get("model") || active?.model || "") || null,
       greeting: String(data.get("greeting") || "").trim() || null,
       language: String(data.get("language") || "en-AU"),
-      timezone: String(data.get("timezone") || "Australia/Brisbane"),
+      timezone: String(data.get("timezone") || defaultTimezone),
       systemPrompt: String(data.get("systemPrompt") || "").trim() || null,
       config: {
         personality: String(data.get("personality") || "").trim() || undefined,
@@ -176,7 +176,7 @@ export function AgentBuilderForm({
       });
       const json = await res.json().catch(() => null);
       if (!res.ok) {
-        const message = json?.error?.message ?? "Failed to save agent";
+        const message = "DigitalGate could not save this agent. Check the details and try again.";
         setError(message);
         throw new Error(message);
       }
@@ -185,9 +185,8 @@ export function AgentBuilderForm({
         const published = await fetch(`/api/v1/communications/agents/${id}/publish`, {
           method: "POST",
         });
-        const pubJson = await published.json().catch(() => null);
         if (!published.ok) {
-          const message = pubJson?.error?.message ?? "Saved, but publish to provider failed";
+          const message = "The agent was saved, but could not be published. Please try again.";
           setError(message);
           throw new Error(message);
         }
@@ -207,13 +206,14 @@ export function AgentBuilderForm({
       onSubmit={(e) => e.preventDefault()}
     >
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
+      <input type="hidden" name="provider" value={active?.provider ?? "elevenlabs"} />
+      <input type="hidden" name="model" value={active?.model ?? ""} />
 
       {!agent ? (
         <section className="dg-card space-y-3">
           <h2 className="font-semibold text-white">Start from template</h2>
           <p className="text-sm text-slate-400">
-            Pre-fills identity, Business Brain–aware behaviour, DigitalGate tools, and compliance.
-            ElevenLabs speaks; DigitalGate remains the system of record.
+            Pre-fills identity, Business Brain-aware behaviour, DigitalGate tools and compliance settings.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {templates.map((template) => (
@@ -240,52 +240,27 @@ export function AgentBuilderForm({
           </label>
           <label className="block">
             <span className="text-sm text-slate-400">Role</span>
-            <select
-              name="type"
-              defaultValue={active?.type ?? "receptionist"}
-              className="dg-input mt-1"
-            >
+            <select name="type" defaultValue={active?.type ?? "receptionist"} className="dg-input mt-1">
               {AGENT_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type.replace(/_/g, " ")}
-                </option>
+                <option key={type} value={type}>{type.replace(/_/g, " ")}</option>
               ))}
             </select>
           </label>
           <label className="block sm:col-span-2">
             <span className="text-sm text-slate-400">Description</span>
-            <textarea
-              name="description"
-              defaultValue={active?.description ?? ""}
-              className="dg-input mt-1 min-h-20"
-            />
+            <textarea name="description" defaultValue={active?.description ?? ""} className="dg-input mt-1 min-h-20" />
           </label>
           <label className="block">
             <span className="text-sm text-slate-400">Role title</span>
-            <input
-              name="roleTitle"
-              defaultValue={cfg.roleTitle ?? "AI Business Receptionist"}
-              className="dg-input mt-1"
-            />
+            <input name="roleTitle" defaultValue={cfg.roleTitle ?? "AI Business Receptionist"} className="dg-input mt-1" />
           </label>
           <label className="block">
             <span className="text-sm text-slate-400">Personality</span>
-            <input
-              name="personality"
-              defaultValue={
-                cfg.personality ??
-                "Professional, warm, helpful, confident and conversational"
-              }
-              className="dg-input mt-1"
-            />
+            <input name="personality" defaultValue={cfg.personality ?? "Professional, warm, helpful, confident and conversational"} className="dg-input mt-1" />
           </label>
           <label className="block sm:col-span-2">
             <span className="text-sm text-slate-400">Tone</span>
-            <input
-              name="tone"
-              defaultValue={cfg.tone ?? "Natural, concise and friendly"}
-              className="dg-input mt-1"
-            />
+            <input name="tone" defaultValue={cfg.tone ?? "Natural, concise and friendly"} className="dg-input mt-1" />
           </label>
         </div>
       </section>
@@ -294,129 +269,55 @@ export function AgentBuilderForm({
         <h2 className="font-semibold text-white">Purpose</h2>
         <label className="block">
           <span className="text-sm text-slate-400">Primary objective</span>
-          <input
-            name="primaryObjective"
-            defaultValue={
-              cfg.primaryObjective ??
-              "Understand the reason for the call and ensure the enquiry is properly captured and routed."
-            }
-            className="dg-input mt-1"
-          />
+          <input name="primaryObjective" defaultValue={cfg.primaryObjective ?? "Understand the reason for the call and ensure the enquiry is properly captured and routed."} className="dg-input mt-1" />
         </label>
         <label className="block">
           <span className="text-sm text-slate-400">Secondary objectives (one per line)</span>
-          <textarea
-            name="secondaryObjectives"
-            defaultValue={lines(cfg.secondaryObjectives)}
-            className="dg-input mt-1 min-h-20"
-          />
+          <textarea name="secondaryObjectives" defaultValue={lines(cfg.secondaryObjectives)} className="dg-input mt-1 min-h-20" />
         </label>
         <label className="block">
           <span className="text-sm text-slate-400">Success criteria</span>
-          <input
-            name="successCriteria"
-            defaultValue={cfg.successCriteria ?? ""}
-            className="dg-input mt-1"
-          />
+          <input name="successCriteria" defaultValue={cfg.successCriteria ?? ""} className="dg-input mt-1" />
         </label>
       </section>
 
       <section className="dg-card space-y-4">
         <h2 className="font-semibold text-white">Voice & language</h2>
         <p className="text-sm text-slate-400">
-          Voice is a replaceable provider. DigitalGate owns Business Brain, tools and CRM — the
-          provider only speaks.
+          Choose how the agent sounds and when it should operate. DigitalGate manages the underlying voice service for you.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className="text-sm text-slate-400">Voice provider</span>
-            <select
-              name="provider"
-              defaultValue={active?.provider ?? "elevenlabs"}
-              className="dg-input mt-1"
-            >
-              {VOICE_PROVIDER_OPTIONS.map((option) => (
-                <option
-                  key={option.id}
-                  value={option.id}
-                  disabled={option.status !== "live"}
-                >
-                  {option.label}
-                  {option.status === "direction" ? " (coming soon)" : ""}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-slate-500">
-              ElevenLabs is Live. OpenAI Realtime is Direction — field is stored for provider
-              independence.
-            </p>
-          </label>
-          <label className="block">
             <span className="text-sm text-slate-400">Voice</span>
-            <select
-              name="voiceId"
-              defaultValue={active?.voiceId ?? "bnr31VMIPcsgqWJQh7Fs"}
-              className="dg-input mt-1"
-            >
-              <option value="">Provider default</option>
+            <select name="voiceId" defaultValue={active?.voiceId ?? "bnr31VMIPcsgqWJQh7Fs"} className="dg-input mt-1">
+              <option value="">Default voice</option>
               {voices.map((voice) => (
-                <option key={voice.id} value={voice.id}>
-                  {voice.name}
-                </option>
+                <option key={voice.id} value={voice.id}>{voice.name}</option>
               ))}
             </select>
             {!voices.length ? (
-              <p className="mt-1 text-xs text-amber-400">
-                No voices loaded — set ELEVENLABS_API_KEY and refresh.
+              <p className="mt-1 text-xs text-slate-500">
+                Voice choices are temporarily unavailable. You can still save the agent and try again later.
               </p>
             ) : null}
           </label>
           <label className="block">
             <span className="text-sm text-slate-400">Language</span>
-            <input
-              name="language"
-              defaultValue={active?.language ?? "en-AU"}
-              className="dg-input mt-1"
-            />
+            <input name="language" defaultValue={active?.language ?? "en-AU"} className="dg-input mt-1" />
           </label>
           <label className="block">
             <span className="text-sm text-slate-400">Timezone</span>
-            <input
-              name="timezone"
-              defaultValue={active?.timezone ?? "Australia/Brisbane"}
-              className="dg-input mt-1"
-            />
-          </label>
-          <label className="block">
-            <span className="text-sm text-slate-400">Conversation LLM</span>
-            <select
-              name="model"
-              defaultValue={active?.model ?? "gemini-2.5-flash-lite"}
-              className="dg-input mt-1"
-            >
-              {ELEVENLABS_CONVAI_LLMS.map((id) => (
-                <option key={id} value={id}>
-                  {id}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-slate-500">
-              ElevenLabs conversation model — not a TTS voice model.
-            </p>
+            <input name="timezone" defaultValue={active?.timezone ?? defaultTimezone} className="dg-input mt-1" />
           </label>
           <label className="block sm:col-span-2">
             <span className="text-sm text-slate-400">Greeting</span>
             <input
               name="greeting"
-              defaultValue={
-                active?.greeting ??
-                "Thanks for calling {{business_name}}, you’re speaking with {{agent_name}}. How can I help you today?"
-              }
+              defaultValue={active?.greeting ?? "Thanks for calling {{business_name}}, you’re speaking with {{agent_name}}. How can I help you today?"}
               className="dg-input mt-1"
             />
             <p className="mt-1 text-xs text-slate-500">
-              Use {"{{business_name}}"} and {"{{agent_name}}"} — resolved from Business Profile on
-              publish.
+              Use {"{{business_name}}"} and {"{{agent_name}}"} to personalise the greeting from your Business Profile.
             </p>
           </label>
         </div>
@@ -425,71 +326,41 @@ export function AgentBuilderForm({
       <section className="dg-card space-y-4">
         <h2 className="font-semibold text-white">Behaviour</h2>
         <label className="block">
-          <span className="text-sm text-slate-400">
-            Qualification questions (one per line — ask only when relevant)
-          </span>
+          <span className="text-sm text-slate-400">Qualification questions (one per line — ask only when relevant)</span>
           <textarea
             name="qualificationQuestions"
-            defaultValue={
-              lines(cfg.qualificationQuestions) ||
-              lines(RECEPTIONIST_FALLBACK.config.qualificationQuestions)
-            }
+            defaultValue={lines(cfg.qualificationQuestions) || lines(RECEPTIONIST_FALLBACK.config.qualificationQuestions)}
             className="dg-input mt-1 min-h-24"
           />
         </label>
         <label className="block">
           <span className="text-sm text-slate-400">Information the agent may provide</span>
-          <textarea
-            name="mayProvide"
-            defaultValue={lines(cfg.mayProvide) || lines(RECEPTIONIST_FALLBACK.config.mayProvide)}
-            className="dg-input mt-1 min-h-20"
-          />
+          <textarea name="mayProvide" defaultValue={lines(cfg.mayProvide) || lines(RECEPTIONIST_FALLBACK.config.mayProvide)} className="dg-input mt-1 min-h-20" />
         </label>
         <label className="block">
           <span className="text-sm text-slate-400">Information the agent must not provide</span>
-          <textarea
-            name="mustNotProvide"
-            defaultValue={
-              lines(cfg.mustNotProvide) || lines(RECEPTIONIST_FALLBACK.config.mustNotProvide)
-            }
-            className="dg-input mt-1 min-h-20"
-          />
+          <textarea name="mustNotProvide" defaultValue={lines(cfg.mustNotProvide) || lines(RECEPTIONIST_FALLBACK.config.mustNotProvide)} className="dg-input mt-1 min-h-20" />
         </label>
         <label className="block">
-          <span className="text-sm text-slate-400">Extra prompt notes</span>
-          <textarea
-            name="systemPrompt"
-            defaultValue={active?.systemPrompt ?? RECEPTIONIST_FALLBACK.systemPrompt ?? ""}
-            className="dg-input mt-1 min-h-28"
-          />
+          <span className="text-sm text-slate-400">Extra instructions</span>
+          <textarea name="systemPrompt" defaultValue={active?.systemPrompt ?? RECEPTIONIST_FALLBACK.systemPrompt ?? ""} className="dg-input mt-1 min-h-28" />
         </label>
       </section>
 
       <section className="dg-card space-y-4">
         <h2 className="font-semibold text-white">DigitalGate tools</h2>
         <p className="text-sm text-slate-400">
-          DigitalGate is the system of record. ElevenLabs provides the conversational voice
-          experience. The voice agent never writes directly to your database. All business actions
-          run through DigitalGate’s permission-controlled tools, with an audit trail.
+          Choose the business actions this agent may use. Actions run through DigitalGate permissions and are recorded for accountability.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           {AGENT_TOOL_GROUPS.map((group) => (
-            <div
-              key={group.id}
-              className="rounded-xl border border-slate-700/70 bg-slate-950/40 px-4 py-3"
-            >
-              <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">
-                {group.label}
-              </p>
+            <div key={group.id} className="rounded-xl border border-slate-700/70 bg-slate-950/40 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-sky-400">{group.label}</p>
               <ul className="mt-2 space-y-2">
                 {group.tools.map((tool) => (
                   <li key={tool.id}>
                     <label className="flex items-center gap-2 text-sm text-slate-200">
-                      <input
-                        type="checkbox"
-                        checked={enabledTools.includes(tool.id)}
-                        onChange={() => toggleTool(tool.id)}
-                      />
+                      <input type="checkbox" checked={enabledTools.includes(tool.id)} onChange={() => toggleTool(tool.id)} />
                       {tool.label}
                     </label>
                   </li>
@@ -503,34 +374,23 @@ export function AgentBuilderForm({
       <section className="dg-card space-y-4">
         <h2 className="font-semibold text-white">Escalation & compliance</h2>
         <label className="flex items-center gap-2 text-sm text-slate-200">
-          <input
-            type="checkbox"
-            name="recordingConsent"
-            defaultChecked={cfg.recordingConsent !== false}
-          />
+          <input type="checkbox" name="recordingConsent" defaultChecked={cfg.recordingConsent !== false} />
           Recording disclosure enabled
         </label>
         <label className="block">
           <span className="text-sm text-slate-400">Disclosure</span>
           <textarea
             name="disclosure"
-            defaultValue={
-              cfg.disclosure ??
-              "Just letting you know, this call may be recorded to help us improve our service."
-            }
+            defaultValue={cfg.disclosure ?? "Just letting you know, this call may be recorded to help us improve our service."}
             className="dg-input mt-1 min-h-20"
           />
           <p className="mt-1 text-xs text-slate-500">
-            Configurable by jurisdiction — do not assume recording is always lawful to announce.
+            Review recording and disclosure requirements for the jurisdictions where your business operates.
           </p>
         </label>
         <label className="block">
           <span className="text-sm text-slate-400">Out of hours behaviour</span>
-          <select
-            name="outOfHoursMode"
-            defaultValue={cfg.outOfHoursMode ?? "take_message"}
-            className="dg-input mt-1"
-          >
+          <select name="outOfHoursMode" defaultValue={cfg.outOfHoursMode ?? "take_message"} className="dg-input mt-1">
             <option value="take_message">Take message (default)</option>
             <option value="inform_and_follow_up">Provide information and create follow-up</option>
             <option value="transfer_on_call">Transfer to emergency / on-call (when configured)</option>
@@ -540,10 +400,7 @@ export function AgentBuilderForm({
           <span className="text-sm text-slate-400">Out of hours guidance</span>
           <input
             name="outOfHoursMessage"
-            defaultValue={
-              cfg.outOfHoursMessage ??
-              "Take a message, capture contact details, create a follow-up Task, and offer a callback."
-            }
+            defaultValue={cfg.outOfHoursMessage ?? "Take a message, capture contact details, create a follow-up Task, and offer a callback."}
             className="dg-input mt-1"
           />
         </label>
@@ -551,20 +408,13 @@ export function AgentBuilderForm({
           <span className="text-sm text-slate-400">Human fallback line</span>
           <input
             name="humanFallbackMessage"
-            defaultValue={
-              cfg.humanFallbackMessage ??
-              "I want to make sure you get the right help with this. I’ll pass this through to someone from the team."
-            }
+            defaultValue={cfg.humanFallbackMessage ?? "I want to make sure you get the right help with this. I’ll pass this through to someone from the team."}
             className="dg-input mt-1"
           />
         </label>
         <label className="block">
           <span className="text-sm text-slate-400">Human fallback action</span>
-          <select
-            name="fallback"
-            defaultValue={cfg.fallback ?? "transfer"}
-            className="dg-input mt-1"
-          >
+          <select name="fallback" defaultValue={cfg.fallback ?? "transfer"} className="dg-input mt-1">
             <option value="transfer">Transfer to human</option>
             <option value="voicemail">Voicemail / message</option>
             <option value="message">Take a message / create Task</option>
