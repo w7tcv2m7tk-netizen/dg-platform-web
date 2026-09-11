@@ -223,6 +223,8 @@ export type FoundingOpportunityMeta = {
   founding_invited_by?: string;
   founding_invited_by_name?: string;
   business_name?: string;
+  /** Negotiated terms attached by a platform operator before agreement signature. */
+  commercial_offer?: NegotiatedCommercialOffer;
   acceptance_email_sent_at?: string;
   agreement_email_sent_at?: string;
   onboarding_invite_sent_at?: string;
