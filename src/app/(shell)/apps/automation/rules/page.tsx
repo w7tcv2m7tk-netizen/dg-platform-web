@@ -10,8 +10,8 @@ export default async function AutomationRulesPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/dashboard" className="text-sm text-blue-400 hover:underline">
-          ← Overview
+        <Link href="/apps/automation" className="text-sm text-blue-400 hover:underline">
+          ← Automation
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold text-white">Automation rules</h1>
@@ -23,7 +23,7 @@ export default async function AutomationRulesPage() {
           </Link>
         </div>
         <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · registered trigger → action rules
+          {session?.organisationName ?? "DigitalGate"} · active automated workflows
         </p>
       </header>
       <main className="dg-page-main">
