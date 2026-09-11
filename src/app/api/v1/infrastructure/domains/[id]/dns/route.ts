@@ -20,9 +20,7 @@ export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-function parseHostingMode(
-  raw: unknown,
-): WebsiteHostingDnsMode | null {
+function parseHostingMode(raw: unknown): WebsiteHostingDnsMode | null {
   if (raw === true || raw === "full") return "full";
   if (raw === "www" || raw === "apex") return raw;
   return null;
@@ -39,7 +37,7 @@ export async function GET(req: Request, ctx: Ctx) {
   const domain = await getOrganisationDomain(session.organisationId, id);
   if (!domain) {
     return NextResponse.json(
-      { error: { code: "not_found", message: "Domain not found" } },
+      { error: { code: "not_found", message: "Domain not found." } },
       { status: 404 },
     );
   }
@@ -50,20 +48,33 @@ export async function GET(req: Request, ctx: Ctx) {
   let providerError: string | null = null;
   try {
     zone = await inspectDnsZone(domain.name);
-  } catch (err) {
-    providerError = err instanceof Error ? err.message : "DNS inspect failed";
+  } catch {
+    providerError = "DNS status is temporarily unavailable.";
   }
 
   let providerRecords: DnsRecord[] = zone?.records ?? [];
   if (!zone) {
     try {
       providerRecords = await requireDnsProvider().listRecords(domain.name);
-    } catch (err) {
-      providerError =
-        providerError ||
-        (err instanceof Error ? err.message : "DNS list failed");
+    } catch {
+      providerError = "DNS status is temporarily unavailable.";
     }
   }
+
+  const safeZone = zone
+    ? {
+        manageable: zone.manageable,
+        nameservers: zone.nameservers,
+        recordCount: zone.records?.length ?? 0,
+        status: zone.status ?? null,
+        message: zone.manageable === false
+          ? "This DNS zone is not currently manageable from DigitalGate."
+          : "DNS zone inspected.",
+        hint: zone.manageable === false
+          ? "Check the domain's nameservers or contact DigitalGate for help."
+          : null,
+      }
+    : null;
 
   return NextResponse.json({
     data: {
@@ -71,24 +82,15 @@ export async function GET(req: Request, ctx: Ctx) {
       stored: domain.dnsRecords ?? [],
       provider: providerRecords,
       suggestedHosting: suggested,
-      targets,
-      zone,
+      zone: safeZone,
       providerError,
       sslNote:
-        "SSL is auto-issued by Vercel after the custom domain is attached and DNS propagates.",
+        "SSL is issued automatically after the custom domain is connected and DNS verification completes.",
     },
   });
 }
 
-/**
- * POST /api/v1/infrastructure/domains/[id]/dns
- * Body: {
- *   records?: DnsRecord[],
- *   applyHosting?: true | 'full' | 'www' | 'apex',
- *   attachVercel?: boolean,
- *   allowWwwFallback?: boolean
- * }
- */
+/** POST /api/v1/infrastructure/domains/[id]/dns */
 export async function POST(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
@@ -99,7 +101,7 @@ export async function POST(req: Request, ctx: Ctx) {
   const domain = await getOrganisationDomain(session.organisationId, id);
   if (!domain) {
     return NextResponse.json(
-      { error: { code: "not_found", message: "Domain not found" } },
+      { error: { code: "not_found", message: "Domain not found." } },
       { status: 404 },
     );
   }
@@ -121,8 +123,7 @@ export async function POST(req: Request, ctx: Ctx) {
       {
         error: {
           code: "validation_error",
-          message:
-            "Provide records[] or applyHosting: true | 'full' | 'www' | 'apex'",
+          message: "Choose hosting DNS or provide DNS records to update.",
         },
       },
       { status: 400 },
@@ -133,8 +134,6 @@ export async function POST(req: Request, ctx: Ctx) {
     let applied: DnsRecord[];
     let modeApplied: WebsiteHostingDnsMode | "custom" = "custom";
     let fellBack = false;
-    let note: string | undefined;
-    let zone = null;
     let targets = null as Awaited<
       ReturnType<typeof resolveWebsiteHostingDnsTargets>
     > | null;
@@ -148,19 +147,12 @@ export async function POST(req: Request, ctx: Ctx) {
       applied = result.records;
       modeApplied = result.modeApplied;
       fellBack = result.fellBack;
-      note = result.note;
-      zone = result.zone;
       targets = result.targets;
     } else {
       applied = await requireDnsProvider().upsertRecords(
         domain.name,
         customRecords,
       );
-      try {
-        zone = await inspectDnsZone(domain.name);
-      } catch {
-        zone = null;
-      }
       targets = await resolveWebsiteHostingDnsTargets(domain.name);
     }
 
@@ -173,11 +165,8 @@ export async function POST(req: Request, ctx: Ctx) {
       managed: true,
     });
 
-    let vercel = null as Awaited<
-      ReturnType<typeof attachVercelWebsiteHostnames>
-    > | null;
     if (body?.attachVercel || hostingMode) {
-      vercel = await attachVercelWebsiteHostnames(domain.name);
+      const vercel = await attachVercelWebsiteHostnames(domain.name);
       if (vercel.apex.ok || vercel.www.ok) {
         await upsertInfrastructureDomain({
           organisationId: session.organisationId,
@@ -193,46 +182,27 @@ export async function POST(req: Request, ctx: Ctx) {
       }
     }
 
-    const apexHint =
-      applied.find((r) => r.type === "A" && (r.name === "@" || !r.name))
-        ?.content || targets?.aTarget;
-    const wwwHint =
-      applied.find((r) => r.type === "CNAME" && r.name === "www")?.content ||
-      targets?.cnameTarget;
-
-    const vercelConfigured =
-      vercel?.apex.configured || vercel?.www.configured || false;
-    const vercelOk = Boolean(vercel?.apex.ok || vercel?.www.ok);
-
     return NextResponse.json({
       data: {
         domain: updated,
         records: applied,
         modeApplied,
         fellBack,
-        note,
-        zone,
-        targets,
-        vercel,
-        instructions: vercelOk
-          ? null
-          : [
-              apexHint ? `Apex A → ${apexHint}` : null,
-              wwwHint ? `www CNAME → ${wwwHint}` : null,
-              targets?.source === "vercel"
-                ? "Targets from Vercel recommended DNS"
-                : "Add the hostname in Vercel → Project → Domains (or set VERCEL_TOKEN + VERCEL_PROJECT_ID)",
-              "SSL provisions automatically once DNS verifies",
-              !vercelConfigured
-                ? "Vercel domain attach not configured. Set VERCEL_TOKEN + VERCEL_PROJECT_ID (optional VERCEL_TEAM_ID), or add the domain manually in Vercel → Domains."
-                : null,
-            ].filter(Boolean),
+        instructions: [
+          "DNS update submitted.",
+          "Verification and SSL can take a few minutes after DNS changes propagate.",
+        ],
       },
     });
   } catch (err) {
     if (err instanceof InfrastructureNotConfiguredError) {
       return NextResponse.json(
-        { error: { code: err.code, message: err.message } },
+        {
+          error: {
+            code: "provider_not_configured",
+            message: "DNS management is temporarily unavailable.",
+          },
+        },
         { status: 503 },
       );
     }
@@ -240,10 +210,8 @@ export async function POST(req: Request, ctx: Ctx) {
       return NextResponse.json(
         {
           error: {
-            code: err.code ?? "provider_error",
-            message: err.message,
-            hint: err.hint,
-            providerBodySnippet: err.providerBodySnippet,
+            code: "provider_error",
+            message: "We couldn't update DNS right now. Please try again.",
           },
         },
         { status: err.status === 422 ? 422 : 502 },
@@ -253,7 +221,7 @@ export async function POST(req: Request, ctx: Ctx) {
       {
         error: {
           code: "provider_error",
-          message: err instanceof Error ? err.message : "DNS update failed",
+          message: "We couldn't update DNS right now. Please try again.",
         },
       },
       { status: 502 },
