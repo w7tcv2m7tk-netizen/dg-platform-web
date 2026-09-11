@@ -1,6 +1,4 @@
 import {
-  DreamscapeApiError,
-  InfrastructureNotConfiguredError,
   applyEmailAuthDns,
   buildEmailDomainAuthPlan,
   getEmailInfrastructureOverview,
@@ -15,7 +13,6 @@ import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platf
 
 export const runtime = "nodejs";
 
-/** GET /api/v1/infrastructure/email — overview (+ optional ?domain= auth plan) */
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
@@ -24,100 +21,48 @@ export async function GET(req: Request) {
 
   const url = new URL(req.url);
   const domain = url.searchParams.get("domain")?.trim();
-  const ensure = url.searchParams.get("ensure") === "1";
-
-  const overview = await getEmailInfrastructureOverview(
-    session.organisationId,
-  );
+  const overview = await getEmailInfrastructureOverview(session.organisationId);
   const domains = await listOrganisationDomains(session.organisationId);
 
   let authPlan = null;
   if (domain) {
-    const owned = await getOrganisationDomain(
-      session.organisationId,
-      domain,
-    );
+    const owned = await getOrganisationDomain(session.organisationId, domain);
     if (!owned) {
       return NextResponse.json(
-        {
-          error: {
-            code: "not_found",
-            message:
-              "Domain not in inventory — connect it under Domains first",
-          },
-        },
+        { error: { code: "not_found", message: "Domain not found in this organisation." } },
         { status: 404 },
       );
     }
     authPlan = await buildEmailDomainAuthPlan({
       domain: owned.name,
       organisationId: session.organisationId,
-      ensure,
+      ensure: false,
     });
   }
 
-  return NextResponse.json({
-    data: {
-      overview,
-      domains,
-      authPlan,
-    },
-  });
+  return NextResponse.json({ data: { overview, domains, authPlan } });
 }
 
-/**
- * POST /api/v1/infrastructure/email
- * Body: { action: "prepare" | "apply" | "verify", domain: string }
- */
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
   const denied = requireFeature(session, "infrastructure.write");
   if (denied) return denied;
 
-  const body = (await req.json().catch(() => null)) as {
-    action?: string;
-    domain?: string;
-  } | null;
-
+  const body = (await req.json().catch(() => null)) as { action?: string; domain?: string } | null;
   const action = body?.action?.trim();
   const domainRaw = body?.domain?.trim();
-  if (!action || !domainRaw) {
+  if (!action || !domainRaw || !["prepare", "apply", "verify"].includes(action)) {
     return NextResponse.json(
-      {
-        error: {
-          code: "validation_error",
-          message: "action and domain are required",
-        },
-      },
-      { status: 400 },
-    );
-  }
-  if (!["prepare", "apply", "verify"].includes(action)) {
-    return NextResponse.json(
-      {
-        error: {
-          code: "validation_error",
-          message: "action must be prepare | apply | verify",
-        },
-      },
+      { error: { code: "validation_error", message: "Choose a valid email action and domain." } },
       { status: 400 },
     );
   }
 
-  const owned = await getOrganisationDomain(
-    session.organisationId,
-    domainRaw,
-  );
+  const owned = await getOrganisationDomain(session.organisationId, domainRaw);
   if (!owned) {
     return NextResponse.json(
-      {
-        error: {
-          code: "not_found",
-          message:
-            "Domain not in inventory — connect it under Domains first",
-        },
-      },
+      { error: { code: "not_found", message: "Domain not found in this organisation." } },
       { status: 404 },
     );
   }
@@ -140,13 +85,7 @@ export async function POST(req: Request) {
           },
         });
       }
-      return NextResponse.json({
-        data: {
-          action,
-          authPlan,
-          message: authPlan.note || "Sending domain ready",
-        },
-      });
+      return NextResponse.json({ data: { action, authPlan, message: "Sending domain prepared." } });
     }
 
     if (action === "apply") {
@@ -169,12 +108,9 @@ export async function POST(req: Request) {
       return NextResponse.json({
         data: {
           action,
-          records: result.records,
           authPlan: result.plan,
-          verify: result.verify,
-          message: result.verify?.ok
-            ? "Auth DNS applied — verification requested"
-            : "Auth DNS applied",
+          verify: { ok: result.verify?.ok, status: result.plan.resendStatus },
+          message: "Email authentication DNS applied.",
         },
       });
     }
@@ -199,38 +135,12 @@ export async function POST(req: Request) {
         action,
         authPlan: verified.plan,
         ok: verified.ok,
-        message: verified.ok
-          ? `Verification status: ${verified.plan.resendStatus ?? "pending"}`
-          : verified.error || "Verification failed",
+        message: verified.ok ? "Email domain verified." : "Email domain verification is still pending.",
       },
     });
-  } catch (err) {
-    if (err instanceof InfrastructureNotConfiguredError) {
-      return NextResponse.json(
-        { error: { code: err.code, message: err.message } },
-        { status: 503 },
-      );
-    }
-    if (err instanceof DreamscapeApiError) {
-      return NextResponse.json(
-        {
-          error: {
-            code: err.code ?? "provider_error",
-            message: err.message,
-            hint: err.hint,
-            providerBodySnippet: err.providerBodySnippet,
-          },
-        },
-        { status: err.status === 422 ? 422 : 502 },
-      );
-    }
+  } catch {
     return NextResponse.json(
-      {
-        error: {
-          code: "provider_error",
-          message: err instanceof Error ? err.message : "Email action failed",
-        },
-      },
+      { error: { code: "email_action_failed", message: "Email infrastructure action could not be completed." } },
       { status: 502 },
     );
   }
