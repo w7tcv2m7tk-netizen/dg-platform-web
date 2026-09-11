@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import {
   getDailyOpportunityBriefing,
   getGrowthEngineSummary,
@@ -5,7 +6,7 @@ import {
 
 import { TENANT_CAPABILITY_GROUPS } from "@/components/growth-engine/GrowthEngineCapabilityGrid";
 import { GrowthEngineWorkspace } from "@/components/growth-engine/GrowthEngineWorkspace";
-import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export const dynamic = "force-dynamic";
 
@@ -14,40 +15,37 @@ export const dynamic = "force-dynamic";
  * Discover → score → pursue → convert. Not a separate “Sales” product.
  */
 export default async function ProspectingOverviewPage() {
+  const session = await getAuthorisedPlatformPageSession("prospecting.prospects.read");
+  if (!session) notFound();
+
   const db = Boolean(process.env.DATABASE_URL);
-  let firstName = "there";
   let summary: Awaited<ReturnType<typeof getGrowthEngineSummary>> | null = null;
   let briefing: Awaited<ReturnType<typeof getDailyOpportunityBriefing>> | null = null;
   let loadError: string | null = null;
 
-  try {
-    const { session, name } = await getPlatformPageContext();
-    firstName = name?.split(" ")[0] || "there";
+  if (db) {
+    const [summaryResult, briefingResult] = await Promise.allSettled([
+      getGrowthEngineSummary(session.organisationId),
+      getDailyOpportunityBriefing({
+        organisationId: session.organisationId,
+        limit: 20,
+      }),
+    ]);
 
-    if (db && session?.organisationId) {
-      const [summaryResult, briefingResult] = await Promise.allSettled([
-        getGrowthEngineSummary(session.organisationId),
-        getDailyOpportunityBriefing({
-          organisationId: session.organisationId,
-          limit: 20,
-          staffName: firstName,
-        }),
-      ]);
-
-      if (summaryResult.status === "fulfilled") {
-        summary = summaryResult.value;
-      } else {
-        console.error("[prospecting] summary failed", summaryResult.reason);
-      }
-      if (briefingResult.status === "fulfilled") {
-        briefing = briefingResult.value;
-      } else {
-        console.error("[prospecting] briefing failed", briefingResult.reason);
-      }
+    if (summaryResult.status === "fulfilled") {
+      summary = summaryResult.value;
+    } else {
+      console.error("[prospecting] summary failed", summaryResult.reason);
+      loadError = "Some prospecting signals could not be loaded right now.";
     }
-  } catch (err) {
-    console.error("[prospecting] page load failed", err);
-    loadError = "We could not load prospecting data right now. You can still open Discovery.";
+    if (briefingResult.status === "fulfilled") {
+      briefing = briefingResult.value;
+    } else {
+      console.error("[prospecting] briefing failed", briefingResult.reason);
+      loadError = "Some prospecting signals could not be loaded right now.";
+    }
+  } else {
+    loadError = "Prospecting data is temporarily unavailable.";
   }
 
   return (
@@ -67,7 +65,7 @@ export default async function ProspectingOverviewPage() {
         pipelineHref="/apps/prospecting/pipeline"
         discoveryHref="/apps/prospecting/discovery"
         followUpsHref="/apps/prospecting/activity"
-        auditsHref="/apps/prospecting/audits"
+        auditsHref="/apps/prospecting/scores"
         reportsHref="/apps/prospecting/reports"
         enableActions={false}
       />
