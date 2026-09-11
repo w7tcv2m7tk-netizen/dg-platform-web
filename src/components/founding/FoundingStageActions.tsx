@@ -19,6 +19,8 @@ import {
   type FoundingStage,
 } from "@dg/platform-core";
 
+import { FoundingCommercialOfferEditor } from "./FoundingCommercialOfferEditor";
+
 export function FoundingStageActions({
   opportunityId,
   stage,
@@ -237,6 +239,7 @@ export function FoundingStageActions({
           </a>
         </p>
       ) : null}
+      <FoundingCommercialOfferEditor opportunityId={opportunityId} />
       {message ? (
         <p
           className={`text-sm ${
