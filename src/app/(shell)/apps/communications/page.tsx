@@ -19,7 +19,7 @@ const AI_COMMS = [
     featureId: "comms.call_centre.read",
     href: "/apps/ai-communications/call-centre",
     label: "Call Centre",
-    blurb: "Live AI call sessions",
+    blurb: "AI call activity and outcomes",
   },
   {
     featureId: "comms.agents.configure",
@@ -40,7 +40,7 @@ const CONFIG = [
     featureId: "comms.agents.configure",
     href: "/apps/ai-communications/settings",
     label: "AI Communications Settings",
-    blurb: "Voice providers, AI configuration and usage",
+    blurb: "Agent behaviour, voice experience and usage",
   },
   {
     featureId: "communications.read",
