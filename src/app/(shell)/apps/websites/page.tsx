@@ -5,6 +5,7 @@ import {
   listWebsites,
   organisationHasWebsitesBuilder,
   resolvePrimaryLinkedDomain,
+  sessionCan,
   suggestTemplateFromProfile,
 } from "@dg/platform-core";
 
@@ -25,6 +26,14 @@ function statusBadge(status: string) {
 export default async function WebsitesHomePage() {
   const session = await getAuthorisedPlatformPageSession("websites.read");
   const canCreate = session ? canAccessWebsiteStudio(session, "create") : false;
+  const canEdit = session ? canAccessWebsiteStudio(session, "edit") : false;
+  const canEditBrand = session
+    ? sessionCan(session, {
+        module: "settings",
+        action: "edit",
+        scope: "organisation",
+      })
+    : false;
 
   const allowed = session
     ? await organisationHasWebsitesBuilder(session.organisationId)
@@ -67,20 +76,20 @@ export default async function WebsitesHomePage() {
         ) : (
           <div className="space-y-10">
             {sites.length === 0 ? (
-            <div className="flex flex-wrap gap-2 text-xs text-slate-500">
-              <span className="rounded-full border border-slate-700 px-2.5 py-1">
-                1. Create from profile
-              </span>
-              <span className="rounded-full border border-slate-700 px-2.5 py-1">
-                2. Edit in Studio
-              </span>
-              <span className="rounded-full border border-slate-700 px-2.5 py-1">
-                3. Preview
-              </span>
-              <span className="rounded-full border border-slate-700 px-2.5 py-1">
-                4. Domains → Make it live
-              </span>
-            </div>
+              <div className="flex flex-wrap gap-2 text-xs text-slate-500">
+                <span className="rounded-full border border-slate-700 px-2.5 py-1">
+                  1. Create from profile
+                </span>
+                <span className="rounded-full border border-slate-700 px-2.5 py-1">
+                  2. Edit in Studio
+                </span>
+                <span className="rounded-full border border-slate-700 px-2.5 py-1">
+                  3. Preview
+                </span>
+                <span className="rounded-full border border-slate-700 px-2.5 py-1">
+                  4. Domains → Make it live
+                </span>
+              </div>
             ) : null}
 
             <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
@@ -151,7 +160,7 @@ export default async function WebsitesHomePage() {
                                 href={`/apps/websites/studio/${site.id}`}
                                 className="rounded-md bg-[var(--org-primary,#1e3a5f)] px-3 py-1.5 text-sm font-semibold text-white"
                               >
-                                Studio
+                                {canEdit ? "Studio" : "View"}
                               </Link>
                               <Link
                                 href={previewHref}
@@ -175,12 +184,14 @@ export default async function WebsitesHomePage() {
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                            <Link
-                              href={`/apps/websites/studio/${site.id}?live=1`}
-                              className="text-slate-400 hover:text-slate-200"
-                            >
-                              Make it live
-                            </Link>
+                            {canEdit ? (
+                              <Link
+                                href={`/apps/websites/studio/${site.id}?live=1`}
+                                className="text-slate-400 hover:text-slate-200"
+                              >
+                                Make it live
+                              </Link>
+                            ) : null}
                             <Link
                               href="/apps/infrastructure/domains"
                               className="text-slate-400 hover:text-slate-200"
@@ -200,7 +211,10 @@ export default async function WebsitesHomePage() {
                   <h2 className="text-lg font-semibold text-white">
                     {sites.length === 0 ? "Create your first website" : "Create another"}
                   </h2>
-                  <CreateWebsiteForm suggestedTemplate={suggestedTemplate} />
+                  <CreateWebsiteForm
+                    suggestedTemplate={suggestedTemplate}
+                    canEditBrand={canEditBrand}
+                  />
                 </section>
               ) : null}
             </div>
