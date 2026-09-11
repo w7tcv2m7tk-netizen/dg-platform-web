@@ -77,10 +77,9 @@ export function AiVisibilityDashboard({
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3 text-sm text-slate-400">
-        Observable website signals for AI answer engines (schema, Open Graph, technical
-        readiness). This MVP does{" "}
-        <span className="text-slate-200">not</span> monitor ChatGPT, Gemini, or Perplexity
-        citations.
+        AI Visibility measures observable website signals that help AI answer engines understand
+        your business, including schema, Open Graph and technical readiness. Citation monitoring
+        across third-party AI services is not currently included.
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
@@ -163,9 +162,9 @@ export function AiVisibilityDashboard({
       />
 
       <section className="dg-card">
-        <h2 className="font-semibold text-white">AI recommendations</h2>
+        <h2 className="font-semibold text-white">Aida recommendations</h2>
         <p className="mt-2 text-sm text-slate-400">
-          Generate a briefing from live Twin / audit scores (not invented citation ranks).
+          Generate recommendations from your live Business Health and website audit evidence.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <button
@@ -174,13 +173,13 @@ export function AiVisibilityDashboard({
             disabled={loading}
             className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
           >
-            {loading ? "Generating…" : "Generate briefing"}
+            {loading ? "Generating…" : "Generate recommendations"}
           </button>
           <Link
             href="/dashboard/advisor"
             className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-sky-500"
           >
-            Ask AI advisor
+            Ask Aida
           </Link>
         </div>
         {report ? (
