@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 
 import { CommandHonestyBanner } from "./CommandHonestyBanner";
 
@@ -42,4 +42,24 @@ export function CommandBetaStatus() {
           </div>
           <CommandHonestyBanner compact />
           <p className="text-xs text-slate-500">
-            Support and audit remain owned by their dedicated operational surfaces:{" 
+            Support and audit remain owned by their dedicated operational surfaces:{" "}
+            <Link
+              href="/support"
+              className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+            >
+              Support
+            </Link>
+            {" · "}
+            <Link
+              href="/dashboard/settings/audit"
+              className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+            >
+              Audit log
+            </Link>
+            .
+          </p>
+        </div>
+      ) : null}
+    </section>
+  );
+}
