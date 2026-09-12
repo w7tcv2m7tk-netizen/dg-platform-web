@@ -53,6 +53,37 @@ function clip(s: string, max: number): string {
   return `${(sp > 40 ? cut.slice(0, sp) : cut).trim()}…`;
 }
 
+function normalisedWebsiteHost(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`);
+    return url.hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+function unsafeTargetResult(message: string, detail: string): FixOrgSeoResult {
+  return {
+    applied: false,
+    source: "none",
+    websiteId: null,
+    pageId: null,
+    pageSlug: null,
+    seo: null,
+    items: [
+      {
+        id: "unverified-target",
+        label: "Website target needs confirmation",
+        status: "manual",
+        detail,
+      },
+    ],
+    message,
+  };
+}
+
 function needsTitle(probes: SeoFixProbes | null | undefined, seo: WebsiteSeo | null): boolean {
   if (probes && !probes.title) return true;
   return !seo?.title?.trim();
@@ -228,6 +259,22 @@ export async function fixOrgSeoFromAudit(input: {
     : null;
 
   const sites = await listWebsitesWithPages(input.organisationId);
+  if (sites.length > 1) {
+    return unsafeTargetResult(
+      "Automatic SEO fixes are paused because this organisation has multiple Studio websites.",
+      "Open the intended website in Studio and update its SEO there. DigitalGate will not guess which site to change.",
+    );
+  }
+
+  const auditedHost = normalisedWebsiteHost(input.websiteUrl);
+  const profileHost = normalisedWebsiteHost(profile?.websiteUrl);
+  if (!auditedHost || !profileHost || auditedHost !== profileHost) {
+    return unsafeTargetResult(
+      "Automatic SEO fixes are paused because the audited website could not be verified against Business Profile.",
+      "Set the correct website in Business Profile and audit that same website before applying automatic fixes.",
+    );
+  }
+
   const website = sites[0] ?? null;
   if (!website) {
     return {
