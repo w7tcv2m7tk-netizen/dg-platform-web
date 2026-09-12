@@ -13,7 +13,10 @@ import {
   loadHealthHistory,
   metricsContextFromLiveMetrics,
   persistHealthSnapshot,
+  reconcileAiRecommendationOutcomes,
+  recordAiRecommendationTelemetry,
   type OrgScoresResult,
+  type OverviewRecommendedAction,
 } from "@dg/platform-core";
 
 import { BusinessOverviewDashboard } from "@/components/overview/BusinessOverviewDashboard";
@@ -21,6 +24,17 @@ import { FoundingOperatorHome } from "@/components/overview/FoundingOperatorHome
 import { Gen2OnboardingChecklistBanner } from "@/components/onboarding/Gen2OnboardingChecklistBanner";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
+
+function trackedRecommendationHref(action: OverviewRecommendedAction) {
+  if (!action.href) return undefined;
+  const params = new URLSearchParams({
+    recommendationId: action.id,
+    redirect: action.href,
+    label: action.label,
+    impact: action.impact,
+  });
+  return `/api/v1/intelligence/recommendations/start?${params.toString()}`;
+}
 
 export default async function DashboardPage() {
   const { user, name, portal, session: platformSession } = await getPlatformPageContext();
@@ -127,6 +141,57 @@ export default async function DashboardPage() {
     };
   }
 
+  if (platformSession && liveMetrics && !foundingCustomerMode) {
+    try {
+      const websiteIssueCount = connectorProbes.website
+        ? (connectorProbes.website.fail ?? 0) + (connectorProbes.website.warn ?? 0)
+        : null;
+      await reconcileAiRecommendationOutcomes({
+        organisationId: platformSession.organisationId,
+        evidence: {
+          overdueFollowUps: liveMetrics.overdueFollowUps,
+          overdueArCents: liveMetrics.overdueArCents,
+          activeGoalIds: (goals ?? [])
+            .filter((goal) => goal.status === "active")
+            .map((goal) => goal.id),
+          completedGoalIds: overview.goals
+            .filter((goal) => goal.percent >= 100)
+            .map((goal) => goal.id),
+          aiVisibilityScore:
+            overview.scoreBreakdown.find((item) => item.id === "ai_visibility")?.value ?? null,
+          businessHealthEvidenceCoverage: healthScores?.evidenceCoveragePercent ?? null,
+          websiteIssueCount,
+        },
+      });
+
+      await Promise.all(
+        overview.recommendedActions.map((action) =>
+          recordAiRecommendationTelemetry({
+            organisationId: platformSession.organisationId,
+            actorId: platformSession.clerkUserId,
+            recommendationId: action.id,
+            stage: "shown",
+            label: action.label,
+            impact: action.impact,
+            href: action.href ?? null,
+            source: "business_overview",
+          }),
+        ),
+      );
+    } catch (err) {
+      // Intelligence telemetry is observational and must never break the dashboard.
+      console.error("[intelligence] recommendation telemetry failed", err);
+    }
+
+    overview = {
+      ...overview,
+      recommendedActions: overview.recommendedActions.map((action) => ({
+        ...action,
+        href: trackedRecommendationHref(action),
+      })),
+    };
+  }
+
   const confidenceLabel = healthScores
     ? healthScores.confidence === "high"
       ? "High confidence"
@@ -186,7 +251,7 @@ export default async function DashboardPage() {
             ) : null}
             <Link
               href="/dashboard/brain"
-              className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400/50"
+              className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300 hover:underline"
             >
               Business Brain →
             </Link>
