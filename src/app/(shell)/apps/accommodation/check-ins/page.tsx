@@ -36,10 +36,10 @@ function Board({
                 <p className="text-slate-500">
                   {[b.accommodation, b.phone, b.email].filter(Boolean).join(" · ")}
                 </p>
-                <div className="mt-2 flex flex-wrap gap-3 text-xs">
+                <div className="mt-2 flex flex-wrap gap-2 text-xs">
                   <Link
                     href="/apps/accommodation/bookings"
-                    className="text-blue-400 hover:underline"
+                    className="inline-flex min-h-11 items-center px-2 text-blue-400 hover:underline"
                   >
                     Open bookings
                   </Link>
@@ -48,7 +48,7 @@ function Board({
                       href={`mailto:${encodeURIComponent(b.email)}?subject=${encodeURIComponent(
                         `Check-in — ${b.accommodation ?? "your stay"} (${b.checkin ?? ""})`,
                       )}`}
-                      className="text-blue-400 hover:underline"
+                      className="inline-flex min-h-11 items-center px-2 text-blue-400 hover:underline"
                     >
                       Email guest
                     </a>
@@ -56,7 +56,7 @@ function Board({
                   {b.phone ? (
                     <a
                       href={`tel:${b.phone.replace(/\s+/g, "")}`}
-                      className="text-blue-400 hover:underline"
+                      className="inline-flex min-h-11 items-center px-2 text-blue-400 hover:underline"
                     >
                       Call
                     </a>
@@ -82,11 +82,33 @@ function Board({
   );
 }
 
+function safeTimeZone(value?: string | null): string {
+  const fallback = "Australia/Brisbane";
+  const candidate = value?.trim() || fallback;
+  try {
+    new Intl.DateTimeFormat("en-AU", { timeZone: candidate }).format(new Date());
+    return candidate;
+  } catch {
+    return fallback;
+  }
+}
+
 export default async function AccommodationCheckInsPage() {
   const { session } = await getPlatformPageContext();
   const loaded = await loadStayBookingsForOps(session, 150);
   const bookings: WpAccBookingRow[] = loaded.bookings;
-  const today = accToday();
+
+  let organisationTimeZone = "Australia/Brisbane";
+  if (session && process.env.DATABASE_URL) {
+    const { prisma } = await import("@dg/database");
+    const organisation = await prisma.organisation.findUnique({
+      where: { id: session.organisationId },
+      select: { timezone: true },
+    });
+    organisationTimeZone = safeTimeZone(organisation?.timezone);
+  }
+
+  const today = accToday(organisationTimeZone);
   const tomorrow = accAddDays(today, 1);
   const upcomingEnd = accAddDays(today, 14);
 
@@ -110,7 +132,7 @@ export default async function AccommodationCheckInsPage() {
     <main className="dg-page-main space-y-8">
       <div>
         <p className="text-sm text-slate-400">
-          {siteLabel} · StayBooking (Neon) · {today} Brisbane · {todayList.length} today, {tomorrowList.length} tomorrow
+          {siteLabel} · StayBooking (Neon) · {today} local date · {todayList.length} today, {tomorrowList.length} tomorrow
         </p>
       </div>
       {loaded.syncError && bookings.length === 0 ? (
