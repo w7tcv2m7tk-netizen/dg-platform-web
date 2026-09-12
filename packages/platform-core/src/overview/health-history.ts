@@ -74,20 +74,17 @@ export async function persistHealthSnapshot(
 }
 
 /**
- * Return only observed Business Health measurements.
- * The current live score is appended when it is not already represented by the latest stored entry.
- * No padding or synthetic historical points are generated.
+ * Build a trend from observed Business Health measurements only.
+ * With no stored history there is no trend to display; DigitalGate does not backfill one.
  */
 export function healthTrendFromHistory(
   history: HealthHistoryEntry[],
   currentScore: number,
 ): number[] {
-  const values = [...history]
-    .sort((a, b) => a.month.localeCompare(b.month))
-    .map((entry) => entry.score)
-    .slice(-12);
+  if (history.length === 0) return [];
 
-  if (values.length === 0) return [currentScore];
+  const sorted = [...history].sort((a, b) => a.month.localeCompare(b.month));
+  const values = sorted.map((entry) => entry.score).slice(-12);
   if (values[values.length - 1] !== currentScore) {
     values.push(currentScore);
   }
