@@ -1,4 +1,3 @@
-import { currentUser } from "@clerk/nextjs/server";
 import {
   listCommercialLeases,
   listCommercialProperties,
@@ -6,18 +5,12 @@ import {
 } from "@dg/platform-core";
 
 import { CreateCommercialLeaseForm } from "@/components/commercial/CreateCommercialLeaseForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { canManageCommercial } from "@/lib/commercial-page-access";
+import { formatMoneyFromCents, getOrganisationMoneySettings } from "@/lib/organisation-money";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function CommercialLeasesPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -27,10 +20,14 @@ export default async function CommercialLeasesPage() {
     );
   }
 
-  const [{ items }, properties, contacts] = await Promise.all([
+  const canManage = canManageCommercial(session);
+  const [{ items }, properties, contacts, money] = await Promise.all([
     listCommercialLeases(session.organisationId),
     listCommercialProperties(session.organisationId),
-    listContacts({ organisationId: session.organisationId, limit: 100 }),
+    canManage
+      ? listContacts({ organisationId: session.organisationId, limit: 100 })
+      : Promise.resolve({ items: [], meta: { total: 0, limit: 0, offset: 0 } }),
+    getOrganisationMoneySettings(session.organisationId),
   ]);
 
   const propertyName = new Map(properties.items.map((p) => [p.id, p.name]));
@@ -38,44 +35,56 @@ export default async function CommercialLeasesPage() {
   return (
     <main className="dg-page-main space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-sm text-slate-400">
-          Commercial tenancies — landlords &amp; tenants on Core CRM
-        </p>
-        <CreateCommercialLeaseForm
-          properties={properties.items.map((p) => ({
-            id: p.id,
-            label: `${p.name} — ${p.suburb}`,
-          }))}
-          contacts={contacts.items.map((c) => ({
-            id: c.id,
-            label:
-              [c.firstName, c.lastName].filter(Boolean).join(" ").trim() ||
-              c.email ||
-              c.id.slice(0, 8),
-          }))}
-        />
+        <div>
+          <p className="text-sm text-slate-400">
+            {session.organisationName} · Commercial tenancies — landlords &amp; tenants on Core CRM
+          </p>
+          {!canManage ? (
+            <p className="mt-1 text-xs text-slate-500">
+              Read-only leases. Organisation-wide Commercial edit access is required to create tenancies.
+            </p>
+          ) : null}
+        </div>
+        {canManage ? (
+          <CreateCommercialLeaseForm
+            properties={properties.items.map((p) => ({
+              id: p.id,
+              label: `${p.name} — ${p.suburb}`,
+            }))}
+            contacts={contacts.items.map((c) => ({
+              id: c.id,
+              label:
+                [c.firstName, c.lastName].filter(Boolean).join(" ").trim() ||
+                c.email ||
+                c.id.slice(0, 8),
+            }))}
+            currency={money.currency}
+          />
+        ) : null}
       </div>
       {items.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-400">No commercial leases yet.</p>
+          <p className="text-slate-400">
+            {canManage ? "No commercial leases yet. Create the first one." : "No commercial leases yet."}
+          </p>
         </div>
       ) : (
         <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">
-          {items.map((lease) => (
-            <li key={lease.id} className="px-4 py-3">
-              <p className="font-medium text-white">{lease.title}</p>
-              <p className="text-xs text-slate-500">
-                {lease.stage} · {lease.status}
-                {lease.commercialPropertyId &&
-                propertyName.has(lease.commercialPropertyId)
-                  ? ` · ${propertyName.get(lease.commercialPropertyId)}`
-                  : ""}
-                {lease.rentCents != null
-                  ? ` · $${(lease.rentCents / 100).toLocaleString("en-AU")}/yr`
-                  : ""}
-              </p>
-            </li>
-          ))}
+          {items.map((lease) => {
+            const rent = formatMoneyFromCents(lease.rentCents, money);
+            return (
+              <li key={lease.id} className="px-4 py-3">
+                <p className="font-medium text-white">{lease.title}</p>
+                <p className="text-xs text-slate-500">
+                  {lease.stage} · {lease.status}
+                  {lease.commercialPropertyId && propertyName.has(lease.commercialPropertyId)
+                    ? ` · ${propertyName.get(lease.commercialPropertyId)}`
+                    : ""}
+                  {rent ? ` · ${rent}/yr` : ""}
+                </p>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>
