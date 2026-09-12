@@ -6,9 +6,11 @@ import { useState } from "react";
 export function CreateCommercialLeaseForm({
   properties,
   contacts,
+  currency = "AUD",
 }: {
   properties: { id: string; label: string }[];
   contacts: { id: string; label: string }[];
+  currency?: string;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -19,7 +21,8 @@ export function CreateCommercialLeaseForm({
     e.preventDefault();
     setPending(true);
     setError(null);
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const rent = String(fd.get("rent") ?? "").trim();
     const res = await fetch("/api/v1/commercial", {
       method: "POST",
@@ -42,7 +45,7 @@ export function CreateCommercialLeaseForm({
       return;
     }
     setOpen(false);
-    e.currentTarget.reset();
+    form.reset();
     router.refresh();
   }
 
@@ -51,7 +54,7 @@ export function CreateCommercialLeaseForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+        className="min-h-11 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
       >
         New lease
       </button>
@@ -65,13 +68,13 @@ export function CreateCommercialLeaseForm({
         name="title"
         required
         placeholder="Lease title"
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+        className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
       />
       <div className="grid gap-3 sm:grid-cols-2">
         <select
           name="commercialPropertyId"
           defaultValue=""
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="">Property (optional)</option>
           {properties.map((p) => (
@@ -83,7 +86,7 @@ export function CreateCommercialLeaseForm({
         <select
           name="stage"
           defaultValue="prospect"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="prospect">Prospect</option>
           <option value="negotiation">Negotiation</option>
@@ -94,14 +97,16 @@ export function CreateCommercialLeaseForm({
         <input
           name="rent"
           type="number"
+          min="0"
           step="0.01"
-          placeholder="Annual rent (AUD)"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          inputMode="decimal"
+          placeholder={`Annual rent (${currency})`}
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         />
         <select
           name="landlordContactId"
           defaultValue=""
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="">Landlord (CRM)</option>
           {contacts.map((c) => (
@@ -113,7 +118,7 @@ export function CreateCommercialLeaseForm({
         <select
           name="tenantContactId"
           defaultValue=""
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="">Tenant (CRM)</option>
           {contacts.map((c) => (
@@ -127,21 +132,21 @@ export function CreateCommercialLeaseForm({
         name="notes"
         rows={2}
         placeholder="Notes"
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+        className="min-h-20 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
       />
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+          className="min-h-11 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
           {pending ? "Saving…" : "Create"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300"
+          className="min-h-11 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300"
         >
           Cancel
         </button>

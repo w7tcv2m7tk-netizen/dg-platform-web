@@ -1,19 +1,11 @@
-import { currentUser } from "@clerk/nextjs/server";
 import { listCommercialProperties } from "@dg/platform-core";
 
 import { CreateCommercialPropertyForm } from "@/components/commercial/CreateCommercialPropertyForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { canManageCommercial } from "@/lib/commercial-page-access";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function CommercialPropertiesPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -23,19 +15,31 @@ export default async function CommercialPropertiesPage() {
     );
   }
 
-  const { items } = await listCommercialProperties(session.organisationId);
+  const [{ items }, canManage] = await Promise.all([
+    listCommercialProperties(session.organisationId),
+    Promise.resolve(canManageCommercial(session)),
+  ]);
 
   return (
     <main className="dg-page-main space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-sm text-slate-400">
-          Commercial asset register — separate from Real Estate sales
-        </p>
-        <CreateCommercialPropertyForm />
+        <div>
+          <p className="text-sm text-slate-400">
+            {session.organisationName} · Commercial asset register — separate from Real Estate sales
+          </p>
+          {!canManage ? (
+            <p className="mt-1 text-xs text-slate-500">
+              Read-only register. Organisation-wide Commercial edit access is required to add properties.
+            </p>
+          ) : null}
+        </div>
+        {canManage ? <CreateCommercialPropertyForm /> : null}
       </div>
       {items.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-400">No commercial properties yet.</p>
+          <p className="text-slate-400">
+            {canManage ? "No commercial properties yet. Add the first one." : "No commercial properties yet."}
+          </p>
         </div>
       ) : (
         <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">

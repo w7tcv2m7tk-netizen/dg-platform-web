@@ -1,19 +1,11 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
 import { listCommercialTenantContacts } from "@dg/platform-core";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { canManageCommercial } from "@/lib/commercial-page-access";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function CommercialTenantsPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -24,20 +16,31 @@ export default async function CommercialTenantsPage() {
   }
 
   const { items } = await listCommercialTenantContacts(session.organisationId);
+  const canManage = canManageCommercial(session);
 
   return (
     <main className="dg-page-main space-y-4">
-      <p className="text-sm text-slate-400">
-        CRM Contacts linked as tenants on commercial leases
-      </p>
+      <div>
+        <p className="text-sm text-slate-400">
+          {session.organisationName} · CRM Contacts linked as tenants on commercial leases
+        </p>
+        {!canManage ? (
+          <p className="mt-1 text-xs text-slate-500">
+            Read-only tenant view. Commercial lease changes require organisation-wide edit access.
+          </p>
+        ) : null}
+      </div>
       {items.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
           <p className="text-slate-400">
             No tenants yet.{" "}
-            <Link href="/apps/commercial/leases" className="text-sky-400 hover:underline">
-              Create a lease
+            <Link
+              href="/apps/commercial/leases"
+              className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+            >
+              {canManage ? "Open leases" : "View leases"}
             </Link>{" "}
-            and attach a tenant Contact.
+            to see tenant-linked tenancy records.
           </p>
         </div>
       ) : (
@@ -70,7 +73,10 @@ export default async function CommercialTenantsPage() {
         </ul>
       )}
       <p className="text-sm text-slate-500">
-        <Link href="/apps/crm/contacts" className="text-sky-400 hover:underline">
+        <Link
+          href="/apps/crm/contacts"
+          className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+        >
           Open CRM Contacts →
         </Link>
       </p>
