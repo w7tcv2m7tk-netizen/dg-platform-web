@@ -1,7 +1,17 @@
+import {
+  buildAiVisibilityPromptSuggestions,
+  getAiVisibilityIntelligenceSnapshot,
+  getOrganisationBusinessProfile,
+  listAiVisibilityCompetitors,
+  listAiVisibilityPrompts,
+} from "@dg/platform-core";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AiVisibilityCompetitorsManager } from "@/components/ai-visibility/AiVisibilityCompetitorsManager";
+import { AiVisibilityPromptsManager } from "@/components/ai-visibility/AiVisibilityPromptsManager";
 import { AiVisibilitySectionNav } from "@/components/ai-visibility/AiVisibilitySectionNav";
+import { getPlatformPageContext } from "@/lib/org-apps";
 
 const sections = {
   presence: {
@@ -24,14 +34,14 @@ const sections = {
     eyebrow: "Governed query set",
     description:
       "Build the commercial, local, category, comparison and branded prompt set used to measure real AI visibility.",
-    emptyTitle: "Prompt monitoring set not configured yet",
+    emptyTitle: "Govern the questions that matter",
     emptyBody:
-      "The next monitoring layer will derive candidate prompts from the Business Brain, then let the organisation govern which prompts are tracked. Nothing is being silently invented or counted today.",
+      "Business-grounded candidates can now be reviewed and added to the organisation's prompt set. Adding a prompt does not create monitoring evidence; it only governs what future monitoring is allowed to observe.",
     bullets: [
       "Branded and non-branded prompts",
       "Commercial-intent and comparison prompts",
       "Local and industry-specific discovery prompts",
-      "Prompt history, status and monitoring cadence",
+      "Prompt status and provenance",
     ],
   },
   competitors: {
@@ -39,14 +49,14 @@ const sections = {
     eyebrow: "AI share of voice",
     description:
       "Compare verified recommendation visibility against the businesses that compete for the same AI-generated answers.",
-    emptyTitle: "Competitive Share is not measured yet",
+    emptyTitle: "Define the real competitive set",
     emptyBody:
-      "Competitor share will be calculated from the same governed prompt set and captured answer evidence as your own AI Presence. DigitalGate will not infer share of voice from SEO rankings alone.",
+      "Competitors can now be governed per organisation. Competitive Share remains unavailable until the same monitored responses have complete competitor capture.",
     bullets: [
-      "AI Share of Voice by competitor",
-      "Platform and topic breakdowns",
+      "Organisation-specific monitored competitors",
+      "AI Share of Voice from captured responses",
       "Prompts where competitors win and you do not",
-      "Movement over time",
+      "Platform and topic breakdowns once evidence exists",
     ],
   },
   citations: {
@@ -56,7 +66,7 @@ const sections = {
       "Understand which domains and pages AI systems rely on when answering questions in your market.",
     emptyTitle: "Verified citation evidence is not available yet",
     emptyBody:
-      "Once answer monitoring captures source references, this section will show your own cited pages, trusted third-party sources, competitor citations and authority gaps.",
+      "Once answer monitoring captures source references and confirms citation capture completeness, this section will show your own cited pages, trusted third-party sources, competitor citations and authority gaps.",
     bullets: [
       "Your cited pages and source quality",
       "Third-party domains AI systems trust",
@@ -69,9 +79,9 @@ const sections = {
     eyebrow: "Aida action layer",
     description:
       "Turn measured AI visibility gaps into prioritised, explainable growth actions across DigitalGate.",
-    emptyTitle: "Opportunity scoring will expand with monitoring evidence",
+    emptyTitle: "Opportunity scoring expands only with evidence",
     emptyBody:
-      "Today Aida can act on verified website readiness and Business Brain context. As Presence, Citations and Competitive Share come online, opportunities will be ranked from those observed gaps as well.",
+      "Today Aida can act on verified website readiness and Business Brain context. Presence, Citations and Competitive Share will only influence recommendations once observed evidence exists.",
     bullets: [
       "Highest-impact visibility gaps",
       "Recommended content and entity actions",
@@ -105,7 +115,49 @@ export default async function AiVisibilitySectionPage({
 }) {
   const { section } = await params;
   if (!(section in sections)) notFound();
-  const config = sections[section as SectionKey];
+  const sectionKey = section as SectionKey;
+  const config = sections[sectionKey];
+
+  let prompts: Awaited<ReturnType<typeof listAiVisibilityPrompts>> = [];
+  let competitors: Awaited<ReturnType<typeof listAiVisibilityCompetitors>> = [];
+  let suggestions: ReturnType<typeof buildAiVisibilityPromptSuggestions> = [];
+  let intelligence: Awaited<ReturnType<typeof getAiVisibilityIntelligenceSnapshot>> | null = null;
+
+  try {
+    const { session } = await getPlatformPageContext();
+    if (session) {
+      const [profile, promptRows, competitorRows, snapshot] = await Promise.all([
+        getOrganisationBusinessProfile(session.organisationId),
+        listAiVisibilityPrompts(session.organisationId),
+        listAiVisibilityCompetitors(session.organisationId),
+        getAiVisibilityIntelligenceSnapshot(session.organisationId),
+      ]);
+      prompts = promptRows;
+      competitors = competitorRows;
+      intelligence = snapshot;
+      suggestions = buildAiVisibilityPromptSuggestions({
+        businessName: profile?.tradingName ?? profile?.businessName ?? null,
+        industry: profile?.industryVertical ?? null,
+        location: profile?.address
+          ? [profile.address.city, profile.address.state].filter(Boolean).join(", ")
+          : null,
+      });
+    }
+  } catch (error) {
+    console.error("[ai-visibility] section intelligence load failed", error);
+  }
+
+  const dimensionId =
+    sectionKey === "presence"
+      ? "ai_presence"
+      : sectionKey === "citations"
+        ? "citation_strength"
+        : sectionKey === "competitors"
+          ? "competitive_share"
+          : null;
+  const dimension = dimensionId
+    ? intelligence?.dimensions.find((item) => item.id === dimensionId) ?? null
+    : null;
 
   return (
     <>
@@ -117,31 +169,62 @@ export default async function AiVisibilitySectionPage({
       <main className="dg-page-main space-y-6">
         <AiVisibilitySectionNav />
 
-        <section className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-slate-950/60 to-slate-950/30 p-5 sm:p-6">
-          <div className="max-w-3xl">
-            <span className="rounded-full border border-slate-700 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-              Evidence-first
-            </span>
-            <h2 className="mt-4 text-xl font-semibold text-white">{config.emptyTitle}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-slate-400">{config.emptyBody}</p>
-          </div>
-        </section>
-
-        <section className="grid gap-3 md:grid-cols-2">
-          {config.bullets.map((bullet) => (
-            <div key={bullet} className="dg-card">
-              <div className="flex gap-3">
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-violet-400" />
-                <p className="text-sm text-slate-300">{bullet}</p>
+        {sectionKey === "prompts" ? (
+          <AiVisibilityPromptsManager initialItems={prompts} suggestions={suggestions} />
+        ) : sectionKey === "competitors" ? (
+          <AiVisibilityCompetitorsManager initialItems={competitors} />
+        ) : (
+          <>
+            <section className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-slate-950/60 to-slate-950/30 p-5 sm:p-6">
+              <div className="max-w-3xl">
+                <span className="rounded-full border border-slate-700 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+                  Evidence-first
+                </span>
+                <h2 className="mt-4 text-xl font-semibold text-white">
+                  {dimension?.available ? `${dimension.label}: ${dimension.value}/100` : config.emptyTitle}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                  {dimension?.available ? dimension.explanation : config.emptyBody}
+                </p>
+                {dimension ? (
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500">
+                    <span className="rounded-full border border-slate-800 px-2.5 py-1">{dimension.coverage}</span>
+                    <span className="rounded-full border border-slate-800 px-2.5 py-1">{dimension.evidenceSource}</span>
+                  </div>
+                ) : null}
               </div>
-            </div>
-          ))}
+            </section>
+
+            <section className="grid gap-3 md:grid-cols-2">
+              {config.bullets.map((bullet) => (
+                <div key={bullet} className="dg-card">
+                  <div className="flex gap-3">
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-violet-400" />
+                    <p className="text-sm text-slate-300">{bullet}</p>
+                  </div>
+                </div>
+              ))}
+            </section>
+          </>
+        )}
+
+        <section className="dg-card">
+          <h2 className="font-semibold text-white">Evidence coverage</h2>
+          <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Active prompts</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.activePrompts ?? 0}</p></div>
+            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Competitors</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.activeCompetitors ?? 0}</p></div>
+            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Observations</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.observations ?? 0}</p></div>
+            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Overall monitored score</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.overallScore == null ? "—" : intelligence.overallScore}</p></div>
+          </div>
+          <p className="mt-3 text-xs text-slate-500">
+            A score is calculated only from dimensions backed by captured evidence. Missing monitoring coverage remains unavailable, never zero.
+          </p>
         </section>
 
         <section className="dg-card">
           <h2 className="font-semibold text-white">What is live today?</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-400">
-            AI Readiness is already measured from domain-matched website evidence. Return to Overview to inspect the current score, historical audits, evidence coverage and Aida recommendations.
+            AI Readiness is measured from domain-matched website evidence. Prompt and competitor governance are now live. Cross-engine scores remain unavailable until real monitoring observations are captured.
           </p>
           <Link href="/apps/ai-visibility" className="mt-4 inline-block text-sm font-medium text-violet-300 hover:underline">
             Back to AI Visibility Overview →
