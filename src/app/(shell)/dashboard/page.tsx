@@ -102,6 +102,9 @@ export default async function DashboardPage() {
       ...overview,
       scoresLive: healthScores.scoresLive,
       businessHealth: healthScores.businessHealth,
+      healthEvidenceCoveragePercent: healthScores.evidenceCoveragePercent,
+      healthConfidence: healthScores.confidence,
+      healthMeasurementCount: healthHistory.length,
       scoreBreakdown: overview.scoreBreakdown.filter((item) => breakdownEvidence[item.id] !== false),
     };
   }
@@ -123,85 +126,32 @@ export default async function DashboardPage() {
       businessHealthDeltaLabel: enoughHistory
         ? `${healthDelta >= 0 ? "+" : ""}${healthDelta} this month`
         : `${updatedHistory.length} real measurement${updatedHistory.length === 1 ? "" : "s"} collected`,
+      healthMeasurementCount: updatedHistory.length,
       healthTrend: healthTrendFromHistory(updatedHistory, businessHealth),
     };
   }
 
-  const confidenceLabel = healthScores
-    ? healthScores.confidence === "high"
-      ? "High confidence"
-      : healthScores.confidence === "medium"
-        ? "Medium confidence"
-        : healthScores.confidence === "low"
-          ? "Low confidence"
-          : "Insufficient evidence"
-    : null;
-
   return (
     <>
-      <header className="dg-page-header md:py-6 text-center md:text-left">
-        <p className="text-lg text-slate-300">
-          {overview.greeting} 👋
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-white">
-          {foundingCustomerMode
-            ? "Here's what matters"
-            : platformSession
-              ? `Welcome back to ${overview.organisationName}`
-              : "Welcome to DigitalGate"}
-        </h1>
-        {platformSession && !foundingCustomerMode ? (
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-4 md:justify-start">
-            <div className="flex flex-wrap items-baseline justify-center gap-2 md:justify-start">
-              <span className="text-sm text-slate-400">Business Health:</span>
-              {overview.scoresLive ? (
-                <Link href="/dashboard/health" className="inline-flex flex-wrap items-baseline gap-2 hover:opacity-90">
-                  <span className="text-2xl font-bold text-emerald-400">{overview.businessHealth}/100</span>
-                  <span className={`text-sm ${overview.businessHealthDelta >= 0 ? "text-emerald-400/80" : "text-amber-400/80"}`}>
-                    {overview.businessHealthDelta >= 0 ? "↑" : "↓"} {overview.businessHealthDeltaLabel}
-                  </span>
-                </Link>
-              ) : (
-                <Link href="/dashboard/health" className="text-sm font-medium text-sky-300 hover:underline">
-                  Not enough measured evidence yet
-                </Link>
-              )}
-            </div>
-            {healthScores ? (
-              <Link href="/dashboard/health" className="text-xs text-slate-400 hover:text-sky-300">
-                {healthScores.evidenceCoveragePercent}% evidence coverage · {confidenceLabel}
-              </Link>
-            ) : null}
-            <span className="text-xs text-slate-500">
-              Last updated: {overview.lastUpdatedLabel}
-            </span>
-            {overview.growthOpportunityCount > 0 ? (
-              <Link
-                href="#growth-opportunities"
-                className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300 hover:border-emerald-400/50"
-              >
-                {overview.growthOpportunityCount} growth opportunit
-                {overview.growthOpportunityCount === 1 ? "y" : "ies"}
-              </Link>
-            ) : null}
-            <Link
-              href="/dashboard/brain"
-              className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400/50"
-            >
-              Business Brain →
-            </Link>
-          </div>
-        ) : foundingCustomerMode ? (
-          <p className="mt-2 text-sm text-slate-400">
-            {overview.organisationName} · Updated {overview.lastUpdatedLabel}
-          </p>
-        ) : (
+      {!platformSession ? (
+        <header className="dg-page-header md:py-6 text-center md:text-left">
+          <p className="text-lg text-slate-300">Welcome 👋</p>
+          <h1 className="mt-1 text-2xl font-bold text-white">Welcome to DigitalGate</h1>
           <p className="mt-2 text-sm text-slate-400">
             Sign in to open your live Business Overview.
           </p>
-        )}
-      </header>
-      <main className="dg-page-main">
+        </header>
+      ) : foundingCustomerMode ? (
+        <header className="dg-page-header md:py-6 text-center md:text-left">
+          <p className="text-lg text-slate-300">{overview.greeting} 👋</p>
+          <h1 className="mt-1 text-2xl font-bold text-white">Here&apos;s what matters</h1>
+          <p className="mt-2 text-sm text-slate-400">
+            {overview.organisationName} · Updated {overview.lastUpdatedLabel}
+          </p>
+        </header>
+      ) : null}
+
+      <main className={platformSession && !foundingCustomerMode ? "dg-page-main pt-4 md:pt-6" : "dg-page-main"}>
         {!platformSession ? (
           <div className="dg-card mb-6 border-sky-500/30">
             <h2 className="font-semibold text-white">Your business workspace is ready when you are</h2>
