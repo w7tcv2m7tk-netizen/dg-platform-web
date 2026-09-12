@@ -7,6 +7,7 @@ import {
   computeReputationScore,
   gatherOverviewLiveMetrics,
   generateBusinessIntelligence,
+  getAiQualityMetrics,
   getBusinessContext,
   getOrganisationBusinessProfile,
   getOrganisationGoals,
@@ -26,7 +27,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
 
   const userDisplayName = user?.firstName ?? name ?? "there";
   const enabledAppIds = await getOrgEnabledAppIds();
-  const [profile, metrics, connectors, setupStatus, healthHistory, reviewsBundle, goals] =
+  const [profile, metrics, connectors, setupStatus, healthHistory, reviewsBundle, goals, aiQuality] =
     await Promise.all([
       getOrganisationBusinessProfile(session.organisationId),
       gatherOverviewLiveMetrics(session.organisationId),
@@ -35,6 +36,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
       loadHealthHistory(session.organisationId),
       loadReviewsSessionAndFeed(),
       getOrganisationGoals(session.organisationId),
+      getAiQualityMetrics({ organisationId: session.organisationId, windowDays: 30 }),
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
@@ -50,7 +52,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
       connectors,
       profile,
       metricsContext: metricsContextFromLiveMetrics(metrics),
-      reputationOverride: reputation.score,
+      reputationOverride: reputation.reviewCount > 0 ? reputation.score : null,
     });
     twinScores = built.scores;
     snapshot = built.snapshot;
@@ -76,7 +78,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     metrics,
     connectors,
     scores: twinScores,
-    reputation,
+    reputation: reputation.reviewCount > 0 ? reputation : null,
     healthHistory,
   });
 
@@ -89,7 +91,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     scores: twinScores,
     snapshot,
     brain,
-    reputation,
+    reputation: reputation.reviewCount > 0 ? reputation : null,
     healthHistory,
     setupStatus,
     networkCohortSize: 0,
@@ -109,7 +111,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
         })
       : null;
 
-  return buildAdvisorBriefing({
+  const briefing = buildAdvisorBriefing({
     userDisplayName,
     organisationName: session.organisationName,
     enabledAppIds,
@@ -120,4 +122,11 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     health,
     benchmarks,
   });
+
+  return {
+    ...briefing,
+    scoresLive: twinScores?.scoresLive ?? false,
+    businessHealth: twinScores?.scoresLive ? twinScores.businessHealth : null,
+    aiQuality,
+  };
 }
