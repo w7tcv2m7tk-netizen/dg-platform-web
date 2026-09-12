@@ -10,15 +10,14 @@ export type StripeWebhookProcessingHealth = {
     eventType: string;
     attempts: number;
     claimedAt: string | null;
-    lastError: string | null;
   } | null;
 };
 
 /**
  * Operator-only aggregate of durable Stripe webhook receipt state.
  *
- * Intentionally exposes counts and failure metadata only — never event payloads,
- * customer fields or Stripe object bodies.
+ * Intentionally exposes counts and lifecycle metadata only — never event
+ * payloads, customer fields, provider object bodies or recorded error text.
  */
 export async function getStripeWebhookProcessingHealth(
   now = new Date(),
@@ -49,7 +48,6 @@ export async function getStripeWebhookProcessingHealth(
           eventType: true,
           attempts: true,
           claimedAt: true,
-          lastError: true,
         },
       }),
     ]);
@@ -65,7 +63,6 @@ export async function getStripeWebhookProcessingHealth(
           eventType: latestFailure.eventType,
           attempts: latestFailure.attempts,
           claimedAt: latestFailure.claimedAt?.toISOString() ?? null,
-          lastError: latestFailure.lastError,
         }
       : null,
   };
