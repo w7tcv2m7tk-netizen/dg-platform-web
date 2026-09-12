@@ -280,7 +280,7 @@ export function SupportChatWidget({
         onClick={() => setOpen(!open)}
         aria-label={open ? "Close Ask Aida" : "Ask Aida for business advice or platform support"}
         aria-expanded={open}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/95 p-1.5 pr-4 text-white shadow-xl backdrop-blur transition hover:-translate-y-0.5 hover:border-white/20"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-slate-950/95 p-1.5 pr-4 text-white shadow-xl backdrop-blur transition hover:-translate-y-0.5 hover:border-white/20 md:bottom-6 md:right-6"
       >
         <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-slate-900">
           {open ? (
@@ -296,7 +296,7 @@ export function SupportChatWidget({
       </button>
 
       {open ? (
-        <div className="fixed bottom-24 right-6 z-50 flex h-[min(560px,calc(100vh-120px))] w-[min(400px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+        <div className="fixed bottom-[calc(9.5rem+env(safe-area-inset-bottom))] right-4 z-50 flex h-[min(560px,calc(100vh-11rem-env(safe-area-inset-bottom)))] w-[min(400px,calc(100vw-32px))] flex-col overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl md:bottom-24 md:right-6 md:h-[min(560px,calc(100vh-120px))]">
           <SupportChatPanel
             userName={userName}
             initialDraft={initialDraft}
