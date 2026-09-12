@@ -1,3 +1,4 @@
+import { getAiLearningContext } from "../ai/usage";
 import { getApprovedKnowledgeContext } from "../brain/approved-knowledge-context";
 import {
   askBusinessAdvisor as askBusinessAdvisorBase,
@@ -9,19 +10,24 @@ export type { AskAdvisorInput, AskAdvisorResult } from "./ask-advisor";
 
 /**
  * Customer Advisor boundary: enrich the existing Twin/Brain/Health briefing with
- * current, human-approved organisational knowledge before model reasoning.
+ * current, human-approved organisational knowledge and persisted outcomes from
+ * previously approved Aida actions before model reasoning.
  * Proposed, rejected, archived and superseded knowledge remains excluded by
- * getApprovedKnowledgeContext(). Knowledge retrieval fails soft so Advisor can
- * still answer from its existing governed business signals.
+ * getApprovedKnowledgeContext(). Enrichment fails soft so Advisor can still
+ * answer from its existing governed business signals.
  */
 export async function askBusinessAdvisor(
   input: AskAdvisorInput,
 ): Promise<AskAdvisorResult> {
-  const approvedKnowledge = await getApprovedKnowledgeContext({
-    organisationId: input.organisationId,
-  }).catch(() => ({ items: [], promptContext: "" }));
+  const [approvedKnowledge, learningContext] = await Promise.all([
+    getApprovedKnowledgeContext({
+      organisationId: input.organisationId,
+    }).catch(() => ({ items: [], promptContext: "" })),
+    getAiLearningContext({ organisationId: input.organisationId }).catch(() => ""),
+  ]);
 
-  if (!approvedKnowledge.promptContext) {
+  const enrichment = [approvedKnowledge.promptContext, learningContext].filter(Boolean);
+  if (enrichment.length === 0) {
     return askBusinessAdvisorBase(input);
   }
 
@@ -29,7 +35,7 @@ export async function askBusinessAdvisor(
     ...input,
     briefing: {
       ...input.briefing,
-      todaySummary: [input.briefing.todaySummary, approvedKnowledge.promptContext].join("\n\n"),
+      todaySummary: [input.briefing.todaySummary, ...enrichment].join("\n\n"),
     },
   });
 }
