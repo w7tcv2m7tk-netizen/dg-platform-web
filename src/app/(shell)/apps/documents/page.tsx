@@ -33,17 +33,14 @@ export default async function DocumentsOverviewPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Documents</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Documents & Signing — Core library for {session.organisationName}. Industry Apps
-          (e.g. Real Estate property panels) write into this engine.
+          Documents & Signing — the Core library for {session.organisationName}. Industry Apps
+          can attach documents to the records and workflows they belong to.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
         <div className="flex flex-wrap gap-4 text-sm">
           <Link href="/apps/documents/library" className="text-sky-400 hover:underline">
-            Library
-          </Link>
-          <Link href="/apps/documents/templates" className="text-slate-500 hover:underline">
-            Templates
+            Open document library
           </Link>
         </div>
 
@@ -69,14 +66,14 @@ export default async function DocumentsOverviewPage() {
             </div>
           ) : (
             <p className="mt-4 text-sm text-slate-500">
-              No documents yet. Upload from the library, or from a Real Estate property.
+              No documents yet. Upload from the library, or from an Industry App workflow.
             </p>
           )}
         </section>
 
         <p className="max-w-xl text-xs text-slate-500">
-          DigitalGate owns the document record, status, signing lifecycle and audit history.
-          E-sign providers and AI prepare come later.
+          DigitalGate keeps each document, its business context and signing lifecycle together.
+          Upload a document, send it for signature when required, then track it through completion.
         </p>
       </main>
     </>
