@@ -1,19 +1,10 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
 import { listPmPartyContacts } from "@dg/platform-core";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function PmTenantsPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -28,16 +19,12 @@ export default async function PmTenantsPage() {
   return (
     <main className="dg-page-main space-y-4">
       <p className="text-sm text-slate-400">
-        CRM Contacts linked as tenants on PM leases
+        {session.organisationName} · CRM Contacts linked as tenants on Property Management leases
       </p>
       {items.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
           <p className="text-slate-400">
-            No tenants yet.{" "}
-            <Link href="/apps/property-management/leases" className="text-sky-400 hover:underline">
-              Create a lease
-            </Link>{" "}
-            and attach a tenant Contact.
+            No tenants yet. Link a tenant Contact from a Property Management lease.
           </p>
         </div>
       ) : (
@@ -70,7 +57,10 @@ export default async function PmTenantsPage() {
         </ul>
       )}
       <p className="text-sm text-slate-500">
-        <Link href="/apps/crm/contacts" className="text-sky-400 hover:underline">
+        <Link
+          href="/apps/crm/contacts"
+          className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+        >
           Open CRM Contacts →
         </Link>
       </p>

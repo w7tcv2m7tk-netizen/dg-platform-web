@@ -1,19 +1,11 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
 import { getPmOverviewCounts } from "@dg/platform-core";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { canManagePropertyManagement } from "@/lib/property-management-page-access";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function PropertyManagementOverviewPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -23,13 +15,21 @@ export default async function PropertyManagementOverviewPage() {
     );
   }
 
+  const canManage = canManagePropertyManagement(session);
   const counts = await getPmOverviewCounts(session.organisationId);
 
   return (
     <main className="dg-page-main space-y-6">
-      <p className="text-sm text-slate-400">
-        {session.organisationName} · Long-term rentals floor (not sales or Acc)
-      </p>
+      <div>
+        <p className="text-sm text-slate-400">
+          {session.organisationName} · Long-term rental portfolio
+        </p>
+        {!canManage ? (
+          <p className="mt-1 text-xs text-slate-500">
+            Read-only access. Organisation-wide Property Management edit access is required to change portfolio records.
+          </p>
+        ) : null}
+      </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="dg-card">
           <p className="text-xs uppercase tracking-wide text-slate-500">Properties</p>
@@ -49,10 +49,12 @@ export default async function PropertyManagementOverviewPage() {
         </div>
       </div>
       <p className="text-sm text-slate-500">
-        Owners and tenants are Core CRM Contacts linked from leases — not a separate people
-        database.{" "}
-        <Link href="/apps/property-management/properties" className="text-sky-400 hover:underline">
-          Add a property →
+        Owners and tenants are Core CRM Contacts linked from leases rather than a separate people database.{" "}
+        <Link
+          href="/apps/property-management/properties"
+          className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+        >
+          Open properties →
         </Link>
       </p>
     </main>

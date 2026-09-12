@@ -1,19 +1,11 @@
-import { currentUser } from "@clerk/nextjs/server";
 import { listPmProperties } from "@dg/platform-core";
 
 import { CreatePmPropertyForm } from "@/components/property-management/CreatePmPropertyForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { canManagePropertyManagement } from "@/lib/property-management-page-access";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function PmPropertiesPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -23,17 +15,29 @@ export default async function PmPropertiesPage() {
     );
   }
 
+  const canManage = canManagePropertyManagement(session);
   const { items } = await listPmProperties(session.organisationId);
 
   return (
     <main className="dg-page-main space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-sm text-slate-400">Rental portfolio register</p>
-        <CreatePmPropertyForm />
+        <div>
+          <p className="text-sm text-slate-400">
+            {session.organisationName} · Rental portfolio register
+          </p>
+          {!canManage ? (
+            <p className="mt-1 text-xs text-slate-500">
+              Read-only properties. Organisation-wide Property Management edit access is required to add portfolio records.
+            </p>
+          ) : null}
+        </div>
+        {canManage ? <CreatePmPropertyForm /> : null}
       </div>
       {items.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-400">No properties yet. Add the first rental property.</p>
+          <p className="text-slate-400">
+            {canManage ? "No properties yet. Add the first rental property." : "No properties yet."}
+          </p>
         </div>
       ) : (
         <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">

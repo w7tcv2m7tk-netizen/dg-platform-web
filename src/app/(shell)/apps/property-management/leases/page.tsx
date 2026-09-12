@@ -1,19 +1,12 @@
-import { currentUser } from "@clerk/nextjs/server";
 import { listContacts, listPmLeases, listPmProperties } from "@dg/platform-core";
 
 import { CreatePmLeaseForm } from "@/components/property-management/CreatePmLeaseForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { formatMoneyFromCents, getOrganisationMoneySettings } from "@/lib/organisation-money";
+import { canManagePropertyManagement } from "@/lib/property-management-page-access";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function PmLeasesPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -23,10 +16,14 @@ export default async function PmLeasesPage() {
     );
   }
 
-  const [{ items }, contacts, properties] = await Promise.all([
+  const canManage = canManagePropertyManagement(session);
+  const [{ items }, contacts, properties, money] = await Promise.all([
     listPmLeases(session.organisationId),
-    listContacts({ organisationId: session.organisationId, limit: 100 }),
+    canManage
+      ? listContacts({ organisationId: session.organisationId, limit: 100 })
+      : Promise.resolve({ items: [], meta: { total: 0, limit: 0, offset: 0 } }),
     listPmProperties(session.organisationId),
+    getOrganisationMoneySettings(session.organisationId),
   ]);
 
   const contactOptions = contacts.items.map((c) => ({
@@ -45,29 +42,45 @@ export default async function PmLeasesPage() {
   return (
     <main className="dg-page-main space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-sm text-slate-400">
-          Long-term rentals — owners &amp; tenants on Core CRM
-        </p>
-        <CreatePmLeaseForm contacts={contactOptions} properties={propertyOptions} />
+        <div>
+          <p className="text-sm text-slate-400">
+            {session.organisationName} · Long-term rentals — owners &amp; tenants on Core CRM
+          </p>
+          {!canManage ? (
+            <p className="mt-1 text-xs text-slate-500">
+              Read-only leases. Organisation-wide Property Management edit access is required to create tenancies.
+            </p>
+          ) : null}
+        </div>
+        {canManage ? (
+          <CreatePmLeaseForm
+            contacts={contactOptions}
+            properties={propertyOptions}
+            currency={money.currency}
+          />
+        ) : null}
       </div>
       {items.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-400">No leases yet. Create the first PM lease.</p>
+          <p className="text-slate-400">
+            {canManage ? "No leases yet. Create the first property management lease." : "No leases yet."}
+          </p>
         </div>
       ) : (
         <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">
-          {items.map((lease) => (
-            <li key={lease.id} className="px-4 py-3">
-              <p className="font-medium text-white">{lease.title}</p>
-              <p className="text-xs text-slate-500">
-                {lease.stage} · {lease.status}
-                {lease.suburb ? ` · ${lease.suburb}` : ""}
-                {lease.rentCents != null
-                  ? ` · $${(lease.rentCents / 100).toLocaleString("en-AU")}/wk`
-                  : ""}
-              </p>
-            </li>
-          ))}
+          {items.map((lease) => {
+            const rent = formatMoneyFromCents(lease.rentCents, money);
+            return (
+              <li key={lease.id} className="px-4 py-3">
+                <p className="font-medium text-white">{lease.title}</p>
+                <p className="text-xs text-slate-500">
+                  {lease.stage} · {lease.status}
+                  {lease.suburb ? ` · ${lease.suburb}` : ""}
+                  {rent ? ` · ${rent}/wk` : ""}
+                </p>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

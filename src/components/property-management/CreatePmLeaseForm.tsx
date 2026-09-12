@@ -6,9 +6,11 @@ import { useState } from "react";
 export function CreatePmLeaseForm({
   contacts,
   properties = [],
+  currency = "AUD",
 }: {
   contacts: { id: string; label: string }[];
   properties?: { id: string; label: string }[];
+  currency?: string;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -52,7 +54,7 @@ export function CreatePmLeaseForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+        className="min-h-11 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
       >
         New lease
       </button>
@@ -66,13 +68,13 @@ export function CreatePmLeaseForm({
         name="title"
         required
         placeholder="Lease title (e.g. 12 Smith St — Unit 2)"
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+        className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
       />
       {properties.length > 0 ? (
         <select
           name="propertyId"
           defaultValue=""
-          className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="">Link property (optional)</option>
           {properties.map((p) => (
@@ -86,17 +88,17 @@ export function CreatePmLeaseForm({
         <input
           name="addressLine1"
           placeholder="Address"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         />
         <input
           name="suburb"
           placeholder="Suburb"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         />
         <select
           name="stage"
           defaultValue="application"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="application">Application</option>
           <option value="active">Active</option>
@@ -108,13 +110,13 @@ export function CreatePmLeaseForm({
           name="rent"
           type="number"
           step="0.01"
-          placeholder="Weekly rent (AUD)"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          placeholder={`Weekly rent (${currency})`}
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         />
         <select
           name="ownerContactId"
           defaultValue=""
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="">Owner (CRM)</option>
           {contacts.map((c) => (
@@ -126,7 +128,7 @@ export function CreatePmLeaseForm({
         <select
           name="tenantContactId"
           defaultValue=""
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="">Tenant (CRM)</option>
           {contacts.map((c) => (
@@ -143,18 +145,18 @@ export function CreatePmLeaseForm({
         className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
       />
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+          className="min-h-11 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
           {pending ? "Saving…" : "Create"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300"
+          className="min-h-11 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300"
         >
           Cancel
         </button>
