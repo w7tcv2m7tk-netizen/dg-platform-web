@@ -235,7 +235,8 @@ export function SeoAuditPanel({
       <section className="dg-card">
         <h2 className="font-semibold text-white">Run SEO audit</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Live probe of your public website plus native Studio SEO checks when a site exists.
+          Live probe of your public website plus native Studio SEO checks when the audited site can
+          be matched safely.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <input
