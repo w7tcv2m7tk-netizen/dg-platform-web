@@ -4,11 +4,11 @@ import {
   getActiveServiceTemplate,
   listOrganisationMembers,
   listServiceJobs,
-  sessionHasFeature,
 } from "@dg/platform-core";
 
 import { ScheduleJobQuickForm } from "@/components/services/ScheduleJobQuickForm";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { canManageServices } from "@/lib/services-page-access";
 import {
   dayKeyRange,
   formatDayHeading,
@@ -30,7 +30,7 @@ export default async function ServicesSchedulingPage() {
   const session = await getAuthorisedPlatformPageSession("services.jobs.read");
   if (!session) notFound();
 
-  const canWriteJobs = sessionHasFeature(session, "services.jobs.write");
+  const canWriteJobs = canManageServices(session);
 
   const { prisma } = await import("@dg/database");
   const [org, members] = await Promise.all([
@@ -46,7 +46,7 @@ export default async function ServicesSchedulingPage() {
   const startKey = todayKey(timeZone);
   const dayKeys = dayKeyRange(startKey, 14);
 
-  // Wide ISO window; jobs are bucketed by org timezone day keys.
+  // Wide ISO window; jobs are bucketed by organisation timezone day keys.
   const rangeStart = new Date();
   rangeStart.setUTCDate(rangeStart.getUTCDate() - 1);
   const rangeEnd = new Date();
@@ -95,122 +95,122 @@ export default async function ServicesSchedulingPage() {
           Next 14 days · {timeZone.replace(/_/g, " ")} · day board for {jobWord}s
         </p>
         <p className="mt-1 text-xs text-slate-500">
-          Drag-and-drop calendar is not in closed beta — edit start/end on each {jobWord}.
+          {canWriteJobs
+            ? `Edit start/end on each ${jobWord}; drag-and-drop scheduling is not enabled yet.`
+            : `Read-only schedule. Organisation-wide Services edit access is required to schedule or assign ${jobWord}s.`}
         </p>
       </div>
 
       {unscheduledOpen.length > 0 ? (
-          <section className="dg-card space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
-              Needs scheduling ({unscheduledOpen.length})
-            </h2>
-            <ul className="divide-y divide-slate-800">
-              {unscheduledOpen.slice(0, 12).map((job) => (
-                <li key={job.id} className="py-3">
-                  <Link
-                    href={`/apps/services/jobs/${job.id}`}
-                    className="block hover:opacity-90"
-                  >
-                    <p className="font-medium text-white">{job.title}</p>
-                    <p className="text-sm text-slate-400">
-                      {stageLabel.get(job.stage) ?? job.stage.replace(/_/g, " ")}
-                      {job.siteAddress ? ` · ${job.siteAddress}` : ""}
-                      {job.assignedUserId
-                        ? ` · ${assigneeByClerkId.get(job.assignedUserId) ?? "Assigned"}`
-                        : " · Unassigned"}
-                    </p>
-                  </Link>
-                  {canWriteJobs ? (
-                    <ScheduleJobQuickForm
-                      jobId={job.id}
-                      defaultDay={startKey}
-                      members={members.map((m) => ({
-                        clerkUserId: m.clerkUserId,
-                        label: memberLabel(m),
-                      }))}
-                    />
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+        <section className="dg-card space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
+            Needs scheduling ({unscheduledOpen.length})
+          </h2>
+          <ul className="divide-y divide-slate-800">
+            {unscheduledOpen.slice(0, 12).map((job) => (
+              <li key={job.id} className="py-3">
+                <Link
+                  href={`/apps/services/jobs/${job.id}`}
+                  className="block min-h-11 py-1 hover:opacity-90"
+                >
+                  <p className="font-medium text-white">{job.title}</p>
+                  <p className="text-sm text-slate-400">
+                    {stageLabel.get(job.stage) ?? job.stage.replace(/_/g, " ")}
+                    {job.siteAddress ? ` · ${job.siteAddress}` : ""}
+                    {job.assignedUserId
+                      ? ` · ${assigneeByClerkId.get(job.assignedUserId) ?? "Assigned"}`
+                      : " · Unassigned"}
+                  </p>
+                </Link>
+                {canWriteJobs ? (
+                  <ScheduleJobQuickForm
+                    jobId={job.id}
+                    defaultDay={startKey}
+                    members={members.map((m) => ({
+                      clerkUserId: m.clerkUserId,
+                      label: memberLabel(m),
+                    }))}
+                  />
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
-        {unassignedScheduled.length > 0 ? (
-          <section className="dg-card space-y-3">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
-              Scheduled · unassigned ({unassignedScheduled.length})
-            </h2>
-            <ul className="divide-y divide-slate-800">
-              {unassignedScheduled.map((job) => (
-                <li key={job.id} className="py-3">
-                  <Link
-                    href={`/apps/services/jobs/${job.id}`}
-                    className="block hover:opacity-90"
-                  >
-                    <p className="text-xs text-amber-200/90">
-                      {formatTimeRange(job.scheduledStartAt!, job.scheduledEndAt, timeZone)}
-                      {" · "}
-                      {zonedDayKey(job.scheduledStartAt!, timeZone)}
-                    </p>
-                    <p className="font-medium text-white">{job.title}</p>
-                    <p className="text-sm text-slate-400">
-                      {job.siteAddress ?? "No address"}
-                    </p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+      {unassignedScheduled.length > 0 ? (
+        <section className="dg-card space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-amber-200/90">
+            Scheduled · unassigned ({unassignedScheduled.length})
+          </h2>
+          <ul className="divide-y divide-slate-800">
+            {unassignedScheduled.map((job) => (
+              <li key={job.id} className="py-3">
+                <Link
+                  href={`/apps/services/jobs/${job.id}`}
+                  className="block min-h-11 py-1 hover:opacity-90"
+                >
+                  <p className="text-xs text-amber-200/90">
+                    {formatTimeRange(job.scheduledStartAt!, job.scheduledEndAt, timeZone)}
+                    {" · "}
+                    {zonedDayKey(job.scheduledStartAt!, timeZone)}
+                  </p>
+                  <p className="font-medium text-white">{job.title}</p>
+                  <p className="text-sm text-slate-400">{job.siteAddress ?? "No address"}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
-        <div className="space-y-4">
-          {dayKeys.map((key) => {
-            const jobs = byDay.get(key) ?? [];
-            return (
-              <section key={key} className="dg-card space-y-3">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-sky-300/90">
-                  {formatDayHeading(key, timeZone)}
-                  <span className="ml-2 font-normal normal-case text-slate-500">
-                    {jobs.length
-                      ? `${jobs.length} ${jobWord}${jobs.length === 1 ? "" : "s"}`
-                      : "Free"}
-                  </span>
-                </h2>
-                {!jobs.length ? (
-                  <p className="text-sm text-slate-500">No jobs scheduled.</p>
-                ) : (
-                  <ul className="divide-y divide-slate-800">
-                    {jobs.map((job) => (
-                      <li key={job.id} className="py-3">
-                        <Link
-                          href={`/apps/services/jobs/${job.id}`}
-                          className="block hover:opacity-90"
-                        >
-                          <p className="text-xs text-amber-200/90">
-                            {formatTimeRange(
-                              job.scheduledStartAt!,
-                              job.scheduledEndAt,
-                              timeZone,
-                            )}
-                          </p>
-                          <p className="font-medium text-white">{job.title}</p>
-                          <p className="text-sm text-slate-400">
-                            {job.siteAddress ?? "No address"}
-                            {" · "}
-                            {stageLabel.get(job.stage) ?? job.stage.replace(/_/g, " ")}
-                            {job.assignedUserId
-                              ? ` · ${assigneeByClerkId.get(job.assignedUserId) ?? "Assigned"}`
-                              : " · Unassigned"}
-                          </p>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            );
-          })}
+      <div className="space-y-4">
+        {dayKeys.map((key) => {
+          const jobs = byDay.get(key) ?? [];
+          return (
+            <section key={key} className="dg-card space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-sky-300/90">
+                {formatDayHeading(key, timeZone)}
+                <span className="ml-2 font-normal normal-case text-slate-500">
+                  {jobs.length
+                    ? `${jobs.length} ${jobWord}${jobs.length === 1 ? "" : "s"}`
+                    : "Free"}
+                </span>
+              </h2>
+              {!jobs.length ? (
+                <p className="text-sm text-slate-500">No jobs scheduled.</p>
+              ) : (
+                <ul className="divide-y divide-slate-800">
+                  {jobs.map((job) => (
+                    <li key={job.id} className="py-3">
+                      <Link
+                        href={`/apps/services/jobs/${job.id}`}
+                        className="block min-h-11 py-1 hover:opacity-90"
+                      >
+                        <p className="text-xs text-amber-200/90">
+                          {formatTimeRange(
+                            job.scheduledStartAt!,
+                            job.scheduledEndAt,
+                            timeZone,
+                          )}
+                        </p>
+                        <p className="font-medium text-white">{job.title}</p>
+                        <p className="text-sm text-slate-400">
+                          {job.siteAddress ?? "No address"}
+                          {" · "}
+                          {stageLabel.get(job.stage) ?? job.stage.replace(/_/g, " ")}
+                          {job.assignedUserId
+                            ? ` · ${assigneeByClerkId.get(job.assignedUserId) ?? "Assigned"}`
+                            : " · Unassigned"}
+                        </p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          );
+        })}
       </div>
     </main>
   );
