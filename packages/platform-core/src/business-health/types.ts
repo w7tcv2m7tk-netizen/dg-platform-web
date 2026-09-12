@@ -40,10 +40,11 @@ export type BusinessHealthBundle = {
   overallStatus: BusinessHealthStatus;
   overallStatusLabel: string;
   trendDelta30Days: number | null;
-  evidenceCoveragePercent: number;
-  measuredDimensionCount: number;
-  confidence: BusinessHealthConfidence;
-  historyMeasurementCount: number;
+  /** Evidence metadata is populated by live page-data boundaries. */
+  evidenceCoveragePercent?: number;
+  measuredDimensionCount?: number;
+  confidence?: BusinessHealthConfidence;
+  historyMeasurementCount?: number;
   strong: string[];
   watch: string[];
   attention: string[];
