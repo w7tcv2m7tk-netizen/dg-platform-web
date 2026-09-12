@@ -1,0 +1,119 @@
+// DigitalGate AI Visibility™ — governed organisation-scoped intelligence evidence.
+// Tables are created by migrations/20260913_ai_visibility_intelligence/migration.sql.
+// Missing observations are intentionally represented by absence of rows, never zero-valued evidence.
+
+model AiVisibilityPrompt {
+  id             String   @id @default(cuid())
+  organisationId String   @map("organisation_id")
+  promptClass    String   @map("prompt_class")
+  promptText     String   @map("prompt_text") @db.Text
+  topic          String?
+  locale         String   @default("en-AU")
+  market         String   @default("AU")
+  status         String   @default("active")
+  source         String   @default("manual")
+  rationale      String?  @db.Text
+  metadata       Json?
+  createdBy      String?  @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  observations AiVisibilityObservation[]
+
+  @@unique([organisationId, promptText])
+  @@index([organisationId, status])
+  @@index([organisationId, promptClass, status])
+  @@map("ai_visibility_prompts")
+}
+
+model AiVisibilityCompetitor {
+  id             String   @id @default(cuid())
+  organisationId String   @map("organisation_id")
+  name           String
+  domain         String?
+  status         String   @default("active")
+  source         String   @default("manual")
+  rationale      String?  @db.Text
+  metadata       Json?
+  createdBy      String?  @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  mentions  AiVisibilityCompetitorMention[]
+  citations AiVisibilityCitation[]
+
+  @@unique([organisationId, name])
+  @@index([organisationId, status])
+  @@index([organisationId, domain])
+  @@map("ai_visibility_competitors")
+}
+
+model AiVisibilityObservation {
+  id               String   @id @default(cuid())
+  organisationId   String   @map("organisation_id")
+  promptId         String   @map("prompt_id")
+  engine           String
+  engineModel      String?  @map("engine_model")
+  observedAt       DateTime @map("observed_at")
+  brandMentioned   Boolean  @default(false) @map("brand_mentioned")
+  brandRecommended Boolean  @default(false) @map("brand_recommended")
+  answerRank       Int?     @map("answer_rank")
+  citedOwnDomain   Boolean  @default(false) @map("cited_own_domain")
+  answerContext    String?  @map("answer_context") @db.Text
+  sourceRef        String?  @map("source_ref")
+  evidence         Json?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  prompt             AiVisibilityPrompt              @relation(fields: [promptId], references: [id], onDelete: Cascade)
+  competitorMentions AiVisibilityCompetitorMention[]
+  citations          AiVisibilityCitation[]
+
+  @@index([organisationId, observedAt])
+  @@index([organisationId, engine, observedAt])
+  @@index([promptId, observedAt])
+  @@map("ai_visibility_observations")
+}
+
+model AiVisibilityCompetitorMention {
+  id             String   @id @default(cuid())
+  organisationId String   @map("organisation_id")
+  observationId  String   @map("observation_id")
+  competitorId   String   @map("competitor_id")
+  mentioned      Boolean  @default(true)
+  recommended    Boolean  @default(false)
+  answerRank     Int?     @map("answer_rank")
+  context        String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  observation AiVisibilityObservation @relation(fields: [observationId], references: [id], onDelete: Cascade)
+  competitor  AiVisibilityCompetitor  @relation(fields: [competitorId], references: [id], onDelete: Cascade)
+
+  @@unique([observationId, competitorId])
+  @@index([organisationId, competitorId, createdAt])
+  @@map("ai_visibility_competitor_mentions")
+}
+
+model AiVisibilityCitation {
+  id                  String   @id @default(cuid())
+  organisationId      String   @map("organisation_id")
+  observationId       String   @map("observation_id")
+  competitorId        String?  @map("competitor_id")
+  sourceDomain        String   @map("source_domain")
+  citedUrl            String   @map("cited_url") @db.Text
+  sourceType          String   @default("third_party") @map("source_type")
+  opportunityClass    String?  @map("opportunity_class")
+  firstSeenAt         DateTime @map("first_seen_at")
+  lastSeenAt          DateTime @map("last_seen_at")
+  frequency           Int      @default(1)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  observation AiVisibilityObservation @relation(fields: [observationId], references: [id], onDelete: Cascade)
+  competitor  AiVisibilityCompetitor? @relation(fields: [competitorId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, sourceDomain, lastSeenAt])
+  @@index([organisationId, sourceType, lastSeenAt])
+  @@index([observationId])
+  @@index([competitorId])
+  @@map("ai_visibility_citations")
+}
