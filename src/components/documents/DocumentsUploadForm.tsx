@@ -81,7 +81,7 @@ export function DocumentsUploadForm({
         {pending ? "Uploading…" : "Upload a document"}
       </button>
       <p className="text-xs text-slate-500">
-        Upload · Create · Send for signature · Track · Complete — providers plug in later.
+        Upload · Send for signature · Track · Complete.
       </p>
       {error ? <p className="text-sm text-rose-400">{error}</p> : null}
     </div>
