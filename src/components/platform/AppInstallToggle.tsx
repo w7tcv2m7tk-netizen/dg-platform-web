@@ -1,5 +1,7 @@
 "use client";
 
+import { platformApps } from "@dg/platform-core/apps/registry";
+
 import { useEnabledAppsOptional } from "@/components/platform/EnabledAppsProvider";
 
 export function AppInstallToggle({
@@ -10,6 +12,16 @@ export function AppInstallToggle({
   installed: boolean;
 }) {
   const ctx = useEnabledAppsOptional();
+  const registryApp = platformApps.get(appId);
+  const isAvailable = Boolean(registryApp?.enabled);
+
+  if (!isAvailable) {
+    return (
+      <span className="rounded-full bg-slate-800 px-2 py-0.5 text-xs text-slate-500">
+        Not available
+      </span>
+    );
+  }
 
   if (!ctx) {
     return (
