@@ -90,6 +90,7 @@ export function ChromeHeaderHtml({ html }: { html: string }) {
           <button
             type="button"
             className="wb-chrome-html-menu-btn"
+            style={{ zIndex: 150 }}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
             aria-controls={panelId}
@@ -105,6 +106,7 @@ export function ChromeHeaderHtml({ html }: { html: string }) {
             className={["wb-brand-chrome-backdrop", open ? "is-open" : ""]
               .filter(Boolean)
               .join(" ")}
+            style={{ zIndex: 130 }}
             hidden={!open}
             onClick={() => setOpen(false)}
           />
@@ -113,6 +115,7 @@ export function ChromeHeaderHtml({ html }: { html: string }) {
             className={["wb-brand-chrome-panel", open ? "is-open" : ""]
               .filter(Boolean)
               .join(" ")}
+            style={{ zIndex: 140 }}
             hidden={!open}
             role="dialog"
             aria-modal="true"
