@@ -141,7 +141,7 @@ export default async function DashboardPage() {
     };
   }
 
-  if (platformSession && liveMetrics) {
+  if (platformSession && liveMetrics && !foundingCustomerMode) {
     try {
       const websiteIssueCount = connectorProbes.website
         ? (connectorProbes.website.fail ?? 0) + (connectorProbes.website.warn ?? 0)
@@ -251,7 +251,7 @@ export default async function DashboardPage() {
             ) : null}
             <Link
               href="/dashboard/brain"
-              className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300 hover:border-sky-400/50"
+              className="rounded-full border border-sky-500/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-300 hover:underline"
             >
               Business Brain →
             </Link>
