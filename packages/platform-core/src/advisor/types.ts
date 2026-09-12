@@ -1,3 +1,5 @@
+import type { AiQualityMetrics } from "../ai/usage";
+
 export type AdvisorQuestionId =
   | "today"
   | "focus_this_week"
@@ -26,7 +28,6 @@ export type AdvisorActionCategory =
   | "Growth"
   | "Platform";
 
-/** Ask-about domains — only surfaces the org has access to. */
 export type AdvisorContextId =
   | "entire_business"
   | "sales"
@@ -54,10 +55,6 @@ export type AdvisorRecommendation = {
   whatDigitalGateCanDo: string;
   actionLabel: string;
   href: string;
-  /**
-   * When set, Advisor can offer Do it — DigitalGate executes via Tool Registry
-   * after human approval (AI never writes data directly).
-   */
   toolId?: string;
   toolParams?: {
     title?: string;
@@ -97,4 +94,5 @@ export type BusinessAdvisorBundle = {
   askExamples: string[];
   availableContexts: AdvisorContextOption[];
   questionAnswers: AdvisorQuestionAnswer[];
+  aiQuality?: AiQualityMetrics;
 };
