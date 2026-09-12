@@ -9,6 +9,7 @@ const signupLayout = read("src/app/signup/(platform)/layout.tsx");
 const planPicker = read("src/components/PlanPicker.tsx");
 const onboarding = read("src/app/(shell)/onboarding/page.tsx");
 const publicRoutes = read("src/lib/public-routes.ts");
+const platformShellLoader = read("src/components/PlatformShellLoader.tsx");
 const businessSetup = read("src/app/(shell)/dashboard/business-setup/page.tsx");
 
 test("public signup stays outside the authenticated platform shell", () => {
@@ -72,6 +73,11 @@ test("new-account onboarding can reach its own signed-out handoff", () => {
   assert.match(onboarding, /if \(!session\)/);
   assert.match(onboarding, /redirect_url/);
   assert.match(onboarding, /Sign in to continue/);
+});
+
+test("signed-out onboarding recovery does not render authenticated app chrome", () => {
+  assert.match(platformShellLoader, /if \(!session\)\s*{[\s\S]{0,120}return <>\{children\}<\/>;/);
+  assert.match(platformShellLoader, /<PlatformShell/);
 });
 
 test("onboarding sign-in and billing recovery meet the native touch-target floor", () => {
