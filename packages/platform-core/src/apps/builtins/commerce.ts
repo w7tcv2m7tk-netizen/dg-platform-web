@@ -4,7 +4,7 @@ export const commerceApp: AppManifest = {
   id: "commerce",
   name: "Commerce",
   description:
-    "Payments, quotes, invoices, and checkout — the customer-facing commercial layer",
+    "Payments, quotes, invoices, products, subscriptions and checkout — the customer-facing commercial layer",
   tier: "core",
   version: "0.3.0",
   icon: "▤",
@@ -56,33 +56,11 @@ export const commerceApp: AppManifest = {
     { id: "commerce.send_quote", label: "Send quote" },
     { id: "commerce.enable_payment_reminders", label: "Enable payment reminders" },
   ],
-  aiTools: [
-    {
-      id: "commerce.cash_flow_forecast",
-      label: "Cash flow forecast",
-      description: "Predict cash flow from historical payment patterns",
-    },
-    {
-      id: "commerce.overdue_insights",
-      label: "Overdue invoice insights",
-      description: "Summarise overdue AR and recommend follow-ups",
-    },
-    {
-      id: "commerce.payment_velocity",
-      label: "Payment velocity analysis",
-      description: "Track average days to pay and trend changes",
-    },
-  ],
+  aiTools: [],
   reports: [
     { id: "commerce.profit_and_loss", label: "Profit & Loss" },
     { id: "commerce.gst", label: "GST / Sales Tax" },
-    { id: "commerce.balance_sheet", label: "Balance Sheet" },
     { id: "commerce.cash_flow", label: "Cash Flow" },
-    { id: "commerce.revenue", label: "Revenue" },
-    { id: "commerce.outstanding_ar", label: "Outstanding invoices" },
-    { id: "commerce.mrr", label: "Recurring revenue" },
-    { id: "commerce.failed_payments", label: "Failed payments" },
-    { id: "commerce.refunds", label: "Refund rate" },
-    { id: "commerce.payment_methods", label: "Payment method breakdown" },
+    { id: "commerce.balance_sheet", label: "Balance Sheet (scaffolded)" },
   ],
 };
