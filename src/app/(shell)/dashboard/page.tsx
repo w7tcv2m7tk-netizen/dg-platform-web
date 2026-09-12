@@ -300,21 +300,24 @@ export default async function DashboardPage() {
               Sign in →
             </Link>
           </div>
-        ) : (
+        ) : foundingCustomerMode ? (
           <>
             <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />
-            {foundingCustomerMode ? (
-              <FoundingOperatorHome
-                overview={overview}
-                enabledAppIds={enabledAppIds}
-                openOpportunityCount={liveMetrics?.openOpportunityCount ?? 0}
-              />
-            ) : (
-              <>
-                <DigitalPerformanceStrip signals={digitalPerformanceSignals} />
-                <BusinessOverviewDashboard overview={overview} />
-              </>
-            )}
+            <FoundingOperatorHome
+              overview={overview}
+              enabledAppIds={enabledAppIds}
+              openOpportunityCount={liveMetrics?.openOpportunityCount ?? 0}
+            />
+          </>
+        ) : (
+          <>
+            <BusinessOverviewDashboard
+              overview={overview}
+              growthScorecard={<DigitalPerformanceStrip signals={digitalPerformanceSignals} />}
+            />
+            <div className="mt-7">
+              <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />
+            </div>
           </>
         )}
       </main>
