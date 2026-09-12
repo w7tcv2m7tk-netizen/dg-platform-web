@@ -125,6 +125,12 @@ export interface BusinessOverview {
   businessHealthDeltaLabel: string;
   lastUpdatedLabel: string;
   scoresLive: boolean;
+  /** Weighted share of Business Health dimensions backed by current evidence. */
+  healthEvidenceCoveragePercent?: number;
+  /** Evidence confidence returned by the canonical Business Health scorer. */
+  healthConfidence?: "insufficient" | "low" | "medium" | "high";
+  /** Real persisted Health measurements available for trend display. */
+  healthMeasurementCount?: number;
   dailyBriefing: string;
   priorities: OverviewPriority[];
   prioritiesImpact?: string;
