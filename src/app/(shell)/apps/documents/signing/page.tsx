@@ -41,8 +41,8 @@ export default async function DocumentsSigningPage() {
           <Link href="/apps/documents/library" className="text-sky-400 hover:underline">
             Document Library →
           </Link>
-          <Link href="/apps/documents/templates" className="text-sky-400 hover:underline">
-            Templates →
+          <Link href="/apps/documents" className="text-slate-400 hover:underline">
+            Documents overview →
           </Link>
         </div>
       </main>
