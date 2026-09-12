@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { getOperatorPlatformAlertsCentre } from "@dg/platform-core";
+import {
+  getOperatorPlatformAlertsCentre,
+  getStripeWebhookProcessingHealth,
+} from "@dg/platform-core";
 
 import { OperatorDataUnavailable } from "@/components/command/OperatorDataUnavailable";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
@@ -12,7 +15,12 @@ function toneClass(tone?: "healthy" | "degraded" | "idle") {
 
 export default async function PlatformSystemDiagnosticsPage() {
   const operator = await requirePlatformOperatorContext();
-  const data = process.env.DATABASE_URL ? await getOperatorPlatformAlertsCentre(operator) : null;
+  const [data, webhookHealth] = process.env.DATABASE_URL
+    ? await Promise.all([
+        getOperatorPlatformAlertsCentre(operator),
+        getStripeWebhookProcessingHealth(),
+      ])
+    : [null, null];
   const diagnostics = data?.diagnostics;
 
   return (
@@ -31,7 +39,7 @@ export default async function PlatformSystemDiagnosticsPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-8">
-        {!data || !diagnostics ? (
+        {!data || !diagnostics || !webhookHealth ? (
           <OperatorDataUnavailable label="system diagnostics" showHealthLink={false} />
         ) : (
           <div className="space-y-6">
@@ -74,6 +82,71 @@ export default async function PlatformSystemDiagnosticsPage() {
                   tone="healthy"
                 />
               </div>
+            </section>
+
+            <section className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-semibold text-white">Webhook processing</h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Durable Stripe receipt lifecycle state. No webhook payloads or customer data are shown.
+                  </p>
+                </div>
+                <span
+                  className={`text-sm font-semibold ${toneClass(
+                    webhookHealth.failed > 0 || webhookHealth.staleClaims > 0
+                      ? "degraded"
+                      : "healthy",
+                  )}`}
+                >
+                  {webhookHealth.failed > 0 || webhookHealth.staleClaims > 0
+                    ? "Needs attention"
+                    : "Healthy"}
+                </span>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                <DiagnosticCell
+                  label="Processed · 24h"
+                  value={String(webhookHealth.processedLast24h)}
+                  detail="Completed receipt claims."
+                  tone="healthy"
+                />
+                <DiagnosticCell
+                  label="In flight"
+                  value={String(webhookHealth.activeClaims)}
+                  detail="Claims inside the active processing window."
+                  tone={webhookHealth.activeClaims > 0 ? "idle" : "healthy"}
+                />
+                <DiagnosticCell
+                  label="Stale claims"
+                  value={String(webhookHealth.staleClaims)}
+                  detail="Processing claims beyond the recovery threshold."
+                  tone={webhookHealth.staleClaims > 0 ? "degraded" : "healthy"}
+                />
+                <DiagnosticCell
+                  label="Failed"
+                  value={String(webhookHealth.failed)}
+                  detail="Receipts currently marked failed."
+                  tone={webhookHealth.failed > 0 ? "degraded" : "healthy"}
+                />
+                <DiagnosticCell
+                  label="Retries exhausted"
+                  value={String(webhookHealth.exhausted)}
+                  detail="Failed receipts at the retry cap."
+                  tone={webhookHealth.exhausted > 0 ? "degraded" : "healthy"}
+                />
+              </div>
+              {webhookHealth.latestFailure ? (
+                <p className="mt-3 text-xs text-slate-500">
+                  Latest failed event type: {webhookHealth.latestFailure.eventType} · attempt{" "}
+                  {webhookHealth.latestFailure.attempts}
+                  {webhookHealth.latestFailure.claimedAt
+                    ? ` · claimed ${new Date(webhookHealth.latestFailure.claimedAt).toLocaleString("en-AU")}`
+                    : ""}
+                </p>
+              ) : (
+                <p className="mt-3 text-xs text-slate-500">No failed webhook receipts recorded.</p>
+              )}
             </section>
 
             <section className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
