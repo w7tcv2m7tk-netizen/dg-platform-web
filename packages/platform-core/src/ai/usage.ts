@@ -29,7 +29,6 @@ export type RecordAiLedgerEventInput = {
   eventType: AiLedgerEventType;
   title: string;
   body?: string;
-  /** Recommendation / assist / tool correlation id */
   correlationId: string;
   toolId?: string;
   recommendationId?: string;
@@ -134,10 +133,6 @@ function rate(numerator: number, denominator: number) {
   return Math.round((numerator / denominator) * 100);
 }
 
-/**
- * Quality telemetry answers whether Aida's advice is accepted, executes, and
- * turns into completed business work — not merely whether the model responded.
- */
 export async function getAiQualityMetrics(input: {
   organisationId: string;
   windowDays?: number;
@@ -177,9 +172,9 @@ export async function getAiQualityMetrics(input: {
   const usefulFeedback = count("ai.feedback_useful");
   const notUsefulFeedback = count("ai.feedback_not_useful");
   const completedAiTasks = tasks.filter(
-    (task) => Boolean(task.completedAt) || task.status === "completed" || task.status === "done",
+    (task) => Boolean(task.completedAt) || task.status === "completed",
   ).length;
-  const openAiTasks = Math.max(0, tasks.length - completedAiTasks);
+  const openAiTasks = tasks.filter((task) => task.status === "open").length;
 
   return {
     windowDays,
@@ -195,17 +190,11 @@ export async function getAiQualityMetrics(input: {
     completedAiTasks,
     acceptanceRate: rate(approved, approved + rejected),
     executionSuccessRate: rate(toolExecuted, toolExecuted + toolFailed),
-    completionRate: rate(completedAiTasks, tasks.length),
+    completionRate: rate(completedAiTasks, openAiTasks + completedAiTasks),
     usefulnessRate: rate(usefulFeedback, usefulFeedback + notUsefulFeedback),
   };
 }
 
-/**
- * Close the practical Learn loop for Advisor reasoning.
- * AI-created tasks are durable business outcomes: future Advisor turns can see
- * whether previously approved work is still open or was completed, rather than
- * repeatedly reasoning as though no action has happened.
- */
 export async function getAiLearningContext(input: {
   organisationId: string;
   limit?: number;
