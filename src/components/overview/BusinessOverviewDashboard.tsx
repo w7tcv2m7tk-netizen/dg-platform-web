@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { SetupProgressBar } from "@/components/overview/SetupProgressBar";
 import type { BusinessOverview, OverviewInsight } from "@dg/platform-core";
@@ -145,7 +146,13 @@ function PulseCard({ label, value, href, detail }: { label: string; value: strin
   );
 }
 
-export function BusinessOverviewDashboard({ overview }: { overview: BusinessOverview }) {
+export function BusinessOverviewDashboard({
+  overview,
+  growthScorecard,
+}: {
+  overview: BusinessOverview;
+  growthScorecard?: ReactNode;
+}) {
   const priorityCount = overview.priorities.length;
   const firstInsight = overview.insights[0] ?? null;
   const supportingInsights = overview.insights.slice(1, 4);
@@ -237,6 +244,8 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
           ))}
         </div>
       </section>
+
+      {growthScorecard}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(320px,0.85fr)]">
         <section className="rounded-2xl border border-slate-800 bg-slate-950/35 p-5 sm:p-6">
