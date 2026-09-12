@@ -137,6 +137,7 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
             members={memberOptions}
             quotes={[...quoteMap.values()]}
             contact={contact ? { id: contact.id, label: [contact.firstName, contact.lastName].filter(Boolean).join(" ") } : null}
+            timeZone={timeZone}
             customerLabel={template.terminology.customer}
             quoteLabel={template.terminology.quote}
           />
