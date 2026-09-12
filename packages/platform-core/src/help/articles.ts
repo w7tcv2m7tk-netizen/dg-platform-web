@@ -1,7 +1,4 @@
-/**
- * Customer-facing Knowledge Base stubs.
- * Linked from /support/help — escalate via chat or support@digitalgate.com.au on business days.
- */
+/** Customer-facing Knowledge Base for current DigitalGate workflows. */
 
 export type HelpArticleCategory =
   | "getting-started"
@@ -14,19 +11,18 @@ export type HelpArticleCategory =
 export const HELP_CATEGORY_LABELS: Record<HelpArticleCategory, string> = {
   "getting-started": "Getting started",
   billing: "Billing",
-  connectors: "Connectors",
+  connectors: "Connections & migration",
   crm: "CRM",
   apps: "Apps & workflows",
-  honesty: "Honest scope",
+  honesty: "Scores & scope",
 };
 
-/** Display order for category index */
 export const HELP_CATEGORY_ORDER: HelpArticleCategory[] = [
   "getting-started",
-  "billing",
-  "connectors",
   "crm",
   "apps",
+  "billing",
+  "connectors",
   "honesty",
 ];
 
@@ -36,7 +32,6 @@ export interface HelpArticle {
   title: string;
   summary: string;
   category: HelpArticleCategory;
-  /** Markdown-ish body rendered by SafeMarkdown */
   body: string;
 }
 
@@ -45,266 +40,287 @@ export const HELP_ARTICLES: readonly HelpArticle[] = [
     id: "signup-org",
     slug: "signup-and-organisation",
     title: "Sign up and create your organisation",
-    summary:
-      "Create a Clerk account, add a business, and land on the DigitalGate shell for that org.",
+    summary: "Create your DigitalGate account, add your business, and complete the first setup steps.",
     category: "getting-started",
-    body: `## What you do
+    body: `## Start here
 
-1. Sign up at the DigitalGate app (Clerk).
-2. Use **Add business** in the org switcher — name the organisation and pick a template if offered (e.g. Real Estate).
-3. You land on Overview / Business Profile for that org.
+1. Create or sign in to your DigitalGate account.
+2. Create your business organisation when prompted.
+3. Complete the guided onboarding and Business Profile.
+4. Open **Overview** to see the next actions for your organisation.
 
-## What to expect
+## Multiple businesses
 
-- One login can belong to multiple organisations.
-- Invites for teammates happen later under **Settings → Team**.
-- If something fails mid-signup, use **Support** chat or email — do not assume a silent staff ticket was opened.
+One account can belong to more than one organisation. Use the organisation switcher to move between businesses; each organisation keeps its own data, apps, settings and team access.
+
+## Add your team
+
+Owners and administrators can manage people from **Settings → Team**.
 
 ## Next
 
-- [Business Profile](/support/help/business-profile)
-- [Team roles](/dashboard/settings/team) (in-app)
+- [Complete your Business Profile](/support/help/business-profile)
+- [Open Overview](/dashboard)
+- [Get help](/support/help/getting-help)
 `,
   },
   {
     id: "business-profile",
     slug: "business-profile",
-    title: "Business Profile",
-    summary:
-      "ABN, brand, website URL, and identity fields that feed CRM, Websites, SEO, and AI Visibility.",
+    title: "Complete your Business Profile",
+    summary: "Keep the business identity, services, audience and brand information used across DigitalGate up to date.",
     category: "getting-started",
     body: `## Why it matters
 
-Business Profile is a source of truth for website URL, brand assets, and AU identity (ABN where collected). Other apps read it — they do not invent a second profile.
+Business Profile is shared context for DigitalGate. Your website, AI guidance, visibility tools and other apps use it so you do not have to maintain a different business description in every module.
 
-## Typical steps
+## What to complete
 
-1. Open **Dashboard → Business** (or the onboarding checklist).
-2. Add legal / trading name, ABN if you have one, logo, and primary website URL.
-3. Save — Overview setup progress should move forward.
+1. Open **Dashboard → Business**.
+2. Confirm your business and trading names, ABN where relevant, website and contact details.
+3. Add your services or products, target customers and key differentiators.
+4. Add your logo and brand details where available.
+5. Save your changes and return to Overview.
 
-## Honest limits
+## Keep it current
 
-- Incomplete profile → SEO / AI Visibility audits may refuse to score or show a critical path instead of a decorative number.
-- Industry templates (e.g. Real Estate) may add checklist steps; they do not unlock every portal or marketing promise.
+Update the profile when your offer, service area or business priorities change. Better source information gives the Business Brain and customer-facing apps better context.
 `,
   },
   {
-    id: "billing-checkout-portal",
-    slug: "billing-checkout-and-portal",
-    title: "Billing, checkout, and customer portal",
-    summary:
-      "How Stripe checkout, webhooks, entitlements, and the billing portal fit together for your org.",
-    category: "billing",
-    body: `## Path
+    id: "getting-help",
+    slug: "getting-help",
+    title: "Getting help",
+    summary: "Use the Knowledge Base first, then continue with DigitalGate Support when you need a person.",
+    category: "getting-started",
+    body: `## Best path
 
-1. **Settings → Billing** — see plan status and start checkout when offered.
-2. Stripe Checkout collects payment (test mode until live keys are configured).
-3. Webhooks update org entitlements — without a working webhook, payment may succeed in Stripe but the app stays on the free / unpaid path.
-4. **Customer portal** (when linked) manages payment method and invoices in Stripe — DigitalGate does not host a fake invoice inbox.
+1. Check the relevant Knowledge Base article.
+2. Open **Support** from DigitalGate if the issue is still unresolved.
+3. Or email **support@digitalgate.com.au**.
 
-## Who can change billing
+## Help us reproduce the issue
 
-**Owner / Admin** only. Members should ask an owner to update plan or payment method.
+Include your organisation name, the page you were using, what you expected to happen and what happened instead. A screenshot is useful when the issue is visual.
 
-## If checkout looks stuck
-
-Check Support on a business day with your org name and approximate time of payment. Do not re-pay blindly until someone confirms webhook status.
-`,
-  },
-  {
-    id: "connectors-wordpress",
-    slug: "connectors-wordpress",
-    title: "Connectors and WordPress",
-    summary:
-      "Per-org WordPress connector: base URL, API key, and what syncs into CRM / Real Estate.",
-    category: "connectors",
-    body: `## Setup
-
-1. Open **Settings → Connectors**.
-2. Enter the WordPress site base URL and platform API key from the DG Platform plugin.
-3. Save and run a sync / smoke check from the connector panel.
-
-## What WordPress is for
-
-- Public capture (property reports, enquiries, bookings) often still lives on WordPress during closed beta.
-- Contacts, leads, and listing publish paths sync when the connector is healthy.
-
-## Honest limits
-
-- A missing or wrong key fails closed — we do not invent a successful sync.
-- Other connectors (Domain, REA, Google, Cotality) are separate panels with their own credentials and scope.
-`,
-  },
-  {
-    id: "domain-sandbox",
-    slug: "domain-syndication-sandbox",
-    title: "Domain.com.au syndication (sandbox honesty)",
-    summary:
-      "Pilots use Listings Management Sandbox via DOMAIN_API_PATH_PREFIX=/sandbox — not live Primary by default.",
-    category: "connectors",
-    body: `## Pilot reality
-
-Domain syndication in DigitalGate is wired for **Listings Management**. Many pilot credentials only authorise **Sandbox** paths.
-
-Set on the deployment (Vercel / \`.env\`):
-
-\`\`\`
-DOMAIN_API_PATH_PREFIX=/sandbox
-\`\`\`
-
-Then **Reconnect** Domain under Connectors. Without the prefix, probes hit Primary \`/v1/…\` and often return **403** even with a valid OAuth token.
-
-## What “published” means
-
-- A queue / process id is **not** the same as live on Domain.com.au.
-- Sandbox may create a **test agency** — do not treat sandbox listings as public marketing.
-
-## In the UI
-
-Property Domain syndication and the Domain connector panel both surface the sandbox prefix note when relevant.
-`,
-  },
-  {
-    id: "re-closed-beta",
-    slug: "real-estate-closed-beta",
-    title: "Real Estate closed beta — what’s in and out",
-    summary:
-      "Vendor/buyer pipelines, appraisals, listings, offers, settlements — and what we do not promise yet.",
-    category: "honesty",
-    body: `## In (typical pilot)
-
-- Org with **Real Estate** template / \`re.beta\` flag
-- Business Profile + WordPress connector
-- Vendor & buyer pipelines, appraisals, properties, listings, offers, settlements
-- Contact roles as **tags** (Vendor / Buyer) on Contact
-- Optional Commerce on leads
-
-## Out (do not promise)
-
-- Full portal syndication as a guaranteed beta deliverable (Domain/REA are scaffold / sandbox paths)
-- Full marketing campaigns / Network Marketplace
-- Multi-office franchise hierarchy
-- Mobile-native agent apps beyond the web/PWA shell
-- AI auto-execute listing copy at scale
-
-## Flag
-
-\`re.beta\` gates sidebar and \`/apps/re/*\`. Staff can enable via Command Centre for an existing org.
+Do not include passwords, API secrets or payment card details in a support message.
 `,
   },
   {
     id: "crm-contacts-opportunities",
     slug: "crm-contacts-and-opportunities",
     title: "CRM contacts and opportunities",
-    summary:
-      "Contacts as the shared object; opportunities for pipeline work across Apps.",
+    summary: "Use shared contacts, activity and opportunities as the customer relationship foundation across DigitalGate.",
     category: "crm",
     body: `## Contacts
 
-- Create manually under **CRM → Contacts**, or wait for WordPress / connector sync.
-- Open a contact for the unified activity timeline — Apps write here.
-- Industry tags (e.g. Vendor / Buyer) attach to the same person object.
+- Open **CRM → Contacts** to add or review people and organisations you work with.
+- A contact is shared across the apps that need that relationship, rather than being copied into separate databases.
+- Open a contact to review the activity timeline and related work.
 
 ## Opportunities
 
-- Use **CRM → Opportunities** for deal-shaped work that is not industry-specific lead stages.
-- Real Estate vendor/buyer leads live under the RE app when \`re.beta\` is on — they still resolve to contacts.
+Use **CRM → Opportunities** for sales or relationship work that is not already represented by a specialised industry workflow.
 
-## Tip
+Industry apps can use the same CRM contacts while keeping their own purpose-built stages and records.
 
-Start with one real contact before enabling more Growth Apps. Empty CRM makes every downstream screen look broken.
+## Good first step
+
+Add one real contact and record the next action. It gives Tasks, Communications, Commerce and industry apps useful relationship context immediately.
 `,
   },
   {
     id: "tasks",
     slug: "tasks",
-    title: "Tasks",
-    summary:
-      "Follow-through tasks on the CRM path so work does not depend on Ben chasing people.",
+    title: "Tasks and follow-up",
+    summary: "Keep next actions inside DigitalGate so follow-up is visible and accountable.",
     category: "crm",
-    body: `## Intent
+    body: `## Use Tasks for work that needs a next action
 
-Tasks exist so pilots can assign and complete follow-ups inside DigitalGate — not in a side spreadsheet.
+Create tasks from the relevant CRM, opportunity or workflow context where available. Give the task a clear outcome, owner and due date.
 
-## Where to look
+## Working the list
 
-- CRM contact / opportunity surfaces and Command ops pulse (due today) when enabled.
-- If a Tasks list route is empty, treat it as **not yet provisioned for your org**, not as zero work globally.
+- Review due and overdue work regularly.
+- Complete tasks when the action is finished rather than using completion as a reminder dismissal.
+- Open the related contact, opportunity or app record when you need the surrounding context.
 
-## Escalate
-
-If you cannot create or complete a task that the pilot promised, use Support chat or email on a business day with the org name and screen URL.
+If you cannot create or complete a task you should have access to, contact Support with the page URL and your organisation name.
 `,
   },
   {
     id: "automation-defaults",
     slug: "automation-defaults",
-    title: "Automation defaults",
-    summary:
-      "A small set of real durable actions — not a full marketing automation suite.",
+    title: "Automation basics",
+    summary: "Use DigitalGate automation to connect real triggers and actions without losing human control.",
     category: "apps",
-    body: `## Honesty
+    body: `## Start small
 
-Automation in commercially ready v1 is a **narrow** registry of triggers and actions on the founding path — not “set and forget” campaigns across every channel.
+1. Open **Automation** for your organisation.
+2. Choose a trigger that represents a real business event.
+3. Add the action you want DigitalGate to take.
+4. Review the workflow before enabling it.
 
-## What to do
+Good first automations are simple and observable: create a task, send an internal notification, update a stage, or start a defined follow-up path.
 
-1. Open **Automation** for your org.
-2. Review enabled defaults / available actions.
-3. Prefer 2–3 durable actions you will actually run (e.g. notify, create task, update stage) over speculative chains.
+## Keep responsibility clear
 
-## Out of scope for stubs
+Automation should reduce repeat work, not make important customer decisions invisible. Review workflows whenever your sales, service or compliance process changes.
+`,
+  },
+  {
+    id: "real-estate",
+    slug: "real-estate-workflow",
+    title: "Real Estate workflow",
+    summary: "Run vendor and buyer work from lead through property, listing, offer and settlement in the native Real Estate app.",
+    category: "apps",
+    body: `## Vendor workflow
 
-- Guaranteeing every Marketing app tile is live automation
-- Silent AI that emails customers without an owner approving the path
+1. Open **Real Estate → Vendor Leads** and add or review a vendor lead.
+2. Progress the relationship through appraisal and property preparation.
+3. Create or open the property record.
+4. Manage listing details and approved syndication channels.
+5. Record offers and progress the accepted deal through settlement.
+
+## Buyer workflow
+
+Use **Buyer Leads** for buyer enquiries and follow-up. Buyer and vendor records link back to your shared CRM contacts so the relationship history stays together.
+
+## Permissions
+
+People with read access can review the pipeline. Organisation-wide Real Estate edit authority is required for property, listing, booking and pipeline mutations.
+`,
+  },
+  {
+    id: "accommodation",
+    slug: "accommodation-workflow",
+    title: "Accommodation workflow",
+    summary: "Manage units, availability, stays, check-ins, housekeeping and payments from the native Accommodation app.",
+    category: "apps",
+    body: `## Set up the property
+
+1. Open **Accommodation → Units** and confirm the accommodation units you manage.
+2. Review **Availability** and booking rules.
+3. Use **Bookings** for stays and guest details.
+4. Work upcoming arrivals from **Check-ins**.
+5. Use **Housekeeping** for turnover work.
+6. Review **Payments** for accommodation payment state.
+
+Dates and times follow your organisation timezone. Money presentation follows the organisation locale and currency.
+
+If you are moving historical information from another system, use an explicit migration/import workflow rather than treating the old system as the live data source.
+`,
+  },
+  {
+    id: "services",
+    slug: "services-workflow",
+    title: "Services jobs and scheduling",
+    summary: "Create service jobs, schedule work, track stages and keep field activity connected to CRM customers.",
+    category: "apps",
+    body: `## Typical flow
+
+1. Open **Services → Jobs** and create the job.
+2. Link the customer and assign the appropriate team member where required.
+3. Schedule the work using the organisation's local time.
+4. Update the job stage as work progresses.
+5. Use notes, checklist items and approved attachments to keep the job record useful.
+
+Service templates change organisation-wide workflow configuration, so they require management authority rather than ordinary job-edit access.
+`,
+  },
+  {
+    id: "finance",
+    slug: "finance-workflow",
+    title: "Finance applications and pipeline",
+    summary: "Track borrowers and finance applications through a clear native pipeline linked to CRM contacts.",
+    category: "apps",
+    body: `## Typical flow
+
+1. Open **Finance → Applications** and create an application.
+2. Link the relevant CRM client where appropriate.
+3. Enter the requested amount and application details.
+4. Progress the application through the pipeline stages as the deal moves forward.
+5. Use **Clients** to return to the shared CRM relationship context.
+
+Application changes require organisation-wide Finance edit authority. Read-only team members can review the pipeline without being shown mutation controls they cannot use.
+`,
+  },
+  {
+    id: "billing-checkout-portal",
+    slug: "billing-checkout-and-portal",
+    title: "Billing and subscription management",
+    summary: "Review your DigitalGate subscription, payment state and billing options from Settings.",
+    category: "billing",
+    body: `## Manage billing
+
+Open **Settings → Billing** to review the organisation's plan and available billing actions.
+
+Owners and administrators can use the available checkout or billing-portal actions when a subscription or payment method needs attention. Ordinary members should ask an organisation owner or administrator to make commercial changes.
+
+## After payment
+
+DigitalGate updates subscription and entitlement state from the payment provider. If a completed payment does not appear correctly, do not pay again blindly—contact Support with the organisation name and approximate payment time so the transaction can be checked.
+`,
+  },
+  {
+    id: "connections",
+    slug: "connections-and-imports",
+    title: "Connections and imports",
+    summary: "Connect supported services deliberately and use migration tools when moving data into DigitalGate.",
+    category: "connectors",
+    body: `## Connections
+
+Use **Settings → Connected Services** or the relevant app's connection screen for supported external services. Each connection should have a clear purpose and scope.
+
+## Migration is different from live authority
+
+When DigitalGate offers an import from a previous website or system, treat it as a migration step: bring the required data into Platform Core, review it, then continue operating in DigitalGate.
+
+A historical system should not silently become the fallback source for normal Gen 2 operation.
+
+If you are unsure whether a connection is an ongoing integration or a one-time import, contact Support before relying on it operationally.
+`,
+  },
+  {
+    id: "websites",
+    slug: "websites-and-publishing",
+    title: "Websites and publishing",
+    summary: "Create, edit, preview and publish a native DigitalGate website, then connect its domain.",
+    category: "apps",
+    body: `## Create and publish
+
+1. Complete your **Business Profile** so the site starts with useful business context.
+2. Open **Websites** and create or select the site.
+3. Edit content, design and SEO settings in Design Studio.
+4. Preview before publishing.
+5. Publish the site when it is ready.
+6. Use **Infrastructure → Domains** to connect the live domain where required.
+
+If you are migrating content from an older site, use the explicit import option available in the website workflow. Importing content does not make the old website the runtime data authority.
 `,
   },
   {
     id: "ai-visibility-honesty",
     slug: "ai-visibility-honesty",
-    title: "AI Visibility — what scores mean",
-    summary:
-      "Presence / technical probes only — no invented ChatGPT citation ranks or decorative demo scores.",
+    title: "AI Visibility — what the score means",
+    summary: "Understand what DigitalGate can observe and what it does not infer when assessing AI visibility readiness.",
     category: "honesty",
-    body: `## Principle
+    body: `## What the score uses
 
-**AI Visibility** and **SEO** share one presence audit. Scores reflect observable HTML (and optional Studio checks). They do **not** invent:
+AI Visibility and SEO use observable website and technical signals, such as structured data, metadata and other presence checks available to DigitalGate.
 
-- ChatGPT / Gemini / Perplexity / Copilot citation ranks
-- Keyword SERP positions
-- Hardcoded demo scores
+## What the score does not invent
 
-## How to run
+DigitalGate does not present fabricated citation positions, keyword rankings or hard-coded demonstration scores as live measurements.
 
-1. Set a website URL on Business Profile.
-2. Run an audit from SEO or AI Visibility.
-3. Read findings and the shared score — if URL is missing, expect a critical path, not a fake number.
+## Improve the result
 
-## “Monitoring ChatGPT”
+1. Confirm the correct website URL in Business Profile.
+2. Run the available audit.
+3. Work through the findings in priority order.
+4. Re-run the audit after meaningful website changes.
 
-Out of scope for this slice. If a vendor claims live LLM citation tracking inside DigitalGate today, that claim is wrong.
-`,
-  },
-  {
-    id: "getting-help",
-    slug: "getting-help",
-    title: "Getting help (chat and email)",
-    summary:
-      "Use Knowledge Base first; escalate via in-app chat or support@digitalgate.com.au on business days.",
-    category: "getting-started",
-    body: `## Escalate path
-
-1. Search this Knowledge Base for the topic.
-2. Use **in-app Support chat** for a live thread with the DigitalGate team.
-3. Or email **support@digitalgate.com.au** — responses on **business days** (Australia).
-
-## What we do not claim
-
-- A 24/7 staffed ticket portal with SLAs
-- That every chat auto-creates a separate “support inbox product” you can browse like Zendesk
-
-Chat and email are the escalate path. Keep context (org name, URL, screenshot) so we can help without reconstructing your session from scratch.
+When a required source is missing, the platform should show the missing input or recovery path rather than a decorative score.
 `,
   },
 ];
