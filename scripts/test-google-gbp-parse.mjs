@@ -14,8 +14,16 @@ import {
   parseGbpAccounts,
   parseGbpLocation,
   parseGbpReviews,
+  summarizeGbpReviewBlock,
   toGbpReviewsParent,
 } from "../packages/platform-core/src/connectors/google/gbp-parse.ts";
+import {
+  GOOGLE_GBP_ALLOWLISTED_PROJECT_NUMBER,
+  GOOGLE_GBP_ALLOWLISTED_WEBSITE,
+  GOOGLE_GBP_BUSINESS_PROFILE_APIS_ENABLED,
+  googleClientIdMatchesAllowlistedProject,
+  inspectGoogleGbpAllowlistedProject,
+} from "../packages/platform-core/src/connectors/google/project.ts";
 
 describe("GBP parsers", () => {
   it("parses accounts", () => {
@@ -92,5 +100,51 @@ describe("GBP parsers", () => {
     assert.equal(reviews[0].starRating, 4);
     assert.equal(reviews[0].reviewerDisplayName, "Sam");
     assert.equal(reviews[0].reviewReplyComment, "Thanks!");
+  });
+});
+
+describe("GBP allowlisted Cloud project", () => {
+  it("locks the project Google already approved", () => {
+    assert.equal(GOOGLE_GBP_ALLOWLISTED_PROJECT_NUMBER, "742705345842");
+    assert.equal(GOOGLE_GBP_ALLOWLISTED_WEBSITE, "https://digitalgate.com.au/");
+    assert.equal(GOOGLE_GBP_BUSINESS_PROFILE_APIS_ENABLED, true);
+  });
+
+  it("recognises OAuth clients issued from that project", () => {
+    assert.equal(
+      googleClientIdMatchesAllowlistedProject(
+        "742705345842-abc.apps.googleusercontent.com",
+      ),
+      true,
+    );
+    assert.equal(
+      googleClientIdMatchesAllowlistedProject(
+        "999999999999-abc.apps.googleusercontent.com",
+      ),
+      false,
+    );
+    assert.equal(googleClientIdMatchesAllowlistedProject(""), false);
+    assert.equal(googleClientIdMatchesAllowlistedProject("not-a-google-client"), false);
+  });
+
+  it("inspects env without exposing the client id", () => {
+    const check = inspectGoogleGbpAllowlistedProject(
+      "742705345842-xyz.apps.googleusercontent.com",
+    );
+    assert.equal(check.projectNumber, "742705345842");
+    assert.equal(check.businessProfileApisEnabled, true);
+    assert.equal(check.clientFromAllowlistedProject, true);
+    assert.equal("clientId" in check, false);
+
+    const missing = inspectGoogleGbpAllowlistedProject("   ");
+    assert.equal(missing.clientFromAllowlistedProject, null);
+  });
+
+  it("does not tell operators to enable APIs when reviews are denied", () => {
+    const denied = summarizeGbpReviewBlock(["PERMISSION_DENIED: reviews"]);
+    assert.match(denied, /owner or manager/i);
+    assert.equal(/enable/i.test(denied), false);
+    const missing = summarizeGbpReviewBlock(["NOT_FOUND"]);
+    assert.equal(/not enabled/i.test(missing), false);
   });
 });

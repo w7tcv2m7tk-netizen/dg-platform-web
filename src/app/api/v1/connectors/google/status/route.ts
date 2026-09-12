@@ -2,6 +2,7 @@ import {
   getOrgGbpSyncSnapshot,
   getOrgGoogleGbpConnectorTokens,
   googleCredentialsConfigured,
+  inspectGoogleGbpAllowlistedProject,
   probeOrgGoogleGbpConnection,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -37,6 +38,7 @@ export async function GET(req: Request) {
         redirectUri:
           process.env.GOOGLE_REDIRECT_URI?.trim() ||
           "https://app.digitalgate.com.au/api/connectors/google/callback",
+        allowlistedProject: inspectGoogleGbpAllowlistedProject(),
       },
       organisation: {
         id: session.organisationId,

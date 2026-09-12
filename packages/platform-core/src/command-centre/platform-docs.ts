@@ -524,6 +524,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "foundations/CONNECTOR-PRIORITY.md",
   },
   {
+    slug: "google-gbp",
+    title: "Google Business Profile",
+    summary:
+      "GBP OAuth + location sync. One allowlisted Cloud project (742705345842) with Business Profile APIs enabled — do not apply for another.",
+    group: "connectors",
+    relativePath: "connectors/GOOGLE-GBP.md",
+  },
+  {
     slug: "platform-intelligence",
     title: "Platform Intelligence",
     summary: "Docs SSOT → live truth → tools; Phase 0/1 knowledge layer (not full AI yet).",

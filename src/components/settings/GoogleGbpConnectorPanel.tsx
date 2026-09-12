@@ -21,6 +21,12 @@ type GoogleStatus = {
     clientIdSet: boolean;
     secretSet: boolean;
     redirectUri: string;
+    allowlistedProject?: {
+      projectNumber: string;
+      website: string;
+      businessProfileApisEnabled: boolean;
+      clientFromAllowlistedProject: boolean | null;
+    };
   };
   organisation: {
     id: string;
@@ -154,7 +160,7 @@ export function GoogleGbpConnectorPanel({
             </>
           ) : null}
           <a
-            href="/api/connectors/google/connect"
+            href="/api/connectors/google/connect?returnTo=/dashboard/settings/connectors"
             className={`rounded-full px-4 py-1.5 text-xs font-semibold text-white ${
               platform?.configured
                 ? "bg-blue-600 hover:bg-blue-500"
@@ -195,6 +201,29 @@ export function GoogleGbpConnectorPanel({
           <li className="font-mono text-xs text-slate-500">
             Redirect: {platform.redirectUri}
           </li>
+          {platform.allowlistedProject ? (
+            <li>
+              Allowlisted Cloud project {platform.allowlistedProject.projectNumber}
+              {platform.allowlistedProject.businessProfileApisEnabled
+                ? " · Business Profile APIs enabled"
+                : ""}
+              {platform.allowlistedProject.clientFromAllowlistedProject === true ? (
+                <span className="text-emerald-400"> — OAuth client matches</span>
+              ) : platform.allowlistedProject.clientFromAllowlistedProject === false ? (
+                <span className="text-amber-400">
+                  {" "}
+                  — GOOGLE_CLIENT_ID is not from this project. Create the OAuth client
+                  on {platform.allowlistedProject.projectNumber} (do not apply for
+                  another GBP project).
+                </span>
+              ) : (
+                <span className="text-slate-500">
+                  {" "}
+                  — add GOOGLE_CLIENT_ID from this project
+                </span>
+              )}
+            </li>
+          ) : null}
           {org ? (
             <>
               <li>

@@ -7,6 +7,30 @@
 
 ---
 
+## Allowlisted Cloud project (lock)
+
+Google Business Profile APIs are **allowlisted per business, one Cloud project only**. DigitalGate already has access. **Do not apply for another project.**
+
+| Field | Value |
+|-------|--------|
+| Project number (Google’s letter called this Project ID) | `742705345842` |
+| Associated website | https://digitalgate.com.au/ |
+| Confirmed | GBP API Team — one project per business |
+| Business Profile APIs | **Enabled** — Account Management, Business Information, Google My Business (reviews) |
+| Production OAuth client | **On this project** — Vercel `GOOGLE_CLIENT_ID` prefix `742705345842-` (confirmed) |
+
+**Use this project for:** OAuth client (`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`) and the enabled Business Profile APIs. Gmail OAuth shares the same client. Production already does.
+
+**Do not:** create a second Cloud project and request GBP access again. Google will refuse it and point back here.
+
+**Find it in Cloud Console:** search by project **number** `742705345842` (the string project id may differ). Console: [project 742705345842](https://console.cloud.google.com/?project=742705345842).
+
+If you need help from Google, choose **General API Question** and cite this project — do not submit a new API-access application.
+
+Code constant: `GOOGLE_GBP_ALLOWLISTED_PROJECT_NUMBER` in `packages/platform-core/src/connectors/google/project.ts`. Operator Connectors status checks that `GOOGLE_CLIENT_ID` is issued from this project.
+
+---
+
 ## Env
 
 | Variable | Purpose |
@@ -17,7 +41,7 @@
 
 Distinct from `GOOGLE_GEOCODING_API_KEY` / `GOOGLE_PLACES_API_KEY`.
 
-Cloud Console: enable **My Business Account Management API**, **My Business Business Information API**, and (for reviews) **Google My Business API**.
+Cloud Console (project `742705345842` only): **My Business Account Management API**, **My Business Business Information API**, and **Google My Business API** are already enabled. Do not enable them on a different project.
 
 ---
 
@@ -32,13 +56,14 @@ Cloud Console: enable **My Business Account Management API**, **My Business Busi
 | Cache reviews → Reputation Universal Review feed | Best-effort when v4 Reviews API succeeds |
 | Reply publish / insights / posts | Not yet |
 
-Default scope `https://www.googleapis.com/auth/business.manage` is sufficient for accounts, locations, and reviews **when** the Cloud project has the APIs enabled and the Google user has manager access on the location.
+Default scope `https://www.googleapis.com/auth/business.manage` is sufficient for accounts, locations, and reviews **when** the Google user has manager access on the location. Project, APIs, and production OAuth client are already correct — remaining review failures are login role or location path.
 
 ---
 
 ## Honest gaps
 
-- If reviews return `PERMISSION_DENIED` / `404`, we **keep location metadata** and surface `reviewsBlockedReason` in UI — no fake review scores.
+- If reviews return `PERMISSION_DENIED` / `404`, we **keep location metadata** and surface `reviewsBlockedReason` in UI — no fake review scores. Copy does **not** tell operators to enable APIs (they are already on).
+- Production OAuth is already on this project. If an org connected with a stale grant, **Reconnect Google** as an owner/manager, then Sync locations.
 - Location `name` from Business Information (`locations/{id}`) is normalised to `accounts/{accountId}/locations/{id}` for the Reviews v4 parent path.
 - Sync cache lives on `organisation.settings.connectors.google-gbp` (encrypted tokens + plaintext snapshot). Reviews capped at 200.
 
@@ -49,8 +74,8 @@ Default scope `https://www.googleapis.com/auth/business.manage` is sufficient fo
 | Route | Method | Notes |
 |-------|--------|-------|
 | `/api/connectors/google/connect` | GET | Start OAuth |
-| `/api/connectors/google/callback` | GET | Exchange + best-effort first sync |
-| `/api/v1/connectors/google/status` | GET | Config + probe + cached health/locations |
+| `/api/connectors/google/callback` | GET | Exchange + best-effort first sync · return to Connected Services (not Overview) |
+| `/api/v1/connectors/google/status` | GET | Config + probe + cached health/locations + allowlisted Cloud project check |
 | `/api/v1/connectors/google/locations` | GET | Cached accounts/locations |
 | `/api/v1/connectors/google/sync` | POST | Pull accounts, locations, reviews |
 | `/api/v1/connectors/google/disconnect` | POST | Clear org tokens + snapshot |

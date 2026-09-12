@@ -93,14 +93,33 @@ export function loginAudienceCopy(input: {
   return { audience, ...COPY[audience] };
 }
 
+/** Safe same-origin path + query for after sign-in (keeps OAuth flash params). */
+function pathAndSearch(raw: string | undefined | null): string {
+  if (!raw?.trim()) return "";
+  try {
+    if (raw.startsWith("http://") || raw.startsWith("https://")) {
+      const url = new URL(raw);
+      return `${url.pathname}${url.search}`;
+    }
+  } catch {
+    return "";
+  }
+  const noHash = raw.split("#")[0] ?? "";
+  const path = noHash.split("?")[0] ?? "";
+  if (!path.startsWith("/") || path.startsWith("//")) return "";
+  const query = noHash.includes("?") ? noHash.slice(noHash.indexOf("?")) : "";
+  return `${path}${query}`;
+}
+
 /** Safe same-origin redirect path for after sign-in. */
 export function resolvePostSignInRedirect(
   redirectUrl: string | undefined | null,
   audience: LoginAudience,
 ): string {
-  const path = pathOnly(redirectUrl);
+  const dest = pathAndSearch(redirectUrl);
+  const path = dest.split("?")[0] ?? "";
   if (path && path !== "/login" && !path.startsWith("/login/")) {
-    return path;
+    return dest;
   }
   return COPY[audience].defaultRedirect;
 }

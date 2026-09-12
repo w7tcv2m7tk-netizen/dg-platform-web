@@ -187,6 +187,21 @@ export function toGbpReviewsParent(
   return `${accountName}/locations/${locId}`;
 }
 
+/** Customer-safe copy — APIs are already enabled on the allowlisted project. */
+export function summarizeGbpReviewBlock(errors: string[]): string {
+  const joined = errors.join(" · ");
+  if (/PERMISSION_DENIED|ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficient/i.test(joined)) {
+    return (
+      "Google denied reviews for this login — connect as an owner or manager on the Business Profile. " +
+      "Location details still sync."
+    );
+  }
+  if (/404|not found|NOT_FOUND/i.test(joined)) {
+    return "Google did not return reviews for these locations. Location details still sync.";
+  }
+  return `Reviews sync failed (${errors[0]}). Location details still sync.`;
+}
+
 export function mapGbpReviewsToFeedItems(reviews: GbpReviewCacheItem[]) {
   return reviews.map((r) => ({
     id: `gbp:${r.reviewId}`,

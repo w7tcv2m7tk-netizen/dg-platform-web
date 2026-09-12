@@ -3,7 +3,12 @@ import Link from "next/link";
 import { ConnectedServicesCatalog } from "@/components/settings/ConnectedServicesCatalog";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
-export default async function ConnectedServicesPage() {
+export default async function ConnectedServicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ google?: string; message?: string }>;
+}) {
+  const { google: googleFlash, message: flashMessage } = await searchParams;
   const { session } = await getPlatformPageContext();
 
   if (!session?.organisationId) {
@@ -32,6 +37,17 @@ export default async function ConnectedServicesPage() {
         </p>
       </header>
       <main className="dg-page-main max-w-2xl space-y-6">
+        {googleFlash === "connected" ? (
+          <p className="rounded-xl border border-emerald-800/50 bg-emerald-950/20 px-4 py-3 text-sm text-emerald-100">
+            Google Business Profile connected. Sync locations from advanced Connectors if
+            reviews or listings look empty.
+          </p>
+        ) : null}
+        {googleFlash === "error" ? (
+          <p className="rounded-xl border border-amber-800/50 bg-amber-950/20 px-4 py-3 text-sm text-amber-100">
+            Google connect failed{flashMessage ? `: ${flashMessage}` : " — try again."}
+          </p>
+        ) : null}
         <ConnectedServicesCatalog />
         <p className="text-xs text-slate-500">
           Platform diagnostics and OAuth scopes stay under{" "}

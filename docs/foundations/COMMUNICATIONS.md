@@ -387,7 +387,7 @@ npm run db:push
 ```
 
 Uploads/sends need `RESEND_API_KEY` on Vercel (existing transactional path).  
-Gmail OAuth needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and redirect URI `…/api/connectors/google-gmail/callback` registered in Google Cloud Console (`GOOGLE_GMAIL_REDIRECT_URI` optional override).
+Gmail OAuth needs `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and redirect URI `…/api/connectors/google-gmail/callback` registered in Google Cloud Console (`GOOGLE_GMAIL_REDIRECT_URI` optional override). Same OAuth client / Cloud project as GBP — allowlisted project `742705345842` only ([GOOGLE-GBP.md](../connectors/GOOGLE-GBP.md)).
 
 **v1 scope shipped:** Organisation-scoped communication records · **three-column Inbox** (conversation grouping by `threadKey` / contact / message) · manual compose · Reply → Compose · Send later / Scheduled · Sent + History · Signature Studio · Founding / referral provenance · Automations catalogue · **Gmail connect + sync into Inbox** · Connected Services customer page · Resend provider · Microsoft Mailboxes / Connected Services placeholder.
 

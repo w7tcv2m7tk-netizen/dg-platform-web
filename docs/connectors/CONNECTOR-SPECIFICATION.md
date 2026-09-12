@@ -23,7 +23,7 @@ Every connector must cover: identity, auth, sync modes, object mapping, health, 
 | **Stripe** | Platform billing + Commerce Payment Engine |
 | **Domain** | OAuth + Listings Management · **sandbox vs prod** via `DOMAIN_API_PATH_PREFIX` (`/sandbox` vs Primary `/v1`) — see UI + [Domain docs in Connector Engine](../foundations/CONNECTOR-ENGINE.md) |
 | **REA** | Partner client_credentials + agency bind · upload accept → **pending** (not live published until report) — [REA.md](./REA.md) |
-| **Google GBP** | OAuth + accounts/locations sync · **reviews limited** when My Business API denies — [GOOGLE-GBP.md](./GOOGLE-GBP.md) |
+| **Google GBP** | OAuth + accounts/locations sync · **reviews limited** when My Business API denies · **use existing allowlisted project** `742705345842` (do not apply for another) — [GOOGLE-GBP.md](./GOOGLE-GBP.md) |
 | **Cotality (CoreLogic)** | **Sandbox by default** (`api-sbox`) · Address Match + Property Details — [COTALITY-CORELOGIC.md](./COTALITY-CORELOGIC.md) |
 
 ## Explicitly parked (this programme)
