@@ -2,12 +2,14 @@ import {
   buildLiveTwinWithScores,
   computeReputationScore,
   gatherOverviewLiveMetrics,
+  getAiVisibilityIntelligenceSnapshot,
   getOrganisationBusinessProfile,
   getScoreValue,
   metricsContextFromLiveMetrics,
   type OverviewConnectorProbes,
 } from "@dg/platform-core";
 
+import { AiVisibilityCompositeSummary } from "@/components/ai-visibility/AiVisibilityCompositeSummary";
 import { AiVisibilityDashboard } from "@/components/ai-visibility/AiVisibilityDashboard";
 import type {
   WebsiteSignalFinding,
@@ -91,6 +93,7 @@ export default async function AiVisibilityPage() {
   let history: Array<{ auditedAt: string; value: number }> = [];
   let expectedHost: string | null = null;
   let loadError: string | null = null;
+  let intelligence: Awaited<ReturnType<typeof getAiVisibilityIntelligenceSnapshot>> | null = null;
 
   try {
     const { session: platformSession, user } = await getPlatformPageContext();
@@ -101,7 +104,7 @@ export default async function AiVisibilityPage() {
       const profile = await getOrganisationBusinessProfile(platformSession.organisationId);
       websiteUrl = profile?.websiteUrl?.trim() ?? null;
 
-      const [metricsResult, connectorsResult, auditResult, reviewsResult] =
+      const [metricsResult, connectorsResult, auditResult, reviewsResult, intelligenceResult] =
         await Promise.allSettled([
           gatherOverviewLiveMetrics(platformSession.organisationId),
           fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
@@ -110,6 +113,7 @@ export default async function AiVisibilityPage() {
             profile?.websiteUrl ?? null,
           ),
           loadReviewsSessionAndFeed(),
+          getAiVisibilityIntelligenceSnapshot(platformSession.organisationId),
         ]);
 
       const metrics = metricsResult.status === "fulfilled" ? metricsResult.value : null;
@@ -124,6 +128,7 @@ export default async function AiVisibilityPage() {
         reviewsResult.status === "fulfilled"
           ? reviewsResult.value
           : { feed: [], feedStatus: { ok: false, total: 0, byPlatform: {} } };
+      intelligence = intelligenceResult.status === "fulfilled" ? intelligenceResult.value : null;
 
       expectedHost = auditData.expectedHost;
       history = auditData.history;
@@ -136,6 +141,9 @@ export default async function AiVisibilityPage() {
       }
       if (reviewsResult.status === "rejected") {
         console.error("[ai-visibility] reviews failed", reviewsResult.reason);
+      }
+      if (intelligenceResult.status === "rejected") {
+        console.error("[ai-visibility] intelligence failed", intelligenceResult.reason);
       }
 
       auditedAt = latestAudit?.auditedAt ?? null;
@@ -282,12 +290,17 @@ export default async function AiVisibilityPage() {
           {firstName}&apos;s AI discoverability, readiness and future answer-engine share of voice
         </p>
       </header>
-      <main className="dg-page-main">
+      <main className="dg-page-main space-y-6">
         {loadError ? (
-          <p className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
             {loadError}
           </p>
         ) : null}
+        <AiVisibilityCompositeSummary
+          readiness={aiVisibilityScore}
+          readinessUpdatedAt={auditedAt}
+          dimensions={intelligence?.dimensions ?? []}
+        />
         <AiVisibilityDashboard
           aiVisibilityScore={aiVisibilityScore}
           businessHealth={businessHealth}
