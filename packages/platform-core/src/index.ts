@@ -119,6 +119,7 @@ export * from "./twin/build-live-twin";
 export * from "./automation";
 export * from "./communications";
 export * from "./seo";
+export * from "./ai-visibility";
 export * from "./opportunity-engine";
 export * from "./wantd";
 export * from "./services";
