@@ -1,7 +1,11 @@
 import Link from "next/link";
-import { getOrgDocument } from "@dg/platform-core";
+import {
+  getDocumentKnowledgeIngestionStatus,
+  getOrgDocument,
+} from "@dg/platform-core";
 import { notFound } from "next/navigation";
 
+import { DocumentKnowledgeIngestion } from "@/components/documents/DocumentKnowledgeIngestion";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 interface PageProps {
@@ -30,6 +34,12 @@ export default async function DocumentDetailPage({ params }: PageProps) {
     : null;
   if (!document) notFound();
 
+  const ingestionStatus = process.env.DATABASE_URL
+    ? await getDocumentKnowledgeIngestionStatus({
+        organisationId: session.organisationId,
+        documentId: document.id,
+      })
+    : null;
   const link = document.links[0];
 
   return (
@@ -70,6 +80,7 @@ export default async function DocumentDetailPage({ params }: PageProps) {
             </div>
           ) : null}
         </dl>
+
         <div className="flex flex-wrap gap-4 text-sm">
           {document.url ? (
             <a
@@ -90,6 +101,19 @@ export default async function DocumentDetailPage({ params }: PageProps) {
             </Link>
           ) : null}
         </div>
+
+        {ingestionStatus ? (
+          <DocumentKnowledgeIngestion
+            documentId={document.id}
+            mimeType={document.mimeType}
+            initialStatus={{
+              state: ingestionStatus.state,
+              proposalCount: ingestionStatus.proposalCount,
+              approvedCount: ingestionStatus.approvedCount,
+              rejectedCount: ingestionStatus.rejectedCount,
+            }}
+          />
+        ) : null}
       </main>
     </>
   );
