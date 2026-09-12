@@ -126,6 +126,7 @@ export default async function ServicesSchedulingPage() {
                   <ScheduleJobQuickForm
                     jobId={job.id}
                     defaultDay={startKey}
+                    timeZone={timeZone}
                     members={members.map((m) => ({
                       clerkUserId: m.clerkUserId,
                       label: memberLabel(m),
