@@ -49,20 +49,22 @@ model AiVisibilityCompetitor {
 }
 
 model AiVisibilityObservation {
-  id               String   @id @default(cuid())
-  organisationId   String   @map("organisation_id")
-  promptId         String   @map("prompt_id")
-  engine           String
-  engineModel      String?  @map("engine_model")
-  observedAt       DateTime @map("observed_at")
-  brandMentioned   Boolean  @default(false) @map("brand_mentioned")
-  brandRecommended Boolean  @default(false) @map("brand_recommended")
-  answerRank       Int?     @map("answer_rank")
-  citedOwnDomain   Boolean  @default(false) @map("cited_own_domain")
-  answerContext    String?  @map("answer_context") @db.Text
-  sourceRef        String?  @map("source_ref")
-  evidence         Json?
-  createdAt        DateTime @default(now()) @map("created_at")
+  id                        String   @id @default(cuid())
+  organisationId            String   @map("organisation_id")
+  promptId                  String   @map("prompt_id")
+  engine                    String
+  engineModel               String?  @map("engine_model")
+  observedAt                DateTime @map("observed_at")
+  brandMentioned            Boolean  @default(false) @map("brand_mentioned")
+  brandRecommended          Boolean  @default(false) @map("brand_recommended")
+  answerRank                Int?     @map("answer_rank")
+  citedOwnDomain            Boolean  @default(false) @map("cited_own_domain")
+  citationCaptureComplete   Boolean? @map("citation_capture_complete")
+  competitorCaptureComplete Boolean? @map("competitor_capture_complete")
+  answerContext             String?  @map("answer_context") @db.Text
+  sourceRef                 String?  @map("source_ref")
+  evidence                  Json?
+  createdAt                 DateTime @default(now()) @map("created_at")
 
   prompt             AiVisibilityPrompt              @relation(fields: [promptId], references: [id], onDelete: Cascade)
   competitorMentions AiVisibilityCompetitorMention[]
