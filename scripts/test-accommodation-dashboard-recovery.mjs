@@ -14,6 +14,10 @@ const summary = readFileSync(
   new URL("../src/lib/accommodation-summary.ts", import.meta.url),
   "utf8",
 );
+const unitsPage = readFileSync(
+  new URL("../src/app/(shell)/apps/accommodation/units/page.tsx", import.meta.url),
+  "utf8",
+);
 const checkIns = readFileSync(
   new URL("../src/app/(shell)/apps/accommodation/check-ins/page.tsx", import.meta.url),
   "utf8",
@@ -44,6 +48,15 @@ test("overview summary uses the organisation timezone", () => {
   assert.match(overview, /buildAccommodationSummary\(session\.organisationId, \{ timeZone \}\)/);
   assert.match(summary, /accToday\(options\.timeZone\)/);
   assert.match(summary, /housekeepingBoardFromUnits\(units, today\)/);
+});
+
+test("units page stays on native organisation context with no legacy site picker", () => {
+  assert.match(unitsPage, /getPlatformPageContext/);
+  assert.match(unitsPage, /loadUnitsForOps\(session\)/);
+  assert.match(unitsPage, /AccommodationUnit \(Neon\)/);
+  assert.doesNotMatch(unitsPage, /AccommodationSitePicker/);
+  assert.doesNotMatch(unitsPage, /listWpAccommodationSites/);
+  assert.doesNotMatch(unitsPage, /getWpAccommodationSite/);
 });
 
 test("check-in windows use the organisation timezone instead of a Brisbane label", () => {
