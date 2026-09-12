@@ -42,6 +42,45 @@ test("Command ops home never exposes deployment setup instructions to operators"
   assert.match(catchAll, /temporarily unavailable/);
 });
 
-test("Command overview navigation meets the native touch-target floor", () => {
-  assert.match(catchAll, /min-h-11/);
+test("core Command pages use operational recovery instead of developer database copy", () => {
+  const pages = [
+    "src/app/(shell)/command/[[...segments]]/page.tsx",
+    "src/app/(shell)/command/advisor/page.tsx",
+    "src/app/(shell)/command/platform-health/page.tsx",
+    "src/app/(shell)/command/opportunities/page.tsx",
+    "src/app/(shell)/command/reports/page.tsx",
+    "src/app/(shell)/command/revenue/page.tsx",
+  ];
+
+  for (const rel of pages) {
+    const source = read(rel);
+    assert.doesNotMatch(source, /Database not configured/i, `${rel} leaks developer database state`);
+    assert.doesNotMatch(source, /npm run db:push|DATABASE_URL/, `${rel} leaks deployment instructions`);
+  }
+
+  const recovery = read("src/components/command/OperationalDataUnavailable.tsx");
+  assert.match(recovery, /temporarily unavailable/i);
+  assert.match(recovery, /min-h-11/);
+});
+
+test("Command operator status UI avoids source-code and deferred-route language", () => {
+  const status = read("src/components/command/CommandBetaStatus.tsx");
+  assert.doesNotMatch(status, /docs\/COMMAND-CENTRE-BETA\.md/);
+  assert.doesNotMatch(status, /Deferred Command modules|redirect only/i);
+  assert.match(status, /min-h-11/);
+});
+
+test("primary Command actions meet the native touch-target floor", () => {
+  const files = [
+    "src/app/(shell)/command/[[...segments]]/page.tsx",
+    "src/app/(shell)/command/opportunities/page.tsx",
+    "src/app/(shell)/command/reports/page.tsx",
+    "src/app/(shell)/command/revenue/page.tsx",
+    "src/components/command/CommandBetaStatus.tsx",
+    "src/components/command/OperationalDataUnavailable.tsx",
+  ];
+
+  for (const rel of files) {
+    assert.match(read(rel), /min-h-11/, `${rel} should expose native-sized operator actions`);
+  }
 });
