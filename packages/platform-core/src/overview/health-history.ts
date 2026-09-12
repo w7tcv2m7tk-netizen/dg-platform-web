@@ -73,28 +73,25 @@ export async function persistHealthSnapshot(
   return next;
 }
 
+/**
+ * Return only observed Business Health measurements.
+ * The current live score is appended when it is not already represented by the latest stored entry.
+ * No padding or synthetic historical points are generated.
+ */
 export function healthTrendFromHistory(
   history: HealthHistoryEntry[],
   currentScore: number,
 ): number[] {
-  if (history.length >= 2) {
-    const values = history.map((h) => h.score);
-    if (values[values.length - 1] !== currentScore) {
-      values[values.length - 1] = currentScore;
-    }
-    while (values.length < 12) {
-      values.unshift(values[0]);
-    }
-    return values.slice(-12);
-  }
+  const values = [...history]
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .map((entry) => entry.score)
+    .slice(-12);
 
-  const months = 12;
-  const start = Math.max(40, currentScore - 10);
-  return Array.from({ length: months }, (_, i) => {
-    if (i === months - 1) return currentScore;
-    const progress = i / (months - 1);
-    return Math.round(start + (currentScore - start) * progress * 0.85);
-  });
+  if (values.length === 0) return [currentScore];
+  if (values[values.length - 1] !== currentScore) {
+    values.push(currentScore);
+  }
+  return values.slice(-12);
 }
 
 export function healthDeltaFromHistory(
