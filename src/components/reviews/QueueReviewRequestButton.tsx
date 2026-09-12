@@ -28,7 +28,7 @@ export function QueueReviewRequestButton({
         setMessage(json?.error?.message ?? "Could not queue request");
         return;
       }
-      setMessage("Queued on timeline");
+      setMessage("Follow-up added to the timeline");
       router.refresh();
     } catch {
       setMessage("Network error");
@@ -43,9 +43,9 @@ export function QueueReviewRequestButton({
         type="button"
         onClick={onQueue}
         disabled={pending}
-        className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+        className="min-h-11 rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-500 disabled:opacity-50"
       >
-        {pending ? "Queuing…" : "Queue request"}
+        {pending ? "Adding…" : "Create follow-up"}
       </button>
       {message ? <p className="text-xs text-slate-500">{message}</p> : null}
     </div>

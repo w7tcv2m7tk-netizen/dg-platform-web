@@ -19,7 +19,7 @@ export function ReviewFeedList({
     return (
       <ReviewsEmptyState
         title="No reviews in this feed"
-        description="Import Acc reviews in WordPress or sync Google Business Profile, then refresh. Reputation never shows invented ratings."
+        description="Connect or sync Google Business Profile, then refresh. Reputation never shows invented ratings."
         actions={[
           { href: "/apps/reviews/sources", label: "Sources →" },
           { href: "/apps/reviews/requests", label: "Queue a request →" },
@@ -60,7 +60,7 @@ export function ReviewFeedList({
               href={review.sourceUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 inline-block text-xs text-blue-400 hover:underline"
+              className="mt-3 inline-flex min-h-11 items-center text-xs text-blue-400 hover:underline"
             >
               View source →
             </a>
