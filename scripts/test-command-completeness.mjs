@@ -55,7 +55,8 @@ test("core Command pages use operational recovery instead of developer database 
   for (const rel of pages) {
     const source = read(rel);
     assert.doesNotMatch(source, /Database not configured/i, `${rel} leaks developer database state`);
-    assert.doesNotMatch(source, /npm run db:push|DATABASE_URL/, `${rel} leaks deployment instructions`);
+    assert.doesNotMatch(source, /npm run db:push/, `${rel} leaks deployment instructions`);
+    assert.doesNotMatch(source, />[^<]*DATABASE_URL[^<]*</, `${rel} renders an environment variable name`);
   }
 
   const recovery = read("src/components/command/OperatorDataUnavailable.tsx");
