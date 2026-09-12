@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listOperatorPlatformOpportunities } from "@dg/platform-core";
 
+import { OperationalDataUnavailable } from "@/components/command/OperationalDataUnavailable";
 import { OpportunityCreateTaskButton } from "@/components/command/OpportunityCreateTaskButton";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
@@ -37,7 +38,10 @@ export default async function CommandOpportunitiesPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command" className="text-sm text-sky-400 hover:underline">
+        <Link
+          href="/command"
+          className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+        >
           ← Command Centre
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Opportunities</h1>
@@ -48,9 +52,10 @@ export default async function CommandOpportunitiesPage() {
       </header>
       <main className="dg-page-main space-y-8">
         {!data ? (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-            Database not configured — opportunities unavailable.
-          </div>
+          <OperationalDataUnavailable
+            title="Opportunities are temporarily unavailable"
+            description="Live opportunity signals could not be loaded. Check Platform Alerts for service health and try again shortly."
+          />
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -67,7 +72,7 @@ export default async function CommandOpportunitiesPage() {
                 <p className="mt-2 text-sm text-slate-300">{data.engine}</p>
                 <Link
                   href="/command/opportunities/expansion"
-                  className="mt-3 inline-block text-sm text-sky-400 hover:underline"
+                  className="mt-3 inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
                 >
                   Client expansion catalogue →
                 </Link>
@@ -122,7 +127,7 @@ export default async function CommandOpportunitiesPage() {
                         <div className="flex shrink-0 flex-col items-end gap-2">
                           <Link
                             href={item.href}
-                            className="rounded-full bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-500"
+                            className="inline-flex min-h-11 items-center rounded-full bg-sky-600 px-4 text-xs font-semibold text-white hover:bg-sky-500"
                           >
                             Open →
                           </Link>
@@ -168,7 +173,10 @@ export default async function CommandOpportunitiesPage() {
                           <p className="mt-1 text-sm text-slate-400">{item.recommendedAction}</p>
                         </div>
                         <div className="flex shrink-0 flex-col items-end gap-2">
-                          <Link href={item.href} className="text-sm text-sky-400 hover:underline">
+                          <Link
+                            href={item.href}
+                            className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+                          >
                             Open →
                           </Link>
                           {item.executeHints?.includes("task") ? (
@@ -188,10 +196,16 @@ export default async function CommandOpportunitiesPage() {
             </section>
 
             <div className="flex flex-wrap gap-4 text-sm">
-              <Link href="/command/growth-engine" className="text-sky-400 hover:underline">
+              <Link
+                href="/command/growth-engine"
+                className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+              >
                 Prospecting / Growth Engine →
               </Link>
-              <Link href="/command" className="text-sky-400 hover:underline">
+              <Link
+                href="/command"
+                className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+              >
                 Ops home priorities →
               </Link>
             </div>
