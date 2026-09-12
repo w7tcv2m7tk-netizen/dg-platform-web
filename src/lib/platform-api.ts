@@ -19,7 +19,6 @@ import { NextResponse } from "next/server";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { enforceWriteEntitlement } from "@/lib/write-entitlement";
 
-// Ensure in-app notification fan-out is bound in this Node isolate.
 registerNotificationEventHandlers();
 bootConnectorEngine();
 
@@ -53,12 +52,6 @@ function requestPathname(req: Request): string {
   }
 }
 
-/**
- * Accommodation is an organisation-wide Industry app today: its units, bookings,
- * guests, housekeeping and payment status do not have an assigned-user ownership
- * field. Default organisation members only receive assigned-scope Industry writes,
- * so mutations must require an explicit organisation-scope grant.
- */
 function accommodationWritePermission(
   req: Request,
   session: PlatformSession,
@@ -76,29 +69,43 @@ function accommodationWritePermission(
   });
 }
 
-/** Clerk session only — for user-specific routes (support chat, key management). */
+/** Property detail mutations are organisation-wide Real Estate operations. */
+function realEstatePropertyWritePermission(
+  req: Request,
+  session: PlatformSession,
+): NextResponse | null {
+  const pathname = requestPathname(req);
+  if (!/^\/api\/v1\/properties\/[^/]+$/.test(pathname)) return null;
+
+  const method = req.method.toUpperCase();
+  if (["GET", "HEAD", "OPTIONS"].includes(method)) return null;
+
+  return requirePermission(session, {
+    module: "industry",
+    action: method === "DELETE" ? "delete" : "edit",
+    scope: "organisation",
+    subModule: "real-estate",
+  });
+}
+
 export async function requireClerkSession(): Promise<PlatformSession | NextResponse> {
   return resolveClerkSession();
 }
 
-/** Clerk session or organisation API key (`dg_live_…`). */
 export async function requirePlatformAuth(
   req: Request,
 ): Promise<PlatformSession | NextResponse> {
   const session = await resolvePlatformAuthSession(req);
   if (isNextResponse(session)) return session;
 
-  // Central tenant write-entitlement enforcement (H-3). Blocks writes for
-  // read-only/suspended tenants and fails closed on lookup failure; reads and
-  // platform operators are unaffected and recovery/billing/onboarding paths are
-  // exempt. New authenticated /api/v1 routes inherit this via requirePlatformAuth.
   const writeBlock = await enforceWriteEntitlement(req, session);
   if (writeBlock) return writeBlock;
 
-  // Accommodation records are organisation-wide. Do not let a default member's
-  // assigned-scope Industry grant become an implicit organisation-wide mutation.
   const accommodationPermissionBlock = accommodationWritePermission(req, session);
   if (accommodationPermissionBlock) return accommodationPermissionBlock;
+
+  const propertyPermissionBlock = realEstatePropertyWritePermission(req, session);
+  if (propertyPermissionBlock) return propertyPermissionBlock;
 
   return session;
 }
@@ -128,7 +135,6 @@ async function resolvePlatformAuthSession(
   return resolveClerkSession();
 }
 
-/** @deprecated Use requirePlatformAuth(req) or requireClerkSession() */
 export async function requirePlatformSession(
   req?: Request,
 ): Promise<PlatformSession | NextResponse> {
@@ -178,7 +184,6 @@ export function isNextResponse(value: unknown): value is NextResponse {
   return value instanceof NextResponse;
 }
 
-/** Block live side-effects (email, billing, connectors, team invites) in the demo org. */
 export async function rejectDemoLiveAction(
   session: PlatformSession,
 ): Promise<NextResponse | null> {
@@ -190,7 +195,6 @@ export async function rejectDemoLiveAction(
   );
 }
 
-/** Enforce feature access for the current session (Platform 1.0 role gate). */
 export function requireFeature(
   session: PlatformSession,
   featureId: string,
@@ -209,7 +213,6 @@ export function requireFeature(
   return null;
 }
 
-/** Enforce locked permission model (module + action + scope). */
 export function requirePermission(
   session: PlatformSession,
   check: {
@@ -222,8 +225,6 @@ export function requirePermission(
   const ctx = buildAccessContext({
     role: session.role,
     organisationId: session.organisationId,
-    // API-key sessions never resolve to a platform user type (see
-    // toPlatformUserType), so a credential cannot inherit operator grants.
     principalId: session.clerkUserId,
     enabledAppIds: [],
     grants: session.permissionGrants,
@@ -242,10 +243,6 @@ export function requirePermission(
   return null;
 }
 
-/**
- * Industry closed-beta gate for routes/APIs (same flag as nav filter).
- * Returns 403 when the org is not enrolled.
- */
 export async function requireIndustryAppBeta(
   session: PlatformSession,
   appId: string,
@@ -272,7 +269,6 @@ export type PlatformAuthContext =
   | { mode: "session"; session: PlatformSession }
   | { mode: "connector" };
 
-/** Clerk session or legacy env connector key — for address resolve and WP bridge */
 export async function authenticatePlatformOrConnector(
   req: Request,
 ): Promise<PlatformAuthContext | NextResponse> {
@@ -300,10 +296,6 @@ export async function authenticatePlatformOrConnector(
   return { mode: "session", session };
 }
 
-/**
- * Same authority as `requireOrgAdmin` — owners/admins, or an explicit
- * organisation-scope `team.manage` grant. API-key principals never qualify.
- */
 export function sessionIsOrgAdmin(session: PlatformSession): boolean {
   if (session.clerkUserId.startsWith("api_key:")) return false;
   if (["owner", "admin"].includes(session.role)) return true;
@@ -314,7 +306,6 @@ export function sessionIsOrgAdmin(session: PlatformSession): boolean {
   }) === null;
 }
 
-/** Organisation owners/admins only (Clerk sessions — not API keys). */
 export function requireOrgAdmin(session: PlatformSession): NextResponse | null {
   if (session.clerkUserId.startsWith("api_key:")) {
     return NextResponse.json(

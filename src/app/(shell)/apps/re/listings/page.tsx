@@ -1,7 +1,9 @@
 import { listProperties } from "@dg/platform-core";
 
 import { ListingList } from "@/components/re/ListingList";
+import { getOrganisationMoneySettings } from "@/lib/organisation-money";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { canManageRealEstate } from "@/lib/real-estate-page-access";
 
 export default async function ListingsPage() {
   const { session } = await getPlatformPageContext();
@@ -14,7 +16,11 @@ export default async function ListingsPage() {
     );
   }
 
-  const { items } = await listProperties({ organisationId: session.organisationId, limit: 200 });
+  const [{ items }, money] = await Promise.all([
+    listProperties({ organisationId: session.organisationId, limit: 200 }),
+    getOrganisationMoneySettings(session.organisationId),
+  ]);
+  const canManage = canManageRealEstate(session);
   const listings = items.filter(
     (p) =>
       p.status === "listed" ||
@@ -44,9 +50,19 @@ export default async function ListingsPage() {
             }{" "}
             under offer / contract
           </p>
+          {!canManage ? (
+            <p className="mt-1 text-xs text-slate-500">
+              Read-only listings. Organisation-wide Real Estate edit access is required to update status or guide price.
+            </p>
+          ) : null}
         </div>
       </div>
-      <ListingList properties={listings} />
+      <ListingList
+        properties={listings}
+        canManage={canManage}
+        currency={money.currency}
+        locale={money.locale}
+      />
     </main>
   );
 }

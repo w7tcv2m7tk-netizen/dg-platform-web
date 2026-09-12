@@ -6,7 +6,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -26,6 +26,13 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const permissionDenied = requirePermission(session, {
+    module: "industry",
+    action: "edit",
+    scope: "organisation",
+    subModule: "real-estate",
+  });
+  if (permissionDenied) return permissionDenied;
 
   const body = await req.json().catch(() => null);
 

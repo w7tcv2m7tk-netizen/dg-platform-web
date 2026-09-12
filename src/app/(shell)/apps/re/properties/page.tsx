@@ -3,6 +3,7 @@ import { listProperties } from "@dg/platform-core";
 import { PropertyList } from "@/components/re/PropertyList";
 import { CreatePropertyForm } from "@/components/re/CreatePropertyForm";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { canManageRealEstate } from "@/lib/real-estate-page-access";
 
 export default async function PropertiesPage() {
   const { session } = await getPlatformPageContext();
@@ -16,6 +17,7 @@ export default async function PropertiesPage() {
   }
 
   const { items } = await listProperties({ organisationId: session.organisationId });
+  const canManage = canManageRealEstate(session);
 
   const appraisalCount = items.filter((p) => p.status === "appraisal").length;
   const listedCount = items.filter((p) => p.status === "listed").length;
@@ -30,13 +32,15 @@ export default async function PropertiesPage() {
           <p className="mt-1 text-xs text-slate-500">
             {appraisalCount} in appraisal · {listedCount} listed · {items.length} total
           </p>
-          <p className="mt-2 max-w-xl text-xs text-emerald-400/90">
-            Platform Core is the source of truth for properties and listings.
-          </p>
+          {!canManage ? (
+            <p className="mt-2 max-w-xl text-xs text-slate-500">
+              Read-only properties. Organisation-wide Real Estate edit access is required to create or update listings.
+            </p>
+          ) : null}
         </div>
       </div>
-      <CreatePropertyForm />
-      <PropertyList properties={items} />
+      {canManage ? <CreatePropertyForm /> : null}
+      <PropertyList properties={items} canManage={canManage} />
     </main>
   );
 }
