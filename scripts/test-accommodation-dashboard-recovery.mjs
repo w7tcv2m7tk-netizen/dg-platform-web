@@ -22,6 +22,10 @@ const bookingsPage = readFileSync(
   new URL("../src/app/(shell)/apps/accommodation/bookings/page.tsx", import.meta.url),
   "utf8",
 );
+const calendarPage = readFileSync(
+  new URL("../src/app/(shell)/apps/accommodation/calendar/page.tsx", import.meta.url),
+  "utf8",
+);
 const checkIns = readFileSync(
   new URL("../src/app/(shell)/apps/accommodation/check-ins/page.tsx", import.meta.url),
   "utf8",
@@ -44,6 +48,10 @@ const paymentsPage = readFileSync(
 );
 const paymentsTable = readFileSync(
   new URL("../src/components/accommodation/AccommodationPaymentsTable.tsx", import.meta.url),
+  "utf8",
+);
+const reviewsPage = readFileSync(
+  new URL("../src/app/(shell)/apps/accommodation/reviews/page.tsx", import.meta.url),
   "utf8",
 );
 const platformApi = readFileSync(new URL("../src/lib/platform-api.ts", import.meta.url), "utf8");
@@ -80,6 +88,16 @@ test("bookings page uses the native platform page context", () => {
   assert.match(bookingsPage, /getPlatformPageContext/);
   assert.doesNotMatch(bookingsPage, /fetchPortalMe/);
   assert.doesNotMatch(bookingsPage, /currentUser/);
+});
+
+test("availability uses tenant-local date boundaries and native context", () => {
+  assert.match(calendarPage, /getPlatformPageContext/);
+  assert.match(calendarPage, /select: \{ timezone: true \}/);
+  assert.match(calendarPage, /const today = accToday\(timeZone\)/);
+  assert.match(calendarPage, /accAddDays\(today, -dayOfWeek\(today\)\)/);
+  assert.match(calendarPage, /accAddDays\(today, ACC_CALENDAR_HORIZON_DAYS\)/);
+  assert.doesNotMatch(calendarPage, /fetchPortalMe/);
+  assert.doesNotMatch(calendarPage, /currentUser/);
 });
 
 test("check-in windows use the organisation timezone instead of a Brisbane label", () => {
@@ -134,6 +152,12 @@ test("payment mutation controls meet the native touch target floor", () => {
   assert.match(paymentsTable, /min-h-11/);
   assert.match(paymentsTable, /Mark paid/);
   assert.match(paymentsTable, /Mark unpaid/);
+});
+
+test("accommodation review actions meet the native touch target floor", () => {
+  assert.match(reviewsPage, /min-h-11/);
+  assert.match(reviewsPage, /Open Reviews/);
+  assert.match(reviewsPage, /View source/);
 });
 
 test("accommodation writes require organisation-scope Industry permission", () => {
