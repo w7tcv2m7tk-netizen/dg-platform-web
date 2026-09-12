@@ -6,6 +6,7 @@ import {
 
 import { CreateFinanceApplicationForm } from "@/components/finance/CreateFinanceApplicationForm";
 import { UpdateFinanceApplicationStageForm } from "@/components/finance/UpdateFinanceApplicationStageForm";
+import { canManageFinance } from "@/lib/finance-page-access";
 import { formatMoneyFromCents, getOrganisationMoneySettings } from "@/lib/organisation-money";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -26,6 +27,7 @@ export default async function FinanceApplicationsPage() {
     listContacts({ organisationId: session.organisationId, limit: 100 }),
     getOrganisationMoneySettings(session.organisationId),
   ]);
+  const canManage = canManageFinance(session);
 
   const contactOptions = contacts.items.map((c) => ({
     id: c.id,
@@ -38,18 +40,29 @@ export default async function FinanceApplicationsPage() {
   return (
     <main className="dg-page-main space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · {template.label} · Core CRM contacts
-        </p>
-        <CreateFinanceApplicationForm
-          contacts={contactOptions}
-          stages={template.stages}
-          currency={money.currency}
-        />
+        <div>
+          <p className="text-sm text-slate-400">
+            {session.organisationName} · {template.label} · Core CRM contacts
+          </p>
+          {!canManage ? (
+            <p className="mt-1 text-xs text-slate-500">
+              Read-only access. An organisation owner/admin or explicit Finance editor can change applications.
+            </p>
+          ) : null}
+        </div>
+        {canManage ? (
+          <CreateFinanceApplicationForm
+            contacts={contactOptions}
+            stages={template.stages}
+            currency={money.currency}
+          />
+        ) : null}
       </div>
       {items.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
-          <p className="text-slate-400">No applications yet. Create the first one.</p>
+          <p className="text-slate-400">
+            {canManage ? "No applications yet. Create the first one." : "No applications yet."}
+          </p>
         </div>
       ) : (
         <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">
@@ -71,11 +84,17 @@ export default async function FinanceApplicationsPage() {
                       : ""}
                   </p>
                 </div>
-                <UpdateFinanceApplicationStageForm
-                  applicationId={app.id}
-                  currentStage={app.stage}
-                  stages={template.stages}
-                />
+                {canManage ? (
+                  <UpdateFinanceApplicationStageForm
+                    applicationId={app.id}
+                    currentStage={app.stage}
+                    stages={template.stages}
+                  />
+                ) : (
+                  <span className="rounded-full border border-slate-700 px-3 py-2 text-xs capitalize text-slate-400">
+                    {app.stage.replace(/_/g, " ")}
+                  </span>
+                )}
               </li>
             );
           })}
