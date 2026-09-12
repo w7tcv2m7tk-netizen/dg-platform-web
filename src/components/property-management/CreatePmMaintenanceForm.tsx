@@ -47,7 +47,7 @@ export function CreatePmMaintenanceForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+        className="min-h-11 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
       >
         New request
       </button>
@@ -61,13 +61,13 @@ export function CreatePmMaintenanceForm({
         name="title"
         required
         placeholder="Issue title"
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+        className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
       />
       <div className="grid gap-3 sm:grid-cols-2">
         <select
           name="propertyId"
           defaultValue=""
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="">Property (optional)</option>
           {properties.map((p) => (
@@ -79,7 +79,7 @@ export function CreatePmMaintenanceForm({
         <select
           name="contactId"
           defaultValue=""
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="">Reporter (CRM)</option>
           {contacts.map((c) => (
@@ -91,7 +91,7 @@ export function CreatePmMaintenanceForm({
         <select
           name="priority"
           defaultValue="normal"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         >
           <option value="low">Low</option>
           <option value="normal">Normal</option>
@@ -106,18 +106,18 @@ export function CreatePmMaintenanceForm({
         className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
       />
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+          className="min-h-11 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
           {pending ? "Saving…" : "Create"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300"
+          className="min-h-11 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300"
         >
           Cancel
         </button>
