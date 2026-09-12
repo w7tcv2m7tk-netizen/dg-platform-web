@@ -56,7 +56,7 @@ export function AddServiceJobNoteForm({ jobId }: { jobId: string }) {
           name="body"
           rows={3}
           required
-          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
+          className="mt-1 min-h-24 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
           placeholder="Site notes, parts used, follow-up…"
         />
       </label>
@@ -64,7 +64,7 @@ export function AddServiceJobNoteForm({ jobId }: { jobId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-900 disabled:opacity-50"
+        className="min-h-11 rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:bg-slate-900 disabled:opacity-50"
       >
         {pending ? "Adding…" : "Add to timeline"}
       </button>
