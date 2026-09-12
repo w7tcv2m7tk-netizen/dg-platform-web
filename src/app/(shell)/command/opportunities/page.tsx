@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listOperatorPlatformOpportunities } from "@dg/platform-core";
 
-import { OperationalDataUnavailable } from "@/components/command/OperationalDataUnavailable";
+import { OperatorDataUnavailable } from "@/components/command/OperatorDataUnavailable";
 import { OpportunityCreateTaskButton } from "@/components/command/OpportunityCreateTaskButton";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
@@ -52,10 +52,7 @@ export default async function CommandOpportunitiesPage() {
       </header>
       <main className="dg-page-main space-y-8">
         {!data ? (
-          <OperationalDataUnavailable
-            title="Opportunities are temporarily unavailable"
-            description="Live opportunity signals could not be loaded. Check Platform Alerts for service health and try again shortly."
-          />
+          <OperatorDataUnavailable label="opportunities" />
         ) : (
           <>
             <div className="grid gap-4 sm:grid-cols-3">
