@@ -27,7 +27,10 @@ export default async function SupportHelpArticlePage({ params }: PageProps) {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/support/help" className="text-sm text-sky-400 hover:underline">
+        <Link
+          href="/support/help"
+          className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+        >
           ← Knowledge base
         </Link>
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
@@ -42,17 +45,23 @@ export default async function SupportHelpArticlePage({ params }: PageProps) {
         </article>
 
         <div className="dg-card max-w-3xl border-slate-700/80">
-          <h2 className="font-semibold text-white">Still stuck?</h2>
+          <h2 className="font-semibold text-white">Still need help?</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Escalate via{" "}
-            <Link href="/support" className="text-sky-400 hover:underline">
-              Support chat
+            Continue in the{" "}
+            <Link
+              href="/support"
+              className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+            >
+              Support centre
             </Link>{" "}
-            or{" "}
-            <a href={SUPPORT_MAILTO} className="text-sky-400 hover:underline">
+            or email{" "}
+            <a
+              href={SUPPORT_MAILTO}
+              className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+            >
               {SUPPORT_EMAIL}
-            </a>{" "}
-            on business days. Include your organisation name and the page URL.
+            </a>
+            . Include your organisation name and the page URL so the team can reproduce the issue.
           </p>
         </div>
       </main>

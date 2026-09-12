@@ -26,33 +26,35 @@ export default async function SupportPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/dashboard" className="text-sm text-blue-400 hover:underline">
+        <Link
+          href="/dashboard"
+          className="inline-flex min-h-11 items-center text-sm text-blue-400 hover:underline"
+        >
           ← Dashboard
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Support Centre</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Simple customer support — browse the knowledge base, chat with DigitalGate Assist, or
-          email the team on business days. No SLA dashboard; humans follow up when Assist needs
-          them.
+          Find practical guidance, chat with DigitalGate Assist, or contact the team when you need
+          a person.
         </p>
       </header>
       <main className="dg-page-main space-y-6">
         <div className="flex flex-wrap gap-2">
           <a
             href="#assist"
-            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+            className="inline-flex min-h-11 items-center rounded-lg bg-sky-600 px-4 text-sm font-medium text-white hover:bg-sky-500"
           >
             Chat with Assist
           </a>
           <Link
             href="/support/help"
-            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-slate-500"
+            className="inline-flex min-h-11 items-center rounded-lg border border-slate-600 px-4 text-sm font-medium text-slate-200 hover:border-slate-500"
           >
             Knowledge base
           </Link>
           <a
             href="#email"
-            className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-slate-500"
+            className="inline-flex min-h-11 items-center rounded-lg border border-slate-600 px-4 text-sm font-medium text-slate-200 hover:border-slate-500"
           >
             Email the team
           </a>
@@ -63,13 +65,13 @@ export default async function SupportPage() {
             <div>
               <h2 className="font-semibold text-white">Knowledge base</h2>
               <p className="mt-2 text-sm text-slate-400">
-                Short stubs for customers and Assist — signup, billing, connectors, CRM, and honest
-                scope notes. Not a full help centre yet.
+                Step-by-step guidance for setup, CRM, industry workflows, billing, connections and
+                understanding DigitalGate scores.
               </p>
             </div>
             <Link
               href="/support/help"
-              className="rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
+              className="inline-flex min-h-11 items-center rounded-full bg-sky-600 px-4 text-sm font-medium text-white hover:bg-sky-500"
             >
               Browse all →
             </Link>
@@ -79,7 +81,7 @@ export default async function SupportPage() {
               <li key={row.category}>
                 <Link
                   href={`/support/help#${row.category}`}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 px-3 py-1 text-xs font-medium text-slate-300 hover:border-sky-500/50 hover:text-sky-300"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-slate-700 px-3 text-xs font-medium text-slate-300 hover:border-sky-500/50 hover:text-sky-300"
                 >
                   {row.label}
                   <span className="text-slate-500">{row.count}</span>
@@ -93,9 +95,9 @@ export default async function SupportPage() {
           <div className="mb-2">
             <h2 className="font-semibold text-white">DigitalGate Assist</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Instant AI replies for common questions. When Assist cannot help, it pauses and a
-              human picks up here or by email — business days (Australia). Your conversation below
-              is real for your account; empty means no messages yet.
+              Get instant help with common questions. When Assist cannot resolve something, you can
+              continue with the DigitalGate team. Your conversation below is tied to your account;
+              an empty conversation simply means there are no messages yet.
             </p>
           </div>
           <SupportChatPanel embedded userName={userName ?? undefined} />
@@ -104,9 +106,8 @@ export default async function SupportPage() {
         <div id="email" className="dg-card max-w-xl scroll-mt-6">
           <h2 className="font-semibold text-white">Email the team</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Prefer email? Write to {SUPPORT_EMAIL}. Replies are on business days (Australia) —
-            same human path as escalated chat, not a separate self-serve ticket inbox or SLA
-            queue.
+            Prefer email? Write to {SUPPORT_EMAIL}. Include your organisation name, the page you
+            were working on and what happened so the team can pick up the context quickly.
           </p>
           <SupportActions />
         </div>

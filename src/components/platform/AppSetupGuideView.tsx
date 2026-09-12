@@ -27,15 +27,10 @@ function StepTimeline({ steps }: { steps: AppSetupGuide["steps"] }) {
                 {step.detail}
               </p>
             ) : null}
-            {step.code ? (
-              <pre className="mt-3 overflow-x-auto rounded-xl border border-slate-700 bg-slate-950/80 p-4 font-mono text-xs leading-relaxed text-emerald-200/90">
-                {step.code}
-              </pre>
-            ) : null}
             {step.href ? (
               <Link
                 href={step.href}
-                className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-blue-400 hover:text-blue-300"
+                className="mt-3 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-blue-400 hover:text-blue-300"
               >
                 {step.hrefLabel ?? "Open"}
                 <span aria-hidden>→</span>
@@ -65,14 +60,16 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/dashboard/apps" className="text-sm text-blue-400 hover:underline">
+        <Link
+          href="/dashboard/apps"
+          className="inline-flex min-h-11 items-center text-sm text-blue-400 hover:underline"
+        >
           ← Apps & Platform
         </Link>
       </header>
 
       <main className="dg-page-main">
         <div className="mx-auto max-w-3xl space-y-8">
-          {/* Hero */}
           <section className="relative overflow-hidden rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 via-[#0c1220] to-blue-950/50 p-8 shadow-lg shadow-blue-950/20">
             <div
               className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-blue-500/10 blur-3xl"
@@ -84,7 +81,7 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
             />
             <div className="relative flex flex-wrap items-start gap-5">
               <span
-                className="flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-3xl text-blue-400"
+                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-3xl text-blue-400"
                 aria-hidden
               >
                 {icon}
@@ -102,24 +99,18 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   {guide.estimatedMinutes ? (
-                    <span className="rounded-full border border-slate-600/80 bg-slate-800/60 px-3 py-1 text-xs text-slate-300">
+                    <span className="inline-flex min-h-11 items-center rounded-full border border-slate-600/80 bg-slate-800/60 px-4 text-xs text-slate-300">
                       ~{guide.estimatedMinutes} min setup
                     </span>
                   ) : null}
-                  {registered?.enabled ? (
-                    manifest?.navigation[0] ? (
-                      <Link
-                        href={manifest.navigation[0].href}
-                        className="rounded-full bg-blue-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-blue-500"
-                      >
-                        Open app →
-                      </Link>
-                    ) : null
-                  ) : (
-                    <span className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-500">
-                      Not installed
-                    </span>
-                  )}
+                  {registered?.enabled && manifest?.navigation[0] ? (
+                    <Link
+                      href={manifest.navigation[0].href}
+                      className="inline-flex min-h-11 items-center rounded-full bg-blue-600 px-4 text-xs font-medium text-white hover:bg-blue-500"
+                    >
+                      Open app →
+                    </Link>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -134,7 +125,7 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
                 {guide.prerequisites.map((item) => (
                   <li
                     key={item}
-                    className="rounded-lg border border-slate-700 bg-slate-800/40 px-3 py-1.5 text-sm text-slate-300"
+                    className="rounded-lg border border-slate-700 bg-slate-800/40 px-3 py-2 text-sm text-slate-300"
                   >
                     {item}
                   </li>
@@ -153,51 +144,30 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
             </div>
           </section>
 
-          {guide.envVars?.length ? (
-            <section className="dg-card border-blue-500/20">
-              <h2 className="font-semibold text-white">Environment variables</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Add these in Vercel → Settings → Environment Variables (or{" "}
-                <code className="text-slate-300">.env.local</code> locally).
-              </p>
-              <ul className="mt-4 space-y-3">
-                {guide.envVars.map((v) => (
-                  <li
-                    key={v.name}
-                    className="rounded-xl border border-slate-700/80 bg-slate-950/40 p-4"
-                  >
-                    <code className="text-sm font-medium text-blue-300">{v.name}</code>
-                    <p className="mt-1 text-sm text-slate-400">{v.description}</p>
-                    {v.example ? (
-                      <code className="mt-2 block text-xs text-slate-500">{v.example}</code>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
           {guide.resources?.length ? (
             <section className="dg-card">
               <h2 className="font-semibold text-white">Resources</h2>
               <ul className="mt-3 space-y-2">
-                {guide.resources.map((r) => (
-                  <li key={r.href}>
-                    {r.external ? (
+                {guide.resources.map((resource) => (
+                  <li key={resource.href}>
+                    {resource.external ? (
                       <a
-                        href={r.href}
+                        href={resource.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-sm text-blue-400 hover:underline"
+                        className="inline-flex min-h-11 items-center gap-1 text-sm text-blue-400 hover:underline"
                       >
-                        {r.label}
+                        {resource.label}
                         <span className="text-slate-500" aria-hidden>
                           ↗
                         </span>
                       </a>
                     ) : (
-                      <Link href={r.href} className="text-sm text-blue-400 hover:underline">
-                        {r.label}
+                      <Link
+                        href={resource.href}
+                        className="inline-flex min-h-11 items-center text-sm text-blue-400 hover:underline"
+                      >
+                        {resource.label}
                       </Link>
                     )}
                   </li>
@@ -209,13 +179,13 @@ export function AppSetupGuideView({ guide }: { guide: AppSetupGuide }) {
           <div className="flex flex-wrap gap-3 pb-8">
             <Link
               href="/dashboard/apps"
-              className="rounded-full border border-slate-700 px-5 py-2.5 text-sm text-slate-300 hover:border-slate-600 hover:text-white"
+              className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-5 text-sm text-slate-300 hover:border-slate-600 hover:text-white"
             >
               All apps
             </Link>
             <Link
               href="/dashboard"
-              className="rounded-full bg-slate-800 px-5 py-2.5 text-sm text-white hover:bg-slate-700"
+              className="inline-flex min-h-11 items-center rounded-full bg-slate-800 px-5 text-sm text-white hover:bg-slate-700"
             >
               Back to overview
             </Link>
