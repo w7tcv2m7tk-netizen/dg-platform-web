@@ -163,6 +163,7 @@ export async function sendDropboxSignRequest(input: {
   }
 
   const request = json.signature_request;
+  const externalId = request.signature_request_id;
   const sentAt = new Date().toISOString();
   const fallbackRecipients: SigningRecipient[] = input.signers.map((signer, index) => ({
     role: `signer_${index + 1}`,
@@ -172,8 +173,8 @@ export async function sendDropboxSignRequest(input: {
   }));
 
   return {
-    id: request.signature_request_id,
-    externalId: request.signature_request_id,
+    id: externalId,
+    externalId,
     provider: "dropbox_sign",
     status: "sent",
     recipients: recipientsFromDropboxSignatures(request.signatures, fallbackRecipients),
