@@ -18,7 +18,7 @@ function statusPrefix(status: HealthDimension["status"]) {
 }
 
 function HealthTrendChart({ values }: { values: number[] }) {
-  if (!values.length) return null;
+  if (values.length < 2) return null;
   const max = Math.max(...values, 1);
   const min = Math.min(...values, 0);
   const range = max - min || 1;
@@ -55,6 +55,13 @@ function SignalList({ title, items, tone }: { title: string; items: string[]; to
   );
 }
 
+function confidenceLabel(confidence: BusinessHealthBundle["confidence"]) {
+  if (confidence === "high") return "High confidence";
+  if (confidence === "medium") return "Medium confidence";
+  if (confidence === "low") return "Low confidence";
+  return "Insufficient evidence";
+}
+
 export function BusinessHealthDashboard({ data }: { data: BusinessHealthBundle }) {
   const statusEmoji =
     data.overallStatus === "improving"
@@ -64,15 +71,18 @@ export function BusinessHealthDashboard({ data }: { data: BusinessHealthBundle }
         : data.overallStatus === "stable"
           ? "🟢"
           : "⚪";
+  const evidenceCoverage = data.evidenceCoveragePercent ?? 0;
+  const measuredDimensions = data.measuredDimensionCount ?? 0;
+  const historyMeasurements = data.historyMeasurementCount ?? data.healthTrend.length;
 
   return (
     <div className="space-y-6">
       {!data.scoresLive ? (
         <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-sm text-blue-200/90">
-          Connect your website, CRM, finance, and review sources to unlock live Business Health
-          vital signs.{" "}
+          DigitalGate has {evidenceCoverage}% of the weighted evidence needed to publish a reliable
+          Business Health score. Connect and use more business systems to increase coverage.{" "}
           <Link href="/dashboard/settings/connectors" className="underline hover:text-white">
-            Connectors →
+            Connected Services →
           </Link>
         </div>
       ) : null}
@@ -97,6 +107,18 @@ export function BusinessHealthDashboard({ data }: { data: BusinessHealthBundle }
             </span>
           ) : null}
         </p>
+
+        <div className="mt-4 flex flex-wrap gap-2 text-xs">
+          <span className="rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-slate-300">
+            {evidenceCoverage}% evidence coverage
+          </span>
+          <span className="rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-slate-300">
+            {confidenceLabel(data.confidence)}
+          </span>
+          <span className="rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1 text-slate-300">
+            {measuredDimensions} measured dimension{measuredDimensions === 1 ? "" : "s"}
+          </span>
+        </div>
 
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           <SignalList title="Strong" items={data.strong} tone="text-emerald-400" />
@@ -123,7 +145,8 @@ export function BusinessHealthDashboard({ data }: { data: BusinessHealthBundle }
           Health dimensions
         </h2>
         <p className="mt-1 text-sm text-slate-500">
-          Each area gets its own health score — strengths, weaknesses, trends and emerging risks.
+          Only areas with genuine organisation evidence receive a score. An em dash means DigitalGate
+          is waiting for enough measured data rather than estimating a result.
         </p>
         <div className="mt-4 space-y-3">
           {data.dimensions.map((dimension) => (
@@ -158,8 +181,7 @@ export function BusinessHealthDashboard({ data }: { data: BusinessHealthBundle }
               Predictive health
             </h2>
             <p className="mt-1 text-sm text-slate-500">
-              Early warnings from connected signals — not just what happened, but what may happen
-              next.
+              Early warnings are shown only where connected evidence supports the signal.
             </p>
           </div>
           {data.predictiveAlerts.map((alert) => (
@@ -171,9 +193,7 @@ export function BusinessHealthDashboard({ data }: { data: BusinessHealthBundle }
                   : "border-amber-500/30 bg-amber-500/5"
               }`}
             >
-              <p className="text-sm font-medium text-white">
-                {alert.severity === "critical" ? "⚠️" : "⚠️"} {alert.title}
-              </p>
+              <p className="text-sm font-medium text-white">⚠️ {alert.title}</p>
               <p className="mt-2 text-sm leading-relaxed text-slate-300">{alert.body}</p>
               <p className="mt-3 text-sm text-slate-200">
                 Recommended action: {alert.recommendedAction}
@@ -193,9 +213,17 @@ export function BusinessHealthDashboard({ data }: { data: BusinessHealthBundle }
         <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
           Health trend
         </h2>
-        <p className="text-xs text-slate-500">Business Health · Last 12 months</p>
+        <p className="text-xs text-slate-500">Business Health · Stored measurements only</p>
         <div className="mt-4">
-          <HealthTrendChart values={data.healthTrend} />
+          {data.healthTrend.length >= 2 ? (
+            <HealthTrendChart values={data.healthTrend} />
+          ) : (
+            <p className="text-sm text-slate-400">
+              Collecting real history — {historyMeasurements} stored measurement
+              {historyMeasurements === 1 ? "" : "s"}. A trend will appear after at least two
+              measurements.
+            </p>
+          )}
         </div>
       </section>
 

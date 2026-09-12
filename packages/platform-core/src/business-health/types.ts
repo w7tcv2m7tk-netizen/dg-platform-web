@@ -1,3 +1,5 @@
+import type { BusinessHealthConfidence } from "../scoring/calculate-scores";
+
 export type HealthDimensionId =
   | "revenue"
   | "pipeline"
@@ -38,6 +40,11 @@ export type BusinessHealthBundle = {
   overallStatus: BusinessHealthStatus;
   overallStatusLabel: string;
   trendDelta30Days: number | null;
+  /** Evidence metadata is populated by live page-data boundaries. */
+  evidenceCoveragePercent?: number;
+  measuredDimensionCount?: number;
+  confidence?: BusinessHealthConfidence;
+  historyMeasurementCount?: number;
   strong: string[];
   watch: string[];
   attention: string[];

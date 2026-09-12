@@ -50,15 +50,12 @@ export function captureDigitalTwinSnapshot(
   }
 
   const websiteScore = connectors.website?.score;
-  const hasRe = enabledAppIds.includes("real-estate");
-  const rePipeline =
-    connectors.reSummary?.vendorPipelineTotal ?? metrics.vendorLeadCount;
+  // Business Health must never manufacture monetary pipeline value from lead counts.
+  // A zero/absent pipeline is kept as observed until a canonical CRM opportunity value exists.
   const pipelineValue =
     metrics.pipelineValueCents > 0
       ? metrics.pipelineValueCents / 100
-      : hasRe && rePipeline > 0
-        ? rePipeline * 450_000
-        : undefined;
+      : undefined;
 
   return {
     organisationId,
