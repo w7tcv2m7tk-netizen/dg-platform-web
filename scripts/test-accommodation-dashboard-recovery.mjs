@@ -100,6 +100,16 @@ test("availability uses tenant-local date boundaries and native context", () => 
   assert.doesNotMatch(calendarPage, /currentUser/);
 });
 
+test("availability gives native-only units unique UI identities and native recovery", () => {
+  assert.match(calendarPage, /function normaliseNativeUiIds/);
+  assert.match(calendarPage, /id: -\(index \+ 1\)/);
+  assert.match(calendarPage, /platform_id as the/);
+  assert.match(calendarPage, /Availability is temporarily unavailable/);
+  assert.match(calendarPage, /Existing bookings and/);
+  assert.match(calendarPage, /Add units in DigitalGate/);
+  assert.doesNotMatch(calendarPage, /WordPress/);
+});
+
 test("check-in windows use the organisation timezone instead of a Brisbane label", () => {
   assert.match(checkIns, /select: \{ timezone: true \}/);
   assert.match(checkIns, /accToday\(organisationTimeZone\)/);
