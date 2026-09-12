@@ -251,7 +251,8 @@ export async function runFoundingStaffAction(input: {
       meta.acceptance_email_sent_at = new Date().toISOString();
       emailSent = true;
     }
-    if (input.action === "send_agreement" && !meta.agreement_email_sent_at) {
+    if (input.action === "send_agreement") {
+      const resent = Boolean(meta.agreement_email_sent_at);
       const email = renderFoundingAgreementEmail({
         firstName: recipient.firstName,
         businessName,
@@ -264,7 +265,9 @@ export async function runFoundingStaffAction(input: {
         purpose: "founding_10_agreement",
         opportunityId: row.id,
         actorId: input.actorId,
-        activityTitle: "Founding 10 agreement email sent",
+        activityTitle: resent
+          ? "Founding 10 agreement email resent"
+          : "Founding 10 agreement email sent",
       });
       meta.agreement_email_sent_at = new Date().toISOString();
       emailSent = true;

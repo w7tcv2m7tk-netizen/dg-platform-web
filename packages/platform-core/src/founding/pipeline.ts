@@ -83,6 +83,35 @@ export type FoundingLifecyclePhaseId = (typeof FOUNDING_LIFECYCLE_PHASES)[number
 
 export type FoundingStage = (typeof FOUNDING_STAGES)[number];
 
+/** Who is blocking progress — shown as “Waiting on them” vs “Your move”. */
+export type FoundingWaitingOn = "customer" | "operator";
+
+export const FOUNDING_STAGE_WAITING_ON: Record<FoundingStage, FoundingWaitingOn> = {
+  identified: "operator",
+  contacted: "operator",
+  conversation: "operator",
+  invited: "customer",
+  invitation_accepted: "operator",
+  application_received: "operator",
+  discovery_booked: "operator",
+  discovery_completed: "operator",
+  accepted: "operator",
+  agreement_sent: "customer",
+  agreement_signed: "operator",
+  onboarding_invited: "customer",
+  onboarding_started: "customer",
+  onboarding_complete: "operator",
+  configuration: "operator",
+  implementation: "operator",
+  go_live: "operator",
+  thirty_day_review: "operator",
+};
+
+export const FOUNDING_WAITING_ON_LABEL: Record<FoundingWaitingOn, string> = {
+  customer: "Waiting on them",
+  operator: "Your move",
+};
+
 const LEGACY_STAGE_MAP: Record<string, FoundingStage> = {
   application: "application_received",
   new: "application_received",
@@ -138,7 +167,7 @@ export const FOUNDING_STAGE_CARD_ACTION: Record<FoundingStage, string> = {
   discovery_booked: "Run discovery before demoing",
   discovery_completed: "Accept into the Founding 10 or record a decline",
   accepted: "Send the Founding Agreement",
-  agreement_sent: "Chase signature",
+  agreement_sent: "Follow them up — they have the agreement and have not signed",
   agreement_signed: "Invite to signed-in onboarding",
   onboarding_invited: "Confirm they can open /onboarding",
   onboarding_started: "Follow up if the wizard stalls",
@@ -162,7 +191,8 @@ export const FOUNDING_STAGE_NEXT_ACTION: Record<FoundingStage, string> = {
   discovery_completed:
     "Once discovery is complete, accept the organisation into the Founding 10 or record a decline reason.",
   accepted: "Send the Founding Agreement. Do not start the onboarding wizard yet.",
-  agreement_sent: "Chase signature. Keep legal separate from onboarding.",
+  agreement_sent:
+    "Waiting on them. They have not signed, started onboarding, or been given platform access yet. Follow them up and resend the agreement link if needed.",
   agreement_signed: "Invite them to signed-in Gen 2 onboarding.",
   onboarding_invited: "Confirm they can sign in and open /onboarding.",
   onboarding_started: "Follow up if the wizard stalls. They can finish over more than one sitting.",
@@ -184,7 +214,7 @@ export const FOUNDING_STAGE_EMPTY_HINT: Record<FoundingStage, string> = {
   discovery_completed:
     "Once discovery is complete, accept into the Founding 10 or record a decline reason.",
   accepted: "Accepted seats in the Founding 10 wait here for agreement.",
-  agreement_sent: "Agreements awaiting signature appear here.",
+  agreement_sent: "Customers who have the agreement but have not signed appear here.",
   agreement_signed: "Signed agreements wait here until onboarding is invited.",
   onboarding_invited: "Customers invited to Gen 2 onboarding appear here.",
   onboarding_started: "Active onboarding wizards appear here.",
@@ -194,6 +224,45 @@ export const FOUNDING_STAGE_EMPTY_HINT: Record<FoundingStage, string> = {
   go_live: "Live founding customers wait here for the 30-day review.",
   thirty_day_review: "Completed go-lives enter the 30-day Founding Customer review here.",
 };
+
+export type FoundingProgressFacts = {
+  agreementEmailSentAt?: string | null;
+  agreementSignedAt?: string | null;
+  onboardingInviteSentAt?: string | null;
+  hasOpenedPlatform?: boolean;
+};
+
+/** Plain-language progress for the agreement / onboarding zone. */
+export function describeFoundingProgress(
+  stage: string,
+  facts: FoundingProgressFacts = {},
+): string {
+  const current = normaliseFoundingStage(stage);
+  if (current === "agreement_sent") {
+    if (facts.agreementSignedAt) {
+      return "Terms are confirmed. Invite them to onboarding.";
+    }
+    if (!facts.agreementEmailSentAt) {
+      return "Agreement email has not gone out yet — send it from this record.";
+    }
+    if (facts.hasOpenedPlatform) {
+      return "They signed in but have not confirmed the terms. Follow them up.";
+    }
+    return "Agreement emailed. They have not signed in, confirmed the terms, or started onboarding. Follow them up.";
+  }
+  if (current === "agreement_signed") {
+    return "Signed. Your move — invite them to signed-in onboarding.";
+  }
+  if (current === "onboarding_invited") {
+    return facts.onboardingInviteSentAt
+      ? "Onboarding invite sent. Waiting on them to open the wizard."
+      : "Invite them to signed-in onboarding.";
+  }
+  if (current === "onboarding_started") {
+    return "They have started onboarding. Follow up only if the wizard stalls.";
+  }
+  return FOUNDING_STAGE_CARD_ACTION[current];
+}
 
 export function foundingStageIndex(stage: string): number {
   const normalised = normaliseFoundingStage(stage);
