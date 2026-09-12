@@ -151,7 +151,7 @@ export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[]
     }
   }
 
-  return [...ids].filter((id) => Boolean(platformApps.get(id)));
+  return [...ids].filter((id) => Boolean(platformApps.get(id)?.enabled));
 }
 
 /**
@@ -166,7 +166,7 @@ export function resolveEnabledAppIds(
   const configured = orgSettings?.apps?.enabled;
   const ids =
     Array.isArray(configured) && configured.length
-      ? configured.filter((id) => platformApps.get(id))
+      ? configured.filter((id) => Boolean(platformApps.get(id)?.enabled))
       : getDefaultEnabledAppIds();
 
   const next = [...ids];
