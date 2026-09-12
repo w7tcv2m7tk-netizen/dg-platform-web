@@ -5,6 +5,7 @@ import test from "node:test";
 const read = (path) => fs.readFileSync(path, "utf8");
 
 const signup = read("src/components/SignupForm.tsx");
+const planPicker = read("src/components/PlanPicker.tsx");
 const onboarding = read("src/app/(shell)/onboarding/page.tsx");
 const businessSetup = read("src/app/(shell)/dashboard/business-setup/page.tsx");
 
@@ -20,6 +21,32 @@ test("signup completion actions meet the native touch-target floor", () => {
   const completion = signup.slice(signup.indexOf('if (step === "done")'));
   assert.match(completion, /href="\/signup\/account"[\s\S]{0,180}min-h-11/);
   assert.match(completion, /href="\/login"[\s\S]{0,180}min-h-11/);
+});
+
+test("public plan picker stays customer-facing and truthful about the next step", () => {
+  assert.match(planPicker, /Continue to your details/);
+  assert.match(planPicker, /guide you through account setup and billing/);
+  assert.doesNotMatch(
+    planPicker,
+    /Preview-only|sidebar prefs|Stripe Checkout|create a billing customer|Paid path|Continue to checkout/i,
+  );
+});
+
+test("public signup only offers launch-ready native industry groups", () => {
+  assert.match(planPicker, /"property"/);
+  assert.match(planPicker, /"hospitality-accommodation"/);
+  assert.match(planPicker, /"services"/);
+  assert.match(planPicker, /"finance"/);
+  assert.match(planPicker, /SIGNUP_INDUSTRY_PLATFORMS\.map/);
+  assert.doesNotMatch(planPicker, /"automotive"|"creator-media"|"health-wellness"|"professional"/);
+});
+
+test("plan picker controls meet the native touch-target floor", () => {
+  assert.match(planPicker, /PLATFORM_TIERS\.map[\s\S]{0,600}min-h-11/);
+  assert.match(planPicker, /SIGNUP_INDUSTRY_PLATFORMS\.map[\s\S]{0,700}min-h-11/);
+  assert.match(planPicker, /PREMIUM_APPS\.map[\s\S]{0,650}min-h-11/);
+  assert.match(planPicker, /ADDONS\.map[\s\S]{0,550}min-h-11/);
+  assert.match(planPicker, /disabled=\{!platformTier\}[\s\S]{0,240}min-h-11/);
 });
 
 test("canonical onboarding remains native Gen 2 and organisation-aware", () => {
