@@ -163,7 +163,7 @@ export async function sendDropboxSignRequest(input: {
   }
 
   const request = json.signature_request;
-  const externalId = request.signature_request_id;
+  const externalId: string = request.signature_request_id!;
   const sentAt = new Date().toISOString();
   const fallbackRecipients: SigningRecipient[] = input.signers.map((signer, index) => ({
     role: `signer_${index + 1}`,
