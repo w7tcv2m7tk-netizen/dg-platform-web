@@ -32,6 +32,7 @@ type AuditFinding = {
 type AuditResult = {
   auditedAt: string;
   websiteUrl: string | null;
+  studioWebsiteId: string | null;
   scores: AuditScores;
   presence: { probes: AuditProbes; findings: AuditFinding[] };
   findings: AuditFinding[];
@@ -77,6 +78,34 @@ function severityClass(severity: string) {
     default:
       return "text-blue-400";
   }
+}
+
+function studioActionForFinding(
+  finding: AuditFinding,
+  studioWebsiteId: string | null,
+): { href: string; label: string } | null {
+  if (!studioWebsiteId) return null;
+  const title = finding.title.toLowerCase();
+  const isAutomaticMetadata =
+    title.includes("page title") ||
+    title.includes("meta description") ||
+    title.includes("open graph");
+  if (isAutomaticMetadata) return null;
+
+  const canEditInStudio =
+    title.includes("h1") ||
+    title.includes("structured data") ||
+    title.includes("enquiry form") ||
+    title.includes("call-to-action") ||
+    title.includes("contact pathways") ||
+    title.includes("review / reputation") ||
+    title.includes("location information");
+  if (!canEditInStudio) return null;
+
+  return {
+    href: `/apps/websites/studio/${studioWebsiteId}?tab=edit`,
+    label: title.includes("structured data") ? "Open Studio SEO" : "Edit website",
+  };
 }
 
 function probeStatus(ok: boolean | null | undefined, label: string) {
@@ -382,7 +411,9 @@ export function SeoAuditPanel({
               <p className="mt-3 text-sm text-slate-500">No issues detected in this audit.</p>
             ) : (
               <ul className="mt-4 space-y-3">
-                {findings.map((f, i) => (
+                {findings.map((f, i) => {
+                  const action = studioActionForFinding(f, result.studioWebsiteId);
+                  return (
                   <li
                     key={`${f.title}-${i}`}
                     className="rounded-lg border border-slate-800 px-3 py-2 text-sm"
@@ -398,8 +429,17 @@ export function SeoAuditPanel({
                     {f.recommendedAction ? (
                       <p className="mt-1 text-xs text-blue-400">{f.recommendedAction}</p>
                     ) : null}
+                    {action ? (
+                      <Link
+                        href={action.href}
+                        className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-slate-700 px-3 py-2 text-xs font-medium text-sky-300 transition hover:border-sky-500/60 hover:text-white"
+                      >
+                        {action.label} →
+                      </Link>
+                    ) : null}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </section>
