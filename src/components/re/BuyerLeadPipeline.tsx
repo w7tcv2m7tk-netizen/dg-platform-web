@@ -16,6 +16,8 @@ const STAGES = [
 
 export function BuyerLeadPipeline({
   leads,
+  canCreate = false,
+  canEdit = false,
 }: {
   leads: Array<{
     id: string;
@@ -27,41 +29,22 @@ export function BuyerLeadPipeline({
     metadata?: Record<string, unknown>;
     createdAt: string;
   }>;
+  canCreate?: boolean;
+  canEdit?: boolean;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
-
-  async function syncFromWordPress() {
-    setSyncing(true);
-    setSyncMsg(null);
-    const res = await fetch("/api/v1/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "sync_wordpress_buyers" }),
-    });
-    const json = await res.json().catch(() => null);
-    setSyncing(false);
-    if (!res.ok) {
-      setSyncMsg(json?.error?.message ?? "Sync failed");
-      return;
-    }
-    setSyncMsg(
-      `Synced: ${json.data.created} new, ${json.data.updated} updated, ${json.data.skipped} unchanged`,
-    );
-    router.refresh();
-  }
 
   async function moveStage(leadId: string, stage: string) {
+    if (!canEdit) return;
     setPending(leadId);
-    await fetch("/api/v1/leads", {
+    const res = await fetch("/api/v1/leads", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: leadId, stage, leadType: "buyer" }),
     });
     setPending(null);
-    router.refresh();
+    if (res.ok) router.refresh();
   }
 
   const byStage = STAGES.map((stage) => ({
@@ -71,29 +54,19 @@ export function BuyerLeadPipeline({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <CreateLeadForm leadType="buyer" />
-        <button
-          type="button"
-          onClick={syncFromWordPress}
-          disabled={syncing}
-          className="rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
-        >
-          {syncing ? "Syncing…" : "Sync buyers from WordPress"}
-        </button>
-        {syncMsg ? <p className="text-sm text-slate-400">{syncMsg}</p> : null}
-      </div>
+      {canCreate ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <CreateLeadForm leadType="buyer" />
+        </div>
+      ) : null}
 
       {leads.length === 0 ? (
         <div className="dg-card border-dashed border-slate-700">
-          <h2 className="text-lg font-semibold text-white">Add your first buyer lead</h2>
+          <h2 className="text-lg font-semibold text-white">No buyer leads yet</h2>
           <p className="mt-2 max-w-xl text-sm text-slate-400">
-            Create a buyer enquiry here, or sync property enquiry forms from your WordPress site.
-            Contacts are tagged as Buyer automatically.
-          </p>
-          <p className="mt-3 text-xs text-slate-500">
-            Tip: use <span className="text-slate-400">Add buyer lead</span> above, or Sync buyers
-            from WordPress when the connector is live.
+            {canCreate
+              ? "Create a buyer enquiry here and move it through qualification, viewing, offer and purchase."
+              : "Buyer enquiries will appear here when they are captured in the platform."}
           </p>
         </div>
       ) : (
@@ -119,7 +92,7 @@ export function BuyerLeadPipeline({
                     >
                       <Link
                         href={`/apps/re/buyer-leads/${lead.id}`}
-                        className="font-medium text-white hover:underline"
+                        className="inline-flex min-h-11 items-center font-medium text-white hover:underline"
                       >
                         {lead.title ?? "Buyer lead"}
                       </Link>
@@ -136,23 +109,25 @@ export function BuyerLeadPipeline({
                           href={propertyUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-1 inline-block text-xs text-blue-400 hover:underline"
+                          className="mt-1 inline-flex min-h-11 items-center text-xs text-blue-400 hover:underline"
                         >
                           Listing ↗
                         </a>
                       ) : null}
-                      <select
-                        className="mt-2 w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
-                        value={lead.stage || "inquiry"}
-                        disabled={pending === lead.id}
-                        onChange={(e) => moveStage(lead.id, e.target.value)}
-                      >
-                        {STAGES.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            → {s.label}
-                          </option>
-                        ))}
-                      </select>
+                      {canEdit ? (
+                        <select
+                          className="mt-2 min-h-11 w-full rounded border border-slate-700 bg-slate-950 px-2 py-2 text-xs text-slate-200"
+                          value={lead.stage || "inquiry"}
+                          disabled={pending === lead.id}
+                          onChange={(e) => void moveStage(lead.id, e.target.value)}
+                        >
+                          {STAGES.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              → {s.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : null}
                     </li>
                   );
                 })}
