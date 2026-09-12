@@ -10,7 +10,7 @@ export function AuthShell({
   subtitle?: string;
 }) {
   return (
-    <div className="flex min-h-full flex-col items-center justify-center bg-slate-950 px-4 py-10">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-slate-950 px-4 py-10">
       <div className="mb-8 flex flex-col items-center text-center">
         <DigitalGateLogo
           variant="stacked"
