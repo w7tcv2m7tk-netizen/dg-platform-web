@@ -23,7 +23,7 @@ const SIDEBAR_ICONS: Record<string, string> = {
   crm: "◎",
   commerce: "▤",
   documents: "▤",
-  communications: "✉",
+  communications: "◫",
   "real-estate": "⌂",
   accommodation: "◫",
   finance: "▣",
