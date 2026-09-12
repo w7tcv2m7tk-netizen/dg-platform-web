@@ -1,0 +1,55 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import test from "node:test";
+
+const read = (path) => fs.readFileSync(path, "utf8");
+
+const signup = read("src/components/SignupForm.tsx");
+const onboarding = read("src/app/(shell)/onboarding/page.tsx");
+const businessSetup = read("src/app/(shell)/dashboard/business-setup/page.tsx");
+
+test("public plan submission hands signed-out customers to account creation or login", () => {
+  assert.match(signup, /href="\/signup\/account"/);
+  assert.match(signup, /href="\/login"/);
+  assert.doesNotMatch(signup, /href="\/dashboard\/business-setup"/);
+  assert.match(signup, /Create account/);
+  assert.match(signup, /Log in/);
+});
+
+test("signup completion actions meet the native touch-target floor", () => {
+  const completion = signup.slice(signup.indexOf('if (step === "done")'));
+  assert.match(completion, /href="\/signup\/account"[\s\S]{0,180}min-h-11/);
+  assert.match(completion, /href="\/login"[\s\S]{0,180}min-h-11/);
+});
+
+test("canonical onboarding remains native Gen 2 and organisation-aware", () => {
+  assert.match(onboarding, /getPlatformPageContext/);
+  assert.match(onboarding, /getGen2OnboardingProgress/);
+  assert.match(onboarding, /claimFoundingInvite/);
+  assert.match(onboarding, /getOrganisationBillingStatus/);
+  assert.match(onboarding, /Gen2OnboardingWizard/);
+  assert.doesNotMatch(onboarding, /WordPress|wp-json|DG_WP_|fetchPortalMe/i);
+});
+
+test("onboarding sign-in and billing recovery meet the native touch-target floor", () => {
+  assert.match(onboarding, /Sign in[\s\S]{0,900}min-h-11|className="[^"]*min-h-11[^"]*"[\s\S]{0,300}>\s*Sign in/);
+  assert.match(onboarding, /className="[^"]*min-h-11[^"]*"[\s\S]{0,300}>\s*Check confirmation/);
+});
+
+test("Start Your Business stays customer-facing rather than exposing implementation internals", () => {
+  assert.match(businessSetup, /Start Your Business/);
+  assert.match(businessSetup, /ABN lookup/);
+  assert.match(businessSetup, /Business Profile/);
+  assert.match(businessSetup, /official registration process/);
+  assert.doesNotMatch(
+    businessSetup,
+    /\.env(?:\.local)?|ABN_LOOKUP_GUID|ABR_GUID|ASIC_CONNECTOR_STATUS|currentBusinessSetupPhase|getAsicConnectorLifecycle|docs\/foundations|\bVercel\b|\bPhase \{/i,
+  );
+});
+
+test("Start Your Business provides accessible recovery and continuation paths", () => {
+  assert.match(businessSetup, /href="\/support\/help"/);
+  assert.match(businessSetup, /href="\/support"/);
+  assert.match(businessSetup, /href="\/dashboard\/business"/);
+  assert.match(businessSetup, /min-h-11/);
+});

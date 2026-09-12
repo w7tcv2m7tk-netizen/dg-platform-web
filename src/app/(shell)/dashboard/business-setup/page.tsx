@@ -1,15 +1,12 @@
 import Link from "next/link";
 
 import {
-  ASIC_CONNECTOR_STATUS,
   BUSINESS_SETUP_CHECKLIST,
   BUSINESS_SETUP_PILLARS,
   BUSINESS_SETUP_POSITIONING,
   abrCredentialsConfigured,
   buildBusinessSetupFirstSteps,
   checklistForPillar,
-  currentBusinessSetupPhase,
-  getAsicConnectorLifecycle,
   getOrganisationBusinessProfile,
   type BusinessSetupStepStatus,
 } from "@dg/platform-core";
@@ -23,13 +20,13 @@ function statusLabel(status: BusinessSetupStepStatus): string {
     case "available":
       return "Ready";
     case "partial":
-      return "Partial";
+      return "Available with limits";
     case "deferred":
-      return "Coming next";
+      return "Optional later";
     case "blocked_provider":
-      return "Waiting on provider";
+      return "External step";
     case "roadmap":
-      return "Roadmap";
+      return "Not available";
     default:
       return status;
   }
@@ -52,15 +49,10 @@ function statusClass(status: BusinessSetupStepStatus): string {
   }
 }
 
-/**
- * Start Your Business — Launchpad for Business Services / Business Setup.
- * Identify is live-ish (ABR). Does not invent ASIC availability or registration success.
- */
+/** Start Your Business — customer launchpad for establishing the Business Profile. */
 export default async function BusinessSetupPage() {
   const { session: platformSession } = await getPlatformPageContext();
-  const phase = currentBusinessSetupPhase();
   const abrReady = abrCredentialsConfigured();
-  const asicLifecycle = getAsicConnectorLifecycle();
   const profile = platformSession
     ? await getOrganisationBusinessProfile(platformSession.organisationId)
     : null;
@@ -69,44 +61,42 @@ export default async function BusinessSetupPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
+        <Link
+          href="/dashboard"
+          className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+        >
           ← Overview
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Start Your Business</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">{BUSINESS_SETUP_POSITIONING}</p>
         <p className="mt-2 text-sm text-slate-500">
-          {platformSession?.organisationName ?? "DigitalGate"} · Business Setup · Phase {phase}{" "}
-          · Identify
+          {platformSession?.organisationName ?? "Your organisation"} · Business setup
         </p>
       </header>
 
       <main className="dg-page-main space-y-6">
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
-          <p className="font-medium text-amber-200">Honest launch path</p>
+        <section className="rounded-xl border border-sky-500/30 bg-sky-500/5 px-4 py-4 text-sm text-slate-300">
+          <h2 className="font-medium text-sky-200">Your setup path</h2>
           <p className="mt-1 text-slate-400">
-            Tell us about the business → verify identity → Business Profile
-            populated. Then connect domain, website, and Google when ready. Name
-            registration stays blocked until the authorised digital pathway is
-            approved — we never invent availability or claim a registration
-            succeeded.
+            Confirm your business identity, review the Business Profile, then connect the digital
+            services you use. DigitalGate only reports a registration or connection as complete
+            when it can verify it.
           </p>
-          <ul className="mt-3 space-y-1 text-slate-400">
-            <li>
-              ABR credentials:{" "}
-              <span className={abrReady ? "text-emerald-300" : "text-amber-300"}>
-                {abrReady
-                  ? "configured"
-                  : "not set (ABN_LOOKUP_GUID or ABR_GUID in .env.local)"}
-              </span>
-            </li>
-            <li>
-              Name registration connector:{" "}
-              <span className="text-rose-300">
-                {ASIC_CONNECTOR_STATUS} ({asicLifecycle})
-              </span>
-            </li>
-          </ul>
-        </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span
+              className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 ring-inset ${
+                abrReady
+                  ? "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30"
+                  : "bg-amber-500/15 text-amber-300 ring-amber-500/30"
+              }`}
+            >
+              ABN lookup {abrReady ? "available" : "temporarily unavailable"}
+            </span>
+            <span className="rounded-full bg-slate-500/15 px-3 py-1.5 text-xs font-medium text-slate-300 ring-1 ring-inset ring-slate-500/30">
+              Business name registration uses the official registration process
+            </span>
+          </div>
+        </section>
 
         <BusinessSetupFirstSteps progress={firstSteps} />
 
@@ -144,12 +134,12 @@ export default async function BusinessSetupPage() {
                           {item.href && item.status !== "blocked_provider" ? (
                             <Link
                               href={item.href}
-                              className="text-sm font-medium text-sky-300 hover:underline"
+                              className="inline-flex min-h-11 items-center text-sm font-medium text-sky-300 hover:underline"
                             >
                               {item.label}
                             </Link>
                           ) : (
-                            <p className="text-sm font-medium text-slate-200">{item.label}</p>
+                            <p className="py-2 text-sm font-medium text-slate-200">{item.label}</p>
                           )}
                           <p className="mt-0.5 text-xs text-slate-500">{item.description}</p>
                           {item.note ? (
@@ -176,17 +166,22 @@ export default async function BusinessSetupPage() {
             <li>
               {firstSteps.identifyDone ? (
                 <>
-                  Identify is on file — open{" "}
-                  <Link href="/dashboard/business" className="text-sky-400 hover:underline">
+                  Your business identity is on file — open{" "}
+                  <Link
+                    href="/dashboard/business"
+                    className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+                  >
                     Business Profile
                   </Link>{" "}
-                  to confirm details.
+                  to confirm the details.
                 </>
               ) : (
                 <>
-                  Identify: use the panel above to verify ABN / ACN (or search by
-                  name), then apply to{" "}
-                  <Link href="/dashboard/business" className="text-sky-400 hover:underline">
+                  Use the identity panel above to find or confirm your ABN / ACN, then review your{" "}
+                  <Link
+                    href="/dashboard/business"
+                    className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+                  >
                     Business Profile
                   </Link>
                   .
@@ -194,35 +189,50 @@ export default async function BusinessSetupPage() {
               )}
             </li>
             <li>
-              Connect digital presence via{" "}
+              Connect your digital presence through{" "}
               <Link
                 href="/apps/infrastructure/domains"
-                className="text-sky-400 hover:underline"
+                className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
               >
                 Domains
               </Link>
               ,{" "}
-              <Link href="/apps/websites" className="text-sky-400 hover:underline">
+              <Link
+                href="/apps/websites"
+                className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+              >
                 Websites
               </Link>
               , and{" "}
               <Link
                 href="/dashboard/settings/connectors"
-                className="text-sky-400 hover:underline"
+                className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
               >
-                Google / connectors
-              </Link>{" "}
-              — link out only; no auto-publish from Setup.
+                Connections
+              </Link>
+              .
             </li>
             <li>
-              Name registration in-product stays on hold until the authorised
-              digital service provider pathway is approved — use the official
-              process with details prepared here when that step opens.
+              When you need to register a business name, use the official registration process with
+              the business details you have confirmed here.
             </li>
           </ol>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/support/help"
+              className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 text-sm font-medium text-slate-200 hover:border-slate-600"
+            >
+              Setup help
+            </Link>
+            <Link
+              href="/support"
+              className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 text-sm font-medium text-slate-200 hover:border-slate-600"
+            >
+              Contact support
+            </Link>
+          </div>
           <p className="mt-3 text-xs text-slate-500">
-            {BUSINESS_SETUP_CHECKLIST.length} checklist items · capability: Business Services ·
-            docs/foundations/BUSINESS-SETUP.md
+            {BUSINESS_SETUP_CHECKLIST.length} setup checks available across your business launch path.
           </p>
         </section>
       </main>
