@@ -45,6 +45,37 @@ function isValidLegacyConnectorKey(provided: string) {
   return keys.some((key) => key === provided);
 }
 
+function requestPathname(req: Request): string {
+  try {
+    return new URL(req.url).pathname;
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Accommodation is an organisation-wide Industry app today: its units, bookings,
+ * guests, housekeeping and payment status do not have an assigned-user ownership
+ * field. Default organisation members only receive assigned-scope Industry writes,
+ * so mutations must require an explicit organisation-scope grant.
+ */
+function accommodationWritePermission(
+  req: Request,
+  session: PlatformSession,
+): NextResponse | null {
+  if (requestPathname(req) !== "/api/v1/accommodation") return null;
+
+  const method = req.method.toUpperCase();
+  if (["GET", "HEAD", "OPTIONS"].includes(method)) return null;
+
+  return requirePermission(session, {
+    module: "industry",
+    action: method === "DELETE" ? "delete" : "edit",
+    scope: "organisation",
+    subModule: "accommodation",
+  });
+}
+
 /** Clerk session only — for user-specific routes (support chat, key management). */
 export async function requireClerkSession(): Promise<PlatformSession | NextResponse> {
   return resolveClerkSession();
@@ -63,6 +94,11 @@ export async function requirePlatformAuth(
   // exempt. New authenticated /api/v1 routes inherit this via requirePlatformAuth.
   const writeBlock = await enforceWriteEntitlement(req, session);
   if (writeBlock) return writeBlock;
+
+  // Accommodation records are organisation-wide. Do not let a default member's
+  // assigned-scope Industry grant become an implicit organisation-wide mutation.
+  const accommodationPermissionBlock = accommodationWritePermission(req, session);
+  if (accommodationPermissionBlock) return accommodationPermissionBlock;
 
   return session;
 }
