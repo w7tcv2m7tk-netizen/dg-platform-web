@@ -23,6 +23,7 @@ import type {
   BusinessOverview,
   OverviewConnectedSystem,
   OverviewGoalProgress,
+  OverviewScoreBreakdown,
   OverviewSetupProgress,
   OverviewSnapshotKpi,
   OverviewTimelineEntry,
@@ -43,7 +44,7 @@ export interface BuildBusinessOverviewInput {
     createdAt: string;
     sourceApp?: string | null;
   }>;
-  /** Live metrics from Postgres — when set, enables live scoring and BI */
+  /** Live metrics from Postgres — when set, enables evidence evaluation and BI. */
   liveMetrics?: OverviewLiveMetrics | null;
   /** Connector probes from app layer (WordPress, Stripe, etc.) */
   connectorProbes?: OverviewConnectorProbes;
@@ -314,6 +315,38 @@ function overviewGoalsFrom(
   }));
 }
 
+function buildScoreBreakdown(
+  scores: ReturnType<typeof calculateOrgScores>,
+  enabledAppIds: string[],
+): OverviewScoreBreakdown[] {
+  const rows: Array<{
+    id: string;
+    scoreId: import("../scoring/types").ScoreId;
+    label: string;
+    href: string;
+  }> = [
+    { id: "ai_visibility", scoreId: "ai_visibility", label: "AI Visibility", href: "/apps/ai-visibility" },
+    { id: "seo", scoreId: "seo", label: "SEO", href: "/apps/seo" },
+    { id: "website", scoreId: "website_health", label: "Website", href: "/apps/websites/health" },
+    { id: "marketing", scoreId: "business_growth", label: "Marketing", href: "/apps/marketing" },
+    { id: "sales", scoreId: "conversion", label: "Sales", href: enquiryInboxHref(enabledAppIds) },
+    { id: "cx", scoreId: "reputation", label: "Customer Experience", href: "/apps/reviews" },
+    { id: "automation", scoreId: "automation", label: "Automation", href: "/apps/automation" },
+  ];
+
+  const breakdown = rows.flatMap((row) => {
+    const match = scores.scores.find((score) => score.scoreId === row.scoreId);
+    return match ? [{ id: row.id, label: row.label, value: match.value, href: row.href }] : [];
+  });
+  const financeAvailable = scores.evidence.some(
+    (item) => item.scoreId === "success_score" && item.state !== "unavailable",
+  );
+  if (financeAvailable) {
+    breakdown.push({ id: "finance", label: "Finance", value: scores.financeScore, href: "/apps/commerce" });
+  }
+  return breakdown;
+}
+
 /** Build CEO dashboard payload from live Twin → Scoring → BI pipeline. */
 export function buildBusinessOverview(input: BuildBusinessOverviewInput): BusinessOverview {
   const {
@@ -330,7 +363,6 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
   const hour = hourInTimeZone();
   const firstName = userDisplayName.split(" ")[0] || userDisplayName;
   const setupIncomplete = !setupStatus?.hasContacts;
-  const scoresLive = Boolean(liveMetrics);
   const setupProgress = buildSetupProgress({
     setupStatus,
     businessProfile: input.businessProfile as OrganisationBusinessProfile | null,
@@ -370,15 +402,17 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     metrics: metricsContext,
     profile: input.businessProfile as OrganisationBusinessProfile | null,
   });
+  const scoresLive = scores.scoresLive;
 
+  const scoreMap = new Map(scores.scores.map((score) => [score.scoreId, score.value]));
   snapshot.scores = {
-    websiteHealth: getScoreValue(scores.scores, "website_health"),
-    aiVisibility: getScoreValue(scores.scores, "ai_visibility"),
-    seo: getScoreValue(scores.scores, "seo"),
-    businessGrowth: getScoreValue(scores.scores, "business_growth"),
-    businessHealth: scores.businessHealth,
-    reputation: getScoreValue(scores.scores, "reputation"),
-    automation: getScoreValue(scores.scores, "automation"),
+    websiteHealth: scoreMap.get("website_health"),
+    aiVisibility: scoreMap.get("ai_visibility"),
+    seo: scoreMap.get("seo"),
+    businessGrowth: scoreMap.get("business_growth"),
+    businessHealth: scoresLive ? scores.businessHealth : undefined,
+    reputation: scoreMap.get("reputation"),
+    automation: scoreMap.get("automation"),
     calculatedAt: new Date(),
   };
 
@@ -393,12 +427,14 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     goals: input.goals,
   });
 
-  const businessHealth = scores.businessHealth;
+  const businessHealth = scoresLive ? scores.businessHealth : 0;
   const healthDelta =
-    healthHistory.length >= 2
+    scoresLive && healthHistory.length >= 2
       ? healthDeltaFromHistory(healthHistory, businessHealth)
-      : scores.businessHealthDelta;
-  const healthTrend = healthTrendFromHistory(healthHistory, businessHealth);
+      : 0;
+  const healthTrend = scoresLive
+    ? healthTrendFromHistory(healthHistory, businessHealth)
+    : [];
 
   const timeline = timelineFromActivities(activities);
 
@@ -416,22 +452,17 @@ export function buildBusinessOverview(input: BuildBusinessOverviewInput): Busine
     greeting: greetingForHour(hour, firstName),
     businessHealth,
     businessHealthDelta: healthDelta,
-    businessHealthDeltaLabel: `${healthDelta >= 0 ? "+" : ""}${healthDelta} this month`,
+    businessHealthDeltaLabel: scoresLive
+      ? healthHistory.length >= 2
+        ? `${healthDelta >= 0 ? "+" : ""}${healthDelta} this month`
+        : "Collecting history"
+      : "Not enough measured evidence",
     lastUpdatedLabel: formatTimelineTime(new Date().toISOString()),
     scoresLive,
     dailyBriefing: intelligence.dailyBriefing,
     priorities: intelligence.priorities,
     prioritiesImpact: intelligence.prioritiesImpact,
-    scoreBreakdown: [
-      { id: "ai_visibility", label: "AI Visibility", value: getScoreValue(scores.scores, "ai_visibility"), href: "/apps/ai-visibility" },
-      { id: "seo", label: "SEO", value: getScoreValue(scores.scores, "seo"), href: "/apps/seo" },
-      { id: "website", label: "Website", value: getScoreValue(scores.scores, "website_health"), href: "/apps/websites/health" },
-      { id: "marketing", label: "Marketing", value: getScoreValue(scores.scores, "business_growth"), href: "/apps/marketing" },
-      { id: "sales", label: "Sales", value: getScoreValue(scores.scores, "conversion"), href: enquiryInboxHref(enabledAppIds) },
-      { id: "cx", label: "Customer Experience", value: getScoreValue(scores.scores, "reputation"), href: "/apps/reviews" },
-      { id: "automation", label: "Automation", value: getScoreValue(scores.scores, "automation"), href: "/apps/automation" },
-      { id: "finance", label: "Finance", value: scores.financeScore, href: "/apps/commerce" },
-    ],
+    scoreBreakdown: buildScoreBreakdown(scores, enabledAppIds),
     snapshot: buildSnapshotKpis(liveMetrics, enabledAppIds, connectorProbes),
     insights: intelligence.insights,
     recommendedActions: intelligence.recommendedActions,
@@ -477,7 +508,6 @@ function buildPreviewOverview(
   setupProgress: OverviewSetupProgress,
 ): BusinessOverview {
   const { organisationName, enabledAppIds, activities } = input;
-  const reOrg = /roe|realty|real estate|estate/i.test(organisationName);
 
   const opportunities = buildOpportunities({
     enabledAppIds,
@@ -501,16 +531,7 @@ function buildPreviewOverview(
       { rank: 2, text: "Connect the services your business uses in Connected Services." },
       { rank: 3, text: "Enable the apps relevant to your business." },
     ],
-    scoreBreakdown: [
-      { id: "ai_visibility", label: "AI Visibility", value: 0, href: "/apps/ai-visibility" },
-      { id: "seo", label: "SEO", value: 0, href: "/apps/seo" },
-      { id: "website", label: "Website", value: 0, href: "/apps/websites/health" },
-      { id: "marketing", label: "Marketing", value: 0, href: "/apps/marketing" },
-      { id: "sales", label: "Sales", value: 0, href: enquiryInboxHref(enabledAppIds) },
-      { id: "cx", label: "Customer Experience", value: 0, href: "/apps/reviews" },
-      { id: "automation", label: "Automation", value: 0, href: "/apps/automation" },
-      { id: "finance", label: "Finance", value: 0, href: "/apps/commerce" },
-    ],
+    scoreBreakdown: [],
     snapshot: [
       { id: "leads", label: "New Leads", value: "—" },
       { id: "tasks", label: "Tasks Due", value: "—" },

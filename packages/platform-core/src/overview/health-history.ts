@@ -73,28 +73,22 @@ export async function persistHealthSnapshot(
   return next;
 }
 
+/**
+ * Build a trend from observed Business Health measurements only.
+ * With no stored history there is no trend to display; DigitalGate does not backfill one.
+ */
 export function healthTrendFromHistory(
   history: HealthHistoryEntry[],
   currentScore: number,
 ): number[] {
-  if (history.length >= 2) {
-    const values = history.map((h) => h.score);
-    if (values[values.length - 1] !== currentScore) {
-      values[values.length - 1] = currentScore;
-    }
-    while (values.length < 12) {
-      values.unshift(values[0]);
-    }
-    return values.slice(-12);
-  }
+  if (history.length === 0) return [];
 
-  const months = 12;
-  const start = Math.max(40, currentScore - 10);
-  return Array.from({ length: months }, (_, i) => {
-    if (i === months - 1) return currentScore;
-    const progress = i / (months - 1);
-    return Math.round(start + (currentScore - start) * progress * 0.85);
-  });
+  const sorted = [...history].sort((a, b) => a.month.localeCompare(b.month));
+  const values = sorted.map((entry) => entry.score).slice(-12);
+  if (values[values.length - 1] !== currentScore) {
+    values.push(currentScore);
+  }
+  return values.slice(-12);
 }
 
 export function healthDeltaFromHistory(
