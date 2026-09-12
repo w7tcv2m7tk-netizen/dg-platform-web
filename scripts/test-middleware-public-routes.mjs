@@ -51,8 +51,10 @@ async function publicMatcher() {
   return (pathname) => regexes.some((re) => re.test(pathname));
 }
 
-/** Endpoints that authenticate themselves and must bypass Clerk. */
+/** Endpoints and entry points that must bypass Clerk middleware protection. */
 const MUST_BE_PUBLIC = [
+  // Customer launch handoff — page itself prompts signed-out visitors to log in.
+  "/onboarding",
   // Webhooks — signature or shared secret in handler
   "/api/webhooks/stripe",
   "/api/webhooks/clerk",
@@ -102,10 +104,12 @@ const MUST_BE_PROTECTED = [
   "/dashboard",
   "/apps/crm/contacts",
   "/command/growth-engine/proposals",
+  // Do not accidentally exempt a future onboarding subtree.
+  "/onboarding/admin",
 ];
 
 describe("H-2: middleware public route allowlist", () => {
-  it("exempts every endpoint that authenticates itself", async () => {
+  it("exempts every endpoint that authenticates itself or owns its signed-out handoff", async () => {
     const isPublic = await publicMatcher();
     const missing = MUST_BE_PUBLIC.filter((p) => !isPublic(p));
     assert.deepEqual(
