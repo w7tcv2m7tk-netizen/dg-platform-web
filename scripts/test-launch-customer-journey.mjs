@@ -5,9 +5,16 @@ import test from "node:test";
 const read = (path) => fs.readFileSync(path, "utf8");
 
 const signup = read("src/components/SignupForm.tsx");
+const signupLayout = read("src/app/signup/(platform)/layout.tsx");
 const planPicker = read("src/components/PlanPicker.tsx");
 const onboarding = read("src/app/(shell)/onboarding/page.tsx");
 const businessSetup = read("src/app/(shell)/dashboard/business-setup/page.tsx");
+
+test("public signup stays outside the authenticated platform shell", () => {
+  assert.match(signupLayout, /DigitalGateLogo/);
+  assert.match(signupLayout, /min-h-screen/);
+  assert.doesNotMatch(signupLayout, /PlatformShellLoader|AppShellLayout|Sidebar/);
+});
 
 test("public plan submission hands signed-out customers to account creation or login", () => {
   assert.match(signup, /href="\/signup\/account"/);
