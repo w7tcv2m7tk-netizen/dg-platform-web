@@ -26,8 +26,8 @@ function dayOfWeek(date: string): number {
 }
 
 /**
- * The legacy-shaped availability UI still uses numeric ids for local selection.
- * Gen 2-native units have no WordPress id and therefore serialize as id=0. Give
+ * The compatibility-shaped availability UI still uses numeric ids for local selection.
+ * Gen 2-native units have no legacy external id and therefore serialize as id=0. Give
  * those rows stable, unique negative UI ids while preserving platform_id as the
  * mutation authority. Server write paths ignore non-positive legacy ids and use
  * platform_id first.
