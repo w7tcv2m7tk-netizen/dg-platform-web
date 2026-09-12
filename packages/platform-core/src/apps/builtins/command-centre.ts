@@ -2,7 +2,8 @@ import type { AppManifest } from "../manifest";
 
 /**
  * DigitalGate Command Centre — internal-only App.
- * Cockpit for priorities and orchestrated Opportunities (Core Opportunity Engine™).
+ * One operator cockpit for Aida briefing, priorities, alerts and recommended actions,
+ * with specialist operating areas retained as drill-down destinations.
  * @see docs/COMMAND-CENTRE.md
  * @see docs/foundations/OPPORTUNITY-ENGINE.md
  */
@@ -10,24 +11,24 @@ export const commandCentreApp: AppManifest = {
   id: "command-centre",
   name: "Command Centre",
   description:
-    "DigitalGate cockpit — Priorities, AI Advisor, Alerts, and recommended actions",
+    "DigitalGate operator cockpit — Aida briefing, priorities, alerts, customers, partners, support and platform operations",
   tier: "internal",
   visibility: "internal",
-  version: "0.9.0",
+  version: "1.0.0",
   icon: "◈",
   routes: [
-    { path: "/command", label: "Priorities" },
+    { path: "/command", label: "Command" },
     { path: "/command/opportunities", label: "Opportunities" },
     { path: "/command/opportunities/expansion", label: "Expansion" },
     { path: "/command/growth-engine", label: "Growth Engine™" },
-    { path: "/command/advisor", label: "Recommended Actions" },
-    { path: "/command/platform-health", label: "Platform Alerts" },
+    { path: "/command/advisor", label: "Command Advisor compatibility" },
+    { path: "/command/platform-health", label: "Platform" },
     { path: "/command/partners", label: "Partners" },
     { path: "/command/partners/acquisition", label: "Acquisition Partners" },
-    { path: "/command/delivery", label: "Delivery Partners" },
+    { path: "/command/delivery", label: "Delivery" },
     { path: "/command/referrals", label: "Referrals" },
     { path: "/command/commissions", label: "Commissions" },
-    { path: "/command/clients", label: "Portfolio" },
+    { path: "/command/clients", label: "Customers" },
     { path: "/command/clients/[orgId]", label: "Customer detail" },
     { path: "/apps/prospecting/discovery", label: "Business Discovery" },
     { path: "/command/growth-engine/pipeline", label: "Prospect Pipeline" },
@@ -42,17 +43,22 @@ export const commandCentreApp: AppManifest = {
     { path: "/command/flags", label: "Feature Flags" },
     { path: "/command/docs", label: "Platform docs" },
     { path: "/command/docs/[slug]", label: "Platform doc" },
-    { path: "/command/intelligence", label: "Platform Intelligence" },
+    { path: "/command/intelligence", label: "Intelligence" },
+    { path: "/support", label: "Support" },
   ],
   /**
-   * Sidebar cockpit — Core owns Opportunities module; Command Centre orchestrates.
-   * Prospecting children stay on Growth Engine pages (not competing top-level destinations).
-   * Platform docs is staff architecture/SSOT — not the client “what next” loop.
+   * Primary operator IA. Command is the daily cockpit; the remaining entries are
+   * specialist drill-down areas rather than competing priority/advisor/alert tabs.
    */
   navigation: [
-    { href: "/command", label: "Priorities", icon: "◈" },
-    { href: "/command/advisor", label: "AI Advisor", icon: "◎" },
-    { href: "/command/platform-health", label: "Alerts", icon: "◉" },
+    { href: "/command", label: "Command", icon: "◈" },
+    { href: "/command/clients", label: "Customers", icon: "◎" },
+    { href: "/command/partners", label: "Partners", icon: "◇" },
+    { href: "/support", label: "Support", icon: "?" },
+    { href: "/command/delivery", label: "Delivery", icon: "↗" },
+    { href: "/command/revenue", label: "Commercial", icon: "$" },
+    { href: "/command/platform-health", label: "Platform", icon: "◉" },
+    { href: "/command/intelligence", label: "Intelligence", icon: "✦" },
   ],
   permissions: [
     { id: "command.view", label: "View Command Centre" },
@@ -124,7 +130,7 @@ export const commandCentreApp: AppManifest = {
       id: "command.client_advisor",
       label: "AI Business Advisor",
       description:
-        "Natural-language analysis of client performance, trends, and recommendations",
+        "Natural-language analysis of client performance, trends, and recommendations inside the unified Command cockpit",
     },
     {
       id: "command.executive_report",

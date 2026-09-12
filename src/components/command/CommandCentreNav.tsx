@@ -1,32 +1,33 @@
 import Link from "next/link";
-import { COMMAND_CENTRE_ROUTES } from "@dg/platform-core";
 
-/** Act → Understand → Monitor */
+/**
+ * @deprecated AppContextNav owns Command Centre navigation. Kept for compatibility
+ * with any older operator surfaces that still mount this component.
+ */
 const NAV = [
-  { href: COMMAND_CENTRE_ROUTES.overview, label: "Priorities", id: "overview" },
-  { href: COMMAND_CENTRE_ROUTES.advisor, label: "AI Advisor", id: "advisor" },
-  { href: COMMAND_CENTRE_ROUTES.platformHealth, label: "Alerts", id: "health" },
+  { href: "/command", label: "Command", id: "overview" },
+  { href: "/command/clients", label: "Customers", id: "clients" },
+  { href: "/command/partners", label: "Partners", id: "partners" },
+  { href: "/support", label: "Support", id: "support" },
+  { href: "/command/delivery", label: "Delivery", id: "delivery" },
+  { href: "/command/revenue", label: "Commercial", id: "commercial" },
+  { href: "/command/platform-health", label: "Platform", id: "health" },
+  { href: "/command/intelligence", label: "Intelligence", id: "intelligence" },
 ] as const;
 
 export type CommandCentreNavId =
   | (typeof NAV)[number]["id"]
   | "sales"
   | "founding"
-  | "partners"
   | "gate1"
   | "opportunities"
   | "growth"
-  | "clients"
   | "reports"
   | "benchmarks"
   | "revenue"
   | "flags"
-  | "docs"
-  | "intelligence";
+  | "docs";
 
-/**
- * @deprecated AppContextNav owns Command Centre tabs. Do not mount on section hubs.
- */
 export function CommandCentreNav({ active }: { active: CommandCentreNavId }) {
   return (
     <nav className="flex flex-wrap gap-2 border-b border-slate-800 pb-4" aria-label="Command Centre">
