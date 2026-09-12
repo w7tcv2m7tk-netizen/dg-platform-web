@@ -5,6 +5,8 @@ import { useState } from "react";
 
 import type { WpAccHousekeepingItem } from "@/lib/dg-api";
 
+type HousekeepingItem = WpAccHousekeepingItem & { platform_id?: string };
+
 export function AccommodationHousekeepingBoard({
   items,
   statuses,
@@ -14,7 +16,7 @@ export function AccommodationHousekeepingBoard({
   checkoutsToday,
   today,
 }: {
-  items: WpAccHousekeepingItem[];
+  items: HousekeepingItem[];
   statuses: Record<string, string>;
   summary: Record<string, number>;
   error?: string;
@@ -85,7 +87,7 @@ export function AccommodationHousekeepingBoard({
     router.refresh();
   }
 
-  async function saveRow(item: WpAccHousekeepingItem) {
+  async function saveRow(item: HousekeepingItem) {
     setPending(true);
     setMessage(null);
     setSaveError(null);
