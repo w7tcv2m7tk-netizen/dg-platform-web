@@ -42,7 +42,8 @@ export function UpdateFinanceApplicationStageForm({
         value={stage}
         disabled={pending}
         onChange={(e) => void onChange(e.target.value)}
-        className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white disabled:opacity-50"
+        className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white disabled:opacity-50"
+        aria-label="Application stage"
       >
         {stages.map((s) => (
           <option key={s.id} value={s.id}>
@@ -53,6 +54,7 @@ export function UpdateFinanceApplicationStageForm({
           <option value={currentStage}>{currentStage}</option>
         ) : null}
       </select>
+      {pending ? <span className="text-xs text-slate-500">Saving…</span> : null}
       {error ? <span className="text-xs text-red-400">{error}</span> : null}
     </div>
   );
