@@ -50,6 +50,7 @@ const DEFAULT_TWIN_SCORES: AnalyticsTwinScores = {
 };
 
 function redactFinancialReporting(bundle: AnalyticsBundle): AnalyticsBundle {
+  const dataSources = bundle.dataSources.filter((source) => source.id !== "stripe");
   return {
     ...bundle,
     keyMetrics: bundle.keyMetrics.map((metric) =>
@@ -63,7 +64,8 @@ function redactFinancialReporting(bundle: AnalyticsBundle): AnalyticsBundle {
           }
         : metric,
     ),
-    dataSources: bundle.dataSources.filter((source) => source.id !== "stripe"),
+    dataSources,
+    connectedSourceCount: dataSources.filter((source) => source.status === "connected").length,
     predefinedDashboards: bundle.predefinedDashboards.map((dashboard) =>
       dashboard.id === "executive"
         ? {
@@ -77,6 +79,39 @@ function redactFinancialReporting(bundle: AnalyticsBundle): AnalyticsBundle {
       ...report,
       sections: report.sections.filter((section) => section !== "Revenue"),
     })),
+  };
+}
+
+function applyNativeReviewSource(
+  bundle: AnalyticsBundle,
+  feedStatus: { ok: boolean; total: number },
+): AnalyticsBundle {
+  const dataSources = bundle.dataSources.map((source) => {
+    if (source.id !== "reviews") return source;
+    if (!feedStatus.ok) {
+      return {
+        ...source,
+        status: "not_connected" as const,
+        statusLabel: "Not connected",
+        updatedLabel: "Not connected",
+        detail: "Connect review sources to unlock reputation metrics",
+        href: "/apps/reviews/sources",
+      };
+    }
+    return {
+      ...source,
+      status: "connected" as const,
+      statusLabel: "Connected",
+      updatedLabel: "Live",
+      detail: `${feedStatus.total} review${feedStatus.total === 1 ? "" : "s"} available from connected sources`,
+      href: "/apps/reviews",
+    };
+  });
+
+  return {
+    ...bundle,
+    dataSources,
+    connectedSourceCount: dataSources.filter((source) => source.status === "connected").length,
   };
 }
 
@@ -143,7 +178,7 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
   }
 
   const healthTrend = healthTrendFromHistory(healthHistory, twinScores.businessHealth);
-  const rawBundle = buildAnalyticsBundle({
+  const baseBundle = buildAnalyticsBundle({
     organisationName,
     metrics,
     connectors,
@@ -151,9 +186,13 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
     reputationScore: reputationFromFeed.score,
     profile,
   });
+  const nativeBundle = applyNativeReviewSource(baseBundle, {
+    ok: reviewsBundle.feedStatus.ok,
+    total: reviewsBundle.feedStatus.total,
+  });
   const bundle = canViewOrganisationFinancials
-    ? rawBundle
-    : redactFinancialReporting(rawBundle);
+    ? nativeBundle
+    : redactFinancialReporting(nativeBundle);
 
   return {
     bundle,

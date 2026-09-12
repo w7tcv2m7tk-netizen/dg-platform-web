@@ -75,11 +75,14 @@ export default async function AnalyticsReportsPage() {
 
             <div className="mt-6 rounded-xl border border-violet-500/20 bg-violet-500/5 px-4 py-4">
               <p className="text-xs font-medium uppercase tracking-wide text-violet-300/90">
-                AI-generated commentary
+                Evidence commentary
               </p>
               <p className="mt-2 text-sm leading-relaxed text-slate-200">{report.commentary}</p>
+              <p className="mt-2 text-xs text-slate-500">
+                Generated from the live metrics and Business Health evidence shown in this report.
+              </p>
               <Link href="/dashboard/advisor" className="mt-3 inline-block text-sm text-sky-400 hover:underline">
-                Open AI Advisor for recommendations →
+                Ask Aida for recommendations →
               </Link>
             </div>
 
