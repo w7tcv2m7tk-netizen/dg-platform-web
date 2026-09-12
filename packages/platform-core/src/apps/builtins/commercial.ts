@@ -4,7 +4,7 @@ export const commercialApp: AppManifest = {
   id: "commercial",
   name: "Commercial Property",
   description:
-    "Commercial assets and tenancies — landlords, leases, outgoings, rent reviews (not residential RE sales or long-term PM)",
+    "Commercial assets and tenancies — landlords, leases and tenant records (not residential RE sales or long-term PM)",
   tier: "business",
   version: "0.2.0",
   icon: "▦",
@@ -30,20 +30,8 @@ export const commercialApp: AppManifest = {
     "commercial.tenants.read",
   ],
   entities: ["Property", "Contact", "Company", "Document", "Activity"],
-  automationTriggers: [
-    { id: "commercial.lease.expiring", label: "Lease expiring soon" },
-    { id: "commercial.rent.overdue", label: "Rent overdue" },
-  ],
-  automationActions: [
-    { id: "commercial.send_rent_reminder", label: "Send rent reminder" },
-    { id: "commercial.schedule_inspection", label: "Schedule inspection" },
-  ],
-  aiTools: [
-    {
-      id: "commercial.lease_summary",
-      label: "Lease summary",
-      description: "Summarise lease terms and key dates",
-    },
-  ],
-  reports: [{ id: "commercial.portfolio", label: "Portfolio report" }],
+  automationTriggers: [],
+  automationActions: [],
+  aiTools: [],
+  reports: [],
 };
