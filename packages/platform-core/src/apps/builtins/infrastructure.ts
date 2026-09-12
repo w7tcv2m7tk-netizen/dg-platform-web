@@ -4,7 +4,7 @@ export const infrastructureApp: AppManifest = {
   id: "infrastructure",
   name: "Infrastructure",
   description:
-    "DigitalGate Domains, DNS, SSL, hosting, email, backup, and Cloudflare — Core Platform Service",
+    "DigitalGate domains, DNS, SSL, hosting, email, backup and Cloudflare status — Core Platform Service",
   tier: "core",
   version: "0.3.0",
   icon: "⚙",
@@ -45,33 +45,8 @@ export const infrastructureApp: AppManifest = {
     "infra.backups.read",
   ],
   entities: ["Document", "Activity"],
-  automationTriggers: [
-    { id: "domain.expiring_soon", label: "Domain expiring soon" },
-    { id: "ssl.expiring_soon", label: "SSL certificate expiring" },
-    { id: "deploy.succeeded", label: "Deployment succeeded" },
-    { id: "deploy.failed", label: "Deployment failed" },
-    { id: "uptime.incident", label: "Uptime incident detected" },
-  ],
-  automationActions: [
-    { id: "infra.renew_domain", label: "Renew domain" },
-    { id: "infra.renew_ssl", label: "Renew SSL certificate" },
-    { id: "infra.deploy_staging", label: "Deploy to staging" },
-    { id: "infra.promote_production", label: "Promote to production" },
-  ],
-  aiTools: [
-    {
-      id: "infra.dns_recommend",
-      label: "DNS setup assistant",
-      description: "Recommend DNS records for email and hosting",
-    },
-    {
-      id: "infra.deploy_diagnose",
-      label: "Diagnose deployment failure",
-      description: "Analyse deploy logs and suggest fixes",
-    },
-  ],
-  reports: [
-    { id: "infra.uptime_report", label: "Uptime report" },
-    { id: "infra.domain_expiry_report", label: "Domain & SSL expiry report" },
-  ],
+  automationTriggers: [],
+  automationActions: [],
+  aiTools: [],
+  reports: [],
 };
