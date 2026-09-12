@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 type AuditScores = {
@@ -55,6 +56,8 @@ type SeoFixItem = {
 type SeoFixResult = {
   applied: boolean;
   source: "llm" | "heuristic" | "none";
+  websiteId: string | null;
+  pageSlug: string | null;
   items: SeoFixItem[];
   message: string;
   seo?: {
@@ -207,13 +210,13 @@ export function SeoAuditPanel({
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com"
-            className="min-w-[240px] flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-600"
+            className="min-h-11 min-w-[240px] flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder:text-slate-600"
           />
           <button
             type="button"
             onClick={runAudit}
             disabled={loading || fixing}
-            className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+            className="min-h-11 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
           >
             {loading ? "Auditing…" : "Run audit"}
           </button>
@@ -222,16 +225,25 @@ export function SeoAuditPanel({
               type="button"
               onClick={runFixSeo}
               disabled={loading || fixing}
-              className="rounded-full border border-emerald-500/60 bg-emerald-600/20 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
+              className="min-h-11 rounded-full border border-emerald-500/60 bg-emerald-600/20 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-50"
             >
-              {fixing ? "Fixing SEO…" : "Fix SEO"}
+              {fixing ? "Updating Studio metadata…" : "Fix Studio metadata"}
             </button>
           ) : null}
         </div>
+        {canFixSeo ? (
+          <p className="mt-2 text-xs text-slate-500">
+            Automatic fixes update homepage title, description and Open Graph metadata only.
+            Technical, content and publishing findings remain clearly marked for manual follow-up.
+          </p>
+        ) : null}
         {error ? <p className="mt-3 text-sm text-red-400">{error}</p> : null}
         {fixError ? <p className="mt-3 text-sm text-red-400">{fixError}</p> : null}
         {fixResult ? (
-          <div className="mt-4 rounded-lg border border-emerald-800/50 bg-emerald-950/30 px-3 py-3 text-sm">
+          <div
+            aria-live="polite"
+            className="mt-4 rounded-lg border border-emerald-800/50 bg-emerald-950/30 px-3 py-3 text-sm"
+          >
             <p className="font-medium text-emerald-300">{fixResult.message}</p>
             <p className="mt-1 text-xs text-slate-500">
               Source: {fixResult.source === "llm" ? "AI" : fixResult.source}
@@ -260,9 +272,30 @@ export function SeoAuditPanel({
               </ul>
             ) : null}
             {fixResult.applied ? (
-              <p className="mt-3 text-xs text-slate-500">
-                Metadata written to Website Studio. Publish the site if needed, then re-run the audit.
-              </p>
+              <div className="mt-3">
+                <p className="text-xs text-slate-500">
+                  Metadata is saved in Website Studio. Publish the site if needed, then verify the
+                  public result.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {fixResult.websiteId ? (
+                    <Link
+                      href={`/apps/websites/studio/${fixResult.websiteId}?tab=seo`}
+                      className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 py-2 text-sm font-medium text-sky-300 hover:border-sky-500/60 hover:text-white"
+                    >
+                      Review in Website Studio
+                    </Link>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={runAudit}
+                    disabled={loading || fixing}
+                    className="min-h-11 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+                  >
+                    {loading ? "Verifying…" : "Verify with new audit"}
+                  </button>
+                </div>
+              </div>
             ) : null}
           </div>
         ) : null}
