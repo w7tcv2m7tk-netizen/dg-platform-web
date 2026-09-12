@@ -58,7 +58,7 @@ test("core Command pages use operational recovery instead of developer database 
     assert.doesNotMatch(source, /npm run db:push|DATABASE_URL/, `${rel} leaks deployment instructions`);
   }
 
-  const recovery = read("src/components/command/OperationalDataUnavailable.tsx");
+  const recovery = read("src/components/command/OperatorDataUnavailable.tsx");
   assert.match(recovery, /temporarily unavailable/i);
   assert.match(recovery, /min-h-11/);
 });
@@ -77,7 +77,7 @@ test("primary Command actions meet the native touch-target floor", () => {
     "src/app/(shell)/command/reports/page.tsx",
     "src/app/(shell)/command/revenue/page.tsx",
     "src/components/command/CommandBetaStatus.tsx",
-    "src/components/command/OperationalDataUnavailable.tsx",
+    "src/components/command/OperatorDataUnavailable.tsx",
   ];
 
   for (const rel of files) {
