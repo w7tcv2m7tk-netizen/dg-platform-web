@@ -46,6 +46,7 @@ export const PUBLIC_ROUTE_PATTERNS: string[] = [
   "/api/cron/billing-dunning",
   "/api/v1/wantd/(.*)",
   "/api/webhooks/stripe",
+  "/api/webhooks/dropbox-sign",
   "/api/webhooks/elevenlabs",
   "/api/webhooks/elevenlabs/(.*)",
   "/api/webhooks/dreamscape",
