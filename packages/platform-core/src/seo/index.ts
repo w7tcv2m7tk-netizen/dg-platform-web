@@ -58,6 +58,17 @@ function clamp(n: number) {
   return Math.max(0, Math.min(100, Math.round(n)));
 }
 
+function normalisedWebsiteHost(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`);
+    return url.hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
 function parseScores(raw: unknown): OrgSeoAuditScores | null {
   if (!raw || typeof raw !== "object") return null;
   const s = raw as Record<string, unknown>;
@@ -139,9 +150,14 @@ export async function runOrgSeoAudit(input: {
   if (input.includeNativeStudio) {
     try {
       const sites = await listWebsitesWithPages(input.organisationId);
-      const primary = sites[0];
-      if (primary) {
-        nativeHealth = buildNativeWebsiteHealth({ website: primary });
+      const auditedHost = normalisedWebsiteHost(websiteUrl);
+      const profileHost = normalisedWebsiteHost(profile?.websiteUrl);
+      const verifiedSite =
+        sites.length === 1 && auditedHost && profileHost && auditedHost === profileHost
+          ? sites[0]
+          : null;
+      if (verifiedSite) {
+        nativeHealth = buildNativeWebsiteHealth({ website: verifiedSite });
       }
     } catch {
       nativeHealth = null;
