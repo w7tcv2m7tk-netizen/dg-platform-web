@@ -117,7 +117,9 @@ export function SeoAuditPanel({
   const [aidaLoading, setAidaLoading] = useState(false);
   const [aidaError, setAidaError] = useState<string | null>(null);
 
-  async function runAudit() {
+  async function runAudit(overrideUrl?: string) {
+    const targetUrl = overrideUrl?.trim() || url.trim();
+    if (overrideUrl) setUrl(overrideUrl);
     setLoading(true);
     setError(null);
     setFixResult(null);
@@ -126,7 +128,7 @@ export function SeoAuditPanel({
       const res = await fetch("/api/v1/seo/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ websiteUrl: url.trim() || undefined }),
+        body: JSON.stringify({ websiteUrl: targetUrl || undefined }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -248,7 +250,7 @@ export function SeoAuditPanel({
           />
           <button
             type="button"
-            onClick={runAudit}
+            onClick={() => void runAudit()}
             disabled={loading || fixing}
             className="min-h-11 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
           >
@@ -322,7 +324,7 @@ export function SeoAuditPanel({
                   ) : null}
                   <button
                     type="button"
-                    onClick={runAudit}
+                    onClick={() => void runAudit()}
                     disabled={loading || fixing}
                     className="min-h-11 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
                   >
@@ -457,10 +459,15 @@ export function SeoAuditPanel({
           <p className="mt-3 text-sm text-slate-500">No audits yet — run your first audit above.</p>
         ) : (
           <ul className="mt-4 space-y-2">
-            {history.map((item) => (
+            {history.map((item) => {
+              const auditedUrl =
+                typeof item.metadata?.websiteUrl === "string"
+                  ? item.metadata.websiteUrl
+                  : null;
+              return (
               <li
                 key={item.id}
-                className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-slate-800 px-3 py-2 text-sm"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800 px-3 py-2 text-sm"
               >
                 <div>
                   <p className="font-medium text-white">{item.title}</p>
@@ -474,9 +481,23 @@ export function SeoAuditPanel({
                     </p>
                   ) : null}
                 </div>
-                <time className="text-xs text-slate-500">{formatDate(item.createdAt)}</time>
+                <div className="flex flex-wrap items-center gap-2">
+                  <time className="text-xs text-slate-500">{formatDate(item.createdAt)}</time>
+                  {auditedUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => void runAudit(auditedUrl)}
+                      disabled={loading}
+                      aria-label={`Re-audit ${auditedUrl}`}
+                      className="min-h-11 rounded-lg border border-slate-700 px-3 text-xs font-medium text-slate-200 transition hover:border-violet-500/50 hover:text-white disabled:cursor-wait disabled:opacity-60"
+                    >
+                      {loading ? "Auditing…" : "Audit again"}
+                    </button>
+                  ) : null}
+                </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </section>
