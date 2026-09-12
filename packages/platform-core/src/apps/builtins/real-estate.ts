@@ -47,15 +47,8 @@ export const realEstateApp: AppManifest = {
     { id: "lead.assign_agent", label: "Assign agent" },
     { id: "lead.send_followup", label: "Send follow-up email" },
   ],
-  aiTools: [
-    {
-      id: "re.appraisal_summary",
-      label: "Appraisal summary",
-      description: "Generate vendor appraisal narrative",
-    },
-  ],
+  aiTools: [],
   reports: [
-    { id: "re.pipeline_report", label: "Vendor pipeline report" },
-    { id: "re.property_report", label: "Property report (Cotality)" },
+    { id: "re.property_report", label: "Property report" },
   ],
 };
