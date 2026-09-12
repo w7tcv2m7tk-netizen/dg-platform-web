@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getFinanceTemplate, listFinanceApplications } from "@dg/platform-core";
 
 import { UpdateFinanceApplicationStageForm } from "@/components/finance/UpdateFinanceApplicationStageForm";
+import { canManageFinance } from "@/lib/finance-page-access";
 import { formatMoneyFromCents, getOrganisationMoneySettings } from "@/lib/organisation-money";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -18,7 +19,6 @@ export default async function FinancePipelinePage() {
 
   const template = getFinanceTemplate("mortgage_broking");
   const stages = template.stages.map((s) => s.id);
-
   const [{ items }, money] = await Promise.all([
     listFinanceApplications({
       organisationId: session.organisationId,
@@ -26,6 +26,7 @@ export default async function FinancePipelinePage() {
     }),
     getOrganisationMoneySettings(session.organisationId),
   ]);
+  const canManage = canManageFinance(session);
 
   const grouped = new Map<string, typeof items>();
   for (const stage of stages) grouped.set(stage, []);
@@ -49,9 +50,16 @@ export default async function FinancePipelinePage() {
 
   return (
     <main className="dg-page-main space-y-6">
-      <p className="text-sm text-slate-400">
-        {session.organisationName} · {template.label} stages
-      </p>
+      <div>
+        <p className="text-sm text-slate-400">
+          {session.organisationName} · {template.label} stages
+        </p>
+        {!canManage ? (
+          <p className="mt-1 text-xs text-slate-500">
+            Read-only pipeline. Stage changes require organisation-wide Finance edit access.
+          </p>
+        ) : null}
+      </div>
       <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {[...grouped.entries()].map(([stage, apps]) => (
           <section key={stage} className="dg-card min-h-[12rem]">
@@ -81,11 +89,17 @@ export default async function FinancePipelinePage() {
                         {amount ? ` · ${amount}` : ""}
                       </p>
                       <div className="mt-2">
-                        <UpdateFinanceApplicationStageForm
-                          applicationId={app.id}
-                          currentStage={app.stage}
-                          stages={template.stages}
-                        />
+                        {canManage ? (
+                          <UpdateFinanceApplicationStageForm
+                            applicationId={app.id}
+                            currentStage={app.stage}
+                            stages={template.stages}
+                          />
+                        ) : (
+                          <span className="inline-flex min-h-11 items-center text-xs capitalize text-slate-400">
+                            {app.stage.replace(/_/g, " ")}
+                          </span>
+                        )}
                       </div>
                     </li>
                   );
@@ -100,7 +114,7 @@ export default async function FinancePipelinePage() {
           href="/apps/finance/applications"
           className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
         >
-          Create / manage applications →
+          {canManage ? "Create / manage applications →" : "View applications →"}
         </Link>
       </p>
     </main>
