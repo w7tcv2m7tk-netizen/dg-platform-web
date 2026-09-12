@@ -5,7 +5,6 @@ import {
   getOrganisationBusinessProfile,
   getScoreValue,
   metricsContextFromLiveMetrics,
-  scoresFromLatestSeoAudit,
   type OverviewConnectorProbes,
 } from "@dg/platform-core";
 
@@ -14,6 +13,10 @@ import type {
   WebsiteSignalFinding,
   WebsiteSignalProbes,
 } from "@/components/seo/WebsiteSignalsPanel";
+import {
+  buildAiReadinessDimensions,
+  loadDomainMatchedAiVisibilityData,
+} from "@/lib/ai-visibility-data";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIds, getPlatformPageContext } from "@/lib/org-apps";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
@@ -75,7 +78,7 @@ export default async function AiVisibilityPage() {
     href?: string;
     provisional?: boolean;
   }[] = [
-    { id: "ai_visibility", label: "AI Visibility", value: null, href: "/apps/ai-visibility" },
+    { id: "ai_visibility", label: "AI Readiness", value: null, href: "/apps/ai-visibility/technical" },
     { id: "seo", label: "SEO", value: null, href: "/apps/seo" },
     { id: "website", label: "Website Health", value: null, href: "/apps/websites/health" },
     { id: "reputation", label: "Reputation", value: null, href: "/apps/reviews" },
@@ -85,6 +88,8 @@ export default async function AiVisibilityPage() {
   let auditedAt: string | null = null;
   let probes: WebsiteSignalProbes | null = null;
   let findings: WebsiteSignalFinding[] = [];
+  let history: Array<{ auditedAt: string; value: number }> = [];
+  let expectedHost: string | null = null;
   let loadError: string | null = null;
 
   try {
@@ -93,39 +98,46 @@ export default async function AiVisibilityPage() {
     const enabledAppIds = await getOrgEnabledAppIds();
 
     if (platformSession) {
-      const [metricsResult, connectorsResult, profileResult, latestAuditResult, reviewsResult] =
+      const profile = await getOrganisationBusinessProfile(platformSession.organisationId);
+      websiteUrl = profile?.websiteUrl?.trim() ?? null;
+
+      const [metricsResult, connectorsResult, auditResult, reviewsResult] =
         await Promise.allSettled([
           gatherOverviewLiveMetrics(platformSession.organisationId),
           fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
-          getOrganisationBusinessProfile(platformSession.organisationId),
-          scoresFromLatestSeoAudit(platformSession.organisationId),
+          loadDomainMatchedAiVisibilityData(
+            platformSession.organisationId,
+            profile?.websiteUrl ?? null,
+          ),
           loadReviewsSessionAndFeed(),
         ]);
 
-      const metrics =
-        metricsResult.status === "fulfilled" ? metricsResult.value : null;
+      const metrics = metricsResult.status === "fulfilled" ? metricsResult.value : null;
       const connectors: OverviewConnectorProbes =
         connectorsResult.status === "fulfilled" ? connectorsResult.value : {};
-      const profile =
-        profileResult.status === "fulfilled" ? profileResult.value : null;
-      const latestAudit =
-        latestAuditResult.status === "fulfilled" ? latestAuditResult.value : null;
+      const auditData =
+        auditResult.status === "fulfilled"
+          ? auditResult.value
+          : { expectedHost: null, latest: null, history: [] };
+      const latestAudit = auditData.latest;
       const reviewsBundle =
         reviewsResult.status === "fulfilled"
           ? reviewsResult.value
           : { feed: [], feedStatus: { ok: false, total: 0, byPlatform: {} } };
 
+      expectedHost = auditData.expectedHost;
+      history = auditData.history;
+
       if (metricsResult.status === "rejected") {
         console.error("[ai-visibility] metrics failed", metricsResult.reason);
       }
-      if (latestAuditResult.status === "rejected") {
-        console.error("[ai-visibility] audit failed", latestAuditResult.reason);
+      if (auditResult.status === "rejected") {
+        console.error("[ai-visibility] domain-matched audit failed", auditResult.reason);
       }
       if (reviewsResult.status === "rejected") {
         console.error("[ai-visibility] reviews failed", reviewsResult.reason);
       }
 
-      websiteUrl = latestAudit?.websiteUrl ?? profile?.websiteUrl?.trim() ?? null;
       auditedAt = latestAudit?.auditedAt ?? null;
       probes = toPlainProbes(latestAudit?.probes ?? null);
       findings = toPlainFindings(latestAudit?.findings ?? []);
@@ -136,10 +148,7 @@ export default async function AiVisibilityPage() {
       } catch (err) {
         console.error("[ai-visibility] reputation score failed", err);
       }
-      scoreBreakdown[3] = {
-        ...scoreBreakdown[3],
-        value: reputationScore,
-      };
+      scoreBreakdown[3] = { ...scoreBreakdown[3], value: reputationScore };
 
       const presenceOverride = latestAudit?.fresh
         ? {
@@ -208,39 +217,18 @@ export default async function AiVisibilityPage() {
           if (latestAudit) {
             aiVisibilityScore = latestAudit.scores.aiVisibility;
             scoreSource = latestAudit.fresh ? "audit" : "provisional";
-            scoreBreakdown[0] = {
-              ...scoreBreakdown[0],
-              value: latestAudit.scores.aiVisibility,
-            };
-            scoreBreakdown[1] = {
-              ...scoreBreakdown[1],
-              value: latestAudit.scores.seo,
-            };
-            scoreBreakdown[2] = {
-              ...scoreBreakdown[2],
-              value: latestAudit.scores.websiteHealth,
-            };
+            scoreBreakdown[0] = { ...scoreBreakdown[0], value: latestAudit.scores.aiVisibility };
+            scoreBreakdown[1] = { ...scoreBreakdown[1], value: latestAudit.scores.seo };
+            scoreBreakdown[2] = { ...scoreBreakdown[2], value: latestAudit.scores.websiteHealth };
           }
         }
       } else if (latestAudit) {
         const provisional = !latestAudit.fresh;
         aiVisibilityScore = latestAudit.scores.aiVisibility;
         scoreSource = latestAudit.fresh ? "audit" : "provisional";
-        scoreBreakdown[0] = {
-          ...scoreBreakdown[0],
-          value: latestAudit.scores.aiVisibility,
-          provisional,
-        };
-        scoreBreakdown[1] = {
-          ...scoreBreakdown[1],
-          value: latestAudit.scores.seo,
-          provisional,
-        };
-        scoreBreakdown[2] = {
-          ...scoreBreakdown[2],
-          value: latestAudit.scores.websiteHealth,
-          provisional,
-        };
+        scoreBreakdown[0] = { ...scoreBreakdown[0], value: latestAudit.scores.aiVisibility, provisional };
+        scoreBreakdown[1] = { ...scoreBreakdown[1], value: latestAudit.scores.seo, provisional };
+        scoreBreakdown[2] = { ...scoreBreakdown[2], value: latestAudit.scores.websiteHealth, provisional };
       }
 
       if (profile) {
@@ -251,31 +239,47 @@ export default async function AiVisibilityPage() {
           profileGaps.push("Google Business Profile not linked");
         }
         if (!profile.tradingName?.trim() && !profile.businessName?.trim()) {
-          profileGaps.push("Business name helps AI models identify your brand");
+          profileGaps.push("Business name helps answer engines identify your entity");
         }
       }
 
-      if (!websiteUrl && !latestAudit) {
-        aiVisibilityScore = null;
-        scoreSource = "none";
-        scoreBreakdown[0] = { ...scoreBreakdown[0], value: null };
-        scoreBreakdown[1] = { ...scoreBreakdown[1], value: null };
-        scoreBreakdown[2] = { ...scoreBreakdown[2], value: null };
+      if (!websiteUrl || !latestAudit) {
+        if (!websiteUrl) {
+          aiVisibilityScore = null;
+          scoreSource = "none";
+          scoreBreakdown[0] = { ...scoreBreakdown[0], value: null };
+          scoreBreakdown[1] = { ...scoreBreakdown[1], value: null };
+          scoreBreakdown[2] = { ...scoreBreakdown[2], value: null };
+        }
       }
     }
   } catch (err) {
     console.error("[ai-visibility] page load failed", err);
     loadError =
-      "We could not load AI Visibility scores right now. You can still run a website presence scan below.";
+      "We could not load AI Visibility evidence right now. You can still refresh the website presence scan below.";
   }
+
+  const readinessDimensions = buildAiReadinessDimensions(
+    probes
+      ? {
+          reachable: probes.reachable,
+          https: probes.https,
+          title: probes.title,
+          hasMetaDescription: probes.hasMetaDescription,
+          hasViewport: probes.hasViewport,
+          hasOpenGraph: probes.hasOpenGraph,
+          hasJsonLd: probes.hasJsonLd,
+          hasH1: probes.hasH1,
+        }
+      : null,
+  );
 
   return (
     <>
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">AI Visibility</h1>
         <p className="text-sm text-slate-400">
-          {firstName}&apos;s website readiness for AI answer engines — evidence from live HTML
-          probes
+          {firstName}&apos;s AI discoverability, readiness and future answer-engine share of voice
         </p>
       </header>
       <main className="dg-page-main">
@@ -294,6 +298,9 @@ export default async function AiVisibilityPage() {
           auditedAt={auditedAt}
           probes={probes}
           findings={findings}
+          history={history}
+          readinessDimensions={readinessDimensions}
+          expectedHost={expectedHost}
         />
       </main>
     </>
