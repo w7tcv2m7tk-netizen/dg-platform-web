@@ -6,7 +6,12 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireIndustryAppBeta, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requireIndustryAppBeta,
+  requirePermission,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -26,6 +31,13 @@ export async function POST(req: Request) {
     const betaDenied = await requireIndustryAppBeta(session, "property-management");
     if (betaDenied) return betaDenied;
   }
+  const permissionDenied = requirePermission(session, {
+    module: "industry",
+    action: "edit",
+    scope: "organisation",
+    subModule: "property-management",
+  });
+  if (permissionDenied) return permissionDenied;
 
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body || typeof body.title !== "string" || !body.title.trim()) {
@@ -66,6 +78,13 @@ export async function PATCH(req: Request) {
     const betaDenied = await requireIndustryAppBeta(session, "property-management");
     if (betaDenied) return betaDenied;
   }
+  const permissionDenied = requirePermission(session, {
+    module: "industry",
+    action: "edit",
+    scope: "organisation",
+    subModule: "property-management",
+  });
+  if (permissionDenied) return permissionDenied;
 
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body || typeof body.id !== "string") {
