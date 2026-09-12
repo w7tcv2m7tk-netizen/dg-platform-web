@@ -33,6 +33,8 @@ export type OrgSeoAuditProbes = {
 export type OrgSeoAuditResult = {
   auditedAt: string;
   websiteUrl: string | null;
+  /** Present only when the audited URL is safely matched to one Studio website. */
+  studioWebsiteId: string | null;
   scores: OrgSeoAuditScores;
   presence: PresenceAuditResult;
   nativeHealth: SiteHealthSnapshot | null;
@@ -147,6 +149,7 @@ export async function runOrgSeoAudit(input: {
   });
 
   let nativeHealth: SiteHealthSnapshot | null = null;
+  let studioWebsiteId: string | null = null;
   if (input.includeNativeStudio) {
     try {
       const sites = await listWebsitesWithPages(input.organisationId);
@@ -157,6 +160,7 @@ export async function runOrgSeoAudit(input: {
           ? sites[0]
           : null;
       if (verifiedSite) {
+        studioWebsiteId = verifiedSite.id;
         nativeHealth = buildNativeWebsiteHealth({ website: verifiedSite });
       }
     } catch {
@@ -187,6 +191,7 @@ export async function runOrgSeoAudit(input: {
   const result: OrgSeoAuditResult = {
     auditedAt: new Date().toISOString(),
     websiteUrl: presence.probes.websiteUrl,
+    studioWebsiteId,
     scores: {
       seo: blendedSeo,
       websiteHealth: presence.scores.websiteHealth ?? nativeHealth?.score ?? 0,
