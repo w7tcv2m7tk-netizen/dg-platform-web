@@ -6,7 +6,11 @@ import { useMemo } from "react";
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { IndustryTemplateSwitcher } from "@/components/industry/IndustryTemplateSwitcher";
 import { AppHorizontalSubnav } from "@/components/navigation/AppHorizontalSubnav";
-import { industryIdFromPathname, resolveActiveAppNavigation } from "@dg/platform-core";
+import {
+  commandCentreApp,
+  industryIdFromPathname,
+  resolveActiveAppNavigation,
+} from "@dg/platform-core";
 
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
 
@@ -32,6 +36,19 @@ export function AppContextNav() {
 
   const routes = useMemo(() => {
     if (!active) return [];
+
+    // Command Centre's operator cockpit navigation is defined by its manifest.
+    // The legacy categorized nav tree still carries a compatibility route list,
+    // so use the manifest here to prevent stale Priorities / AI Advisor / Alerts
+    // tabs from overriding the unified operator IA.
+    if (active.itemId === commandCentreApp.id) {
+      return commandCentreApp.navigation.map((item) => ({
+        path: item.href,
+        label: item.label,
+        exact: item.href === "/command",
+      }));
+    }
+
     // Industry sidebar unions all active Template routes — show only the
     // current Template mount's tabs under the switcher.
     if (active.sectionId === "industry") {
