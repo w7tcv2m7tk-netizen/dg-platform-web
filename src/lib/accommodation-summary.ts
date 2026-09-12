@@ -47,6 +47,7 @@ function overlapNights(
 /** Native Accommodation overview summary derived only from Platform Core / Neon. */
 export async function buildAccommodationSummary(
   organisationId: string,
+  options: { timeZone?: string } = {},
 ): Promise<AccommodationSummary> {
   const [units, bookings, guests] = await Promise.all([
     listAccommodationUnits(organisationId),
@@ -54,7 +55,7 @@ export async function buildAccommodationSummary(
     listAccommodationGuests(organisationId, { limit: 200 }),
   ]);
 
-  const today = accToday();
+  const today = accToday(options.timeZone);
   const tomorrow = accAddDays(today, 1);
   const in30Days = accAddDays(today, 30);
   const occupancyTo = accAddDays(today, 30);
@@ -83,7 +84,7 @@ export async function buildAccommodationSummary(
     return sum + (booking.totalCents ?? 0);
   }, 0);
 
-  const housekeeping = housekeepingBoardFromUnits(units);
+  const housekeeping = housekeepingBoardFromUnits(units, today);
   const recentBookings = [...bookings]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .slice(0, 10)

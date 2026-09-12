@@ -1,34 +1,30 @@
 import {
   housekeepingBoardFromUnits,
   listAccommodationUnits,
+  listStayBookings,
 } from "@dg/platform-core";
-import { currentUser } from "@clerk/nextjs/server";
 
 import { AccommodationHousekeepingBoard } from "@/components/accommodation/AccommodationHousekeepingBoard";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
+import { accToday } from "@/lib/acc-dates";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
+
+function safeTimeZone(value?: string | null): string {
+  const fallback = "Australia/Brisbane";
+  const candidate = value?.trim() || fallback;
+  try {
+    new Intl.DateTimeFormat("en-AU", { timeZone: candidate }).format(new Date());
+    return candidate;
+  } catch {
+    return fallback;
+  }
+}
 
 export default async function AccommodationHousekeepingPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
-
-  const session = user?.id
-    ? await resolveActivePlatformSession({
-        clerkUserId: user.id,
-        email,
-        name,
-        orgName: portal?.org_name,
-      })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   let items: Array<{
     id: number;
+    platform_id?: string;
     title: string;
     status: string;
     notes?: string;
@@ -44,12 +40,47 @@ export default async function AccommodationHousekeepingPage() {
   let today: string | undefined;
 
   if (session) {
-    const units = await listAccommodationUnits(session.organisationId);
-    const board = housekeepingBoardFromUnits(units);
-    items = board.items;
-    statuses = board.statuses;
-    summary = board.summary;
-    today = board.today;
+    try {
+      let timeZone = "Australia/Brisbane";
+      if (process.env.DATABASE_URL) {
+        const { prisma } = await import("@dg/database");
+        const organisation = await prisma.organisation.findUnique({
+          where: { id: session.organisationId },
+          select: { timezone: true },
+        });
+        timeZone = safeTimeZone(organisation?.timezone);
+      }
+
+      today = accToday(timeZone);
+      const [units, bookings] = await Promise.all([
+        listAccommodationUnits(session.organisationId),
+        listStayBookings(session.organisationId, 250),
+      ]);
+      const board = housekeepingBoardFromUnits(units, today);
+      const activeCheckouts = bookings.filter((booking) => {
+        const status = booking.status.toLowerCase();
+        return (
+          booking.checkout === today &&
+          status !== "cancelled" &&
+          status !== "canceled"
+        );
+      });
+
+      items = board.items.map((item) => ({
+        ...item,
+        checkout_today: activeCheckouts.some(
+          (booking) =>
+            booking.accommodationUnitId === item.platform_id ||
+            (item.id > 0 && booking.accommodationWpId === item.id),
+        ),
+      }));
+      statuses = board.statuses;
+      summary = board.summary;
+      checkoutsToday = activeCheckouts.length;
+    } catch (loadError) {
+      console.error("[accommodation] housekeeping board failed", loadError);
+      error = "Could not load housekeeping right now.";
+    }
   } else {
     error = "Platform session unavailable.";
   }

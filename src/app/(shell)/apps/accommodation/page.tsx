@@ -2,6 +2,17 @@ import { AccommodationDashboard } from "@/components/accommodation/Accommodation
 import { buildAccommodationSummary, type AccommodationSummary } from "@/lib/accommodation-summary";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
+function safeTimeZone(value?: string | null): string {
+  const fallback = "Australia/Brisbane";
+  const candidate = value?.trim() || fallback;
+  try {
+    new Intl.DateTimeFormat("en-AU", { timeZone: candidate }).format(new Date());
+    return candidate;
+  } catch {
+    return fallback;
+  }
+}
+
 export default async function AccommodationOverviewPage() {
   const { session } = await getPlatformPageContext();
 
@@ -9,7 +20,16 @@ export default async function AccommodationOverviewPage() {
   let summaryError: string | undefined;
   if (session) {
     try {
-      summary = await buildAccommodationSummary(session.organisationId);
+      let timeZone = "Australia/Brisbane";
+      if (process.env.DATABASE_URL) {
+        const { prisma } = await import("@dg/database");
+        const organisation = await prisma.organisation.findUnique({
+          where: { id: session.organisationId },
+          select: { timezone: true },
+        });
+        timeZone = safeTimeZone(organisation?.timezone);
+      }
+      summary = await buildAccommodationSummary(session.organisationId, { timeZone });
     } catch (error) {
       console.error("[accommodation] native summary failed", error);
       summaryError = "Could not load Accommodation summary right now.";

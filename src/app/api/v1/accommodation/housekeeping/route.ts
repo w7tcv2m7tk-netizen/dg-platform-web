@@ -1,11 +1,23 @@
 import { updateUnitHousekeeping } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requirePermission,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const permissionBlock = requirePermission(session, {
+    module: "industry",
+    action: "edit",
+    scope: "organisation",
+    subModule: "accommodation",
+  });
+  if (permissionBlock) return permissionBlock;
 
   const body = await req.json().catch(() => ({}));
   const updates = Array.isArray(body.updates) ? body.updates : [];

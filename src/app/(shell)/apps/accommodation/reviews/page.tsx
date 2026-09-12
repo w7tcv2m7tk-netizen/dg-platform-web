@@ -34,7 +34,7 @@ function ReviewCard({ review }: { review: ReviewFeedItem }) {
           href={review.sourceUrl}
           target="_blank"
           rel="noreferrer"
-          className="mt-3 inline-block text-xs text-blue-400 hover:underline"
+          className="mt-3 inline-flex min-h-11 items-center text-xs text-blue-400 hover:underline"
         >
           View source →
         </a>
@@ -64,8 +64,11 @@ export default async function AccommodationReviewsPage() {
             {feedStatus.message ??
               "Connect a supported review source to populate the Universal Review feed."}
           </p>
-          <p className="mt-6 text-sm text-slate-500">
-            <Link href="/apps/reviews" className="text-blue-400 hover:underline">
+          <p className="mt-4 text-sm text-slate-500">
+            <Link
+              href="/apps/reviews"
+              className="inline-flex min-h-11 items-center text-blue-400 hover:underline"
+            >
               Open Reviews
             </Link>
           </p>
@@ -76,7 +79,10 @@ export default async function AccommodationReviewsPage() {
             <p className="text-sm text-slate-400">
               {feedStatus.total} published{platformSummary ? ` · ${platformSummary}` : ""}
             </p>
-            <Link href="/apps/reviews" className="text-xs text-blue-400 hover:underline">
+            <Link
+              href="/apps/reviews"
+              className="inline-flex min-h-11 items-center text-xs text-blue-400 hover:underline"
+            >
               Open Reviews →
             </Link>
           </div>

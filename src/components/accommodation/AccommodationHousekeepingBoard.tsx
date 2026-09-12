@@ -5,6 +5,8 @@ import { useState } from "react";
 
 import type { WpAccHousekeepingItem } from "@/lib/dg-api";
 
+type HousekeepingItem = WpAccHousekeepingItem & { platform_id?: string };
+
 export function AccommodationHousekeepingBoard({
   items,
   statuses,
@@ -14,7 +16,7 @@ export function AccommodationHousekeepingBoard({
   checkoutsToday,
   today,
 }: {
-  items: WpAccHousekeepingItem[];
+  items: HousekeepingItem[];
   statuses: Record<string, string>;
   summary: Record<string, number>;
   error?: string;
@@ -31,11 +33,18 @@ export function AccommodationHousekeepingBoard({
   if (error) {
     return (
       <div className="dg-card border-amber-500/30">
-        <p className="text-amber-300">{error}</p>
+        <h2 className="font-semibold text-white">Housekeeping is temporarily unavailable</h2>
+        <p className="mt-2 text-amber-300">{error}</p>
         <p className="mt-2 text-sm text-slate-500">
-          Deploy plugin v10.54.0+ on CVH and ensure the org WordPress API key can manage
-          housekeeping.
+          Refresh this page to retry the native Accommodation data. Existing unit statuses are not
+          changed by this loading error.
         </p>
+        <a
+          href="/apps/accommodation/units"
+          className="mt-4 inline-flex min-h-11 items-center rounded-full border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:border-blue-500 hover:text-white"
+        >
+          Open units
+        </a>
       </div>
     );
   }
@@ -50,8 +59,7 @@ export function AccommodationHousekeepingBoard({
           inspection: "Awaiting inspection",
         };
 
-  const turnoverCount =
-    checkoutsToday ?? rows.filter((r) => r.checkout_today).length;
+  const turnoverCount = checkoutsToday ?? rows.filter((r) => r.checkout_today).length;
 
   async function saveAll() {
     setPending(true);
@@ -63,6 +71,7 @@ export function AccommodationHousekeepingBoard({
       body: JSON.stringify({
         updates: rows.map((r) => ({
           property_id: r.id,
+          platform_id: r.platform_id,
           status: r.status,
           notes: r.notes ?? "",
         })),
@@ -78,7 +87,7 @@ export function AccommodationHousekeepingBoard({
     router.refresh();
   }
 
-  async function saveRow(item: WpAccHousekeepingItem) {
+  async function saveRow(item: HousekeepingItem) {
     setPending(true);
     setMessage(null);
     setSaveError(null);
@@ -89,6 +98,7 @@ export function AccommodationHousekeepingBoard({
         updates: [
           {
             property_id: item.id,
+            platform_id: item.platform_id,
             status: item.status,
             notes: item.notes ?? "",
           },
@@ -133,11 +143,12 @@ export function AccommodationHousekeepingBoard({
         <div className="dg-card border-dashed border-slate-700">
           <h2 className="text-lg font-semibold text-white">Add your first units</h2>
           <p className="mt-2 text-sm text-slate-500">
-            Sync units first, then mark clean / dirty / in progress after turnovers.
+            Add units first, then mark them clean, dirty, in progress or ready for inspection after
+            turnovers.
           </p>
           <a
             href="/apps/accommodation/units"
-            className="mt-4 inline-block rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+            className="mt-4 inline-flex min-h-11 items-center rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
           >
             Open units
           </a>
@@ -159,7 +170,7 @@ export function AccommodationHousekeepingBoard({
             <tbody className="divide-y divide-slate-800">
               {rows.map((item, idx) => (
                 <tr
-                  key={item.id}
+                  key={item.platform_id ?? item.id}
                   className={
                     item.checkout_today
                       ? "bg-amber-500/5 hover:bg-amber-500/10"
@@ -182,7 +193,7 @@ export function AccommodationHousekeepingBoard({
                         next[idx] = { ...item, status: e.target.value };
                         setRows(next);
                       }}
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-200"
+                      className="min-h-11 rounded-lg border border-slate-700 bg-slate-900 px-2 py-2 text-slate-200"
                     >
                       {Object.entries(statusOptions).map(([key, label]) => (
                         <option key={key} value={key}>
@@ -206,7 +217,7 @@ export function AccommodationHousekeepingBoard({
                         next[idx] = { ...item, notes: e.target.value };
                         setRows(next);
                       }}
-                      className="w-full min-w-[160px] rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-slate-200"
+                      className="min-h-11 w-full min-w-[160px] rounded-lg border border-slate-700 bg-slate-900 px-2 py-2 text-slate-200"
                       placeholder="Notes…"
                     />
                   </td>
@@ -217,7 +228,7 @@ export function AccommodationHousekeepingBoard({
                           href={item.cleaning_form_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-blue-400 hover:underline"
+                          className="inline-flex min-h-11 items-center text-blue-400 hover:underline"
                         >
                           Cleaning form
                         </a>
@@ -227,7 +238,7 @@ export function AccommodationHousekeepingBoard({
                           href={item.checkin_url}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-blue-400 hover:underline"
+                          className="inline-flex min-h-11 items-center text-blue-400 hover:underline"
                         >
                           Check-in
                         </a>
@@ -239,7 +250,7 @@ export function AccommodationHousekeepingBoard({
                       type="button"
                       disabled={pending}
                       onClick={() => void saveRow(rows[idx]!)}
-                      className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-blue-500 hover:text-white disabled:opacity-50"
+                      className="min-h-11 rounded-full border border-slate-600 px-3 py-2 text-xs text-slate-300 hover:border-blue-500 hover:text-white disabled:opacity-50"
                     >
                       Save
                     </button>
@@ -256,7 +267,7 @@ export function AccommodationHousekeepingBoard({
           type="button"
           disabled={pending || !rows.length}
           onClick={() => void saveAll()}
-          className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+          className="min-h-11 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
           {pending ? "Saving…" : "Save all statuses"}
         </button>
