@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getOrgDocument } from "@dg/platform-core";
 import { notFound } from "next/navigation";
 
+import { DocumentBrainIngestion } from "@/components/documents/DocumentBrainIngestion";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 interface PageProps {
@@ -70,6 +71,9 @@ export default async function DocumentDetailPage({ params }: PageProps) {
             </div>
           ) : null}
         </dl>
+
+        <DocumentBrainIngestion documentId={document.id} mimeType={document.mimeType} />
+
         <div className="flex flex-wrap gap-4 text-sm">
           {document.url ? (
             <a
