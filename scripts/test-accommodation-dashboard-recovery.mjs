@@ -30,6 +30,7 @@ const paymentsTable = readFileSync(
   new URL("../src/components/accommodation/AccommodationPaymentsTable.tsx", import.meta.url),
   "utf8",
 );
+const platformApi = readFileSync(new URL("../src/lib/platform-api.ts", import.meta.url), "utf8");
 
 test("accommodation load failures do not masquerade as empty onboarding", () => {
   assert.match(dashboard, /Accommodation is temporarily unavailable/);
@@ -84,4 +85,13 @@ test("payment mutation controls meet the native touch target floor", () => {
   assert.match(paymentsTable, /min-h-11/);
   assert.match(paymentsTable, /Mark paid/);
   assert.match(paymentsTable, /Mark unpaid/);
+});
+
+test("accommodation writes require organisation-scope Industry permission", () => {
+  assert.match(platformApi, /requestPathname\(req\) !== "\/api\/v1\/accommodation"/);
+  assert.match(platformApi, /module: "industry"/);
+  assert.match(platformApi, /scope: "organisation"/);
+  assert.match(platformApi, /subModule: "accommodation"/);
+  assert.match(platformApi, /method === "DELETE" \? "delete" : "edit"/);
+  assert.match(platformApi, /accommodationWritePermission\(req, session\)/);
 });
