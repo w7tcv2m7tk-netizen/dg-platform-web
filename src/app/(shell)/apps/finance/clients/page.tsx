@@ -1,19 +1,10 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
 import { listContacts, listFinanceApplications } from "@dg/platform-core";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function FinanceClientsPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -46,16 +37,17 @@ export default async function FinanceClientsPage() {
       </p>
 
       <section className="dg-card">
-        <h2 className="font-semibold text-white">
-          Borrowers ({borrowers.length})
-        </h2>
+        <h2 className="font-semibold text-white">Borrowers ({borrowers.length})</h2>
         {borrowers.length === 0 ? (
           <p className="mt-2 text-sm text-slate-400">
             No contacts linked to finance applications yet.{" "}
-            <Link href="/apps/finance/applications" className="text-sky-400 hover:underline">
-              Create an application
-            </Link>{" "}
-            and attach a contact.
+            <Link
+              href="/apps/finance/applications"
+              className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+            >
+              Open applications
+            </Link>
+            .
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-slate-800">
@@ -76,9 +68,7 @@ export default async function FinanceClientsPage() {
                     <p className="text-xs text-slate-500">
                       {c.email || "No email"}
                       {c.phone ? ` · ${c.phone}` : ""}
-                      {primary
-                        ? ` · ${primary.stage} · ${primary.title}`
-                        : ""}
+                      {primary ? ` · ${primary.stage} · ${primary.title}` : ""}
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -88,7 +78,7 @@ export default async function FinanceClientsPage() {
                     {primary ? (
                       <Link
                         href="/apps/finance/applications"
-                        className="rounded-lg border border-slate-700 px-2.5 py-1 text-xs text-sky-300 hover:border-sky-600"
+                        className="inline-flex min-h-11 items-center rounded-lg border border-slate-700 px-3 py-2 text-xs text-sky-300 hover:border-sky-600"
                       >
                         Open application
                       </Link>
@@ -103,10 +93,11 @@ export default async function FinanceClientsPage() {
 
       <section className="dg-card">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-semibold text-white">
-            Other CRM contacts ({others.length})
-          </h2>
-          <Link href="/apps/crm/contacts" className="text-sm text-sky-400 hover:underline">
+          <h2 className="font-semibold text-white">Other CRM contacts ({others.length})</h2>
+          <Link
+            href="/apps/crm/contacts"
+            className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+          >
             Open CRM →
           </Link>
         </div>
@@ -123,7 +114,7 @@ export default async function FinanceClientsPage() {
                 c.email ||
                 c.id.slice(0, 8);
               return (
-                <li key={c.id}>
+                <li key={c.id} className="py-1">
                   {label}
                   {c.email ? ` · ${c.email}` : ""}
                 </li>
