@@ -3,7 +3,7 @@ import type { AppManifest } from "../manifest";
 export const accommodationApp: AppManifest = {
   id: "accommodation",
   name: "Accommodation",
-  description: "Hospitality units, bookings, availability, and housekeeping",
+  description: "Hospitality units, bookings, availability, guests, payments and housekeeping",
   tier: "business",
   version: "0.4.0",
   icon: "⛺",
@@ -44,15 +44,6 @@ export const accommodationApp: AppManifest = {
     { id: "accommodation.send_checkin", label: "Send check-in instructions" },
     { id: "accommodation.schedule_clean", label: "Schedule housekeeping" },
   ],
-  aiTools: [
-    {
-      id: "accommodation.occupancy_forecast",
-      label: "Occupancy forecast",
-      description: "Predict occupancy and revenue from booking history",
-    },
-  ],
-  reports: [
-    { id: "accommodation.occupancy", label: "Occupancy report" },
-    { id: "accommodation.revenue", label: "Booking revenue" },
-  ],
+  aiTools: [],
+  reports: [],
 };
