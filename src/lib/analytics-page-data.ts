@@ -10,6 +10,7 @@ import {
   metricsContextFromLiveMetrics,
   sessionCan,
   type AnalyticsBundle,
+  type AnalyticsTrendPoint,
   type OrganisationBusinessProfile,
   type OverviewConnectorProbes,
   type OverviewLiveMetrics,
@@ -115,6 +116,46 @@ function applyNativeReviewSource(
   };
 }
 
+async function loadLeadHistory(organisationId: string): Promise<{
+  points: AnalyticsTrendPoint[];
+  note: string;
+}> {
+  const { prisma } = await import("@dg/database");
+  const now = new Date();
+  const firstMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 7, 1));
+  const months = Array.from({ length: 8 }, (_, index) => {
+    const date = new Date(
+      Date.UTC(firstMonth.getUTCFullYear(), firstMonth.getUTCMonth() + index, 1),
+    );
+    return {
+      key: `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`,
+      label: date.toLocaleDateString("en-AU", { month: "short", timeZone: "UTC" }),
+    };
+  });
+
+  const leads = await prisma.lead.findMany({
+    where: {
+      organisationId,
+      createdAt: { gte: firstMonth },
+    },
+    select: { createdAt: true },
+  });
+
+  const counts = new Map(months.map((month) => [month.key, 0]));
+  for (const lead of leads) {
+    const key = `${lead.createdAt.getUTCFullYear()}-${String(lead.createdAt.getUTCMonth() + 1).padStart(2, "0")}`;
+    if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  return {
+    points: months.map((month) => ({ label: month.label, value: counts.get(month.key) ?? 0 })),
+    note:
+      leads.length > 0
+        ? "Monthly CRM leads created over the last eight months."
+        : "Add leads in CRM to begin building a monthly lead history.",
+  };
+}
+
 export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
   const { session: platformSession } = await getPlatformPageContext();
   const organisationName = platformSession?.organisationName ?? "Your business";
@@ -139,15 +180,17 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
     scope: "organisation",
   });
   const enabledAppIds = await getOrgEnabledAppIds();
-  const [metrics, connectors, profile, healthHistory, reviewsBundle] = await Promise.all([
-    gatherOverviewLiveMetrics(platformSession.organisationId, {
-      includeFinancials: canViewOrganisationFinancials,
-    }),
-    fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
-    getOrganisationBusinessProfile(platformSession.organisationId),
-    loadHealthHistory(platformSession.organisationId),
-    loadReviewsSessionAndFeed(),
-  ]);
+  const [metrics, connectors, profile, healthHistory, reviewsBundle, leadHistory] =
+    await Promise.all([
+      gatherOverviewLiveMetrics(platformSession.organisationId, {
+        includeFinancials: canViewOrganisationFinancials,
+      }),
+      fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
+      getOrganisationBusinessProfile(platformSession.organisationId),
+      loadHealthHistory(platformSession.organisationId),
+      loadReviewsSessionAndFeed(),
+      loadLeadHistory(platformSession.organisationId),
+    ]);
 
   let scoreResults: ScoreResult[] = [];
   let twinScores = DEFAULT_TWIN_SCORES;
@@ -178,14 +221,18 @@ export async function loadAnalyticsPageData(): Promise<AnalyticsPageData> {
   }
 
   const healthTrend = healthTrendFromHistory(healthHistory, twinScores.businessHealth);
-  const baseBundle = buildAnalyticsBundle({
-    organisationName,
-    metrics,
-    connectors,
-    scores: twinScoresResult,
-    reputationScore: reputationFromFeed.score,
-    profile,
-  });
+  const baseBundle = {
+    ...buildAnalyticsBundle({
+      organisationName,
+      metrics,
+      connectors,
+      scores: twinScoresResult,
+      reputationScore: reputationFromFeed.score,
+      profile,
+    }),
+    leadTrend: leadHistory.points,
+    leadTrendNote: leadHistory.note,
+  };
   const nativeBundle = applyNativeReviewSource(baseBundle, {
     ok: reviewsBundle.feedStatus.ok,
     total: reviewsBundle.feedStatus.total,

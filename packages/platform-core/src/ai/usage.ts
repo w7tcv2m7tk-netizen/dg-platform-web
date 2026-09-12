@@ -77,3 +77,50 @@ export async function recordAiLedgerEvent(input: RecordAiLedgerEventInput) {
 
   return activity;
 }
+
+/**
+ * Close the first practical Learn loop for Advisor reasoning.
+ * AI-created tasks are durable business outcomes: future Advisor turns can see
+ * whether previously approved work is still open or was completed, rather than
+ * repeatedly reasoning as though no action has happened.
+ */
+export async function getAiLearningContext(input: {
+  organisationId: string;
+  limit?: number;
+}): Promise<string> {
+  const { prisma } = await import("@dg/database");
+  const tasks = await prisma.task.findMany({
+    where: {
+      organisationId: input.organisationId,
+      sourceApp: "ai",
+    },
+    orderBy: { updatedAt: "desc" },
+    take: Math.min(Math.max(input.limit ?? 12, 1), 25),
+    select: {
+      title: true,
+      status: true,
+      priority: true,
+      dueAt: true,
+      completedAt: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  if (tasks.length === 0) return "";
+
+  const lines = tasks.map((task, index) => {
+    const completed = task.completedAt
+      ? `completed ${task.completedAt.toISOString()}`
+      : task.status === "open" && task.dueAt
+        ? `open; due ${task.dueAt.toISOString()}`
+        : task.status;
+    return `${index + 1}. ${task.title} — ${completed}${task.priority ? `; priority ${task.priority}` : ""}`;
+  });
+
+  return [
+    "RECENT AIDA ACTION OUTCOMES",
+    "Use these persisted outcomes when deciding what to recommend next. Do not describe completed work as still pending unless current business evidence independently shows the issue remains.",
+    ...lines,
+  ].join("\n");
+}
