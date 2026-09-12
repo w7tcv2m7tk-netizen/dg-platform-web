@@ -113,6 +113,9 @@ export function SeoAuditPanel({
   const [fixing, setFixing] = useState(false);
   const [fixError, setFixError] = useState<string | null>(null);
   const [fixResult, setFixResult] = useState<SeoFixResult | null>(null);
+  const [aidaReport, setAidaReport] = useState<string | null>(null);
+  const [aidaLoading, setAidaLoading] = useState(false);
+  const [aidaError, setAidaError] = useState<string | null>(null);
 
   async function runAudit() {
     setLoading(true);
@@ -178,6 +181,36 @@ export function SeoAuditPanel({
       setFixError("Network error — try again");
     } finally {
       setFixing(false);
+    }
+  }
+
+  async function askAidaAboutSeo() {
+    setAidaLoading(true);
+    setAidaError(null);
+    try {
+      const res = await fetch("/api/v1/ai/advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contextLabel: "SEO",
+          question:
+            "Use my latest persisted SEO audit, Business Brain and available live business signals. Which SEO issues should I address first, why do they matter, and which actions can DigitalGate complete versus which require manual work? Cite the audit date and website when available. Do not invent rankings, traffic or search-console data.",
+        }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAidaError(json?.error?.message ?? "Aida could not analyse SEO right now.");
+        return;
+      }
+      if (typeof json.data?.answer === "string" && json.data.answer.trim()) {
+        setAidaReport(json.data.answer);
+      } else {
+        setAidaError("Aida returned no recommendation. Try again.");
+      }
+    } catch {
+      setAidaError("Could not reach Aida. Check your connection and try again.");
+    } finally {
+      setAidaLoading(false);
     }
   }
 
@@ -368,6 +401,53 @@ export function SeoAuditPanel({
             )}
           </section>
         </>
+      ) : null}
+
+      {result || history.length ? (
+        <section className="dg-card border-violet-500/20">
+          <h2 className="font-semibold text-white">Ask Aida what to fix first</h2>
+          <p className="mt-2 text-sm text-slate-400">
+            Aida reads the latest persisted SEO audit alongside your approved Business Brain and
+            live platform signals, then separates DigitalGate actions from manual follow-up.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void askAidaAboutSeo()}
+              disabled={aidaLoading}
+              className="min-h-11 rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
+            >
+              {aidaLoading ? "Aida is thinking…" : "Prioritise with Aida"}
+            </button>
+            <Link
+              href="/dashboard/advisor"
+              className="inline-flex min-h-11 items-center rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-200 hover:border-violet-500"
+            >
+              Open Aida →
+            </Link>
+          </div>
+          {aidaError ? (
+            <p
+              className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+              role="status"
+            >
+              {aidaError}
+            </p>
+          ) : null}
+          {aidaReport ? (
+            <div
+              aria-live="polite"
+              className="mt-4 rounded-xl border border-violet-500/20 bg-violet-500/5 p-4"
+            >
+              <p className="text-xs font-medium uppercase tracking-widest text-violet-300/80">
+                Aida recommendation
+              </p>
+              <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
+                {aidaReport}
+              </p>
+            </div>
+          ) : null}
+        </section>
       ) : null}
 
       <section className="dg-card">
