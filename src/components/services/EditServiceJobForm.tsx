@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { zonedDateTimeInput, zonedDateTimeLocalToUtc } from "@/lib/services-dates";
+
 type JobType = { id: string; label: string };
 type JobField = { id: string; label: string; type: "text" | "textarea" | "boolean" };
 type MemberOption = { clerkUserId: string; label: string };
@@ -16,14 +18,6 @@ type QuoteSummary = {
   createdAt: string;
 };
 
-function toLocalInput(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export function EditServiceJobForm({
   job,
   jobTypes,
@@ -31,6 +25,7 @@ export function EditServiceJobForm({
   members,
   quotes,
   contact,
+  timeZone,
   customerLabel = "Customer",
   quoteLabel = "Quote",
 }: {
@@ -51,6 +46,7 @@ export function EditServiceJobForm({
   members: MemberOption[];
   quotes: QuoteSummary[];
   contact: { id: string; label: string } | null;
+  timeZone: string;
   customerLabel?: string;
   quoteLabel?: string;
 }) {
@@ -80,14 +76,21 @@ export function EditServiceJobForm({
     const startRaw = String(fd.get("scheduledStartAt") ?? "");
     const endRaw = String(fd.get("scheduledEndAt") ?? "");
     const assigneeRaw = String(fd.get("assignedUserId") ?? "");
+    const start = startRaw ? zonedDateTimeLocalToUtc(startRaw, timeZone) : null;
+    const end = endRaw ? zonedDateTimeLocalToUtc(endRaw, timeZone) : null;
+    if ((start && Number.isNaN(start.getTime())) || (end && Number.isNaN(end.getTime()))) {
+      setPending(false);
+      setError("Invalid scheduled date/time");
+      return;
+    }
 
     const payload = {
       title: String(fd.get("title") ?? ""),
       jobType: String(fd.get("jobType") ?? "") || null,
       description: String(fd.get("description") ?? "") || null,
       siteAddress: String(fd.get("siteAddress") ?? "") || null,
-      scheduledStartAt: startRaw ? new Date(startRaw).toISOString() : null,
-      scheduledEndAt: endRaw ? new Date(endRaw).toISOString() : null,
+      scheduledStartAt: start ? start.toISOString() : null,
+      scheduledEndAt: end ? end.toISOString() : null,
       assignedUserId: assigneeRaw || null,
       metadata,
     };
@@ -119,12 +122,12 @@ export function EditServiceJobForm({
           name="title"
           required
           defaultValue={job.title}
-          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+          className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
         />
         <select
           name="jobType"
           defaultValue={job.jobType ?? ""}
-          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+          className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
         >
           <option value="">Job type</option>
           {jobTypes.map((t) => (
@@ -137,25 +140,25 @@ export function EditServiceJobForm({
           name="siteAddress"
           defaultValue={job.siteAddress ?? ""}
           placeholder="Site address"
-          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+          className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
         />
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-xs text-slate-500">
-            Start
+            Start ({timeZone.replace(/_/g, " ")})
             <input
               name="scheduledStartAt"
               type="datetime-local"
-              defaultValue={toLocalInput(job.scheduledStartAt)}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+              defaultValue={zonedDateTimeInput(job.scheduledStartAt, timeZone)}
+              className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
             />
           </label>
           <label className="block text-xs text-slate-500">
-            End
+            End ({timeZone.replace(/_/g, " ")})
             <input
               name="scheduledEndAt"
               type="datetime-local"
-              defaultValue={toLocalInput(job.scheduledEndAt)}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+              defaultValue={zonedDateTimeInput(job.scheduledEndAt, timeZone)}
+              className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
             />
           </label>
         </div>
@@ -164,7 +167,7 @@ export function EditServiceJobForm({
           <select
             name="assignedUserId"
             defaultValue={job.assignedUserId ?? ""}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+            className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
           >
             <option value="">Unassigned</option>
             {members.map((m) => (
@@ -175,7 +178,7 @@ export function EditServiceJobForm({
           </select>
         </label>
         <p className="text-xs text-slate-500">
-          <Link href="/dashboard/settings/team" className="text-sky-400 hover:underline">
+          <Link href="/dashboard/settings/team" className="inline-flex min-h-11 items-center text-sky-400 hover:underline">
             Manage team → Settings
           </Link>
         </p>
@@ -184,26 +187,21 @@ export function EditServiceJobForm({
           rows={3}
           defaultValue={job.description ?? ""}
           placeholder="Description"
-          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+          className="min-h-24 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
         />
         {jobFields.length > 0 ? (
           <div className="space-y-3 border-t border-slate-800 pt-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-              Template fields
-            </p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Template fields</p>
             {jobFields.map((field) => {
               const raw = job.metadata?.[field.id];
               if (field.type === "boolean") {
                 return (
-                  <label
-                    key={field.id}
-                    className="flex items-center gap-2 text-sm text-slate-300"
-                  >
+                  <label key={field.id} className="flex min-h-11 items-center gap-3 text-sm text-slate-300">
                     <input
                       type="checkbox"
                       name={field.id}
                       defaultChecked={Boolean(raw)}
-                      className="rounded border-slate-600"
+                      className="h-5 w-5 rounded border-slate-600"
                     />
                     {field.label}
                   </label>
@@ -217,7 +215,7 @@ export function EditServiceJobForm({
                       name={field.id}
                       rows={2}
                       defaultValue={typeof raw === "string" ? raw : ""}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+                      className="mt-1 min-h-20 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
                     />
                   </label>
                 );
@@ -228,7 +226,7 @@ export function EditServiceJobForm({
                   <input
                     name={field.id}
                     defaultValue={typeof raw === "string" ? raw : ""}
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
+                    className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
                   />
                 </label>
               );
@@ -240,7 +238,7 @@ export function EditServiceJobForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+          className="min-h-11 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
         >
           {pending ? "Saving…" : "Save job"}
         </button>
@@ -252,7 +250,7 @@ export function EditServiceJobForm({
           {contact ? (
             <Link
               href={`/apps/crm/contacts/${contact.id}`}
-              className="text-sky-400 hover:underline"
+              className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
             >
               {contact.label} →
             </Link>
@@ -274,7 +272,7 @@ export function EditServiceJobForm({
                 <li key={q.id} className="py-2">
                   <Link
                     href={`/apps/commerce/quotes/${q.id}`}
-                    className="block hover:opacity-90"
+                    className="block min-h-11 py-1 hover:opacity-90"
                   >
                     <p className="text-sm font-medium text-white">
                       {q.quoteNumber ?? q.id.slice(0, 8)} · {q.status}
@@ -293,7 +291,7 @@ export function EditServiceJobForm({
               ))}
             </ul>
           )}
-          <Link href={newQuoteHref} className="inline-block text-sm text-sky-400 hover:underline">
+          <Link href={newQuoteHref} className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">
             New {quoteLabel.toLowerCase()} in Commerce →
           </Link>
         </div>
