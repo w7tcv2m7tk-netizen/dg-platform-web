@@ -10,11 +10,15 @@ import {
   FOUNDING_STAGE_EMPTY_HINT,
   FOUNDING_STAGE_LABELS,
   FOUNDING_STAGE_NEXT_ACTION,
+  FOUNDING_STAGE_WAITING_ON,
   FOUNDING_STAGES,
+  FOUNDING_WAITING_ON_LABEL,
+  describeFoundingProgress,
   foundingStageIndex,
   isFoundingCohortSeat,
   normaliseFoundingStage,
   type FoundingStage,
+  type FoundingWaitingOn,
 } from "./pipeline";
 import { getFoundingCohortSummary, type FoundingCohortSummary } from "./invitations";
 import type { FoundingOpportunityMeta } from "./types";
@@ -27,10 +31,17 @@ export type FoundingLifecycleCustomer = {
   stage: FoundingStage;
   stageLabel: string;
   nextAction: string;
+  waitingOn: FoundingWaitingOn;
+  waitingOnLabel: string;
+  statusDetail: string;
   updatedAt: string;
   invitationSentAt: string | null;
   inviteToken: string | null;
   invitationStatus: string | null;
+  agreementEmailSentAt: string | null;
+  agreementSignedAt: string | null;
+  onboardingInviteSentAt: string | null;
+  hasOpenedPlatform: boolean;
   isSeat: boolean;
   health: "green" | "amber" | "none";
 };
@@ -105,6 +116,13 @@ function toCustomer(item: {
   const stage = normaliseFoundingStage(item.stage);
   const meta = asMeta(item.metadata);
   const { contactName, businessName } = displayName(item.title, meta);
+  const facts = {
+    agreementEmailSentAt: meta.agreement_email_sent_at ?? null,
+    agreementSignedAt: meta.agreement_signed_at ?? null,
+    onboardingInviteSentAt: meta.onboarding_invite_sent_at ?? null,
+    hasOpenedPlatform: Boolean(meta.founding_customer_organisation_id),
+  };
+  const waitingOn = FOUNDING_STAGE_WAITING_ON[stage];
   return {
     id: item.id,
     title: item.title,
@@ -113,10 +131,17 @@ function toCustomer(item: {
     stage,
     stageLabel: FOUNDING_STAGE_LABELS[stage],
     nextAction: FOUNDING_STAGE_CARD_ACTION[stage],
+    waitingOn,
+    waitingOnLabel: FOUNDING_WAITING_ON_LABEL[waitingOn],
+    statusDetail: describeFoundingProgress(stage, facts),
     updatedAt: item.updatedAt,
     invitationSentAt: meta.founding_invitation_sent_at ?? null,
     inviteToken: meta.founding_invite_token ?? null,
     invitationStatus: meta.founding_invitation_status ?? null,
+    agreementEmailSentAt: facts.agreementEmailSentAt,
+    agreementSignedAt: facts.agreementSignedAt,
+    onboardingInviteSentAt: facts.onboardingInviteSentAt,
+    hasOpenedPlatform: facts.hasOpenedPlatform,
     isSeat: isFoundingCohortSeat(stage, item.status),
     health: healthFor(stage),
   };
@@ -200,7 +225,7 @@ export async function buildFoundingLifecycleWorkspace(
     },
     {
       id: "agreements",
-      label: "Agreements awaiting signature",
+      label: "Waiting on customer to sign — follow them up",
       count: agreements.length,
       detail: agreements[0]?.title ?? null,
       href: agreements[0] ? `/apps/crm/opportunities/${agreements[0].id}` : null,
