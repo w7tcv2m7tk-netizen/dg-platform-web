@@ -4,7 +4,7 @@ export const financeApp: AppManifest = {
   id: "finance",
   name: "Finance",
   description:
-    "Finance broking — mortgage/loan pipeline on Core CRM (accounting label-only until Xero)",
+    "Finance broking — mortgage and loan pipeline on Core CRM (accounting remains label-only until a live accounting connector is enabled)",
   tier: "business",
   version: "0.3.0",
   icon: "◫",
@@ -26,20 +26,8 @@ export const financeApp: AppManifest = {
   ],
   features: ["finance.pipeline.read", "finance.clients.read", "finance.applications.write"],
   entities: ["Contact", "Lead", "Document", "Activity"],
-  automationTriggers: [
-    { id: "finance.application.submitted", label: "Application submitted" },
-    { id: "finance.application.approved", label: "Application approved" },
-  ],
-  automationActions: [
-    { id: "finance.request_documents", label: "Request supporting documents" },
-    { id: "finance.notify_broker", label: "Notify assigned broker" },
-  ],
-  aiTools: [
-    {
-      id: "finance.application_summary",
-      label: "Application summary",
-      description: "Summarise client application and next steps",
-    },
-  ],
-  reports: [{ id: "finance.pipeline_report", label: "Pipeline report" }],
+  automationTriggers: [],
+  automationActions: [],
+  aiTools: [],
+  reports: [],
 };
