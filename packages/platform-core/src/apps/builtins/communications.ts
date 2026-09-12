@@ -3,7 +3,7 @@ import { getSidebarIcon } from "../sidebar-icons";
 
 /**
  * Communications — Core App (business communication operating system).
- * Channels (Email · SMS · Calls) + AI (how DigitalGate helps communicate).
+ * Channels (Email · SMS · Calls) + voice/agent surfaces where enabled.
  * Not a Gmail clone. Google/Microsoft remain mailbox SoT.
  * CRM owns who; Communications talks to them; Timeline is universal history.
  * @see docs/foundations/COMMUNICATIONS.md
@@ -12,7 +12,7 @@ export const communicationsApp: AppManifest = {
   id: "communications",
   name: "Communications",
   description:
-    "Business communication layer — universal Inbox, channels, Outreach, and AI",
+    "Business communication layer — universal Inbox, email, SMS, calls, Outreach and permission-gated voice agents",
   tier: "core",
   version: "0.3.0",
   icon: getSidebarIcon("communications"),
@@ -72,12 +72,6 @@ export const communicationsApp: AppManifest = {
     { id: "communication.replied", label: "Reply detected", objectType: "Communication" },
   ],
   automationActions: [],
-  aiTools: [
-    {
-      id: "communications.draft_assist",
-      label: "AI Assist draft",
-      description: "Draft reply / follow-up with Brain context — human reviews and sends",
-    },
-  ],
-  reports: [{ id: "communications.history_summary", label: "Communication history summary" }],
+  aiTools: [],
+  reports: [],
 };
