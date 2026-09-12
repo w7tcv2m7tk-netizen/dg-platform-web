@@ -1,10 +1,17 @@
 import Link from "next/link";
+import { dropboxSignConfigured, listOrgDocuments } from "@dg/platform-core";
 
+import { DocumentsSigningConsole } from "@/components/documents/DocumentsSigningConsole";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function DocumentsSigningPage() {
   const session = await getAuthorisedPlatformPageSession("documents.read");
   if (!session) return null;
+
+  const documents = await listOrgDocuments({
+    organisationId: session.organisationId,
+    limit: 100,
+  });
 
   return (
     <>
@@ -13,31 +20,30 @@ export default async function DocumentsSigningPage() {
           ← Documents
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Signing</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Request, track and complete signatures — Documents owns the file; signing is the
-          lifecycle.
+        <p className="mt-1 max-w-2xl text-sm text-slate-400">
+          Send documents for signature, track signer progress and retain the completed signed PDF in
+          the organisation document record.
         </p>
       </header>
-      <main className="dg-page-main">
-        <div className="max-w-xl rounded-lg border border-slate-700/70 bg-slate-950/40 px-4 py-5 text-sm text-slate-300">
-          <p>
-            Signing workflows land here. Until the full signing console ships, prepare documents in
-            the library and track status from CRM Timeline and Opportunities.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link
-              href="/apps/documents/library"
-              className="rounded-full bg-sky-600 px-4 py-2 text-xs font-semibold text-white hover:bg-sky-500"
-            >
-              Library
-            </Link>
-            <Link
-              href="/apps/documents/templates"
-              className="rounded-full border border-slate-600 px-4 py-2 text-xs font-semibold text-slate-200 hover:border-slate-400"
-            >
-              Templates
-            </Link>
-          </div>
+      <main className="dg-page-main space-y-6">
+        <DocumentsSigningConsole
+          providerConfigured={dropboxSignConfigured()}
+          initialDocuments={documents.map((document) => ({
+            id: document.id,
+            name: document.name,
+            kind: document.kind,
+            signingStatus: document.signingStatus,
+            signingProvider: document.signingProvider,
+            updatedAt: document.updatedAt,
+          }))}
+        />
+        <div className="flex flex-wrap gap-3 text-sm">
+          <Link href="/apps/documents/library" className="text-sky-400 hover:underline">
+            Document Library →
+          </Link>
+          <Link href="/apps/documents/templates" className="text-sky-400 hover:underline">
+            Templates →
+          </Link>
         </div>
       </main>
     </>

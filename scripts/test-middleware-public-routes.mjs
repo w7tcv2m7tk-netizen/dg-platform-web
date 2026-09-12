@@ -57,6 +57,7 @@ const MUST_BE_PUBLIC = [
   "/onboarding",
   // Webhooks — signature or shared secret in handler
   "/api/webhooks/stripe",
+  "/api/webhooks/dropbox-sign",
   "/api/webhooks/clerk",
   "/api/webhooks/dreamscape",
   "/api/webhooks/elevenlabs",
