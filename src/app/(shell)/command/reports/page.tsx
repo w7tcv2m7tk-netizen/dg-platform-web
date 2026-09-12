@@ -5,6 +5,7 @@ import {
   type GrowthReportPeriod,
 } from "@dg/platform-core";
 
+import { OperatorDataUnavailable } from "@/components/command/OperatorDataUnavailable";
 import { ScoreCell, TierBadge } from "@/components/command/tier-badge";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
@@ -33,12 +34,16 @@ export default async function CommandReportsPage({ searchParams }: PageProps) {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command" className="text-sm text-sky-400 hover:underline">
+        <Link
+          href="/command"
+          className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+        >
           ← Command Centre
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Growth Reports</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Period executive snapshots from Neon aggregates — leads, activity, listings, invoices.
+          Period executive snapshots from live platform aggregates — leads, activity, listings and
+          invoices.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
@@ -47,7 +52,7 @@ export default async function CommandReportsPage({ searchParams }: PageProps) {
             <Link
               key={p.id}
               href={`/command/reports?period=${p.id}`}
-              className={`rounded-lg px-3 py-1.5 text-sm ${
+              className={`inline-flex min-h-11 items-center rounded-lg px-3 py-2 text-sm ${
                 period === p.id
                   ? "bg-sky-600 text-white"
                   : "border border-slate-700 text-slate-300 hover:border-slate-500"
@@ -59,9 +64,7 @@ export default async function CommandReportsPage({ searchParams }: PageProps) {
         </div>
 
         {!data ? (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-            Database not configured — reports unavailable.
-          </div>
+          <OperatorDataUnavailable label="growth report" />
         ) : (
           <>
             <section>
@@ -108,7 +111,7 @@ export default async function CommandReportsPage({ searchParams }: PageProps) {
                       </div>
                       <Link
                         href={`/command/advisor?org=${report.organisationId}`}
-                        className="text-sm text-sky-400 hover:underline"
+                        className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
                       >
                         Ask advisor →
                       </Link>
@@ -143,7 +146,7 @@ export default async function CommandReportsPage({ searchParams }: PageProps) {
                       {report.recommendedNextStep.href ? (
                         <Link
                           href={report.recommendedNextStep.href}
-                          className="mt-2 inline-block text-sm text-sky-400 hover:underline"
+                          className="mt-2 inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
                         >
                           Open →
                         </Link>
