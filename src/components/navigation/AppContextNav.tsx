@@ -6,9 +6,62 @@ import { useMemo } from "react";
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { IndustryTemplateSwitcher } from "@/components/industry/IndustryTemplateSwitcher";
 import { AppHorizontalSubnav } from "@/components/navigation/AppHorizontalSubnav";
-import { industryIdFromPathname, resolveActiveAppNavigation } from "@dg/platform-core";
+import {
+  industryIdFromPathname,
+  resolveActiveAppNavigation,
+  type AppRoute,
+} from "@dg/platform-core";
 
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
+
+const COMMAND_OPERATOR_ROUTES: AppRoute[] = [
+  {
+    path: "/command",
+    label: "Command",
+    exact: true,
+    matchAlso: ["/command/advisor"],
+  },
+  {
+    path: "/command/clients",
+    label: "Customers",
+    matchAlso: ["/command/customer-intelligence"],
+  },
+  { path: "/command/partners", label: "Partners" },
+  { path: "/support", label: "Support" },
+  { path: "/command/delivery", label: "Delivery" },
+  {
+    path: "/command/revenue",
+    label: "Commercial",
+    matchAlso: ["/command/commercial", "/command/commissions"],
+  },
+  {
+    path: "/command/platform-health",
+    label: "Platform",
+    matchAlso: [
+      "/command/platform-health/diagnostics",
+      "/command/platform-intelligence/health",
+      "/command/platform-intelligence/connectors",
+      "/command/platform-intelligence/automation",
+      "/command/platform-intelligence/service-status",
+      "/command/platform-intelligence/diagnostics",
+    ],
+  },
+  {
+    path: "/command/intelligence",
+    label: "Intelligence",
+    matchAlso: [
+      "/command/platform-intelligence/overview",
+      "/command/platform-intelligence/ai-usage",
+      "/command/platform-intelligence/activity",
+      "/command/benchmarks",
+      "/command/reports",
+    ],
+  },
+];
+
+function isCommandOperatorSurface(pathname: string): boolean {
+  return pathname.startsWith("/command") || pathname.startsWith("/support");
+}
 
 /**
  * Global second-level nav — breadcrumb stays Core / App / Active tab.
@@ -32,6 +85,14 @@ export function AppContextNav() {
 
   const routes = useMemo(() => {
     if (!active) return [];
+
+    // DigitalGate operator surfaces share one Command IA. This is the live
+    // AppContextNav source used by the signed-in shell, so the daily cockpit
+    // and its specialist drill-downs remain one coherent navigation model.
+    if (active.sectionId === "digitalgate" && isCommandOperatorSurface(pathname)) {
+      return COMMAND_OPERATOR_ROUTES;
+    }
+
     // Industry sidebar unions all active Template routes — show only the
     // current Template mount's tabs under the switcher.
     if (active.sectionId === "industry") {
@@ -50,6 +111,12 @@ export function AppContextNav() {
     if (!active) return "";
     const activeInScoped =
       routes.find((r) => r.path === pathname) ??
+      routes.find(
+        (r) =>
+          r.matchAlso?.some(
+            (match) => pathname === match || pathname.startsWith(`${match}/`),
+          ) ?? false,
+      ) ??
       routes.find((r) => pathname === r.path || pathname.startsWith(`${r.path}/`));
     return activeInScoped?.label ?? active.activeRoute?.label ?? active.itemName;
   }, [active, pathname, routes]);
