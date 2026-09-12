@@ -8,6 +8,7 @@ const signup = read("src/components/SignupForm.tsx");
 const signupLayout = read("src/app/signup/(platform)/layout.tsx");
 const planPicker = read("src/components/PlanPicker.tsx");
 const onboarding = read("src/app/(shell)/onboarding/page.tsx");
+const publicRoutes = read("src/lib/public-routes.ts");
 const businessSetup = read("src/app/(shell)/dashboard/business-setup/page.tsx");
 
 test("public signup stays outside the authenticated platform shell", () => {
@@ -63,6 +64,14 @@ test("canonical onboarding remains native Gen 2 and organisation-aware", () => {
   assert.match(onboarding, /getOrganisationBillingStatus/);
   assert.match(onboarding, /Gen2OnboardingWizard/);
   assert.doesNotMatch(onboarding, /WordPress|wp-json|DG_WP_|fetchPortalMe/i);
+});
+
+test("new-account onboarding can reach its own signed-out handoff", () => {
+  assert.match(publicRoutes, /["']\/onboarding["']/);
+  assert.doesNotMatch(publicRoutes, /["']\/onboarding\(\.\*\)["']/);
+  assert.match(onboarding, /if \(!session\)/);
+  assert.match(onboarding, /redirect_url/);
+  assert.match(onboarding, /Sign in to continue/);
 });
 
 test("onboarding sign-in and billing recovery meet the native touch-target floor", () => {

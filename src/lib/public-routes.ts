@@ -16,6 +16,9 @@ export const PUBLIC_ROUTE_PATTERNS: string[] = [
   "/",
   "/login(.*)",
   "/signup(.*)",
+  // New-account destination. The page itself handles signed-out visitors and
+  // preserves invite/journey/checkout state while handing them to /login.
+  "/onboarding",
   "/r/(.*)",
   "/opportunity/(.*)",
   "/sites/(.*)",
