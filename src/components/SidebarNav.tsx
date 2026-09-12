@@ -122,6 +122,28 @@ function IaSectionBlock({
   );
 }
 
+const DIGITALGATE_OPERATOR_ORDER = [
+  "command-centre",
+  "dg-customer-intelligence",
+  "dg-partners",
+  "dg-support",
+  "dg-delivery",
+  "dg-commercial",
+  "dg-product",
+  "dg-platform-intelligence",
+] as const;
+
+const DIGITALGATE_OPERATOR_NAMES: Record<string, string> = {
+  "command-centre": "Command Centre",
+  "dg-customer-intelligence": "Customers",
+  "dg-partners": "Partners",
+  "dg-support": "Support",
+  "dg-delivery": "Delivery",
+  "dg-commercial": "Commercial",
+  "dg-product": "Platform",
+  "dg-platform-intelligence": "Intelligence",
+};
+
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { nav } = useEnabledApps();
@@ -155,10 +177,23 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     badge: undefined,
   }));
 
-  const digitalgateAppsForRender = ia.digitalgate.apps.map((app) => ({
-    ...app,
-    badge: app.id === "command-centre" ? (ccBadge ?? undefined) : undefined,
-  }));
+  const digitalgateRank = new Map<string, number>(
+    DIGITALGATE_OPERATOR_ORDER.map((id, index) => [id, index]),
+  );
+  const digitalgateAppsForRender = ia.digitalgate.apps
+    .map((app) => ({
+      ...app,
+      name: DIGITALGATE_OPERATOR_NAMES[app.id] ?? app.name,
+      routes:
+        app.id === "command-centre"
+          ? [{ path: "/command", label: "Command Centre", exact: true }]
+          : app.routes,
+      badge: app.id === "command-centre" ? (ccBadge ?? undefined) : undefined,
+    }))
+    .sort(
+      (a, b) =>
+        (digitalgateRank.get(a.id) ?? 999) - (digitalgateRank.get(b.id) ?? 999),
+    );
 
   const intelligenceSection =
     intelligenceAppsForRender.length > 0 || ia.intelligence.links.length > 0 ? (
@@ -189,6 +224,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </div>
     ) : null;
+
+  const operatorPlatformAdminSection =
+    ia.digitalgate.apps.length > 0
+      ? { ...ia.platformAdmin, label: "Configuration" }
+      : ia.platformAdmin;
 
   return (
     <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain">
@@ -229,7 +269,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       <IaSectionBlock section={ia.partner} pathname={pathname} onNavigate={onNavigate} />
 
       <IaSectionBlock
-        section={ia.platformAdmin}
+        section={operatorPlatformAdminSection}
         pathname={pathname}
         onNavigate={onNavigate}
       />
