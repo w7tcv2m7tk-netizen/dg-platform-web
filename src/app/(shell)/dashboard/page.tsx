@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   buildBusinessOverview,
+  buildLiveTwinWithScores,
   gatherOverviewLiveMetrics,
   getOrganisationBusinessProfile,
   getOrganisationGoals,
@@ -10,12 +11,15 @@ import {
   isFoundingCustomerMode,
   listOrganisationActivities,
   loadHealthHistory,
+  metricsContextFromLiveMetrics,
   persistHealthSnapshot,
+  type OrgScoresResult,
 } from "@dg/platform-core";
 
 import { BusinessOverviewDashboard } from "@/components/overview/BusinessOverviewDashboard";
 import { FoundingOperatorHome } from "@/components/overview/FoundingOperatorHome";
 import { Gen2OnboardingChecklistBanner } from "@/components/onboarding/Gen2OnboardingChecklistBanner";
+import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function DashboardPage() {
@@ -28,9 +32,10 @@ export default async function DashboardPage() {
   let activities = null;
   let healthHistory: Awaited<ReturnType<typeof loadHealthHistory>> = [];
   let setupStatus = null;
+  let connectorProbes: Awaited<ReturnType<typeof fetchOverviewConnectorProbes>> = {};
 
   if (platformSession) {
-    [liveMetrics, activities, healthHistory, setupStatus] = await Promise.all([
+    [liveMetrics, activities, healthHistory, setupStatus, connectorProbes] = await Promise.all([
       gatherOverviewLiveMetrics(platformSession.organisationId),
       listOrganisationActivities({
         organisationId: platformSession.organisationId,
@@ -38,6 +43,7 @@ export default async function DashboardPage() {
       }),
       loadHealthHistory(platformSession.organisationId),
       getPlatformSetupStatus(platformSession.organisationId),
+      fetchOverviewConnectorProbes(enabledAppIds, platformSession.organisationId),
     ]);
   }
 
@@ -50,6 +56,19 @@ export default async function DashboardPage() {
     ]);
   }
 
+  let healthScores: OrgScoresResult | null = null;
+  if (platformSession && liveMetrics) {
+    healthScores = buildLiveTwinWithScores({
+      organisationId: platformSession.organisationId,
+      organisationName: platformSession.organisationName,
+      enabledAppIds,
+      metrics: liveMetrics,
+      connectors: connectorProbes,
+      profile: businessProfile,
+      metricsContext: metricsContextFromLiveMetrics(liveMetrics),
+    }).scores;
+  }
+
   let overview = buildBusinessOverview({
     organisationId: platformSession?.organisationId,
     organisationName: platformSession?.organisationName ?? portal?.org_name ?? "Your business",
@@ -59,25 +78,64 @@ export default async function DashboardPage() {
     setupStatus,
     activities: activities?.items,
     liveMetrics,
-    connectorProbes: {},
+    connectorProbes,
     healthHistory,
     goals,
   });
 
-  if (platformSession && liveMetrics && overview.scoresLive) {
-    const updatedHistory = await persistHealthSnapshot(
-      platformSession.organisationId,
-      overview.businessHealth,
+  if (healthScores) {
+    const available = new Set(healthScores.scores.map((score) => score.scoreId));
+    const financeAvailable = healthScores.evidence.some(
+      (item) => item.scoreId === "success_score" && item.state !== "unavailable",
     );
-    const businessHealth = overview.businessHealth;
-    const healthDelta = healthDeltaFromHistory(updatedHistory, businessHealth);
+    const breakdownEvidence: Record<string, boolean> = {
+      ai_visibility: available.has("ai_visibility"),
+      seo: available.has("seo"),
+      website: available.has("website_health"),
+      marketing: available.has("business_growth"),
+      sales: available.has("conversion"),
+      cx: available.has("reputation"),
+      automation: available.has("automation"),
+      finance: financeAvailable,
+    };
     overview = {
       ...overview,
+      scoresLive: healthScores.scoresLive,
+      businessHealth: healthScores.businessHealth,
+      scoreBreakdown: overview.scoreBreakdown.filter((item) => breakdownEvidence[item.id] !== false),
+    };
+  }
+
+  if (platformSession && liveMetrics && healthScores?.scoresLive) {
+    const updatedHistory = await persistHealthSnapshot(
+      platformSession.organisationId,
+      healthScores.businessHealth,
+    );
+    const businessHealth = healthScores.businessHealth;
+    const enoughHistory = updatedHistory.length >= 2;
+    const healthDelta = enoughHistory
+      ? healthDeltaFromHistory(updatedHistory, businessHealth)
+      : 0;
+    overview = {
+      ...overview,
+      businessHealth,
       businessHealthDelta: healthDelta,
-      businessHealthDeltaLabel: `${healthDelta >= 0 ? "+" : ""}${healthDelta} this month`,
+      businessHealthDeltaLabel: enoughHistory
+        ? `${healthDelta >= 0 ? "+" : ""}${healthDelta} this month`
+        : `${updatedHistory.length} real measurement${updatedHistory.length === 1 ? "" : "s"} collected`,
       healthTrend: healthTrendFromHistory(updatedHistory, businessHealth),
     };
   }
+
+  const confidenceLabel = healthScores
+    ? healthScores.confidence === "high"
+      ? "High confidence"
+      : healthScores.confidence === "medium"
+        ? "Medium confidence"
+        : healthScores.confidence === "low"
+          ? "Low confidence"
+          : "Insufficient evidence"
+    : null;
 
   return (
     <>
@@ -105,10 +163,15 @@ export default async function DashboardPage() {
                 </Link>
               ) : (
                 <Link href="/dashboard/health" className="text-sm font-medium text-sky-300 hover:underline">
-                  Preview — not enough data yet
+                  Not enough measured evidence yet
                 </Link>
               )}
             </div>
+            {healthScores ? (
+              <Link href="/dashboard/health" className="text-xs text-slate-400 hover:text-sky-300">
+                {healthScores.evidenceCoveragePercent}% evidence coverage · {confidenceLabel}
+              </Link>
+            ) : null}
             <span className="text-xs text-slate-500">
               Last updated: {overview.lastUpdatedLabel}
             </span>
