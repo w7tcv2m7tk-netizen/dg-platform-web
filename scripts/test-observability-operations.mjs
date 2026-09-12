@@ -32,13 +32,13 @@ test("Diagnostics renders only telemetry the platform can currently prove", () =
     "commercial",
     "connectors",
     "operationalLoad",
-    "diagnostics",
     "critical",
     "attention",
     "notices",
   ]) {
     assert.match(diagnostics, new RegExp(`data\\.${signal}`));
   }
+  assert.match(diagnostics, /data\?\.diagnostics/);
   assert.doesNotMatch(diagnostics, /queue health|deployment status|background jobs/i);
 });
 
@@ -63,12 +63,13 @@ test("Stripe webhook diagnostics use durable receipt lifecycle state", () => {
   assert.match(diagnostics, /Retries exhausted/);
 });
 
-test("Webhook observability never returns stored error text or payload data", () => {
-  assert.doesNotMatch(webhookHealth, /lastError:\s*latestFailure/);
-  assert.doesNotMatch(webhookHealth, /payload|body|customer/i);
+test("Webhook observability returns lifecycle metadata only", () => {
+  const selectBlock = webhookHealth.match(/select:\s*\{([\s\S]*?)\n\s*\},\n\s*\}\),/)?.[1] ?? "";
+  assert.match(selectBlock, /eventType:\s*true/);
+  assert.match(selectBlock, /attempts:\s*true/);
+  assert.match(selectBlock, /claimedAt:\s*true/);
+  assert.doesNotMatch(selectBlock, /lastError|payload|body|customer/i);
   assert.doesNotMatch(diagnostics, /lastError/);
-  assert.match(webhookHealth, /eventType/);
-  assert.match(webhookHealth, /attempts/);
 });
 
 test("Webhook observability is exported through Platform Core", () => {
