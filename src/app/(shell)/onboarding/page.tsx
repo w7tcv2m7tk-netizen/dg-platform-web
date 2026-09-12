@@ -67,7 +67,7 @@ export default async function OnboardingPage({
         </p>
         <a
           href={loginHref}
-          className="mt-6 inline-block rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
+          className="mt-6 inline-flex min-h-11 items-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
         >
           Sign in
         </a>
@@ -108,7 +108,7 @@ export default async function OnboardingPage({
           </p>
           <a
             href="/onboarding?checkout=success"
-            className="mt-5 inline-block rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
+            className="mt-5 inline-flex min-h-11 items-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500"
           >
             Check confirmation
           </a>
