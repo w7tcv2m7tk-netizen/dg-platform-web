@@ -29,31 +29,34 @@ export async function PlatformShellLoader({
     getOrgBrandThemeCached(),
   ]);
 
+  // Public recovery entry points such as /onboarding deliberately live in the
+  // shell route group so authenticated customers keep the native app chrome.
+  // Signed-out visitors must not see default member navigation before login.
+  if (!session) {
+    return <>{children}</>;
+  }
+
   const userName =
     user?.firstName ??
     user?.fullName ??
     user?.primaryEmailAddress?.emailAddress?.split("@")[0];
 
-  const showCommandCentre = session
-    ? canAccessCommandCentre({
-        organisationId: session.organisationId,
-        organisationName: session.organisationName,
-        organisationSlug: session.organisationSlug,
-        role: session.role,
-      })
-    : false;
+  const showCommandCentre = canAccessCommandCentre({
+    organisationId: session.organisationId,
+    organisationName: session.organisationName,
+    organisationSlug: session.organisationSlug,
+    role: session.role,
+  });
 
   // Authoritative platform-operator result, resolved server-side via
   // canAccessCommandCentre (DG_COMMAND_CENTRE_ORG_IDS allowlist / dg:staff).
   // Passed to the client so navigation filtering consumes the server decision
   // instead of re-evaluating server-only authority in the browser (which would
   // drop Command Centre after hydration).
-  const isPlatformOperator = session
-    ? canAccessCommandCentre({
-        organisationId: session.organisationId,
-        role: session.role,
-      })
-    : false;
+  const isPlatformOperator = canAccessCommandCentre({
+    organisationId: session.organisationId,
+    role: session.role,
+  });
 
   const staffByEmail =
     isDigitalGateStaffEmail(email) ||
@@ -63,19 +66,17 @@ export async function PlatformShellLoader({
 
   const showResellerAdmin =
     staffByEmail ||
-    (session
-      ? showCommandCentre ||
-        session.organisations.some((org) =>
-          canAccessCommandCentre({
-            organisationId: org.organisationId,
-            organisationName: org.organisationName,
-            organisationSlug: org.organisationSlug,
-            role: org.role,
-          }),
-        )
-      : false);
+    showCommandCentre ||
+    session.organisations.some((org) =>
+      canAccessCommandCentre({
+        organisationId: org.organisationId,
+        organisationName: org.organisationName,
+        organisationSlug: org.organisationSlug,
+        role: org.role,
+      }),
+    );
 
-  const isDemo = session ? await isDemoOrganisationId(session.organisationId) : false;
+  const isDemo = await isDemoOrganisationId(session.organisationId);
   const showCommandCentreNav = showCommandCentre && !isDemo;
 
   let showPartnerPortal = false;
@@ -94,7 +95,7 @@ export async function PlatformShellLoader({
   // Do not strip via filterEnabledAppsForOperatorOrg.
 
   let billingBanner = null;
-  if (session?.organisationId && process.env.DATABASE_URL && !isDemo) {
+  if (process.env.DATABASE_URL && !isDemo) {
     try {
       const entitlement = await resolveEntitlement(session.organisationId);
       billingBanner = entitlement.banner.kind === "none" ? null : entitlement.banner;
@@ -114,11 +115,11 @@ export async function PlatformShellLoader({
       showPartnerPortal={showPartnerPortal}
       showResellerAdmin={showResellerAdmin}
       partnerType={partnerType}
-      membershipRole={session?.role ?? "member"}
-      permissionGrants={session?.permissionGrants}
-      activeOrganisationId={session?.organisationId}
-      activeOrganisationName={session?.organisationName}
-      organisations={session?.organisations ?? []}
+      membershipRole={session.role}
+      permissionGrants={session.permissionGrants}
+      activeOrganisationId={session.organisationId}
+      activeOrganisationName={session.organisationName}
+      organisations={session.organisations}
       brandTheme={brandTheme}
       isDemo={isDemo}
       billingBanner={billingBanner}
