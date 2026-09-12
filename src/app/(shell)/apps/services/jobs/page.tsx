@@ -96,6 +96,7 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
             members={memberOptions}
             templateKey={template.key}
             jobLabel={template.terminology.job}
+            timeZone={timeZone}
           />
         ) : null}
       </div>
