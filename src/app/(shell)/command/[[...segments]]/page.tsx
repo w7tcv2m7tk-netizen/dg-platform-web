@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { getOperatorCommandCentreOpsHome, resolveSalesWeekPrompt } from "@dg/platform-core";
 
 import { CommandBetaStatus } from "@/components/command/CommandBetaStatus";
 import { CommandOpsHome } from "@/components/command/CommandOpsHome";
 import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
-import { AppFeaturePlaceholder } from "@/components/platform/AppFeaturePlaceholder";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 interface PageProps {
@@ -16,8 +15,8 @@ interface PageProps {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** Placeholder Command routes that must not show fake UI — redirect to real surfaces. */
-const VAPOR_REDIRECTS: Record<string, string> = {
+/** Compatibility-only Command aliases that redirect to their canonical owner. */
+const COMPATIBILITY_REDIRECTS: Record<string, string> = {
   support: "/support",
   audit: "/dashboard/settings/audit",
 };
@@ -39,7 +38,10 @@ async function CommandOverviewPage() {
           }}
         />
         <div className="relative">
-          <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
+          <Link
+            href="/dashboard"
+            className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+          >
             ← Business workspace
           </Link>
           <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
@@ -62,9 +64,8 @@ async function CommandOverviewPage() {
 
         {!data ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-            Set <code className="text-amber-200">DATABASE_URL</code> and run{" "}
-            <code className="text-amber-200">npm run db:push</code> to enable live Command Centre
-            aggregates.
+            Live Command Centre aggregates are temporarily unavailable. Use Platform Health for
+            operational diagnostics and retry when the data service is restored.
           </div>
         ) : (
           <CommandOpsHome data={data} />
@@ -84,10 +85,9 @@ export default async function CommandPage({ params }: PageProps) {
   }
 
   const head = segments[0];
-  if (head && VAPOR_REDIRECTS[head] && segments.length === 1) {
-    redirect(VAPOR_REDIRECTS[head]);
+  if (head && COMPATIBILITY_REDIRECTS[head] && segments.length === 1) {
+    redirect(COMPATIBILITY_REDIRECTS[head]);
   }
 
-  const href = `/command/${segments.join("/")}`;
-  return <AppFeaturePlaceholder href={href} />;
+  notFound();
 }

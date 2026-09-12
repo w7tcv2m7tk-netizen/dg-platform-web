@@ -5,6 +5,7 @@ import {
 } from "@dg/platform-core";
 
 import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
+import { OperatorDataUnavailable } from "@/components/command/OperatorDataUnavailable";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
@@ -44,9 +45,7 @@ export default async function CommandRevenuePage() {
       </header>
       <main className="dg-page-main space-y-8">
         {!data || !attribution ? (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-            Database not configured — revenue snapshot unavailable.
-          </div>
+          <OperatorDataUnavailable label="revenue" />
         ) : (
           <>
             {!data.billing.stripeOk ? (
@@ -55,7 +54,7 @@ export default async function CommandRevenuePage() {
                 incomplete until configuration is finished.{" "}
                 <Link
                   href="/dashboard/settings/billing"
-                  className="text-sky-300 hover:underline"
+                  className="inline-flex min-h-11 items-center text-sky-300 hover:underline"
                 >
                   Billing settings →
                 </Link>
@@ -146,7 +145,7 @@ export default async function CommandRevenuePage() {
                           <td className="px-4 py-3">
                             <Link
                               href={`/command/clients/${row.organisationId}`}
-                              className="font-medium text-white hover:text-sky-400"
+                              className="inline-flex min-h-11 items-center font-medium text-white hover:text-sky-400"
                             >
                               {row.organisationName}
                             </Link>
@@ -185,13 +184,19 @@ export default async function CommandRevenuePage() {
               <ul className="space-y-1 text-sm text-slate-400">
                 <li>
                   Partner commission ledger:{" "}
-                  <Link href="/command/commissions" className="text-sky-400 hover:underline">
+                  <Link
+                    href="/command/commissions"
+                    className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+                  >
                     Partners → Commissions
                   </Link>
                 </li>
                 <li>
                   Pipeline MRR Won:{" "}
-                  <Link href="/command/growth-engine" className="text-sky-400 hover:underline">
+                  <Link
+                    href="/command/growth-engine"
+                    className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+                  >
                     Sales / Growth Engine
                   </Link>
                 </li>
@@ -199,7 +204,7 @@ export default async function CommandRevenuePage() {
                   Subscription ledger:{" "}
                   <Link
                     href="/command/commercial/subscriptions"
-                    className="text-sky-400 hover:underline"
+                    className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
                   >
                     Commercial → Subscriptions
                   </Link>
