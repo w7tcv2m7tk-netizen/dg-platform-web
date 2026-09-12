@@ -67,7 +67,7 @@ export function ReviewThemesPanel({
           type="button"
           onClick={refresh}
           disabled={pending || reviews.length === 0}
-          className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-200 hover:border-slate-600 disabled:opacity-50"
+          className="min-h-11 rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:border-slate-600 disabled:opacity-50"
         >
           {pending ? "Extracting…" : "Re-run themes"}
         </button>
