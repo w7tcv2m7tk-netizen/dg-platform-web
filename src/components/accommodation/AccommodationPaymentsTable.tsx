@@ -5,12 +5,19 @@ import { useState } from "react";
 
 import type { WpAccBookingRow } from "@/lib/dg-api";
 
-function formatAud(total?: number): string {
+function formatMoney(total: number | undefined, locale: string, currency: string): string {
   if (total == null || !Number.isFinite(total)) return "—";
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-  }).format(total);
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+    }).format(total);
+  } catch {
+    return new Intl.NumberFormat("en-AU", {
+      style: "currency",
+      currency: "AUD",
+    }).format(total);
+  }
 }
 
 function paidLabel(paid?: string | null): string {
@@ -49,7 +56,15 @@ function paymentRowKey(row: WpAccBookingRow): string {
   return row.platform_id || (wpId > 0 ? `wp-${wpId}` : `tmp-${row.ref ?? "row"}`);
 }
 
-export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookingRow[] }) {
+export function AccommodationPaymentsTable({
+  bookings,
+  currency = "AUD",
+  locale = "en-AU",
+}: {
+  bookings: WpAccBookingRow[];
+  currency?: string;
+  locale?: string;
+}) {
   const router = useRouter();
   const [rows, setRows] = useState(bookings);
   const [pendingKey, setPendingKey] = useState<string | null>(null);
@@ -131,7 +146,9 @@ export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookin
                   </td>
                   <td className="px-4 py-3 text-white">{b.guest_name ?? "—"}</td>
                   <td className="px-4 py-3 text-slate-300">{b.accommodation ?? "—"}</td>
-                  <td className="px-4 py-3 text-slate-300">{formatAud(b.total)}</td>
+                  <td className="px-4 py-3 text-slate-300">
+                    {formatMoney(b.total, locale, currency)}
+                  </td>
                   <td className="px-4 py-3">
                     <select
                       value={b.payment_method ?? ""}
@@ -139,7 +156,7 @@ export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookin
                       onChange={(e) =>
                         void patchPayment(b, { payment_method: e.target.value })
                       }
-                      className="rounded border border-slate-700 bg-slate-950 px-2 py-1 text-slate-200 disabled:opacity-50"
+                      className="min-h-11 rounded border border-slate-700 bg-slate-950 px-2 py-2 text-slate-200 disabled:opacity-50"
                     >
                       {METHOD_OPTIONS.map((o) => (
                         <option key={o.value || "none"} value={o.value}>
@@ -173,7 +190,7 @@ export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookin
                         type="button"
                         disabled={busy}
                         onClick={() => void patchPayment(b, { paid: "no" })}
-                        className="rounded-full border border-slate-600 px-3 py-1 text-xs text-slate-300 hover:border-amber-500 hover:text-amber-200 disabled:opacity-50"
+                        className="min-h-11 rounded-full border border-slate-600 px-3 py-2 text-xs text-slate-300 hover:border-amber-500 hover:text-amber-200 disabled:opacity-50"
                       >
                         Mark unpaid
                       </button>
@@ -182,7 +199,7 @@ export function AccommodationPaymentsTable({ bookings }: { bookings: WpAccBookin
                         type="button"
                         disabled={busy}
                         onClick={() => void patchPayment(b, { paid: "yes" })}
-                        className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+                        className="min-h-11 rounded-full bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
                       >
                         Mark paid
                       </button>
