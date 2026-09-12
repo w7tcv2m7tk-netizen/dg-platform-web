@@ -44,18 +44,18 @@ export function UpdateJobStageForm({
       <select
         value={stage}
         disabled={pending}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-white"
+        onChange={(e) => void onChange(e.target.value)}
+        className="min-h-11 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-50"
+        aria-label="Job stage"
       >
-        {!known ? (
-          <option value={stage}>{stage.replace(/_/g, " ")}</option>
-        ) : null}
+        {!known ? <option value={stage}>{stage.replace(/_/g, " ")}</option> : null}
         {stages.map((s) => (
           <option key={s.id} value={s.id}>
             {s.label}
           </option>
         ))}
       </select>
+      {pending ? <p className="text-xs text-slate-500">Saving…</p> : null}
       {error ? <p className="text-xs text-red-300">{error}</p> : null}
     </div>
   );
