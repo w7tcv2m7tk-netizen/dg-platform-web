@@ -142,7 +142,14 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
             What&apos;s happening
           </p>
           <p className="mt-1 font-semibold text-white">Health</p>
-          <p className="mt-1 text-2xl font-semibold text-white">{overview.businessHealth}/100</p>
+          {overview.scoresLive ? (
+            <p className="mt-1 text-2xl font-semibold text-white">{overview.businessHealth}/100</p>
+          ) : (
+            <>
+              <p className="mt-1 text-lg font-semibold text-white">Not enough data yet</p>
+              <p className="mt-1 text-xs text-slate-400">Preview until live business evidence is available</p>
+            </>
+          )}
         </Link>
         <Link
           href="/dashboard/insights"
@@ -233,33 +240,47 @@ export function BusinessOverviewDashboard({ overview }: { overview: BusinessOver
               Open Business Health →
             </Link>
           </div>
-          <Link href="/dashboard/health" className="mt-2 block hover:opacity-95">
-            <div className="flex items-end gap-2">
-              <span className="text-5xl font-bold text-white">{overview.businessHealth}</span>
-              <span className="pb-2 text-lg text-slate-500">/ 100</span>
+          {overview.scoresLive ? (
+            <>
+              <Link href="/dashboard/health" className="mt-2 block hover:opacity-95">
+                <div className="flex items-end gap-2">
+                  <span className="text-5xl font-bold text-white">{overview.businessHealth}</span>
+                  <span className="pb-2 text-lg text-slate-500">/ 100</span>
+                </div>
+                <p className="mt-1 text-sm text-emerald-400">↑ {overview.businessHealthDeltaLabel}</p>
+              </Link>
+              <ul className="mt-4 space-y-2">
+                {overview.scoreBreakdown.map((s) => (
+                  <li key={s.id}>
+                    {s.href ? (
+                      <Link
+                        href={s.href}
+                        className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm hover:bg-slate-800/60"
+                      >
+                        <span className="text-slate-400">{s.label}</span>
+                        <span className="font-medium text-white">{s.value}</span>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center justify-between px-2 py-1.5 text-sm">
+                        <span className="text-slate-400">{s.label}</span>
+                        <span className="font-medium text-white">{s.value}</span>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+              <p className="font-semibold text-white">Not enough data yet</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Business Health will appear once DigitalGate has enough live operating evidence to calculate a meaningful score.
+              </p>
+              <Link href="/dashboard/settings/connected-services" className="mt-3 inline-block text-sm text-sky-400 hover:underline">
+                Review Connected Services →
+              </Link>
             </div>
-            <p className="mt-1 text-sm text-emerald-400">↑ {overview.businessHealthDeltaLabel}</p>
-          </Link>
-          <ul className="mt-4 space-y-2">
-            {overview.scoreBreakdown.map((s) => (
-              <li key={s.id}>
-                {s.href ? (
-                  <Link
-                    href={s.href}
-                    className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm hover:bg-slate-800/60"
-                  >
-                    <span className="text-slate-400">{s.label}</span>
-                    <span className="font-medium text-white">{s.value}</span>
-                  </Link>
-                ) : (
-                  <div className="flex items-center justify-between px-2 py-1.5 text-sm">
-                    <span className="text-slate-400">{s.label}</span>
-                    <span className="font-medium text-white">{s.value}</span>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
+          )}
         </section>
 
         {/* Snapshot */}
