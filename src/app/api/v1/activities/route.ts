@@ -8,7 +8,12 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requireFeature,
+  requirePermission,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -90,8 +95,13 @@ export async function POST(req: Request) {
       );
     }
   } else if (entityType === "ServiceJob") {
-    const denied = requireFeature(session, "services.jobs.write");
-    if (denied) return denied;
+    const permissionDenied = requirePermission(session, {
+      module: "industry",
+      action: "edit",
+      scope: "organisation",
+      subModule: "services",
+    });
+    if (permissionDenied) return permissionDenied;
     const job = await getServiceJob(session.organisationId, entityId);
     if (!job) {
       return NextResponse.json(
