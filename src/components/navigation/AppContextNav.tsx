@@ -40,6 +40,44 @@ export function AppContextNav() {
       return [{ path: "/command", label: "Command Centre", exact: true }];
     }
 
+    // Business Brain is a first-class Business surface. The canonical navigation
+    // still groups supporting intelligence under Overview, so expose Brain here
+    // explicitly and stop Overview from swallowing /dashboard/brain routes.
+    if (active.itemId === "business") {
+      const withoutHiddenBrain = active.routes.map((route) =>
+        route.path === "/dashboard"
+          ? {
+              ...route,
+              matchAlso: route.matchAlso?.filter(
+                (match) => match !== "/dashboard/brain",
+              ),
+            }
+          : route,
+      );
+      const hasBrain = withoutHiddenBrain.some(
+        (route) => route.path === "/dashboard/brain",
+      );
+      if (!hasBrain) {
+        const overviewIndex = withoutHiddenBrain.findIndex(
+          (route) => route.path === "/dashboard",
+        );
+        const insertAt = overviewIndex >= 0 ? overviewIndex + 1 : 0;
+        return [
+          ...withoutHiddenBrain.slice(0, insertAt),
+          {
+            path: "/dashboard/brain",
+            label: "Business Brain",
+            matchAlso: [
+              "/dashboard/brain/sources",
+              "/dashboard/brain/knowledge",
+            ],
+          },
+          ...withoutHiddenBrain.slice(insertAt),
+        ];
+      }
+      return withoutHiddenBrain;
+    }
+
     // Industry sidebar unions all active Template routes — show only the
     // current Template mount's tabs under the switcher.
     if (active.sectionId === "industry") {
