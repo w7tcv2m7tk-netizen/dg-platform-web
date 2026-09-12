@@ -35,6 +35,9 @@ export default async function BusinessBrainPage() {
           Platform Docs.
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
+          <Link href="/dashboard/brain/sources" className="text-sky-400 hover:underline">
+            Sources &amp; provenance →
+          </Link>
           <Link href="/dashboard/brain/knowledge" className="text-sky-400 hover:underline">
             Knowledge Inbox →
           </Link>
