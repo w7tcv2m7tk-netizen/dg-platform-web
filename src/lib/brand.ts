@@ -58,27 +58,39 @@ export function publicSiteIcons(
       apple: Array<{ url: string; type?: string; sizes?: string }>;
     }
   | undefined {
-  const mapped = PUBLIC_SITE_ICONS[slug];
-  if (mapped) {
-    return {
-      icon: [
-        { url: mapped.favicon32, type: "image/png", sizes: "32x32" },
-        { url: mapped.icon, type: "image/png" },
-      ],
-      apple: [{ url: mapped.apple, type: "image/png", sizes: "180x180" }],
-    };
-  }
   const custom = explicit?.trim();
-  if (!custom) return undefined;
-  return {
-    icon: [
-      {
-        url: custom,
-        type: custom.endsWith(".svg") ? "image/svg+xml" : "image/png",
-      },
-    ],
-    apple: [{ url: custom, type: "image/png", sizes: "180x180" }],
+  const mapped = PUBLIC_SITE_ICONS[slug];
+  if (!custom && !mapped) return undefined;
+
+  const icons: Array<{ url: string; type?: string; sizes?: string }> = [];
+  const apple: Array<{ url: string; type?: string; sizes?: string }> = [];
+  const seen = new Set<string>();
+  const pushIcon = (url: string, sizes?: string, type?: string) => {
+    if (seen.has(url)) return;
+    seen.add(url);
+    icons.push(sizes || type ? { url, sizes, type } : { url });
   };
+
+  // Lead with host-aware Next routes. Safari / Chrome "Add to Dock" pick the
+  // largest advertised icon. A leftover DigitalGate /favicon.ico at 256x256
+  // wins unless a 512 PNG is listed.
+  pushIcon("/icon", "512x512", "image/png");
+  apple.push({ url: "/apple-icon", type: "image/png", sizes: "180x180" });
+
+  if (custom) {
+    const type = custom.endsWith(".svg") ? "image/svg+xml" : "image/png";
+    pushIcon(custom, undefined, type);
+    apple.push({ url: custom, type: "image/png", sizes: "180x180" });
+  }
+  if (mapped) {
+    pushIcon(mapped.favicon32, "32x32", "image/png");
+    pushIcon(mapped.icon, "192x192", "image/png");
+    if (mapped.apple !== "/apple-icon") {
+      apple.push({ url: mapped.apple, type: "image/png", sizes: "180x180" });
+    }
+  }
+
+  return { icon: icons, apple };
 }
 
 export const BRAND_ASSETS = {
