@@ -14,6 +14,7 @@ import { NextResponse } from "next/server";
 import {
   isNextResponse,
   requireFeature,
+  requirePermission,
   requirePlatformAuth,
 } from "@/lib/platform-api";
 
@@ -41,6 +42,12 @@ export async function POST(req: Request) {
   if (isNextResponse(session)) return session;
   const denied = requireFeature(session, "crm.leads.write");
   if (denied) return denied;
+  const permissionDenied = requirePermission(session, {
+    module: "crm",
+    action: "create",
+    scope: "organisation",
+  });
+  if (permissionDenied) return permissionDenied;
 
   const body = await req.json().catch(() => ({}));
 
@@ -115,7 +122,6 @@ export async function POST(req: Request) {
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
   const notes = typeof body.notes === "string" ? body.notes.trim() : "";
 
-  // Canonical native CRM contact linkage keeps lead conversion/opportunity flows connected.
   let contactId: string | undefined;
   if (name || email || phone) {
     const contact = await ensureContactForLeadFields({
@@ -163,6 +169,12 @@ export async function PATCH(req: Request) {
   if (isNextResponse(session)) return session;
   const denied = requireFeature(session, "crm.leads.write");
   if (denied) return denied;
+  const permissionDenied = requirePermission(session, {
+    module: "crm",
+    action: "edit",
+    scope: "organisation",
+  });
+  if (permissionDenied) return permissionDenied;
 
   const body = await req.json().catch(() => null);
   const leadId = body?.id as string | undefined;
