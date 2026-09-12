@@ -43,7 +43,8 @@ export default async function AppsPage() {
                 digitalgate.com.au/pricing
               </a>
               . Billing and subscribe live under Settings → Billing. Discover new apps in Marketplace.
-              Industry apps can be turned on or off here while they are still in development.
+              Available and Early Access apps can be turned on or off here; roadmap items stay visible
+              without being activatable until they are released.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
