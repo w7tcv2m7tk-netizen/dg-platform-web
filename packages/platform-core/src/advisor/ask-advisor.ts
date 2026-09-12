@@ -23,6 +23,8 @@ export type AskAdvisorInput = {
   actorId?: string;
   question: string;
   contextLabel?: string;
+  /** Compact, server-selected evidence for the requested App context. */
+  additionalEvidence?: string;
   businessContext: BusinessContext;
   /** Pre-built briefing for evidence + fallback */
   briefing: Pick<
@@ -82,6 +84,13 @@ function evidenceBlock(briefing: AskAdvisorInput["briefing"]): string {
   ].join("\n");
 }
 
+function contextualEvidenceBlock(input: AskAdvisorInput): string {
+  const evidence = input.additionalEvidence?.trim();
+  return evidence
+    ? `\n\nContext-specific evidence (server-selected):\n${evidence}`
+    : "";
+}
+
 function pickRecommendationsForQuestion(
   question: string,
   recs: AdvisorRecommendation[],
@@ -122,6 +131,10 @@ function briefingFallback(
     ? `Based on connected signals, focus on: ${picked.map((r) => r.title).join("; ")}.`
     : "I don't yet have enough live CRM / website / finance signals to give a specific answer. Connect systems under Settings → Connectors, then ask again.";
 
+  const contextualLine = input.additionalEvidence?.trim()
+    ? `Context evidence:\n${input.additionalEvidence.trim()}`
+    : "";
+
   const planLine = transportSelected
     ? `Transport selected: ${transportSelected}${
         transportPlan.length > 1
@@ -137,7 +150,17 @@ function briefingFallback(
         : "(Model Router is not configured — set AI_GATEWAY_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY on Vercel. This answer uses your Business Brain briefing only.)"
       : `(Model Router could not complete this answer${errorMessage ? `: ${errorMessage}` : ""}. Showing briefing evidence below.)\n${planLine}`;
 
-  const answer = [input.briefing.todaySummary, "", focusLine, "", footer].join("\n");
+  const answer = [
+    input.briefing.todaySummary,
+    "",
+    contextualLine,
+    contextualLine ? "" : null,
+    focusLine,
+    "",
+    footer,
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 
   return {
     question: q,
@@ -219,7 +242,7 @@ export async function askBusinessAdvisor(
     `Question: ${question}`,
     "",
     "Evidence from DigitalGate (Twin / Brain / Health):",
-    evidence,
+    `${evidence}${contextualEvidenceBlock(input)}`,
   ].join("\n");
 
   try {

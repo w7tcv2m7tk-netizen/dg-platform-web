@@ -15,12 +15,55 @@ import {
   getPlatformSetupStatus,
   loadHealthHistory,
   metricsContextFromLiveMetrics,
+  scoresFromLatestSeoAudit,
 } from "@dg/platform-core";
 
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIds } from "@/lib/org-apps";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+
+type SeoAuditSnapshot = NonNullable<
+  Awaited<ReturnType<typeof scoresFromLatestSeoAudit>>
+>;
+
+function buildSeoAuditEvidence(audit: SeoAuditSnapshot | null): string | undefined {
+  if (!audit) return undefined;
+
+  const probes = audit.probes
+    ? [
+        ["reachable", audit.probes.reachable],
+        ["HTTPS", audit.probes.https],
+        ["title", Boolean(audit.probes.title)],
+        ["meta description", audit.probes.hasMetaDescription],
+        ["mobile viewport", audit.probes.hasViewport],
+        ["Open Graph", audit.probes.hasOpenGraph],
+        ["JSON-LD", audit.probes.hasJsonLd],
+        ["H1", audit.probes.hasH1],
+      ]
+        .map(([label, value]) => `${label}: ${value === true ? "pass" : value === false ? "fail" : "unknown"}`)
+        .join("; ")
+    : "No probe details stored";
+
+  const findings = audit.findings
+    .slice(0, 8)
+    .map(
+      (finding, index) =>
+        `${index + 1}. [${finding.severity}] ${finding.title}: ${finding.detail}${
+          finding.recommendedAction ? ` Next: ${finding.recommendedAction}` : ""
+        }`,
+    )
+    .join("\n");
+
+  return [
+    `Source: persisted DigitalGate SEO audit from ${audit.auditedAt}${
+      audit.websiteUrl ? ` for ${audit.websiteUrl}` : ""
+    }`,
+    `SEO ${audit.scores.seo}/100; Website Health ${audit.scores.websiteHealth}/100; AI Visibility ${audit.scores.aiVisibility}/100; Studio SEO ${audit.scores.nativeSeo ?? "not available"}`,
+    `Public probes: ${probes}`,
+    findings ? `Prioritised audit findings:\n${findings}` : "Audit findings: none recorded",
+  ].join("\n");
+}
 
 /**
  * POST /api/v1/ai/advisor
@@ -47,6 +90,9 @@ export async function POST(req: Request) {
       { status: 422 },
     );
   }
+
+  const contextLabel = body.contextLabel?.trim();
+  const isSeoContext = contextLabel === "SEO" || contextLabel === "AI Visibility";
 
   const userDisplayName = session.name?.split(" ")[0] || session.email || "there";
   const enabledAppIds = await getOrgEnabledAppIds();
@@ -144,11 +190,18 @@ export async function POST(req: Request) {
     benchmarks,
   });
 
+  const additionalEvidence = isSeoContext
+    ? buildSeoAuditEvidence(
+        await scoresFromLatestSeoAudit(session.organisationId).catch(() => null),
+      )
+    : undefined;
+
   const result = await askBusinessAdvisor({
     organisationId: session.organisationId,
     actorId: session.clerkUserId,
     question,
-    contextLabel: body.contextLabel?.trim(),
+    contextLabel,
+    additionalEvidence,
     businessContext,
     briefing: {
       todaySummary: briefing.todaySummary,
