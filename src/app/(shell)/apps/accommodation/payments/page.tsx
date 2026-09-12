@@ -10,6 +10,18 @@ export default async function AccommodationPaymentsPage() {
   const paid = bookings.filter((b) => b.paid === "yes");
   const siteLabel = session?.organisationName ?? "Accommodation";
 
+  let currency = "AUD";
+  let locale = "en-AU";
+  if (session && process.env.DATABASE_URL) {
+    const { prisma } = await import("@dg/database");
+    const organisation = await prisma.organisation.findUnique({
+      where: { id: session.organisationId },
+      select: { currency: true, locale: true },
+    });
+    currency = organisation?.currency?.trim().toUpperCase() || currency;
+    locale = organisation?.locale?.trim() || locale;
+  }
+
   return (
     <main className="dg-page-main space-y-6">
       <div>
@@ -36,7 +48,7 @@ export default async function AccommodationPaymentsPage() {
               <p className="mt-1 text-2xl font-bold text-white">{paid.length}</p>
             </div>
           </div>
-          <AccommodationPaymentsTable bookings={bookings} />
+          <AccommodationPaymentsTable bookings={bookings} currency={currency} locale={locale} />
         </>
       )}
     </main>
