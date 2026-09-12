@@ -42,6 +42,8 @@ CREATE TABLE "ai_visibility_observations" (
     "brand_recommended" BOOLEAN NOT NULL DEFAULT false,
     "answer_rank" INTEGER,
     "cited_own_domain" BOOLEAN NOT NULL DEFAULT false,
+    "citation_capture_complete" BOOLEAN,
+    "competitor_capture_complete" BOOLEAN,
     "answer_context" TEXT,
     "source_ref" TEXT,
     "evidence" JSONB,
@@ -82,18 +84,14 @@ CREATE TABLE "ai_visibility_citations" (
 CREATE UNIQUE INDEX "ai_visibility_prompts_organisation_id_prompt_text_key" ON "ai_visibility_prompts"("organisation_id", "prompt_text");
 CREATE INDEX "ai_visibility_prompts_organisation_id_status_idx" ON "ai_visibility_prompts"("organisation_id", "status");
 CREATE INDEX "ai_visibility_prompts_organisation_id_prompt_class_status_idx" ON "ai_visibility_prompts"("organisation_id", "prompt_class", "status");
-
 CREATE UNIQUE INDEX "ai_visibility_competitors_organisation_id_name_key" ON "ai_visibility_competitors"("organisation_id", "name");
 CREATE INDEX "ai_visibility_competitors_organisation_id_status_idx" ON "ai_visibility_competitors"("organisation_id", "status");
 CREATE INDEX "ai_visibility_competitors_organisation_id_domain_idx" ON "ai_visibility_competitors"("organisation_id", "domain");
-
 CREATE INDEX "ai_visibility_observations_organisation_id_observed_at_idx" ON "ai_visibility_observations"("organisation_id", "observed_at");
 CREATE INDEX "ai_visibility_observations_organisation_id_engine_observed_at_idx" ON "ai_visibility_observations"("organisation_id", "engine", "observed_at");
 CREATE INDEX "ai_visibility_observations_prompt_id_observed_at_idx" ON "ai_visibility_observations"("prompt_id", "observed_at");
-
 CREATE UNIQUE INDEX "ai_visibility_competitor_mentions_observation_id_competitor_id_key" ON "ai_visibility_competitor_mentions"("observation_id", "competitor_id");
 CREATE INDEX "ai_visibility_competitor_mentions_organisation_id_competitor_id_created_at_idx" ON "ai_visibility_competitor_mentions"("organisation_id", "competitor_id", "created_at");
-
 CREATE INDEX "ai_visibility_citations_organisation_id_source_domain_last_seen_at_idx" ON "ai_visibility_citations"("organisation_id", "source_domain", "last_seen_at");
 CREATE INDEX "ai_visibility_citations_organisation_id_source_type_last_seen_at_idx" ON "ai_visibility_citations"("organisation_id", "source_type", "last_seen_at");
 CREATE INDEX "ai_visibility_citations_observation_id_idx" ON "ai_visibility_citations"("observation_id");
