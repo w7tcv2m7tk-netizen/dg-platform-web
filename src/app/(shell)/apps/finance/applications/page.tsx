@@ -1,4 +1,3 @@
-import { currentUser } from "@clerk/nextjs/server";
 import {
   getFinanceTemplate,
   listContacts,
@@ -7,18 +6,11 @@ import {
 
 import { CreateFinanceApplicationForm } from "@/components/finance/CreateFinanceApplicationForm";
 import { UpdateFinanceApplicationStageForm } from "@/components/finance/UpdateFinanceApplicationStageForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { formatMoneyFromCents, getOrganisationMoneySettings } from "@/lib/organisation-money";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function FinanceApplicationsPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -29,9 +21,10 @@ export default async function FinanceApplicationsPage() {
   }
 
   const template = getFinanceTemplate("mortgage_broking");
-  const [{ items }, contacts] = await Promise.all([
+  const [{ items }, contacts, money] = await Promise.all([
     listFinanceApplications({ organisationId: session.organisationId }),
     listContacts({ organisationId: session.organisationId, limit: 100 }),
+    getOrganisationMoneySettings(session.organisationId),
   ]);
 
   const contactOptions = contacts.items.map((c) => ({
@@ -46,11 +39,12 @@ export default async function FinanceApplicationsPage() {
     <main className="dg-page-main space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <p className="text-sm text-slate-400">
-          {template.label} — Core CRM contacts
+          {session.organisationName} · {template.label} · Core CRM contacts
         </p>
         <CreateFinanceApplicationForm
           contacts={contactOptions}
           stages={template.stages}
+          currency={money.currency}
         />
       </div>
       {items.length === 0 ? (
@@ -59,31 +53,32 @@ export default async function FinanceApplicationsPage() {
         </div>
       ) : (
         <ul className="divide-y divide-slate-800 rounded-xl border border-slate-800">
-          {items.map((app) => (
-            <li
-              key={app.id}
-              className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
-            >
-              <div>
-                <p className="font-medium text-white">{app.title}</p>
-                <p className="text-xs text-slate-500">
-                  {app.status}
-                  {app.lenderName ? ` · ${app.lenderName}` : ""}
-                  {app.loanAmountCents != null
-                    ? ` · $${(app.loanAmountCents / 100).toLocaleString("en-AU")}`
-                    : ""}
-                  {typeof app.metadata?.applicationType === "string"
-                    ? ` · ${String(app.metadata.applicationType).replace(/_/g, " ")}`
-                    : ""}
-                </p>
-              </div>
-              <UpdateFinanceApplicationStageForm
-                applicationId={app.id}
-                currentStage={app.stage}
-                stages={template.stages}
-              />
-            </li>
-          ))}
+          {items.map((app) => {
+            const amount = formatMoneyFromCents(app.loanAmountCents, money);
+            return (
+              <li
+                key={app.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+              >
+                <div>
+                  <p className="font-medium text-white">{app.title}</p>
+                  <p className="text-xs text-slate-500">
+                    {app.status}
+                    {app.lenderName ? ` · ${app.lenderName}` : ""}
+                    {amount ? ` · ${amount}` : ""}
+                    {typeof app.metadata?.applicationType === "string"
+                      ? ` · ${String(app.metadata.applicationType).replace(/_/g, " ")}`
+                      : ""}
+                  </p>
+                </div>
+                <UpdateFinanceApplicationStageForm
+                  applicationId={app.id}
+                  currentStage={app.stage}
+                  stages={template.stages}
+                />
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>
