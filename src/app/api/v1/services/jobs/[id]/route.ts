@@ -5,7 +5,13 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requireFeature, requireIndustryAppBeta, requirePlatformAuth } from "@/lib/platform-api";
+import {
+  isNextResponse,
+  requireFeature,
+  requireIndustryAppBeta,
+  requirePermission,
+  requirePlatformAuth,
+} from "@/lib/platform-api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -37,8 +43,13 @@ export async function PATCH(req: Request, ctx: Ctx) {
     const betaDenied = await requireIndustryAppBeta(session, "services");
     if (betaDenied) return betaDenied;
   }
-  const denied = requireFeature(session, "services.jobs.write");
-  if (denied) return denied;
+  const permissionDenied = requirePermission(session, {
+    module: "industry",
+    action: "edit",
+    scope: "organisation",
+    subModule: "services",
+  });
+  if (permissionDenied) return permissionDenied;
 
   const { id } = await ctx.params;
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;

@@ -31,7 +31,15 @@ function readPhotos(metadata: Record<string, unknown> | null): PhotoItem[] {
     .filter((p) => p.url.trim().length > 0);
 }
 
-export function JobChecklistPhotosPanel({ jobId, metadata, canWrite = false }: { jobId: string; metadata: Record<string, unknown> | null; canWrite?: boolean }) {
+export function JobChecklistPhotosPanel({
+  jobId,
+  metadata,
+  canWrite = false,
+}: {
+  jobId: string;
+  metadata: Record<string, unknown> | null;
+  canWrite?: boolean;
+}) {
   const router = useRouter();
   const initialChecklist = useMemo(() => readChecklist(metadata), [metadata]);
   const initialPhotos = useMemo(() => readPhotos(metadata), [metadata]);
@@ -103,43 +111,98 @@ export function JobChecklistPhotosPanel({ jobId, metadata, canWrite = false }: {
     <section className="dg-card space-y-6">
       <div>
         <h2 className="font-semibold text-white">Checklist</h2>
-        <p className="mt-1 text-xs text-slate-500">On-site checklist stored on the job metadata — not a separate table yet.</p>
-        {checklist.length === 0 ? <p className="mt-3 text-sm text-slate-500">No checklist items yet.</p> : (
-          <ul className="mt-3 space-y-2">{checklist.map((item) => (
-            <li key={item.id} className="flex items-start gap-2">
-              <input type="checkbox" checked={item.done} disabled={!canWrite || pending} onChange={() => void toggleItem(item.id)} className="mt-1" />
-              <span className={`text-sm ${item.done ? "text-slate-500 line-through" : "text-slate-200"}`}>{item.label}</span>
-            </li>
-          ))}</ul>
+        <p className="mt-1 text-xs text-slate-500">Job-specific on-site checklist.</p>
+        {checklist.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">No checklist items yet.</p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {checklist.map((item) => (
+              <li key={item.id} className="flex min-h-11 items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={item.done}
+                  disabled={!canWrite || pending}
+                  onChange={() => void toggleItem(item.id)}
+                  className="h-5 w-5"
+                  aria-label={`${item.done ? "Mark incomplete" : "Mark complete"}: ${item.label}`}
+                />
+                <span className={`text-sm ${item.done ? "text-slate-500 line-through" : "text-slate-200"}`}>
+                  {item.label}
+                </span>
+              </li>
+            ))}
+          </ul>
         )}
         {canWrite ? (
           <form onSubmit={addItem} className="mt-3 flex flex-wrap gap-2">
-            <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="Add checklist item" className="min-w-[12rem] flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" />
-            <button type="submit" disabled={pending || !newLabel.trim()} className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-50">Add</button>
+            <input
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Add checklist item"
+              className="min-h-11 min-w-[12rem] flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            />
+            <button
+              type="submit"
+              disabled={pending || !newLabel.trim()}
+              className="min-h-11 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-50"
+            >
+              Add
+            </button>
           </form>
         ) : null}
       </div>
       <div>
         <h2 className="font-semibold text-white">Photos</h2>
-        <p className="mt-1 text-xs text-slate-500">Paste image URLs (CDN / storage links). Native upload can come later.</p>
-        {photos.length === 0 ? <p className="mt-3 text-sm text-slate-500">No photos yet.</p> : (
-          <ul className="mt-3 grid gap-3 sm:grid-cols-2">{photos.map((photo) => (
-            <li key={photo.id} className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/60">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo.url} alt={photo.caption || "Job photo"} className="h-36 w-full object-cover" />
-              <div className="flex items-center justify-between gap-2 px-2 py-1.5">
-                <p className="truncate text-xs text-slate-400">{photo.caption || photo.url}</p>
-                {canWrite ? <button type="button" disabled={pending} onClick={() => void removePhoto(photo.id)} className="text-xs text-red-400 hover:underline disabled:opacity-50">Remove</button> : null}
-              </div>
-            </li>
-          ))}</ul>
+        <p className="mt-1 text-xs text-slate-500">
+          Attach an image URL from your approved file or storage source.
+        </p>
+        {photos.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">No photos yet.</p>
+        ) : (
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+            {photos.map((photo) => (
+              <li key={photo.id} className="overflow-hidden rounded-lg border border-slate-800 bg-slate-950/60">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photo.url} alt={photo.caption || "Job photo"} className="h-36 w-full object-cover" />
+                <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+                  <p className="truncate text-xs text-slate-400">{photo.caption || photo.url}</p>
+                  {canWrite ? (
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => void removePhoto(photo.id)}
+                      className="inline-flex min-h-11 items-center px-2 text-xs text-red-400 hover:underline disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
         {canWrite ? (
           <form onSubmit={addPhoto} className="mt-3 space-y-2">
-            <input value={photoUrl} onChange={(e) => setPhotoUrl(e.target.value)} placeholder="https://… image URL" className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" />
+            <input
+              value={photoUrl}
+              onChange={(e) => setPhotoUrl(e.target.value)}
+              placeholder="https://… image URL"
+              className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            />
             <div className="flex flex-wrap gap-2">
-              <input value={photoCaption} onChange={(e) => setPhotoCaption(e.target.value)} placeholder="Caption (optional)" className="min-w-[12rem] flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" />
-              <button type="submit" disabled={pending || !photoUrl.trim()} className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-50">Add photo</button>
+              <input
+                value={photoCaption}
+                onChange={(e) => setPhotoCaption(e.target.value)}
+                placeholder="Caption (optional)"
+                className="min-h-11 min-w-[12rem] flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+              />
+              <button
+                type="submit"
+                disabled={pending || !photoUrl.trim()}
+                className="min-h-11 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-50"
+              >
+                Add photo
+              </button>
             </div>
           </form>
         ) : null}

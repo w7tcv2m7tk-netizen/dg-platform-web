@@ -12,6 +12,7 @@ import { CreateServiceJobForm } from "@/components/services/CreateServiceJobForm
 import { JobsListFilters } from "@/components/services/JobsListFilters";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { canManageServices } from "@/lib/services-page-access";
 import {
   formatDateTime,
   SERVICES_DEFAULT_TZ,
@@ -31,7 +32,7 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
   const session = await getAuthorisedPlatformPageSession("services.jobs.read");
   if (!session) notFound();
 
-  const canWriteJobs = sessionHasFeature(session, "services.jobs.write");
+  const canWriteJobs = canManageServices(session);
   const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
 
   const filters = {
@@ -78,7 +79,14 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
   return (
     <main className="dg-page-main space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <p className="text-sm text-slate-400">{meta.total} result{meta.total === 1 ? "" : "s"} · {template.label} workflow</p>
+        <div>
+          <p className="text-sm text-slate-400">{meta.total} result{meta.total === 1 ? "" : "s"} · {template.label} workflow</p>
+          {!canWriteJobs ? (
+            <p className="mt-1 text-xs text-slate-500">
+              Read-only access. Organisation-wide Services edit access is required to create, assign or update jobs.
+            </p>
+          ) : null}
+        </div>
         {canWriteJobs ? (
           <CreateServiceJobForm
             jobTypes={template.jobTypes}
@@ -88,6 +96,7 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
             members={memberOptions}
             templateKey={template.key}
             jobLabel={template.terminology.job}
+            timeZone={timeZone}
           />
         ) : null}
       </div>
@@ -95,15 +104,15 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
       <div className="dg-card">
         {!items.length ? (
           <div className="space-y-2">
-            <p className="text-sm text-slate-500">{hasFilters ? "No jobs match these filters." : `No jobs yet. Create one to start the ${template.workflow.map((s) => s.label).slice(0, 4).join(" → ")}… flow.`}</p>
-            {hasFilters ? <Link href="/apps/services/jobs" className="text-sm text-sky-400 hover:underline">Clear filters</Link> : null}
+            <p className="text-sm text-slate-500">{hasFilters ? "No jobs match these filters." : canWriteJobs ? `No jobs yet. Create one to start the ${template.workflow.map((s) => s.label).slice(0, 4).join(" → ")}… flow.` : "No jobs yet."}</p>
+            {hasFilters ? <Link href="/apps/services/jobs" className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">Clear filters</Link> : null}
           </div>
         ) : (
           <ul className="divide-y divide-slate-800">
             {items.map((job) => (
               <li key={job.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <div className="min-w-0 flex-1">
-                  <Link href={`/apps/services/jobs/${job.id}`} className="font-medium text-white hover:underline">{job.title}</Link>
+                  <Link href={`/apps/services/jobs/${job.id}`} className="inline-flex min-h-11 items-center font-medium text-white hover:underline">{job.title}</Link>
                   <p className="text-sm text-slate-400">
                     {stageLabel.get(job.stage) ?? job.stage.replace(/_/g, " ")} · {job.jobType?.replace(/_/g, " ") ?? "—"}
                     {job.siteAddress ? ` · ${job.siteAddress}` : ""}

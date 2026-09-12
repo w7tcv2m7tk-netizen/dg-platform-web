@@ -1,4 +1,4 @@
-/** Org-aware calendar helpers for Services scheduling (default Australia/Brisbane). */
+/** Organisation-aware calendar helpers for Services scheduling (default Australia/Brisbane). */
 
 export const SERVICES_DEFAULT_TZ = "Australia/Brisbane";
 
@@ -32,7 +32,6 @@ export function dayKeyRange(from: string, count: number): string[] {
 
 export function formatDayHeading(key: string, timeZone: string): string {
   const [y, m, day] = key.split("-").map(Number);
-  // Noon UTC so en-AU weekday matches the calendar day in AU timezones.
   const d = new Date(Date.UTC(y, m - 1, day, 12));
   return d.toLocaleDateString("en-AU", {
     timeZone,
@@ -65,6 +64,27 @@ export function formatDateTime(iso: string, timeZone: string): string {
     dateStyle: "medium",
     timeStyle: "short",
   });
+}
+
+/** Format an instant as the `YYYY-MM-DDTHH:mm` value expected by datetime-local. */
+export function zonedDateTimeInput(
+  iso: string | null | undefined,
+  timeZone: string,
+): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
 }
 
 /** Offset of `timeZone` at `date` (ms to add to local wall time to get UTC). */
@@ -107,6 +127,13 @@ export function zonedLocalToUtc(
   let utc = new Date(wallAsUtc - timeZoneOffsetMs(new Date(wallAsUtc), timeZone));
   utc = new Date(wallAsUtc - timeZoneOffsetMs(utc, timeZone));
   return utc;
+}
+
+/** Convert a datetime-local value into a UTC Date using the organisation timezone. */
+export function zonedDateTimeLocalToUtc(value: string, timeZone: string): Date {
+  const [dayKey, time = "00:00"] = value.split("T");
+  if (!dayKey) return new Date(Number.NaN);
+  return zonedLocalToUtc(dayKey, time.length === 5 ? `${time}:00` : time, timeZone);
 }
 
 /** Inclusive ISO bounds for a YYYY-MM-DD calendar day in `timeZone`. */

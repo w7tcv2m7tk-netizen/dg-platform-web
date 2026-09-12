@@ -53,7 +53,7 @@ export function ApplyServiceTemplateForm({
         <select
           value={key}
           onChange={(e) => setKey(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
+          className="mt-1 min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-white"
         >
           {templates.map((t) => (
             <option key={t.key} value={t.key}>
@@ -73,14 +73,16 @@ export function ApplyServiceTemplateForm({
           </span>
         </p>
       ) : (
-        <p className="text-xs text-amber-200/80">No template applied yet — pick one for the pilot.</p>
+        <p className="text-xs text-amber-200/80">
+          No template applied yet — select one to configure Services for this workspace.
+        </p>
       )}
       {error ? <p className="text-sm text-red-300">{error}</p> : null}
       {saved ? <p className="text-sm text-emerald-300">Template applied</p> : null}
       <button
         type="submit"
         disabled={pending}
-        className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+        className="min-h-11 rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
       >
         {pending ? "Applying…" : currentKey === key ? "Re-apply template" : "Apply template"}
       </button>

@@ -15,6 +15,7 @@ import { EditServiceJobForm } from "@/components/services/EditServiceJobForm";
 import { JobChecklistPhotosPanel } from "@/components/services/JobChecklistPhotosPanel";
 import { UpdateJobStageForm } from "@/components/services/UpdateJobStageForm";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { canManageServices } from "@/lib/services-page-access";
 import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
 
 interface PageProps {
@@ -26,7 +27,7 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
   const session = await getAuthorisedPlatformPageSession("services.jobs.read");
   if (!session) notFound();
 
-  const canWriteJobs = sessionHasFeature(session, "services.jobs.write");
+  const canWriteJobs = canManageServices(session);
   const canReadContacts = sessionHasFeature(session, "crm.contacts.read");
   const canReadCommerce = sessionHasFeature(session, "commerce.read");
 
@@ -104,12 +105,22 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/apps/services/jobs" className="text-sm text-sky-400 hover:underline">← Jobs</Link>
+        <Link
+          href="/apps/services/jobs"
+          className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+        >
+          ← Jobs
+        </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">{job.title}</h1>
         <p className="text-sm text-slate-400">
           {stageLabel} · {job.status}
           {job.scheduledStartAt ? ` · ${formatDateTime(job.scheduledStartAt, timeZone)}` : ""}
         </p>
+        {!canWriteJobs ? (
+          <p className="mt-1 text-xs text-slate-500">
+            Read-only job. Organisation-wide Services edit access is required to change stage, assignment, schedule, checklist or notes.
+          </p>
+        ) : null}
       </header>
       <main className="dg-page-main space-y-6">
         {canWriteJobs ? (
@@ -126,6 +137,7 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
             members={memberOptions}
             quotes={[...quoteMap.values()]}
             contact={contact ? { id: contact.id, label: [contact.firstName, contact.lastName].filter(Boolean).join(" ") } : null}
+            timeZone={timeZone}
             customerLabel={template.terminology.customer}
             quoteLabel={template.terminology.quote}
           />
