@@ -24,9 +24,11 @@ const APPLICATION_TYPES = [
 export function CreateFinanceApplicationForm({
   contacts,
   stages = DEFAULT_STAGES,
+  currency = "AUD",
 }: {
   contacts: { id: string; label: string }[];
   stages?: { id: string; label: string }[];
+  currency?: string;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -37,7 +39,8 @@ export function CreateFinanceApplicationForm({
     e.preventDefault();
     setPending(true);
     setError(null);
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const amount = String(fd.get("loanAmount") ?? "").trim();
     const applicationType = String(fd.get("applicationType") ?? "") || undefined;
     const res = await fetch("/api/v1/finance/applications", {
@@ -62,7 +65,7 @@ export function CreateFinanceApplicationForm({
       return;
     }
     setOpen(false);
-    e.currentTarget.reset();
+    form.reset();
     router.refresh();
   }
 
@@ -71,7 +74,7 @@ export function CreateFinanceApplicationForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
+        className="min-h-11 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"
       >
         New application
       </button>
@@ -85,12 +88,12 @@ export function CreateFinanceApplicationForm({
         name="title"
         required
         placeholder="Application title"
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+        className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
       />
       <div className="grid gap-3 sm:grid-cols-2">
         <select
           name="stage"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
           defaultValue={stages[0]?.id ?? "enquiry"}
         >
           {stages.map((s) => (
@@ -101,7 +104,7 @@ export function CreateFinanceApplicationForm({
         </select>
         <select
           name="applicationType"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
           defaultValue="home_loan"
         >
           {APPLICATION_TYPES.map((t) => (
@@ -112,7 +115,7 @@ export function CreateFinanceApplicationForm({
         </select>
         <select
           name="contactId"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
           defaultValue=""
         >
           <option value="">Borrower (CRM contact)</option>
@@ -125,35 +128,37 @@ export function CreateFinanceApplicationForm({
         <input
           name="loanAmount"
           type="number"
+          min="0"
           step="0.01"
-          placeholder="Loan amount (AUD)"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          inputMode="decimal"
+          placeholder={`Loan amount (${currency})`}
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         />
         <input
           name="lenderName"
           placeholder="Lender"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+          className="min-h-11 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
         />
       </div>
       <textarea
         name="notes"
         rows={2}
         placeholder="Notes"
-        className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+        className="min-h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
       />
       {error ? <p className="text-sm text-red-400">{error}</p> : null}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+          className="min-h-11 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
         >
           {pending ? "Saving…" : "Create"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300"
+          className="min-h-11 rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300"
         >
           Cancel
         </button>

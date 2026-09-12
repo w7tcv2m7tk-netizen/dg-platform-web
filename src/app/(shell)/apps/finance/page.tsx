@@ -1,19 +1,11 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
 import { listContacts, listFinanceApplications } from "@dg/platform-core";
 
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { getOrganisationMoneySettings, formatMoneyFromCents } from "@/lib/organisation-money";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function FinanceOverviewPage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -23,9 +15,10 @@ export default async function FinanceOverviewPage() {
     );
   }
 
-  const [{ items, meta }, contacts] = await Promise.all([
+  const [{ items, meta }, contacts, money] = await Promise.all([
     listFinanceApplications({ organisationId: session.organisationId, limit: 100 }),
     listContacts({ organisationId: session.organisationId, limit: 100 }),
+    getOrganisationMoneySettings(session.organisationId),
   ]);
 
   const byStage = new Map<string, number>();
@@ -59,23 +52,27 @@ export default async function FinanceOverviewPage() {
         </div>
         <div className="dg-card">
           <p className="text-xs uppercase tracking-wide text-slate-500">CRM contacts</p>
-          <p className="mt-1 text-2xl font-semibold text-white">
-            {contacts.meta.total}
-          </p>
+          <p className="mt-1 text-2xl font-semibold text-white">{contacts.meta.total}</p>
         </div>
       </div>
 
       <section className="dg-card">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-semibold text-white">Pipeline by stage</h2>
-          <Link href="/apps/finance/pipeline" className="text-sm text-sky-400 hover:underline">
+          <Link
+            href="/apps/finance/pipeline"
+            className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+          >
             Open pipeline →
           </Link>
         </div>
         {byStage.size === 0 ? (
           <p className="mt-3 text-sm text-slate-400">
             No applications yet.{" "}
-            <Link href="/apps/finance/applications" className="text-sky-400 hover:underline">
+            <Link
+              href="/apps/finance/applications"
+              className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+            >
               Create the first one
             </Link>
             .
@@ -101,34 +98,33 @@ export default async function FinanceOverviewPage() {
           <p className="mt-2 text-sm text-slate-400">Nothing in the pipeline yet.</p>
         ) : (
           <ul className="mt-3 divide-y divide-slate-800">
-            {items.slice(0, 8).map((app) => (
-              <li key={app.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
-                <div>
-                  <p className="font-medium text-white">{app.title}</p>
-                  <p className="text-xs text-slate-500">
-                    {app.stage} · {app.status}
-                    {app.lenderName ? ` · ${app.lenderName}` : ""}
-                  </p>
-                </div>
-                {app.loanAmountCents != null ? (
-                  <p className="text-sm text-slate-300">
-                    ${(app.loanAmountCents / 100).toLocaleString("en-AU")}
-                  </p>
-                ) : null}
-              </li>
-            ))}
+            {items.slice(0, 8).map((app) => {
+              const amount = formatMoneyFromCents(app.loanAmountCents, money);
+              return (
+                <li key={app.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                  <div>
+                    <p className="font-medium text-white">{app.title}</p>
+                    <p className="text-xs text-slate-500">
+                      {app.stage} · {app.status}
+                      {app.lenderName ? ` · ${app.lenderName}` : ""}
+                    </p>
+                  </div>
+                  {amount ? <p className="text-sm text-slate-300">{amount}</p> : null}
+                </li>
+              );
+            })}
           </ul>
         )}
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
             href="/apps/finance/applications"
-            className="rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-300 hover:bg-blue-500/15"
+            className="inline-flex min-h-11 items-center rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm text-blue-300 hover:bg-blue-500/15"
           >
             Manage applications
           </Link>
           <Link
             href="/apps/finance/clients"
-            className="rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-600"
+            className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-600"
           >
             View clients
           </Link>

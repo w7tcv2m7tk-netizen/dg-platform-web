@@ -1,23 +1,13 @@
 import Link from "next/link";
-import { currentUser } from "@clerk/nextjs/server";
-import {
-  getFinanceTemplate,
-  listFinanceApplications,
-} from "@dg/platform-core";
+import { getFinanceTemplate, listFinanceApplications } from "@dg/platform-core";
 
 import { UpdateFinanceApplicationStageForm } from "@/components/finance/UpdateFinanceApplicationStageForm";
-import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { canManageFinance } from "@/lib/finance-page-access";
+import { formatMoneyFromCents, getOrganisationMoneySettings } from "@/lib/organisation-money";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function FinancePipelinePage() {
-  const user = await currentUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? "";
-  const name =
-    user?.fullName ??
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
-    email;
-  const session = user?.id
-    ? await resolveActivePlatformSession({ clerkUserId: user.id, email, name })
-    : null;
+  const { session } = await getPlatformPageContext();
 
   if (!session) {
     return (
@@ -29,11 +19,14 @@ export default async function FinancePipelinePage() {
 
   const template = getFinanceTemplate("mortgage_broking");
   const stages = template.stages.map((s) => s.id);
-
-  const { items } = await listFinanceApplications({
-    organisationId: session.organisationId,
-    limit: 100,
-  });
+  const [{ items }, money] = await Promise.all([
+    listFinanceApplications({
+      organisationId: session.organisationId,
+      limit: 100,
+    }),
+    getOrganisationMoneySettings(session.organisationId),
+  ]);
+  const canManage = canManageFinance(session);
 
   const grouped = new Map<string, typeof items>();
   for (const stage of stages) grouped.set(stage, []);
@@ -57,9 +50,16 @@ export default async function FinancePipelinePage() {
 
   return (
     <main className="dg-page-main space-y-6">
-      <p className="text-sm text-slate-400">
-        {session.organisationName} · {template.label} stages
-      </p>
+      <div>
+        <p className="text-sm text-slate-400">
+          {session.organisationName} · {template.label} stages
+        </p>
+        {!canManage ? (
+          <p className="mt-1 text-xs text-slate-500">
+            Read-only pipeline. Stage changes require organisation-wide Finance edit access.
+          </p>
+        ) : null}
+      </div>
       <div className="grid gap-4 lg:grid-cols-3 xl:grid-cols-4">
         {[...grouped.entries()].map(([stage, apps]) => (
           <section key={stage} className="dg-card min-h-[12rem]">
@@ -75,36 +75,46 @@ export default async function FinancePipelinePage() {
               <p className="mt-4 text-xs text-slate-600">Empty</p>
             ) : (
               <ul className="mt-3 space-y-2">
-                {apps.map((app) => (
-                  <li
-                    key={app.id}
-                    className="rounded-lg border border-slate-800 bg-slate-950/50 px-2.5 py-2"
-                  >
-                    <p className="text-sm font-medium text-white">{app.title}</p>
-                    <p className="text-[11px] text-slate-500">
-                      {app.status}
-                      {app.lenderName ? ` · ${app.lenderName}` : ""}
-                      {app.loanAmountCents != null
-                        ? ` · $${(app.loanAmountCents / 100).toLocaleString("en-AU")}`
-                        : ""}
-                    </p>
-                    <div className="mt-2">
-                      <UpdateFinanceApplicationStageForm
-                        applicationId={app.id}
-                        currentStage={app.stage}
-                        stages={template.stages}
-                      />
-                    </div>
-                  </li>
-                ))}
+                {apps.map((app) => {
+                  const amount = formatMoneyFromCents(app.loanAmountCents, money);
+                  return (
+                    <li
+                      key={app.id}
+                      className="rounded-lg border border-slate-800 bg-slate-950/50 px-2.5 py-2"
+                    >
+                      <p className="text-sm font-medium text-white">{app.title}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {app.status}
+                        {app.lenderName ? ` · ${app.lenderName}` : ""}
+                        {amount ? ` · ${amount}` : ""}
+                      </p>
+                      <div className="mt-2">
+                        {canManage ? (
+                          <UpdateFinanceApplicationStageForm
+                            applicationId={app.id}
+                            currentStage={app.stage}
+                            stages={template.stages}
+                          />
+                        ) : (
+                          <span className="inline-flex min-h-11 items-center text-xs capitalize text-slate-400">
+                            {app.stage.replace(/_/g, " ")}
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>
         ))}
       </div>
       <p className="text-sm text-slate-500">
-        <Link href="/apps/finance/applications" className="text-sky-400 hover:underline">
-          Create / manage applications →
+        <Link
+          href="/apps/finance/applications"
+          className="inline-flex min-h-11 items-center text-sky-400 hover:underline"
+        >
+          {canManage ? "Create / manage applications →" : "View applications →"}
         </Link>
       </p>
     </main>
