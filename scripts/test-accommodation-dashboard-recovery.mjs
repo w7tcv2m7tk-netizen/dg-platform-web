@@ -18,8 +18,24 @@ const unitsPage = readFileSync(
   new URL("../src/app/(shell)/apps/accommodation/units/page.tsx", import.meta.url),
   "utf8",
 );
+const bookingsPage = readFileSync(
+  new URL("../src/app/(shell)/apps/accommodation/bookings/page.tsx", import.meta.url),
+  "utf8",
+);
 const checkIns = readFileSync(
   new URL("../src/app/(shell)/apps/accommodation/check-ins/page.tsx", import.meta.url),
+  "utf8",
+);
+const housekeepingPage = readFileSync(
+  new URL("../src/app/(shell)/apps/accommodation/housekeeping/page.tsx", import.meta.url),
+  "utf8",
+);
+const housekeepingBoard = readFileSync(
+  new URL("../src/components/accommodation/AccommodationHousekeepingBoard.tsx", import.meta.url),
+  "utf8",
+);
+const housekeepingRoute = readFileSync(
+  new URL("../src/app/api/v1/accommodation/housekeeping/route.ts", import.meta.url),
   "utf8",
 );
 const paymentsPage = readFileSync(
@@ -60,6 +76,12 @@ test("units page stays on native organisation context with no legacy site picker
   assert.doesNotMatch(unitsPage, /getWpAccommodationSite/);
 });
 
+test("bookings page uses the native platform page context", () => {
+  assert.match(bookingsPage, /getPlatformPageContext/);
+  assert.doesNotMatch(bookingsPage, /fetchPortalMe/);
+  assert.doesNotMatch(bookingsPage, /currentUser/);
+});
+
 test("check-in windows use the organisation timezone instead of a Brisbane label", () => {
   assert.match(checkIns, /select: \{ timezone: true \}/);
   assert.match(checkIns, /accToday\(organisationTimeZone\)/);
@@ -71,6 +93,33 @@ test("check-in guest actions meet the native touch target floor", () => {
   assert.match(checkIns, /min-h-11/);
   assert.match(checkIns, /Email guest/);
   assert.match(checkIns, /Call/);
+});
+
+test("housekeeping is tenant-local, turnover-aware and native-only", () => {
+  assert.match(housekeepingPage, /getPlatformPageContext/);
+  assert.match(housekeepingPage, /select: \{ timezone: true \}/);
+  assert.match(housekeepingPage, /today = accToday\(timeZone\)/);
+  assert.match(housekeepingPage, /listStayBookings\(session\.organisationId, 250\)/);
+  assert.match(housekeepingPage, /booking\.checkout === today/);
+  assert.doesNotMatch(housekeepingPage, /fetchPortalMe/);
+  assert.doesNotMatch(housekeepingPage, /currentUser/);
+  assert.doesNotMatch(housekeepingBoard, /WordPress/);
+  assert.doesNotMatch(housekeepingBoard, /Deploy plugin/);
+});
+
+test("housekeeping can update native-only units and meets the touch target floor", () => {
+  assert.match(housekeepingBoard, /platform_id: r\.platform_id/);
+  assert.match(housekeepingBoard, /platform_id: item\.platform_id/);
+  assert.match(housekeepingBoard, /min-h-11/);
+  assert.match(housekeepingBoard, /Save all statuses/);
+});
+
+test("housekeeping writes enforce organisation-scope Industry edit permission", () => {
+  assert.match(housekeepingRoute, /requirePermission/);
+  assert.match(housekeepingRoute, /module: "industry"/);
+  assert.match(housekeepingRoute, /action: "edit"/);
+  assert.match(housekeepingRoute, /scope: "organisation"/);
+  assert.match(housekeepingRoute, /subModule: "accommodation"/);
 });
 
 test("payments use organisation locale and currency rather than hard-coded AUD", () => {
