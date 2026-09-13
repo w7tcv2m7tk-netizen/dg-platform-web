@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { BusinessBenchmarksDashboard } from "@/components/intelligence/BusinessBenchmarksDashboard";
+import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { loadBusinessBenchmarksPageData } from "@/lib/benchmarks-page-data";
 
 export default async function BenchmarksPage({
@@ -28,6 +29,8 @@ export default async function BenchmarksPage({
     );
   }
 
+  const hasOpportunities = data.opportunities.length > 0;
+
   return (
     <>
       <header className="dg-page-header">
@@ -52,6 +55,46 @@ export default async function BenchmarksPage({
         </div>
       </header>
       <main className="dg-page-main">
+        {!data.scoresLive ? (
+          <section className="mb-6 rounded-xl border border-blue-500/25 bg-blue-500/5 px-5 py-4">
+            <p className="font-medium text-blue-100">Benchmark evidence is incomplete</p>
+            <p className="mt-1 text-sm text-slate-400">
+              DigitalGate needs more connected business data before every comparison can be treated as
+              live evidence. Connect the missing sources or ask Advisor what will improve coverage fastest.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <ResolutionAction
+                href="/dashboard/settings/connectors"
+                mode="guided"
+                label="Connect missing data"
+              />
+              <ResolutionAction
+                href="/dashboard/advisor"
+                mode="guided"
+                label="Help me improve coverage"
+              />
+            </div>
+          </section>
+        ) : null}
+
+        {hasOpportunities ? (
+          <section className="mb-6 rounded-xl border border-amber-500/25 bg-amber-500/5 px-5 py-4">
+            <p className="font-medium text-amber-100">
+              DigitalGate found {data.opportunities.length} benchmark opportunit{data.opportunities.length === 1 ? "y" : "ies"}
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              These are evidence-backed areas where your business is trailing the selected comparison group.
+              Advisor can prioritise the next action and direct you to the right app or setting.
+            </p>
+            <ResolutionAction
+              href="/dashboard/advisor"
+              mode="guided"
+              label="Show me what to fix first"
+              className="mt-4"
+            />
+          </section>
+        ) : null}
+
         <Suspense fallback={null}>
           <BusinessBenchmarksDashboard data={data} />
         </Suspense>

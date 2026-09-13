@@ -49,11 +49,17 @@ function stateClasses(state: DigitalPerformanceSignal["state"]) {
     };
   }
   return {
-    border: "border-slate-800 hover:border-slate-600",
+    border: "border-slate-800 hover:border-sky-500/40",
     badge: "bg-slate-800/80 text-slate-400",
     dot: "bg-slate-500",
     label: "Needs data",
   };
+}
+
+function actionLabel(card: GrowthSummaryCard) {
+  if (card.state === "stale") return "Refresh now →";
+  if (card.state === "unavailable") return "Fix missing data →";
+  return `Open ${card.label} →`;
 }
 
 function fallbackGrowthCard(appId: string): GrowthSummaryCard | null {
@@ -129,8 +135,8 @@ function ScoreCard({ card }: { card: GrowthSummaryCard }) {
       </div>
       <p className="mt-3 text-2xl font-semibold tracking-tight text-white">{card.value}</p>
       <p className="mt-2 min-h-10 text-xs leading-relaxed text-slate-500">{card.detail}</p>
-      <p className="mt-3 text-xs font-medium text-sky-400 opacity-80 transition group-hover:opacity-100">
-        Open {card.label} →
+      <p className={`mt-3 text-xs font-semibold transition group-hover:text-white ${card.state === "live" ? "text-sky-400" : "text-amber-300"}`}>
+        {actionLabel(card)}
       </p>
     </Link>
   );
@@ -180,7 +186,8 @@ export async function DigitalPerformanceStrip({ signals }: { signals: DigitalPer
               </p>
               <h2 className="mt-1 text-lg font-semibold text-white">Your subscribed Growth Apps</h2>
               <p className="mt-1 max-w-3xl text-xs leading-relaxed text-slate-500">
-                An executive rating from each Growth App this business has enabled. Canonical scores are shown where they exist; otherwise the card stays explicit about missing evidence rather than manufacturing a number.
+                DigitalGate shows measured performance where evidence exists. When data is stale or missing,
+                the card becomes the direct route to refresh or fix it rather than a dead-end warning.
               </p>
             </div>
             <span className="rounded-full border border-slate-800 bg-slate-950/50 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">
@@ -202,8 +209,15 @@ export async function DigitalPerformanceStrip({ signals }: { signals: DigitalPer
               <p className="mt-1 text-sm font-medium text-white">Website Operations</p>
               <p className="mt-1 text-xs text-slate-500">{websiteSignal.detail}</p>
             </div>
-            <Link href={websiteSignal.href} className="shrink-0 rounded-full border border-slate-700 bg-slate-950/50 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-sky-500/40">
-              {websiteSignal.value} · View →
+            <Link
+              href={websiteSignal.href}
+              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${websiteSignal.state === "live" ? "border-slate-700 bg-slate-950/50 text-slate-200 hover:border-sky-500/40" : "border-amber-500/30 bg-amber-500/10 text-amber-100 hover:border-amber-400/50"}`}
+            >
+              {websiteSignal.state === "live"
+                ? `${websiteSignal.value} · View →`
+                : websiteSignal.state === "stale"
+                  ? "Refresh website check →"
+                  : "Fix website data →"}
             </Link>
           </div>
         </section>

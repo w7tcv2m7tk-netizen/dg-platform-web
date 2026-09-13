@@ -6,6 +6,7 @@ import {
 } from "@/components/analytics/AnalyticsPageIntro";
 import { AnalyticsKeyMetricsGrid } from "@/components/analytics/AnalyticsKeyMetricsGrid";
 import { AnalyticsTrendChart } from "@/components/analytics/AnalyticsTrendChart";
+import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { loadAnalyticsPageData } from "@/lib/analytics-page-data";
 import Link from "next/link";
 
@@ -22,10 +23,25 @@ export default async function AnalyticsOverviewPage() {
         <AnalyticsPhilosophyNote />
 
         {!data.metrics ? (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100/90">
-            Connect CRM, commerce, and website systems to load live metrics. Analytics never invents
-            numbers — only connected data appears here.
-          </div>
+          <section className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-4">
+            <p className="font-medium text-amber-100">Analytics needs live business data</p>
+            <p className="mt-1 text-sm text-slate-400">
+              Connect CRM, commerce and website systems to load real metrics. Analytics never invents
+              numbers, so missing evidence stays visibly unavailable until a source is connected.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <ResolutionAction
+                href="/apps/analytics/connectors"
+                mode="guided"
+                label="Connect data sources"
+              />
+              <ResolutionAction
+                href="/dashboard/advisor"
+                mode="guided"
+                label="Help me choose what to connect"
+              />
+            </div>
+          </section>
         ) : null}
 
         <section className="dg-card">

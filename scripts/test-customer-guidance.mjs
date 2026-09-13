@@ -12,6 +12,16 @@ const supportActions = read("src/components/SupportActions.tsx");
 const nativeGuides = read("src/lib/native-app-setup-guides.ts");
 const guideView = read("src/components/platform/AppSetupGuideView.tsx");
 const registry = read("packages/platform-core/src/apps/registry.ts");
+const resolutionAction = read("src/components/ui/ResolutionAction.tsx");
+const healthDashboard = read("src/components/intelligence/BusinessHealthDashboard.tsx");
+const insightsDashboard = read("src/components/intelligence/InsightsDashboard.tsx");
+const twinPage = read("src/app/(shell)/dashboard/twin/page.tsx");
+const benchmarksPage = read("src/app/(shell)/dashboard/benchmarks/page.tsx");
+const performanceStrip = read("src/components/overview/DigitalPerformanceStrip.tsx");
+const analyticsPage = read("src/app/(shell)/apps/analytics/page.tsx");
+const automationLogs = read("src/app/(shell)/apps/automation/logs/page.tsx");
+const hostingPage = read("src/app/(shell)/apps/infrastructure/hosting/page.tsx");
+const propertyManagementPage = read("src/app/(shell)/apps/property-management/page.tsx");
 
 test("knowledge base covers the launch-critical customer journey", () => {
   for (const slug of [
@@ -108,4 +118,63 @@ test("migration guidance keeps historical systems outside normal Gen 2 authority
   assert.match(articles, /migration step/i);
   assert.match(articles, /should not silently become the fallback source/i);
   assert.match(articles, /does not make the old website the runtime data authority/i);
+});
+
+test("shared resolution actions support automatic, guided and manual remediation", () => {
+  assert.match(resolutionAction, /automatic/);
+  assert.match(resolutionAction, /guided/);
+  assert.match(resolutionAction, /manual/);
+  assert.match(resolutionAction, /Fix now/);
+  assert.match(resolutionAction, /Help me fix this/);
+});
+
+test("Business Health and Insights findings expose a resolution path", () => {
+  assert.match(healthDashboard, /ResolutionAction/);
+  assert.match(healthDashboard, /Improve coverage/);
+  assert.match(healthDashboard, /Improve this/);
+  assert.match(insightsDashboard, /ResolutionAction/);
+  assert.match(insightsDashboard, /Get help fixing it/);
+});
+
+test("Digital Twin incompleteness gives customers direct repair choices", () => {
+  assert.match(twinPage, /ResolutionAction/);
+  assert.match(twinPage, /Fix connected data/);
+  assert.match(twinPage, /Complete Business Profile/);
+  assert.match(twinPage, /Help me improve this/);
+});
+
+test("Benchmarks convert missing evidence and opportunities into guided actions", () => {
+  assert.match(benchmarksPage, /Connect missing data/);
+  assert.match(benchmarksPage, /Help me improve coverage/);
+  assert.match(benchmarksPage, /Show me what to fix first/);
+});
+
+test("Command Centre growth performance never leaves stale or missing evidence passive", () => {
+  assert.match(performanceStrip, /Refresh now/);
+  assert.match(performanceStrip, /Fix missing data/);
+  assert.match(performanceStrip, /Fix website data/);
+});
+
+test("Analytics missing evidence routes users directly to data connection or Advisor", () => {
+  assert.match(analyticsPage, /Connect data sources/);
+  assert.match(analyticsPage, /Help me choose what to connect/);
+  assert.match(analyticsPage, /ResolutionAction/);
+});
+
+test("Automation empty activity state provides setup and guidance actions", () => {
+  assert.match(automationLogs, /Review automation rules/);
+  assert.match(automationLogs, /Open setup guide/);
+  assert.match(automationLogs, /Help me automate this/);
+});
+
+test("Hosting routes DNS and SSL problems to the exact repair surfaces", () => {
+  assert.match(hostingPage, /Hosting needs attention/);
+  assert.match(hostingPage, /Fix DNS/);
+  assert.match(hostingPage, /Check SSL status/);
+  assert.match(hostingPage, /Help me fix hosting/);
+});
+
+test("Property Management open maintenance is a direct resolution path", () => {
+  assert.match(propertyManagementPage, /\/apps\/property-management\/maintenance/);
+  assert.match(propertyManagementPage, /Resolve maintenance/);
 });

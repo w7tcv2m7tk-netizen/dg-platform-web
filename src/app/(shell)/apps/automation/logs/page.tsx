@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAppSetupHref, listOrganisationActivities } from "@dg/platform-core";
 
+import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 function formatDate(iso: string) {
@@ -54,9 +55,29 @@ export default async function AutomationLogsPage() {
           {!session ? (
             <p className="mt-4 text-sm text-slate-500">Sign in to view automation activity.</p>
           ) : !items.length ? (
-            <p className="mt-4 text-sm text-slate-500">
-              No automation activity yet. Completed runs will appear here.
-            </p>
+            <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-4">
+              <p className="font-medium text-amber-100">No automation activity yet</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Set up or review your automation rules so DigitalGate has a supported workflow to run.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <ResolutionAction
+                  href="/apps/automation/rules"
+                  mode="guided"
+                  label="Review automation rules"
+                />
+                <ResolutionAction
+                  href={getAppSetupHref("automation")}
+                  mode="guided"
+                  label="Open setup guide"
+                />
+                <ResolutionAction
+                  href="/dashboard/advisor"
+                  mode="guided"
+                  label="Help me automate this"
+                />
+              </div>
+            </div>
           ) : (
             <ul className="mt-4 space-y-2">
               {items.map((item) => (
