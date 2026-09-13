@@ -17,6 +17,10 @@
       "schedule": "30 5 * * *"
     },
     {
+      "path": "/api/cron/seo-monitoring",
+      "schedule": "45 5 * * *"
+    },
+    {
       "path": "/api/cron/scheduled-emails",
       "schedule": "0 9 * * *"
     },
