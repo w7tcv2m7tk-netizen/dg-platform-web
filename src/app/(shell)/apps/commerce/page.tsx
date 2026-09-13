@@ -31,11 +31,35 @@ export default async function CommerceOverviewPage() {
       </header>
       <main className="dg-page-main space-y-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Revenue MTD</p><p className="mt-1 text-2xl font-bold text-white">{formatMoney(snapshot.revenueMtdCents)}</p></div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Revenue YTD</p><p className="mt-1 text-2xl font-bold text-white">{formatMoney(snapshot.revenueYtdCents)}</p></div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Outstanding AR</p><p className="mt-1 text-2xl font-bold text-amber-300">{formatMoney(snapshot.outstandingArCents)}</p></div>
-          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Overdue AR</p><p className="mt-1 text-2xl font-bold text-red-300">{formatMoney(snapshot.overdueArCents)}</p></div>
-          <Link href="/apps/commerce/subscriptions" className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 hover:border-slate-600"><p className="text-xs uppercase tracking-wide text-slate-500">MRR</p><p className="mt-1 text-2xl font-bold text-emerald-300">{formatMoney(snapshot.mrrCents)}</p><p className="mt-1 text-xs text-slate-500">{snapshot.activeSubscriptions} active sub(s)</p></Link>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Revenue MTD</p>
+            <p className="mt-1 text-2xl font-bold text-white">{formatMoney(snapshot.revenueMtdCents)}</p>
+          </div>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Revenue YTD</p>
+            <p className="mt-1 text-2xl font-bold text-white">{formatMoney(snapshot.revenueYtdCents)}</p>
+          </div>
+          <Link
+            href="/apps/commerce/invoices?status=outstanding"
+            className={`rounded-xl border bg-slate-900/50 p-4 transition hover:border-sky-500/40 ${snapshot.outstandingArCents > 0 ? "border-amber-500/30" : "border-slate-800"}`}
+          >
+            <p className="text-xs uppercase tracking-wide text-slate-500">Outstanding AR</p>
+            <p className="mt-1 text-2xl font-bold text-amber-300">{formatMoney(snapshot.outstandingArCents)}</p>
+            {snapshot.outstandingArCents > 0 ? <p className="mt-2 text-xs font-medium text-sky-400">Review outstanding invoices →</p> : null}
+          </Link>
+          <Link
+            href="/apps/commerce/invoices?status=overdue"
+            className={`rounded-xl border bg-slate-900/50 p-4 transition hover:border-red-400/50 ${snapshot.overdueArCents > 0 ? "border-red-500/35" : "border-slate-800"}`}
+          >
+            <p className="text-xs uppercase tracking-wide text-slate-500">Overdue AR</p>
+            <p className="mt-1 text-2xl font-bold text-red-300">{formatMoney(snapshot.overdueArCents)}</p>
+            {snapshot.overdueArCents > 0 ? <p className="mt-2 text-xs font-medium text-red-200">Resolve overdue invoices →</p> : null}
+          </Link>
+          <Link href="/apps/commerce/subscriptions" className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 hover:border-slate-600">
+            <p className="text-xs uppercase tracking-wide text-slate-500">MRR</p>
+            <p className="mt-1 text-2xl font-bold text-emerald-300">{formatMoney(snapshot.mrrCents)}</p>
+            <p className="mt-1 text-xs text-slate-500">{snapshot.activeSubscriptions} active sub(s)</p>
+          </Link>
         </div>
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="dg-card">
@@ -48,7 +72,7 @@ export default async function CommerceOverviewPage() {
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
-          {[['/apps/commerce/quotes','Quotes'],['/apps/commerce/invoices','Invoices'],['/apps/commerce/products','Products'],['/apps/commerce/subscriptions','Subscriptions'],['/apps/commerce/reports','Reports']].map(([href,label]) => <Link key={href} href={href} className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700">{label}</Link>)}
+          {[["/apps/commerce/quotes","Quotes"],["/apps/commerce/invoices","Invoices"],["/apps/commerce/products","Products"],["/apps/commerce/subscriptions","Subscriptions"],["/apps/commerce/reports","Reports"]].map(([href,label]) => <Link key={href} href={href} className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700">{label}</Link>)}
           <Link href="/apps/automation" className="rounded-full bg-slate-800 px-4 py-2 text-sm text-white hover:bg-slate-700">Automation</Link>
           <Link href="/apps/re/vendor-leads" className="rounded-full bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">Request payment (RE)</Link>
         </div>
