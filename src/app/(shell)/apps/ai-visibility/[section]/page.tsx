@@ -10,6 +10,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AiVisibilityCompetitorsManager } from "@/components/ai-visibility/AiVisibilityCompetitorsManager";
+import { AiVisibilityEvidenceOpportunities } from "@/components/ai-visibility/AiVisibilityEvidenceOpportunities";
 import { AiVisibilityMonitorRunner } from "@/components/ai-visibility/AiVisibilityMonitorRunner";
 import { AiVisibilityObservationHistory } from "@/components/ai-visibility/AiVisibilityObservationHistory";
 import { AiVisibilityPromptsManager } from "@/components/ai-visibility/AiVisibilityPromptsManager";
@@ -135,8 +136,8 @@ export default async function AiVisibilitySectionPage({
         listAiVisibilityPrompts(session.organisationId),
         listAiVisibilityCompetitors(session.organisationId),
         getAiVisibilityIntelligenceSnapshot(session.organisationId),
-        sectionKey === "presence"
-          ? listAiVisibilityObservationEvidence({ organisationId: session.organisationId, limit: 25 })
+        sectionKey === "presence" || sectionKey === "opportunities"
+          ? listAiVisibilityObservationEvidence({ organisationId: session.organisationId, limit: 100 })
           : Promise.resolve([]),
       ]);
       prompts = promptRows;
@@ -168,6 +169,8 @@ export default async function AiVisibilitySectionPage({
     : null;
   const activePrompts =
     intelligence?.evidenceCoverage.activePrompts ?? prompts.filter((item) => item.status === "active").length;
+  const activeCompetitors =
+    intelligence?.evidenceCoverage.activeCompetitors ?? competitors.filter((item) => item.status === "active").length;
 
   return (
     <>
@@ -184,6 +187,14 @@ export default async function AiVisibilitySectionPage({
             <AiVisibilityMonitorRunner activePrompts={activePrompts} />
             <AiVisibilityObservationHistory observations={observations} />
           </>
+        ) : null}
+
+        {sectionKey === "opportunities" ? (
+          <AiVisibilityEvidenceOpportunities
+            observations={observations}
+            activePrompts={activePrompts}
+            activeCompetitors={activeCompetitors}
+          />
         ) : null}
 
         {sectionKey === "prompts" ? (
@@ -234,7 +245,7 @@ export default async function AiVisibilitySectionPage({
             </div>
             <div className="rounded-lg border border-slate-800 p-3">
               <span className="text-slate-500">Competitors</span>
-              <p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.activeCompetitors ?? 0}</p>
+              <p className="mt-1 text-xl font-semibold text-white">{activeCompetitors}</p>
             </div>
             <div className="rounded-lg border border-slate-800 p-3">
               <span className="text-slate-500">Observations</span>
