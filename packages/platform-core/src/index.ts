@@ -120,6 +120,7 @@ export * from "./automation";
 export * from "./communications";
 export * from "./seo";
 export * from "./seo/intelligence";
+export * from "./seo/recurring-monitoring";
 export * from "./ai-visibility";
 export * from "./ai-visibility/current-snapshot";
 export { getCurrentAiVisibilityIntelligenceSnapshot as getAiVisibilityIntelligenceSnapshot } from "./ai-visibility/current-snapshot";
