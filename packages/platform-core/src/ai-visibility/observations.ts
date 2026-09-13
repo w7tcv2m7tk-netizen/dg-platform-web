@@ -20,6 +20,7 @@ export type AiVisibilityObservationEvidence = {
     topic: string | null;
     locale: string;
     market: string;
+    status: string;
   };
   competitorMentions: Array<{
     competitorId: string;
@@ -64,6 +65,7 @@ export async function listAiVisibilityObservationEvidence(input: {
           topic: true,
           locale: true,
           market: true,
+          status: true,
         },
       },
       competitorMentions: {
