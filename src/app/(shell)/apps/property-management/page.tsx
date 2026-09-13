@@ -31,22 +31,30 @@ export default async function PropertyManagementOverviewPage() {
         ) : null}
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="dg-card">
+        <Link href="/apps/property-management/properties" className="dg-card block hover:border-sky-500/40">
           <p className="text-xs uppercase tracking-wide text-slate-500">Properties</p>
           <p className="mt-1 text-2xl font-semibold text-white">{counts.properties}</p>
-        </div>
-        <div className="dg-card">
+        </Link>
+        <Link href="/apps/property-management/leases" className="dg-card block hover:border-sky-500/40">
           <p className="text-xs uppercase tracking-wide text-slate-500">Leases</p>
           <p className="mt-1 text-2xl font-semibold text-white">{counts.leases}</p>
-        </div>
-        <div className="dg-card">
+        </Link>
+        <Link href="/apps/property-management/leases" className="dg-card block hover:border-sky-500/40">
           <p className="text-xs uppercase tracking-wide text-slate-500">Active leases</p>
           <p className="mt-1 text-2xl font-semibold text-white">{counts.activeLeases}</p>
-        </div>
-        <div className="dg-card">
+        </Link>
+        <Link
+          href="/apps/property-management/maintenance"
+          className={`dg-card block hover:border-sky-500/40 ${counts.openMaintenance > 0 ? "border-amber-500/30" : ""}`}
+        >
           <p className="text-xs uppercase tracking-wide text-slate-500">Open maintenance</p>
-          <p className="mt-1 text-2xl font-semibold text-white">{counts.openMaintenance}</p>
-        </div>
+          <p className={`mt-1 text-2xl font-semibold ${counts.openMaintenance > 0 ? "text-amber-200" : "text-white"}`}>
+            {counts.openMaintenance}
+          </p>
+          {counts.openMaintenance > 0 ? (
+            <p className="mt-2 text-xs font-medium text-sky-400">Resolve maintenance →</p>
+          ) : null}
+        </Link>
       </div>
       <p className="text-sm text-slate-500">
         Owners and tenants are Core CRM Contacts linked from leases rather than a separate people database.{" "}
