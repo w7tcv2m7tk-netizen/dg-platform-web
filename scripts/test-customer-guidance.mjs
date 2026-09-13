@@ -18,6 +18,9 @@ const insightsDashboard = read("src/components/intelligence/InsightsDashboard.ts
 const twinPage = read("src/app/(shell)/dashboard/twin/page.tsx");
 const benchmarksPage = read("src/app/(shell)/dashboard/benchmarks/page.tsx");
 const performanceStrip = read("src/components/overview/DigitalPerformanceStrip.tsx");
+const analyticsPage = read("src/app/(shell)/apps/analytics/page.tsx");
+const automationLogs = read("src/app/(shell)/apps/automation/logs/page.tsx");
+const hostingPage = read("src/app/(shell)/apps/infrastructure/hosting/page.tsx");
 
 test("knowledge base covers the launch-critical customer journey", () => {
   for (const slug of [
@@ -149,4 +152,23 @@ test("Command Centre growth performance never leaves stale or missing evidence p
   assert.match(performanceStrip, /Refresh now/);
   assert.match(performanceStrip, /Fix missing data/);
   assert.match(performanceStrip, /Fix website data/);
+});
+
+test("Analytics missing evidence routes users directly to data connection or Advisor", () => {
+  assert.match(analyticsPage, /Connect data sources/);
+  assert.match(analyticsPage, /Help me choose what to connect/);
+  assert.match(analyticsPage, /ResolutionAction/);
+});
+
+test("Automation empty activity state provides setup and guidance actions", () => {
+  assert.match(automationLogs, /Review automation rules/);
+  assert.match(automationLogs, /Open setup guide/);
+  assert.match(automationLogs, /Help me automate this/);
+});
+
+test("Hosting routes DNS and SSL problems to the exact repair surfaces", () => {
+  assert.match(hostingPage, /Hosting needs attention/);
+  assert.match(hostingPage, /Fix DNS/);
+  assert.match(hostingPage, /Check SSL status/);
+  assert.match(hostingPage, /Help me fix hosting/);
 });
