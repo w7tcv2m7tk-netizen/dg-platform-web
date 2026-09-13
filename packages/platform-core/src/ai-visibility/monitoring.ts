@@ -1,5 +1,5 @@
+import { getCurrentAiVisibilityIntelligenceSnapshot } from "./current-snapshot";
 import {
-  getAiVisibilityIntelligenceSnapshot,
   listAiVisibilityCompetitors,
   listAiVisibilityPrompts,
   recordAiVisibilityObservation,
@@ -45,7 +45,7 @@ export async function getAiVisibilityMonitoringPlan(organisationId: string) {
   const [prompts, competitors, snapshot] = await Promise.all([
     listAiVisibilityPrompts(organisationId),
     listAiVisibilityCompetitors(organisationId),
-    getAiVisibilityIntelligenceSnapshot(organisationId),
+    getCurrentAiVisibilityIntelligenceSnapshot(organisationId),
   ]);
 
   return {
@@ -133,6 +133,6 @@ export async function ingestAiVisibilityMonitoringBatch(input: {
     source,
     accepted: results.length,
     observationIds: results.map((item) => item.id),
-    snapshot: await getAiVisibilityIntelligenceSnapshot(input.organisationId),
+    snapshot: await getCurrentAiVisibilityIntelligenceSnapshot(input.organisationId),
   };
 }
