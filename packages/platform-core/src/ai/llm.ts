@@ -52,7 +52,7 @@ type LlmTransport = {
 };
 
 const GATEWAY_CHAT_URL = "https://ai-gateway.vercel.sh/v1/chat/completions";
-const DEFAULT_GATEWAY_STANDARD_MODEL = "openai/gpt-5.4-mini";
+const DEFAULT_GATEWAY_STANDARD_MODEL = "openai/gpt-4o-mini";
 const DEFAULT_GATEWAY_REASONING_MODEL = "openai/gpt-5.6-sol";
 const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
