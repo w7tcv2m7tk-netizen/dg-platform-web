@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { DigitalTwinDashboard } from "@/components/intelligence/DigitalTwinDashboard";
+import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { loadDigitalTwinPageData } from "@/lib/twin-page-data";
 
 export default async function DigitalTwinPage() {
@@ -21,6 +22,8 @@ export default async function DigitalTwinPage() {
       </>
     );
   }
+
+  const needsMoreContext = !data.scoresLive || data.overallCompleteness < 75;
 
   return (
     <>
@@ -46,6 +49,32 @@ export default async function DigitalTwinPage() {
         </div>
       </header>
       <main className="dg-page-main">
+        {needsMoreContext ? (
+          <section className="mb-6 rounded-xl border border-amber-500/25 bg-amber-500/5 px-5 py-4">
+            <p className="font-medium text-amber-100">Your Digital Twin can be improved</p>
+            <p className="mt-1 text-sm text-slate-400">
+              DigitalGate has identified missing or incomplete business context. Add the missing data
+              or ask Advisor to guide you to the most useful next fix.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <ResolutionAction
+                href="/dashboard/settings/connectors"
+                mode="guided"
+                label="Fix connected data"
+              />
+              <ResolutionAction
+                href="/dashboard/business"
+                mode="guided"
+                label="Complete Business Profile"
+              />
+              <ResolutionAction
+                href="/dashboard/advisor"
+                mode="guided"
+                label="Help me improve this"
+              />
+            </div>
+          </section>
+        ) : null}
         <DigitalTwinDashboard data={data} />
       </main>
     </>
