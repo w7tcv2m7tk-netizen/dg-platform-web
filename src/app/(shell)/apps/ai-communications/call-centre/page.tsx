@@ -6,6 +6,7 @@ import {
   listCommunicationSessions,
 } from "@dg/platform-core";
 
+import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { safeTimeZone } from "@/lib/organisation-timezone";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
@@ -122,27 +123,40 @@ export default async function CallCentrePage({
           </div>
         </form>
 
-        <div className="dg-card overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-800 text-left text-slate-500">
-                <th className="pb-2 pr-3">When</th>
-                <th className="pb-2 pr-3">Agent</th>
-                <th className="pb-2 pr-3">Direction</th>
-                <th className="pb-2 pr-3">Status</th>
-                <th className="pb-2 pr-3">Outcome</th>
-                <th className="pb-2">Duration</th>
-              </tr>
-            </thead>
-            <tbody>
-              {!result.items.length ? (
-                <tr>
-                  <td colSpan={6} className="py-6 text-slate-500">
-                    No calls yet. Publish an agent and complete a conversation to populate this list.
-                  </td>
+        {!result.items.length ? (
+          <section className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-5 py-5">
+            <h2 className="font-semibold text-amber-100">No call activity yet</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Publish an AI communications agent and complete a conversation to populate Call Centre activity.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <ResolutionAction
+                href="/apps/ai-communications/agents"
+                mode="guided"
+                label="Create or publish an agent"
+              />
+              <ResolutionAction
+                href="/dashboard/advisor"
+                mode="guided"
+                label="Help me set this up"
+              />
+            </div>
+          </section>
+        ) : (
+          <div className="dg-card overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-800 text-left text-slate-500">
+                  <th className="pb-2 pr-3">When</th>
+                  <th className="pb-2 pr-3">Agent</th>
+                  <th className="pb-2 pr-3">Direction</th>
+                  <th className="pb-2 pr-3">Status</th>
+                  <th className="pb-2 pr-3">Outcome</th>
+                  <th className="pb-2">Duration</th>
                 </tr>
-              ) : (
-                result.items.map((row) => (
+              </thead>
+              <tbody>
+                {result.items.map((row) => (
                   <tr key={row.id} className="border-b border-slate-800/60">
                     <td className="py-3 pr-3">
                       <Link
@@ -160,11 +174,11 @@ export default async function CallCentrePage({
                     </td>
                     <td className="py-3 text-slate-300">{formatDuration(row.durationSeconds)}</td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </main>
     </>
   );
