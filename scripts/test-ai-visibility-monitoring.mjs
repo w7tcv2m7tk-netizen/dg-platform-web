@@ -6,6 +6,8 @@ const read = (path) => fs.readFileSync(path, "utf8");
 const monitoring = read("packages/platform-core/src/ai-visibility/monitoring.ts");
 const route = read("src/app/api/v1/ai-visibility/monitoring/route.ts");
 const visibility = read("packages/platform-core/src/ai-visibility/index.ts");
+const currentSnapshot = read("packages/platform-core/src/ai-visibility/current-snapshot.ts");
+const platformIndex = read("packages/platform-core/src/index.ts");
 
 test("AI Visibility monitoring accepts only organisation-governed evidence", () => {
   assert.match(monitoring, /promptIds\.has\(observation\.promptId\)/);
@@ -32,4 +34,20 @@ test("monitoring API is authenticated, organisation-scoped and permission guarde
 test("monitoring control plane does not fabricate or invoke answer engines", () => {
   assert.doesNotMatch(monitoring, /api\.openai\.com|generativelanguage\.googleapis\.com|perplexity\.ai|llmChat\(/i);
   assert.match(monitoring, /missingEvidenceIsUnavailable: true/);
+});
+
+test("current AI Visibility scores use active prompts and only latest prompt-provider-model evidence", () => {
+  assert.match(currentSnapshot, /status: "active"/);
+  assert.match(currentSnapshot, /promptId: \{ in: promptIds \}/);
+  assert.match(currentSnapshot, /const key = `\$\{row\.promptId\}::\$\{row\.engine\}::\$\{row\.engineModel \?\? ""\}`/);
+  assert.match(currentSnapshot, /if \(seen\.has\(key\)\) return false/);
+  assert.match(currentSnapshot, /latest_per_active_prompt_provider_model/);
+  assert.match(currentSnapshot, /Latest persisted model observations/);
+  assert.doesNotMatch(currentSnapshot, /answer-engine observations/i);
+});
+
+test("public AI Visibility snapshot consumers resolve to the current evidence implementation", () => {
+  assert.match(platformIndex, /getCurrentAiVisibilityIntelligenceSnapshot as getAiVisibilityIntelligenceSnapshot/);
+  assert.match(monitoring, /getCurrentAiVisibilityIntelligenceSnapshot/);
+  assert.match(monitoring, /snapshot: await getCurrentAiVisibilityIntelligenceSnapshot/);
 });
