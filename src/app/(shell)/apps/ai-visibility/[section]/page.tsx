@@ -13,6 +13,7 @@ import { AiVisibilityCompetitorsManager } from "@/components/ai-visibility/AiVis
 import { AiVisibilityEvidenceOpportunities } from "@/components/ai-visibility/AiVisibilityEvidenceOpportunities";
 import { AiVisibilityMonitorRunner } from "@/components/ai-visibility/AiVisibilityMonitorRunner";
 import { AiVisibilityObservationHistory } from "@/components/ai-visibility/AiVisibilityObservationHistory";
+import { AiVisibilityObservationTrends } from "@/components/ai-visibility/AiVisibilityObservationTrends";
 import { AiVisibilityPromptsManager } from "@/components/ai-visibility/AiVisibilityPromptsManager";
 import { AiVisibilitySectionNav } from "@/components/ai-visibility/AiVisibilitySectionNav";
 import { getPlatformPageContext } from "@/lib/org-apps";
@@ -185,6 +186,7 @@ export default async function AiVisibilitySectionPage({
         {sectionKey === "presence" ? (
           <>
             <AiVisibilityMonitorRunner activePrompts={activePrompts} />
+            <AiVisibilityObservationTrends observations={observations} />
             <AiVisibilityObservationHistory observations={observations} />
           </>
         ) : null}
