@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getDailyOpportunityBriefing,
@@ -52,9 +53,26 @@ export default async function ProspectingOverviewPage() {
     <>
       {loadError ? (
         <div className="mx-auto max-w-[1600px] px-4 pt-4 sm:px-6 md:px-8">
-          <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-            {loadError}
-          </p>
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-4 text-sm text-amber-100">
+            <p>{loadError}</p>
+            <p className="mt-1 text-xs text-amber-100/70">
+              DigitalGate has kept unavailable signals out of the workspace rather than estimating them.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <Link
+                href="/apps/prospecting"
+                className="inline-flex min-h-11 items-center rounded-full bg-amber-200 px-4 py-2 font-semibold text-slate-950 hover:bg-white"
+              >
+                Try again →
+              </Link>
+              <Link
+                href="/dashboard/advisor"
+                className="inline-flex min-h-11 items-center rounded-full border border-amber-200/30 px-4 py-2 font-semibold text-amber-50 hover:border-amber-100"
+              >
+                Get help →
+              </Link>
+            </div>
+          </div>
         </div>
       ) : null}
       <GrowthEngineWorkspace

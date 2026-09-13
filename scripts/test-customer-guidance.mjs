@@ -22,6 +22,10 @@ const analyticsPage = read("src/app/(shell)/apps/analytics/page.tsx");
 const automationLogs = read("src/app/(shell)/apps/automation/logs/page.tsx");
 const hostingPage = read("src/app/(shell)/apps/infrastructure/hosting/page.tsx");
 const propertyManagementPage = read("src/app/(shell)/apps/property-management/page.tsx");
+const marketplaceBrowser = read("src/components/marketplace/MarketplaceBrowser.tsx");
+const aiCallCentre = read("src/app/(shell)/apps/ai-communications/call-centre/page.tsx");
+const prospectingPage = read("src/app/(shell)/apps/prospecting/page.tsx");
+const connectedServicesPage = read("src/app/(shell)/dashboard/settings/connected-services/page.tsx");
 
 test("knowledge base covers the launch-critical customer journey", () => {
   for (const slug of [
@@ -177,4 +181,30 @@ test("Hosting routes DNS and SSL problems to the exact repair surfaces", () => {
 test("Property Management open maintenance is a direct resolution path", () => {
   assert.match(propertyManagementPage, /\/apps\/property-management\/maintenance/);
   assert.match(propertyManagementPage, /Resolve maintenance/);
+});
+
+test("Marketplace zero-result filters always provide a one-click recovery", () => {
+  assert.match(marketplaceBrowser, /No listings match this filter/);
+  assert.match(marketplaceBrowser, /Clear filters/);
+  assert.match(marketplaceBrowser, /href=\"\/dashboard\/marketplace\"/);
+});
+
+test("AI Call Centre empty activity directs the customer to setup or help", () => {
+  assert.match(aiCallCentre, /No call activity yet/);
+  assert.match(aiCallCentre, /Create or publish an agent/);
+  assert.match(aiCallCentre, /Help me set this up/);
+});
+
+test("Prospecting load failures provide retry and Advisor recovery paths", () => {
+  assert.match(prospectingPage, /Try again/);
+  assert.match(prospectingPage, /Get help/);
+  assert.match(prospectingPage, /kept unavailable signals out of the workspace rather than estimating them/);
+});
+
+test("Connected Services failures provide reconnect, refresh and Advisor recovery", () => {
+  assert.match(connectedServicesPage, /Try Google again/);
+  assert.match(connectedServicesPage, /Refresh statuses/);
+  assert.match(connectedServicesPage, /Help me connect it/);
+  assert.match(connectedServicesPage, /Ask AI Advisor for help/);
+  assert.doesNotMatch(connectedServicesPage, /OAuth scopes|operator view|customers connect the business here, not APIs/i);
 });

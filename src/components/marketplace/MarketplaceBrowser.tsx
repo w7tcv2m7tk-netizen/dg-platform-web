@@ -180,7 +180,16 @@ export function MarketplaceBrowser({
       {filteredMode ? (
         !listings.length ? (
           <div className="rounded-xl border border-dashed border-slate-700 px-6 py-10 text-center text-sm text-slate-400">
-            No listings match this filter.
+            <p>No listings match this filter.</p>
+            <p className="mt-1 text-xs text-slate-500">
+              Clear the search and filters to return to the full Marketplace catalogue.
+            </p>
+            <Link
+              href="/dashboard/marketplace"
+              className="mt-4 inline-flex min-h-11 items-center rounded-full bg-sky-600 px-4 py-2 font-semibold text-white hover:bg-sky-500"
+            >
+              Clear filters →
+            </Link>
           </div>
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2">
