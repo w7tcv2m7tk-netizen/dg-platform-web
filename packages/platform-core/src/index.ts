@@ -125,6 +125,7 @@ export { getCurrentAiVisibilityIntelligenceSnapshot as getAiVisibilityIntelligen
 export * from "./ai-visibility/monitoring";
 export * from "./ai-visibility/model-observer";
 export * from "./ai-visibility/observations";
+export * from "./ai-visibility/recurring-monitoring";
 export * from "./opportunity-engine";
 export * from "./wantd";
 export * from "./services";

@@ -9,8 +9,13 @@ const visibility = read("packages/platform-core/src/ai-visibility/index.ts");
 const currentSnapshot = read("packages/platform-core/src/ai-visibility/current-snapshot.ts");
 const observations = read("packages/platform-core/src/ai-visibility/observations.ts");
 const modelObserver = read("packages/platform-core/src/ai-visibility/model-observer.ts");
+const recurring = read("packages/platform-core/src/ai-visibility/recurring-monitoring.ts");
+const scheduleRoute = read("src/app/api/v1/ai-visibility/monitoring/schedule/route.ts");
+const cronRoute = read("src/app/api/cron/ai-visibility-monitoring/route.ts");
 const monitorRunner = read("src/components/ai-visibility/AiVisibilityMonitorRunner.tsx");
+const scheduleUi = read("src/components/ai-visibility/AiVisibilityMonitoringSchedule.tsx");
 const trends = read("src/components/ai-visibility/AiVisibilityObservationTrends.tsx");
+const vercelConfig = read("vercel.json");
 const platformIndex = read("packages/platform-core/src/index.ts");
 
 test("AI Visibility monitoring accepts only organisation-governed evidence", () => {
@@ -89,4 +94,36 @@ test("model observation entity matching avoids substring false positives and che
   assert.match(modelObserver, /brandMatchMethod: "normalised_token_boundary"/);
   assert.match(modelObserver, /competitorCaptureMethod: competitors\.length \? "normalised_token_boundary"/);
   assert.doesNotMatch(modelObserver, /normalise\(answer\)\.includes\(needle\)/);
+});
+
+test("recurring monitoring is explicit, weekly and hard bounded", () => {
+  assert.match(recurring, /enabled: false/);
+  assert.match(recurring, /cadence: "weekly"/);
+  assert.match(recurring, /Math\.min\(3, numeric\)/);
+  assert.match(recurring, /Math\.min\(5, Math\.floor\(input\?\.organisationLimit \?\? 5\)\)/);
+  assert.match(recurring, /path: \["aiVisibilityMonitoring", "enabled"\]/);
+  assert.match(recurring, /equals: true/);
+  assert.match(recurring, /lastAttemptAt: now\.toISOString\(\)/);
+  assert.match(recurring, /await writeMonitoringSettings\(org\.id, claimed\)/);
+  assert.match(recurring, /maxPrompts: claimed\.maxPromptsPerRun/);
+  assert.match(recurring, /now\.getTime\(\) - attemptedAt >= WEEK_MS/);
+});
+
+test("recurring monitoring settings are org-admin controlled and cron authenticated", () => {
+  assert.match(scheduleRoute, /requirePlatformAuth\(req\)/);
+  assert.match(scheduleRoute, /requireOrgAdmin\(session\)/);
+  assert.match(scheduleRoute, /session\.organisationId/);
+  assert.doesNotMatch(scheduleRoute, /organisationId\s*:\s*body/);
+  assert.match(cronRoute, /authorizeCronRequest\(req\)/);
+  assert.match(cronRoute, /processDueAiVisibilityMonitoring\(\{ organisationLimit: 5 \}\)/);
+  assert.match(vercelConfig, /\/api\/cron\/ai-visibility-monitoring/);
+});
+
+test("recurring monitoring UI makes opt-in, model calls and limits explicit", () => {
+  assert.match(monitorRunner, /AiVisibilityMonitoringSchedule/);
+  assert.match(scheduleUi, /Enable weekly monitoring/);
+  assert.match(scheduleUi, /Max prompts per weekly run/);
+  assert.match(scheduleUi, /Scheduled runs make real configured model API calls/);
+  assert.match(scheduleUi, /rather than retrying every day/);
+  assert.match(scheduleUi, /Organisation administrators can manage recurring monitoring/);
 });

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AiVisibilityMonitoringSchedule } from "./AiVisibilityMonitoringSchedule";
+
 type ObservationResult = {
   provider: string;
   model: string;
@@ -157,6 +159,8 @@ export function AiVisibilityMonitorRunner({ activePrompts }: { activePrompts: nu
           <p className="mt-3 text-xs text-slate-500">The evidence coverage and AI Presence score will now use the latest persisted evidence for each active prompt/provider-model combination.</p>
         </div>
       ) : null}
+
+      <AiVisibilityMonitoringSchedule activePrompts={activePrompts} />
     </section>
   );
 }
