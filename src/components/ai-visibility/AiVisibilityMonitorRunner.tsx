@@ -15,6 +15,12 @@ type RunResult = {
   source: string;
   observedBusiness: string;
   observations: ObservationResult[];
+  coverage: {
+    activePrompts: number;
+    observedPrompts: number;
+    remainingUnobserved: number;
+    batchSize: number;
+  };
   limitations: string[];
 };
 
@@ -48,6 +54,8 @@ export function AiVisibilityMonitorRunner({ activePrompts }: { activePrompts: nu
     }
   }
 
+  const runLabel = activePrompts > 3 ? "Run next 3 prompts" : "Run observation";
+
   return (
     <section className="rounded-2xl border border-violet-500/25 bg-violet-500/5 p-5 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -55,7 +63,7 @@ export function AiVisibilityMonitorRunner({ activePrompts }: { activePrompts: nu
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-300">Measure now</p>
           <h2 className="mt-1 text-lg font-semibold text-white">Run a real AI model observation</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-400">
-            DigitalGate will ask up to three of your approved prompts using the configured AI model, capture the returned answers and record whether your business and configured competitors were actually mentioned.
+            DigitalGate measures up to three approved prompts per run. Unobserved prompts are measured first, then the stalest previously measured prompts, so repeated runs advance coverage across your governed set instead of re-running the same first prompts.
           </p>
           <p className="mt-2 text-xs leading-relaxed text-slate-500">
             This is model-API evidence, not a claim about the consumer ChatGPT, Gemini, Copilot or Perplexity interfaces. Citations and recommendation positions remain unavailable unless they are genuinely captured.
@@ -69,7 +77,7 @@ export function AiVisibilityMonitorRunner({ activePrompts }: { activePrompts: nu
             onClick={() => void runObservation()}
             className="shrink-0 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {running ? "Observing…" : "Run observation"}
+            {running ? "Observing…" : runLabel}
           </button>
         ) : (
           <Link
@@ -84,6 +92,10 @@ export function AiVisibilityMonitorRunner({ activePrompts }: { activePrompts: nu
       {activePrompts === 0 ? (
         <p className="mt-4 text-sm text-amber-200">
           Add at least one approved prompt first. DigitalGate will bring you straight back here once there is something truthful to measure.
+        </p>
+      ) : activePrompts > 3 ? (
+        <p className="mt-4 text-xs text-slate-500">
+          {activePrompts} active prompts are governed. Run successive batches to establish coverage across the full set; DigitalGate automatically prioritises prompts that have never been observed.
         </p>
       ) : null}
 
@@ -121,8 +133,28 @@ export function AiVisibilityMonitorRunner({ activePrompts }: { activePrompts: nu
             <span className="rounded-full border border-slate-700 px-2.5 py-1">
               {result.observations.filter((item) => item.brandMentioned).length}/{result.observations.length} mentioned your business
             </span>
+            <span className="rounded-full border border-slate-700 px-2.5 py-1">
+              {result.coverage.observedPrompts}/{result.coverage.activePrompts} prompts have evidence
+            </span>
           </div>
-          <p className="mt-3 text-xs text-slate-500">The evidence coverage and AI Presence score above will now use these persisted observations.</p>
+          {result.coverage.remainingUnobserved > 0 ? (
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <p className="text-xs text-amber-200">
+                {result.coverage.remainingUnobserved} active prompt{result.coverage.remainingUnobserved === 1 ? "" : "s"} still need a first observation.
+              </p>
+              <button
+                type="button"
+                disabled={running}
+                onClick={() => void runObservation()}
+                className="rounded-lg border border-violet-400/30 px-3 py-1.5 text-xs font-medium text-violet-200 hover:bg-violet-500/10 disabled:opacity-50"
+              >
+                Run next batch
+              </button>
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-emerald-200/80">All active prompts now have at least one persisted observation.</p>
+          )}
+          <p className="mt-3 text-xs text-slate-500">The evidence coverage and AI Presence score will now use the latest persisted evidence for each active prompt/provider-model combination.</p>
         </div>
       ) : null}
     </section>
