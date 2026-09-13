@@ -1,0 +1,169 @@
+import { runOrgSeoAudit } from "./index";
+
+export type SeoRecurringMonitoringSettings = {
+  enabled: boolean;
+  cadence: "weekly";
+  updatedAt: string | null;
+  lastAttemptAt: string | null;
+  lastCompletedAt: string | null;
+  lastRunStatus: "success" | "failed" | null;
+  lastError: string | null;
+};
+
+type OrganisationSettings = {
+  seoMonitoring?: Partial<SeoRecurringMonitoringSettings>;
+  [key: string]: unknown;
+};
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const DEFAULT_SETTINGS: SeoRecurringMonitoringSettings = {
+  enabled: false,
+  cadence: "weekly",
+  updatedAt: null,
+  lastAttemptAt: null,
+  lastCompletedAt: null,
+  lastRunStatus: null,
+  lastError: null,
+};
+
+function normaliseSettings(value: unknown): SeoRecurringMonitoringSettings {
+  const raw = value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Partial<SeoRecurringMonitoringSettings>)
+    : {};
+  return {
+    enabled: raw.enabled === true,
+    cadence: "weekly",
+    updatedAt: typeof raw.updatedAt === "string" ? raw.updatedAt : null,
+    lastAttemptAt: typeof raw.lastAttemptAt === "string" ? raw.lastAttemptAt : null,
+    lastCompletedAt: typeof raw.lastCompletedAt === "string" ? raw.lastCompletedAt : null,
+    lastRunStatus: raw.lastRunStatus === "success" || raw.lastRunStatus === "failed" ? raw.lastRunStatus : null,
+    lastError: typeof raw.lastError === "string" ? raw.lastError : null,
+  };
+}
+
+function isDue(settings: SeoRecurringMonitoringSettings, now: Date) {
+  if (!settings.enabled) return false;
+  if (!settings.lastAttemptAt) return true;
+  const attemptedAt = Date.parse(settings.lastAttemptAt);
+  return !Number.isFinite(attemptedAt) || now.getTime() - attemptedAt >= WEEK_MS;
+}
+
+async function readOrganisationSettings(organisationId: string): Promise<OrganisationSettings | null> {
+  const { prisma } = await import("@dg/database");
+  const org = await prisma.organisation.findUnique({
+    where: { id: organisationId },
+    select: { settings: true },
+  });
+  if (!org) return null;
+  return (org.settings as OrganisationSettings | null) ?? {};
+}
+
+async function writeSettings(organisationId: string, settings: SeoRecurringMonitoringSettings) {
+  const { prisma } = await import("@dg/database");
+  type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
+  const current = await readOrganisationSettings(organisationId);
+  if (!current) throw new Error("Organisation not found");
+  await prisma.organisation.update({
+    where: { id: organisationId },
+    data: {
+      settings: {
+        ...current,
+        seoMonitoring: settings,
+      } as unknown as InputJsonValue,
+    },
+  });
+  return settings;
+}
+
+export async function getSeoRecurringMonitoringSettings(
+  organisationId: string,
+): Promise<SeoRecurringMonitoringSettings> {
+  if (!process.env.DATABASE_URL) return DEFAULT_SETTINGS;
+  const settings = await readOrganisationSettings(organisationId);
+  return normaliseSettings(settings?.seoMonitoring);
+}
+
+export async function updateSeoRecurringMonitoringSettings(input: {
+  organisationId: string;
+  enabled: boolean;
+}): Promise<SeoRecurringMonitoringSettings> {
+  const previous = await getSeoRecurringMonitoringSettings(input.organisationId);
+  return writeSettings(input.organisationId, {
+    ...previous,
+    enabled: input.enabled === true,
+    cadence: "weekly",
+    updatedAt: new Date().toISOString(),
+    lastError: input.enabled ? previous.lastError : null,
+  });
+}
+
+export async function processDueSeoMonitoring(input?: { organisationLimit?: number; now?: Date }) {
+  if (!process.env.DATABASE_URL) {
+    return { checked: 0, due: 0, completed: 0, failed: 0, results: [] as Array<Record<string, unknown>> };
+  }
+
+  const { prisma } = await import("@dg/database");
+  const now = input?.now ?? new Date();
+  const organisationLimit = Math.max(1, Math.min(10, Math.floor(input?.organisationLimit ?? 10)));
+  const candidates = await prisma.organisation.findMany({
+    where: {
+      status: { notIn: ["suspended", "cancelled"] },
+      settings: { path: ["seoMonitoring", "enabled"], equals: true },
+      appInstallations: { some: { appId: "seo", enabled: true } },
+    },
+    select: { id: true, settings: true },
+    orderBy: { updatedAt: "asc" },
+    take: 100,
+  });
+
+  const due = candidates
+    .map((org) => ({
+      id: org.id,
+      settings: normaliseSettings((org.settings as OrganisationSettings | null)?.seoMonitoring),
+    }))
+    .filter((org) => isDue(org.settings, now))
+    .slice(0, organisationLimit);
+
+  const results: Array<Record<string, unknown>> = [];
+  let completed = 0;
+  let failed = 0;
+
+  for (const org of due) {
+    const claimed: SeoRecurringMonitoringSettings = {
+      ...org.settings,
+      lastAttemptAt: now.toISOString(),
+      lastRunStatus: null,
+      lastError: null,
+    };
+    await writeSettings(org.id, claimed);
+
+    try {
+      const audit = await runOrgSeoAudit({
+        organisationId: org.id,
+        actorId: "scheduled:seo",
+        persist: true,
+        includeNativeStudio: false,
+      });
+      const successful: SeoRecurringMonitoringSettings = {
+        ...claimed,
+        lastCompletedAt: now.toISOString(),
+        lastRunStatus: "success",
+        lastError: null,
+      };
+      await writeSettings(org.id, successful);
+      completed += 1;
+      results.push({ organisationId: org.id, status: "success", score: audit.scores.seo });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Scheduled SEO audit failed";
+      await writeSettings(org.id, {
+        ...claimed,
+        lastRunStatus: "failed",
+        lastError: message.slice(0, 300),
+      });
+      failed += 1;
+      results.push({ organisationId: org.id, status: "failed", error: message.slice(0, 160) });
+    }
+  }
+
+  return { checked: candidates.length, due: due.length, completed, failed, results };
+}
