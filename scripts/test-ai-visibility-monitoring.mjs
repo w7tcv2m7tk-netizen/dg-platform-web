@@ -7,8 +7,10 @@ const monitoring = read("packages/platform-core/src/ai-visibility/monitoring.ts"
 const route = read("src/app/api/v1/ai-visibility/monitoring/route.ts");
 const visibility = read("packages/platform-core/src/ai-visibility/index.ts");
 const currentSnapshot = read("packages/platform-core/src/ai-visibility/current-snapshot.ts");
+const observations = read("packages/platform-core/src/ai-visibility/observations.ts");
 const modelObserver = read("packages/platform-core/src/ai-visibility/model-observer.ts");
 const monitorRunner = read("src/components/ai-visibility/AiVisibilityMonitorRunner.tsx");
+const trends = read("src/components/ai-visibility/AiVisibilityObservationTrends.tsx");
 const platformIndex = read("packages/platform-core/src/index.ts");
 
 test("AI Visibility monitoring accepts only organisation-governed evidence", () => {
@@ -67,4 +69,14 @@ test("monitor runner exposes bounded batches and explicit coverage recovery", ()
   assert.match(monitorRunner, /prompts have evidence/);
   assert.match(monitorRunner, /Run next batch/);
   assert.match(monitorRunner, /remainingUnobserved/);
+});
+
+test("trend movement compares equivalent active prompt-provider-model evidence", () => {
+  assert.match(observations, /status: string/);
+  assert.match(observations, /status: true/);
+  assert.match(trends, /item\.prompt\.status === "active"/);
+  assert.match(trends, /function latestBySeries/);
+  assert.match(trends, /const comparableKeys = \[\.\.\.recentSeries\.keys\(\)\]\.filter\(\(key\) => previousSeries\.has\(key\)\)/);
+  assert.match(trends, /Only series present in both periods contribute to the movement shown/);
+  assert.match(trends, /Comparable history needed/);
 });
