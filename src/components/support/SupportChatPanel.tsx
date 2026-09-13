@@ -179,17 +179,45 @@ export function SupportChatPanel({
         ) : !linked ? (
           <div className="m-auto max-w-xs text-center text-sm text-slate-400">
             <p>{error}</p>
-            <Link
-              href="https://digitalgate.com.au/onboarding/"
-              className="mt-3 inline-block text-[color-mix(in_srgb,var(--org-primary,#3b82f6)_82%,white)] hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Complete onboarding →
-            </Link>
+            <div className="mt-3 flex flex-wrap justify-center gap-3">
+              <Link
+                href="https://digitalgate.com.au/onboarding/"
+                className="inline-flex min-h-11 items-center rounded-full bg-[var(--org-primary,#3b82f6)] px-4 py-2 font-semibold text-white hover:brightness-110"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Complete onboarding →
+              </Link>
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="inline-flex min-h-11 items-center rounded-full border border-slate-600 px-4 py-2 font-semibold text-slate-200 hover:border-slate-400"
+              >
+                Email support →
+              </a>
+            </div>
           </div>
         ) : error && !messages.length ? (
-          <p className="m-auto text-sm text-amber-300">{error}</p>
+          <div className="m-auto max-w-xs text-center">
+            <p className="text-sm font-medium text-amber-300">{error}</p>
+            <p className="mt-1 text-xs text-slate-500">
+              You can retry Aida now or contact the DigitalGate team directly.
+            </p>
+            <div className="mt-3 flex flex-wrap justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => void loadConversation()}
+                className="inline-flex min-h-11 items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
+              >
+                Try again
+              </button>
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="inline-flex min-h-11 items-center rounded-full border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-200 hover:border-slate-400"
+              >
+                Email support →
+              </a>
+            </div>
+          </div>
         ) : messages.length === 0 ? (
           <div className="m-auto max-w-xs text-center">
             <img
