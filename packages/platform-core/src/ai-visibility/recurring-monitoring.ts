@@ -57,13 +57,14 @@ function isDue(settings: AiVisibilityRecurringMonitoringSettings, now: Date) {
   return now.getTime() - attemptedAt >= WEEK_MS;
 }
 
-async function readOrganisationSettings(organisationId: string) {
+async function readOrganisationSettings(organisationId: string): Promise<OrganisationSettings | null> {
   const { prisma } = await import("@dg/database");
   const org = await prisma.organisation.findUnique({
     where: { id: organisationId },
     select: { settings: true },
   });
-  return (org?.settings as OrganisationSettings | null) ?? null;
+  if (!org) return null;
+  return (org.settings as OrganisationSettings | null) ?? {};
 }
 
 async function writeMonitoringSettings(
@@ -123,17 +124,22 @@ export async function processDueAiVisibilityMonitoring(input?: {
   const now = input?.now ?? new Date();
   const organisationLimit = Math.max(1, Math.min(5, Math.floor(input?.organisationLimit ?? 5)));
 
-  // Keep the candidate set bounded and require the AI Visibility app to be installed/enabled.
+  // Query explicit opt-ins only. The model-call budget is independently bounded by
+  // organisationLimit (<=5) and maxPromptsPerRun (<=3), so one cron can create at most 15 calls.
   const candidates = await prisma.organisation.findMany({
     where: {
       status: { notIn: ["suspended", "cancelled"] },
+      settings: {
+        path: ["aiVisibilityMonitoring", "enabled"],
+        equals: true,
+      },
       appInstallations: {
         some: { appId: "ai-visibility", enabled: true },
       },
     },
     select: { id: true, settings: true },
     orderBy: { updatedAt: "asc" },
-    take: 100,
+    take: 50,
   });
 
   const due = candidates
