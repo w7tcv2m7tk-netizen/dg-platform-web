@@ -40,15 +40,8 @@ function summarise(period: Period) {
   };
 }
 
-export function AiVisibilityObservationTrends({
-  observations,
-  activePromptIds,
-}: {
-  observations: AiVisibilityObservationEvidence[];
-  activePromptIds: string[];
-}) {
-  const activePromptSet = new Set(activePromptIds);
-  const activeObservations = observations.filter((item) => activePromptSet.has(item.prompt.id));
+export function AiVisibilityObservationTrends({ observations }: { observations: AiVisibilityObservationEvidence[] }) {
+  const activeObservations = observations.filter((item) => item.prompt.status === "active");
   if (activeObservations.length < 2) return null;
 
   const newest = new Date(activeObservations[0].observedAt);
