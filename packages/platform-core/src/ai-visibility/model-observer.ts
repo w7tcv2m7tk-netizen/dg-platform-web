@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 
 import { llmChat } from "../ai/llm";
+import { getOrganisationBusinessProfile } from "../org/onboarding-profile";
 import {
-  getOrganisationBusinessProfile,
   listAiVisibilityCompetitors,
   listAiVisibilityPrompts,
   recordAiVisibilityObservation,
