@@ -2,6 +2,7 @@ import {
   fixOrgSeoFromAudit,
   getOrganisationBusinessProfile,
   listWebsitesWithPages,
+  runOrgSeoAudit,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -21,7 +22,9 @@ function hostname(value: string | null | undefined): string | null {
 
 /**
  * POST /api/v1/seo/fix
- * Apply SEO metadata (title / description / OG) from the latest Page Audit.
+ * Re-check the verified public website, then apply only SEO metadata issues that
+ * are still observable. Client audit payloads are deliberately not trusted for
+ * writes because a stored finding can be stale by the time Fix now is clicked.
  */
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -43,15 +46,11 @@ export async function POST(req: Request) {
   }
 
   let websiteUrl: string | undefined;
-  let findings: unknown;
-  let probes: unknown;
   try {
     const body = await req.json();
     if (body?.websiteUrl != null) websiteUrl = String(body.websiteUrl);
-    findings = body?.findings;
-    probes = body?.probes;
   } catch {
-    /* empty body is fine — server will use Studio + profile defaults */
+    /* empty body is fine — server will use the Business Profile website */
   }
 
   const [profile, studioSites] = await Promise.all([
@@ -72,7 +71,8 @@ export async function POST(req: Request) {
     );
   }
 
-  const auditHost = hostname(websiteUrl);
+  const targetUrl = websiteUrl?.trim() || profile?.websiteUrl?.trim() || undefined;
+  const auditHost = hostname(targetUrl);
   const profileHost = hostname(profile?.websiteUrl);
 
   if (auditHost && !profileHost) {
@@ -101,20 +101,50 @@ export async function POST(req: Request) {
     );
   }
 
+  const liveAudit = await runOrgSeoAudit({
+    organisationId: session.organisationId,
+    websiteUrl: targetUrl,
+    persist: false,
+    includeNativeStudio: false,
+  });
+
+  if (liveAudit.presence.probes.reachable !== true) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "live_verification_failed",
+          message:
+            "DigitalGate could not verify the public website right now, so no automatic change was made. Re-run the scan and try again.",
+        },
+      },
+      { status: 409 },
+    );
+  }
+
   const result = await fixOrgSeoFromAudit({
     organisationId: session.organisationId,
     actorId: session.clerkUserId,
-    websiteUrl,
-    findings: Array.isArray(findings) ? findings : undefined,
-    probes:
-      probes && typeof probes === "object"
-        ? (probes as {
-            title: string | null;
-            hasMetaDescription: boolean;
-            hasOpenGraph: boolean;
-          })
-        : undefined,
+    websiteUrl: liveAudit.websiteUrl ?? targetUrl,
+    findings: liveAudit.findings,
+    probes: {
+      title: liveAudit.presence.probes.title,
+      hasMetaDescription: liveAudit.presence.probes.hasMetaDescription,
+      hasOpenGraph: liveAudit.presence.probes.hasOpenGraph,
+    },
   });
 
-  return NextResponse.json({ data: result });
+  return NextResponse.json({
+    data: {
+      ...result,
+      liveAudit: {
+        auditedAt: liveAudit.auditedAt,
+        websiteUrl: liveAudit.websiteUrl,
+        probes: {
+          title: liveAudit.presence.probes.title,
+          hasMetaDescription: liveAudit.presence.probes.hasMetaDescription,
+          hasOpenGraph: liveAudit.presence.probes.hasOpenGraph,
+        },
+      },
+    },
+  });
 }
