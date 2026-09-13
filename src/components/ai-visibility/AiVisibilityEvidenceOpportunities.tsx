@@ -29,7 +29,7 @@ function latestPerPrompt(observations: AiVisibilityObservationEvidence[]) {
 }
 
 function buildOpportunities(observations: AiVisibilityObservationEvidence[]): Opportunity[] {
-  return latestPerPrompt(observations).flatMap((observation) => {
+  return latestPerPrompt(observations).flatMap<Opportunity>((observation) => {
     if (observation.brandMentioned) return [];
 
     const mentionedCompetitors = observation.competitorMentions.filter((item) => item.mentioned);
@@ -40,7 +40,7 @@ function buildOpportunities(observations: AiVisibilityObservationEvidence[]): Op
     if (observation.competitorCaptureComplete === true && mentionedCompetitors.length > 0) {
       return [{
         id: observation.id,
-        priority: "high" as const,
+        priority: "high",
         title: "Competitors appeared while your business was absent",
         detail: `${mentionedCompetitors.map((item) => item.name).join(", ")} appeared in the latest captured answer for this governed prompt, while your business was not explicitly mentioned. Strengthen the page/entity signals that support this topic before the next measurement.`,
         evidence,
@@ -50,7 +50,7 @@ function buildOpportunities(observations: AiVisibilityObservationEvidence[]): Op
 
     return [{
       id: observation.id,
-      priority: "medium" as const,
+      priority: "medium",
       title: "Your business was absent from a monitored answer",
       detail:
         "The latest captured answer for this governed prompt did not explicitly mention your business. Review the topic, entity clarity and supporting website content, then re-run the observation to verify whether visibility improves.",
