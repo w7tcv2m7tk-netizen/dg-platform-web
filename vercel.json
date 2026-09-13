@@ -13,6 +13,10 @@
       "schedule": "0 5 * * *"
     },
     {
+      "path": "/api/cron/ai-visibility-monitoring",
+      "schedule": "30 5 * * *"
+    },
+    {
       "path": "/api/cron/scheduled-emails",
       "schedule": "0 9 * * *"
     },
