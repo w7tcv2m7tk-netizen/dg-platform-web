@@ -122,6 +122,7 @@ export * from "./seo";
 export * from "./ai-visibility";
 export * from "./ai-visibility/monitoring";
 export * from "./ai-visibility/model-observer";
+export * from "./ai-visibility/observations";
 export * from "./opportunity-engine";
 export * from "./wantd";
 export * from "./services";
