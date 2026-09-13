@@ -9,6 +9,7 @@ const visibility = read("packages/platform-core/src/ai-visibility/index.ts");
 const currentSnapshot = read("packages/platform-core/src/ai-visibility/current-snapshot.ts");
 const modelObserver = read("packages/platform-core/src/ai-visibility/model-observer.ts");
 const monitorRunner = read("src/components/ai-visibility/AiVisibilityMonitorRunner.tsx");
+const sectionNav = read("src/components/ai-visibility/AiVisibilitySectionNav.tsx");
 const platformIndex = read("packages/platform-core/src/index.ts");
 
 test("AI Visibility monitoring accepts only organisation-governed evidence", () => {
@@ -67,4 +68,12 @@ test("monitor runner exposes bounded batches and explicit coverage recovery", ()
   assert.match(monitorRunner, /prompts have evidence/);
   assert.match(monitorRunner, /Run next batch/);
   assert.match(monitorRunner, /remainingUnobserved/);
+});
+
+test("authority and citation unavailable state has truthful customer recovery", () => {
+  assert.match(sectionNav, /Authority & Citations/);
+  assert.match(sectionNav, /will keep Authority and Citation Strength unavailable until a monitoring source genuinely captures citations/);
+  assert.match(sectionNav, /Improve authority foundations/);
+  assert.match(sectionNav, /Ask Aida what to improve/);
+  assert.doesNotMatch(sectionNav, /Fix citations automatically|Generate citations/i);
 });
