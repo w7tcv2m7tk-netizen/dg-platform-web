@@ -2,9 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getCurrentSeoSnapshot,
+  getSeoRecurringMonitoringSettings,
   getSeoTrendSnapshot,
 } from "@dg/platform-core";
 
+import { SeoMonitoringControls } from "@/components/seo/SeoMonitoringControls";
 import { ResolutionAction, ResolutionFallback } from "@/components/ui/ResolutionAction";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
@@ -155,6 +157,7 @@ export default async function SeoSectionPage({ params }: { params: Promise<{ sec
     );
   }
 
+  const monitoringSettings = await getSeoRecurringMonitoringSettings(session.organisationId);
   const lastAudit = current.latest?.auditedAt ?? null;
   const status = !current.latest ? "Not monitored" : current.fresh ? "Current" : "Needs refresh";
   return (
@@ -181,6 +184,7 @@ export default async function SeoSectionPage({ params }: { params: Promise<{ sec
             <p className="mt-1 text-xs text-slate-500">Persisted SEO audits</p>
           </div>
         </div>
+        <SeoMonitoringControls initial={monitoringSettings} />
         <div className="dg-card">
           <h2 className="font-semibold text-white">Run and verify</h2>
           <p className="mt-2 text-sm text-slate-400">
