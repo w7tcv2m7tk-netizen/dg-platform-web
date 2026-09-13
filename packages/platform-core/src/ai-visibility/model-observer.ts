@@ -42,11 +42,37 @@ export async function runAiVisibilityModelObservations(input: {
     throw new Error("Complete the Business Profile business name before running AI Visibility observations");
   }
 
-  const prompts = promptRows.filter((item) => item.status === "active").slice(0, maxPrompts);
-  if (!prompts.length) {
+  const activePrompts = promptRows.filter((item) => item.status === "active");
+  if (!activePrompts.length) {
     throw new Error("Add at least one active AI Visibility prompt before running observations");
   }
   const competitors = competitorRows.filter((item) => item.status === "active");
+
+  // Advance coverage instead of repeatedly re-running the first N prompts.
+  // Unobserved prompts are selected first, then the stalest previously observed prompts.
+  const { prisma } = await import("@dg/database");
+  const recentRows = await prisma.aiVisibilityObservation.findMany({
+    where: {
+      organisationId: input.organisationId,
+      promptId: { in: activePrompts.map((item) => item.id) },
+    },
+    orderBy: [{ observedAt: "desc" }, { createdAt: "desc" }],
+    select: { promptId: true, observedAt: true },
+    take: 2000,
+  });
+  const latestByPrompt = new Map<string, Date>();
+  for (const row of recentRows) {
+    if (!latestByPrompt.has(row.promptId)) latestByPrompt.set(row.promptId, row.observedAt);
+  }
+
+  const prompts = [...activePrompts]
+    .sort((a, b) => {
+      const aObserved = latestByPrompt.get(a.id)?.getTime() ?? Number.NEGATIVE_INFINITY;
+      const bObserved = latestByPrompt.get(b.id)?.getTime() ?? Number.NEGATIVE_INFINITY;
+      if (aObserved !== bObserved) return aObserved - bObserved;
+      return a.createdAt.localeCompare(b.createdAt);
+    })
+    .slice(0, maxPrompts);
 
   const observations = [];
   for (const prompt of prompts) {
@@ -103,6 +129,7 @@ export async function runAiVisibilityModelObservations(input: {
       citations: [],
     });
 
+    latestByPrompt.set(prompt.id, observedAt);
     observations.push({
       ...persisted,
       provider: result.provider,
@@ -112,10 +139,18 @@ export async function runAiVisibilityModelObservations(input: {
     });
   }
 
+  const observedPromptCount = activePrompts.filter((item) => latestByPrompt.has(item.id)).length;
+
   return {
     source: "model_api",
     observedBusiness: businessName,
     observations,
+    coverage: {
+      activePrompts: activePrompts.length,
+      observedPrompts: observedPromptCount,
+      remainingUnobserved: Math.max(0, activePrompts.length - observedPromptCount),
+      batchSize: observations.length,
+    },
     limitations: [
       "These are API-model observations, not consumer ChatGPT, Gemini, Copilot or Perplexity UI rankings.",
       "Citation capture is unavailable for this runner and is therefore excluded from Citation Strength.",
