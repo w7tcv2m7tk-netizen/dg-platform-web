@@ -9,6 +9,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AiVisibilityCompetitorsManager } from "@/components/ai-visibility/AiVisibilityCompetitorsManager";
+import { AiVisibilityMonitorRunner } from "@/components/ai-visibility/AiVisibilityMonitorRunner";
 import { AiVisibilityPromptsManager } from "@/components/ai-visibility/AiVisibilityPromptsManager";
 import { AiVisibilitySectionNav } from "@/components/ai-visibility/AiVisibilitySectionNav";
 import { getPlatformPageContext } from "@/lib/org-apps";
@@ -16,17 +17,17 @@ import { getPlatformPageContext } from "@/lib/org-apps";
 const sections = {
   presence: {
     title: "AI Presence",
-    eyebrow: "Answer-engine monitoring",
+    eyebrow: "AI model observation",
     description:
-      "Track whether your business is mentioned, recommended and accurately represented across supported AI answer engines.",
-    emptyTitle: "Verified presence monitoring is not active yet",
+      "Measure whether your business is actually mentioned in captured AI model answers, with the exact provider and model retained as evidence.",
+    emptyTitle: "No AI model observations yet",
     emptyBody:
-      "DigitalGate will only populate this section from captured answer-engine evidence. Until that monitoring layer is connected, mentions, rankings and recommendation positions remain unavailable rather than estimated.",
+      "Run an observation below to capture real API-model answers from your approved prompts. Consumer ChatGPT, Gemini, Copilot and Perplexity interface rankings remain unavailable unless those surfaces are separately and legitimately observed.",
     bullets: [
-      "Brand mentions and recommendation frequency",
-      "Platform-by-platform visibility",
-      "Recommendation position and answer context",
-      "Accuracy and sentiment of generated answers",
+      "Verified business mentions in captured answers",
+      "Exact model and provider provenance",
+      "Configured competitor mentions from the same answers",
+      "Historical evidence that can be re-measured over time",
     ],
   },
   prompts: {
@@ -48,25 +49,25 @@ const sections = {
     title: "Competitors",
     eyebrow: "AI share of voice",
     description:
-      "Compare verified recommendation visibility against the businesses that compete for the same AI-generated answers.",
+      "Compare verified mention visibility against the businesses configured for the same captured AI answers.",
     emptyTitle: "Define the real competitive set",
     emptyBody:
       "Competitors can now be governed per organisation. Competitive Share remains unavailable until the same monitored responses have complete competitor capture.",
     bullets: [
       "Organisation-specific monitored competitors",
       "AI Share of Voice from captured responses",
-      "Prompts where competitors win and you do not",
-      "Platform and topic breakdowns once evidence exists",
+      "Prompts where competitors appear and you do not",
+      "Model and topic breakdowns once evidence exists",
     ],
   },
   citations: {
     title: "Citations",
     eyebrow: "Source intelligence",
     description:
-      "Understand which domains and pages AI systems rely on when answering questions in your market.",
+      "Understand which domains and pages AI systems rely on when citation evidence can be captured and verified.",
     emptyTitle: "Verified citation evidence is not available yet",
     emptyBody:
-      "Once answer monitoring captures source references and confirms citation capture completeness, this section will show your own cited pages, trusted third-party sources, competitor citations and authority gaps.",
+      "The current API-model observation runner does not infer citations. Once a monitoring source captures source references and confirms citation completeness, this section will show your own cited pages, third-party sources and authority gaps.",
     bullets: [
       "Your cited pages and source quality",
       "Third-party domains AI systems trust",
@@ -81,7 +82,7 @@ const sections = {
       "Turn measured AI visibility gaps into prioritised, explainable growth actions across DigitalGate.",
     emptyTitle: "Opportunity scoring expands only with evidence",
     emptyBody:
-      "Today Aida can act on verified website readiness and Business Brain context. Presence, Citations and Competitive Share will only influence recommendations once observed evidence exists.",
+      "Aida can act on verified website readiness, Business Brain context and persisted model observations. Citations and recommendation position only influence recommendations once those signals are genuinely captured.",
     bullets: [
       "Highest-impact visibility gaps",
       "Recommended content and entity actions",
@@ -93,15 +94,15 @@ const sections = {
     title: "Technical & methodology",
     eyebrow: "Evidence model",
     description:
-      "See exactly what DigitalGate measures today and how the current AI Readiness layer is constructed.",
-    emptyTitle: "Current measured layer: AI Readiness",
+      "See exactly what DigitalGate measures, how observations are sourced and which signals remain unavailable.",
+    emptyTitle: "Evidence-first measurement",
     emptyBody:
-      "The production score uses observable website evidence such as reachability, HTTPS, structured data, Open Graph and semantic page signals. It does not claim to measure ChatGPT, Gemini, Copilot, Google AI or Perplexity visibility until verified monitoring evidence exists.",
+      "AI Readiness uses observable website evidence. AI Presence can additionally use persisted API-model observations with exact provider/model provenance. DigitalGate does not relabel those observations as consumer ChatGPT, Gemini, Copilot or Perplexity rankings.",
     bullets: [
       "Technical access: reachability, HTTPS and mobile viewport",
       "Entity clarity: structured data and page identity",
-      "Content semantics: title, meta description and H1",
-      "Distribution readiness: Open Graph and share metadata",
+      "AI Presence: persisted API-model answer observations",
+      "Unavailable signals remain excluded rather than estimated",
     ],
   },
 } as const;
@@ -158,6 +159,7 @@ export default async function AiVisibilitySectionPage({
   const dimension = dimensionId
     ? intelligence?.dimensions.find((item) => item.id === dimensionId) ?? null
     : null;
+  const activePrompts = intelligence?.evidenceCoverage.activePrompts ?? prompts.filter((item) => item.status === "active").length;
 
   return (
     <>
@@ -168,6 +170,8 @@ export default async function AiVisibilitySectionPage({
       </header>
       <main className="dg-page-main space-y-6">
         <AiVisibilitySectionNav />
+
+        {sectionKey === "presence" ? <AiVisibilityMonitorRunner activePrompts={activePrompts} /> : null}
 
         {sectionKey === "prompts" ? (
           <AiVisibilityPromptsManager initialItems={prompts} suggestions={suggestions} />
@@ -211,7 +215,7 @@ export default async function AiVisibilitySectionPage({
         <section className="dg-card">
           <h2 className="font-semibold text-white">Evidence coverage</h2>
           <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Active prompts</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.activePrompts ?? 0}</p></div>
+            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Active prompts</span><p className="mt-1 text-xl font-semibold text-white">{activePrompts}</p></div>
             <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Competitors</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.activeCompetitors ?? 0}</p></div>
             <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Observations</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.observations ?? 0}</p></div>
             <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Overall monitored score</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.overallScore == null ? "—" : intelligence.overallScore}</p></div>
@@ -224,7 +228,7 @@ export default async function AiVisibilitySectionPage({
         <section className="dg-card">
           <h2 className="font-semibold text-white">What is live today?</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-400">
-            AI Readiness is measured from domain-matched website evidence. Prompt and competitor governance are now live. Cross-engine scores remain unavailable until real monitoring observations are captured.
+            AI Readiness is measured from domain-matched website evidence. Prompt and competitor governance are live, and AI Presence can now be measured from persisted API-model observations. Consumer answer-engine interface rankings and citation scores remain unavailable until those specific signals are genuinely captured.
           </p>
           <Link href="/apps/ai-visibility" className="mt-4 inline-block text-sm font-medium text-violet-300 hover:underline">
             Back to AI Visibility Overview →
