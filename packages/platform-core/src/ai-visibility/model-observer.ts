@@ -8,14 +8,20 @@ import {
   recordAiVisibilityObservation,
 } from "./index";
 
-function normalise(value: string) {
-  return value.toLocaleLowerCase("en-AU").replace(/[\u2018\u2019]/g, "'").replace(/\s+/g, " ").trim();
+function normaliseForEntityMatch(value: string) {
+  return value
+    .toLocaleLowerCase("en-AU")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function containsName(answer: string, name: string | null | undefined) {
-  const needle = normalise(name ?? "");
+function containsEntityName(answer: string, name: string | null | undefined) {
+  const needle = normaliseForEntityMatch(name ?? "");
   if (!needle || needle.length < 2) return false;
-  return normalise(answer).includes(needle);
+  const haystack = normaliseForEntityMatch(answer);
+  return ` ${haystack} `.includes(` ${needle} `);
 }
 
 function engineFromResult(provider: string, model: string) {
@@ -37,7 +43,12 @@ export async function runAiVisibilityModelObservations(input: {
     listAiVisibilityCompetitors(input.organisationId),
   ]);
 
-  const businessName = (profile?.tradingName || profile?.businessName || "").trim();
+  const brandNames = [...new Set(
+    [profile?.tradingName, profile?.businessName]
+      .map((value) => value?.trim())
+      .filter((value): value is string => Boolean(value)),
+  )];
+  const businessName = brandNames[0] ?? "";
   if (!businessName) {
     throw new Error("Complete the Business Profile business name before running AI Visibility observations");
   }
@@ -92,12 +103,13 @@ export async function runAiVisibilityModelObservations(input: {
 
     const competitorMentions = competitors.map((competitor) => ({
       competitorId: competitor.id,
-      mentioned: containsName(result.text, competitor.name),
+      mentioned: containsEntityName(result.text, competitor.name),
       recommended: false,
       answerRank: null,
       context: null,
     }));
-    const brandMentioned = containsName(result.text, businessName);
+    const matchedBrandNames = brandNames.filter((name) => containsEntityName(result.text, name));
+    const brandMentioned = matchedBrandNames.length > 0;
     const sourceRef = `model-api:${result.provider}:${result.model}:${randomUUID()}`;
 
     const persisted = await recordAiVisibilityObservation({
@@ -123,7 +135,10 @@ export async function runAiVisibilityModelObservations(input: {
         actorId: input.actorId ?? null,
         recommendationCaptureComplete: false,
         citationCaptureComplete: false,
-        competitorCaptureMethod: competitors.length ? "literal_name_match" : "not_configured",
+        brandMatchMethod: "normalised_token_boundary",
+        brandNamesChecked: brandNames,
+        matchedBrandNames,
+        competitorCaptureMethod: competitors.length ? "normalised_token_boundary" : "not_configured",
       },
       competitorMentions,
       citations: [],
@@ -154,7 +169,7 @@ export async function runAiVisibilityModelObservations(input: {
     limitations: [
       "These are API-model observations, not consumer ChatGPT, Gemini, Copilot or Perplexity UI rankings.",
       "Citation capture is unavailable for this runner and is therefore excluded from Citation Strength.",
-      "Recommendation position is not inferred; only explicit literal brand and configured competitor mentions are captured.",
+      "Recommendation position is not inferred; explicit business and configured competitor mentions are captured using normalised token-boundary matching.",
     ],
   };
 }

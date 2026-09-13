@@ -80,3 +80,13 @@ test("trend movement compares equivalent active prompt-provider-model evidence",
   assert.match(trends, /Only series present in both periods contribute to the movement shown/);
   assert.match(trends, /Comparable history needed/);
 });
+
+test("model observation entity matching avoids substring false positives and checks governed brand names", () => {
+  assert.match(modelObserver, /normaliseForEntityMatch/);
+  assert.match(modelObserver, /` \$\{haystack\} `\.includes\(` \$\{needle\} `\)/);
+  assert.match(modelObserver, /profile\?\.tradingName, profile\?\.businessName/);
+  assert.match(modelObserver, /matchedBrandNames/);
+  assert.match(modelObserver, /brandMatchMethod: "normalised_token_boundary"/);
+  assert.match(modelObserver, /competitorCaptureMethod: competitors\.length \? "normalised_token_boundary"/);
+  assert.doesNotMatch(modelObserver, /normalise\(answer\)\.includes\(needle\)/);
+});
