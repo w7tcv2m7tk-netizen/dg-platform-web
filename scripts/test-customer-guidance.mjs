@@ -21,6 +21,7 @@ const performanceStrip = read("src/components/overview/DigitalPerformanceStrip.t
 const analyticsPage = read("src/app/(shell)/apps/analytics/page.tsx");
 const automationLogs = read("src/app/(shell)/apps/automation/logs/page.tsx");
 const hostingPage = read("src/app/(shell)/apps/infrastructure/hosting/page.tsx");
+const propertyManagementPage = read("src/app/(shell)/apps/property-management/page.tsx");
 
 test("knowledge base covers the launch-critical customer journey", () => {
   for (const slug of [
@@ -171,4 +172,9 @@ test("Hosting routes DNS and SSL problems to the exact repair surfaces", () => {
   assert.match(hostingPage, /Fix DNS/);
   assert.match(hostingPage, /Check SSL status/);
   assert.match(hostingPage, /Help me fix hosting/);
+});
+
+test("Property Management open maintenance is a direct resolution path", () => {
+  assert.match(propertyManagementPage, /\/apps\/property-management\/maintenance/);
+  assert.match(propertyManagementPage, /Resolve maintenance/);
 });
