@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ConnectedServicesCatalog } from "@/components/settings/ConnectedServicesCatalog";
+import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function ConnectedServicesPage({
@@ -38,24 +39,58 @@ export default async function ConnectedServicesPage({
       </header>
       <main className="dg-page-main max-w-2xl space-y-6">
         {googleFlash === "connected" ? (
-          <p className="rounded-xl border border-emerald-800/50 bg-emerald-950/20 px-4 py-3 text-sm text-emerald-100">
-            Google Business Profile connected. Sync locations from advanced Connectors if
-            reviews or listings look empty.
-          </p>
+          <div className="rounded-xl border border-emerald-800/50 bg-emerald-950/20 px-4 py-4 text-sm text-emerald-100">
+            <p>Google Business Profile connected.</p>
+            <p className="mt-1 text-xs text-emerald-100/70">
+              If reviews or locations still look empty, refresh the connection status below or open Reviews to sync available evidence.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <ResolutionAction
+                href="/dashboard/settings/connected-services"
+                mode="guided"
+                label="Refresh connection status"
+              />
+              <ResolutionAction href="/apps/reviews" mode="guided" label="Open Reviews" />
+            </div>
+          </div>
         ) : null}
         {googleFlash === "error" ? (
-          <p className="rounded-xl border border-amber-800/50 bg-amber-950/20 px-4 py-3 text-sm text-amber-100">
-            Google connect failed{flashMessage ? `: ${flashMessage}` : " — try again."}
-          </p>
+          <div className="rounded-xl border border-amber-800/50 bg-amber-950/20 px-4 py-4 text-sm text-amber-100">
+            <p>Google connect failed{flashMessage ? `: ${flashMessage}` : "."}</p>
+            <p className="mt-1 text-xs text-amber-100/70">
+              You can retry the connection now. If it still fails, Advisor can guide you without needing connector or API knowledge.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <ResolutionAction
+                href="/api/connectors/google/connect?returnTo=/dashboard/settings/connected-services"
+                mode="guided"
+                label="Try Google again"
+              />
+              <ResolutionAction href="/dashboard/advisor" mode="guided" label="Help me connect it" />
+            </div>
+          </div>
         ) : null}
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-slate-500">
+            Connection status is checked from the services linked to your organisation.
+          </p>
+          <Link
+            href="/dashboard/settings/connected-services"
+            className="inline-flex min-h-11 items-center text-sm font-medium text-sky-400 hover:underline"
+          >
+            Refresh statuses →
+          </Link>
+        </div>
+
         <ConnectedServicesCatalog />
-        <p className="text-xs text-slate-500">
-          Platform diagnostics and OAuth scopes stay under{" "}
-          <Link href="/dashboard/settings/connectors" className="text-sky-400 hover:underline">
-            advanced Connectors
-          </Link>{" "}
-          (operator view) — customers connect the business here, not APIs.
-        </p>
+
+        <div className="rounded-xl border border-slate-800 bg-slate-950/30 px-4 py-3 text-sm text-slate-400">
+          Not sure which service to connect or why something is not syncing?{" "}
+          <Link href="/dashboard/advisor" className="font-medium text-sky-400 hover:underline">
+            Ask AI Advisor for help →
+          </Link>
+        </div>
       </main>
     </>
   );
