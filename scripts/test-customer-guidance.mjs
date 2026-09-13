@@ -25,6 +25,7 @@ const propertyManagementPage = read("src/app/(shell)/apps/property-management/pa
 const marketplaceBrowser = read("src/components/marketplace/MarketplaceBrowser.tsx");
 const aiCallCentre = read("src/app/(shell)/apps/ai-communications/call-centre/page.tsx");
 const prospectingPage = read("src/app/(shell)/apps/prospecting/page.tsx");
+const connectedServicesPage = read("src/app/(shell)/dashboard/settings/connected-services/page.tsx");
 
 test("knowledge base covers the launch-critical customer journey", () => {
   for (const slug of [
@@ -198,4 +199,12 @@ test("Prospecting load failures provide retry and Advisor recovery paths", () =>
   assert.match(prospectingPage, /Try again/);
   assert.match(prospectingPage, /Get help/);
   assert.match(prospectingPage, /kept unavailable signals out of the workspace rather than estimating them/);
+});
+
+test("Connected Services failures provide reconnect, refresh and Advisor recovery", () => {
+  assert.match(connectedServicesPage, /Try Google again/);
+  assert.match(connectedServicesPage, /Refresh statuses/);
+  assert.match(connectedServicesPage, /Help me connect it/);
+  assert.match(connectedServicesPage, /Ask AI Advisor for help/);
+  assert.doesNotMatch(connectedServicesPage, /OAuth scopes|operator view|customers connect the business here, not APIs/i);
 });
