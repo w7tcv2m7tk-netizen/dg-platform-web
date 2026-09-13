@@ -9,6 +9,7 @@ const support = read("src/app/(shell)/support/page.tsx");
 const helpIndex = read("src/app/(shell)/support/help/page.tsx");
 const helpArticle = read("src/app/(shell)/support/help/[slug]/page.tsx");
 const supportActions = read("src/components/SupportActions.tsx");
+const supportChat = read("src/components/support/SupportChatPanel.tsx");
 const nativeGuides = read("src/lib/native-app-setup-guides.ts");
 const guideView = read("src/components/platform/AppSetupGuideView.tsx");
 const registry = read("packages/platform-core/src/apps/registry.ts");
@@ -207,4 +208,11 @@ test("Connected Services failures provide reconnect, refresh and Advisor recover
   assert.match(connectedServicesPage, /Help me connect it/);
   assert.match(connectedServicesPage, /Ask AI Advisor for help/);
   assert.doesNotMatch(connectedServicesPage, /OAuth scopes|operator view|customers connect the business here, not APIs/i);
+});
+
+test("Support chat failures provide retry and human escalation without a dead end", () => {
+  assert.match(supportChat, /Try again/);
+  assert.match(supportChat, /Email support/);
+  assert.match(supportChat, /Complete onboarding/);
+  assert.match(supportChat, /loadConversation/);
 });
