@@ -121,6 +121,7 @@ export * from "./communications";
 export * from "./seo";
 export * from "./ai-visibility";
 export * from "./ai-visibility/monitoring";
+export * from "./ai-visibility/model-observer";
 export * from "./opportunity-engine";
 export * from "./wantd";
 export * from "./services";
