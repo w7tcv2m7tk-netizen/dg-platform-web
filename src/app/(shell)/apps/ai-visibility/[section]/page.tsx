@@ -3,6 +3,7 @@ import {
   getAiVisibilityIntelligenceSnapshot,
   getOrganisationBusinessProfile,
   listAiVisibilityCompetitors,
+  listAiVisibilityObservationEvidence,
   listAiVisibilityPrompts,
 } from "@dg/platform-core";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import { notFound } from "next/navigation";
 
 import { AiVisibilityCompetitorsManager } from "@/components/ai-visibility/AiVisibilityCompetitorsManager";
 import { AiVisibilityMonitorRunner } from "@/components/ai-visibility/AiVisibilityMonitorRunner";
+import { AiVisibilityObservationHistory } from "@/components/ai-visibility/AiVisibilityObservationHistory";
 import { AiVisibilityPromptsManager } from "@/components/ai-visibility/AiVisibilityPromptsManager";
 import { AiVisibilitySectionNav } from "@/components/ai-visibility/AiVisibilitySectionNav";
 import { getPlatformPageContext } from "@/lib/org-apps";
@@ -121,20 +123,25 @@ export default async function AiVisibilitySectionPage({
 
   let prompts: Awaited<ReturnType<typeof listAiVisibilityPrompts>> = [];
   let competitors: Awaited<ReturnType<typeof listAiVisibilityCompetitors>> = [];
+  let observations: Awaited<ReturnType<typeof listAiVisibilityObservationEvidence>> = [];
   let suggestions: ReturnType<typeof buildAiVisibilityPromptSuggestions> = [];
   let intelligence: Awaited<ReturnType<typeof getAiVisibilityIntelligenceSnapshot>> | null = null;
 
   try {
     const { session } = await getPlatformPageContext();
     if (session) {
-      const [profile, promptRows, competitorRows, snapshot] = await Promise.all([
+      const [profile, promptRows, competitorRows, snapshot, observationRows] = await Promise.all([
         getOrganisationBusinessProfile(session.organisationId),
         listAiVisibilityPrompts(session.organisationId),
         listAiVisibilityCompetitors(session.organisationId),
         getAiVisibilityIntelligenceSnapshot(session.organisationId),
+        sectionKey === "presence"
+          ? listAiVisibilityObservationEvidence({ organisationId: session.organisationId, limit: 25 })
+          : Promise.resolve([]),
       ]);
       prompts = promptRows;
       competitors = competitorRows;
+      observations = observationRows;
       intelligence = snapshot;
       suggestions = buildAiVisibilityPromptSuggestions({
         businessName: profile?.tradingName ?? profile?.businessName ?? null,
@@ -159,7 +166,8 @@ export default async function AiVisibilitySectionPage({
   const dimension = dimensionId
     ? intelligence?.dimensions.find((item) => item.id === dimensionId) ?? null
     : null;
-  const activePrompts = intelligence?.evidenceCoverage.activePrompts ?? prompts.filter((item) => item.status === "active").length;
+  const activePrompts =
+    intelligence?.evidenceCoverage.activePrompts ?? prompts.filter((item) => item.status === "active").length;
 
   return (
     <>
@@ -171,7 +179,12 @@ export default async function AiVisibilitySectionPage({
       <main className="dg-page-main space-y-6">
         <AiVisibilitySectionNav />
 
-        {sectionKey === "presence" ? <AiVisibilityMonitorRunner activePrompts={activePrompts} /> : null}
+        {sectionKey === "presence" ? (
+          <>
+            <AiVisibilityMonitorRunner activePrompts={activePrompts} />
+            <AiVisibilityObservationHistory observations={observations} />
+          </>
+        ) : null}
 
         {sectionKey === "prompts" ? (
           <AiVisibilityPromptsManager initialItems={prompts} suggestions={suggestions} />
@@ -215,10 +228,24 @@ export default async function AiVisibilitySectionPage({
         <section className="dg-card">
           <h2 className="font-semibold text-white">Evidence coverage</h2>
           <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Active prompts</span><p className="mt-1 text-xl font-semibold text-white">{activePrompts}</p></div>
-            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Competitors</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.activeCompetitors ?? 0}</p></div>
-            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Observations</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.observations ?? 0}</p></div>
-            <div className="rounded-lg border border-slate-800 p-3"><span className="text-slate-500">Overall monitored score</span><p className="mt-1 text-xl font-semibold text-white">{intelligence?.overallScore == null ? "—" : intelligence.overallScore}</p></div>
+            <div className="rounded-lg border border-slate-800 p-3">
+              <span className="text-slate-500">Active prompts</span>
+              <p className="mt-1 text-xl font-semibold text-white">{activePrompts}</p>
+            </div>
+            <div className="rounded-lg border border-slate-800 p-3">
+              <span className="text-slate-500">Competitors</span>
+              <p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.activeCompetitors ?? 0}</p>
+            </div>
+            <div className="rounded-lg border border-slate-800 p-3">
+              <span className="text-slate-500">Observations</span>
+              <p className="mt-1 text-xl font-semibold text-white">{intelligence?.evidenceCoverage.observations ?? 0}</p>
+            </div>
+            <div className="rounded-lg border border-slate-800 p-3">
+              <span className="text-slate-500">Overall monitored score</span>
+              <p className="mt-1 text-xl font-semibold text-white">
+                {intelligence?.overallScore == null ? "—" : intelligence.overallScore}
+              </p>
+            </div>
           </div>
           <p className="mt-3 text-xs text-slate-500">
             A score is calculated only from dimensions backed by captured evidence. Missing monitoring coverage remains unavailable, never zero.
