@@ -40,12 +40,12 @@ export default async function CommerceOverviewPage() {
             <p className="mt-1 text-2xl font-bold text-white">{formatMoney(snapshot.revenueYtdCents)}</p>
           </div>
           <Link
-            href="/apps/commerce/invoices?status=outstanding"
+            href="/apps/commerce/invoices"
             className={`rounded-xl border bg-slate-900/50 p-4 transition hover:border-sky-500/40 ${snapshot.outstandingArCents > 0 ? "border-amber-500/30" : "border-slate-800"}`}
           >
             <p className="text-xs uppercase tracking-wide text-slate-500">Outstanding AR</p>
             <p className="mt-1 text-2xl font-bold text-amber-300">{formatMoney(snapshot.outstandingArCents)}</p>
-            {snapshot.outstandingArCents > 0 ? <p className="mt-2 text-xs font-medium text-sky-400">Review outstanding invoices →</p> : null}
+            {snapshot.outstandingArCents > 0 ? <p className="mt-2 text-xs font-medium text-sky-400">Review invoices →</p> : null}
           </Link>
           <Link
             href="/apps/commerce/invoices?status=overdue"
