@@ -2,9 +2,7 @@ function clamp(n: number) {
   return Math.max(0, Math.min(100, Math.round(n)));
 }
 
-type ObservationRow = Awaited<ReturnType<typeof loadCurrentObservationRows>>[number];
-
-async function loadCurrentObservationRows(organisationId: string) {
+export async function getCurrentAiVisibilityIntelligenceSnapshot(organisationId: string) {
   const { prisma } = await import("@dg/database");
   const [activePrompts, activeCompetitors] = await Promise.all([
     prisma.aiVisibilityPrompt.findMany({
@@ -17,45 +15,25 @@ async function loadCurrentObservationRows(organisationId: string) {
   ]);
 
   const promptIds = activePrompts.map((item) => item.id);
-  if (!promptIds.length) {
-    return Object.assign([], {
-      activePromptCount: 0,
-      activeCompetitorCount: activeCompetitors,
-    }) as never;
-  }
-
-  const observations = await prisma.aiVisibilityObservation.findMany({
-    where: {
-      organisationId,
-      promptId: { in: promptIds },
-    },
-    orderBy: [{ observedAt: "desc" }, { createdAt: "desc" }],
-    take: 1000,
-    include: { competitorMentions: true, citations: true },
-  });
+  const allObservations = promptIds.length
+    ? await prisma.aiVisibilityObservation.findMany({
+        where: {
+          organisationId,
+          promptId: { in: promptIds },
+        },
+        orderBy: [{ observedAt: "desc" }, { createdAt: "desc" }],
+        take: 1000,
+        include: { competitorMentions: true, citations: true },
+      })
+    : [];
 
   const seen = new Set<string>();
-  const current = observations.filter((row) => {
+  const observations = allObservations.filter((row) => {
     const key = `${row.promptId}::${row.engine}::${row.engineModel ?? ""}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
-
-  return Object.assign(current, {
-    activePromptCount: activePrompts.length,
-    activeCompetitorCount: activeCompetitors,
-  });
-}
-
-export async function getCurrentAiVisibilityIntelligenceSnapshot(organisationId: string) {
-  const rows = await loadCurrentObservationRows(organisationId);
-  const observations = rows as ObservationRow[] & {
-    activePromptCount?: number;
-    activeCompetitorCount?: number;
-  };
-  const activePrompts = observations.activePromptCount ?? 0;
-  const activeCompetitors = observations.activeCompetitorCount ?? 0;
 
   const latest = observations[0]?.observedAt.toISOString() ?? null;
   const total = observations.length;
@@ -162,7 +140,7 @@ export async function getCurrentAiVisibilityIntelligenceSnapshot(organisationId:
       : null,
     dimensions,
     evidenceCoverage: {
-      activePrompts,
+      activePrompts: activePrompts.length,
       activeCompetitors,
       observations: total,
       citationCompleteObservations: citationComplete.length,
