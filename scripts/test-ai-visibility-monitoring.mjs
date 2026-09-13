@@ -7,6 +7,8 @@ const monitoring = read("packages/platform-core/src/ai-visibility/monitoring.ts"
 const route = read("src/app/api/v1/ai-visibility/monitoring/route.ts");
 const visibility = read("packages/platform-core/src/ai-visibility/index.ts");
 const currentSnapshot = read("packages/platform-core/src/ai-visibility/current-snapshot.ts");
+const modelObserver = read("packages/platform-core/src/ai-visibility/model-observer.ts");
+const monitorRunner = read("src/components/ai-visibility/AiVisibilityMonitorRunner.tsx");
 const platformIndex = read("packages/platform-core/src/index.ts");
 
 test("AI Visibility monitoring accepts only organisation-governed evidence", () => {
@@ -50,4 +52,19 @@ test("public AI Visibility snapshot consumers resolve to the current evidence im
   assert.match(platformIndex, /getCurrentAiVisibilityIntelligenceSnapshot as getAiVisibilityIntelligenceSnapshot/);
   assert.match(monitoring, /getCurrentAiVisibilityIntelligenceSnapshot/);
   assert.match(monitoring, /snapshot: await getCurrentAiVisibilityIntelligenceSnapshot/);
+});
+
+test("manual observation batches advance coverage instead of repeating the first prompts forever", () => {
+  assert.match(modelObserver, /latestByPrompt/);
+  assert.match(modelObserver, /Number\.NEGATIVE_INFINITY/);
+  assert.match(modelObserver, /aObserved - bObserved/);
+  assert.match(modelObserver, /remainingUnobserved/);
+  assert.doesNotMatch(modelObserver, /filter\(\(item\) => item\.status === "active"\)\.slice\(0, maxPrompts\)/);
+});
+
+test("monitor runner exposes bounded batches and explicit coverage recovery", () => {
+  assert.match(monitorRunner, /Run next 3 prompts/);
+  assert.match(monitorRunner, /prompts have evidence/);
+  assert.match(monitorRunner, /Run next batch/);
+  assert.match(monitorRunner, /remainingUnobserved/);
 });
