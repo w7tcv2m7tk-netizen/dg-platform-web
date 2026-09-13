@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ResolutionFallback } from "@/components/ui/ResolutionAction";
 
 type ServiceStatus = "connected" | "not_connected" | "coming_next" | "managed";
 
@@ -133,11 +134,13 @@ const PLATFORM_CAPABILITIES: ServiceCard[] = [
 export function ConnectedServicesCatalog() {
   const [groups, setGroups] = useState<ServiceGroup[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       setError(null);
+      setGroups(null);
       try {
         const [gmailRes, gbpRes, microsoftRes, icloudRes] = await Promise.all([
           fetch("/api/v1/connectors/google-gmail/status"),
@@ -145,6 +148,9 @@ export function ConnectedServicesCatalog() {
           fetch("/api/v1/connectors/microsoft-365/status"),
           fetch("/api/v1/connectors/apple-icloud/status"),
         ]);
+        if (![gmailRes, gbpRes, microsoftRes, icloudRes].every((response) => response.ok)) {
+          throw new Error("connection_status_unavailable");
+        }
         const gmailJson = await gmailRes.json().catch(() => ({}));
         const gbpJson = await gbpRes.json().catch(() => ({}));
         const microsoftJson = await microsoftRes.json().catch(() => ({}));
@@ -402,9 +408,9 @@ export function ConnectedServicesCatalog() {
         ];
 
         if (!cancelled) setGroups(next);
-      } catch (err) {
+      } catch {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Could not load connections");
+          setError("DigitalGate could not refresh your connection status.");
         }
       }
     }
@@ -412,10 +418,27 @@ export function ConnectedServicesCatalog() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reloadKey]);
 
   if (error) {
-    return <p className="text-sm text-amber-400">{error}</p>;
+    return (
+      <div className="rounded-xl border border-amber-400/25 bg-amber-400/5 p-5">
+        <p className="font-medium text-amber-200">Connection status needs another check</p>
+        <p className="mt-1 text-sm text-slate-400">
+          {error} Retry the check now. If it still fails, DigitalGate can guide you through the connection setup.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setReloadKey((value) => value + 1)}
+            className="inline-flex items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70"
+          >
+            Retry check
+          </button>
+          <ResolutionFallback />
+        </div>
+      </div>
+    );
   }
 
   if (!groups) {
