@@ -14,15 +14,24 @@ function formatMoney(cents: number) {
   return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(cents / 100);
 }
 
-export default async function CommerceInvoicesPage() {
+export default async function CommerceInvoicesPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ status?: string }>;
+}) {
   const session = await getAuthorisedPlatformPageSession("commerce.read");
   if (!session) return null;
   const canManage = sessionHasFeature(session, "commerce.manage");
+  const params = (await searchParams) ?? {};
+  const statusFilter = params.status?.trim().toLowerCase() || null;
 
-  const [invoices, profile] = await Promise.all([
+  const [allInvoices, profile] = await Promise.all([
     listInvoices(session.organisationId),
     getOrganisationBusinessProfile(session.organisationId),
   ]);
+  const invoices = statusFilter
+    ? allInvoices.filter((invoice) => invoice.status.toLowerCase() === statusFilter)
+    : allInvoices;
   const taxDefaults = resolveOrgTaxDefaults(profile);
 
   return (
@@ -30,7 +39,14 @@ export default async function CommerceInvoicesPage() {
       <header className="dg-page-header">
         <Link href="/apps/commerce" className="text-sm text-blue-400 hover:underline">← Commerce</Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Invoices</h1>
-        <p className="text-sm text-slate-400">{invoices.length} invoice(s) · AU tax invoice layout from Business Profile</p>
+        <p className="text-sm text-slate-400">
+          {invoices.length} invoice(s){statusFilter ? ` · ${statusFilter.replace(/_/g, " ")}` : ""} · AU tax invoice layout from Business Profile
+        </p>
+        {statusFilter ? (
+          <Link href="/apps/commerce/invoices" className="mt-2 inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">
+            Clear filter →
+          </Link>
+        ) : null}
       </header>
       <main className="dg-page-main space-y-6">
         {canManage ? (
@@ -74,7 +90,16 @@ export default async function CommerceInvoicesPage() {
                 ))}
               </tbody>
             </table>
-            {!invoices.length ? <p className="py-6 text-center text-sm text-slate-400">No invoices yet.</p> : null}
+            {!invoices.length ? (
+              <div className="py-6 text-center text-sm text-slate-400">
+                <p>{statusFilter ? `No ${statusFilter.replace(/_/g, " ")} invoices.` : "No invoices yet."}</p>
+                {statusFilter ? (
+                  <Link href="/apps/commerce/invoices" className="mt-2 inline-flex min-h-11 items-center text-sky-400 hover:underline">
+                    View all invoices →
+                  </Link>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
       </main>
