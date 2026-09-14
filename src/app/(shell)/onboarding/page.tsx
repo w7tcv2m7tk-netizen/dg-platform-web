@@ -4,13 +4,10 @@ import {
   getFoundingOnboarding,
   getGen2OnboardingProgress,
   getOrganisationBillingStatus,
-  sessionHasFeature,
 } from "@dg/platform-core";
 
 import { Gen2OnboardingWizard } from "@/components/onboarding/Gen2OnboardingWizard";
-import { VipIndustryProfileSetup } from "@/components/onboarding/VipIndustryProfileSetup";
 import { VipOnboardingExperience } from "@/components/onboarding/VipOnboardingExperience";
-import { VipPlatformSetupPanel } from "@/components/onboarding/VipPlatformSetupPanel";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
 
@@ -91,7 +88,6 @@ export default async function OnboardingPage({
       }
     : initialProgress;
   const vipPreset = getVipCustomerPreset(session.organisationName);
-  const canImportContacts = sessionHasFeature(session, "crm.contacts.import");
 
   if (initialProgress.completedAt && !reviewMode) {
     return (
@@ -129,15 +125,6 @@ export default async function OnboardingPage({
         initial={journeyProgress}
         founding={founding}
         checkoutStatus={checkoutStatus}
-      />
-      <VipIndustryProfileSetup
-        initial={journeyProgress}
-        recommendedTemplate={vipPreset?.industryTemplate}
-      />
-      <VipPlatformSetupPanel
-        initial={journeyProgress}
-        canImportContacts={canImportContacts}
-        setupFocus={vipPreset?.setupFocus}
       />
     </VipOnboardingExperience>
   );
