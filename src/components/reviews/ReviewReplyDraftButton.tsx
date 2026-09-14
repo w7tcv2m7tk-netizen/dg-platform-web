@@ -55,7 +55,7 @@ export function ReviewReplyDraftButton({
         <div className="mt-3 rounded-lg border border-slate-700 bg-slate-950/60 p-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-xs uppercase tracking-wide text-slate-500">
-              Suggested reply{source ? ` · ${source}` : ""}
+              Aida suggested reply{source ? ` · ${source}` : ""}
             </p>
             <button
               type="button"
@@ -67,8 +67,8 @@ export function ReviewReplyDraftButton({
           </div>
           <p className="mt-2 whitespace-pre-wrap text-sm text-slate-200">{draft}</p>
           <p className="mt-2 text-xs text-slate-500">
-            Saved as an Activity draft — paste into Airbnb / Booking / GBP when ready. Publish APIs
-            are not connected yet.
+            Saved as an Activity draft. Review and publish it in the original review service when ready;
+            DigitalGate does not publish review replies to connected sources yet.
           </p>
         </div>
       ) : null}

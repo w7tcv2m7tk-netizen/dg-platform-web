@@ -2,7 +2,7 @@ import type { AppManifest } from "../manifest";
 
 /**
  * Reputation — Growth App product surface for connected review monitoring,
- * reputation scoring, reply drafting and queued review follow-up.
+ * reputation scoring, reply drafting and recorded review follow-up tasks.
  * Core still owns Universal Review Object, Reputation Service, connectors, timeline,
  * and score computation — this App is the customer-facing packaging, not a
  * “Google Reviews App.”
@@ -12,7 +12,7 @@ export const reviewsApp: AppManifest = {
   id: "reviews",
   name: "Reputation",
   description:
-    "Monitor connected reviews, track Reputation Score™, draft replies, and queue review follow-ups from completed work",
+    "Monitor connected reviews, track Reputation Score™, draft replies, and record review follow-ups from completed work",
   tier: "growth",
   version: "0.4.0",
   icon: "★",
