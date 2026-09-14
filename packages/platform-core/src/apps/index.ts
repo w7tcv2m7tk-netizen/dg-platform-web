@@ -6,6 +6,7 @@ export * from "./org-apps";
 export * from "./navigation";
 export * from "./platform-tools";
 export * from "./sidebar-icons";
+export * from "./industry-taxonomy";
 export * from "./builtins/crm";
 export * from "./builtins/real-estate";
 export * from "./builtins/seo";
