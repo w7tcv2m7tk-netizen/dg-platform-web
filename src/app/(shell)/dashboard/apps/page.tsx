@@ -3,6 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 
 import { AppsBillingStatusCard } from "@/components/platform/AppsBillingStatusCard";
 import { AppsPlanCatalog } from "@/components/platform/AppsPlanCatalog";
+import { MarketingCatalogCard } from "@/components/platform/MarketingCatalogCard";
 import { PostPurchaseSyncBanner } from "@/components/platform/PostPurchaseSyncBanner";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
@@ -73,6 +74,7 @@ export default async function AppsPage() {
         {session ? (
           <AppsBillingStatusCard organisationId={session.organisationId} />
         ) : null}
+        <MarketingCatalogCard />
         <AppsPlanCatalog />
       </main>
     </>
