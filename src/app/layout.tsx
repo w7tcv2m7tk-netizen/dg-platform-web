@@ -16,6 +16,7 @@ import { ServiceWorkerRegistration } from "@/components/platform/ServiceWorkerRe
 import { PlatformThemeProvider } from "@/components/theme/PlatformThemeProvider";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
+import "./digitalgate-brand.css";
 import "./clerk-overrides.css";
 
 /** Only set when CLERK_PROXY_URL is present (Dashboard proxy validated). */

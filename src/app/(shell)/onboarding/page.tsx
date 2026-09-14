@@ -11,7 +11,6 @@ import { Gen2OnboardingWizard } from "@/components/onboarding/Gen2OnboardingWiza
 import { VipIndustryProfileSetup } from "@/components/onboarding/VipIndustryProfileSetup";
 import { VipOnboardingExperience } from "@/components/onboarding/VipOnboardingExperience";
 import { VipPlatformSetupPanel } from "@/components/onboarding/VipPlatformSetupPanel";
-import { VipSetupIntro } from "@/components/onboarding/VipSetupIntro";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
 
@@ -21,7 +20,7 @@ const VERIFIED_CHECKOUT_KINDS = new Set(["trial", "subscribed", "cancel_at_perio
 export default async function OnboardingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ invite?: string; journey?: string; checkout?: string }>;
+  searchParams: Promise<{ invite?: string; journey?: string; checkout?: string; review?: string }>;
 }) {
   const params = await searchParams;
   const { session } = await getPlatformPageContext();
@@ -42,6 +41,7 @@ export default async function OnboardingPage({
     if (invite) redirectParams.set("invite", invite);
     if (params.journey) redirectParams.set("journey", params.journey);
     if (params.checkout) redirectParams.set("checkout", params.checkout);
+    if (params.review) redirectParams.set("review", params.review);
     const query = redirectParams.toString();
     const onboardingPath = query ? `/onboarding?${query}` : "/onboarding";
     const loginHref = `/login?redirect_url=${encodeURIComponent(onboardingPath)}`;
@@ -49,7 +49,7 @@ export default async function OnboardingPage({
       <main className="dg-page-main mx-auto max-w-lg px-6 py-16">
         <h1 className="text-2xl font-bold text-white">Welcome to DigitalGate</h1>
         <p className="mt-3 text-sm leading-6 text-slate-400">Sign in to begin your private Business Operations Platform setup with Aida.</p>
-        <a href={loginHref} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500">Sign in to continue</a>
+        <a href={loginHref} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-violet-500">Sign in to continue</a>
       </main>
     );
   }
@@ -63,19 +63,61 @@ export default async function OnboardingPage({
   if (checkoutPending) {
     return (
       <VipOnboardingExperience businessName={session.organisationName}>
-        <div className="p-6 sm:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Confirming your subscription</p>
+        <div className="mx-auto max-w-2xl rounded-3xl border border-violet-300/15 bg-white/[0.035] p-6 text-center sm:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Confirming your subscription</p>
           <h1 className="mt-2 text-2xl font-bold text-white">Aida is preparing your setup</h1>
           <p className="mt-3 text-sm leading-6 text-slate-300">Your checkout returned successfully. DigitalGate is waiting for Stripe’s verified billing update before I continue preparing your platform.</p>
-          <a href="/onboarding?checkout=success" className="mt-5 inline-flex min-h-11 items-center rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-sky-500">Check confirmation</a>
+          <a href="/onboarding?checkout=success" className="mt-5 inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-violet-500">Check confirmation</a>
         </div>
       </VipOnboardingExperience>
     );
   }
 
   const initialProgress = progress ?? emptyGen2Progress(founding);
+  const reviewMode = params.review === "1" || params.review === "true";
+  const journeyProgress = reviewMode
+    ? {
+        ...initialProgress,
+        currentStep: "welcome" as const,
+        vipSetup: {
+          ...initialProgress.vipSetup,
+          version: 1 as const,
+          rerunRequestedAt: new Date().toISOString(),
+          appearance: initialProgress.vipSetup?.appearance ?? "system",
+          timezone: initialProgress.vipSetup?.timezone ?? "Australia/Brisbane",
+          locale: initialProgress.vipSetup?.locale ?? "en-AU",
+          currency: initialProgress.vipSetup?.currency ?? "AUD",
+        },
+      }
+    : initialProgress;
   const vipPreset = getVipCustomerPreset(session.organisationName);
   const canImportContacts = sessionHasFeature(session, "crm.contacts.import");
+
+  if (initialProgress.completedAt && !reviewMode) {
+    return (
+      <VipOnboardingExperience
+        businessName={session.organisationName}
+        aidaWelcome={`Your DigitalGate workspace for ${session.organisationName} is already configured. You can review the setup at any time without deleting your operational data.`}
+        setupFocus={vipPreset?.setupFocus}
+      >
+        <section className="mx-auto max-w-2xl rounded-3xl border border-violet-300/15 bg-white/[0.035] p-6 text-center shadow-2xl shadow-black/20 sm:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Setup complete</p>
+          <h2 className="mt-3 text-2xl font-semibold text-white">Review or refresh this organisation</h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/55">
+            Re-running setup updates this organisation&apos;s identity, business profile, Apps, operating profile, brand and Business Brain preferences. CRM records, bookings, contacts, documents and transactions are not reset.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <a href="/onboarding?review=1" className="inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-500">
+              Review setup with Aida
+            </a>
+            <a href="/" className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm font-semibold text-white/75 hover:bg-white/[0.08]">
+              Return to platform
+            </a>
+          </div>
+        </section>
+      </VipOnboardingExperience>
+    );
+  }
 
   return (
     <VipOnboardingExperience
@@ -83,18 +125,17 @@ export default async function OnboardingPage({
       aidaWelcome={vipPreset?.aidaWelcome}
       setupFocus={vipPreset?.setupFocus}
     >
-      {initialProgress.currentStep === "welcome" ? <VipSetupIntro /> : null}
       <Gen2OnboardingWizard
-        initial={initialProgress}
+        initial={journeyProgress}
         founding={founding}
         checkoutStatus={checkoutStatus}
       />
       <VipIndustryProfileSetup
-        initial={initialProgress}
+        initial={journeyProgress}
         recommendedTemplate={vipPreset?.industryTemplate}
       />
       <VipPlatformSetupPanel
-        initial={initialProgress}
+        initial={journeyProgress}
         canImportContacts={canImportContacts}
         setupFocus={vipPreset?.setupFocus}
       />

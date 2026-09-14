@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 export function VipOnboardingExperience({
@@ -15,80 +16,67 @@ export function VipOnboardingExperience({
   const focus = setupFocus?.filter(Boolean) ?? [];
 
   return (
-    <div className="fixed inset-0 z-[100] overflow-y-auto bg-[#05070b] text-white">
+    <div className="fixed inset-0 z-[100] overflow-y-auto bg-[#07050d] text-white">
       <div
-        className="pointer-events-none fixed inset-0 opacity-90"
+        className="pointer-events-none fixed inset-0 opacity-95"
         style={{
           background:
-            "radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--org-primary, #3b82f6) 22%, transparent), transparent 34%), radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--org-accent, #10b981) 16%, transparent), transparent 30%), linear-gradient(180deg, #070a10 0%, #05070b 62%, #030406 100%)",
+            "radial-gradient(circle at 50% -8%, color-mix(in srgb, var(--dg-product-primary, #7c3aed) 34%, transparent), transparent 38%), radial-gradient(circle at 92% 12%, rgba(168,85,247,.12), transparent 28%), linear-gradient(180deg, #0c0716 0%, #07050d 52%, #040307 100%)",
         }}
       />
 
-      <div className="relative mx-auto min-h-screen max-w-7xl px-5 py-6 sm:px-8 lg:px-12">
-        <header className="flex items-center justify-between border-b border-white/10 pb-5">
+      <div className="relative mx-auto min-h-screen max-w-5xl px-4 py-5 sm:px-7 lg:px-10">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/45">
-              DigitalGate Business Operations Platform
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-violet-300/80">
+              DigitalGate
             </p>
-            <p className="mt-1 text-sm font-medium text-white/80">Private platform setup</p>
+            <p className="mt-1 text-sm font-medium text-white/70">Private Business Operations Platform setup</p>
           </div>
-          <div className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-white/55">
-            Your progress is saved automatically
+          <div className="rounded-full border border-violet-400/15 bg-violet-400/[0.06] px-4 py-2 text-xs text-white/55">
+            Progress is saved automatically
           </div>
         </header>
 
-        <section className="grid gap-8 py-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-12 lg:py-12">
-          <aside className="lg:sticky lg:top-10 lg:self-start">
-            <div className="max-w-md">
-              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] shadow-2xl shadow-black/40">
-                <span className="text-xl font-semibold tracking-tight">A</span>
-              </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--org-primary,#60a5fa)]">
-                Aida · Your AI business assistant
-              </p>
-              <h1 className="mt-4 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
-                Welcome to DigitalGate.
-              </h1>
-              <p className="mt-5 text-base leading-7 text-white/65">
-                Hi. I’m Aida. {aidaWelcome ?? `I’ll help prepare ${name} before you enter your Business Operations Platform.`}
-              </p>
-              <p className="mt-4 text-sm leading-6 text-white/50">
-                We’ll configure your identity, brand, industry, services, website, business preferences and the context I need to give you useful advice from day one.
-              </p>
+        <section className="mx-auto flex max-w-3xl flex-col items-center pb-5 pt-8 text-center sm:pt-10">
+          <div className="relative h-28 w-28 overflow-hidden rounded-[2rem] border border-violet-300/20 bg-violet-500/10 shadow-2xl shadow-violet-950/50 sm:h-36 sm:w-36">
+            <Image
+              src="/aida/aida-welcome.webp"
+              alt="Aida, your DigitalGate AI business assistant"
+              fill
+              priority
+              sizes="144px"
+              className="object-cover"
+            />
+          </div>
+          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">
+            Aida · Your AI business assistant
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+            Let&apos;s set up {name}.
+          </h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-white/60 sm:text-base sm:leading-7">
+            {aidaWelcome ?? `I’ll guide you through the essentials, personalise DigitalGate around ${name}, and build the context I need to help from day one.`}
+          </p>
 
-              {focus.length ? (
-                <div className="mt-6 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">Your initial Business Brain focus</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {focus.map((item) => (
-                      <span key={item} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/60">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="mt-8 space-y-3 text-sm text-white/60">
-                {["Business identity & brand", "Industry-specific workspace", "Website, social & customer channels", "Business Brain & Aida context", "Platform preferences & launch readiness"].map((item, index) => (
-                  <div key={item} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[11px] text-white/55">
-                      {index + 1}
-                    </span>
-                    {item}
-                  </div>
-                ))}
-              </div>
+          {focus.length ? (
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              {focus.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-full border border-violet-300/15 bg-violet-400/[0.06] px-3 py-1.5 text-xs text-violet-100/75"
+                >
+                  {item}
+                </span>
+              ))}
             </div>
-          </aside>
-
-          <main className="min-w-0 rounded-[28px] border border-white/10 bg-white/[0.045] p-1 shadow-2xl shadow-black/35 backdrop-blur-xl">
-            <div className="rounded-[24px] bg-[#090d14]/90 p-1 sm:p-3">{children}</div>
-          </main>
+          ) : null}
         </section>
 
-        <footer className="border-t border-white/[0.07] py-6 text-center text-xs text-white/35">
-          DigitalGate Business Operations Platform · Secure organisation setup
+        <main className="mx-auto min-w-0 max-w-4xl pb-10">{children}</main>
+
+        <footer className="border-t border-white/[0.07] py-5 text-center text-xs text-white/30">
+          DigitalGate · Secure organisation setup
         </footer>
       </div>
     </div>
