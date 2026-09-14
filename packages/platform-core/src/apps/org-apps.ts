@@ -16,6 +16,7 @@ export const FOUNDING_MODE_CORE_APP_IDS = [
 ] as const;
 
 const GROWTH_APP_IDS_FOR_MODE = [
+  "marketing",
   "prospecting",
   "ai-visibility",
   "seo",
