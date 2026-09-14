@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   foundingCommercialOfferFromMetadata,
   foundingCommercialOfferLocked,
+  getAppsByTier,
   getOpportunity,
   setFoundingCommercialOffer,
   type NegotiatedCommercialOffer,
@@ -17,6 +18,23 @@ function stringList(value: unknown): string[] {
     .map((item) => item.trim())
     .filter(Boolean)
     .slice(0, 50);
+}
+
+function commercialOfferAppOptions() {
+  const tiers = getAppsByTier();
+  const toOptions = (apps: typeof tiers.business) =>
+    apps
+      .filter((app) => app.enabled && (app.manifest.visibility ?? "customer") === "customer")
+      .map((app) => ({
+        id: app.manifest.id,
+        label: app.manifest.name,
+        description: app.manifest.description,
+      }));
+
+  return {
+    industry: toOptions(tiers.business),
+    growth: toOptions(tiers.growth),
+  };
 }
 
 async function loadFoundingOpportunity(organisationId: string, opportunityId: string) {
@@ -49,6 +67,7 @@ export async function GET(req: Request) {
         stage: opportunity.stage,
         metadata: opportunity.metadata,
       }),
+      appOptions: commercialOfferAppOptions(),
     },
   });
 }

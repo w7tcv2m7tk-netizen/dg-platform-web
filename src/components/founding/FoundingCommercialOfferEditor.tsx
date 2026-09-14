@@ -6,35 +6,12 @@ import type { NegotiatedCommercialOffer } from "@dg/platform-core";
 type AppOption = {
   id: string;
   label: string;
+  description?: string;
 };
 
-const INDUSTRY_APP_OPTIONS: AppOption[] = [
-  { id: "real-estate", label: "Real Estate" },
-  { id: "property-management", label: "Property Management" },
-  { id: "commercial", label: "Commercial" },
-  { id: "accommodation", label: "Accommodation" },
-  { id: "services", label: "Services" },
-  { id: "finance", label: "Finance" },
-];
-
-const GROWTH_APP_OPTIONS: AppOption[] = [
-  { id: "prospecting_pro", label: "Prospecting" },
-  { id: "ai_visibility_pro", label: "AI Visibility" },
-  { id: "seo_pro", label: "SEO" },
-  { id: "automation_pro", label: "Automation" },
-  { id: "analytics_pro", label: "Analytics" },
-  { id: "social_pro", label: "Social" },
-  { id: "voice_ai", label: "Voice AI" },
-];
-
-const LEGACY_GROWTH_APP_IDS: Record<string, string> = {
-  prospecting: "prospecting_pro",
-  "ai-visibility": "ai_visibility_pro",
-  seo: "seo_pro",
-  automation: "automation_pro",
-  analytics: "analytics_pro",
-  social: "social_pro",
-  "ai-communications": "voice_ai",
+type AppOptions = {
+  industry: AppOption[];
+  growth: AppOption[];
 };
 
 function money(cents: number) {
@@ -45,13 +22,15 @@ function money(cents: number) {
   }).format(cents / 100);
 }
 
-function normaliseGrowthApps(ids: string[]) {
-  return [...new Set(ids.map((id) => LEGACY_GROWTH_APP_IDS[id] ?? id))];
-}
-
 function toggleAppSelection(selected: string[], id: string, checked: boolean) {
   if (checked) return selected.includes(id) ? selected : [...selected, id];
   return selected.filter((selectedId) => selectedId !== id);
+}
+
+function toggleAllAppSelections(selected: string[], optionIds: string[], checked: boolean) {
+  const optionIdSet = new Set(optionIds);
+  if (checked) return [...new Set([...selected, ...optionIds])];
+  return selected.filter((id) => !optionIdSet.has(id));
 }
 
 function AppCheckboxGroup({
@@ -68,33 +47,64 @@ function AppCheckboxGroup({
   disabled: boolean;
 }) {
   const optionIds = options.map((option) => option.id);
+  const optionIdSet = new Set(optionIds);
   const allSelected = optionIds.length > 0 && optionIds.every((id) => selected.includes(id));
+  const retainedIds = selected.filter((id) => !optionIdSet.has(id));
 
   return (
     <fieldset className="sm:col-span-2" disabled={disabled}>
-      <legend className="text-xs text-slate-500">{legend}</legend>
-      <div className="mt-1 grid gap-2 rounded-lg border border-slate-700 bg-slate-900 p-3 sm:grid-cols-2 lg:grid-cols-4">
-        <label className="flex cursor-pointer items-center gap-2 rounded-md border border-slate-700/80 bg-slate-950/60 px-3 py-2 text-sm font-medium text-white hover:border-sky-500/50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <legend className="text-xs text-slate-500">{legend}</legend>
+        <span className="text-[11px] text-slate-600">
+          {selected.length} included
+        </span>
+      </div>
+      <div className="mt-1 grid gap-2 rounded-lg border border-slate-700 bg-slate-900 p-3 sm:grid-cols-2 xl:grid-cols-3">
+        <label className="flex cursor-pointer items-start gap-2 rounded-md border border-sky-500/30 bg-sky-500/5 px-3 py-2 text-sm font-semibold text-white hover:border-sky-400/60 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
           <input
             type="checkbox"
             checked={allSelected}
-            onChange={(event) => onChange(event.target.checked ? optionIds : [])}
-            className="h-4 w-4 rounded border-slate-600 bg-slate-950 text-sky-500 focus:ring-sky-500"
+            onChange={(event) =>
+              onChange(toggleAllAppSelections(selected, optionIds, event.target.checked))
+            }
+            className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-950 text-sky-500 focus:ring-sky-500"
           />
-          All
+          <span>
+            All {legend}
+            <span className="mt-0.5 block text-[11px] font-normal text-slate-400">
+              Include every currently available app in this group.
+            </span>
+          </span>
         </label>
         {options.map((option) => (
-          <label key={option.id} className="flex cursor-pointer items-center gap-2 rounded-md border border-slate-700/80 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 hover:border-sky-500/50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
+          <label
+            key={option.id}
+            className="flex cursor-pointer items-start gap-2 rounded-md border border-slate-700/80 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 hover:border-sky-500/50 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60"
+          >
             <input
               type="checkbox"
               checked={selected.includes(option.id)}
-              onChange={(event) => onChange(toggleAppSelection(selected, option.id, event.target.checked))}
-              className="h-4 w-4 rounded border-slate-600 bg-slate-950 text-sky-500 focus:ring-sky-500"
+              onChange={(event) =>
+                onChange(toggleAppSelection(selected, option.id, event.target.checked))
+              }
+              className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-950 text-sky-500 focus:ring-sky-500"
             />
-            <span>{option.label}</span>
+            <span>
+              <span className="font-medium text-white">{option.label}</span>
+              {option.description ? (
+                <span className="mt-0.5 block text-[11px] leading-4 text-slate-500">
+                  {option.description}
+                </span>
+              ) : null}
+            </span>
           </label>
         ))}
       </div>
+      {retainedIds.length > 0 ? (
+        <p className="mt-1.5 text-[11px] text-slate-500">
+          Existing legacy/other inclusions retained: {retainedIds.join(", ")}.
+        </p>
+      ) : null}
     </fieldset>
   );
 }
@@ -103,6 +113,7 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
   const [visible, setVisible] = useState(false);
   const [locked, setLocked] = useState(false);
   const [offer, setOffer] = useState<NegotiatedCommercialOffer | null>(null);
+  const [appOptions, setAppOptions] = useState<AppOptions>({ industry: [], growth: [] });
   const [label, setLabel] = useState("Founding 10 negotiated plan");
   const [amount, setAmount] = useState("");
   const [oneOffAmount, setOneOffAmount] = useState("");
@@ -135,9 +146,11 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
         return;
       }
       const next = (json.data?.offer ?? null) as NegotiatedCommercialOffer | null;
+      const nextAppOptions = json.data?.appOptions as AppOptions | undefined;
       setVisible(true);
       setLocked(Boolean(json.data?.locked));
       setOffer(next);
+      if (nextAppOptions) setAppOptions(nextAppOptions);
       if (next) {
         setLabel(next.label);
         setAmount(String(next.amountCents / 100));
@@ -148,7 +161,7 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
         setSeats(String(next.seats ?? 1));
         setTrialDays(String(next.trialDays));
         setIndustryApps(next.industryApps);
-        setPremiumApps(normaliseGrowthApps(next.premiumApps));
+        setPremiumApps(next.premiumApps);
         setNotes(next.notes ?? "");
       }
       setStatus("idle");
@@ -229,8 +242,8 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
         <label className="text-xs text-slate-500">Entitlement tier<select value={platformTier} onChange={(e) => setPlatformTier(e.target.value as "starter" | "professional" | "business")} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60"><option value="starter">Starter</option><option value="professional">Growth</option><option value="business">Scale</option></select></label>
         <label className="text-xs text-slate-500">Included seats<input type="number" min="1" value={seats} onChange={(e) => setSeats(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
         <label className="text-xs text-slate-500">Trial days<input type="number" min="0" max="90" value={trialDays} onChange={(e) => setTrialDays(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
-        <AppCheckboxGroup legend="Industry Apps" options={INDUSTRY_APP_OPTIONS} selected={industryApps} onChange={setIndustryApps} disabled={locked} />
-        <AppCheckboxGroup legend="Growth Apps" options={GROWTH_APP_OPTIONS} selected={premiumApps} onChange={setPremiumApps} disabled={locked} />
+        <AppCheckboxGroup legend="Industry Apps" options={appOptions.industry} selected={industryApps} onChange={setIndustryApps} disabled={locked} />
+        <AppCheckboxGroup legend="Growth Apps" options={appOptions.growth} selected={premiumApps} onChange={setPremiumApps} disabled={locked} />
         <label className="text-xs text-slate-500 sm:col-span-2">Commercial notes<textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
       </div>
 
