@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { NegotiatedCommercialOffer } from "@dg/platform-core";
+import { platformApps, type NegotiatedCommercialOffer } from "@dg/platform-core";
 
 function money(cents: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -11,11 +11,49 @@ function money(cents: number) {
   }).format(cents / 100);
 }
 
-function splitApps(value: string) {
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
+type AppOption = { id: string; name: string };
+
+const customerApps = platformApps.customerApps();
+const INDUSTRY_APP_OPTIONS: AppOption[] = customerApps
+  .filter((app) => app.manifest.tier === "business")
+  .map((app) => ({ id: app.manifest.id, name: app.manifest.name }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+const GROWTH_APP_OPTIONS: AppOption[] = customerApps
+  .filter((app) => app.manifest.tier === "growth")
+  .map((app) => ({ id: app.manifest.id, name: app.manifest.name }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+function toggleApp(selected: string[], id: string) {
+  return selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id];
+}
+
+function AppCheckboxGroup({ label, options, selected, onChange, disabled }: {
+  label: string;
+  options: AppOption[];
+  selected: string[];
+  onChange: (next: string[]) => void;
+  disabled: boolean;
+}) {
+  const allIds = options.map((option) => option.id);
+  const allSelected = allIds.length > 0 && allIds.every((id) => selected.includes(id));
+
+  return (
+    <fieldset disabled={disabled} className="space-y-2 rounded-lg border border-slate-700 bg-slate-900/40 p-3 sm:col-span-2 disabled:opacity-60">
+      <legend className="px-1 text-xs text-slate-500">{label}</legend>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <label className="flex cursor-pointer items-center gap-2 rounded-md border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-sm font-semibold text-sky-100">
+          <input type="checkbox" checked={allSelected} onChange={(e) => onChange(e.target.checked ? allIds : [])} className="h-4 w-4 rounded border-slate-600 bg-slate-950 text-sky-500" />
+          All
+        </label>
+        {options.map((option) => (
+          <label key={option.id} className="flex cursor-pointer items-center gap-2 rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-200">
+            <input type="checkbox" checked={selected.includes(option.id)} onChange={() => onChange(toggleApp(selected, option.id))} className="h-4 w-4 rounded border-slate-600 bg-slate-950 text-sky-500" />
+            <span>{option.name}<span className="ml-1 text-[11px] text-slate-500">({option.id})</span></span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
 }
 
 export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId: string }) {
@@ -30,8 +68,8 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
   const [platformTier, setPlatformTier] = useState<"starter" | "professional" | "business">("professional");
   const [seats, setSeats] = useState("5");
   const [trialDays, setTrialDays] = useState("0");
-  const [industryApps, setIndustryApps] = useState("");
-  const [premiumApps, setPremiumApps] = useState("");
+  const [industryApps, setIndustryApps] = useState<string[]>([]);
+  const [premiumApps, setPremiumApps] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<"loading" | "idle" | "saving" | "saved" | "error">("loading");
   const [message, setMessage] = useState("");
@@ -66,15 +104,13 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
         setPlatformTier(next.platformTier);
         setSeats(String(next.seats ?? 1));
         setTrialDays(String(next.trialDays));
-        setIndustryApps(next.industryApps.join(", "));
-        setPremiumApps(next.premiumApps.join(", "));
+        setIndustryApps(next.industryApps);
+        setPremiumApps(next.premiumApps);
         setNotes(next.notes ?? "");
       }
       setStatus("idle");
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [opportunityId]);
 
   const amountCents = useMemo(() => Math.round(Number(amount || 0) * 100), [amount]);
@@ -86,20 +122,7 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
     const res = await fetch("/api/v1/founding/commercial-offer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        opportunityId,
-        label,
-        amountCents,
-        oneOffAmountCents,
-        oneOffLabel,
-        cadence,
-        platformTier,
-        seats: Number(seats),
-        trialDays: Number(trialDays),
-        industryApps: splitApps(industryApps),
-        premiumApps: splitApps(premiumApps),
-        notes,
-      }),
+      body: JSON.stringify({ opportunityId, label, amountCents, oneOffAmountCents, oneOffLabel, cadence, platformTier, seats: Number(seats), trialDays: Number(trialDays), industryApps, premiumApps, notes }),
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -120,24 +143,13 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="font-semibold text-white">Commercial offer</h3>
-          <p className="mt-1 text-xs text-slate-400">
-            Set negotiated recurring and one-off terms before the customer signs. These terms are copied to their organisation and snapshotted at signature.
-          </p>
+          <p className="mt-1 text-xs text-slate-400">Set negotiated recurring and one-off terms before the customer signs. These terms are copied to their organisation and snapshotted at signature.</p>
         </div>
-        {offer ? (
-          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200">
-            {money(offer.amountCents)}/{offer.cadence === "annual" ? "yr" : "mo"}
-            {offer.oneOffAmountCents ? ` + ${money(offer.oneOffAmountCents)} once` : ""}
-          </span>
-        ) : null}
+        {offer ? <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200">{money(offer.amountCents)}/{offer.cadence === "annual" ? "yr" : "mo"}{offer.oneOffAmountCents ? ` + ${money(offer.oneOffAmountCents)} once` : ""}</span> : null}
       </div>
 
       {status === "loading" ? <p className="text-sm text-slate-500">Loading offer…</p> : null}
-      {locked ? (
-        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-          Commercial terms are locked because the agreement has already been signed.
-        </p>
-      ) : null}
+      {locked ? <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">Commercial terms are locked because the agreement has already been signed.</p> : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-slate-500 sm:col-span-2">Offer name<input value={label} onChange={(e) => setLabel(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
@@ -148,15 +160,13 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
         <label className="text-xs text-slate-500">Entitlement tier<select value={platformTier} onChange={(e) => setPlatformTier(e.target.value as "starter" | "professional" | "business")} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60"><option value="starter">Starter</option><option value="professional">Growth</option><option value="business">Scale</option></select></label>
         <label className="text-xs text-slate-500">Included seats<input type="number" min="1" value={seats} onChange={(e) => setSeats(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
         <label className="text-xs text-slate-500">Trial days<input type="number" min="0" max="90" value={trialDays} onChange={(e) => setTrialDays(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
-        <label className="text-xs text-slate-500 sm:col-span-2">Industry Apps (comma separated IDs)<input value={industryApps} onChange={(e) => setIndustryApps(e.target.value)} disabled={locked} placeholder="finance" className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
-        <label className="text-xs text-slate-500 sm:col-span-2">Growth Apps (comma separated IDs)<input value={premiumApps} onChange={(e) => setPremiumApps(e.target.value)} disabled={locked} placeholder="automation, seo, ai-visibility" className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
+        <AppCheckboxGroup label="Industry Apps" options={INDUSTRY_APP_OPTIONS} selected={industryApps} onChange={setIndustryApps} disabled={locked} />
+        <AppCheckboxGroup label="Growth Apps" options={GROWTH_APP_OPTIONS} selected={premiumApps} onChange={setPremiumApps} disabled={locked} />
         <label className="text-xs text-slate-500 sm:col-span-2">Commercial notes<textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" disabled={locked || status === "saving" || !label.trim() || amountCents <= 0 || oneOffAmountCents < 0 || (oneOffAmountCents > 0 && !oneOffLabel.trim())} onClick={() => void save()} className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50">
-          {status === "saving" ? "Saving…" : offer ? "Update commercial offer" : "Save commercial offer"}
-        </button>
+        <button type="button" disabled={locked || status === "saving" || !label.trim() || amountCents <= 0 || oneOffAmountCents < 0 || (oneOffAmountCents > 0 && !oneOffLabel.trim())} onClick={() => void save()} className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50">{status === "saving" ? "Saving…" : offer ? "Update commercial offer" : "Save commercial offer"}</button>
         {message ? <p className={`text-sm ${status === "error" ? "text-amber-300" : "text-emerald-300"}`}>{message}</p> : null}
       </div>
     </section>
