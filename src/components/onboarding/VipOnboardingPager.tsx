@@ -51,9 +51,17 @@ export function VipOnboardingPager({
       </nav>
 
       <div className="min-w-0">
-        {page === "setup" ? setup : null}
+        {page === "setup" ? (
+          <div className="[&_.dg-page-header]:mx-4 [&_.dg-page-header]:rounded-2xl [&_.dg-page-header]:border [&_.dg-page-header]:border-violet-300/15 [&_.dg-page-header]:bg-white/[0.035] [&_.dg-page-header]:shadow-lg [&_.dg-page-header]:shadow-black/10 sm:[&_.dg-page-header]:mx-6">
+            {setup}
+          </div>
+        ) : null}
         {page === "operating" ? operatingProfile : null}
-        {page === "preparation" ? platformPreparation : null}
+        {page === "preparation" ? (
+          <div className="[&>section>div:first-child>div:first-child>p:first-child]:text-[0px] [&>section>div:first-child>div:first-child>p:first-child]:after:text-xs [&>section>div:first-child>div:first-child>p:first-child]:after:font-semibold [&>section>div:first-child>div:first-child>p:first-child]:after:uppercase [&>section>div:first-child>div:first-child>p:first-child]:after:tracking-[0.18em] [&>section>div:first-child>div:first-child>p:first-child]:after:text-sky-300 [&>section>div:first-child>div:first-child>p:first-child]:after:content-['Platform_preparation']">
+            {platformPreparation}
+          </div>
+        ) : null}
       </div>
 
       <div className="mx-auto mt-5 flex max-w-4xl items-center justify-between gap-3 px-1">
