@@ -1,13 +1,19 @@
 :root {
+  /* Canonical DigitalGate product identity. Organisation branding remains separate. */
   --dg-product-primary: #7c3aed;
   --dg-product-primary-hover: #8b5cf6;
   --dg-product-primary-soft: #a78bfa;
   --dg-product-accent: #c084fc;
+  --dg-product-deep: #4c1d95;
+  --dg-product-ink: #0c0716;
+  --dg-product-canvas: #07050d;
+  --dg-product-surface: #120b20;
+  --dg-product-border: rgba(167, 139, 250, 0.18);
+  --dg-product-focus: rgba(167, 139, 250, 0.42);
   --dg-blue: var(--dg-product-primary);
   --org-primary: var(--dg-product-primary);
 }
 
-/* DigitalGate product chrome stays recognisably purple even when organisation content has its own brand. */
 .dg-btn-primary {
   background: var(--dg-product-primary) !important;
 }
@@ -22,7 +28,7 @@
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--dg-product-primary) 28%, transparent) !important;
 }
 
-/* Common DigitalGate action utilities retained in older screens inherit the product purple. */
+/* Legacy product-blue utilities inherit the canonical DigitalGate palette while screens are migrated to tokens. */
 .bg-sky-600,
 .bg-blue-600 {
   background-color: var(--dg-product-primary) !important;
@@ -55,4 +61,125 @@
 .focus\:border-sky-500:focus,
 .focus\:border-blue-500:focus {
   border-color: var(--dg-product-primary) !important;
+}
+
+.focus\:ring-sky-500:focus,
+.focus\:ring-blue-500:focus {
+  --tw-ring-color: var(--dg-product-focus) !important;
+}
+
+/* Immersive onboarding: one focused setup screen at a time, like a device setup assistant. */
+.dg-onboarding-experience .dg-page-header {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 48rem;
+  padding: 0 0 1.5rem;
+  text-align: center;
+}
+
+.dg-onboarding-experience .dg-page-header > p:first-child {
+  color: var(--dg-product-primary-soft) !important;
+}
+
+.dg-onboarding-experience .dg-page-header h1 {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.dg-onboarding-experience .dg-page-header > p:nth-of-type(2) {
+  color: rgba(255,255,255,.42) !important;
+}
+
+.dg-onboarding-experience .dg-page-header > div:last-child {
+  height: .3rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08) !important;
+}
+
+.dg-onboarding-experience .dg-page-header > div:last-child > div {
+  background: linear-gradient(90deg, var(--dg-product-primary), var(--dg-product-accent)) !important;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--dg-product-primary) 45%, transparent);
+}
+
+.dg-onboarding-experience .dg-page-main {
+  width: 100%;
+  max-width: 48rem !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 2rem !important;
+}
+
+.dg-onboarding-experience .dg-page-main > section {
+  border-color: var(--dg-product-border) !important;
+  border-radius: 1.5rem !important;
+  background: rgba(18, 11, 32, .72) !important;
+  box-shadow: 0 28px 80px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.025);
+  backdrop-filter: blur(20px);
+  padding: clamp(1.5rem, 4vw, 2.25rem) !important;
+}
+
+.dg-onboarding-experience input,
+.dg-onboarding-experience textarea,
+.dg-onboarding-experience select {
+  border-color: rgba(167,139,250,.18) !important;
+  background: rgba(8,5,15,.72) !important;
+}
+
+.dg-onboarding-experience input:focus,
+.dg-onboarding-experience textarea:focus,
+.dg-onboarding-experience select:focus {
+  border-color: var(--dg-product-primary) !important;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--dg-product-focus);
+}
+
+.dg-onboarding-experience button.bg-sky-600,
+.dg-onboarding-experience button.bg-blue-600 {
+  min-height: 2.85rem;
+  padding-inline: 1.35rem !important;
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--dg-product-primary) 22%, transparent);
+}
+
+/* The welcome step is the only hero Aida moment. Later steps stay focused on the task. */
+.dg-onboarding-experience .dg-page-main > section:has(> h2) {
+  position: relative;
+  overflow: hidden;
+  padding-top: 12rem !important;
+  text-align: center;
+}
+
+.dg-onboarding-experience .dg-page-main > section:has(> h2)::before {
+  content: "";
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  width: 9.5rem;
+  height: 9.5rem;
+  transform: translateX(-50%);
+  background: url('/aida/aida-welcome.webp') center bottom / contain no-repeat;
+  filter: drop-shadow(0 20px 28px rgba(0,0,0,.3));
+}
+
+.dg-onboarding-experience .dg-page-main > section:has(> h2) h2 {
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  line-height: 1.05;
+  letter-spacing: -.035em;
+}
+
+.dg-onboarding-experience .dg-page-main > section:has(> h2) ul {
+  margin-inline: auto;
+  max-width: 34rem;
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  .dg-onboarding-experience .dg-page-main > section:has(> h2) {
+    padding-top: 10.75rem !important;
+  }
+
+  .dg-onboarding-experience .dg-page-main > section:has(> h2)::before {
+    width: 8.25rem;
+    height: 8.25rem;
+  }
 }

@@ -44,7 +44,7 @@
 .cl-signUp-root .cl-formResendCodeLink,
 .cl-signIn-root .cl-backLink,
 .cl-signUp-root .cl-backLink {
-  color: #bfdbfe !important;
+  color: #c4b5fd !important;
 }
 
 .cl-signIn-root .cl-footerActionLink:hover,
@@ -53,15 +53,15 @@
 .cl-signUp-root .cl-formResendCodeLink:hover,
 .cl-signIn-root .cl-backLink:hover,
 .cl-signUp-root .cl-backLink:hover {
-  color: #ffffff !important;
+  color: #ede9fe !important;
 }
 
 .cl-signIn-root .cl-formFieldInput,
 .cl-signUp-root .cl-formFieldInput,
 .cl-signIn-root .cl-formFieldInput input,
 .cl-signUp-root .cl-formFieldInput input {
-  background-color: #1e293b !important;
-  border-color: #64748b !important;
+  background-color: #120b20 !important;
+  border-color: rgba(167, 139, 250, 0.28) !important;
   color: #f8fafc !important;
   caret-color: #f8fafc !important;
 }
@@ -75,8 +75,8 @@
 .cl-signUp-root .cl-otpCodeFieldInput,
 .cl-signIn-root .cl-otpCodeFieldInput input,
 .cl-signUp-root .cl-otpCodeFieldInput input {
-  background-color: #1e293b !important;
-  border: 1px solid #64748b !important;
+  background-color: #120b20 !important;
+  border: 1px solid rgba(167, 139, 250, 0.28) !important;
   color: #f8fafc !important;
   caret-color: #f8fafc !important;
   min-height: 3rem;
@@ -89,9 +89,9 @@
 .cl-signUp-root .cl-otpCodeFieldInput:focus-within,
 .cl-signIn-root .cl-otpCodeFieldInput input:focus,
 .cl-signUp-root .cl-otpCodeFieldInput input:focus {
-  border-color: var(--org-primary, #60a5fa) !important;
+  border-color: var(--dg-product-primary, #7c3aed) !important;
   outline: none !important;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--org-primary, #3b82f6) 35%, transparent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--dg-product-primary, #7c3aed) 35%, transparent) !important;
 }
 
 /* Hide Google / social login until re-enabled */
