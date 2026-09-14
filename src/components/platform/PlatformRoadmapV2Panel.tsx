@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   getAppsByTier,
-  getRoadmapByArea,
   INDUSTRY_TAXONOMY,
   PLATFORM_ROADMAP,
 } from "@dg/platform-core";
@@ -12,6 +11,7 @@ import type { RoadmapItem, RoadmapStatus } from "@dg/platform-core";
 import { RoadmapStatusBadge } from "@/components/platform/RoadmapStatusBadge";
 
 export type RoadmapView = "overview" | "core" | "growth" | "command" | "industry" | "configuration";
+type MajorRoadmapView = Exclude<RoadmapView, "overview">;
 
 const WEIGHT: Record<RoadmapStatus, number> = { done: 1, in_progress: 0.65, scaffold: 0.35, planned: 0.05 };
 const VIEWS: Array<{ id: RoadmapView; label: string; description: string }> = [
@@ -22,6 +22,7 @@ const VIEWS: Array<{ id: RoadmapView; label: string; description: string }> = [
   { id: "industry", label: "Industry Apps", description: "Industry operating systems" },
   { id: "configuration", label: "Configuration", description: "Administration and infrastructure" },
 ];
+const MAJOR_VIEWS = VIEWS.filter((entry): entry is { id: MajorRoadmapView; label: string; description: string } => entry.id !== "overview");
 
 function percent(items: RoadmapItem[]) {
   return items.length ? Math.round((items.reduce((n, item) => n + WEIGHT[item.status], 0) / items.length) * 100) : 0;
@@ -47,7 +48,7 @@ export function PlatformRoadmapV2Panel({ view = "overview" }: { view?: RoadmapVi
   const businessIds = new Set(catalogue.business.map((app) => app.manifest.id));
   const growthIds = new Set(catalogue.growth.map((app) => app.manifest.id));
 
-  function categoryOf(item: RoadmapItem): Exclude<RoadmapView, "overview"> {
+  function categoryOf(item: RoadmapItem): MajorRoadmapView {
     if (item.id.startsWith("industry.") || (item.appId && businessIds.has(item.appId))) return "industry";
     if (item.appId && growthIds.has(item.appId)) return "growth";
     if (item.area === "Infrastructure" || item.appId === "infrastructure" || /(^|\.)(config|settings|security|access|connector|billing|api)/.test(item.id)) return "configuration";
@@ -55,7 +56,7 @@ export function PlatformRoadmapV2Panel({ view = "overview" }: { view?: RoadmapVi
     return "core";
   }
 
-  const categoryItems = Object.fromEntries(VIEWS.filter((entry) => entry.id !== "overview").map((entry) => [entry.id, all.filter((item) => categoryOf(item) === entry.id)])) as Record<Exclude<RoadmapView, "overview">, RoadmapItem[]>;
+  const categoryItems = Object.fromEntries(MAJOR_VIEWS.map((entry) => [entry.id, all.filter((item) => categoryOf(item) === entry.id)])) as Record<MajorRoadmapView, RoadmapItem[]>;
   const overall = percent(all);
   const selectedItems = view === "overview" ? all : categoryItems[view];
 
@@ -74,7 +75,7 @@ export function PlatformRoadmapV2Panel({ view = "overview" }: { view?: RoadmapVi
     </section>
 
     {view === "overview" ? <>
-      <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 p-5"><h2 className="text-lg font-semibold text-white">Major build areas</h2><p className="mt-1 text-sm text-slate-500">The platform is now organised the same way you think about the business: operating foundation, growth, operator control, industry products and configuration.</p><div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{VIEWS.filter((entry) => entry.id !== "overview").map((entry) => <ProgressCard key={entry.id} title={entry.label} subtitle={entry.description} items={categoryItems[entry.id]} href={`/command/product/roadmap?view=${entry.id}`}/>)}</div></section>
+      <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 p-5"><h2 className="text-lg font-semibold text-white">Major build areas</h2><p className="mt-1 text-sm text-slate-500">The platform is organised around the operating foundation, growth, operator control, industry products and configuration.</p><div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{MAJOR_VIEWS.map((entry) => <ProgressCard key={entry.id} title={entry.label} subtitle={entry.description} items={categoryItems[entry.id]} href={`/command/product/roadmap?view=${entry.id}`}/>)}</div></section>
       <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 p-5"><div className="flex items-center justify-between gap-3"><div><h2 className="text-lg font-semibold text-white">Overall build horizon</h2><p className="mt-1 text-sm text-slate-500">{all.length} measurable capabilities across the complete DigitalGate vision.</p></div><span className="text-2xl font-bold tabular-nums text-white">{overall}%</span></div></section>
     </> : null}
 
