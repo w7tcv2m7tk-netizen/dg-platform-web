@@ -8,12 +8,7 @@ export const marketingApp: AppManifest = {
   tier: "growth",
   version: "0.1.0",
   icon: "◉",
-  routes: [
-    { path: "/apps/marketing", label: "Overview" },
-    { path: "/apps/marketing/campaigns", label: "Campaigns" },
-    { path: "/apps/marketing/channels", label: "Channels" },
-    { path: "/apps/marketing/audits", label: "Agency audits" },
-  ],
+  routes: [{ path: "/apps/marketing", label: "Overview" }],
   navigation: [{ href: "/apps/marketing", label: "Marketing", icon: "◉" }],
   permissions: [
     { id: "marketing.view", label: "View marketing" },
