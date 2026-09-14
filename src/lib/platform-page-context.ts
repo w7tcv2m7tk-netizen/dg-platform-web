@@ -70,7 +70,10 @@ export const getOrgEnabledAppIdsCached = cache(async (): Promise<string[]> => {
 export type OrgNavSettings = {
   apps?: {
     enabled?: string[];
-    planPreview?: { industryApps?: string[] };
+    planPreview?: {
+      industryApps?: string[];
+      industryTemplates?: string[];
+    };
   };
   profile?: { purchasedApps?: string[] };
   services?: { templateKey?: string };
@@ -83,7 +86,7 @@ function readOrgNavSettings(
   return settings ?? null;
 }
 
-/** Purchased Industry templates — separate sidebar app per add-on (Electrician, Cleaning, PM, …). */
+/** Purchased Industry templates — exact customer business profiles used for personalisation. */
 export const getOrgIndustrySelectionIdsCached = cache(async (): Promise<string[]> => {
   const { session } = await getPlatformPageContext();
 

@@ -1,5 +1,6 @@
 import { EnabledAppsProvider } from "@/components/platform/EnabledAppsProvider";
 import { AppShellLayout } from "@/components/AppShellLayout";
+import { VipSetupGate } from "@/components/onboarding/VipSetupGate";
 import type { BillingBannerModel, OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
 import { DEFAULT_ORG_BRAND_THEME } from "@/lib/brand-client";
 
@@ -22,6 +23,8 @@ export function PlatformShell({
   brandTheme = DEFAULT_ORG_BRAND_THEME,
   isDemo = false,
   billingBanner = null,
+  vipSetupRequired = false,
+  vipSetupCompleted = true,
 }: {
   children: React.ReactNode;
   showFloatingChat?: boolean;
@@ -41,32 +44,36 @@ export function PlatformShell({
   brandTheme?: OrgBrandTheme;
   isDemo?: boolean;
   billingBanner?: BillingBannerModel | null;
+  vipSetupRequired?: boolean;
+  vipSetupCompleted?: boolean;
 }) {
   return (
-    <EnabledAppsProvider
-      initialEnabledIds={enabledIds}
-      industrySelectionIds={industrySelectionIds}
-      showCommandCentre={showCommandCentre}
-      isPlatformOperator={isPlatformOperator}
-      showPartnerPortal={showPartnerPortal}
-      showResellerAdmin={showResellerAdmin}
-      partnerType={partnerType}
-      membershipRole={membershipRole}
-      organisationId={activeOrganisationId}
-      permissionGrants={permissionGrants}
-    >
-      <AppShellLayout
-        activeOrganisationId={activeOrganisationId}
-        activeOrganisationName={activeOrganisationName}
-        organisations={organisations}
-        brandTheme={brandTheme}
-        chatUserName={userName}
-        showFloatingChat={showFloatingChat}
-        isDemo={isDemo}
-        billingBanner={billingBanner}
+    <VipSetupGate required={vipSetupRequired} completed={vipSetupCompleted}>
+      <EnabledAppsProvider
+        initialEnabledIds={enabledIds}
+        industrySelectionIds={industrySelectionIds}
+        showCommandCentre={showCommandCentre}
+        isPlatformOperator={isPlatformOperator}
+        showPartnerPortal={showPartnerPortal}
+        showResellerAdmin={showResellerAdmin}
+        partnerType={partnerType}
+        membershipRole={membershipRole}
+        organisationId={activeOrganisationId}
+        permissionGrants={permissionGrants}
       >
-        {children}
-      </AppShellLayout>
-    </EnabledAppsProvider>
+        <AppShellLayout
+          activeOrganisationId={activeOrganisationId}
+          activeOrganisationName={activeOrganisationName}
+          organisations={organisations}
+          brandTheme={brandTheme}
+          chatUserName={userName}
+          showFloatingChat={showFloatingChat}
+          isDemo={isDemo}
+          billingBanner={billingBanner}
+        >
+          {children}
+        </AppShellLayout>
+      </EnabledAppsProvider>
+    </VipSetupGate>
   );
 }

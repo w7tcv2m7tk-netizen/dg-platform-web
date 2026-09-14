@@ -10,7 +10,9 @@ import {
   getOrganisationGoals,
   saveGen2OnboardingProgress,
   updateOrganisationBusinessProfile,
+  type Gen2OnboardingProgress,
   type Gen2OnboardingStep,
+  type Gen2VipSetup,
   isGen2OnboardingStep,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
@@ -33,14 +35,17 @@ const GOAL_METRIC_HINTS: Record<
 };
 
 const VERIFIED_CHECKOUT_KINDS = new Set(["trial", "subscribed", "cancel_at_period_end"]);
-const CLIENT_CHECKLIST_KEYS = new Set([
-  "business_identity",
-  "business_profile",
-  "goals",
-  "plan",
-  "apps",
-  "implementation",
-]);
+const CLIENT_CHECKLIST_KEYS = new Set(["business_identity", "business_profile", "goals", "plan", "apps", "implementation"]);
+const APPEARANCES = new Set(["system", "dark", "light"]);
+const MIGRATION_INTENTS = new Set(["migrate", "replace", "connect", "none"]);
+const CONNECTION_PROVIDERS = new Set(["google_workspace", "microsoft_365", "apple_icloud"]);
+const CONNECTION_CAPABILITIES = new Set(["contacts", "calendar", "mail"]);
+const CONNECTION_STATUSES = new Set(["not_started", "planned", "connected", "attention_required"]);
+
+type AllowedClientProgress = Partial<Pick<
+  Gen2OnboardingProgress,
+  "platformTier" | "billingCadence" | "industryApps" | "industryTemplates" | "premiumApps" | "checklist" | "vipSetup"
+>>;
 
 async function effectiveCommercialOffer(organisationId: string) {
   const [programmeRecord, current] = await Promise.all([
@@ -50,27 +55,101 @@ async function effectiveCommercialOffer(organisationId: string) {
   return programmeRecord?.commercialOfferSnapshot ?? current;
 }
 
-function safeClientProgress(raw: unknown) {
+function cleanShortString(value: unknown, max = 160) {
+  return typeof value === "string" ? value.trim().slice(0, max) : undefined;
+}
+
+function safeVipSetup(raw: unknown): Gen2VipSetup | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const source = raw as Record<string, unknown>;
+  const appearance = APPEARANCES.has(String(source.appearance))
+    ? (source.appearance as Gen2VipSetup["appearance"])
+    : "system";
+  const timezone = cleanShortString(source.timezone, 80) || "Australia/Brisbane";
+  const locale = cleanShortString(source.locale, 24) || "en-AU";
+  const currency = cleanShortString(source.currency, 12) || "AUD";
+  const connections: NonNullable<Gen2VipSetup["connections"]> = {};
+
+  if (source.connections && typeof source.connections === "object") {
+    for (const [provider, value] of Object.entries(source.connections as Record<string, unknown>)) {
+      if (!CONNECTION_PROVIDERS.has(provider) || !value || typeof value !== "object") continue;
+      const connection = value as Record<string, unknown>;
+      const requestedCapabilities = Array.isArray(connection.requestedCapabilities)
+        ? connection.requestedCapabilities
+            .filter((capability): capability is "contacts" | "calendar" | "mail" =>
+              typeof capability === "string" && CONNECTION_CAPABILITIES.has(capability),
+            )
+            .slice(0, 3)
+        : [];
+      const status = CONNECTION_STATUSES.has(String(connection.status))
+        ? (connection.status as "not_started" | "planned" | "connected" | "attention_required")
+        : "not_started";
+      connections[provider as keyof typeof connections] = {
+        requested: connection.requested === true,
+        requestedCapabilities,
+        status,
+      };
+    }
+  }
+
+  const socialProfiles: Record<string, string> = {};
+  if (source.socialProfiles && typeof source.socialProfiles === "object") {
+    for (const [network, url] of Object.entries(source.socialProfiles as Record<string, unknown>).slice(0, 12)) {
+      const cleanUrl = cleanShortString(url, 500);
+      if (cleanUrl) socialProfiles[network.slice(0, 40)] = cleanUrl;
+    }
+  }
+
+  return {
+    version: 1,
+    required: source.required === true,
+    completedAt: cleanShortString(source.completedAt, 64) ?? null,
+    rerunRequestedAt: cleanShortString(source.rerunRequestedAt, 64) ?? null,
+    appearance,
+    timezone,
+    locale,
+    currency,
+    websiteDomain: cleanShortString(source.websiteDomain, 255),
+    websiteMigrationIntent: MIGRATION_INTENTS.has(String(source.websiteMigrationIntent))
+      ? (source.websiteMigrationIntent as Gen2VipSetup["websiteMigrationIntent"])
+      : undefined,
+    brandPrimary: cleanShortString(source.brandPrimary, 32),
+    brandAccent: cleanShortString(source.brandAccent, 32),
+    brandColoursExtracted: source.brandColoursExtracted === true,
+    brandColoursOverridden: source.brandColoursOverridden === true,
+    socialProfiles,
+    contactImportRequested: source.contactImportRequested === true,
+    contactImportFormat: source.contactImportFormat === "vcard" ? "vcard" : source.contactImportFormat === "csv" ? "csv" : undefined,
+    connections,
+    aiAdvicePriorities: Array.isArray(source.aiAdvicePriorities)
+      ? source.aiAdvicePriorities.filter((value): value is string => typeof value === "string").map((value) => value.slice(0, 120)).slice(0, 12)
+      : [],
+    aiReportingPriorities: Array.isArray(source.aiReportingPriorities)
+      ? source.aiReportingPriorities.filter((value): value is string => typeof value === "string").map((value) => value.slice(0, 120)).slice(0, 12)
+      : [],
+  };
+}
+
+function safeClientProgress(raw: unknown): AllowedClientProgress {
   if (!raw || typeof raw !== "object") return {};
   const source = raw as Record<string, unknown>;
-  const safe: Record<string, unknown> = {};
+  const safe: AllowedClientProgress = {};
 
   if (["starter", "professional", "business"].includes(String(source.platformTier))) {
-    safe.platformTier = source.platformTier;
+    safe.platformTier = source.platformTier as Gen2OnboardingProgress["platformTier"];
   }
-  if (source.billingCadence === "monthly" || source.billingCadence === "annual") {
-    safe.billingCadence = source.billingCadence;
-  }
+  if (source.billingCadence === "monthly" || source.billingCadence === "annual") safe.billingCadence = source.billingCadence;
   if (Array.isArray(source.industryApps)) {
-    safe.industryApps = source.industryApps
-      .filter((value): value is string => typeof value === "string" && value.length <= 80)
-      .slice(0, 20);
+    safe.industryApps = source.industryApps.filter((value): value is string => typeof value === "string" && value.length <= 80).slice(0, 20);
+  }
+  if (Array.isArray(source.industryTemplates)) {
+    safe.industryTemplates = source.industryTemplates.filter((value): value is string => typeof value === "string" && value.length <= 80).slice(0, 30);
   }
   if (Array.isArray(source.premiumApps)) {
-    safe.premiumApps = source.premiumApps
-      .filter((value): value is string => typeof value === "string" && value.length <= 80)
-      .slice(0, 20);
+    safe.premiumApps = source.premiumApps.filter((value): value is string => typeof value === "string" && value.length <= 80).slice(0, 20);
   }
+  const vipSetup = safeVipSetup(source.vipSetup);
+  if (vipSetup) safe.vipSetup = vipSetup;
   if (source.checklist && typeof source.checklist === "object") {
     const checklist: Record<string, boolean> = {};
     for (const [key, value] of Object.entries(source.checklist as Record<string, unknown>)) {
@@ -78,40 +157,25 @@ function safeClientProgress(raw: unknown) {
     }
     if (Object.keys(checklist).length > 0) safe.checklist = checklist;
   }
-
   return safe;
 }
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-
   const [progress, profile, goals, commercialOffer] = await Promise.all([
     getGen2OnboardingProgress(session.organisationId),
     getOrganisationBusinessProfile(session.organisationId),
     getOrganisationGoals(session.organisationId).catch(() => []),
     effectiveCommercialOffer(session.organisationId),
   ]);
-
-  return NextResponse.json({
-    data: {
-      progress,
-      profile,
-      goals,
-      commercialOffer,
-      organisationName: session.organisationName,
-    },
-  });
+  return NextResponse.json({ data: { progress, profile, goals, commercialOffer, organisationName: session.organisationName } });
 }
 
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  const denied = requirePermission(session, {
-    module: "settings",
-    action: "edit",
-    scope: "organisation",
-  });
+  const denied = requirePermission(session, { module: "settings", action: "edit", scope: "organisation" });
   if (denied) return denied;
   const blocked = await rejectDemoLiveAction(session);
   if (blocked) return blocked;
@@ -123,30 +187,13 @@ export async function PATCH(req: Request) {
 
   if (markStepComplete === "stripe") {
     const billing = await getOrganisationBillingStatus(session.organisationId);
-    if (
-      !billing ||
-      !billing.hasStripeCustomer ||
-      !VERIFIED_CHECKOUT_KINDS.has(billing.kind)
-    ) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "checkout_not_confirmed",
-            message:
-              "Your Stripe checkout has not been confirmed yet. Please try again in a moment.",
-          },
-        },
-        { status: 409 },
-      );
+    if (!billing || !billing.hasStripeCustomer || !VERIFIED_CHECKOUT_KINDS.has(billing.kind)) {
+      return NextResponse.json({ error: { code: "checkout_not_confirmed", message: "Your Stripe checkout has not been confirmed yet. Please try again in a moment." } }, { status: 409 });
     }
   }
 
   if (body.profile && typeof body.profile === "object") {
-    const profileDenied = requirePermission(session, {
-      module: "settings",
-      action: "manage",
-      scope: "organisation",
-    });
+    const profileDenied = requirePermission(session, { module: "settings", action: "manage", scope: "organisation" });
     if (profileDenied) return profileDenied;
     await updateOrganisationBusinessProfile(session.organisationId, body.profile);
   }
@@ -160,40 +207,80 @@ export async function PATCH(req: Request) {
       if (!title || typeof title !== "string") continue;
       const trimmed = title.trim();
       if (trimmed.length < 2 || existingTitles.has(trimmed.toLowerCase())) continue;
-      const hint = GOAL_METRIC_HINTS[String(id)] ?? {
-        metric: "custom" as const,
-        target: 1,
-      };
-      await createOrganisationGoal(session.organisationId, {
-        title: trimmed,
-        metric: hint.metric,
-        target: hint.target,
-        horizon: "quarter",
-        status: "active",
-      }).catch(() => null);
+      const hint = GOAL_METRIC_HINTS[String(id)] ?? { metric: "custom" as const, target: 1 };
+      await createOrganisationGoal(session.organisationId, { title: trimmed, metric: hint.metric, target: hint.target, horizon: "quarter", status: "active" }).catch(() => null);
       existingTitles.add(trimmed.toLowerCase());
     }
   }
 
-  const offer = await effectiveCommercialOffer(session.organisationId);
+  const [offer, existingProgress] = await Promise.all([
+    effectiveCommercialOffer(session.organisationId),
+    getGen2OnboardingProgress(session.organisationId),
+  ]);
   const clientProgress = safeClientProgress(body.progress);
-  const lockedProgress = offer
+  const requestedVipSetup = clientProgress.vipSetup;
+  const wantsToCompleteVipSetup = Boolean(requestedVipSetup?.completedAt);
+
+  if (wantsToCompleteVipSetup) {
+    const profile = await getOrganisationBusinessProfile(session.organisationId);
+    const industryTemplates = clientProgress.industryTemplates ?? existingProgress.industryTemplates ?? [];
+    const missing: string[] = [];
+    if (!profile?.businessName?.trim() && !profile?.tradingName?.trim()) missing.push("business name");
+    if (!profile?.industryVertical?.trim()) missing.push("industry");
+    if (!profile?.brandVoice?.services?.trim()) missing.push("services or products");
+    if (!profile?.brandVoice?.targetAudience?.trim()) missing.push("target customers");
+    if (industryTemplates.length === 0) missing.push("exact business type");
+    if (!profile?.logoUrl && !profile?.iconUrl) missing.push("logo or icon");
+    if (!profile?.brandColours?.trim()) missing.push("brand colours");
+    if (!requestedVipSetup?.timezone?.trim()) missing.push("timezone");
+    if (!requestedVipSetup?.appearance) missing.push("appearance preference");
+
+    if (missing.length) {
+      return NextResponse.json(
+        { error: { code: "vip_setup_incomplete", message: `Aida still needs ${missing.join(", ")} before your Business Operations Platform is ready.` } },
+        { status: 409 },
+      );
+    }
+  }
+
+  const requiredVipSetup: Gen2VipSetup | undefined = markStepComplete === "welcome"
     ? {
-        ...clientProgress,
+        ...(existingProgress.vipSetup ?? {}),
+        ...(requestedVipSetup ?? {}),
+        version: 1,
+        required: true,
+        appearance: requestedVipSetup?.appearance ?? existingProgress.vipSetup?.appearance ?? "system",
+        timezone: requestedVipSetup?.timezone ?? existingProgress.vipSetup?.timezone ?? "Australia/Brisbane",
+        locale: requestedVipSetup?.locale ?? existingProgress.vipSetup?.locale ?? "en-AU",
+        currency: requestedVipSetup?.currency ?? existingProgress.vipSetup?.currency ?? "AUD",
+      }
+    : requestedVipSetup;
+
+  const allowedProgress: AllowedClientProgress = {
+    platformTier: clientProgress.platformTier,
+    billingCadence: clientProgress.billingCadence,
+    industryApps: clientProgress.industryApps,
+    industryTemplates: clientProgress.industryTemplates,
+    premiumApps: clientProgress.premiumApps,
+    checklist: clientProgress.checklist,
+    vipSetup: requiredVipSetup,
+  };
+
+  const lockedProgress: AllowedClientProgress = offer
+    ? {
+        ...allowedProgress,
         platformTier: offer.platformTier,
         billingCadence: offer.cadence,
         industryApps: offer.industryApps,
         premiumApps: offer.premiumApps,
       }
-    : clientProgress;
+    : allowedProgress;
+
   const progress = await saveGen2OnboardingProgress(session.organisationId, {
     ...lockedProgress,
-    ...(markStepComplete === "stripe"
-      ? { subscriptionActivatedAt: new Date().toISOString() }
-      : {}),
+    ...(markStepComplete === "stripe" ? { subscriptionActivatedAt: new Date().toISOString() } : {}),
     markStepComplete,
   });
-
   return NextResponse.json({ data: { progress } });
 }
 
@@ -203,12 +290,7 @@ export async function POST(req: Request) {
   if (isNextResponse(session)) return session;
   const blocked = await rejectDemoLiveAction(session);
   if (blocked) return blocked;
-
-  const denied = requirePermission(session, {
-    module: "billing",
-    action: "manage",
-    scope: "organisation",
-  });
+  const denied = requirePermission(session, { module: "billing", action: "manage", scope: "organisation" });
   if (denied) return denied;
 
   const [progress, offer] = await Promise.all([
@@ -216,14 +298,9 @@ export async function POST(req: Request) {
     effectiveCommercialOffer(session.organisationId),
   ]);
   const body = await req.json().catch(() => ({}));
-  const platformTier = offer?.platformTier ??
-    (body.platformTier as string | undefined) ??
-    progress.platformTier ??
-    "professional";
+  const platformTier = offer?.platformTier ?? (body.platformTier as string | undefined) ?? progress.platformTier ?? "professional";
   const billingCadence = offer?.cadence ??
-    (body.billingCadence === "annual" || progress.billingCadence === "annual"
-      ? ("annual" as const)
-      : ("monthly" as const));
+    (body.billingCadence === "annual" || progress.billingCadence === "annual" ? ("annual" as const) : ("monthly" as const));
   const industryApps = offer?.industryApps ?? body.industryApps ?? progress.industryApps;
   const premiumApps = offer?.premiumApps ?? body.premiumApps ?? progress.premiumApps;
 
@@ -257,17 +334,8 @@ export async function POST(req: Request) {
       stripeCheckoutSessionId: checkout.sessionId,
       markStepComplete: "order_summary",
     });
-
     return NextResponse.json({ data: checkout });
   } catch {
-    return NextResponse.json(
-      {
-        error: {
-          code: "checkout_failed",
-          message: "We couldn't start subscription checkout. Please try again or contact DigitalGate.",
-        },
-      },
-      { status: 422 },
-    );
+    return NextResponse.json({ error: { code: "checkout_failed", message: "We couldn't start subscription checkout. Please try again or contact DigitalGate." } }, { status: 422 });
   }
 }

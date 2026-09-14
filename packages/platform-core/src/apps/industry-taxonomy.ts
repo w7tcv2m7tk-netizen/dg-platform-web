@@ -50,12 +50,17 @@ export const INDUSTRY_TAXONOMY: IndustryGroup[] = [
     subIndustries: [
       { id: "electrical", name: "Electrical", description: "Quoting, jobs, scheduling, field work, compliance and recurring electrical services.", appId: "services" },
       { id: "plumbing", name: "Plumbing", description: "Quoting, dispatch, field capture, materials, compliance and maintenance.", appId: "services" },
-      { id: "cleaning", name: "Cleaning", description: "Commercial and domestic cleaning, recurring schedules, teams, sites and quality control.", appId: "services" },
+      { id: "cleaning", name: "Commercial Cleaning", description: "Commercial cleaning, recurring schedules, teams, sites, quality control, consumables and equipment.", appId: "services" },
       { id: "maintenance", name: "Property & Facility Maintenance", description: "Reactive and planned maintenance, work orders, contractors, sites and service history.", appId: "services" },
       { id: "hvac", name: "HVAC & Refrigeration", description: "Installations, service schedules, assets, compliance and field operations.", appId: "services" },
       { id: "building-construction", name: "Building & Construction", description: "Leads, estimates, projects, trades, variations, milestones and customer communication.", appId: "services" },
       { id: "landscaping", name: "Landscaping & Grounds", description: "Quotes, recurring visits, crews, materials and site servicing.", appId: "services" },
       { id: "pest-control", name: "Pest Control", description: "Bookings, routes, treatments, compliance, recurring visits and customer history.", appId: "services" },
+      { id: "painting", name: "Painting", description: "Quoting, colour schedules, preparation, crews, stages, quality checks and completion.", appId: "services" },
+      { id: "handyman", name: "Handyman & General Maintenance", description: "Small works, repairs, materials, scheduling, customer approvals and sign-off.", appId: "services" },
+      { id: "solar", name: "Solar & Energy", description: "Assessment, design, installation, commissioning, compliance, monitoring and warranty workflows.", appId: "services" },
+      { id: "pool-service", name: "Pool Service", description: "Recurring pool servicing, water testing, chemicals, equipment, repairs and service reports.", appId: "services" },
+      { id: "general-services", name: "General Services", description: "Flexible quoting, scheduling, jobs, teams, materials, invoicing and recurring service workflows.", appId: "services" },
     ],
   },
   {
