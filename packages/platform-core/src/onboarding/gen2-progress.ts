@@ -15,7 +15,27 @@ type OrgSettings = {
       source?: string;
     };
   };
+  services?: {
+    templateKey?: string;
+    [key: string]: unknown;
+  };
   [key: string]: unknown;
+};
+
+const SERVICE_SUBINDUSTRY_TO_TEMPLATE: Record<string, string> = {
+  electrical: "electrician",
+  plumbing: "plumber",
+  cleaning: "cleaner",
+  maintenance: "maintenance",
+  "building-construction": "builder",
+  landscaping: "landscaper",
+  hvac: "hvac",
+  "pest-control": "pest_control",
+  painting: "painter",
+  handyman: "handyman",
+  solar: "solar",
+  "pool-service": "pool_service",
+  "general-services": "general",
 };
 
 function parseProgress(raw: unknown, founding: boolean): Gen2OnboardingProgress {
@@ -63,6 +83,9 @@ export async function saveGen2OnboardingProgress(
     updatedAt: now,
     startedAt: current.startedAt || now,
     checklist: { ...(current.checklist ?? {}), ...(patch.checklist ?? {}) },
+    vipSetup: patch.vipSetup
+      ? { ...(current.vipSetup ?? emptyGen2Progress(founding).vipSetup), ...patch.vipSetup }
+      : current.vipSetup,
   };
   delete (nextProgress as { markStepComplete?: unknown }).markStepComplete;
 
@@ -91,12 +114,20 @@ export async function saveGen2OnboardingProgress(
       }
     : settings.apps;
 
+  const selectedServiceTemplate = (nextProgress.industryTemplates ?? [])
+    .map((id) => SERVICE_SUBINDUSTRY_TO_TEMPLATE[id])
+    .find((key): key is string => Boolean(key));
+  const nextServices = selectedServiceTemplate
+    ? { ...(settings.services ?? {}), templateKey: selectedServiceTemplate }
+    : settings.services;
+
   await prisma.organisation.update({
     where: { id: organisationId },
     data: {
       settings: {
         ...settings,
         ...(nextApps ? { apps: nextApps } : {}),
+        ...(nextServices ? { services: nextServices } : {}),
         gen2Onboarding: nextProgress,
       } as never,
     },

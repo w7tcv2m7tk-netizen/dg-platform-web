@@ -1,6 +1,7 @@
 import {
   canAccessCommandCentre,
   canAccessPartnerPortal,
+  getGen2OnboardingProgress,
   getPartnerByClerkUserId,
   isDemoOrganisationId,
   isDigitalGateStaffEmail,
@@ -12,6 +13,7 @@ import { PlatformShell } from "@/components/PlatformShell";
 import { getOrgEnabledAppIdsCached, getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
 import { getOrgBrandThemeCached } from "@/lib/org-brand-theme";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
 
 /** Server wrapper — dedupes session + enabled apps once per request. */
 export async function PlatformShellLoader({
@@ -23,11 +25,11 @@ export async function PlatformShellLoader({
 }) {
   const [{ user, session, clerkUserId, email }, enabledIds, industrySelectionIds, brandTheme] =
     await Promise.all([
-    getPlatformPageContext(),
-    getOrgEnabledAppIdsCached(),
-    getOrgIndustrySelectionIdsCached(),
-    getOrgBrandThemeCached(),
-  ]);
+      getPlatformPageContext(),
+      getOrgEnabledAppIdsCached(),
+      getOrgIndustrySelectionIdsCached(),
+      getOrgBrandThemeCached(),
+    ]);
 
   // Public recovery entry points such as /onboarding deliberately live in the
   // shell route group so authenticated customers keep the native app chrome.
@@ -47,12 +49,6 @@ export async function PlatformShellLoader({
     organisationSlug: session.organisationSlug,
     role: session.role,
   });
-
-  // Authoritative platform-operator result, resolved server-side via
-  // canAccessCommandCentre (DG_COMMAND_CENTRE_ORG_IDS allowlist / dg:staff).
-  // Passed to the client so navigation filtering consumes the server decision
-  // instead of re-evaluating server-only authority in the browser (which would
-  // drop Command Centre after hydration).
   const isPlatformOperator = canAccessCommandCentre({
     organisationId: session.organisationId,
     role: session.role,
@@ -60,9 +56,7 @@ export async function PlatformShellLoader({
 
   const staffByEmail =
     isDigitalGateStaffEmail(email) ||
-    Boolean(
-      user?.emailAddresses?.some((addr) => isDigitalGateStaffEmail(addr.emailAddress)),
-    );
+    Boolean(user?.emailAddresses?.some((addr) => isDigitalGateStaffEmail(addr.emailAddress)));
 
   const showResellerAdmin =
     staffByEmail ||
@@ -91,9 +85,6 @@ export async function PlatformShellLoader({
     }
   }
 
-  // Industry floors stay on DigitalGate when staff toggle them for testing/demo.
-  // Do not strip via filterEnabledAppsForOperatorOrg.
-
   let billingBanner = null;
   if (process.env.DATABASE_URL && !isDemo) {
     try {
@@ -101,6 +92,21 @@ export async function PlatformShellLoader({
       billingBanner = entitlement.banner.kind === "none" ? null : entitlement.banner;
     } catch {
       billingBanner = null;
+    }
+  }
+
+  let vipSetupRequired = false;
+  let vipSetupCompleted = true;
+  if (!isDemo && process.env.DATABASE_URL) {
+    try {
+      const progress = await getGen2OnboardingProgress(session.organisationId);
+      const preset = getVipCustomerPreset(session.organisationName);
+      vipSetupRequired = Boolean(preset) || progress.vipSetup?.required === true;
+      vipSetupCompleted = Boolean(progress.vipSetup?.completedAt);
+    } catch {
+      // Never lock a customer out because setup readiness could not be read.
+      vipSetupRequired = false;
+      vipSetupCompleted = true;
     }
   }
 
@@ -123,6 +129,8 @@ export async function PlatformShellLoader({
       brandTheme={brandTheme}
       isDemo={isDemo}
       billingBanner={billingBanner}
+      vipSetupRequired={vipSetupRequired}
+      vipSetupCompleted={vipSetupCompleted}
     >
       {children}
     </PlatformShell>
