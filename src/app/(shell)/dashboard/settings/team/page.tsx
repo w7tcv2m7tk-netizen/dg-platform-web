@@ -1,5 +1,6 @@
-import { TeamManagementView } from "@/components/platform/TeamManagementView";
+import { redirect } from "next/navigation";
 
-export default async function TeamSettingsPage() {
-  return <TeamManagementView context="settings" />;
+/** Team management lives in Core → Business → Team. */
+export default function TeamSettingsPage() {
+  redirect("/dashboard/team");
 }
