@@ -17,10 +17,16 @@ export default async function FoundingAgreementPage({
   searchParams: Promise<{ invite?: string }>;
 }) {
   const params = await searchParams;
-  const { session } = await getPlatformPageContext();
-  if (!session) redirect("/login");
-
   const invite = params.invite?.trim();
+  const { session } = await getPlatformPageContext();
+
+  if (!session) {
+    const returnTo = invite
+      ? `/founding/agreement?invite=${encodeURIComponent(invite)}`
+      : "/founding/agreement";
+    redirect(`/login?redirect_url=${encodeURIComponent(returnTo)}`);
+  }
+
   if (invite) {
     const claimed = await claimFoundingInvite({
       customerOrganisationId: session.organisationId,
