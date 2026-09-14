@@ -4,14 +4,10 @@ import {
   getFoundingOnboarding,
   getGen2OnboardingProgress,
   getOrganisationBillingStatus,
-  sessionHasFeature,
 } from "@dg/platform-core";
 
-import { Gen2OnboardingWizard } from "@/components/onboarding/Gen2OnboardingWizard";
-import { VipIndustryProfileSetup } from "@/components/onboarding/VipIndustryProfileSetup";
+import { UnifiedOnboardingJourney } from "@/components/onboarding/UnifiedOnboardingJourney";
 import { VipOnboardingExperience } from "@/components/onboarding/VipOnboardingExperience";
-import { VipOnboardingPager } from "@/components/onboarding/VipOnboardingPager";
-import { VipPlatformSetupPanel } from "@/components/onboarding/VipPlatformSetupPanel";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
 
@@ -92,7 +88,6 @@ export default async function OnboardingPage({
       }
     : initialProgress;
   const vipPreset = getVipCustomerPreset(session.organisationName);
-  const canImportContacts = sessionHasFeature(session, "crm.contacts.import");
 
   if (initialProgress.completedAt && !reviewMode) {
     return (
@@ -126,27 +121,15 @@ export default async function OnboardingPage({
       aidaWelcome={vipPreset?.aidaWelcome}
       setupFocus={vipPreset?.setupFocus}
     >
-      <VipOnboardingPager
-        setup={
-          <Gen2OnboardingWizard
-            initial={journeyProgress}
-            founding={founding}
-            checkoutStatus={checkoutStatus}
-          />
-        }
-        operatingProfile={
-          <VipIndustryProfileSetup
-            initial={journeyProgress}
-            recommendedTemplate={vipPreset?.industryTemplate}
-          />
-        }
-        platformPreparation={
-          <VipPlatformSetupPanel
-            initial={journeyProgress}
-            canImportContacts={canImportContacts}
-            setupFocus={vipPreset?.setupFocus}
-          />
-        }
+      <UnifiedOnboardingJourney
+        initial={journeyProgress}
+        businessName={session.organisationName}
+        aidaWelcome={vipPreset?.aidaWelcome}
+        setupFocus={vipPreset?.setupFocus}
+        recommendedTemplate={vipPreset?.industryTemplate}
+        checkoutStatus={checkoutStatus}
+        founding={founding}
+        reviewMode={reviewMode}
       />
     </VipOnboardingExperience>
   );
