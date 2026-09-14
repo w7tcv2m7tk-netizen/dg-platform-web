@@ -11,6 +11,7 @@ export const FOUNDING_MODE_CORE_APP_IDS = [
   "documents",
   "communications",
   "websites",
+  "infrastructure",
   "opportunities",
 ] as const;
 
@@ -36,7 +37,7 @@ const INDUSTRY_APP_IDS_FOR_MODE = [
 ] as const;
 
 /**
- * True when the org is still on the Founding Customer slim app set (no Industry / Growth / Infra).
+ * True when the org is still on the Founding Customer slim app set (no Industry / Growth apps).
  * Used for progressive sidebar disclosure — graduates automatically when apps are added.
  */
 export function isFoundingCustomerMode(enabledIds: string[]): boolean {
@@ -51,7 +52,6 @@ export function isFoundingCustomerMode(enabledIds: string[]): boolean {
 /** Apps that exit Founding Mode when present in enabled list. */
 export function hasProgressiveRevealApps(enabledIds: string[]): boolean {
   const set = new Set(enabledIds);
-  if (set.has("infrastructure")) return true;
   return (
     GROWTH_APP_IDS_FOR_MODE.some((id) => set.has(id)) ||
     INDUSTRY_APP_IDS_FOR_MODE.some((id) => set.has(id))

@@ -7,6 +7,7 @@ import {
   getOperatorClientIntelligence,
 } from "@dg/platform-core";
 
+import { CustomerAppsSubscriptionPanel } from "@/components/command/CustomerAppsSubscriptionPanel";
 import { ProvisionAccBetaButton } from "@/components/command/ProvisionAccBetaButton";
 import { ProvisionInfraDomainsBetaButton } from "@/components/command/ProvisionInfraDomainsBetaButton";
 import { ProvisionReBetaButton } from "@/components/command/ProvisionReBetaButton";
@@ -113,6 +114,8 @@ export default async function CommandClientDetailPage({ params }: Ctx) {
             ))}
           </dl>
         </section>
+
+        <CustomerAppsSubscriptionPanel organisationId={client.organisationId} />
 
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4 space-y-3">
           <h2 className="text-lg font-semibold text-white">Beta enrolment</h2>
