@@ -31,33 +31,34 @@ export function VipOnboardingExperience({
             <Image
               src="/brand/logo-on-dark.png"
               alt="DigitalGate"
-              width={180}
-              height={48}
+              width={1024}
+              height={95}
+              unoptimized
               priority
-              className="h-7 w-auto object-contain sm:h-8"
+              className="h-auto w-[220px] object-contain sm:w-[250px]"
             />
             <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-200/65 sm:text-[11px]">
               The Gateway to Your Digital World™
             </p>
             <p className="mt-1.5 text-sm font-medium text-white/70">Private Business Operations Platform setup</p>
           </div>
-          <div className="rounded-full border border-violet-400/15 bg-violet-400/[0.06] px-4 py-2 text-xs text-white/55">
+          <div className="rounded-full border border-violet-400/20 bg-violet-400/[0.06] px-4 py-2 text-xs text-white/55">
             Progress is saved automatically
           </div>
         </header>
 
         <section className="mx-auto flex max-w-3xl flex-col items-center pb-5 pt-8 text-center sm:pt-10">
-          <div className="relative h-28 w-28 overflow-hidden rounded-[2rem] border border-violet-300/20 bg-violet-500/10 shadow-2xl shadow-violet-950/50 sm:h-36 sm:w-36">
+          <div className="relative h-24 w-24 sm:h-28 sm:w-28">
             <Image
               src="/aida/aida-welcome.webp"
               alt="Aida, your DigitalGate AI business assistant"
               fill
               priority
-              sizes="144px"
-              className="object-cover"
+              sizes="112px"
+              className="object-contain object-bottom drop-shadow-2xl"
             />
           </div>
-          <p className="mt-5 text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">
+          <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-violet-300">
             Aida · Your AI business assistant
           </p>
           <h1 className="mt-3 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
@@ -72,7 +73,7 @@ export function VipOnboardingExperience({
               {focus.map((item) => (
                 <span
                   key={item}
-                  className="rounded-full border border-violet-300/15 bg-violet-400/[0.06] px-3 py-1.5 text-xs text-violet-100/75"
+                  className="rounded-full border border-violet-300/20 bg-violet-400/[0.06] px-3 py-1.5 text-xs text-violet-100/75"
                 >
                   {item}
                 </span>
@@ -83,7 +84,7 @@ export function VipOnboardingExperience({
 
         <main className="mx-auto min-w-0 max-w-4xl pb-10">{children}</main>
 
-        <footer className="border-t border-white/[0.07] py-5 text-center text-xs text-white/30">
+        <footer className="border-t border-violet-300/10 py-5 text-center text-xs text-white/30">
           DigitalGate · Secure organisation setup
         </footer>
       </div>
