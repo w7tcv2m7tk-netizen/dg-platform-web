@@ -3,12 +3,15 @@ import { redirect } from "next/navigation";
 import {
   applyFoundingCommercialOfferToCustomer,
   claimFoundingInvite,
+  createOrganisationForUser,
   getFoundingOnboarding,
   getOrganisationBusinessProfile,
   getOrganisationCommercialOffer,
+  getPublicFoundingInvitation,
 } from "@dg/platform-core";
 
 import { FoundingAgreementForm } from "@/components/founding/FoundingAgreementForm";
+import { writeActiveOrganisationId } from "@/lib/active-org-cookie";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 export default async function FoundingAgreementPage({
@@ -18,12 +21,34 @@ export default async function FoundingAgreementPage({
 }) {
   const params = await searchParams;
   const invite = params.invite?.trim();
-  const { session } = await getPlatformPageContext();
+  const context = await getPlatformPageContext();
+  const { session } = context;
 
   if (!session) {
     const returnTo = invite
       ? `/founding/agreement?invite=${encodeURIComponent(invite)}`
       : "/founding/agreement";
+
+    // A newly authenticated Founding invitee has an identity but no tenant yet.
+    // Provisioning here is explicit: the customer followed a valid personal invite
+    // into the agreement flow. Without this step, /login sees the Clerk identity
+    // and redirects back here while this page sees no membership and redirects to
+    // /login, producing an endless blank-page redirect loop.
+    if (invite && context.clerkUserId && context.email) {
+      const invitation = await getPublicFoundingInvitation(invite);
+      if (invitation && !invitation.withdrawn) {
+        const created = await createOrganisationForUser({
+          clerkUserId: context.clerkUserId,
+          email: context.email,
+          name: context.name,
+          orgName: invitation.businessName,
+          template: "default",
+        });
+        await writeActiveOrganisationId(created.organisationId);
+        redirect(returnTo);
+      }
+    }
+
     redirect(`/login?redirect_url=${encodeURIComponent(returnTo)}`);
   }
 
