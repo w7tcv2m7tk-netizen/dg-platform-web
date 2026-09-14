@@ -44,10 +44,10 @@ export default async function ReviewRequestsPage() {
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Review requests</h1>
+        <h1 className="text-2xl font-bold text-white">Review follow-ups</h1>
         <p className="text-sm text-slate-400">
           {session?.organisationName ?? "DigitalGate"} · turn completed work into timely review
-          follow-ups
+          follow-up tasks
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -64,10 +64,11 @@ export default async function ReviewRequestsPage() {
         ) : (
           <>
             <div className="dg-card border-sky-500/20">
-              <h2 className="font-semibold text-white">What happens next</h2>
+              <h2 className="font-semibold text-white">What happens when you create one</h2>
               <p className="mt-2 text-sm text-slate-400">
-                Creating a follow-up records it on the customer timeline. It does not send an email
-                or SMS automatically; delivery remains manual until an authorised channel is connected.
+                DigitalGate records a review follow-up on the customer timeline so it can be actioned and tracked.
+                It does not send an email or SMS from this screen. Delivery remains manual until an authorised
+                messaging workflow is connected.
               </p>
             </div>
             <ul className="space-y-3">
