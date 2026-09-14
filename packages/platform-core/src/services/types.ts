@@ -8,6 +8,7 @@ export const SERVICE_TEMPLATE_KEYS = [
   "plumber",
   "builder",
   "cleaner",
+  "maintenance",
   "landscaper",
   "hvac",
   "pest_control",
