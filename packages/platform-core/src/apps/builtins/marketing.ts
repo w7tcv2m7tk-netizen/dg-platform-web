@@ -1,9 +1,10 @@
 import type { AppManifest } from "../manifest";
 
+/** Umbrella Growth workspace; specialist Growth apps feed into Marketing. */
 export const marketingApp: AppManifest = {
   id: "marketing",
   name: "Marketing",
-  description: "Campaigns, channels, agency audits, and marketing performance",
+  description: "Campaigns, audiences, funnels, lead generation, attribution and optimisation",
   tier: "growth",
   version: "0.1.0",
   icon: "◉",
