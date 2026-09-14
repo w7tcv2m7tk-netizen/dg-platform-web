@@ -10,6 +10,7 @@ import {
 import { Gen2OnboardingWizard } from "@/components/onboarding/Gen2OnboardingWizard";
 import { VipIndustryProfileSetup } from "@/components/onboarding/VipIndustryProfileSetup";
 import { VipOnboardingExperience } from "@/components/onboarding/VipOnboardingExperience";
+import { VipOnboardingPager } from "@/components/onboarding/VipOnboardingPager";
 import { VipPlatformSetupPanel } from "@/components/onboarding/VipPlatformSetupPanel";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
@@ -125,19 +126,27 @@ export default async function OnboardingPage({
       aidaWelcome={vipPreset?.aidaWelcome}
       setupFocus={vipPreset?.setupFocus}
     >
-      <Gen2OnboardingWizard
-        initial={journeyProgress}
-        founding={founding}
-        checkoutStatus={checkoutStatus}
-      />
-      <VipIndustryProfileSetup
-        initial={journeyProgress}
-        recommendedTemplate={vipPreset?.industryTemplate}
-      />
-      <VipPlatformSetupPanel
-        initial={journeyProgress}
-        canImportContacts={canImportContacts}
-        setupFocus={vipPreset?.setupFocus}
+      <VipOnboardingPager
+        setup={
+          <Gen2OnboardingWizard
+            initial={journeyProgress}
+            founding={founding}
+            checkoutStatus={checkoutStatus}
+          />
+        }
+        operatingProfile={
+          <VipIndustryProfileSetup
+            initial={journeyProgress}
+            recommendedTemplate={vipPreset?.industryTemplate}
+          />
+        }
+        platformPreparation={
+          <VipPlatformSetupPanel
+            initial={journeyProgress}
+            canImportContacts={canImportContacts}
+            setupFocus={vipPreset?.setupFocus}
+          />
+        }
       />
     </VipOnboardingExperience>
   );
