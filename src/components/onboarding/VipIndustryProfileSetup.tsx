@@ -32,8 +32,6 @@ export function VipIndustryProfileSetup({
 
   function select(id: string, appId: string) {
     setSelected((current) => {
-      // One primary operating profile per underlying Industry App for launch.
-      // Additional industries can still coexist because they map to different appIds.
       const siblings = new Set(
         INDUSTRY_TAXONOMY.flatMap((group) => group.subIndustries)
           .filter((sub) => sub.appId === appId)
@@ -65,7 +63,7 @@ export function VipIndustryProfileSetup({
 
   return (
     <section className="mx-4 mb-8 rounded-2xl border border-white/10 bg-white/[0.035] p-5 sm:mx-6 sm:p-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Aida · Operating profile</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Operating profile</p>
       <h2 className="mt-2 text-xl font-semibold text-white">What kind of business are we building?</h2>
       <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
         This is more specific than your Industry App. It controls the terminology, workflows and operating experience you see after setup.
