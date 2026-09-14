@@ -28,16 +28,33 @@ type FlatNavItem = {
   badge?: number;
 };
 
-function FlatAppLinks({ items, pathname, onNavigate }: { items: FlatNavItem[]; pathname: string; onNavigate?: () => void }) {
+function FlatAppLinks({
+  items,
+  pathname,
+  onNavigate,
+}: {
+  items: FlatNavItem[];
+  pathname: string;
+  onNavigate?: () => void;
+}) {
   return (
     <div className="flex flex-col gap-0.5">
       {items.map((item) => {
         const active = itemHasActiveRoute(pathname, item.routes);
         return (
-          <ShellNavLink key={item.id} href={item.primaryHref} onClick={onNavigate} className={(pending) => linkClass(active, pending)}>
+          <ShellNavLink
+            key={item.id}
+            href={item.primaryHref}
+            onClick={onNavigate}
+            className={(pending) => linkClass(active, pending)}
+          >
             <SidebarIcon glyph={item.icon} />
             <span className="truncate">{item.name}</span>
-            {item.badge != null && item.badge > 0 ? <span className="ml-auto rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">{item.badge > 99 ? "99+" : item.badge}</span> : null}
+            {item.badge != null && item.badge > 0 ? (
+              <span className="ml-auto rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">
+                {item.badge > 99 ? "99+" : item.badge}
+              </span>
+            ) : null}
           </ShellNavLink>
         );
       })}
@@ -53,15 +70,32 @@ function shellLinkActive(pathname: string, href: string, routes?: AppRoute[]): b
   return pathname.startsWith(`${href}/`);
 }
 
-function IaSectionBlock({ section, pathname, onNavigate, className }: { section: NavIaSection; pathname: string; onNavigate?: () => void; className?: string }) {
+function IaSectionBlock({
+  section,
+  pathname,
+  onNavigate,
+  className,
+}: {
+  section: NavIaSection;
+  pathname: string;
+  onNavigate?: () => void;
+  className?: string;
+}) {
   const trailing = section.trailingLinks ?? [];
-  if (section.links.length === 0 && section.apps.length === 0 && trailing.length === 0) return null;
+  if (section.links.length === 0 && section.apps.length === 0 && trailing.length === 0) {
+    return null;
+  }
 
   function renderShellLinks(links: NavIaSection["links"]) {
     return links.map((link) => {
       const active = shellLinkActive(pathname, link.href, link.routes);
       return (
-        <ShellNavLink key={`${section.id}-${link.href}-${link.label}`} href={link.href} onClick={onNavigate} className={(pending) => linkClass(active, pending)}>
+        <ShellNavLink
+          key={`${section.id}-${link.href}-${link.label}`}
+          href={link.href}
+          onClick={onNavigate}
+          className={(pending) => linkClass(active, pending)}
+        >
           <SidebarIcon glyph={link.icon ?? "◈"} />
           {link.label}
         </ShellNavLink>
@@ -71,17 +105,42 @@ function IaSectionBlock({ section, pathname, onNavigate, className }: { section:
 
   return (
     <div className={className ?? "mt-4"}>
-      <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">{section.label}</p>
-      {section.sublabel ? <p className="mb-2 px-3 text-[10px] tracking-wide text-slate-500">{section.sublabel}</p> : null}
+      <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+        {section.label}
+      </p>
+      {section.sublabel ? (
+        <p className="mb-2 px-3 text-[10px] tracking-wide text-slate-500">{section.sublabel}</p>
+      ) : null}
       {renderShellLinks(section.links)}
-      {section.apps.length > 0 ? <FlatAppLinks items={section.apps} pathname={pathname} onNavigate={onNavigate} /> : null}
+      {section.apps.length > 0 ? (
+        <FlatAppLinks items={section.apps} pathname={pathname} onNavigate={onNavigate} />
+      ) : null}
       {renderShellLinks(trailing)}
     </div>
   );
 }
 
-const DIGITALGATE_OPERATOR_ORDER = ["command-centre", "dg-customer-intelligence", "dg-partners", "dg-support", "dg-delivery", "dg-commercial", "dg-product", "dg-platform-intelligence"] as const;
-const DIGITALGATE_OPERATOR_NAMES: Record<string, string> = { "command-centre": "Command Centre", "dg-customer-intelligence": "Customers", "dg-partners": "Partners", "dg-support": "Support", "dg-delivery": "Delivery", "dg-commercial": "Commercial", "dg-product": "Platform", "dg-platform-intelligence": "Intelligence" };
+const DIGITALGATE_OPERATOR_ORDER = [
+  "command-centre",
+  "dg-customer-intelligence",
+  "dg-partners",
+  "dg-support",
+  "dg-delivery",
+  "dg-commercial",
+  "dg-product",
+  "dg-platform-intelligence",
+] as const;
+
+const DIGITALGATE_OPERATOR_NAMES: Record<string, string> = {
+  "command-centre": "Command Centre",
+  "dg-customer-intelligence": "Customers",
+  "dg-partners": "Partners",
+  "dg-support": "Support",
+  "dg-delivery": "Delivery",
+  "dg-commercial": "Commercial",
+  "dg-product": "Platform",
+  "dg-platform-intelligence": "Intelligence",
+};
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -90,52 +149,141 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const ia = nav.ia;
 
   useEffect(() => {
-    if (!nav.commandCentre) { setCcBadge(null); return; }
+    if (!nav.commandCentre) {
+      setCcBadge(null);
+      return;
+    }
     let cancelled = false;
-    fetch("/api/v1/command/alerts/summary").then((r) => (r.ok ? r.json() : null)).then((data: { alertCount?: number } | null) => {
-      if (!cancelled && typeof data?.alertCount === "number") setCcBadge(data.alertCount);
-    }).catch(() => { /* badge is optional */ });
-    return () => { cancelled = true; };
+    fetch("/api/v1/command/alerts/summary")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { alertCount?: number } | null) => {
+        if (!cancelled && typeof data?.alertCount === "number") {
+          setCcBadge(data.alertCount);
+        }
+      })
+      .catch(() => {
+        /* badge is optional */
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [nav.commandCentre]);
 
-  const intelligenceAppsForRender = ia.intelligence.apps.map((app) => ({ ...app, badge: undefined }));
-  const digitalgateRank = new Map<string, number>(DIGITALGATE_OPERATOR_ORDER.map((id, index) => [id, index]));
-  const digitalgateAppsForRender = ia.digitalgate.apps.map((app) => ({
+  const intelligenceAppsForRender = ia.intelligence.apps.map((app) => ({
     ...app,
-    name: DIGITALGATE_OPERATOR_NAMES[app.id] ?? app.name,
-    routes: app.id === "command-centre" ? [{ path: "/command", label: "Command Centre", exact: true }] : app.routes,
-    badge: app.id === "command-centre" ? (ccBadge ?? undefined) : undefined,
-  })).sort((a, b) => (digitalgateRank.get(a.id) ?? 999) - (digitalgateRank.get(b.id) ?? 999));
+    badge: undefined,
+  }));
 
-  const intelligenceSection = intelligenceAppsForRender.length > 0 || ia.intelligence.links.length > 0 ? (
-    <div className="mt-4">
-      <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">{ia.intelligence.label}</p>
-      {intelligenceAppsForRender.length > 0 ? <FlatAppLinks items={intelligenceAppsForRender} pathname={pathname} onNavigate={onNavigate} /> : null}
-      {ia.intelligence.links.map((link) => {
-        const active = shellLinkActive(pathname, link.href, link.routes);
-        return <ShellNavLink key={`intelligence-${link.href}-${link.label}`} href={link.href} onClick={onNavigate} className={(pending) => linkClass(active, pending)}><SidebarIcon glyph={link.icon ?? "◈"} />{link.label}</ShellNavLink>;
-      })}
-    </div>
-  ) : null;
+  const digitalgateRank = new Map<string, number>(
+    DIGITALGATE_OPERATOR_ORDER.map((id, index) => [id, index]),
+  );
+  const digitalgateAppsForRender = ia.digitalgate.apps
+    .map((app) => ({
+      ...app,
+      name: DIGITALGATE_OPERATOR_NAMES[app.id] ?? app.name,
+      routes:
+        app.id === "command-centre"
+          ? [{ path: "/command", label: "Command Centre", exact: true }]
+          : app.routes,
+      badge: app.id === "command-centre" ? (ccBadge ?? undefined) : undefined,
+    }))
+    .sort(
+      (a, b) =>
+        (digitalgateRank.get(a.id) ?? 999) - (digitalgateRank.get(b.id) ?? 999),
+    );
 
+  const intelligenceSection =
+    intelligenceAppsForRender.length > 0 || ia.intelligence.links.length > 0 ? (
+      <div className="mt-4">
+        <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+          {ia.intelligence.label}
+        </p>
+        {intelligenceAppsForRender.length > 0 ? (
+          <FlatAppLinks
+            items={intelligenceAppsForRender}
+            pathname={pathname}
+            onNavigate={onNavigate}
+          />
+        ) : null}
+        {ia.intelligence.links.map((link) => {
+          const active = shellLinkActive(pathname, link.href, link.routes);
+          return (
+            <ShellNavLink
+              key={`intelligence-${link.href}-${link.label}`}
+              href={link.href}
+              onClick={onNavigate}
+              className={(pending) => linkClass(active, pending)}
+            >
+              <SidebarIcon glyph={link.icon ?? "◈"} />
+              {link.label}
+            </ShellNavLink>
+          );
+        })}
+      </div>
+    ) : null;
+
+  const coreInfrastructureApps = ia.core.apps.filter((app) => app.id === "infrastructure");
+  const coreSection: NavIaSection = {
+    ...ia.core,
+    apps: ia.core.apps.filter((app) => app.id !== "infrastructure"),
+  };
+
+  const marketingApp = nav.tiers
+    .find((group) => group.tier === "growth")
+    ?.apps.find((app) => app.id === "marketing");
+  const growthSection: NavIaSection = {
+    ...ia.grow,
+    apps:
+      marketingApp && !ia.grow.apps.some((app) => app.id === "marketing")
+        ? [marketingApp, ...ia.grow.apps]
+        : ia.grow.apps,
+  };
+
+  const infrastructureApps = [
+    ...ia.infrastructure.apps,
+    ...coreInfrastructureApps.filter(
+      (app) => !ia.infrastructure.apps.some((existing) => existing.id === app.id),
+    ),
+  ];
   const configurationSection: NavIaSection = {
     ...ia.platformAdmin,
     label: "Configuration",
-    apps: [...ia.infrastructure.apps, ...ia.platformAdmin.apps],
+    apps: [...infrastructureApps, ...ia.platformAdmin.apps],
     links: [...ia.infrastructure.links, ...ia.platformAdmin.links],
-    trailingLinks: [...(ia.infrastructure.trailingLinks ?? []), ...(ia.platformAdmin.trailingLinks ?? [])],
+    trailingLinks: [
+      ...(ia.infrastructure.trailingLinks ?? []),
+      ...(ia.platformAdmin.trailingLinks ?? []),
+    ],
   };
 
   return (
     <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain">
-      {ia.digitalgate.apps.length > 0 ? <IaSectionBlock section={{ ...ia.digitalgate, apps: digitalgateAppsForRender }} pathname={pathname} onNavigate={onNavigate} className="mt-0" /> : null}
-      <IaSectionBlock section={ia.core} pathname={pathname} onNavigate={onNavigate} className={ia.digitalgate.apps.length > 0 ? undefined : "mt-0"} />
+      {ia.digitalgate.apps.length > 0 ? (
+        <IaSectionBlock
+          section={{ ...ia.digitalgate, apps: digitalgateAppsForRender }}
+          pathname={pathname}
+          onNavigate={onNavigate}
+          className="mt-0"
+        />
+      ) : null}
+
+      <IaSectionBlock
+        section={coreSection}
+        pathname={pathname}
+        onNavigate={onNavigate}
+        className={ia.digitalgate.apps.length > 0 ? undefined : "mt-0"}
+      />
+
       <IaSectionBlock section={ia.industry} pathname={pathname} onNavigate={onNavigate} />
-      <IaSectionBlock section={ia.grow} pathname={pathname} onNavigate={onNavigate} />
+      <IaSectionBlock section={growthSection} pathname={pathname} onNavigate={onNavigate} />
       {intelligenceSection}
       <IaSectionBlock section={ia.partners} pathname={pathname} onNavigate={onNavigate} />
       <IaSectionBlock section={ia.partner} pathname={pathname} onNavigate={onNavigate} />
-      <IaSectionBlock section={configurationSection} pathname={pathname} onNavigate={onNavigate} />
+      <IaSectionBlock
+        section={configurationSection}
+        pathname={pathname}
+        onNavigate={onNavigate}
+      />
     </nav>
   );
 }
