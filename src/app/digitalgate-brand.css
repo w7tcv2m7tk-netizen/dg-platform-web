@@ -1,0 +1,58 @@
+:root {
+  --dg-product-primary: #7c3aed;
+  --dg-product-primary-hover: #8b5cf6;
+  --dg-product-primary-soft: #a78bfa;
+  --dg-product-accent: #c084fc;
+  --dg-blue: var(--dg-product-primary);
+  --org-primary: var(--dg-product-primary);
+}
+
+/* DigitalGate product chrome stays recognisably purple even when organisation content has its own brand. */
+.dg-btn-primary {
+  background: var(--dg-product-primary) !important;
+}
+
+.dg-btn-primary:hover:not(:disabled) {
+  background: var(--dg-product-primary-hover) !important;
+}
+
+.dg-plan-card[data-active="true"] {
+  border-color: var(--dg-product-primary) !important;
+  background: color-mix(in srgb, var(--dg-product-primary) 8%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--dg-product-primary) 28%, transparent) !important;
+}
+
+/* Common DigitalGate action utilities retained in older screens inherit the product purple. */
+.bg-sky-600,
+.bg-blue-600 {
+  background-color: var(--dg-product-primary) !important;
+}
+
+.hover\:bg-sky-500:hover,
+.hover\:bg-sky-600:hover,
+.hover\:bg-blue-500:hover,
+.hover\:bg-blue-600:hover {
+  background-color: var(--dg-product-primary-hover) !important;
+}
+
+.text-sky-300,
+.text-sky-400,
+.text-blue-300,
+.text-blue-400 {
+  color: var(--dg-product-primary-soft) !important;
+}
+
+.border-sky-500,
+.border-blue-500 {
+  border-color: var(--dg-product-primary) !important;
+}
+
+.bg-sky-500\/10,
+.bg-blue-500\/10 {
+  background-color: color-mix(in srgb, var(--dg-product-primary) 10%, transparent) !important;
+}
+
+.focus\:border-sky-500:focus,
+.focus\:border-blue-500:focus {
+  border-color: var(--dg-product-primary) !important;
+}
