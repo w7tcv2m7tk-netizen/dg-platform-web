@@ -1,5 +1,6 @@
 import { resolveEnabledAppIds } from "../apps/org-apps";
 import { platformEvents } from "../events";
+import { enhanceServiceTemplate } from "./template-enhancements";
 import { getServiceTemplate, isServiceTemplateKey } from "./templates";
 import type { ServiceTemplate, ServiceTemplateKey } from "./types";
 
@@ -24,7 +25,7 @@ export function readOrgServicesSettings(
 
 export function getActiveServiceTemplate(settings: unknown): ServiceTemplate {
   const { templateKey } = readOrgServicesSettings(settings);
-  return getServiceTemplate(templateKey);
+  return enhanceServiceTemplate(getServiceTemplate(templateKey));
 }
 
 /**
@@ -43,7 +44,7 @@ export async function applyServiceTemplate(input: {
   const { prisma } = await import("@dg/database");
   type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
 
-  const template = getServiceTemplate(input.templateKey);
+  const template = enhanceServiceTemplate(getServiceTemplate(input.templateKey));
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
     select: { id: true, slug: true, settings: true, industry: true },
