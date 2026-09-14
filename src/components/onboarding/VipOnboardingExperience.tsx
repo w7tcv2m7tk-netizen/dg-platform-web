@@ -28,10 +28,18 @@ export function VipOnboardingExperience({
       <div className="relative mx-auto min-h-screen max-w-5xl px-4 py-5 sm:px-7 lg:px-10">
         <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-violet-300/80">
-              DigitalGate
+            <Image
+              src="/brand/logo-on-dark.png"
+              alt="DigitalGate"
+              width={180}
+              height={48}
+              priority
+              className="h-7 w-auto object-contain sm:h-8"
+            />
+            <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-200/65 sm:text-[11px]">
+              The Gateway to Your Digital World™
             </p>
-            <p className="mt-1 text-sm font-medium text-white/70">Private Business Operations Platform setup</p>
+            <p className="mt-1.5 text-sm font-medium text-white/70">Private Business Operations Platform setup</p>
           </div>
           <div className="rounded-full border border-violet-400/15 bg-violet-400/[0.06] px-4 py-2 text-xs text-white/55">
             Progress is saved automatically
