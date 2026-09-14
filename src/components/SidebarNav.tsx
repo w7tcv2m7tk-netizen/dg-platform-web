@@ -66,9 +66,7 @@ function shellLinkActive(pathname: string, href: string, routes?: AppRoute[]): b
   if (routes?.length) return itemHasActiveRoute(pathname, routes);
   if (pathname === href) return true;
   if (href === "/dashboard") return pathname === "/dashboard";
-  if (href === "/dashboard/settings") {
-    return pathname === "/dashboard/settings";
-  }
+  if (href === "/dashboard/settings") return pathname === "/dashboard/settings";
   return pathname.startsWith(`${href}/`);
 }
 
@@ -148,7 +146,6 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { nav } = useEnabledApps();
   const [ccBadge, setCcBadge] = useState<number | null>(null);
-
   const ia = nav.ia;
 
   useEffect(() => {
@@ -225,10 +222,39 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       </div>
     ) : null;
 
-  const operatorPlatformAdminSection =
-    ia.digitalgate.apps.length > 0
-      ? { ...ia.platformAdmin, label: "Configuration" }
-      : ia.platformAdmin;
+  const coreInfrastructureApps = ia.core.apps.filter((app) => app.id === "infrastructure");
+  const coreSection: NavIaSection = {
+    ...ia.core,
+    apps: ia.core.apps.filter((app) => app.id !== "infrastructure"),
+  };
+
+  const marketingApp = nav.tiers
+    .find((group) => group.tier === "growth")
+    ?.apps.find((app) => app.id === "marketing");
+  const growthSection: NavIaSection = {
+    ...ia.grow,
+    apps:
+      marketingApp && !ia.grow.apps.some((app) => app.id === "marketing")
+        ? [marketingApp, ...ia.grow.apps]
+        : ia.grow.apps,
+  };
+
+  const infrastructureApps = [
+    ...ia.infrastructure.apps,
+    ...coreInfrastructureApps.filter(
+      (app) => !ia.infrastructure.apps.some((existing) => existing.id === app.id),
+    ),
+  ];
+  const configurationSection: NavIaSection = {
+    ...ia.platformAdmin,
+    label: "Configuration",
+    apps: [...infrastructureApps, ...ia.platformAdmin.apps],
+    links: [...ia.infrastructure.links, ...ia.platformAdmin.links],
+    trailingLinks: [
+      ...(ia.infrastructure.trailingLinks ?? []),
+      ...(ia.platformAdmin.trailingLinks ?? []),
+    ],
+  };
 
   return (
     <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain">
@@ -242,34 +268,19 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       ) : null}
 
       <IaSectionBlock
-        section={ia.core}
+        section={coreSection}
         pathname={pathname}
         onNavigate={onNavigate}
         className={ia.digitalgate.apps.length > 0 ? undefined : "mt-0"}
       />
 
-      <IaSectionBlock
-        section={ia.infrastructure}
-        pathname={pathname}
-        onNavigate={onNavigate}
-      />
-
-      <IaSectionBlock
-        section={ia.industry}
-        pathname={pathname}
-        onNavigate={onNavigate}
-      />
-
-      <IaSectionBlock section={ia.grow} pathname={pathname} onNavigate={onNavigate} />
-
+      <IaSectionBlock section={ia.industry} pathname={pathname} onNavigate={onNavigate} />
+      <IaSectionBlock section={growthSection} pathname={pathname} onNavigate={onNavigate} />
       {intelligenceSection}
-
       <IaSectionBlock section={ia.partners} pathname={pathname} onNavigate={onNavigate} />
-
       <IaSectionBlock section={ia.partner} pathname={pathname} onNavigate={onNavigate} />
-
       <IaSectionBlock
-        section={operatorPlatformAdminSection}
+        section={configurationSection}
         pathname={pathname}
         onNavigate={onNavigate}
       />

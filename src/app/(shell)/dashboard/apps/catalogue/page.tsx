@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { AppsPlanCatalog } from "@/components/platform/AppsPlanCatalog";
+import { MarketingCatalogCard } from "@/components/platform/MarketingCatalogCard";
 import { PostPurchaseSyncBanner } from "@/components/platform/PostPurchaseSyncBanner";
 
 /**
@@ -21,6 +22,7 @@ export default function AppsCataloguePage() {
         <Suspense fallback={null}>
           <PostPurchaseSyncBanner />
         </Suspense>
+        <MarketingCatalogCard />
         <AppsPlanCatalog />
       </main>
     </>

@@ -18,7 +18,7 @@ export default async function PlatformSettingsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">
-          Your organisation, connected services, access and billing
+          Connected services, security, access policy and billing
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -93,15 +93,15 @@ export default async function PlatformSettingsPage() {
           </div>
 
           <div className="dg-card">
-            <h2 className="font-semibold text-white">Team &amp; access</h2>
+            <h2 className="font-semibold text-white">Team</h2>
             <p className="mt-2 text-sm text-slate-400">
-              Manage the people who can access your DigitalGate organisation.
+              People, invitations, roles and permissions are managed with your business team.
             </p>
             <Link
-              href="/dashboard/settings/team"
+              href="/dashboard/team"
               className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
             >
-              Manage team →
+              Manage Team →
             </Link>
           </div>
 
@@ -125,7 +125,7 @@ export default async function PlatformSettingsPage() {
                 Notifications →
               </Link>
               <Link href="/dashboard/settings/security" className="text-blue-400 hover:underline">
-                Security →
+                Security &amp; Access →
               </Link>
               <Link href="/dashboard/settings/api" className="text-blue-400 hover:underline">
                 API &amp; integration keys →
