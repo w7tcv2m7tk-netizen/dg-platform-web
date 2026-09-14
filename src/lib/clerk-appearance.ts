@@ -1,20 +1,20 @@
-/** Dark theme for Clerk v7 — variables + layout; text contrast enforced in clerk-overrides.css */
+/** Canonical DigitalGate Clerk theme — variables + layout; text contrast enforced in clerk-overrides.css */
 export const clerkAppearance = {
   variables: {
-    colorPrimary: "#3b82f6",
+    colorPrimary: "#7c3aed",
     colorPrimaryForeground: "#ffffff",
-    colorBackground: "#0f172a",
+    colorBackground: "#0c0716",
     colorForeground: "#f8fafc",
-    colorMuted: "#1e293b",
+    colorMuted: "#120b20",
     colorMutedForeground: "#e2e8f0",
-    colorInput: "#1e293b",
+    colorInput: "#120b20",
     colorInputForeground: "#f8fafc",
     colorNeutral: "#ffffff",
-    colorBorder: "#64748b",
+    colorBorder: "#4c1d95",
     colorDanger: "#f87171",
     colorSuccess: "#34d399",
     colorWarning: "#fbbf24",
-    colorRing: "#3b82f6",
+    colorRing: "#a78bfa",
     borderRadius: "0.75rem",
   },
   options: {
@@ -23,10 +23,10 @@ export const clerkAppearance = {
   },
   elements: {
     rootBox: "w-full",
-    card: "bg-slate-900 border border-slate-600 shadow-2xl shadow-black/40",
+    card: "bg-[#0c0716] border border-violet-900/70 shadow-2xl shadow-black/40",
     socialButtonsRoot: "!hidden",
     dividerRow: "!hidden",
     formButtonPrimary:
-      "bg-blue-600 hover:bg-blue-500 text-white rounded-full normal-case font-semibold shadow-sm",
+      "bg-violet-600 hover:bg-violet-500 text-white rounded-full normal-case font-semibold shadow-sm",
   },
 };
