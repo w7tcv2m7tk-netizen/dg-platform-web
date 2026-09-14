@@ -9,6 +9,16 @@ import {
 type OrgSettings = {
   gen2Onboarding?: Gen2OnboardingProgress;
   foundingOnboarding?: unknown;
+  apps?: {
+    enabled?: string[];
+    planPreview?: {
+      platformTier?: string;
+      industryApps?: string[];
+      premiumApps?: string[];
+      appliedAt?: string;
+      source?: string;
+    };
+  };
   [key: string]: unknown;
 };
 
@@ -88,7 +98,6 @@ export async function saveGen2OnboardingProgress(
     checklist: { ...(current.checklist ?? {}), ...(patch.checklist ?? {}) },
   };
 
-  // Drop helper field not stored
   delete (nextProgress as { markStepComplete?: unknown }).markStepComplete;
 
   if (
@@ -98,11 +107,28 @@ export async function saveGen2OnboardingProgress(
     nextProgress.completedAt = nextProgress.completedAt ?? now;
   }
 
+  const hasAppSelectionPatch =
+    Array.isArray(patch.industryApps) || Array.isArray(patch.premiumApps) || Boolean(patch.platformTier);
+  const nextApps = hasAppSelectionPatch
+    ? {
+        ...(settings.apps ?? {}),
+        planPreview: {
+          ...(settings.apps?.planPreview ?? {}),
+          platformTier: nextProgress.platformTier,
+          industryApps: nextProgress.industryApps ?? [],
+          premiumApps: nextProgress.premiumApps ?? [],
+          appliedAt: now,
+          source: "onboarding",
+        },
+      }
+    : settings.apps;
+
   await prisma.organisation.update({
     where: { id: organisationId },
     data: {
       settings: {
         ...settings,
+        ...(nextApps ? { apps: nextApps } : {}),
         gen2Onboarding: nextProgress,
       } as never,
     },
