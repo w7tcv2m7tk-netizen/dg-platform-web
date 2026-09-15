@@ -1,5 +1,6 @@
 import type { Gen2OnboardingProgress, Gen2OnboardingStep } from "./gen2-journey";
 import { emptyGen2Progress, GEN2_ONBOARDING_STEPS, isGen2OnboardingStep, nextGen2Step } from "./gen2-journey";
+import { appIdsFromPlanSelection } from "../apps/org-apps";
 
 type OrgSettings = { gen2Onboarding?: Gen2OnboardingProgress; foundingOnboarding?: unknown; apps?: { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string } }; services?: { templateKey?: string; [key: string]: unknown }; [key: string]: unknown };
 const SERVICE_SUBINDUSTRY_TO_TEMPLATE: Record<string, string> = { electrical: "electrician", plumbing: "plumber", cleaning: "cleaner", maintenance: "maintenance", "building-construction": "builder", landscaping: "landscaper", hvac: "hvac", "pest-control": "pest_control", painting: "painter", handyman: "handyman", solar: "solar", "pool-service": "pool_service", "general-services": "general" };
@@ -38,7 +39,8 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
   const industryTemplates = Array.isArray(cleanPatch.industryTemplates) ? cleanPatch.industryTemplates : operatingTemplates.length ? operatingTemplates : nextProgress.industryTemplates ?? [];
   nextProgress.industryApps = industryApps; nextProgress.industryTemplates = industryTemplates;
   const hasAppSelectionPatch = Array.isArray(cleanPatch.industryApps) || Array.isArray(cleanPatch.industryTemplates) || Array.isArray(cleanPatch.premiumApps) || Boolean(cleanPatch.platformTier) || Boolean(cleanPatch.operatingProfile);
-  const nextApps = hasAppSelectionPatch ? { ...(settings.apps ?? {}), planPreview: { ...(settings.apps?.planPreview ?? {}), platformTier: nextProgress.platformTier, industryApps, industryTemplates, premiumApps: nextProgress.premiumApps ?? [], appliedAt: now, source: "onboarding-operating-profile" } } : settings.apps;
+  const selectedAppIds = hasAppSelectionPatch ? appIdsFromPlanSelection({ platformTier: nextProgress.platformTier ?? "professional", industryApps, premiumApps: nextProgress.premiumApps ?? [] }) : undefined;
+  const nextApps = hasAppSelectionPatch ? { ...(settings.apps ?? {}), enabled: selectedAppIds, planPreview: { ...(settings.apps?.planPreview ?? {}), platformTier: nextProgress.platformTier, industryApps, industryTemplates, premiumApps: nextProgress.premiumApps ?? [], appliedAt: now, source: "onboarding-operating-profile" } } : settings.apps;
   const selectedServiceTemplate = industryTemplates.map((id) => SERVICE_SUBINDUSTRY_TO_TEMPLATE[id]).find((key): key is string => Boolean(key));
   const nextServices = selectedServiceTemplate ? { ...(settings.services ?? {}), templateKey: selectedServiceTemplate } : settings.services;
   await prisma.organisation.update({ where: { id: organisationId }, data: { settings: { ...settings, ...(nextApps ? { apps: nextApps } : {}), ...(nextServices ? { services: nextServices } : {}), gen2Onboarding: nextProgress } as never } });
