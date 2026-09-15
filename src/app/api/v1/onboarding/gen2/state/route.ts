@@ -9,10 +9,8 @@ import {
 import { NextResponse } from "next/server";
 import { isNextResponse, rejectDemoLiveAction, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
-const ALLOWED_SUBSTEPS = new Set([
-  "industry", "business_type", "profile",
-  "brand", "website", "data", "connections", "ai_reporting", "workspace", "review",
-]);
+const OPERATING_SUBSTEPS = new Set(["industry", "business_type", "profile"]);
+const PREPARATION_SUBSTEPS = new Set(["brand", "website", "data", "connections", "ai_reporting", "workspace", "review"]);
 const ALLOWED_INDUSTRIES = new Set(["property", "finance", "services", "accommodation-hospitality", "automotive", "creator-media"]);
 
 function strings(value: unknown, max = 24, maxLength = 100) {
@@ -42,7 +40,13 @@ function sanitiseJourneyPosition(raw: unknown, current: Gen2JourneyPosition = {}
   if (!raw || typeof raw !== "object") return current;
   const value = raw as Record<string, unknown>;
   const stage = isGen2OnboardingStep(value.stage) ? value.stage : current.stage;
-  const substep = typeof value.substep === "string" && ALLOWED_SUBSTEPS.has(value.substep) ? value.substep : current.substep;
+  const requestedSubstep = typeof value.substep === "string" ? value.substep : undefined;
+  let substep: string | undefined;
+  if (stage === "operating_profile") {
+    substep = requestedSubstep && OPERATING_SUBSTEPS.has(requestedSubstep) ? requestedSubstep : "industry";
+  } else if (stage === "platform_preparation") {
+    substep = requestedSubstep && PREPARATION_SUBSTEPS.has(requestedSubstep) ? requestedSubstep : "brand";
+  }
   return { stage, substep, updatedAt: new Date().toISOString() };
 }
 
