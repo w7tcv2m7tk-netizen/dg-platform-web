@@ -6,11 +6,11 @@
 export const GEN2_ONBOARDING_STEPS = [
   "welcome",
   "business_identity",
+  "operating_profile",
   "business_profile",
   "goals",
   "plan",
   "apps",
-  "operating_profile",
   "platform_preparation",
   "billing_cadence",
   "order_summary",
@@ -23,11 +23,11 @@ export type Gen2OnboardingStep = (typeof GEN2_ONBOARDING_STEPS)[number];
 export const GEN2_ONBOARDING_STEP_LABELS: Record<Gen2OnboardingStep, string> = {
   welcome: "Welcome",
   business_identity: "Business identity",
+  operating_profile: "Operating Profile",
   business_profile: "Business Profile",
   goals: "Goals & priorities",
   plan: "Platform plan",
   apps: "Apps",
-  operating_profile: "Operating Profile",
   platform_preparation: "Platform Preparation",
   billing_cadence: "Monthly or annual",
   order_summary: "Order summary",
@@ -95,11 +95,11 @@ export type Gen2OnboardingProgress = {
 };
 export const GEN2_CHECKLIST_ITEMS = [
   { id: "business_identity", label: "Business identity", step: "business_identity" as const },
+  { id: "operating_profile", label: "Operating Profile", step: "operating_profile" as const },
   { id: "business_profile", label: "Business Profile", step: "business_profile" as const },
   { id: "goals", label: "Goals", step: "goals" as const },
   { id: "plan", label: "Plan selected", step: "plan" as const },
   { id: "apps", label: "Apps selected", step: "apps" as const },
-  { id: "operating_profile", label: "Operating Profile", step: "operating_profile" as const },
   { id: "platform_preparation", label: "Platform Preparation", step: "platform_preparation" as const },
   { id: "subscription", label: "Subscription activated", step: "stripe" as const },
   { id: "connect_website", label: "Connect website", optional: true },
