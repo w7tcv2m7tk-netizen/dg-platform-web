@@ -1,6 +1,7 @@
 import type { Gen2OnboardingProgress, Gen2OnboardingStep } from "./gen2-journey";
 import { emptyGen2Progress, GEN2_ONBOARDING_STEPS, isGen2OnboardingStep, nextGen2Step } from "./gen2-journey";
 import { appIdsFromPlanSelection } from "../apps/org-apps";
+import { getTemplate } from "../industry/catalogue";
 
 type OrgSettings = { gen2Onboarding?: Gen2OnboardingProgress; foundingOnboarding?: unknown; apps?: { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string } }; services?: { templateKey?: string; [key: string]: unknown }; [key: string]: unknown };
 const SERVICE_SUBINDUSTRY_TO_TEMPLATE: Record<string, string> = { electrical: "electrician", plumbing: "plumber", cleaning: "cleaner", maintenance: "maintenance", "building-construction": "builder", landscaping: "landscaper", hvac: "hvac", "pest-control": "pest_control", painting: "painter", handyman: "handyman", solar: "solar", "pool-service": "pool_service", "general-services": "general" };
@@ -17,6 +18,22 @@ function definedProgressPatch(patch: Partial<Gen2OnboardingProgress>): Partial<G
   return Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)) as Partial<Gen2OnboardingProgress>;
 }
 
+function normaliseOperatingProfile(profile: Gen2OnboardingProgress["operatingProfile"]): Gen2OnboardingProgress["operatingProfile"] {
+  if (!profile) return profile;
+  const primaryIndustry = profile.primaryIndustry?.trim() || undefined;
+  const secondaryIndustries = Array.from(new Set((profile.secondaryIndustries ?? []).map((id) => id.trim()).filter((id) => id && id !== primaryIndustry)));
+  const selectedIndustries = new Set([primaryIndustry, ...secondaryIndustries].filter((id): id is string => Boolean(id)));
+  const templates = Array.from(new Set((profile.templates ?? []).map((id) => id.trim()).filter(Boolean))).filter((id) => {
+    const template = getTemplate(id);
+    return Boolean(template && selectedIndustries.has(template.industryId));
+  });
+  const requestedPrimaryTemplate = profile.primaryTemplate?.trim();
+  const primaryTemplate = requestedPrimaryTemplate && getTemplate(requestedPrimaryTemplate)?.industryId === primaryIndustry && templates.includes(requestedPrimaryTemplate)
+    ? requestedPrimaryTemplate
+    : templates.find((id) => getTemplate(id)?.industryId === primaryIndustry);
+  return { ...profile, primaryIndustry, secondaryIndustries, templates, primaryTemplate };
+}
+
 export async function getGen2OnboardingProgress(organisationId: string): Promise<Gen2OnboardingProgress> { const { prisma } = await import("@dg/database"); const org = await prisma.organisation.findUnique({ where: { id: organisationId }, select: { settings: true } }); const settings = (org?.settings as OrgSettings | null) ?? {}; const founding = Boolean(settings.foundingOnboarding || (settings as { billing?: { foundingCustomer?: boolean } }).billing?.foundingCustomer); return parseProgress(settings.gen2Onboarding, founding); }
 
 export async function saveGen2OnboardingProgress(organisationId: string, patch: Partial<Gen2OnboardingProgress> & { markStepComplete?: Gen2OnboardingStep }): Promise<Gen2OnboardingProgress> {
@@ -29,7 +46,7 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
   let completedSteps = [...current.completedSteps]; let currentStep = cleanPatch.currentStep ?? current.currentStep;
   if (patch.markStepComplete) { if (!completedSteps.includes(patch.markStepComplete)) completedSteps.push(patch.markStepComplete); const next = nextGen2Step(patch.markStepComplete); if (next && !cleanPatch.currentStep) currentStep = next; }
   if (Array.isArray(cleanPatch.completedSteps)) completedSteps = cleanPatch.completedSteps.filter(isGen2OnboardingStep);
-  const nextProgress: Gen2OnboardingProgress = { ...current, ...cleanPatch, version: 1, currentStep, completedSteps, updatedAt: now, startedAt: current.startedAt || now, checklist: { ...(current.checklist ?? {}), ...(cleanPatch.checklist ?? {}) }, vipSetup: cleanPatch.vipSetup ? { ...(current.vipSetup ?? emptyGen2Progress(founding).vipSetup), ...cleanPatch.vipSetup } : current.vipSetup, operatingProfile: cleanPatch.operatingProfile ? { ...(current.operatingProfile ?? {}), ...cleanPatch.operatingProfile } : current.operatingProfile, journeyPosition: { ...(current.journeyPosition ?? {}), ...(cleanPatch.journeyPosition ?? {}), stage: cleanPatch.journeyPosition?.stage ?? currentStep, updatedAt: now } };
+  const nextProgress: Gen2OnboardingProgress = { ...current, ...cleanPatch, version: 1, currentStep, completedSteps, updatedAt: now, startedAt: current.startedAt || now, checklist: { ...(current.checklist ?? {}), ...(cleanPatch.checklist ?? {}) }, vipSetup: cleanPatch.vipSetup ? { ...(current.vipSetup ?? emptyGen2Progress(founding).vipSetup), ...cleanPatch.vipSetup } : current.vipSetup, operatingProfile: normaliseOperatingProfile(cleanPatch.operatingProfile ? { ...(current.operatingProfile ?? {}), ...cleanPatch.operatingProfile } : current.operatingProfile), journeyPosition: { ...(current.journeyPosition ?? {}), ...(cleanPatch.journeyPosition ?? {}), stage: cleanPatch.journeyPosition?.stage ?? currentStep, updatedAt: now } };
   delete (nextProgress as { markStepComplete?: unknown }).markStepComplete;
   if (completedSteps.includes("implementation") || completedSteps.length >= GEN2_ONBOARDING_STEPS.length) nextProgress.completedAt = nextProgress.completedAt ?? now;
 
