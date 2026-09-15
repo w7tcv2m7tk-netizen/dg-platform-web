@@ -7,7 +7,7 @@ import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { ShellNavLink } from "@/components/ShellNavLink";
 import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute } from "@/lib/nav-route-match";
-import type { AppRoute, NavIaSection } from "@dg/platform-core";
+import { listTemplates, type AppRoute, type NavIaSection } from "@dg/platform-core";
 
 function linkClass(active: boolean, pending = false) {
   return `flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition ${
@@ -142,6 +142,59 @@ const DIGITALGATE_OPERATOR_NAMES: Record<string, string> = {
   "dg-platform-intelligence": "Intelligence",
 };
 
+const INDUSTRY_TEMPLATE_ICONS: Record<string, string> = {
+  "real-estate": "⌂",
+  "property-management": "◇",
+  commercial: "▦",
+  "property-development": "△",
+  "buyers-agency": "◎",
+  valuation: "▥",
+  "short-stay": "◫",
+  hotels: "▣",
+  motels: "▤",
+  restaurants: "◉",
+  cafes: "◌",
+  venues: "✦",
+  trades: "⬡",
+  cleaning: "◇",
+  maintenance: "⎔",
+  accounting: "▣",
+  brokerage: "◎",
+  lending: "◈",
+  dealerships: "⬢",
+  creators: "✦",
+};
+
+function personaliseIndustrySection(section: NavIaSection): NavIaSection {
+  const templates = listTemplates();
+  const templatesByName = new Map(templates.map((template) => [template.name, template]));
+  const projected = section.apps.flatMap((industry) => {
+    const activeTemplates = industry.routes
+      .map((route) => templatesByName.get(route.label))
+      .filter((template): template is NonNullable<typeof template> => Boolean(template));
+
+    if (activeTemplates.length === 0) return [industry];
+
+    return activeTemplates.map((template) => {
+      const href = template.primaryHref.split("?")[0] || template.primaryHref;
+      const sourceApp = template.appId
+        ? section.apps.flatMap((app) => app.routes).filter((route) => route.path.startsWith(href))
+        : [];
+      const routes = sourceApp.length > 0 ? sourceApp : [{ path: href, label: template.name }];
+      return {
+        ...industry,
+        id: `industry-template--${template.id}`,
+        name: template.name,
+        icon: INDUSTRY_TEMPLATE_ICONS[template.id] ?? industry.icon,
+        primaryHref: href,
+        routes,
+      };
+    });
+  });
+
+  return { ...section, apps: projected };
+}
+
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { nav } = useEnabledApps();
@@ -227,6 +280,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     ...ia.core,
     apps: ia.core.apps.filter((app) => app.id !== "infrastructure"),
   };
+  const industrySection = personaliseIndustrySection(ia.industry);
 
   const marketingApp = nav.tiers
     .find((group) => group.tier === "growth")
@@ -278,7 +332,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         className={ia.digitalgate.apps.length > 0 ? undefined : "mt-0"}
       />
 
-      <IaSectionBlock section={ia.industry} pathname={pathname} onNavigate={onNavigate} />
+      <IaSectionBlock section={industrySection} pathname={pathname} onNavigate={onNavigate} />
       <IaSectionBlock section={growthSection} pathname={pathname} onNavigate={onNavigate} />
       {intelligenceSection}
       <IaSectionBlock section={ia.partners} pathname={pathname} onNavigate={onNavigate} />
