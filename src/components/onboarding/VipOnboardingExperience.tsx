@@ -25,8 +25,8 @@ export function VipOnboardingExperience({
           className="shrink-0 sm:hidden"
           style={{ height: "max(3.25rem, env(safe-area-inset-top))" }}
         />
-        <header className="flex items-center justify-center px-4 pb-2 pt-0 sm:justify-between sm:px-4 sm:py-3 lg:px-5">
-          <div className="flex flex-col items-center sm:items-start">
+        <header className="flex items-center justify-center px-4 pb-2 pt-0 sm:px-4 sm:py-3 lg:px-5">
+          <div className="flex flex-col items-center">
             <Image
               src="/brand/logo-on-dark.png"
               alt="DigitalGate"
@@ -36,11 +36,10 @@ export function VipOnboardingExperience({
               priority
               className="h-auto w-[165px] object-contain sm:w-[205px]"
             />
-            <p className="mt-2 text-center text-[9px] font-medium uppercase leading-none tracking-[0.15em] text-violet-200/55 sm:mt-1 sm:text-left sm:text-[10px] sm:leading-normal sm:tracking-[0.18em]">
+            <p className="mt-2 text-center text-[9px] font-medium uppercase leading-none tracking-[0.15em] text-violet-200/55 sm:mt-1 sm:text-[10px] sm:leading-normal sm:tracking-[0.18em]">
               Business Operating Platform
             </p>
           </div>
-          <p className="hidden text-xs text-white/35 sm:block">Progress saves automatically</p>
         </header>
 
         <main className="mx-auto flex w-full max-w-5xl flex-1 items-center px-5 py-3 sm:px-8 sm:py-6 lg:px-12">
