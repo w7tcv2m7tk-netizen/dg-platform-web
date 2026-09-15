@@ -1,5 +1,6 @@
 import {
   getGen2OnboardingProgress,
+  INDUSTRY_TAXONOMY,
   isGen2OnboardingStep,
   saveGen2OnboardingProgress,
   type Gen2JourneyPosition,
@@ -11,7 +12,10 @@ import { isNextResponse, rejectDemoLiveAction, requirePermission, requirePlatfor
 
 const OPERATING_SUBSTEPS = new Set(["industry", "business_type", "profile"]);
 const PREPARATION_SUBSTEPS = new Set(["brand", "website", "data", "connections", "ai_reporting", "workspace", "review"]);
-const ALLOWED_INDUSTRIES = new Set(["property", "finance", "services", "accommodation-hospitality", "automotive", "creator-media"]);
+const ALLOWED_INDUSTRIES = new Set(INDUSTRY_TAXONOMY.map((group) => group.id));
+const TEMPLATE_TO_INDUSTRY = new Map(
+  INDUSTRY_TAXONOMY.flatMap((group) => group.subIndustries.map((subIndustry) => [subIndustry.id, group.id] as const)),
+);
 
 function strings(value: unknown, max = 24, maxLength = 100) {
   return Array.isArray(value)
@@ -23,12 +27,25 @@ function sanitiseOperatingProfile(raw: unknown, current: Gen2OperatingProfile = 
   if (!raw || typeof raw !== "object") return current;
   const value = raw as Record<string, unknown>;
   const primaryIndustry = typeof value.primaryIndustry === "string" && ALLOWED_INDUSTRIES.has(value.primaryIndustry) ? value.primaryIndustry : current.primaryIndustry;
+  const secondaryIndustries = value.secondaryIndustries === undefined
+    ? (current.secondaryIndustries ?? []).filter((id) => ALLOWED_INDUSTRIES.has(id) && id !== primaryIndustry)
+    : strings(value.secondaryIndustries).filter((id) => ALLOWED_INDUSTRIES.has(id) && id !== primaryIndustry);
+  const selectedIndustries = new Set([primaryIndustry, ...secondaryIndustries].filter((id): id is string => Boolean(id)));
+  const requestedTemplates = value.templates === undefined ? (current.templates ?? []) : strings(value.templates);
+  const templates = requestedTemplates.filter((template) => {
+    const industry = TEMPLATE_TO_INDUSTRY.get(template);
+    return Boolean(industry && selectedIndustries.has(industry));
+  });
+  const requestedPrimaryTemplate = typeof value.primaryTemplate === "string" ? value.primaryTemplate.slice(0, 100) : current.primaryTemplate;
+  const primaryTemplate = requestedPrimaryTemplate && templates.includes(requestedPrimaryTemplate) && TEMPLATE_TO_INDUSTRY.get(requestedPrimaryTemplate) === primaryIndustry
+    ? requestedPrimaryTemplate
+    : templates.find((template) => TEMPLATE_TO_INDUSTRY.get(template) === primaryIndustry);
   return {
     ...current,
     primaryIndustry,
-    secondaryIndustries: value.secondaryIndustries === undefined ? current.secondaryIndustries : strings(value.secondaryIndustries).filter((id) => ALLOWED_INDUSTRIES.has(id) && id !== primaryIndustry),
-    primaryTemplate: typeof value.primaryTemplate === "string" ? value.primaryTemplate.slice(0, 100) : current.primaryTemplate,
-    templates: value.templates === undefined ? current.templates : strings(value.templates),
+    secondaryIndustries,
+    primaryTemplate,
+    templates,
     recommendedIndustryApps: value.recommendedIndustryApps === undefined ? current.recommendedIndustryApps : strings(value.recommendedIndustryApps),
     recommendedGrowthApps: value.recommendedGrowthApps === undefined ? current.recommendedGrowthApps : strings(value.recommendedGrowthApps),
     recommendedWorkflows: value.recommendedWorkflows === undefined ? current.recommendedWorkflows : strings(value.recommendedWorkflows, 12, 180),
@@ -41,12 +58,11 @@ function sanitiseJourneyPosition(raw: unknown, current: Gen2JourneyPosition = {}
   const value = raw as Record<string, unknown>;
   const stage = isGen2OnboardingStep(value.stage) ? value.stage : current.stage;
   const requestedSubstep = typeof value.substep === "string" ? value.substep : undefined;
-  let substep: string | undefined;
-  if (stage === "operating_profile") {
-    substep = requestedSubstep && OPERATING_SUBSTEPS.has(requestedSubstep) ? requestedSubstep : "industry";
-  } else if (stage === "platform_preparation") {
-    substep = requestedSubstep && PREPARATION_SUBSTEPS.has(requestedSubstep) ? requestedSubstep : "brand";
-  }
+  const substep = stage === "operating_profile"
+    ? (requestedSubstep && OPERATING_SUBSTEPS.has(requestedSubstep) ? requestedSubstep : "industry")
+    : stage === "platform_preparation"
+      ? (requestedSubstep && PREPARATION_SUBSTEPS.has(requestedSubstep) ? requestedSubstep : "brand")
+      : undefined;
   return { stage, substep, updatedAt: new Date().toISOString() };
 }
 
@@ -77,11 +93,20 @@ export async function PATCH(req: Request) {
 
   const body = await req.json().catch(() => ({})) as Record<string, unknown>;
   const current = await getGen2OnboardingProgress(session.organisationId);
+  const vipSetup = sanitiseVipSetup(body.vipSetup, current.vipSetup!);
+  const onboardingCompleted = Boolean(current.vipSetup?.completedAt || vipSetup.completedAt);
+  const journeyPosition = onboardingCompleted
+    ? { stage: "implementation" as const, substep: undefined, updatedAt: new Date().toISOString() }
+    : sanitiseJourneyPosition(body.journeyPosition, current.journeyPosition);
   const patch = {
-    ...(isGen2OnboardingStep(body.currentStep) ? { currentStep: body.currentStep } : {}),
-    journeyPosition: sanitiseJourneyPosition(body.journeyPosition, current.journeyPosition),
+    ...(onboardingCompleted
+      ? { currentStep: "implementation" as const }
+      : isGen2OnboardingStep(body.currentStep)
+        ? { currentStep: body.currentStep }
+        : {}),
+    journeyPosition,
     operatingProfile: sanitiseOperatingProfile(body.operatingProfile, current.operatingProfile),
-    vipSetup: sanitiseVipSetup(body.vipSetup, current.vipSetup!),
+    vipSetup,
     ...(body.industryTemplates !== undefined ? { industryTemplates: strings(body.industryTemplates) } : {}),
     ...(body.industryApps !== undefined ? { industryApps: strings(body.industryApps) } : {}),
     ...(body.premiumApps !== undefined ? { premiumApps: strings(body.premiumApps) } : {}),
