@@ -1,0 +1,36 @@
+.dg-onboarding-experience {
+  background: #07101f !important;
+}
+
+.dg-onboarding-experience > .pointer-events-none.fixed.inset-0 {
+  background:
+    radial-gradient(circle at 52% -12%, rgba(99, 102, 241, 0.13), transparent 38%),
+    radial-gradient(circle at 92% 10%, rgba(139, 92, 246, 0.07), transparent 26%),
+    linear-gradient(180deg, #0b1629 0%, #07101f 52%, #040a14 100%) !important;
+}
+
+.dg-onboarding-experience header {
+  padding: 1.25rem 1.25rem 0.75rem !important;
+}
+
+@media (min-width: 640px) {
+  .dg-onboarding-experience header {
+    padding: 1.5rem 2rem 0.9rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dg-onboarding-experience header {
+    padding-left: 2.5rem !important;
+    padding-right: 2.5rem !important;
+  }
+}
+
+.dg-onboarding-experience main section {
+  background: rgba(11, 22, 41, 0.88) !important;
+  border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+.dg-onboarding-experience main section [class*="bg-black"] {
+  background-color: rgba(3, 10, 22, 0.48) !important;
+}
