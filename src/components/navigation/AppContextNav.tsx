@@ -4,9 +4,8 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
-import { IndustryTemplateSwitcher } from "@/components/industry/IndustryTemplateSwitcher";
 import { AppHorizontalSubnav } from "@/components/navigation/AppHorizontalSubnav";
-import { industryIdFromPathname, resolveActiveAppNavigation } from "@dg/platform-core";
+import { resolveActiveAppNavigation } from "@dg/platform-core";
 
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
 
@@ -22,13 +21,6 @@ export function AppContextNav() {
     () => resolveActiveAppNavigation(pathname, nav.ia),
     [pathname, nav.ia],
   );
-
-  const industryId = useMemo(() => {
-    if (active?.sectionId === "industry" && active.itemId.startsWith("industry--")) {
-      return active.itemId.slice("industry--".length);
-    }
-    return industryIdFromPathname(pathname);
-  }, [active, pathname]);
 
   const routes = useMemo(() => {
     if (!active) return [];
@@ -78,8 +70,8 @@ export function AppContextNav() {
       return withoutHiddenBrain;
     }
 
-    // Industry sidebar unions all active Template routes — show only the
-    // current Template mount's tabs under the switcher.
+    // Industry business types are managed in Apps. Inside an active business
+    // type, show only that app's own working sections — never sibling templates.
     if (active.sectionId === "industry") {
       const mount = pathname.match(/^(\/apps\/[^/]+)/)?.[1];
       if (mount) {
@@ -111,9 +103,6 @@ export function AppContextNav() {
   }
 
   const showSubnav = routes.length > 1;
-  const showIndustrySwitcher =
-    (active.sectionId === "industry" || Boolean(industryIdFromPathname(pathname))) &&
-    Boolean(industryId);
   const showRouteCrumb = Boolean(pageTitle) && pageTitle !== active.itemName;
 
   return (
@@ -134,10 +123,6 @@ export function AppContextNav() {
             </>
           ) : null}
         </div>
-
-        {showIndustrySwitcher && industryId ? (
-          <IndustryTemplateSwitcher industryId={industryId} />
-        ) : null}
 
         <div className="min-w-0">
           <p className="text-lg font-semibold tracking-tight text-white">{pageTitle}</p>
