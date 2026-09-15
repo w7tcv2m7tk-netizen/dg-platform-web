@@ -20,7 +20,7 @@ export function VipOnboardingExperience({
       />
 
       <div className="relative flex min-h-screen flex-col">
-        <header className="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-12">
+        <header className="flex items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
           <div>
             <Image
               src="/brand/logo-on-dark.png"
@@ -29,10 +29,10 @@ export function VipOnboardingExperience({
               height={95}
               unoptimized
               priority
-              className="h-auto w-[200px] object-contain sm:w-[230px]"
+              className="h-auto w-[180px] object-contain sm:w-[205px]"
             />
-            <p className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-200/55">
-              The Gateway to Your Digital World™
+            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-200/55">
+              Business Operating Platform
             </p>
           </div>
           <p className="hidden text-xs text-white/35 sm:block">Progress saves automatically</p>

@@ -1,0 +1,22 @@
+.dg-onboarding-experience section.text-center > p:first-of-type {
+  font-size: 0;
+}
+
+.dg-onboarding-experience section.text-center > p:first-of-type::after {
+  content: "AIDA - YOUR AI BUSINESS ADVISOR";
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: rgb(196 181 253);
+}
+
+.dg-onboarding-experience section.text-center > h1::after {
+  content: "Business Operating Platform";
+  display: block;
+  margin-top: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(196 181 253 / 0.72);
+}

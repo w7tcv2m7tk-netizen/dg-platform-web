@@ -1,10 +1,12 @@
 export const GROWTH_APP_CATALOGUE = [
-  { appId: "prospecting", key: "prospecting_pro", label: "DigitalGate Prospecting & Opportunity Engine", monthlyCents: 9900 },
-  { appId: "ai-visibility", key: "ai_visibility_pro", label: "DigitalGate AI Visibility", monthlyCents: 9900 },
-  { appId: "seo", key: "seo_pro", label: "DigitalGate SEO", monthlyCents: 9900 },
-  { appId: "automation", key: "automation_pro", label: "DigitalGate Automation", monthlyCents: 4900 },
-  { appId: "analytics", key: "analytics_pro", label: "DigitalGate Analytics", monthlyCents: 4900 },
-  { appId: "social", key: "social_pro", label: "DigitalGate Social", monthlyCents: 7900 },
+  { appId: "marketing", key: null, label: "DigitalGate Marketing", monthlyCents: 0, included: true },
+  { appId: "prospecting", key: "prospecting_pro", label: "DigitalGate Prospecting & Opportunity Engine", monthlyCents: 9900, included: false },
+  { appId: "ai-visibility", key: "ai_visibility_pro", label: "DigitalGate AI Visibility", monthlyCents: 9900, included: false },
+  { appId: "seo", key: "seo_pro", label: "DigitalGate SEO", monthlyCents: 9900, included: false },
+  { appId: "automation", key: "automation_pro", label: "DigitalGate Automation", monthlyCents: 4900, included: false },
+  { appId: "analytics", key: "analytics_pro", label: "DigitalGate Analytics", monthlyCents: 4900, included: false },
+  { appId: "social", key: "social_pro", label: "DigitalGate Social", monthlyCents: 7900, included: false },
+  { appId: "reviews", key: null, label: "DigitalGate Reviews & Reputation", monthlyCents: 0, included: true },
 ] as const;
 
 export const PAID_APP_PRICES_CENTS = {
