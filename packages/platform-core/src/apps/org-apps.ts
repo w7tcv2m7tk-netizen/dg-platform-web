@@ -31,19 +31,36 @@ export function collectIndustrySelectionIds(settings?: { apps?: { planPreview?: 
   return [...ids];
 }
 
-function industryAppIdsForSelection(selectionId: string): string[] {
-  if ((INDUSTRY_APP_IDS_FOR_MODE as readonly string[]).includes(selectionId)) return [selectionId];
-  const group = INDUSTRY_TAXONOMY.find((item) => item.id === selectionId);
-  if (group) return group.appIds;
-  const subIndustry = INDUSTRY_TAXONOMY.flatMap((item) => item.subIndustries).find((item) => item.id === selectionId);
-  return subIndustry ? [subIndustry.appId] : [];
+function explicitSubindustryAppIds(settings?: Parameters<typeof collectIndustrySelectionIds>[0]): Set<string> {
+  const explicit = new Set<string>();
+  const operating = settings?.gen2Onboarding?.operatingProfile;
+  const selections = [operating?.primaryTemplate, ...(operating?.templates ?? []), ...(settings?.apps?.planPreview?.industryTemplates ?? [])];
+  const serviceTemplate = settings?.services?.templateKey;
+  if (serviceTemplate) selections.push(SERVICE_TEMPLATE_TO_SUBINDUSTRY[serviceTemplate] ?? serviceTemplate);
+  for (const selectionId of selections) {
+    if (!selectionId) continue;
+    const subIndustry = INDUSTRY_TAXONOMY.flatMap((item) => item.subIndustries).find((item) => item.id === selectionId);
+    if (subIndustry) explicit.add(subIndustry.appId);
+  }
+  return explicit;
 }
 
-/** Customer-facing Industry Apps: only apps selected by the operating profile are shown by default. */
+function industryAppIdsForSelection(selectionId: string, explicitApps: Set<string>): string[] {
+  if ((INDUSTRY_APP_IDS_FOR_MODE as readonly string[]).includes(selectionId)) return [selectionId];
+  const subIndustry = INDUSTRY_TAXONOMY.flatMap((item) => item.subIndustries).find((item) => item.id === selectionId);
+  if (subIndustry) return [subIndustry.appId];
+  const group = INDUSTRY_TAXONOMY.find((item) => item.id === selectionId);
+  if (!group) return [];
+  const explicitForGroup = group.appIds.filter((appId) => explicitApps.has(appId));
+  return explicitForGroup.length ? explicitForGroup : group.appIds;
+}
+
+/** Customer-facing Industry Apps: explicit subindustry choices win over a broad industry group. */
 export function resolveVisibleIndustryAppIds(settings?: Parameters<typeof collectIndustrySelectionIds>[0]): string[] {
   const visible = new Set<string>();
+  const explicitApps = explicitSubindustryAppIds(settings);
   for (const selectionId of collectIndustrySelectionIds(settings)) {
-    for (const appId of industryAppIdsForSelection(selectionId)) visible.add(appId);
+    for (const appId of industryAppIdsForSelection(selectionId, explicitApps)) visible.add(appId);
   }
   return INDUSTRY_APP_IDS_FOR_MODE.filter((id) => visible.has(id));
 }
