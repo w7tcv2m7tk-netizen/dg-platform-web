@@ -24,6 +24,7 @@ const STORAGE_KEY = "dg_enabled_apps";
 
 type EnabledAppsContextValue = {
   enabledIds: string[];
+  industrySelectionIds: string[];
   setEnabledIds: (ids: string[]) => void;
   toggleApp: (appId: string, enabled?: boolean) => Promise<void>;
   applyPlan: (plan: PlanSelectionInput) => Promise<void>;
@@ -197,6 +198,7 @@ export function EnabledAppsProvider({
   const value = useMemo(
     () => ({
       enabledIds,
+      industrySelectionIds,
       setEnabledIds,
       toggleApp,
       applyPlan,
@@ -209,6 +211,7 @@ export function EnabledAppsProvider({
     }),
     [
       enabledIds,
+      industrySelectionIds,
       setEnabledIds,
       toggleApp,
       applyPlan,
