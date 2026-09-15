@@ -94,8 +94,8 @@ assert.match(
 );
 assert.match(
   page,
-  /checkoutStatus = checkoutConfirmed[\s\S]*\("success" as const\)/,
-  "the wizard must only receive checkout success after server verification",
+  /checkoutStatus\s*=\s*checkoutConfirmed\s*\?\s*"success"\s+as const/,
+  "the adaptive journey must only receive checkout success after server verification",
 );
 assert.match(
   page,
