@@ -49,14 +49,17 @@ function sanitiseJourneyPosition(raw: unknown, current: Gen2JourneyPosition = {}
 function sanitiseVipSetup(raw: unknown, current: Gen2VipSetup): Gen2VipSetup {
   if (!raw || typeof raw !== "object") return current;
   const value = raw as Record<string, unknown>;
+  const safeTimestamp = (field: "completedAt" | "rerunRequestedAt" | "firstLoginHandoverCompletedAt") =>
+    value[field] === null
+      ? null
+      : typeof value[field] === "string"
+        ? value[field].slice(0, 64)
+        : current[field];
   return {
     ...current,
-    firstLoginHandoverCompletedAt:
-      value.firstLoginHandoverCompletedAt === null
-        ? null
-        : typeof value.firstLoginHandoverCompletedAt === "string"
-          ? value.firstLoginHandoverCompletedAt.slice(0, 64)
-          : current.firstLoginHandoverCompletedAt,
+    completedAt: safeTimestamp("completedAt"),
+    rerunRequestedAt: safeTimestamp("rerunRequestedAt"),
+    firstLoginHandoverCompletedAt: safeTimestamp("firstLoginHandoverCompletedAt"),
   };
 }
 
