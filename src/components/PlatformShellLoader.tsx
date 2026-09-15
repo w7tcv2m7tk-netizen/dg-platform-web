@@ -102,7 +102,10 @@ export async function PlatformShellLoader({
       const progress = await getGen2OnboardingProgress(session.organisationId);
       const preset = getVipCustomerPreset(session.organisationName);
       vipSetupRequired = Boolean(preset) || progress.vipSetup?.required === true;
-      vipSetupCompleted = Boolean(progress.vipSetup?.completedAt);
+      // Canonical adaptive onboarding completion is stored at the root. Legacy
+      // VIP records may also carry their own completion timestamp. Either is a
+      // valid completed setup and must allow the customer into the platform.
+      vipSetupCompleted = Boolean(progress.completedAt || progress.vipSetup?.completedAt);
     } catch {
       // Never lock a customer out because setup readiness could not be read.
       vipSetupRequired = false;
