@@ -1,0 +1,35 @@
+/* DigitalGate platform chrome: keep the website's dark navy atmosphere while
+   retaining organisation/purple accents for actions, focus and active states. */
+html:not([data-theme="light"]) .dg-branded-shell {
+  --org-bg-base: #07101d;
+  --org-bg-elevated: #091426;
+  --org-bg-surface: #0d1a2d;
+  --org-bg-surface-hover: #11213a;
+  --org-bg-inset: #050c17;
+  --org-border: #26364d;
+  --org-border-subtle: #1c2b40;
+  --org-shell-gradient: radial-gradient(circle at 82% -10%, rgba(124, 58, 237, 0.08), transparent 30%), linear-gradient(180deg, #091426 0%, #07101d 48%, #050b14 100%);
+}
+
+html:not([data-theme="light"]) .dg-branded-sidebar {
+  background: #081221;
+}
+
+html:not([data-theme="light"]) .dg-branded-header {
+  background: rgba(8, 18, 33, 0.94);
+}
+
+html:not([data-theme="light"]) .dg-card,
+html:not([data-theme="light"]) .dg-plan-card {
+  background-color: rgba(13, 26, 45, 0.88) !important;
+}
+
+/* Onboarding uses the same restrained navy canvas; violet remains an accent. */
+.dg-onboarding-experience {
+  background: #050b14 !important;
+}
+
+.dg-onboarding-experience > div:first-child {
+  opacity: 1 !important;
+  background: radial-gradient(circle at 50% -10%, rgba(124, 58, 237, 0.10), transparent 34%), radial-gradient(circle at 92% 12%, rgba(59, 130, 246, 0.07), transparent 27%), linear-gradient(180deg, #091426 0%, #07101d 52%, #050b14 100%) !important;
+}
