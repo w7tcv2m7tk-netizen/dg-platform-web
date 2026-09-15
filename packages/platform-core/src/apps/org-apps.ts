@@ -2,7 +2,7 @@ import type { AppTier } from "./manifest";
 import { INDUSTRY_TAXONOMY } from "./industry-taxonomy";
 import { platformApps } from "./registry";
 
-export const FOUNDING_MODE_CORE_APP_IDS = ["crm", "commerce", "documents", "communications", "websites", "infrastructure", "opportunities"] as const;
+export const FOUNDING_MODE_CORE_APP_IDS = ["crm", "commerce", "documents", "communications", "websites", "infrastructure", "opportunities", "marketing", "reviews"] as const;
 export const GROWTH_APP_IDS_FOR_MODE = ["marketing", "prospecting", "ai-visibility", "seo", "automation", "analytics", "social", "reviews"] as const;
 export const INDUSTRY_APP_IDS_FOR_MODE = ["real-estate", "property-management", "commercial", "accommodation", "services", "finance", "automotive", "creator"] as const;
 
@@ -11,7 +11,7 @@ export function hasProgressiveRevealApps(enabledIds: string[]): boolean { const 
 export function getDefaultEnabledAppIds(): string[] { return FOUNDING_MODE_CORE_APP_IDS.filter((id) => Boolean(platformApps.get(id)?.enabled)); }
 
 export type OrgAppsSettings = { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string; }; };
-const PREMIUM_APP_MAP: Record<string, string[]> = { marketing_pro: ["marketing"], prospecting_pro: ["prospecting"], ai_visibility_pro: ["ai-visibility"], seo_pro: ["seo"], automation_pro: ["automation"], analytics_pro: ["analytics"], social_pro: ["social"], reviews_pro: ["reviews"], voice_ai: ["ai-communications"] };
+const PREMIUM_APP_MAP: Record<string, string[]> = { prospecting_pro: ["prospecting"], ai_visibility_pro: ["ai-visibility"], seo_pro: ["seo"], automation_pro: ["automation"], analytics_pro: ["analytics"], social_pro: ["social"], voice_ai: ["ai-communications"] };
 const TIER_BASE_APPS: Record<string, string[]> = { starter: [...FOUNDING_MODE_CORE_APP_IDS], professional: [...FOUNDING_MODE_CORE_APP_IDS], business: [...FOUNDING_MODE_CORE_APP_IDS], enterprise: [...FOUNDING_MODE_CORE_APP_IDS] };
 export type PlanSelectionInput = { platformTier: string; industryApps: string[]; premiumApps: string[] };
 export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[] { const ids = new Set<string>(TIER_BASE_APPS[selection.platformTier] ?? TIER_BASE_APPS.professional); for (const industry of selection.industryApps) ids.add(industry); for (const premium of selection.premiumApps) for (const appId of PREMIUM_APP_MAP[premium] ?? []) ids.add(appId); return [...ids].filter((id) => Boolean(platformApps.get(id)?.enabled)); }
