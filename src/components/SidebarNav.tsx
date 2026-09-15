@@ -248,7 +248,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const configurationSection: NavIaSection = {
     ...ia.platformAdmin,
     label: "Configuration",
-    apps: [...infrastructureApps, ...ia.platformAdmin.apps],
+    apps: [
+      ...ia.platformAdmin.apps.slice(0, 1),
+      ...infrastructureApps,
+      ...ia.platformAdmin.apps.slice(1),
+    ],
     links: [...ia.infrastructure.links, ...ia.platformAdmin.links],
     trailingLinks: [
       ...(ia.infrastructure.trailingLinks ?? []),
