@@ -19,6 +19,7 @@ import "./globals.css";
 import "./digitalgate-brand.css";
 import "./clerk-overrides.css";
 import "./onboarding-final.css";
+import "./platform-visual-polish.css";
 
 /** Only set when CLERK_PROXY_URL is present (Dashboard proxy validated). */
 const proxyUrl = clerkProxyUrl();
@@ -35,7 +36,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0c0716" },
+    { media: "(prefers-color-scheme: dark)", color: "#07101d" },
     { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
   ],
   colorScheme: "dark light",
