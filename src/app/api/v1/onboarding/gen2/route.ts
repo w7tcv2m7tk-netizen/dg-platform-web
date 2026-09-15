@@ -100,11 +100,12 @@ function safeClientProgress(raw: unknown): AllowedClientProgress {
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req); if (isNextResponse(session)) return session;
-  const [progress, profile, goals, commercialOffer] = await Promise.all([
+  const [progress, profile, goals, commercialOffer, billing] = await Promise.all([
     getGen2OnboardingProgress(session.organisationId), getOrganisationBusinessProfile(session.organisationId),
     getOrganisationGoals(session.organisationId).catch(() => []), effectiveCommercialOffer(session.organisationId),
+    getOrganisationBillingStatus(session.organisationId),
   ]);
-  return NextResponse.json({ data: { progress, profile, goals, commercialOffer, organisationName: session.organisationName } });
+  return NextResponse.json({ data: { progress, profile, goals, commercialOffer, billing: { kind: billing?.kind ?? null, platformExempt: billing?.kind === "platform_exempt" }, organisationName: session.organisationName } });
 }
 
 export async function PATCH(req: Request) {
