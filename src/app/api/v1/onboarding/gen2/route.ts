@@ -40,6 +40,12 @@ async function effectiveCommercialOffer(organisationId: string) {
   return programmeRecord?.commercialOfferSnapshot ?? current;
 }
 function cleanShortString(value: unknown, max = 160) { return typeof value === "string" ? value.trim().slice(0, max) : undefined; }
+function savedBrandPalette(value: unknown): [string, string] | null {
+  if (typeof value !== "string") return null;
+  const colours = value.split(",").map((colour) => colour.trim()).filter((colour) => /^#[0-9a-fA-F]{6}$/.test(colour));
+  if (!colours.length) return null;
+  return [colours[0]!, colours[1] ?? colours[0]!];
+}
 function safeVipSetup(raw: unknown): Gen2VipSetup | undefined {
   if (!raw || typeof raw !== "object") return undefined;
   const source = raw as Record<string, unknown>;
@@ -105,7 +111,16 @@ export async function GET(req: Request) {
     getOrganisationGoals(session.organisationId).catch(() => []), effectiveCommercialOffer(session.organisationId),
     getOrganisationBillingStatus(session.organisationId),
   ]);
-  return NextResponse.json({ data: { progress, profile, goals, commercialOffer, billing: { kind: billing?.kind ?? null, platformExempt: billing?.kind === "platform_exempt" }, organisationName: session.organisationName } });
+  const palette = savedBrandPalette(profile?.brandColours);
+  const effectiveProgress = palette ? {
+    ...progress,
+    vipSetup: {
+      ...(progress.vipSetup ?? {}),
+      brandPrimary: progress.vipSetup?.brandPrimary || palette[0],
+      brandAccent: progress.vipSetup?.brandAccent || palette[1],
+    },
+  } : progress;
+  return NextResponse.json({ data: { progress: effectiveProgress, profile, goals, commercialOffer, billing: { kind: billing?.kind ?? null, platformExempt: billing?.kind === "platform_exempt" }, organisationName: session.organisationName } });
 }
 
 export async function PATCH(req: Request) {
