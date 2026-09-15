@@ -1,5 +1,6 @@
 "use client";
 
+import { listTemplates } from "@dg/platform-core";
 import { platformApps } from "@dg/platform-core/apps/registry";
 
 import { useEnabledAppsOptional } from "@/components/platform/EnabledAppsProvider";
@@ -14,6 +15,19 @@ export function AppInstallToggle({
   const ctx = useEnabledAppsOptional();
   const registryApp = platformApps.get(appId);
   const isAvailable = Boolean(registryApp?.enabled);
+  const isIndustryRuntime = listTemplates().some((template) => template.appId === appId);
+
+  // Industry runtimes are shared implementation engines. Activating the runtime
+  // directly loses the customer's exact business-type identity (for example,
+  // every Services template shares appId "services"). Industry business types
+  // are therefore managed only through the template activation API in Apps.
+  if (isIndustryRuntime) {
+    return (
+      <span className="rounded-full bg-sky-500/10 px-2 py-0.5 text-xs text-sky-300">
+        Manage business type
+      </span>
+    );
+  }
 
   if (!isAvailable) {
     return (

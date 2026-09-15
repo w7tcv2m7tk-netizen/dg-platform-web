@@ -77,6 +77,15 @@ export type OrgNavSettings = {
   };
   profile?: { purchasedApps?: string[] };
   services?: { templateKey?: string };
+  industry?: { templates?: Record<string, { active?: boolean }> };
+  gen2Onboarding?: {
+    operatingProfile?: {
+      primaryIndustry?: string;
+      secondaryIndustries?: string[];
+      primaryTemplate?: string;
+      templates?: string[];
+    };
+  };
   featureFlags?: Record<string, boolean>;
 };
 
@@ -86,7 +95,7 @@ function readOrgNavSettings(
   return settings ?? null;
 }
 
-/** Purchased Industry templates — exact customer business profiles used for personalisation. */
+/** Active Industry business types — exact customer profiles used for personalisation. */
 export const getOrgIndustrySelectionIdsCached = cache(async (): Promise<string[]> => {
   const { session } = await getPlatformPageContext();
 
