@@ -18,6 +18,7 @@ import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 import "./digitalgate-brand.css";
 import "./clerk-overrides.css";
+import "./onboarding-final.css";
 
 /** Only set when CLERK_PROXY_URL is present (Dashboard proxy validated). */
 const proxyUrl = clerkProxyUrl();
@@ -41,8 +42,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "DigitalGate Business Platform",
-  description: "CRM, industry apps, and growth tools — client portal",
+  title: "DigitalGate Business Operating Platform",
+  description: "CRM, industry apps, growth tools and AI — client portal",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "https://app.digitalgate.com.au",
   ),
