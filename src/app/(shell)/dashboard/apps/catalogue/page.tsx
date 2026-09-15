@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { AppsPlanCatalog } from "@/components/platform/AppsPlanCatalog";
+import { IndustryBusinessTypeManager } from "@/components/platform/IndustryBusinessTypeManager";
 import { MarketingCatalogCard } from "@/components/platform/MarketingCatalogCard";
 import { PostPurchaseSyncBanner } from "@/components/platform/PostPurchaseSyncBanner";
 
@@ -15,13 +16,14 @@ export default function AppsCataloguePage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Explore Apps</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Add another industry, Template or specialist capability when this business needs it. Your normal Apps workspace remains focused on what is already relevant to the organisation. Billing and subscribe live under Settings → Billing.
+          Add or remove the exact business types and specialist capabilities this organisation needs. Only active business types appear in the sidebar. Billing and subscribe live under Settings → Billing.
         </p>
       </header>
-      <main className="dg-page-main">
+      <main className="dg-page-main space-y-12">
         <Suspense fallback={null}>
           <PostPurchaseSyncBanner />
         </Suspense>
+        <IndustryBusinessTypeManager />
         <MarketingCatalogCard />
         <AppsPlanCatalog />
       </main>
