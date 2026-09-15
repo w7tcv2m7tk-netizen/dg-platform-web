@@ -20,7 +20,7 @@ export function VipOnboardingExperience({
       />
 
       <div className="relative flex min-h-screen flex-col">
-        <header className="flex items-center justify-between px-2.5 py-3 sm:px-4 lg:px-5">
+        <header className="flex items-center justify-between px-2.5 py-1.5 sm:px-4 sm:py-3 lg:px-5">
           <div>
             <Image
               src="/brand/logo-on-dark.png"
@@ -29,20 +29,20 @@ export function VipOnboardingExperience({
               height={95}
               unoptimized
               priority
-              className="h-auto w-[180px] object-contain sm:w-[205px]"
+              className="h-auto w-[145px] object-contain sm:w-[205px]"
             />
-            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-violet-200/55">
+            <p className="mt-0.5 text-[9px] font-medium uppercase leading-none tracking-[0.15em] text-violet-200/55 sm:mt-1 sm:text-[10px] sm:leading-normal sm:tracking-[0.18em]">
               Business Operating Platform
             </p>
           </div>
           <p className="hidden text-xs text-white/35 sm:block">Progress saves automatically</p>
         </header>
 
-        <main className="mx-auto flex w-full max-w-5xl flex-1 items-center px-5 py-6 sm:px-8 lg:px-12">
+        <main className="mx-auto flex w-full max-w-5xl flex-1 items-center px-5 py-3 sm:px-8 sm:py-6 lg:px-12">
           <div className="w-full">{children}</div>
         </main>
 
-        <footer className="px-5 py-5 text-center text-[11px] text-white/25 sm:px-8">
+        <footer className="px-5 py-3 text-center text-[11px] text-white/25 sm:px-8 sm:py-5">
           DigitalGate · Secure organisation setup
         </footer>
       </div>
