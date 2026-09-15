@@ -1,4 +1,5 @@
 import type { AppTier } from "./manifest";
+import { INDUSTRY_TAXONOMY } from "./industry-taxonomy";
 import { platformApps } from "./registry";
 
 export const FOUNDING_MODE_CORE_APP_IDS = ["crm", "commerce", "documents", "communications", "websites", "infrastructure", "opportunities"] as const;
@@ -30,12 +31,21 @@ export function collectIndustrySelectionIds(settings?: { apps?: { planPreview?: 
   return [...ids];
 }
 
+function industryAppIdsForSelection(selectionId: string): string[] {
+  if ((INDUSTRY_APP_IDS_FOR_MODE as readonly string[]).includes(selectionId)) return [selectionId];
+  const group = INDUSTRY_TAXONOMY.find((item) => item.id === selectionId);
+  if (group) return group.appIds;
+  const subIndustry = INDUSTRY_TAXONOMY.flatMap((item) => item.subIndustries).find((item) => item.id === selectionId);
+  return subIndustry ? [subIndustry.appId] : [];
+}
+
 /** Customer-facing Industry Apps: only apps selected by the operating profile are shown by default. */
 export function resolveVisibleIndustryAppIds(settings?: Parameters<typeof collectIndustrySelectionIds>[0]): string[] {
-  const selected = new Set(collectIndustrySelectionIds(settings));
-  const planApps = settings?.apps?.planPreview?.industryApps ?? [];
-  for (const id of planApps) selected.add(id);
-  return INDUSTRY_APP_IDS_FOR_MODE.filter((id) => selected.has(id));
+  const visible = new Set<string>();
+  for (const selectionId of collectIndustrySelectionIds(settings)) {
+    for (const appId of industryAppIdsForSelection(selectionId)) visible.add(appId);
+  }
+  return INDUSTRY_APP_IDS_FOR_MODE.filter((id) => visible.has(id));
 }
 
 export function shouldShowIndustryApp(appId: string, settings?: Parameters<typeof collectIndustrySelectionIds>[0], revealOtherIndustries = false): boolean {
