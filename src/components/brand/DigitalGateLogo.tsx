@@ -80,11 +80,11 @@ export function DigitalGateLogo({
 
   const tagline = showTagline ? (
     <p
-      className={`text-[11px] font-medium leading-tight tracking-wide text-white/90 ${
+      className={`text-[10px] font-medium leading-tight tracking-wide text-white/80 ${
         align === "center" ? "text-center" : ""
       }`}
     >
-      Business Platform
+      Business Operating Platform
     </p>
   ) : null;
 
