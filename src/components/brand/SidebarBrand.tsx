@@ -2,7 +2,7 @@ import { OrgBrandMark } from "@/components/brand/OrgBrandMark";
 
 /**
  * Sidebar header — org/account logo (falls back to DigitalGate when no custom brand).
- * Aligned with nav `px-3`. Drawer uses centered mark for mobile portal feel.
+ * Keep the product mark deliberately compact so the shell chrome does not dominate navigation.
  */
 export function SidebarBrand({
   className = "",
@@ -16,9 +16,9 @@ export function SidebarBrand({
       <OrgBrandMark
         variant="logo"
         href="/dashboard"
-        logoWidth={172}
+        logoWidth={148}
         align={align}
-        className={`w-full max-w-full ${align === "center" ? "mx-auto max-w-[11rem]" : ""}`}
+        className={`max-w-full ${align === "center" ? "mx-auto max-w-[9.5rem]" : ""}`}
       />
     </div>
   );
