@@ -18,7 +18,7 @@ function isActive(pathname: string, href: string) {
 export function MobileBottomNav({ onMenuClick }: { onMenuClick: () => void }) {
   const pathname = usePathname();
   const { nav } = useEnabledApps();
-  const canAccessCommand = nav.some((section) => section.items.some((item) => item.href === "/command" || item.href.startsWith("/command/")));
+  const canAccessCommand = Boolean(nav.commandCentre);
   const items = canAccessCommand
     ? [CORE_ITEMS[0], { href: "/command", label: "Command", glyph: "⌘" } as const, ...CORE_ITEMS.slice(1)]
     : CORE_ITEMS;
