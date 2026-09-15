@@ -4,9 +4,8 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
-import { IndustryTemplateSwitcher } from "@/components/industry/IndustryTemplateSwitcher";
 import { AppHorizontalSubnav } from "@/components/navigation/AppHorizontalSubnav";
-import { industryIdFromPathname, resolveActiveAppNavigation } from "@dg/platform-core";
+import { resolveActiveAppNavigation } from "@dg/platform-core";
 
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
 
@@ -22,13 +21,6 @@ export function AppContextNav() {
     () => resolveActiveAppNavigation(pathname, nav.ia),
     [pathname, nav.ia],
   );
-
-  const industryId = useMemo(() => {
-    if (active?.sectionId === "industry" && active.itemId.startsWith("industry--")) {
-      return active.itemId.slice("industry--".length);
-    }
-    return industryIdFromPathname(pathname);
-  }, [active, pathname]);
 
   const routes = useMemo(() => {
     if (!active) return [];
@@ -78,8 +70,9 @@ export function AppContextNav() {
       return withoutHiddenBrain;
     }
 
-    // Industry sidebar unions all active Template routes — show only the
-    // current Template mount's tabs under the switcher.
+    // Industry rows may union multiple active business-type routes. Scope the
+    // horizontal navigation to the business type currently open. Business-type
+    // discovery and activation belongs in Apps, not inside the Industry workspace.
     if (active.sectionId === "industry") {
       const mount = pathname.match(/^(\/apps\/[^/]+)/)?.[1];
       if (mount) {
@@ -111,9 +104,6 @@ export function AppContextNav() {
   }
 
   const showSubnav = routes.length > 1;
-  const showIndustrySwitcher =
-    (active.sectionId === "industry" || Boolean(industryIdFromPathname(pathname))) &&
-    Boolean(industryId);
   const showRouteCrumb = Boolean(pageTitle) && pageTitle !== active.itemName;
 
   return (
@@ -121,23 +111,15 @@ export function AppContextNav() {
       <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
           <span className="font-semibold uppercase tracking-wider">{active.sectionLabel}</span>
-          <span aria-hidden className="text-slate-600">
-            /
-          </span>
+          <span aria-hidden className="text-slate-600">/</span>
           <span className="truncate text-slate-300">{active.itemName}</span>
           {showRouteCrumb ? (
             <>
-              <span aria-hidden className="text-slate-600">
-                /
-              </span>
+              <span aria-hidden className="text-slate-600">/</span>
               <span className="truncate text-slate-400">{pageTitle}</span>
             </>
           ) : null}
         </div>
-
-        {showIndustrySwitcher && industryId ? (
-          <IndustryTemplateSwitcher industryId={industryId} />
-        ) : null}
 
         <div className="min-w-0">
           <p className="text-lg font-semibold tracking-tight text-white">{pageTitle}</p>
