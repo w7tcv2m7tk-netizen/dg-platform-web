@@ -9,6 +9,8 @@ import {
   type ResolvedIndustryEntitlement,
 } from "@dg/platform-core";
 
+import { INDUSTRY_PLATFORM_CATALOG } from "@/lib/pricing-catalog";
+
 type EntitlementsPayload = {
   industries: ResolvedIndustryEntitlement[];
   activeTemplateIds: string[];
@@ -39,6 +41,10 @@ export function IndustryBusinessTypeManager() {
     () => new Map((entitlements?.industries ?? []).map((item) => [item.industryId, item])),
     [entitlements],
   );
+  const iconByIndustry = useMemo(
+    () => new Map(INDUSTRY_PLATFORM_CATALOG.map((item) => [item.platformId, item.icon])),
+    [],
+  );
 
   const update = useCallback(async (templateId: string, active: boolean) => {
     setBusyId(templateId);
@@ -67,10 +73,9 @@ export function IndustryBusinessTypeManager() {
   }, []);
 
   return (
-    <section id="business-types" className="scroll-mt-24 space-y-5">
+    <div className="space-y-5">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-blue-300">Industry Apps</p>
-        <h2 className="mt-2 text-xl font-bold text-white">Your business types</h2>
+        <h3 className="text-lg font-semibold text-white">Your business types</h3>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">
           Activate only the business types this organisation operates. Each active business type appears independently in the sidebar; the broader Industry category stays behind the scenes.
         </p>
@@ -89,7 +94,10 @@ export function IndustryBusinessTypeManager() {
           const entitlement = entitlementByIndustry.get(industry.id);
           return (
             <div key={industry.id} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
-              <h3 className="font-semibold text-white">{industry.name}</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-xl" aria-hidden>{iconByIndustry.get(industry.id) ?? "🧩"}</span>
+                <h3 className="font-semibold text-white">{industry.name}</h3>
+              </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {industry.templates.map((template) => {
                   const active = entitlement?.activeTemplateIds.includes(template.id) ?? false;
@@ -125,6 +133,6 @@ export function IndustryBusinessTypeManager() {
       <p className="text-xs text-slate-500">
         Need billing or subscription changes? <Link href="/dashboard/settings/billing" className="text-blue-400 hover:underline">Open Billing</Link>.
       </p>
-    </section>
+    </div>
   );
 }
