@@ -310,15 +310,11 @@ export default async function DashboardPage() {
             />
           </>
         ) : (
-          <>
-            <BusinessOverviewDashboard
-              overview={overview}
-              growthScorecard={<DigitalPerformanceStrip signals={digitalPerformanceSignals} />}
-            />
-            <div className="mt-7">
-              <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />
-            </div>
-          </>
+          <BusinessOverviewDashboard
+            overview={overview}
+            workspaceSetup={<Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />}
+            growthScorecard={<DigitalPerformanceStrip signals={digitalPerformanceSignals} />}
+          />
         )}
       </main>
     </>
