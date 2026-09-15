@@ -20,7 +20,10 @@ export function VipOnboardingExperience({
       />
 
       <div className="relative flex min-h-screen flex-col">
-        <header className="flex items-center justify-between px-2.5 py-1.5 sm:px-4 sm:py-3 lg:px-5">
+        <header
+          className="flex items-center justify-between px-2.5 pb-1.5 sm:px-4 sm:py-3 lg:px-5"
+          style={{ paddingTop: "max(0.375rem, env(safe-area-inset-top))" }}
+        >
           <div>
             <Image
               src="/brand/logo-on-dark.png"
