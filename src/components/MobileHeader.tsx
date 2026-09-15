@@ -13,7 +13,7 @@ function MenuIcon() {
 export function MobileHeader({ onMenuClick }: { onMenuClick: () => void }) {
   const brand = useOrgBrand();
   return (
-    <header className="sticky top-0 z-40 grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2 border-b dg-branded-header px-3 pb-2.5 pt-3.5 backdrop-blur md:hidden" style={{ paddingTop: "max(0.9rem, calc(env(safe-area-inset-top) + 0.2rem))" }}>
+    <header className="sticky top-0 z-40 grid min-h-[3.75rem] grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2 border-b dg-branded-header px-3 pb-2 pt-2 backdrop-blur md:hidden" style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}>
       <button type="button" onClick={onMenuClick} aria-label="Open menu" className="dg-touch-target flex shrink-0 items-center justify-center rounded-lg border dg-branded-surface text-slate-200 transition hover:text-white"><MenuIcon /></button>
       <div className="flex min-w-0 items-center justify-center px-1"><OrgBrandMark variant="lockup" href="/dashboard" iconSize={21} logoWidth={104} align="center" className="max-w-full" /></div>
       <div className="flex shrink-0 items-center justify-end gap-2"><NotificationBell /><UserButton appearance={clerkAppearanceForBrand(brand)} /></div>
