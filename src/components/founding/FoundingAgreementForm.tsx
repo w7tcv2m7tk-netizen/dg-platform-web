@@ -5,12 +5,44 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { NegotiatedCommercialOffer } from "@dg/platform-core";
 
+import { commercialAppLabel } from "./commercialAppLabels";
+
 function money(cents: number) {
   return new Intl.NumberFormat("en-AU", {
     style: "currency",
     currency: "AUD",
     maximumFractionDigits: 0,
   }).format(cents / 100);
+}
+
+function tierLabel(tier: NegotiatedCommercialOffer["platformTier"]) {
+  if (tier === "starter") return "Starter";
+  if (tier === "professional") return "Growth";
+  return "Scale";
+}
+
+function OfferApps({ offer }: { offer: NegotiatedCommercialOffer }) {
+  const industry = offer.industryApps.map((id) => commercialAppLabel(id, "industry"));
+  const growth = offer.premiumApps.map((id) => commercialAppLabel(id, "growth"));
+
+  if (!industry.length && !growth.length) return null;
+
+  return (
+    <div className="grid gap-3 border-t border-emerald-500/20 pt-3 sm:grid-cols-2">
+      {industry.length ? (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Industry Apps</p>
+          <p className="mt-1 text-sm text-slate-200">{industry.join(" · ")}</p>
+        </div>
+      ) : null}
+      {growth.length ? (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Growth Apps</p>
+          <p className="mt-1 text-sm text-slate-200">{growth.join(" · ")}</p>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 export function FoundingAgreementForm({
@@ -54,16 +86,23 @@ export function FoundingAgreementForm({
       <div className="dg-card max-w-2xl">
         <p className="text-emerald-300">Founding Agreement recorded.</p>
         {commercialOffer ? (
-          <div className="mt-2 space-y-1 text-sm text-slate-300">
-            <p>
-              {commercialOffer.label} · {money(commercialOffer.amountCents)}/
-              {commercialOffer.cadence === "annual" ? "year" : "month"}
-            </p>
+          <div className="mt-3 space-y-3 text-sm text-slate-300">
+            <div>
+              <p>
+                {commercialOffer.label} · {money(commercialOffer.amountCents)}/
+                {commercialOffer.cadence === "annual" ? "year" : "month"}
+              </p>
+              <p className="mt-1 text-slate-400">
+                {tierLabel(commercialOffer.platformTier)} Platform
+                {commercialOffer.seats ? ` · Up to ${commercialOffer.seats} users` : ""}
+              </p>
+            </div>
             {commercialOffer.oneOffAmountCents ? (
               <p>
                 {commercialOffer.oneOffLabel ?? "Implementation & setup"} · {money(commercialOffer.oneOffAmountCents)} one-off
               </p>
             ) : null}
+            <OfferApps offer={commercialOffer} />
           </div>
         ) : null}
         <Link href="/onboarding" className="mt-3 inline-block text-sky-400 hover:underline">
@@ -88,10 +127,11 @@ export function FoundingAgreementForm({
             <div>
               <p className="font-semibold text-white">{commercialOffer.label}</p>
               <p className="mt-1 text-sm text-slate-400">
-                {commercialOffer.seats ? `Up to ${commercialOffer.seats} users · ` : ""}
+                {tierLabel(commercialOffer.platformTier)} Platform
+                {commercialOffer.seats ? ` · Up to ${commercialOffer.seats} users` : ""}
                 {commercialOffer.trialDays > 0
-                  ? `${commercialOffer.trialDays}-day trial`
-                  : "Billing starts on activation"}
+                  ? ` · ${commercialOffer.trialDays}-day trial`
+                  : " · Billing starts on activation"}
               </p>
             </div>
             <p className="text-xl font-semibold text-white">
@@ -105,6 +145,9 @@ export function FoundingAgreementForm({
               <span className="font-semibold text-white">{money(commercialOffer.oneOffAmountCents)} one-off</span>
             </div>
           ) : null}
+          <div className="mt-4">
+            <OfferApps offer={commercialOffer} />
+          </div>
         </div>
       ) : null}
       <a
@@ -123,7 +166,7 @@ export function FoundingAgreementForm({
           onChange={(e) => setAgreed(e.target.checked)}
         />
         {commercialOffer
-          ? `I confirm the Founding 10 terms and the ${commercialOffer.label} commercial offer shown above, including any one-off fee shown, and want DigitalGate to proceed to onboarding.`
+          ? `I confirm the Founding 10 terms and the ${commercialOffer.label} commercial offer shown above, including the selected Platform and Apps and any one-off fee shown, and want DigitalGate to proceed to onboarding.`
           : "I confirm the Founding 10 commercial terms (standard published Platform + Apps pricing, Founding programme benefits, Founding Acquisition Partner referral terms where invited, and programme participation) and want DigitalGate to proceed to onboarding."}
       </label>
       {message ? <p className="text-sm text-amber-300">{message}</p> : null}
@@ -131,9 +174,9 @@ export function FoundingAgreementForm({
         type="button"
         onClick={() => void submit()}
         disabled={status === "saving"}
-        className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
+        className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
       >
-        Confirm agreement &amp; start onboarding
+        {status === "saving" ? "Recording agreement…" : "Confirm agreement & start onboarding"}
       </button>
     </div>
   );
