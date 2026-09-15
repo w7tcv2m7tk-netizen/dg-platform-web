@@ -63,7 +63,7 @@ test("canonical onboarding remains native Gen 2 and organisation-aware", () => {
   assert.match(onboarding, /getGen2OnboardingProgress/);
   assert.match(onboarding, /claimFoundingInvite/);
   assert.match(onboarding, /getOrganisationBillingStatus/);
-  assert.match(onboarding, /UnifiedOnboardingJourney/);
+  assert.match(onboarding, /AdaptiveOnboardingJourney/);
   assert.doesNotMatch(onboarding, /Gen2OnboardingWizard|VipIndustryProfileSetup|VipPlatformSetupPanel/);
   assert.doesNotMatch(onboarding, /WordPress|wp-json|DG_WP_|fetchPortalMe/i);
 });
