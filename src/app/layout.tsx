@@ -20,6 +20,7 @@ import "./digitalgate-brand.css";
 import "./clerk-overrides.css";
 import "./onboarding-final.css";
 import "./platform-visual-polish.css";
+import "./onboarding-live-corrections.css";
 
 /** Only set when CLERK_PROXY_URL is present (Dashboard proxy validated). */
 const proxyUrl = clerkProxyUrl();
