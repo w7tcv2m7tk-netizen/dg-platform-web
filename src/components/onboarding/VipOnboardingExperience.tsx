@@ -20,7 +20,7 @@ export function VipOnboardingExperience({
       />
 
       <div className="relative flex min-h-screen flex-col">
-        <header className="flex items-center justify-between px-5 py-4 sm:px-8 lg:px-12">
+        <header className="flex items-center justify-between px-2.5 py-3 sm:px-4 lg:px-5">
           <div>
             <Image
               src="/brand/logo-on-dark.png"
