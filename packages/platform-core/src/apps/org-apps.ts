@@ -1,7 +1,8 @@
 import type { AppTier } from "./manifest";
+import { INDUSTRY_TAXONOMY } from "./industry-taxonomy";
 import { platformApps } from "./registry";
 
-export const FOUNDING_MODE_CORE_APP_IDS = ["crm", "commerce", "documents", "communications", "websites", "infrastructure", "opportunities"] as const;
+export const FOUNDING_MODE_CORE_APP_IDS = ["crm", "commerce", "documents", "communications", "websites", "infrastructure", "opportunities", "marketing", "reviews"] as const;
 export const GROWTH_APP_IDS_FOR_MODE = ["marketing", "prospecting", "ai-visibility", "seo", "automation", "analytics", "social", "reviews"] as const;
 export const INDUSTRY_APP_IDS_FOR_MODE = ["real-estate", "property-management", "commercial", "accommodation", "services", "finance", "automotive", "creator"] as const;
 
@@ -10,7 +11,7 @@ export function hasProgressiveRevealApps(enabledIds: string[]): boolean { const 
 export function getDefaultEnabledAppIds(): string[] { return FOUNDING_MODE_CORE_APP_IDS.filter((id) => Boolean(platformApps.get(id)?.enabled)); }
 
 export type OrgAppsSettings = { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string; }; };
-const PREMIUM_APP_MAP: Record<string, string[]> = { marketing_pro: ["marketing"], prospecting_pro: ["prospecting"], ai_visibility_pro: ["ai-visibility"], seo_pro: ["seo"], automation_pro: ["automation"], analytics_pro: ["analytics"], social_pro: ["social"], reviews_pro: ["reviews"], voice_ai: ["ai-communications"] };
+const PREMIUM_APP_MAP: Record<string, string[]> = { prospecting_pro: ["prospecting"], ai_visibility_pro: ["ai-visibility"], seo_pro: ["seo"], automation_pro: ["automation"], analytics_pro: ["analytics"], social_pro: ["social"], voice_ai: ["ai-communications"] };
 const TIER_BASE_APPS: Record<string, string[]> = { starter: [...FOUNDING_MODE_CORE_APP_IDS], professional: [...FOUNDING_MODE_CORE_APP_IDS], business: [...FOUNDING_MODE_CORE_APP_IDS], enterprise: [...FOUNDING_MODE_CORE_APP_IDS] };
 export type PlanSelectionInput = { platformTier: string; industryApps: string[]; premiumApps: string[] };
 export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[] { const ids = new Set<string>(TIER_BASE_APPS[selection.platformTier] ?? TIER_BASE_APPS.professional); for (const industry of selection.industryApps) ids.add(industry); for (const premium of selection.premiumApps) for (const appId of PREMIUM_APP_MAP[premium] ?? []) ids.add(appId); return [...ids].filter((id) => Boolean(platformApps.get(id)?.enabled)); }
@@ -30,12 +31,38 @@ export function collectIndustrySelectionIds(settings?: { apps?: { planPreview?: 
   return [...ids];
 }
 
-/** Customer-facing Industry Apps: only apps selected by the operating profile are shown by default. */
+function explicitSubindustryAppIds(settings?: Parameters<typeof collectIndustrySelectionIds>[0]): Set<string> {
+  const explicit = new Set<string>();
+  const operating = settings?.gen2Onboarding?.operatingProfile;
+  const selections = [operating?.primaryTemplate, ...(operating?.templates ?? []), ...(settings?.apps?.planPreview?.industryTemplates ?? [])];
+  const serviceTemplate = settings?.services?.templateKey;
+  if (serviceTemplate) selections.push(SERVICE_TEMPLATE_TO_SUBINDUSTRY[serviceTemplate] ?? serviceTemplate);
+  for (const selectionId of selections) {
+    if (!selectionId) continue;
+    const subIndustry = INDUSTRY_TAXONOMY.flatMap((item) => item.subIndustries).find((item) => item.id === selectionId);
+    if (subIndustry) explicit.add(subIndustry.appId);
+  }
+  return explicit;
+}
+
+function industryAppIdsForSelection(selectionId: string, explicitApps: Set<string>): string[] {
+  if ((INDUSTRY_APP_IDS_FOR_MODE as readonly string[]).includes(selectionId)) return [selectionId];
+  const subIndustry = INDUSTRY_TAXONOMY.flatMap((item) => item.subIndustries).find((item) => item.id === selectionId);
+  if (subIndustry) return [subIndustry.appId];
+  const group = INDUSTRY_TAXONOMY.find((item) => item.id === selectionId);
+  if (!group) return [];
+  const explicitForGroup = group.appIds.filter((appId) => explicitApps.has(appId));
+  return explicitForGroup.length ? explicitForGroup : group.appIds;
+}
+
+/** Customer-facing Industry Apps: explicit subindustry choices win over a broad industry group. */
 export function resolveVisibleIndustryAppIds(settings?: Parameters<typeof collectIndustrySelectionIds>[0]): string[] {
-  const selected = new Set(collectIndustrySelectionIds(settings));
-  const planApps = settings?.apps?.planPreview?.industryApps ?? [];
-  for (const id of planApps) selected.add(id);
-  return INDUSTRY_APP_IDS_FOR_MODE.filter((id) => selected.has(id));
+  const visible = new Set<string>();
+  const explicitApps = explicitSubindustryAppIds(settings);
+  for (const selectionId of collectIndustrySelectionIds(settings)) {
+    for (const appId of industryAppIdsForSelection(selectionId, explicitApps)) visible.add(appId);
+  }
+  return INDUSTRY_APP_IDS_FOR_MODE.filter((id) => visible.has(id));
 }
 
 export function shouldShowIndustryApp(appId: string, settings?: Parameters<typeof collectIndustrySelectionIds>[0], revealOtherIndustries = false): boolean {

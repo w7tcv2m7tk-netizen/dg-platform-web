@@ -12,6 +12,10 @@ function parseProgress(raw: unknown, founding: boolean): Gen2OnboardingProgress 
   return { ...emptyGen2Progress(founding), ...p, version: 1, currentStep: current, completedSteps: completed, founding: p.founding ?? founding, operatingProfile: { ...emptyGen2Progress(founding).operatingProfile, ...(p.operatingProfile ?? {}) }, journeyPosition: { stage: current, ...p.journeyPosition } };
 }
 
+function definedProgressPatch(patch: Partial<Gen2OnboardingProgress>): Partial<Gen2OnboardingProgress> {
+  return Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)) as Partial<Gen2OnboardingProgress>;
+}
+
 export async function getGen2OnboardingProgress(organisationId: string): Promise<Gen2OnboardingProgress> { const { prisma } = await import("@dg/database"); const org = await prisma.organisation.findUnique({ where: { id: organisationId }, select: { settings: true } }); const settings = (org?.settings as OrgSettings | null) ?? {}; const founding = Boolean(settings.foundingOnboarding || (settings as { billing?: { foundingCustomer?: boolean } }).billing?.foundingCustomer); return parseProgress(settings.gen2Onboarding, founding); }
 
 export async function saveGen2OnboardingProgress(organisationId: string, patch: Partial<Gen2OnboardingProgress> & { markStepComplete?: Gen2OnboardingStep }): Promise<Gen2OnboardingProgress> {
@@ -20,19 +24,20 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
   const settings = ((org?.settings as OrgSettings | null) ?? {}) as OrgSettings;
   const founding = Boolean(settings.foundingOnboarding || (settings as { billing?: { foundingCustomer?: boolean } }).billing?.foundingCustomer);
   const current = parseProgress(settings.gen2Onboarding, founding); const now = new Date().toISOString();
-  let completedSteps = [...current.completedSteps]; let currentStep = patch.currentStep ?? current.currentStep;
-  if (patch.markStepComplete) { if (!completedSteps.includes(patch.markStepComplete)) completedSteps.push(patch.markStepComplete); const next = nextGen2Step(patch.markStepComplete); if (next && !patch.currentStep) currentStep = next; }
-  if (Array.isArray(patch.completedSteps)) completedSteps = patch.completedSteps.filter(isGen2OnboardingStep);
-  const nextProgress: Gen2OnboardingProgress = { ...current, ...patch, version: 1, currentStep, completedSteps, updatedAt: now, startedAt: current.startedAt || now, checklist: { ...(current.checklist ?? {}), ...(patch.checklist ?? {}) }, vipSetup: patch.vipSetup ? { ...(current.vipSetup ?? emptyGen2Progress(founding).vipSetup), ...patch.vipSetup } : current.vipSetup, operatingProfile: patch.operatingProfile ? { ...(current.operatingProfile ?? {}), ...patch.operatingProfile } : current.operatingProfile, journeyPosition: { ...(current.journeyPosition ?? {}), ...(patch.journeyPosition ?? {}), stage: patch.journeyPosition?.stage ?? currentStep, updatedAt: now } };
+  const cleanPatch = definedProgressPatch(patch);
+  let completedSteps = [...current.completedSteps]; let currentStep = cleanPatch.currentStep ?? current.currentStep;
+  if (patch.markStepComplete) { if (!completedSteps.includes(patch.markStepComplete)) completedSteps.push(patch.markStepComplete); const next = nextGen2Step(patch.markStepComplete); if (next && !cleanPatch.currentStep) currentStep = next; }
+  if (Array.isArray(cleanPatch.completedSteps)) completedSteps = cleanPatch.completedSteps.filter(isGen2OnboardingStep);
+  const nextProgress: Gen2OnboardingProgress = { ...current, ...cleanPatch, version: 1, currentStep, completedSteps, updatedAt: now, startedAt: current.startedAt || now, checklist: { ...(current.checklist ?? {}), ...(cleanPatch.checklist ?? {}) }, vipSetup: cleanPatch.vipSetup ? { ...(current.vipSetup ?? emptyGen2Progress(founding).vipSetup), ...cleanPatch.vipSetup } : current.vipSetup, operatingProfile: cleanPatch.operatingProfile ? { ...(current.operatingProfile ?? {}), ...cleanPatch.operatingProfile } : current.operatingProfile, journeyPosition: { ...(current.journeyPosition ?? {}), ...(cleanPatch.journeyPosition ?? {}), stage: cleanPatch.journeyPosition?.stage ?? currentStep, updatedAt: now } };
   delete (nextProgress as { markStepComplete?: unknown }).markStepComplete;
   if (completedSteps.includes("implementation") || completedSteps.length >= GEN2_ONBOARDING_STEPS.length) nextProgress.completedAt = nextProgress.completedAt ?? now;
 
   const operatingApps = nextProgress.operatingProfile?.recommendedIndustryApps ?? [];
   const operatingTemplates = nextProgress.operatingProfile?.templates ?? [];
-  const industryApps = Array.isArray(patch.industryApps) ? patch.industryApps : operatingApps.length ? operatingApps : nextProgress.industryApps ?? [];
-  const industryTemplates = Array.isArray(patch.industryTemplates) ? patch.industryTemplates : operatingTemplates.length ? operatingTemplates : nextProgress.industryTemplates ?? [];
+  const industryApps = Array.isArray(cleanPatch.industryApps) ? cleanPatch.industryApps : operatingApps.length ? operatingApps : nextProgress.industryApps ?? [];
+  const industryTemplates = Array.isArray(cleanPatch.industryTemplates) ? cleanPatch.industryTemplates : operatingTemplates.length ? operatingTemplates : nextProgress.industryTemplates ?? [];
   nextProgress.industryApps = industryApps; nextProgress.industryTemplates = industryTemplates;
-  const hasAppSelectionPatch = Array.isArray(patch.industryApps) || Array.isArray(patch.industryTemplates) || Array.isArray(patch.premiumApps) || Boolean(patch.platformTier) || Boolean(patch.operatingProfile);
+  const hasAppSelectionPatch = Array.isArray(cleanPatch.industryApps) || Array.isArray(cleanPatch.industryTemplates) || Array.isArray(cleanPatch.premiumApps) || Boolean(cleanPatch.platformTier) || Boolean(cleanPatch.operatingProfile);
   const nextApps = hasAppSelectionPatch ? { ...(settings.apps ?? {}), planPreview: { ...(settings.apps?.planPreview ?? {}), platformTier: nextProgress.platformTier, industryApps, industryTemplates, premiumApps: nextProgress.premiumApps ?? [], appliedAt: now, source: "onboarding-operating-profile" } } : settings.apps;
   const selectedServiceTemplate = industryTemplates.map((id) => SERVICE_SUBINDUSTRY_TO_TEMPLATE[id]).find((key): key is string => Boolean(key));
   const nextServices = selectedServiceTemplate ? { ...(settings.services ?? {}), templateKey: selectedServiceTemplate } : settings.services;
