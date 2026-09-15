@@ -60,6 +60,7 @@ export function WebsiteStudioUnsavedChangesGuard({ children }: { children: React
     if (!root) return;
 
     const baselines = new Map<EditableControl, string>();
+    const userEdited = new Set<EditableControl>();
     let dirty = false;
 
     const registerControls = () => {
@@ -70,7 +71,11 @@ export function WebsiteStudioUnsavedChangesGuard({ children }: { children: React
 
     const recomputeDirty = () => {
       registerControls();
-      dirty = Array.from(baselines).some(([control, baseline]) => control.isConnected && controlValue(control) !== baseline);
+      dirty = Array.from(userEdited).some((control) => {
+        if (!control.isConnected) return false;
+        const baseline = baselines.get(control);
+        return baseline !== undefined && controlValue(control) !== baseline;
+      });
       root.dataset.unsavedChanges = dirty ? "true" : "false";
       return dirty;
     };
@@ -80,12 +85,14 @@ export function WebsiteStudioUnsavedChangesGuard({ children }: { children: React
       for (const control of baselines.keys()) {
         if (control.isConnected) baselines.set(control, controlValue(control));
       }
+      userEdited.clear();
       recomputeDirty();
     };
 
     const onInput = (event: Event) => {
       if (!isTrackedControl(event.target) || !root.contains(event.target)) return;
       if (!baselines.has(event.target)) baselines.set(event.target, controlValue(event.target));
+      userEdited.add(event.target);
       queueMicrotask(recomputeDirty);
     };
 
@@ -135,7 +142,10 @@ export function WebsiteStudioUnsavedChangesGuard({ children }: { children: React
           registerControls();
           for (const [control, baseline] of baselines) {
             if (!control.isConnected || controlValue(control) === baseline) continue;
-            if (savedValues.has(controlValue(control))) baselines.set(control, controlValue(control));
+            if (savedValues.has(controlValue(control))) {
+              baselines.set(control, controlValue(control));
+              userEdited.delete(control);
+            }
           }
         }
         queueMicrotask(recomputeDirty);
