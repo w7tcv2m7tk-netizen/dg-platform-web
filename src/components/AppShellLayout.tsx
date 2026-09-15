@@ -13,7 +13,6 @@ import { usePathname } from "next/navigation";
 import { DemoModeBanner } from "@/components/demo/DemoModeBanner";
 import { BillingLifecycleBanner } from "@/components/billing/BillingLifecycleBanner";
 import { MobileHeader } from "@/components/MobileHeader";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { AppContextNav } from "@/components/navigation/AppContextNav";
 import { OrgBrandHead } from "@/components/brand/OrgBrandHead";
 import { OrgBrandProvider, orgBrandStyle } from "@/components/brand/OrgBrandProvider";
@@ -65,10 +64,9 @@ export function AppShellLayout({ children, activeOrganisationId, activeOrganisat
                 <button type="button" className={`absolute inset-0 dg-branded-overlay backdrop-blur-sm transition-opacity duration-200 ${open ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`} aria-label="Close menu" tabIndex={open ? 0 : -1} onClick={close} />
                 <aside className={`dg-branded-sidebar absolute inset-y-0 left-0 flex h-full w-[min(18rem,88vw)] flex-col overflow-hidden border-r border-slate-800 px-4 py-5 shadow-2xl transition-transform duration-200 ease-out ${open ? "pointer-events-auto translate-x-0" : "pointer-events-none -translate-x-full"}`} style={{ paddingTop: "max(1.25rem, env(safe-area-inset-top))" }}>{open ? <Sidebar variant="drawer" onNavigate={close} onClose={close} {...sidebarProps} /> : null}</aside>
               </div> : null}
-              <div className="min-h-0 flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain pb-20 md:pb-0">
+              <div className="min-h-0 flex-1 overflow-x-clip overflow-y-auto overscroll-y-contain">
                 <ViewTransition default="dg-nav-fade" enter="dg-nav-fade" exit="dg-nav-fade"><div className="flex min-h-full min-w-0 flex-col"><AppContextNav />{children}</div></ViewTransition>
               </div>
-              {!isDesktop ? <MobileBottomNav onMenuClick={() => setOpen(true)} /> : null}
             </div>
           </ChatWidgetProvider>
         </div>
