@@ -7,7 +7,7 @@ import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { ShellNavLink } from "@/components/ShellNavLink";
 import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute } from "@/lib/nav-route-match";
-import { listTemplates, type AppRoute, type NavIaSection } from "@dg/platform-core";
+import { getTemplate, type AppRoute, type NavIaSection } from "@dg/platform-core";
 
 function linkClass(active: boolean, pending = false) {
   return `flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition ${
@@ -165,39 +165,38 @@ const INDUSTRY_TEMPLATE_ICONS: Record<string, string> = {
   creators: "✦",
 };
 
-function personaliseIndustrySection(section: NavIaSection): NavIaSection {
-  const templates = listTemplates();
-  const templatesByName = new Map(templates.map((template) => [template.name, template]));
-  const projected = section.apps.flatMap((industry) => {
-    const activeTemplates = industry.routes
-      .map((route) => templatesByName.get(route.label))
-      .filter((template): template is NonNullable<typeof template> => Boolean(template));
+function personaliseIndustrySection(
+  section: NavIaSection,
+  industrySelectionIds: string[],
+): NavIaSection {
+  if (industrySelectionIds.length === 0) return section;
 
-    if (activeTemplates.length === 0) return [industry];
+  const selectedTemplates = industrySelectionIds
+    .map((id) => getTemplate(id))
+    .filter((template): template is NonNullable<typeof template> => Boolean(template));
 
-    return activeTemplates.map((template) => {
-      const href = template.primaryHref.split("?")[0] || template.primaryHref;
-      const sourceApp = template.appId
-        ? section.apps.flatMap((app) => app.routes).filter((route) => route.path.startsWith(href))
-        : [];
-      const routes = sourceApp.length > 0 ? sourceApp : [{ path: href, label: template.name }];
-      return {
-        ...industry,
-        id: `industry-template--${template.id}`,
-        name: template.name,
-        icon: INDUSTRY_TEMPLATE_ICONS[template.id] ?? industry.icon,
-        primaryHref: href,
-        routes,
-      };
-    });
+  if (selectedTemplates.length === 0) return section;
+
+  const projected = selectedTemplates.flatMap((template) => {
+    const source = section.apps.find((app) => app.id === `industry--${template.industryId}`);
+    if (!source) return [];
+    const href = template.primaryHref.split("?")[0] || template.primaryHref;
+    return [{
+      ...source,
+      id: `industry-template--${template.id}`,
+      name: template.name,
+      icon: INDUSTRY_TEMPLATE_ICONS[template.id] ?? source.icon,
+      primaryHref: href,
+      routes: source.routes,
+    }];
   });
 
-  return { ...section, apps: projected };
+  return projected.length > 0 ? { ...section, apps: projected } : section;
 }
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { nav } = useEnabledApps();
+  const { nav, industrySelectionIds } = useEnabledApps();
   const [ccBadge, setCcBadge] = useState<number | null>(null);
   const ia = nav.ia;
 
@@ -280,7 +279,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     ...ia.core,
     apps: ia.core.apps.filter((app) => app.id !== "infrastructure"),
   };
-  const industrySection = personaliseIndustrySection(ia.industry);
+  const industrySection = personaliseIndustrySection(ia.industry, industrySelectionIds);
 
   const marketingApp = nav.tiers
     .find((group) => group.tier === "growth")
