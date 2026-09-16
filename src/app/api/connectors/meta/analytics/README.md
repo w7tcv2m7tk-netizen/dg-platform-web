@@ -1,0 +1,1 @@
+Meta evidence should enter DigitalGate Analytics only after organisation-scoped resource selection. Keep Facebook/Instagram organic evidence distinct from paid Meta Ads evidence while allowing Aida and the Digital Twin to reason across both.
