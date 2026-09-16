@@ -5,6 +5,16 @@ import { DEFAULT_GBP_OAUTH_RETURN, OAUTH_RETURN_COOKIE, OAUTH_RETURN_COOKIE_MAX_
 import { tenantWriteEntitlementBlock } from "@/lib/write-entitlement";
 export const dynamic = "force-dynamic";
 
+const ANALYTICS_REQUIRED_SCOPES = [
+  "https://www.googleapis.com/auth/analytics.readonly",
+  "https://www.googleapis.com/auth/webmasters.readonly",
+] as const;
+
+function missingAnalyticsScopes(scope: string | undefined): string[] {
+  const granted = new Set((scope ?? "").split(/\s+/).filter(Boolean));
+  return ANALYTICS_REQUIRED_SCOPES.filter((required) => !granted.has(required));
+}
+
 export async function GET(req: NextRequest) {
   const base = req.nextUrl.origin;
   const finish = (returnTo: string, status: "connected" | "error", message?: string) => {
@@ -27,6 +37,14 @@ export async function GET(req: NextRequest) {
   if (writeBlock) return fail(writeBlock.message);
   const exchanged = await exchangeGoogleAuthorizationCode({ code });
   if (!exchanged.ok) return fail(exchanged.message);
+
+  if (parsed.mode === "analytics") {
+    const missing = missingAnalyticsScopes(exchanged.token.scope);
+    if (missing.length) {
+      return fail("Google connected, but did not grant the Analytics and Search Console permissions DigitalGate requested. Remove DigitalGate from your Google Account third-party connections, then connect Google here again.");
+    }
+  }
+
   try {
     await saveOrgGoogleGbpConnectorTokens(organisationId, { accessToken: exchanged.token.access_token, refreshToken: exchanged.token.refresh_token, expiresAt: exchanged.token.expiresAt, scope: exchanged.token.scope, connectedAt: new Date().toISOString() });
   } catch (err) { return fail(err instanceof Error ? err.message : "Failed to save Google tokens"); }
