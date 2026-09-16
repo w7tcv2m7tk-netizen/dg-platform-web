@@ -10,6 +10,7 @@ import {
 
 import { ConnectorEngineCatalog } from "@/components/settings/ConnectorEngineCatalog";
 import { DomainConnectorPanel } from "@/components/settings/DomainConnectorPanel";
+import { GoogleBusinessProfileLocationSelector } from "@/components/settings/GoogleBusinessProfileLocationSelector";
 import { GoogleGbpConnectorPanel } from "@/components/settings/GoogleGbpConnectorPanel";
 import { LinkedInConnectorPanel } from "@/components/settings/LinkedInConnectorPanel";
 import { ReaConnectorPanel } from "@/components/settings/ReaConnectorPanel";
@@ -98,6 +99,7 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
         <DomainConnectorPanel flash={domainFlash === "connected" ? "connected" : domainFlash === "error" ? "error" : null} flashMessage={domainFlash ? flashMessage ?? null : null} />
         <ReaConnectorPanel flash={reaFlash === "connected" ? "connected" : reaFlash === "error" ? "error" : null} flashMessage={reaFlash ? flashMessage ?? null : null} />
         <GoogleGbpConnectorPanel flash={googleFlash === "connected" ? "connected" : googleFlash === "error" ? "error" : null} flashMessage={googleFlash ? flashMessage ?? null : null} />
+        <GoogleBusinessProfileLocationSelector />
         <LinkedInConnectorPanel flash={linkedinFlash === "connected" ? "connected" : linkedinFlash === "error" ? "error" : null} flashMessage={linkedinFlash ? flashMessage ?? null : null} />
 
         {session && wpResolved ? (
