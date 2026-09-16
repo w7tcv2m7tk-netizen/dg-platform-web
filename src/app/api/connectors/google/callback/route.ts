@@ -10,8 +10,8 @@ const ANALYTICS_REQUIRED_SCOPES = [
   "https://www.googleapis.com/auth/webmasters.readonly",
 ] as const;
 
-function missingAnalyticsScopes(scope: string | undefined): string[] {
-  const granted = new Set((scope ?? "").split(/\s+/).filter(Boolean));
+function missingAnalyticsScopes(scope: string): string[] {
+  const granted = new Set(scope.split(/\s+/).filter(Boolean));
   return ANALYTICS_REQUIRED_SCOPES.filter((required) => !granted.has(required));
 }
 
@@ -25,11 +25,23 @@ export async function GET(req: NextRequest) {
   };
   let returnTo = DEFAULT_GBP_OAUTH_RETURN;
   const fail = (msg: string) => finish(returnTo, "error", msg);
-  const code = req.nextUrl.searchParams.get("code"); const state = req.nextUrl.searchParams.get("state");
+  const code = req.nextUrl.searchParams.get("code");
+  const state = req.nextUrl.searchParams.get("state");
   const oauthError = req.nextUrl.searchParams.get("error");
+
+  // Recover the signed destination before handling a Google cancellation/error so
+  // Analytics OAuth failures return to Analytics rather than the GBP settings page.
+  let parsedState: ReturnType<typeof parseGoogleOAuthState> | null = null;
+  if (state) {
+    parsedState = parseGoogleOAuthState(state);
+    if (parsedState.ok) {
+      returnTo = parsedState.mode === "analytics" ? "/apps/analytics/connectors/google" : gbpOAuthReturnPath(parsedState.returnTo);
+    }
+  }
+
   if (oauthError) return fail(req.nextUrl.searchParams.get("error_description") || oauthError);
   if (!code || !state) return fail("Missing code or state from Google");
-  const parsed = parseGoogleOAuthState(state);
+  const parsed = parsedState ?? parseGoogleOAuthState(state);
   if (!parsed.ok) return fail(parsed.message);
   returnTo = parsed.mode === "analytics" ? "/apps/analytics/connectors/google" : gbpOAuthReturnPath(parsed.returnTo);
   const organisationId = parsed.organisationId;
@@ -38,7 +50,7 @@ export async function GET(req: NextRequest) {
   const exchanged = await exchangeGoogleAuthorizationCode({ code });
   if (!exchanged.ok) return fail(exchanged.message);
 
-  if (parsed.mode === "analytics") {
+  if (parsed.mode === "analytics" && exchanged.token.scope) {
     const missing = missingAnalyticsScopes(exchanged.token.scope);
     if (missing.length) {
       return fail("Google connected, but did not grant the Analytics and Search Console permissions DigitalGate requested. Remove DigitalGate from your Google Account third-party connections, then connect Google here again.");
