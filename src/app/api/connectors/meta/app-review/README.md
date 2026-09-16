@@ -1,0 +1,1 @@
+Do not mark Meta capabilities connected merely because platform credentials exist. Permissions requiring Meta App Review, business verification or Advanced Access must surface as permission-limited until Meta grants them.
