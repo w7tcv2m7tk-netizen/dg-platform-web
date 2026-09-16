@@ -22,8 +22,6 @@ export const dynamic = "force-dynamic";
  * https://app.digitalgate.com.au/api/connectors/google/callback
  *
  * Organisation id + return path travel in signed OAuth `state`.
- * Do not send a successful connect through /login — Clerk force-redirects
- * that to Overview (/dashboard).
  */
 export async function GET(req: NextRequest) {
   const base = req.nextUrl.origin;
@@ -89,6 +87,16 @@ export async function GET(req: NextRequest) {
     await syncOrgGoogleGbp(organisationId);
   } catch {
     /* sync can be retried from Settings / Reputation sources */
+  }
+
+  // The app's Clerk provider can force a navigation to /dashboard when the
+  // browser returns from Google's external origin. For Analytics, route through
+  // a public continuation endpoint first; that endpoint immediately redirects
+  // to the authenticated connector page after the OAuth navigation has settled.
+  if (returnTo === "/apps/analytics/connectors/google") {
+    const continuation = new URL("/api/connectors/google/analytics/continue", base);
+    continuation.searchParams.set("status", "connected");
+    return NextResponse.redirect(continuation);
   }
 
   return finish(returnTo, "connected");
