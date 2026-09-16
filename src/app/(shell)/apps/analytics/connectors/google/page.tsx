@@ -1,0 +1,21 @@
+import { discoverOrgGoogleAnalyticsProperties, discoverOrgGoogleSearchConsoleSites, getOrgGoogleAnalyticsSettings } from "@dg/platform-core";
+import Link from "next/link";
+
+import { getPlatformSession } from "@/lib/platform-session";
+
+export const dynamic = "force-dynamic";
+
+export default async function GoogleAnalyticsConnectorPage() {
+  const session = await getPlatformSession();
+  const organisationId = session?.organisationId;
+  if (!organisationId) return <main className="dg-page-main"><section className="dg-card">Select an organisation to configure Google.</section></main>;
+  const [settings, analytics, search] = await Promise.all([getOrgGoogleAnalyticsSettings(organisationId), discoverOrgGoogleAnalyticsProperties(organisationId), discoverOrgGoogleSearchConsoleSites(organisationId)]);
+  return <main className="dg-page-main space-y-6">
+    <section className="dg-card">
+      <div className="flex items-start justify-between gap-4"><div><h1 className="text-xl font-semibold text-white">Google Analytics & Search Console</h1><p className="mt-1 text-sm text-slate-400">Choose the Google properties DigitalGate should use as evidence for Analytics, your Digital Twin and Aida.</p></div><Link href="/apps/analytics/connectors" className="text-sm text-sky-400 hover:underline">Back to data sources</Link></div>
+      {(!analytics.ok && !search.ok) ? <div className="mt-5 rounded-lg border border-amber-700/50 bg-amber-950/20 p-4 text-sm text-amber-100"><p>Google needs to be connected or re-authorised with Analytics and Search Console access.</p><Link href="/api/connectors/google/connect?returnTo=/apps/analytics/connectors/google" className="mt-2 inline-block text-sky-400 hover:underline">Connect Google →</Link></div> : null}
+    </section>
+    <section className="dg-card"><h2 className="font-semibold text-white">Google Analytics 4</h2><p className="mt-1 text-sm text-slate-400">{settings.propertyLabel ? `Selected: ${settings.propertyLabel}` : "No property selected yet."}</p>{analytics.ok ? <div className="mt-4 space-y-2">{analytics.properties.map((p)=><form key={p.name} action="/api/v1/connectors/google/analytics/config" method="post" className="flex items-center justify-between rounded-lg border border-slate-700 p-3"><div><div className="text-sm font-medium text-white">{p.displayName}</div><div className="text-xs text-slate-500">{p.name}</div></div><span className={settings.property===p.name ? "text-sm text-emerald-400" : "text-sm text-slate-400"}>{settings.property===p.name ? "Selected" : "Available"}</span></form>)}</div> : <p className="mt-3 text-sm text-amber-300">{analytics.message}</p>}</section>
+    <section className="dg-card"><h2 className="font-semibold text-white">Google Search Console</h2><p className="mt-1 text-sm text-slate-400">{settings.searchConsoleSite ? `Selected: ${settings.searchConsoleSite}` : "No site selected yet."}</p>{search.ok ? <div className="mt-4 space-y-2">{search.sites.map((site)=><div key={site.siteUrl} className="flex items-center justify-between rounded-lg border border-slate-700 p-3"><div><div className="text-sm font-medium text-white">{site.siteUrl}</div><div className="text-xs text-slate-500">{site.permissionLevel || "Google property"}</div></div><span className={settings.searchConsoleSite===site.siteUrl ? "text-sm text-emerald-400" : "text-sm text-slate-400"}>{settings.searchConsoleSite===site.siteUrl ? "Selected" : "Available"}</span></div>)}</div> : <p className="mt-3 text-sm text-amber-300">{search.message}</p>}</section>
+  </main>;
+}
