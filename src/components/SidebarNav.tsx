@@ -63,8 +63,6 @@ function FlatAppLinks({
               <ShellNavLink
                 href={item.badgeHref}
                 onClick={onNavigate}
-                aria-label={item.badgeLabel ?? `${item.badge} alerts require attention`}
-                title={item.badgeLabel ?? `${item.badge} alerts require attention — review and resolve`}
                 className={() => "absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-amber-400/30 bg-amber-500/20 px-2 py-1 text-[10px] font-semibold tabular-nums text-amber-100 hover:bg-amber-500/30 hover:text-white"}
               >
                 {item.badge! > 99 ? "99+" : item.badge} alert{item.badge === 1 ? "" : "s"}
