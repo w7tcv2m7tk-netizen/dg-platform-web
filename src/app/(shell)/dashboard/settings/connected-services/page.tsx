@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ConnectedServicesCatalog } from "@/components/settings/ConnectedServicesCatalog";
+import { ConnectedServicesHealthOverview } from "@/components/settings/ConnectedServicesHealthOverview";
 import { GoogleBusinessProfileLocationSelector } from "@/components/settings/GoogleBusinessProfileLocationSelector";
 import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
@@ -39,6 +40,8 @@ export default async function ConnectedServicesPage({
         </p>
       </header>
       <main className="dg-page-main max-w-4xl space-y-6">
+        <ConnectedServicesHealthOverview />
+
         <section className="grid gap-3 sm:grid-cols-3">
           <div className="dg-card">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Connected business</p>
