@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type HealthState = "connected" | "attention" | "not_connected";
+type HealthState = "connected" | "attention" | "not_connected" | "available";
 
 type ConnectionHealth = {
   id: string;
@@ -23,6 +23,7 @@ const STATUS = {
   connected: { label: "Connected", dot: "bg-emerald-400", text: "text-emerald-300" },
   attention: { label: "Needs attention", dot: "bg-amber-400", text: "text-amber-300" },
   not_connected: { label: "Not connected", dot: "bg-red-400", text: "text-red-300" },
+  available: { label: "Available", dot: "bg-slate-300", text: "text-slate-300" },
 } as const;
 
 export function ConnectedServicesHealthOverview() {
@@ -51,7 +52,14 @@ export function ConnectedServicesHealthOverview() {
           }
         }),
       );
-      if (!cancelled) setConnections(results);
+
+      const available: ConnectionHealth[] = [
+        { id: "available-meta", name: "Facebook & Instagram", state: "available" },
+        { id: "available-xero", name: "Xero", state: "available" },
+        { id: "available-shopify", name: "Shopify", state: "available" },
+      ];
+
+      if (!cancelled) setConnections([...results, ...available]);
     }
     void load();
     return () => {
@@ -60,7 +68,7 @@ export function ConnectedServicesHealthOverview() {
   }, []);
 
   const counts = useMemo(() => {
-    const initial = { connected: 0, attention: 0, not_connected: 0 };
+    const initial = { connected: 0, attention: 0, not_connected: 0, available: 0 };
     return (connections ?? []).reduce((acc, connection) => {
       acc[connection.state] += 1;
       return acc;
@@ -81,13 +89,13 @@ export function ConnectedServicesHealthOverview() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Your connected business</p>
           <h2 className="mt-1 text-xl font-semibold text-white">Connection health</h2>
-          <p className="mt-1 text-sm text-slate-400">A live overview of the services DigitalGate can currently verify for this organisation.</p>
+          <p className="mt-1 text-sm text-slate-400">A live overview of connected services, services requiring attention, and integrations available to this organisation.</p>
         </div>
-        <p className="text-sm text-slate-400">{connections.length} services checked</p>
+        <p className="text-sm text-slate-400">{connections.length} services shown</p>
       </div>
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        {(["connected", "attention", "not_connected"] as const).map((state) => (
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {(["connected", "attention", "not_connected", "available"] as const).map((state) => (
           <div key={state} className="rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
             <div className="flex items-center gap-2">
               <span className={`h-2.5 w-2.5 rounded-full ${STATUS[state].dot}`} aria-hidden="true" />
@@ -106,7 +114,7 @@ export function ConnectedServicesHealthOverview() {
           </div>
         ))}
       </div>
-      <p className="mt-4 text-xs text-slate-500">Green means healthy and connected. Orange means DigitalGate cannot confirm a healthy connection or action is required. Red means the service is not connected to this organisation. Optional and planned integrations are not treated as failures.</p>
+      <p className="mt-4 text-xs text-slate-500">Green means healthy and connected. Orange means action is required. Red means a supported service expected for this organisation is not connected. White means the integration is available to add but is not currently required or connected. Planned integrations remain separate and are not treated as failures.</p>
     </section>
   );
 }
