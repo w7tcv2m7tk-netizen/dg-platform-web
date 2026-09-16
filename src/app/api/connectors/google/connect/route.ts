@@ -16,8 +16,17 @@ import { gbpOAuthReturnPath } from "@/lib/oauth-return-path";
 
 export const dynamic = "force-dynamic";
 
+const GOOGLE_ANALYTICS_REQUIRED_SCOPES = [
+  "openid",
+  "email",
+  "profile",
+  "https://www.googleapis.com/auth/business.manage",
+  "https://www.googleapis.com/auth/analytics.readonly",
+  "https://www.googleapis.com/auth/webmasters.readonly",
+].join(" ");
+
 /**
- * Start Google Business Profile OAuth.
+ * Start the unified Google OAuth connection.
  * GET /api/connectors/google/connect
  */
 export async function GET(req: Request) {
@@ -82,7 +91,14 @@ export async function GET(req: Request) {
     );
   }
 
-  const authUrl = buildGoogleAuthorizeUrl({ state });
+  // Analytics re-authorisation must request its required scopes explicitly.
+  // This deliberately bypasses a legacy GOOGLE_OAUTH_SCOPES environment
+  // override that may only contain the original Business Profile permission.
+  const analyticsReturn = returnTo === "/apps/analytics/connectors/google";
+  const authUrl = buildGoogleAuthorizeUrl({
+    state,
+    scopes: analyticsReturn ? GOOGLE_ANALYTICS_REQUIRED_SCOPES : undefined,
+  });
   if (!authUrl.ok) {
     return NextResponse.json(
       { error: { code: "google_config", message: authUrl.message } },
