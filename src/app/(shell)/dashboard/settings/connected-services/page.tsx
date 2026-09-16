@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ConnectedServicesCatalog } from "@/components/settings/ConnectedServicesCatalog";
+import { GoogleBusinessProfileLocationSelector } from "@/components/settings/GoogleBusinessProfileLocationSelector";
 import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -42,16 +43,8 @@ export default async function ConnectedServicesPage({
           <div className="rounded-xl border border-emerald-800/50 bg-emerald-950/20 px-4 py-4 text-sm text-emerald-100">
             <p>Google Business Profile connected.</p>
             <p className="mt-1 text-xs text-emerald-100/70">
-              If reviews or locations still look empty, refresh the connection status below or open Reviews to sync available evidence.
+              Choose the Business Profile locations for this organisation below. Only selected locations feed its reviews, Reputation and business intelligence.
             </p>
-            <div className="mt-3 flex flex-wrap gap-3">
-              <ResolutionAction
-                href="/dashboard/settings/connected-services"
-                mode="guided"
-                label="Refresh connection status"
-              />
-              <ResolutionAction href="/apps/reviews" mode="guided" label="Open Reviews" />
-            </div>
           </div>
         ) : null}
         {googleFlash === "error" ? (
@@ -73,7 +66,7 @@ export default async function ConnectedServicesPage({
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-slate-500">
-            Connection status is checked from the services linked to your organisation.
+            Connection status and resource assignments are scoped to {session.organisationName}.
           </p>
           <Link
             href="/dashboard/settings/connected-services"
@@ -83,6 +76,7 @@ export default async function ConnectedServicesPage({
           </Link>
         </div>
 
+        <GoogleBusinessProfileLocationSelector />
         <ConnectedServicesCatalog />
 
         <div className="rounded-xl border border-slate-800 bg-slate-950/30 px-4 py-3 text-sm text-slate-400">
