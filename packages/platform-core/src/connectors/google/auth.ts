@@ -1,5 +1,5 @@
 /**
- * Google Business Profile OAuth (platform credentials + per-org tokens).
+ * Google OAuth (platform credentials + per-org tokens).
  *
  * Env (Vercel):
  *   GOOGLE_CLIENT_ID
@@ -7,9 +7,8 @@
  *   GOOGLE_REDIRECT_URI (default https://app.digitalgate.com.au/api/connectors/google/callback)
  *   GOOGLE_OAUTH_SCOPES (optional)
  *
- * OAuth client + Business Profile APIs must live on the **one** allowlisted
- * Cloud project (`GOOGLE_GBP_ALLOWLISTED_PROJECT_NUMBER` in ./project.ts).
- * Distinct from GOOGLE_GEOCODING_API_KEY / GOOGLE_PLACES_API_KEY.
+ * OAuth client + Google APIs must live on the same Cloud project used by the
+ * existing Business Profile integration. Distinct from Google API keys.
  */
 
 import { decryptSecret, encryptSecret } from "../../crypto/secret-field";
@@ -25,12 +24,18 @@ export const GOOGLE_AUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
 export const GOOGLE_GBP_ACCOUNTS_URL =
   "https://mybusinessaccountmanagement.googleapis.com/v1/accounts";
 
-/** GBP management + identity (offline refresh via access_type=offline). */
+/**
+ * Unified business Google connection. Keep permissions read-only wherever
+ * DigitalGate only needs evidence; Business Profile retains its management
+ * scope because the existing reputation connector depends on it.
+ */
 export const GOOGLE_DEFAULT_OAUTH_SCOPES = [
   "openid",
   "email",
   "profile",
   "https://www.googleapis.com/auth/business.manage",
+  "https://www.googleapis.com/auth/analytics.readonly",
+  "https://www.googleapis.com/auth/webmasters.readonly",
 ].join(" ");
 
 export type GoogleOAuthConfig = {
@@ -62,7 +67,6 @@ export type OrgGoogleGbpConnectorTokens = {
   connectedAt?: string;
   label?: string;
   lastError?: string;
-  /** Last sync health (accounts / locations / reviews). */
   health?: {
     status: "connected" | "degraded" | "error" | "disconnected";
     lastSyncAt?: string | null;
@@ -104,10 +108,7 @@ export function getGoogleOAuthConfig():
     };
   }
 
-  return {
-    ok: true,
-    config: { clientId, clientSecret, redirectUri, scopes },
-  };
+  return { ok: true, config: { clientId, clientSecret, redirectUri, scopes } };
 }
 
 export function googleCredentialsConfigured(): boolean {
@@ -119,59 +120,35 @@ function bundleToken(raw: GoogleTokenResponse): GoogleTokenBundle {
   const expiresAt = new Date(
     obtainedAt.getTime() + Math.max(0, raw.expires_in - 60) * 1000,
   );
-  return {
-    ...raw,
-    obtainedAt: obtainedAt.toISOString(),
-    expiresAt: expiresAt.toISOString(),
-  };
+  return { ...raw, obtainedAt: obtainedAt.toISOString(), expiresAt: expiresAt.toISOString() };
 }
 
-async function postToken(
-  body: URLSearchParams,
-): Promise<
+async function postToken(body: URLSearchParams): Promise<
   | { ok: true; token: GoogleTokenBundle }
   | { ok: false; status: number; message: string; raw?: unknown }
 > {
   const res = await fetch(GOOGLE_AUTH_TOKEN_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json",
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
     body,
   });
   const text = await res.text();
   let json: unknown = null;
-  try {
-    json = text ? JSON.parse(text) : null;
-  } catch {
-    json = { raw: text };
-  }
+  try { json = text ? JSON.parse(text) : null; } catch { json = { raw: text }; }
   if (!res.ok) {
-    const err =
-      json && typeof json === "object" && "error_description" in json
-        ? String((json as { error_description?: string }).error_description)
-        : json && typeof json === "object" && "error" in json
-          ? String((json as { error?: string }).error)
-          : `Google token HTTP ${res.status}`;
+    const err = json && typeof json === "object" && "error_description" in json
+      ? String((json as { error_description?: string }).error_description)
+      : json && typeof json === "object" && "error" in json
+        ? String((json as { error?: string }).error)
+        : `Google token HTTP ${res.status}`;
     return { ok: false, status: res.status, message: err, raw: json };
   }
   const token = json as GoogleTokenResponse;
-  if (!token?.access_token) {
-    return {
-      ok: false,
-      status: res.status,
-      message: "Google token response missing access_token",
-      raw: json,
-    };
-  }
+  if (!token?.access_token) return { ok: false, status: res.status, message: "Google token response missing access_token", raw: json };
   return { ok: true, token: bundleToken(token) };
 }
 
-export function buildGoogleAuthorizeUrl(input: {
-  state: string;
-  scopes?: string;
-}): { ok: true; url: string } | { ok: false; message: string } {
+export function buildGoogleAuthorizeUrl(input: { state: string; scopes?: string }): { ok: true; url: string } | { ok: false; message: string } {
   const cfg = getGoogleOAuthConfig();
   if (!cfg.ok) return { ok: false, message: cfg.message };
   const scope = input.scopes?.trim() || cfg.config.scopes;
@@ -187,227 +164,82 @@ export function buildGoogleAuthorizeUrl(input: {
   return { ok: true, url: url.toString() };
 }
 
-export async function exchangeGoogleAuthorizationCode(input: {
-  code: string;
-}): Promise<
-  | { ok: true; token: GoogleTokenBundle }
-  | { ok: false; status: number; message: string; raw?: unknown }
-> {
+export async function exchangeGoogleAuthorizationCode(input: { code: string }) {
   const cfg = getGoogleOAuthConfig();
-  if (!cfg.ok) return { ok: false, status: 503, message: cfg.message };
-  return postToken(
-    new URLSearchParams({
-      grant_type: "authorization_code",
-      code: input.code,
-      redirect_uri: cfg.config.redirectUri,
-      client_id: cfg.config.clientId,
-      client_secret: cfg.config.clientSecret,
-    }),
-  );
+  if (!cfg.ok) return { ok: false as const, status: 503, message: cfg.message };
+  return postToken(new URLSearchParams({ grant_type: "authorization_code", code: input.code, redirect_uri: cfg.config.redirectUri, client_id: cfg.config.clientId, client_secret: cfg.config.clientSecret }));
 }
 
-export async function refreshGoogleAccessToken(input: {
-  refreshToken: string;
-}): Promise<
-  | { ok: true; token: GoogleTokenBundle }
-  | { ok: false; status: number; message: string; raw?: unknown }
-> {
+export async function refreshGoogleAccessToken(input: { refreshToken: string }) {
   const cfg = getGoogleOAuthConfig();
-  if (!cfg.ok) return { ok: false, status: 503, message: cfg.message };
-  return postToken(
-    new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: input.refreshToken,
-      client_id: cfg.config.clientId,
-      client_secret: cfg.config.clientSecret,
-    }),
-  );
+  if (!cfg.ok) return { ok: false as const, status: 503, message: cfg.message };
+  return postToken(new URLSearchParams({ grant_type: "refresh_token", refresh_token: input.refreshToken, client_id: cfg.config.clientId, client_secret: cfg.config.clientSecret }));
 }
 
-export async function googleApiGet(
-  url: string,
-  accessToken: string,
-): Promise<{ ok: true; status: number; data: unknown } | { ok: false; status: number; message: string }> {
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      Accept: "application/json",
-    },
-  });
+export async function googleApiGet(url: string, accessToken: string): Promise<{ ok: true; status: number; data: unknown } | { ok: false; status: number; message: string }> {
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" } });
   const text = await res.text();
   let data: unknown = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = text;
-  }
-  if (!res.ok) {
-    return {
-      ok: false,
-      status: res.status,
-      message:
-        typeof data === "object" && data && "error" in data
-          ? JSON.stringify((data as { error?: unknown }).error)
-          : `Google API HTTP ${res.status}`,
-    };
-  }
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  if (!res.ok) return { ok: false, status: res.status, message: typeof data === "object" && data && "error" in data ? JSON.stringify((data as { error?: unknown }).error) : `Google API HTTP ${res.status}` };
   return { ok: true, status: res.status, data };
 }
 
-function encryptTokenField(value: string | undefined): string | undefined {
-  if (!value) return value;
-  return encryptSecret(value);
-}
+function encryptTokenField(value: string | undefined): string | undefined { return value ? encryptSecret(value) : value; }
+function decryptTokenField(value: string | undefined): string | undefined { return value ? decryptSecret(value) || value : value; }
 
-function decryptTokenField(value: string | undefined): string | undefined {
-  if (!value) return value;
-  return decryptSecret(value) || value;
-}
-
-export async function getOrgGoogleGbpConnectorTokens(
-  organisationId: string,
-): Promise<OrgGoogleGbpConnectorTokens | null> {
+export async function getOrgGoogleGbpConnectorTokens(organisationId: string): Promise<OrgGoogleGbpConnectorTokens | null> {
   const blob = await getOrgConnectorSettings(organisationId, "google-gbp");
   if (!blob) return null;
   return {
-    accessToken: decryptTokenField(
-      typeof blob.accessToken === "string" ? blob.accessToken : undefined,
-    ),
-    refreshToken: decryptTokenField(
-      typeof blob.refreshToken === "string" ? blob.refreshToken : undefined,
-    ),
+    accessToken: decryptTokenField(typeof blob.accessToken === "string" ? blob.accessToken : undefined),
+    refreshToken: decryptTokenField(typeof blob.refreshToken === "string" ? blob.refreshToken : undefined),
     expiresAt: typeof blob.expiresAt === "string" ? blob.expiresAt : undefined,
     scope: typeof blob.scope === "string" ? blob.scope : undefined,
     connectedAt: typeof blob.connectedAt === "string" ? blob.connectedAt : undefined,
     label: typeof blob.label === "string" ? blob.label : undefined,
     lastError: typeof blob.lastError === "string" ? blob.lastError : undefined,
-    health:
-      blob.health && typeof blob.health === "object"
-        ? (blob.health as OrgGoogleGbpConnectorTokens["health"])
-        : undefined,
-    accounts: Array.isArray(blob.accounts)
-      ? (blob.accounts as OrgGoogleGbpConnectorTokens["accounts"])
-      : undefined,
-    locations: Array.isArray(blob.locations)
-      ? (blob.locations as OrgGoogleGbpConnectorTokens["locations"])
-      : undefined,
-    reviews: Array.isArray(blob.reviews)
-      ? (blob.reviews as OrgGoogleGbpConnectorTokens["reviews"])
-      : undefined,
+    health: blob.health && typeof blob.health === "object" ? blob.health as OrgGoogleGbpConnectorTokens["health"] : undefined,
+    accounts: Array.isArray(blob.accounts) ? blob.accounts as OrgGoogleGbpConnectorTokens["accounts"] : undefined,
+    locations: Array.isArray(blob.locations) ? blob.locations as OrgGoogleGbpConnectorTokens["locations"] : undefined,
+    reviews: Array.isArray(blob.reviews) ? blob.reviews as OrgGoogleGbpConnectorTokens["reviews"] : undefined,
   };
 }
 
-export async function saveOrgGoogleGbpConnectorTokens(
-  organisationId: string,
-  tokens: OrgGoogleGbpConnectorTokens,
-): Promise<void> {
+export async function saveOrgGoogleGbpConnectorTokens(organisationId: string, tokens: OrgGoogleGbpConnectorTokens): Promise<void> {
   await saveOrgConnectorSettings(organisationId, "google-gbp", {
-    accessToken: encryptTokenField(tokens.accessToken),
-    refreshToken: encryptTokenField(tokens.refreshToken),
-    expiresAt: tokens.expiresAt ?? null,
-    scope: tokens.scope ?? null,
-    connectedAt: tokens.connectedAt ?? new Date().toISOString(),
-    label: tokens.label ?? null,
-    lastError: tokens.lastError ?? null,
-    health: tokens.health ?? null,
-    accounts: tokens.accounts ?? null,
-    locations: tokens.locations ?? null,
-    reviews: tokens.reviews ?? null,
+    accessToken: encryptTokenField(tokens.accessToken), refreshToken: encryptTokenField(tokens.refreshToken),
+    expiresAt: tokens.expiresAt ?? null, scope: tokens.scope ?? null, connectedAt: tokens.connectedAt ?? new Date().toISOString(),
+    label: tokens.label ?? null, lastError: tokens.lastError ?? null, health: tokens.health ?? null,
+    accounts: tokens.accounts ?? null, locations: tokens.locations ?? null, reviews: tokens.reviews ?? null,
   });
 }
 
-export async function clearOrgGoogleGbpConnectorTokens(
-  organisationId: string,
-): Promise<void> {
-  await clearOrgConnectorSettings(organisationId, "google-gbp");
-}
+export async function clearOrgGoogleGbpConnectorTokens(organisationId: string): Promise<void> { await clearOrgConnectorSettings(organisationId, "google-gbp"); }
 
-/** Refresh if expired / near expiry; returns usable access token. */
-export async function ensureValidOrgGoogleAccessToken(
-  organisationId: string,
-): Promise<
+export async function ensureValidOrgGoogleAccessToken(organisationId: string): Promise<
   | { ok: true; accessToken: string; tokens: OrgGoogleGbpConnectorTokens }
   | { ok: false; message: string }
 > {
   const tokens = await getOrgGoogleGbpConnectorTokens(organisationId);
-  if (!tokens?.accessToken && !tokens?.refreshToken) {
-    return { ok: false, message: "Google Business Profile not connected for this organisation" };
-  }
-
+  if (!tokens?.accessToken && !tokens?.refreshToken) return { ok: false, message: "Google not connected for this organisation" };
   const expiresAt = tokens.expiresAt ? Date.parse(tokens.expiresAt) : 0;
-  const needsRefresh =
-    Boolean(tokens.refreshToken) &&
-    (!tokens.accessToken || !Number.isFinite(expiresAt) || expiresAt < Date.now() + 60_000);
-
-  if (!needsRefresh && tokens.accessToken) {
-    return { ok: true, accessToken: tokens.accessToken, tokens };
-  }
-
-  if (!tokens.refreshToken) {
-    return { ok: false, message: "Google access token expired — reconnect the account" };
-  }
-
+  const needsRefresh = Boolean(tokens.refreshToken) && (!tokens.accessToken || !Number.isFinite(expiresAt) || expiresAt < Date.now() + 60_000);
+  if (!needsRefresh && tokens.accessToken) return { ok: true, accessToken: tokens.accessToken, tokens };
+  if (!tokens.refreshToken) return { ok: false, message: "Google access token expired — reconnect the account" };
   const refreshed = await refreshGoogleAccessToken({ refreshToken: tokens.refreshToken });
-  if (!refreshed.ok) {
-    await saveOrgGoogleGbpConnectorTokens(organisationId, {
-      ...tokens,
-      lastError: refreshed.message,
-    });
-    return { ok: false, message: refreshed.message };
-  }
-
-  const next: OrgGoogleGbpConnectorTokens = {
-    ...tokens,
-    accessToken: refreshed.token.access_token,
-    refreshToken: refreshed.token.refresh_token || tokens.refreshToken,
-    expiresAt: refreshed.token.expiresAt,
-    scope: refreshed.token.scope || tokens.scope,
-    lastError: undefined,
-  };
+  if (!refreshed.ok) { await saveOrgGoogleGbpConnectorTokens(organisationId, { ...tokens, lastError: refreshed.message }); return { ok: false, message: refreshed.message }; }
+  const next: OrgGoogleGbpConnectorTokens = { ...tokens, accessToken: refreshed.token.access_token, refreshToken: refreshed.token.refresh_token || tokens.refreshToken, expiresAt: refreshed.token.expiresAt, scope: refreshed.token.scope || tokens.scope, lastError: undefined };
   await saveOrgGoogleGbpConnectorTokens(organisationId, next);
   return { ok: true, accessToken: next.accessToken!, tokens: next };
 }
 
-/** Org-token probe against GBP accounts API. */
-export async function probeOrgGoogleGbpConnection(organisationId: string): Promise<{
-  ok: boolean;
-  connected: boolean;
-  apiOk?: boolean;
-  expiresAt?: string;
-  message: string;
-  accountCount?: number;
-}> {
+export async function probeOrgGoogleGbpConnection(organisationId: string): Promise<{ ok: boolean; connected: boolean; apiOk?: boolean; expiresAt?: string; message: string; accountCount?: number }> {
   const ensured = await ensureValidOrgGoogleAccessToken(organisationId);
-  if (!ensured.ok) {
-    return { ok: false, connected: false, message: ensured.message };
-  }
-
+  if (!ensured.ok) return { ok: false, connected: false, message: ensured.message };
   const probe = await googleApiGet(GOOGLE_GBP_ACCOUNTS_URL, ensured.accessToken);
-  if (!probe.ok) {
-    return {
-      ok: false,
-      connected: true,
-      apiOk: false,
-      expiresAt: ensured.tokens.expiresAt,
-      message: `Token OK · GBP probe: ${probe.message}`,
-    };
-  }
-
-  const accounts =
-    probe.data && typeof probe.data === "object" && "accounts" in probe.data
-      ? (probe.data as { accounts?: unknown[] }).accounts
-      : null;
+  if (!probe.ok) return { ok: false, connected: true, apiOk: false, expiresAt: ensured.tokens.expiresAt, message: `Token OK · GBP probe: ${probe.message}` };
+  const accounts = probe.data && typeof probe.data === "object" && "accounts" in probe.data ? (probe.data as { accounts?: unknown[] }).accounts : null;
   const accountCount = Array.isArray(accounts) ? accounts.length : undefined;
-
-  return {
-    ok: true,
-    connected: true,
-    apiOk: true,
-    expiresAt: ensured.tokens.expiresAt,
-    accountCount,
-    message:
-      accountCount != null
-        ? `Google GBP connected · ${accountCount} account(s)`
-        : "Google GBP connected · accounts probe OK",
-  };
+  return { ok: true, connected: true, apiOk: true, expiresAt: ensured.tokens.expiresAt, message: `Google Business Profile API OK${accountCount !== undefined ? ` · ${accountCount} account(s)` : ""}`, accountCount };
 }
