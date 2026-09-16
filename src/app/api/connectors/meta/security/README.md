@@ -1,0 +1,1 @@
+All Meta connector reads, writes, syncs and selections must derive organisation identity from the authenticated DigitalGate session or signed OAuth state. Never accept an arbitrary organisation id from browser input.
