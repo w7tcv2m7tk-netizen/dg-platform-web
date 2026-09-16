@@ -25,6 +25,7 @@ import { isDgPublicHost } from "@/lib/dg-legacy-urls";
 import { isRoePublicHost } from "@/lib/roe-legacy-urls";
 
 const isPublicRoute = createRouteMatcher(PUBLIC_ROUTE_PATTERNS);
+const isGoogleOAuthCallback = createRouteMatcher(["/api/connectors/google/callback(.*)"]);
 
 const PLATFORM_HOSTS = new Set(
   [
@@ -106,99 +107,58 @@ const clerkHandler = clerkMiddleware(
   {
     authorizedParties,
     signInUrl: AUTH_SIGN_IN_URL,
-    // FAPI proxy is handled explicitly below with the instance custom FAPI host
-    // (clerk.digitalgate.com.au). Default Clerk middleware proxy targets
-    // frontend-api.clerk.dev and fails Dashboard validation with host_invalid.
   },
 );
 
-/**
- * Keep auth navigations on the app origin when Clerk would otherwise send the
- * browser to clerk.* / Account Portal (leaves installed PWA scope).
- */
 function keepAuthOnAppOrigin(req: NextRequest, response: Response): Response {
   if (response.status < 300 || response.status >= 400) return response;
-
   const location = response.headers.get("location");
   if (!location) return response;
-
   if (!isOffAppClerkNavigationUrl(location, req.url)) return response;
-
   const loginUrl = inAppSignInUrl(req.url);
   const rewrite = NextResponse.redirect(loginUrl, response.status);
-
   response.headers.forEach((value, key) => {
     if (key.toLowerCase() === "location") return;
-    // Avoid duplicating set-cookie issues; copy non-location headers for session cleanup.
     if (key.toLowerCase() === "set-cookie") {
       rewrite.headers.append(key, value);
       return;
     }
     rewrite.headers.set(key, value);
   });
-
   return rewrite;
 }
 
-/** Brand website paths → dedicated product funnel subdomains. */
-const BRAND_TO_FUNNEL_REDIRECTS: Array<{
-  hostRe: RegExp;
-  pathRe: RegExp;
-  destination: string;
-}> = [
-  {
-    hostRe: /^(www\.)?digitalgate\.com\.au$/i,
-    pathRe: /^\/business-audit\/?$/i,
-    destination: "https://audit.digitalgate.com.au/",
-  },
-  {
-    hostRe: /^(www\.)?digitalgate\.com\.au$/i,
-    pathRe: /^\/free-agency-audit\/?$/i,
-    destination: "https://audit.digitalgate.com.au/",
-  },
-  {
-    hostRe: /^(www\.)?roerealty\.com\.au$/i,
-    pathRe: /^\/property-report\/?$/i,
-    destination: "https://report.roerealty.com.au/",
-  },
-  {
-    hostRe: /^(www\.)?currumbinvalleyhideaway\.com\.au$/i,
-    pathRe: /^\/hideaway-circle\/?$/i,
-    destination: "https://circle.currumbinvalleyhideaway.com.au/",
-  },
+const BRAND_TO_FUNNEL_REDIRECTS: Array<{ hostRe: RegExp; pathRe: RegExp; destination: string }> = [
+  { hostRe: /^(www\.)?digitalgate\.com\.au$/i, pathRe: /^\/business-audit\/?$/i, destination: "https://audit.digitalgate.com.au/" },
+  { hostRe: /^(www\.)?digitalgate\.com\.au$/i, pathRe: /^\/free-agency-audit\/?$/i, destination: "https://audit.digitalgate.com.au/" },
+  { hostRe: /^(www\.)?roerealty\.com\.au$/i, pathRe: /^\/property-report\/?$/i, destination: "https://report.roerealty.com.au/" },
+  { hostRe: /^(www\.)?currumbinvalleyhideaway\.com\.au$/i, pathRe: /^\/hideaway-circle\/?$/i, destination: "https://circle.currumbinvalleyhideaway.com.au/" },
 ];
 
 export default async function middleware(req: NextRequest, event: unknown) {
   const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
   const path = req.nextUrl.pathname;
 
-  // Conventional /favicon.ico must never serve src/app/favicon.ico (DigitalGate
-  // green D) on tenant hosts. The default matcher skips *.ico, so this path is
-  // also listed in config.matcher. Rewrite on every host — including Vercel
-  // previews — to the host-aware /icon route.
   if (path === "/favicon.ico") {
     const url = req.nextUrl.clone();
     url.pathname = "/icon";
     const rewrite = NextResponse.rewrite(url);
-    if (hostname && !isPlatformHost(hostname)) {
-      rewrite.headers.set("x-dg-custom-host", hostname);
-    }
+    if (hostname && !isPlatformHost(hostname)) rewrite.headers.set("x-dg-custom-host", hostname);
     return rewrite;
   }
 
-  // Proxy Clerk FAPI via the instance custom host so Dashboard Proxy Configuration
-  // can validate (generic frontend-api.clerk.dev returns host_invalid).
-  if (
-    shouldEnableClerkFrontendApiProxy(req.nextUrl) &&
-    isClerkProxyPath(req.nextUrl.pathname)
-  ) {
-    return clerkFrontendApiProxy(req, {
-      proxyPath: CLERK_PROXY_PATH,
-      fapiUrl: clerkFrontendApiOrigin(),
-    });
+  if (shouldEnableClerkFrontendApiProxy(req.nextUrl) && isClerkProxyPath(req.nextUrl.pathname)) {
+    return clerkFrontendApiProxy(req, { proxyPath: CLERK_PROXY_PATH, fapiUrl: clerkFrontendApiOrigin() });
   }
 
-  // Vercel preview deployments must not compete with production canonical URLs.
+  // Google returns here with a signed state that the route handler verifies.
+  // Bypass Clerk middleware entirely for this exact callback so a stale/rotating
+  // Clerk browser session cannot consume the one-time Google authorisation code
+  // via a refresh/login redirect before the callback handler exchanges it.
+  if (isGoogleOAuthCallback(req)) {
+    return NextResponse.next();
+  }
+
   if (hostname.endsWith(".vercel.app")) {
     const response = await clerkHandler(req, event as never);
     const out = response ?? NextResponse.next();
@@ -206,20 +166,11 @@ export default async function middleware(req: NextRequest, event: unknown) {
     return keepAuthOnAppOrigin(req, out);
   }
 
-  // Custom domain → public site renderer (multi-tenant host header)
   if (hostname && !isPlatformHost(hostname)) {
-    // 410 junk before www/http canonicalization so leftover paths like
-    // /cgi-bin never hop through a rewrite that can 5xx.
     const legacy = applyPublicLegacyResponse(req, hostname);
     if (legacy) return legacy;
 
-    if (
-      (isDgPublicHost(hostname) ||
-        isRoePublicHost(hostname) ||
-        isAetherraPublicHost(hostname)) &&
-      path.length > 1 &&
-      path.endsWith("/")
-    ) {
+    if ((isDgPublicHost(hostname) || isRoePublicHost(hostname) || isAetherraPublicHost(hostname)) && path.length > 1 && path.endsWith("/")) {
       const dest = req.nextUrl.clone();
       dest.pathname = path.replace(/\/+$/, "") || "/";
       dest.protocol = "https:";
@@ -239,98 +190,54 @@ export default async function middleware(req: NextRequest, event: unknown) {
     }
 
     if (path === "/robots.txt") {
-      const url = req.nextUrl.clone();
-      url.pathname = "/sites/seo/robots";
-      const rewrite = NextResponse.rewrite(url);
-      rewrite.headers.set("x-dg-custom-host", hostname);
-      return rewrite;
+      const url = req.nextUrl.clone(); url.pathname = "/sites/seo/robots";
+      const rewrite = NextResponse.rewrite(url); rewrite.headers.set("x-dg-custom-host", hostname); return rewrite;
     }
     if (path === "/sitemap.xml") {
-      const url = req.nextUrl.clone();
-      url.pathname = "/sites/seo/sitemap";
-      const rewrite = NextResponse.rewrite(url);
-      rewrite.headers.set("x-dg-custom-host", hostname);
-      return rewrite;
+      const url = req.nextUrl.clone(); url.pathname = "/sites/seo/sitemap";
+      const rewrite = NextResponse.rewrite(url); rewrite.headers.set("x-dg-custom-host", hostname); return rewrite;
     }
 
     const indexNowKey = process.env.INDEXNOW_KEY?.trim();
-    if (
-      indexNowKey &&
-      isDgPublicHost(hostname) &&
-      path === `/${indexNowKey}.txt`
-    ) {
-      return new NextResponse(`${indexNowKey}\n`, {
-        headers: {
-          "Content-Type": "text/plain; charset=utf-8",
-          "Cache-Control": "public, max-age=86400",
-        },
-      });
+    if (indexNowKey && isDgPublicHost(hostname) && path === `/${indexNowKey}.txt`) {
+      return new NextResponse(`${indexNowKey}\n`, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=86400" } });
     }
 
-    if (
-      path === "/apple-icon" ||
-      path.startsWith("/apple-icon/") ||
-      path === "/icon" ||
-      path.startsWith("/icon/") ||
-      path === "/manifest.webmanifest"
-    ) {
-      const passthrough = NextResponse.next();
-      passthrough.headers.set("x-dg-custom-host", hostname);
-      return passthrough;
+    if (path === "/apple-icon" || path.startsWith("/apple-icon/") || path === "/icon" || path.startsWith("/icon/") || path === "/manifest.webmanifest") {
+      const passthrough = NextResponse.next(); passthrough.headers.set("x-dg-custom-host", hostname); return passthrough;
     }
 
-    if (
-      !path.startsWith("/api") &&
-      !path.startsWith("/_next") &&
-      !path.startsWith("/__clerk") &&
-      !path.startsWith("/sites/")
-    ) {
+    if (!path.startsWith("/api") && !path.startsWith("/_next") && !path.startsWith("/__clerk") && !path.startsWith("/sites/")) {
       const url = req.nextUrl.clone();
-      // Full path so nested routes like /property/11-dinjirra-court-tugun resolve
-      const pageSlug =
-        path === "/" ? "" : path.replace(/^\/+|\/+$/g, "") || "";
+      const pageSlug = path === "/" ? "" : path.replace(/^\/+|\/+$/g, "") || "";
       url.pathname = "/sites/by-host";
       if (pageSlug) url.searchParams.set("page", pageSlug);
-      const rewrite = NextResponse.rewrite(url);
-      rewrite.headers.set("x-dg-custom-host", hostname);
-      return rewrite;
+      const rewrite = NextResponse.rewrite(url); rewrite.headers.set("x-dg-custom-host", hostname); return rewrite;
     }
   }
 
   const response = await clerkHandler(req, event as never);
-  // Clerk returns undefined for a normal authenticated pass-through. Treat that
-  // as NextResponse.next() so the post-OAuth /dashboard request can still
-  // consume dg_oauth_return and recover the intended Analytics destination.
   const out = response ?? NextResponse.next();
   const kept = keepAuthOnAppOrigin(req, out);
   return recoverOAuthReturnFromOverview(req, kept);
 }
 
-/** After Google OAuth, Clerk may force-redirect to Overview — send them back. */
 function recoverOAuthReturnFromOverview(req: NextRequest, response: Response): Response {
   if (req.method !== "GET") return response;
   if (!isDashboardOverviewPath(req.nextUrl.pathname)) return response;
-  const dest = sanitizeOAuthReturnDestination(
-    req.cookies.get(OAUTH_RETURN_COOKIE)?.value,
-  );
+  const dest = sanitizeOAuthReturnDestination(req.cookies.get(OAUTH_RETURN_COOKIE)?.value);
   if (!dest) return response;
   const redirect = NextResponse.redirect(new URL(dest, req.url));
-  redirect.cookies.set(OAUTH_RETURN_COOKIE, "", {
-    path: "/",
-    maxAge: 0,
-  });
+  redirect.cookies.set(OAUTH_RETURN_COOKIE, "", { path: "/", maxAge: 0 });
   return redirect;
 }
 
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Default matcher skips *.ico. Without this, /favicon.ico never rewrites.
     "/favicon.ico",
     "/(api|trpc)(.*)",
-    // Clerk FAPI proxy — must be a static string for Next matcher parsing
     "/__clerk/(.*)",
-    // WP leftovers with static extensions must still hit 410 (matcher above skips images)
     "/wp-content/:path*",
     "/wp-includes/:path*",
     "/edd-api/:path*",
