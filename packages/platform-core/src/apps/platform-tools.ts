@@ -11,18 +11,16 @@ export interface PlatformToolGroup {
 }
 
 /**
- * Settings sub-pages — Platform → Settings horizontal subnav.
- * Team management belongs to Core → Business → Team. Settings keeps only
- * technical/security policy and platform administration controls.
+ * Customer configuration routes. Connected Services is the canonical Integration Hub
+ * surface; advanced connector diagnostics remain available by direct route for operators.
  */
 export const SETTINGS_NAV_ROUTES: AppRoute[] = [
   { path: "/dashboard/settings", label: "Overview" },
-  { path: "/dashboard/settings/billing", label: "Billing" },
   {
-    path: "/dashboard/settings/connectors",
-    label: "Connectors",
-    matchAlso: ["/dashboard/settings/connected-services"],
+    path: "/dashboard/settings/connected-services",
+    label: "Connected Services",
   },
+  { path: "/dashboard/settings/billing", label: "Billing" },
   { path: "/dashboard/settings/api", label: "API" },
   { path: "/dashboard/settings/security", label: "Security & Access" },
   { path: "/dashboard/settings/notifications", label: "Notifications" },
