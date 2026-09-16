@@ -15,6 +15,8 @@ export const DEFAULT_GBP_OAUTH_RETURN = "/dashboard/settings/connected-services"
 const ALLOWED_OAUTH_RETURN_PATHS = new Set([
   "/dashboard/settings/connected-services",
   "/dashboard/settings/connectors",
+  "/apps/analytics/connectors",
+  "/apps/analytics/connectors/google",
   "/apps/reviews",
   "/apps/reviews/sources",
   "/apps/reviews/inbox",
