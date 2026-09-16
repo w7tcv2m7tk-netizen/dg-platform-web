@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "organisationSlug": "digitalgate",
+  "capturedAt": "2026-09-17T08:00:00+10:00",
+  "purpose": "Governed DigitalGate Business Brain candidates for the Integration Hub and connected-business strategy decided during the Gen 2 completion programme.",
+  "defaultStatus": "proposed",
+  "items": [
+    {
+      "key": "DG-INT001",
+      "type": "strategy",
+      "title": "Connect your business, don't rebuild it",
+      "statement": "DigitalGate should become the intelligence, automation and operating layer across the systems a business already uses. Customer adoption should not require replacing every specialist platform on day one.",
+      "importance": "critical",
+      "scope": ["strategy", "integrations", "positioning", "sales"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:2026-09-17-integration-hub"
+    },
+    {
+      "key": "DG-INT002",
+      "type": "strategy",
+      "title": "Existing software is an integration opportunity",
+      "statement": "When a prospect already uses multiple software platforms, DigitalGate should normally connect useful systems, unify authorised context and workflows, identify manual gaps, and progressively consolidate redundancy rather than treat the existing stack as a barrier to adoption.",
+      "importance": "critical",
+      "scope": ["strategy", "integrations", "sales", "onboarding"],
+      "sourceType": "project_decision",
+      "sourceRef": "project-context:2026-09-17-integration-hub"
+    },
+    {
+      "key": "DG-INT003",
+      "type": "roadmap_item",
+      "title": "Integration Hub is a core Gen 2 programme",
+      "statement": "DigitalGate will develop an extensive Integration Hub covering major business services and industry platforms, built on the shared Connector Engine and exposed through a searchable catalogue, Connected Services and onboarding recommendations.",
+      "importance": "critical",
+      "scope": ["roadmap", "integrations", "platform", "gen2"],
+      "sourceType": "project_decision",
+      "sourceRef": "docs/INTEGRATION-HUB.md"
+    },
+    {
+      "key": "DG-INT004",
+      "type": "architecture_decision",
+      "title": "External account is not organisation assignment",
+      "statement": "Authorising an external identity does not assign every accessible external resource to the current DigitalGate organisation. Multi-resource providers must discover resources and explicitly bind the appropriate resources to the organisation where ambiguity exists; unassigned resources must not feed that organisation's intelligence or workflows.",
+      "importance": "critical",
+      "scope": ["integrations", "architecture", "multi-tenancy", "security"],
+      "sourceType": "project_decision",
+      "sourceRef": "docs/INTEGRATION-HUB.md"
+    },
+    {
+      "key": "DG-INT005",
+      "type": "ux_principle",
+      "title": "Connectivity belongs in onboarding",
+      "statement": "Onboarding should discover the systems a business already uses and recommend relevant connections according to industry and operating profile. Connections should be simple, explained in business-value language and optional so a connector cannot trap onboarding.",
+      "importance": "critical",
+      "scope": ["integrations", "onboarding", "ux", "aida"],
+      "sourceType": "project_decision",
+      "sourceRef": "docs/INTEGRATION-HUB.md"
+    },
+    {
+      "key": "DG-INT006",
+      "type": "ux_principle",
+      "title": "Connected Services is the customer connection centre",
+      "statement": "Connected Services is the normal customer-facing place to connect, disconnect and repair integrations. Technical provider diagnostics, environment variables, platform credentials and redirect details belong in operator or advanced tooling rather than the default customer experience.",
+      "importance": "high",
+      "scope": ["integrations", "ux", "connected-services"],
+      "sourceType": "project_decision",
+      "sourceRef": "docs/INTEGRATION-HUB.md"
+    },
+    {
+      "key": "DG-INT007",
+      "type": "principle",
+      "title": "Integration breadth must be truthful",
+      "statement": "DigitalGate may maintain an extensive integration catalogue, but every entry must clearly distinguish native, API, OAuth, webhook, automation bridge, import/export, configurable and planned capability. A provider logo must never imply an operational integration that does not exist.",
+      "importance": "critical",
+      "scope": ["integrations", "trust", "product", "marketing"],
+      "sourceType": "project_decision",
+      "sourceRef": "docs/INTEGRATION-HUB.md"
+    },
+    {
+      "key": "DG-INT008",
+      "type": "architecture_decision",
+      "title": "Universal connectivity complements native connectors",
+      "statement": "DigitalGate should support universal connectivity through APIs, webhooks, secure keys, email/file ingestion, import/export and automation bridges where appropriate so useful interoperability does not always require a bespoke native adapter, while still distinguishing universal from native support.",
+      "importance": "high",
+      "scope": ["integrations", "architecture", "automation"],
+      "sourceType": "project_decision",
+      "sourceRef": "docs/INTEGRATION-HUB.md"
+    },
+    {
+      "key": "DG-INT009",
+      "type": "strategy",
+      "title": "Connected context must improve intelligence",
+      "statement": "Connector count is not the goal. Each useful authorised connection should improve business understanding, recommendations, analytics, automation or outcomes, with provenance preserved and canonical Platform Core objects remaining distinct from supplementary external evidence.",
+      "importance": "critical",
+      "scope": ["integrations", "business-brain", "advisor", "analytics", "automation"],
+      "sourceType": "project_decision",
+      "sourceRef": "docs/INTEGRATION-HUB.md"
+    },
+    {
+      "key": "DG-INT010",
+      "type": "roadmap_item",
+      "title": "Integration Hub delivery sequence",
+      "statement": "Sequence the programme as connector reliability, shared Connector Engine hardening, Integration Catalogue foundation, Connected Services UX, onboarding discovery, industry recommendations, then expansion of native and universal connectors based on customer demand and strategic value.",
+      "importance": "high",
+      "scope": ["roadmap", "integrations", "gen2"],
+      "sourceType": "project_decision",
+      "sourceRef": "docs/INTEGRATION-HUB.md"
+    }
+  ]
+}
