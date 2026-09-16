@@ -298,8 +298,11 @@ export default async function middleware(req: NextRequest, event: unknown) {
   }
 
   const response = await clerkHandler(req, event as never);
-  if (!response) return response;
-  const kept = keepAuthOnAppOrigin(req, response);
+  // Clerk returns undefined for a normal authenticated pass-through. Treat that
+  // as NextResponse.next() so the post-OAuth /dashboard request can still
+  // consume dg_oauth_return and recover the intended Analytics destination.
+  const out = response ?? NextResponse.next();
+  const kept = keepAuthOnAppOrigin(req, out);
   return recoverOAuthReturnFromOverview(req, kept);
 }
 
