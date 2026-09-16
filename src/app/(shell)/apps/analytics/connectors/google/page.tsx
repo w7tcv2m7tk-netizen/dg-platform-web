@@ -1,9 +1,9 @@
 import { discoverOrgGoogleAnalyticsProperties, discoverOrgGoogleSearchConsoleSites, getOrgGoogleAnalyticsSettings } from "@dg/platform-core";
 import Link from "next/link";
-import { getPlatformSession } from "@/lib/platform-session";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 export const dynamic = "force-dynamic";
 export default async function GoogleAnalyticsConnectorPage() {
-  const session = await getPlatformSession(); const organisationId = session?.organisationId;
+  const { session } = await getPlatformPageContext(); const organisationId = session?.organisationId;
   if (!organisationId) return <main className="dg-page-main"><section className="dg-card">Select an organisation to configure Google.</section></main>;
   const [settings, analytics, search] = await Promise.all([getOrgGoogleAnalyticsSettings(organisationId), discoverOrgGoogleAnalyticsProperties(organisationId), discoverOrgGoogleSearchConsoleSites(organisationId)]);
   return <main className="dg-page-main space-y-6"><section className="dg-card"><div className="flex items-start justify-between gap-4"><div><h1 className="text-xl font-semibold text-white">Google Analytics & Search Console</h1><p className="mt-1 text-sm text-slate-400">Choose the Google properties DigitalGate should use as evidence for Analytics, your Digital Twin and Aida.</p></div><Link href="/apps/analytics/connectors" className="text-sm text-sky-400 hover:underline">Back to data sources</Link></div>{(!analytics.ok&&!search.ok)?<div className="mt-5 rounded-lg border border-amber-700/50 bg-amber-950/20 p-4 text-sm text-amber-100"><p>Google needs to be connected or re-authorised with Analytics and Search Console access.</p><Link href="/api/connectors/google/connect?returnTo=/apps/analytics/connectors/google" className="mt-2 inline-block text-sky-400 hover:underline">Connect Google →</Link></div>:null}</section>
