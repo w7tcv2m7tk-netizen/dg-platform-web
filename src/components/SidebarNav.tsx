@@ -26,6 +26,8 @@ type FlatNavItem = {
   routes: AppRoute[];
   primaryHref: string;
   badge?: number;
+  badgeHref?: string;
+  badgeLabel?: string;
 };
 
 function FlatAppLinks({
@@ -41,21 +43,34 @@ function FlatAppLinks({
     <div className="flex flex-col gap-0.5">
       {items.map((item) => {
         const active = itemHasActiveRoute(pathname, item.routes);
+        const hasBadge = item.badge != null && item.badge > 0;
         return (
-          <ShellNavLink
-            key={item.id}
-            href={item.primaryHref}
-            onClick={onNavigate}
-            className={(pending) => linkClass(active, pending)}
-          >
-            <SidebarIcon glyph={item.icon} />
-            <span className="truncate">{item.name}</span>
-            {item.badge != null && item.badge > 0 ? (
-              <span className="ml-auto rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">
-                {item.badge > 99 ? "99+" : item.badge}
-              </span>
+          <div key={item.id} className="relative">
+            <ShellNavLink
+              href={item.primaryHref}
+              onClick={onNavigate}
+              className={(pending) => `${linkClass(active, pending)} ${hasBadge && item.badgeHref ? "pr-20" : ""}`}
+            >
+              <SidebarIcon glyph={item.icon} />
+              <span className="truncate">{item.name}</span>
+              {hasBadge && !item.badgeHref ? (
+                <span className="ml-auto rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">
+                  {item.badge! > 99 ? "99+" : item.badge}
+                </span>
+              ) : null}
+            </ShellNavLink>
+            {hasBadge && item.badgeHref ? (
+              <ShellNavLink
+                href={item.badgeHref}
+                onClick={onNavigate}
+                aria-label={item.badgeLabel ?? `${item.badge} alerts require attention`}
+                title={item.badgeLabel ?? `${item.badge} alerts require attention — review and resolve`}
+                className={() => "absolute right-2 top-1/2 -translate-y-1/2 rounded-md border border-amber-400/30 bg-amber-500/20 px-2 py-1 text-[10px] font-semibold tabular-nums text-amber-100 hover:bg-amber-500/30 hover:text-white"}
+              >
+                {item.badge! > 99 ? "99+" : item.badge} alert{item.badge === 1 ? "" : "s"}
+              </ShellNavLink>
             ) : null}
-          </ShellNavLink>
+          </div>
         );
       })}
     </div>
@@ -238,6 +253,11 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           ? [{ path: "/command", label: "Command Centre", exact: true }]
           : app.routes,
       badge: app.id === "command-centre" ? (ccBadge ?? undefined) : undefined,
+      badgeHref: app.id === "command-centre" && ccBadge && ccBadge > 0 ? "/command/platform-health" : undefined,
+      badgeLabel:
+        app.id === "command-centre" && ccBadge && ccBadge > 0
+          ? `${ccBadge} platform alert${ccBadge === 1 ? "" : "s"} require attention — review the issue and resolution steps`
+          : undefined,
     }))
     .sort(
       (a, b) =>
