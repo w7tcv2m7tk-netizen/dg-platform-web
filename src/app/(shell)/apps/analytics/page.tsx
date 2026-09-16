@@ -106,7 +106,7 @@ export default async function AnalyticsOverviewPage() {
         <section className="dg-card">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div><h2 className="font-semibold text-white">Lead trend</h2><p className="mt-1 text-sm text-slate-500">Eight months of native CRM lead creation.</p></div>
-            <Link href="/apps/crm/leads" className="text-sm text-sky-400 hover:underline">Drill down →</Link>
+            <Link href="/apps/crm" className="text-sm text-sky-400 hover:underline">Drill down →</Link>
           </div>
           <div className="mt-4"><AnalyticsTrendChart points={bundle.leadTrend} note={bundle.leadTrendNote} /></div>
         </section>
