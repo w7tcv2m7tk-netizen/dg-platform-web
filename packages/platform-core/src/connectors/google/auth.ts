@@ -67,6 +67,8 @@ export type OrgGoogleGbpConnectorTokens = {
   connectedAt?: string;
   label?: string;
   lastError?: string;
+  /** Explicit GBP resources owned by this DigitalGate organisation. */
+  selectedLocationNames?: string[];
   health?: {
     status: "connected" | "degraded" | "error" | "disconnected";
     lastSyncAt?: string | null;
@@ -199,6 +201,9 @@ export async function getOrgGoogleGbpConnectorTokens(organisationId: string): Pr
     connectedAt: typeof blob.connectedAt === "string" ? blob.connectedAt : undefined,
     label: typeof blob.label === "string" ? blob.label : undefined,
     lastError: typeof blob.lastError === "string" ? blob.lastError : undefined,
+    selectedLocationNames: Array.isArray(blob.selectedLocationNames)
+      ? blob.selectedLocationNames.filter((value): value is string => typeof value === "string" && value.startsWith("accounts/") && value.includes("/locations/"))
+      : undefined,
     health: blob.health && typeof blob.health === "object" ? blob.health as OrgGoogleGbpConnectorTokens["health"] : undefined,
     accounts: Array.isArray(blob.accounts) ? blob.accounts as OrgGoogleGbpConnectorTokens["accounts"] : undefined,
     locations: Array.isArray(blob.locations) ? blob.locations as OrgGoogleGbpConnectorTokens["locations"] : undefined,
@@ -210,7 +215,9 @@ export async function saveOrgGoogleGbpConnectorTokens(organisationId: string, to
   await saveOrgConnectorSettings(organisationId, "google-gbp", {
     accessToken: encryptTokenField(tokens.accessToken), refreshToken: encryptTokenField(tokens.refreshToken),
     expiresAt: tokens.expiresAt ?? null, scope: tokens.scope ?? null, connectedAt: tokens.connectedAt ?? new Date().toISOString(),
-    label: tokens.label ?? null, lastError: tokens.lastError ?? null, health: tokens.health ?? null,
+    label: tokens.label ?? null, lastError: tokens.lastError ?? null,
+    selectedLocationNames: tokens.selectedLocationNames ?? null,
+    health: tokens.health ?? null,
     accounts: tokens.accounts ?? null, locations: tokens.locations ?? null, reviews: tokens.reviews ?? null,
   });
 }
