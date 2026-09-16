@@ -1,1 +1,0 @@
-Temporary implementation note: surface the organisation-scoped GBP location selector immediately after the operator GBP diagnostics card so operators can assign discovered locations without navigating to another settings surface.
