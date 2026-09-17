@@ -16,7 +16,13 @@ import { createLinkedInOAuthState } from "@/lib/linkedin-oauth-state";
 export const dynamic = "force-dynamic";
 
 /**
- * Start LinkedIn company-page OAuth.
+ * Start LinkedIn OAuth.
+ *
+ * The base connection deliberately requests only LinkedIn's OpenID scopes.
+ * Company-page publishing/management scopes are a separately vetted LinkedIn
+ * product and must not prevent an organisation from establishing its identity
+ * connection while Community Management access is pending.
+ *
  * GET /api/connectors/linkedin/connect
  */
 export async function GET(req: Request) {
@@ -80,7 +86,14 @@ export async function GET(req: Request) {
     );
   }
 
-  const authUrl = buildLinkedInAuthorizeUrl({ state });
+  // Keep the initial OAuth handshake usable even before LinkedIn approves the
+  // separately-vetted Community Management product. The post-connect probe
+  // will surface company-page capability as degraded until those permissions
+  // are available rather than failing the entire connection at authorisation.
+  const authUrl = buildLinkedInAuthorizeUrl({
+    state,
+    scopes: "openid profile email",
+  });
   if (!authUrl.ok) {
     return NextResponse.json(
       { error: { code: "linkedin_config", message: authUrl.message } },
