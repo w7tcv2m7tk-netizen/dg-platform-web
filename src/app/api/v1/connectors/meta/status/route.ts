@@ -39,16 +39,7 @@ export async function GET(req: Request) {
         selectedPageIds: refreshedTokens?.selectedPageIds ?? [],
         health: refreshedTokens?.health ?? null,
         lastError: refreshedTokens?.lastError ?? null,
-        probe: refreshedTokens?.health
-          ? {
-              ok: tokens.health.status === "connected",
-              message:
-                tokens.health.message ||
-                (tokens.health.status === "connected"
-                  ? "Meta connected"
-                  : "Meta connection needs attention"),
-            }
-          : null,
+        probe: probe ? { ok: probe.ok, message: probe.message } : null,
       },
     },
   });
