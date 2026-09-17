@@ -1,0 +1,8 @@
+import { createHmac, randomBytes, timingSafeEqual } from "crypto";
+type State={o:string;e:number;n:string};
+function secret(){return process.env.META_OAUTH_STATE_SECRET?.trim()||process.env.META_APP_SECRET?.trim()||process.env.CLERK_SECRET_KEY?.trim()||""}
+const b64=(s:string)=>Buffer.from(s,"utf8").toString("base64url");
+const unb64=(s:string)=>Buffer.from(s,"base64url").toString("utf8");
+const sig=(p:string,s:string)=>createHmac("sha256",s).update(p).digest("hex");
+export function createMetaOAuthState(organisationId:string){const s=secret();if(!s)throw new Error("No secret available to sign Meta OAuth state");const p=JSON.stringify({o:organisationId,e:Date.now()+30*60*1000,n:randomBytes(8).toString("hex")} satisfies State);return b64(JSON.stringify({p,s:sig(p,s)}))}
+export function parseMetaOAuthState(state:string):{ok:true;organisationId:string}|{ok:false;message:string}{const s=secret();if(!s)return {ok:false,message:"OAuth state secret not configured"};try{const e=JSON.parse(unb64(state.trim())) as {p?:string;s?:string};if(!e.p||!e.s)return {ok:false,message:"OAuth state missing payload"};const expected=sig(e.p,s);const a=Buffer.from(e.s);const b=Buffer.from(expected);if(a.length!==b.length||!timingSafeEqual(a,b))return {ok:false,message:"OAuth state signature mismatch"};const p=JSON.parse(e.p) as State;if(!p.o)return {ok:false,message:"OAuth state missing organisation"};if(typeof p.e!=="number"||Date.now()>p.e)return {ok:false,message:"OAuth state expired — try Connect Meta again"};return {ok:true,organisationId:p.o}}catch{return {ok:false,message:"Malformed OAuth state — hard refresh and click Connect Meta again"}}}

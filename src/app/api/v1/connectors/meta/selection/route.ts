@@ -1,0 +1,5 @@
+import { selectOrgMetaPages } from "@dg/platform-core";
+import { NextResponse } from "next/server";
+import { isNextResponse,requirePermission,requirePlatformAuth } from "@/lib/platform-api";
+export const dynamic="force-dynamic";
+export async function POST(req:Request){const session=await requirePlatformAuth(req);if(isNextResponse(session))return session;const denied=requirePermission(session,{module:"settings",action:"manage",scope:"organisation"});if(denied)return denied;const body=await req.json().catch(()=>null) as {pageIds?:unknown}|null;if(!Array.isArray(body?.pageIds)||!body!.pageIds.every(x=>typeof x==="string"))return NextResponse.json({error:{code:"invalid_page_ids",message:"pageIds must be an array of Facebook Page IDs"}},{status:400});try{const selectedPageIds=await selectOrgMetaPages(session.organisationId,body!.pageIds as string[]);return NextResponse.json({data:{selectedPageIds}})}catch(e){return NextResponse.json({error:{code:"meta_selection",message:e instanceof Error?e.message:"Could not save Meta Page selection"}},{status:400})}}

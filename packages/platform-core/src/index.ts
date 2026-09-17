@@ -35,6 +35,7 @@ export * from "./connectors/rea";
 export * from "./connectors/google";
 export * from "./connectors/microsoft";
 export * from "./connectors/linkedin";
+export * from "./connectors/meta";
 export * from "./connectors/corelogic";
 export * from "./connectors/abr";
 export * from "./connectors/asic";

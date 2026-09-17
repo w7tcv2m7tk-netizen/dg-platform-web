@@ -16,8 +16,6 @@ export const PUBLIC_ROUTE_PATTERNS: string[] = [
   "/",
   "/login(.*)",
   "/signup(.*)",
-  // New-account destination. The page itself handles signed-out visitors and
-  // preserves invite/journey/checkout state while handing them to /login.
   "/onboarding",
   "/r/(.*)",
   "/opportunity/(.*)",
@@ -35,9 +33,6 @@ export const PUBLIC_ROUTE_PATTERNS: string[] = [
   "/api/v1/addresses/resolve",
   "/api/v1/websites/public/(.*)",
   "/api/public/(.*)",
-  // Cron endpoints authenticate with CRON_SECRET in the handler
-  // (src/lib/cron-auth.ts). They carry no Clerk session, so Clerk must not
-  // intercept them — auth.protect() 404s API requests before the handler runs.
   "/api/cron/property-report-followups",
   "/api/cron/lead-followups",
   "/api/cron/pagespeed",
@@ -52,20 +47,16 @@ export const PUBLIC_ROUTE_PATTERNS: string[] = [
   "/api/webhooks/dreamscape",
   "/api/webhooks/dg-onboarding-sync",
   "/api/webhooks/dg-discovery",
-  // Server-to-server WordPress bridges — verify their own shared secret in the
-  // handler. Exact paths only, no wildcard.
   "/api/webhooks/dg-leads",
   "/api/webhooks/dg-stay-booking",
-  // Operator utility, gated by X-API-Key in the handler.
   "/api/indexnow",
   "/commerce/checkout/(.*)",
   "/api/webhooks/clerk(.*)",
-  // OAuth provider returns here without a guaranteed Clerk session cookie —
-  // must stay public or protect() → login → /dashboard drops the auth code.
   "/api/connectors/google/callback(.*)",
   "/api/connectors/google-gmail/callback(.*)",
   "/api/connectors/microsoft-365/callback(.*)",
   "/api/connectors/linkedin/callback(.*)",
+  "/api/connectors/meta/callback(.*)",
   "/api/connectors/domain/callback(.*)",
   "/api/connectors/rea/callback(.*)",
 ];
