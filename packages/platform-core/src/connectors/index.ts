@@ -4,6 +4,7 @@ export * from "./rea";
 export * from "./google";
 export * from "./microsoft";
 export * from "./linkedin";
+export * from "./meta";
 export * from "./wordpress";
 export * from "./corelogic";
 export * from "./abr";
