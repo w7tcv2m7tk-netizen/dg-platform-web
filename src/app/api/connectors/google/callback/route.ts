@@ -1,4 +1,4 @@
-import { exchangeGoogleAuthorizationCode, saveOrgGoogleGbpConnectorTokens, syncOrgGoogleGbp } from "@dg/platform-core";
+import { exchangeGoogleAuthorizationCode, getOrgGoogleGbpConnectorTokens, saveOrgGoogleGbpConnectorTokens, syncOrgGoogleGbp } from "@dg/platform-core";
 import { NextRequest, NextResponse } from "next/server";
 import { parseGoogleOAuthState } from "@/lib/google-oauth-state";
 import { logGoogleOAuthCallbackFailure } from "@/lib/google-oauth-callback-stage";
@@ -55,15 +55,27 @@ export async function GET(req: NextRequest) {
   const exchanged = await exchangeGoogleAuthorizationCode({ code });
   if (!exchanged.ok) return fail("token_exchange_failed", exchanged.message);
 
-  if (parsed.mode === "analytics" && exchanged.token.scope) {
-    const missing = missingAnalyticsScopes(exchanged.token.scope);
+  if (parsed.mode === "analytics") {
+    const missing = missingAnalyticsScopes(exchanged.token.scope || "");
     if (missing.length) {
       return fail("missing_analytics_scopes", `Google did not grant ${missing.length} required Analytics/Search Console permission(s).`);
     }
   }
 
   try {
-    await saveOrgGoogleGbpConnectorTokens(organisationId, { accessToken: exchanged.token.access_token, refreshToken: exchanged.token.refresh_token, expiresAt: exchanged.token.expiresAt, scope: exchanged.token.scope, connectedAt: new Date().toISOString() });
+    // Google is one organisation-scoped business connection. Re-authorising for
+    // Analytics/Search Console must enrich the OAuth token without erasing the
+    // already assigned GBP resources, health and cached evidence.
+    const existing = await getOrgGoogleGbpConnectorTokens(organisationId);
+    await saveOrgGoogleGbpConnectorTokens(organisationId, {
+      ...(existing ?? {}),
+      accessToken: exchanged.token.access_token,
+      refreshToken: exchanged.token.refresh_token || existing?.refreshToken,
+      expiresAt: exchanged.token.expiresAt,
+      scope: exchanged.token.scope || existing?.scope,
+      connectedAt: new Date().toISOString(),
+      lastError: undefined,
+    });
   } catch (err) {
     return fail("token_save_failed", err instanceof Error ? err.message : "Failed to save Google tokens");
   }
