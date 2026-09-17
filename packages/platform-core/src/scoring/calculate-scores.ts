@@ -205,10 +205,13 @@ export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult
   const sales = scoreFromSales(snapshot, metrics);
   addScore("conversion", sales, "derived", "Canonical CRM pipeline and follow-up metrics");
 
+  const twinReputation = snapshot.scores.reputation;
   const reputation =
     reputationOverride != null && Number.isFinite(reputationOverride)
       ? clamp(reputationOverride)
-      : null;
+      : typeof twinReputation === "number" && Number.isFinite(twinReputation)
+        ? clamp(twinReputation)
+        : null;
   addScore("reputation", reputation, "measured", "Connected review feed");
 
   const automation = scoreFromAutomation(snapshot, enabledAppIds, metrics);
