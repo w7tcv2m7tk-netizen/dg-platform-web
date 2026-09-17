@@ -66,6 +66,8 @@ export function generateBusinessIntelligence(
   const revenueLabel = formatAud(metrics.revenueMtdCents);
   const pipelineLabel = formatPipeline(snapshot.metrics.pipelineValue);
   const websiteScore = connectors.website?.score;
+  const hasMarketingScore = scores.scores.some((score) => score.scoreId === "marketing");
+  const marketingScore = hasMarketingScore ? getScoreValue(scores.scores, "marketing") : null;
 
   const briefingParts: string[] = [greetingForName(firstName) + "."];
   if (scores.scoresLive) {
@@ -213,6 +215,19 @@ export function generateBusinessIntelligence(
     });
   }
 
+  if (marketingScore != null) {
+    const sessions = snapshot.metrics.webSessions30d;
+    const clicks = snapshot.metrics.searchClicks30d;
+    const evidenceParts = [
+      typeof sessions === "number" ? `${sessions} website session${sessions === 1 ? "" : "s"}` : null,
+      typeof clicks === "number" ? `${clicks} organic search click${clicks === 1 ? "" : "s"}` : null,
+    ].filter(Boolean);
+    insights.push({
+      text: `Marketing Score: ${marketingScore}/100${evidenceParts.length ? ` from the latest 30-day Google evidence (${evidenceParts.join(" · ")})` : ""}.`,
+      tone: marketingScore >= 80 ? "positive" : marketingScore >= 60 ? "neutral" : "warning",
+    });
+  }
+
   if (connectors.reSummary?.vendorPipelineTotal) {
     insights.push({
       text: `${connectors.reSummary.vendorPipelineTotal} vendor leads in pipeline.`,
@@ -320,6 +335,16 @@ export function generateBusinessIntelligence(
       impact: `Measured AI Visibility is ${aiVis}/100`,
       href: "/apps/ai-visibility",
       buttonLabel: "Review",
+    });
+  }
+
+  if (marketingScore != null && marketingScore < 60) {
+    recommendedActions.push({
+      id: "marketing-performance",
+      label: "Review Marketing performance",
+      impact: `Measured Marketing Score is ${marketingScore}/100 from the latest 30-day Google evidence`,
+      href: "/apps/marketing",
+      buttonLabel: "Review Marketing",
     });
   }
 
