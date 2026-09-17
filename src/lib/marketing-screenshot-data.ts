@@ -44,6 +44,8 @@ export const marketingOverviewInput: BuildBusinessOverviewInput = {
     openOpportunityCount: 19,
     openLeadCount: 22,
     consultationCount: 0,
+    reputationScore: null,
+    reputationReviewCount: 0,
   },
   connectorProbes: {
     wordpress: {
