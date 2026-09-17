@@ -1,7 +1,9 @@
 import { getCommerceFinancialSnapshot } from "../commerce/payment-engine";
+import { getOrgGbpSyncSnapshot } from "../connectors/google/gbp";
 import { listLeads } from "../leads";
-import { listProperties } from "../properties";
 import { getPlatformSetupStatus } from "../org/setup-status";
+import { listProperties } from "../properties";
+import { computeReputationScore, mapGbpReviewsToFeed } from "../reviews";
 
 export interface OverviewLiveMetrics {
   contactCount: number;
@@ -23,6 +25,9 @@ export interface OverviewLiveMetrics {
   openOpportunityCount: number;
   openLeadCount: number;
   consultationCount: number;
+  /** Measured Reputation Score™ from the organisation's canonical connected review evidence. */
+  reputationScore: number | null;
+  reputationReviewCount: number;
 }
 
 function startOfWeek() {
@@ -40,7 +45,7 @@ function endOfToday() {
   return d;
 }
 
-/** Aggregate live KPIs from Postgres for Business Overview. */
+/** Aggregate live KPIs and canonical connector evidence for Business Overview. */
 export async function gatherOverviewLiveMetrics(
   organisationId: string,
   options: { includeFinancials?: boolean } = {},
@@ -64,62 +69,37 @@ export async function gatherOverviewLiveMetrics(
     openOpportunityCount,
     openLeadCount,
     consultationCount,
+    gbp,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
     includeFinancials ? getCommerceFinancialSnapshot(organisationId) : Promise.resolve(null),
     listLeads({ organisationId, leadType: "vendor", limit: 1 }),
     listLeads({ organisationId, leadType: "buyer", limit: 1 }),
+    prisma.lead.count({ where: { organisationId, createdAt: { gte: weekStart } } }),
     prisma.lead.count({
-      where: { organisationId, createdAt: { gte: weekStart } },
-    }),
-    prisma.lead.count({
-      where: {
-        organisationId,
-        responseDueAt: { lt: now },
-        firstResponseAt: null,
-      },
+      where: { organisationId, responseDueAt: { lt: now }, firstResponseAt: null },
     }),
     listProperties({ organisationId, status: "listed", limit: 1 }),
     prisma.property.aggregate({
       where: {
         organisationId,
-        status: {
-          in: [
-            "listed",
-            "under_offer",
-            "contract_signed",
-            "unconditional",
-            "appraisal",
-          ],
-        },
+        status: { in: ["listed", "under_offer", "contract_signed", "unconditional", "appraisal"] },
         listingPriceCents: { not: null },
       },
       _sum: { listingPriceCents: true },
     }),
-    prisma.task.count({
-      where: {
-        organisationId,
-        status: "open",
-        dueAt: { lte: todayEnd },
-      },
-    }),
-    prisma.opportunity.count({
-      where: { organisationId, status: "open" },
-    }),
+    prisma.task.count({ where: { organisationId, status: "open", dueAt: { lte: todayEnd } } }),
+    prisma.opportunity.count({ where: { organisationId, status: "open" } }),
     prisma.lead.count({
-      where: {
-        organisationId,
-        status: { notIn: ["converted", "lost", "closed", "junk"] },
-      },
+      where: { organisationId, status: { notIn: ["converted", "lost", "closed", "junk"] } },
     }),
     prisma.opportunity.count({
-      where: {
-        organisationId,
-        status: "open",
-        pipelineId: "platform_consultation",
-      },
+      where: { organisationId, status: "open", pipelineId: "platform_consultation" },
     }),
+    getOrgGbpSyncSnapshot(organisationId),
   ]);
+
+  const reputation = computeReputationScore(mapGbpReviewsToFeed(gbp?.reviews ?? []));
 
   return {
     contactCount: setupStatus.contactCount,
@@ -141,5 +121,7 @@ export async function gatherOverviewLiveMetrics(
     openOpportunityCount,
     openLeadCount,
     consultationCount,
+    reputationScore: reputation.score,
+    reputationReviewCount: reputation.reviewCount,
   };
 }
