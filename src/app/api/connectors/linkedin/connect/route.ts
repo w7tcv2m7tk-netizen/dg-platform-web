@@ -18,10 +18,9 @@ export const dynamic = "force-dynamic";
 /**
  * Start LinkedIn OAuth.
  *
- * The base connection deliberately requests only LinkedIn's OpenID scopes.
- * Company-page publishing/management scopes are a separately vetted LinkedIn
- * product and must not prevent an organisation from establishing its identity
- * connection while Community Management access is pending.
+ * DigitalGate has LinkedIn Community Management API access, so request the
+ * organisation scopes needed to discover administered Pages and support
+ * organisation publishing alongside the member identity connection.
  *
  * GET /api/connectors/linkedin/connect
  */
@@ -86,13 +85,10 @@ export async function GET(req: Request) {
     );
   }
 
-  // Keep the initial OAuth handshake usable even before LinkedIn approves the
-  // separately-vetted Community Management product. The post-connect probe
-  // will surface company-page capability as degraded until those permissions
-  // are available rather than failing the entire connection at authorisation.
   const authUrl = buildLinkedInAuthorizeUrl({
     state,
-    scopes: "openid profile email",
+    scopes:
+      "openid profile email r_organization_admin rw_organization_admin r_organization_social w_organization_social",
   });
   if (!authUrl.ok) {
     return NextResponse.json(
