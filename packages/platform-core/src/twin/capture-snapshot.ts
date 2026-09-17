@@ -20,42 +20,27 @@ export interface CaptureTwinSnapshotInput {
 }
 
 /** Build a Digital Twin snapshot from live metrics and connector probes. */
-export function captureDigitalTwinSnapshot(
-  input: CaptureTwinSnapshotInput,
-): DigitalTwinSnapshot {
-  const { organisationId, organisationName, enabledAppIds, metrics, connectors, profile } =
-    input;
-
-  const displayName =
-    profile?.tradingName?.trim() ||
-    profile?.businessName?.trim() ||
-    organisationName;
+export function captureDigitalTwinSnapshot(input: CaptureTwinSnapshotInput): DigitalTwinSnapshot {
+  const { organisationId, organisationName, enabledAppIds, metrics, connectors, profile } = input;
+  const displayName = profile?.tradingName?.trim() || profile?.businessName?.trim() || organisationName;
   const brandColours = profile?.brandColours
     ? profile.brandColours.split(/[,;]+/).map((c) => c.trim()).filter(Boolean)
     : undefined;
 
   const connected: string[] = [];
   if (enabledAppIds.includes("crm")) connected.push("crm");
-  if (connectors.website?.ok || enabledAppIds.includes("websites")) {
-    connected.push("website");
-  }
+  if (connectors.website?.ok || enabledAppIds.includes("websites")) connected.push("website");
   if (connectors.wordpress?.ok) connected.push("wordpress");
   if (connectors.stripeOk) connected.push("stripe");
   if (enabledAppIds.includes("real-estate")) connected.push("real-estate");
   if (enabledAppIds.includes("accommodation")) connected.push("accommodation");
   if (enabledAppIds.includes("commerce")) connected.push("commerce");
   if (enabledAppIds.includes("automation")) connected.push("automation");
-  if (connectors.comms?.ok || hasAdvancedCommsEntitlement({ enabledAppIds })) {
-    connected.push("communications");
-  }
+  if (metrics.reputationReviewCount > 0) connected.push("reputation");
+  if (connectors.comms?.ok || hasAdvancedCommsEntitlement({ enabledAppIds })) connected.push("communications");
 
   const websiteScore = connectors.website?.score;
-  // Business Health must never manufacture monetary pipeline value from lead counts.
-  // A zero/absent pipeline is kept as observed until a canonical CRM opportunity value exists.
-  const pipelineValue =
-    metrics.pipelineValueCents > 0
-      ? metrics.pipelineValueCents / 100
-      : undefined;
+  const pipelineValue = metrics.pipelineValueCents > 0 ? metrics.pipelineValueCents / 100 : undefined;
 
   return {
     organisationId,
@@ -69,13 +54,12 @@ export function captureDigitalTwinSnapshot(
     },
     scores: {
       websiteHealth: websiteScore,
+      reputation: metrics.reputationScore ?? undefined,
       calculatedAt: new Date(),
     },
     metrics: {
       contactCount: metrics.contactCount,
-      activeLeads:
-        metrics.openLeadCount ??
-        metrics.vendorLeadCount + metrics.buyerLeadCount,
+      activeLeads: metrics.openLeadCount ?? metrics.vendorLeadCount + metrics.buyerLeadCount,
       pipelineValue,
       openTasks: metrics.openTasksDue,
       connectedConnectors: connected.length,
