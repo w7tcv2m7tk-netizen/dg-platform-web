@@ -1,6 +1,7 @@
 import {
   getOrgMetaConnectorTokens,
   metaCredentialsConfigured,
+  probeOrgMetaConnection,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -14,6 +15,8 @@ export async function GET(req: Request) {
 
   const tokens = await getOrgMetaConnectorTokens(session.organisationId);
   const connected = Boolean(tokens?.accessToken);
+  const probe = connected ? await probeOrgMetaConnection(session.organisationId) : null;
+  const refreshedTokens = connected ? await getOrgMetaConnectorTokens(session.organisationId) : tokens;
 
   return NextResponse.json({
     data: {
@@ -29,14 +32,14 @@ export async function GET(req: Request) {
         id: session.organisationId,
         name: session.organisationName,
         connected,
-        expiresAt: tokens?.expiresAt ?? null,
-        connectedAt: tokens?.connectedAt ?? null,
-        label: tokens?.label ?? null,
-        pages: tokens?.pages ?? [],
-        selectedPageIds: tokens?.selectedPageIds ?? [],
-        health: tokens?.health ?? null,
-        lastError: tokens?.lastError ?? null,
-        probe: tokens?.health
+        expiresAt: refreshedTokens?.expiresAt ?? null,
+        connectedAt: refreshedTokens?.connectedAt ?? null,
+        label: refreshedTokens?.label ?? null,
+        pages: refreshedTokens?.pages ?? [],
+        selectedPageIds: refreshedTokens?.selectedPageIds ?? [],
+        health: refreshedTokens?.health ?? null,
+        lastError: refreshedTokens?.lastError ?? null,
+        probe: refreshedTokens?.health
           ? {
               ok: tokens.health.status === "connected",
               message:
