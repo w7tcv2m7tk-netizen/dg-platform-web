@@ -3,7 +3,6 @@ import {
   probeOrgLinkedInConnection,
   saveOrgLinkedInConnectorTokens,
 } from "@dg/platform-core";
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import { parseLinkedInOAuthState } from "@/lib/linkedin-oauth-state";
@@ -26,7 +25,9 @@ function returnPath(state: LinkedInReturnState, message?: string) {
  * https://app.digitalgate.com.au/api/connectors/linkedin/callback
  *
  * Organisation id travels in signed OAuth `state` (not cookies).
- * Callback is a public Clerk route.
+ * Callback is deliberately public so LinkedIn can return without a Clerk
+ * session/middleware dependency. The signed state binds the callback to the
+ * organisation that initiated the connection.
  */
 export async function GET(req: NextRequest) {
   const base = req.nextUrl.origin;
@@ -93,14 +94,6 @@ export async function GET(req: NextRequest) {
           ? `LinkedIn connected, but the account check needs attention: ${err.message}`
           : "LinkedIn connected, but the account check needs attention.",
     };
-  }
-
-  const { userId } = await auth();
-  if (!userId) {
-    const after = returnPath(result.state, result.message);
-    return NextResponse.redirect(
-      new URL(`/login?redirect_url=${encodeURIComponent(after)}`, base),
-    );
   }
 
   return finish(result.state, result.message);
