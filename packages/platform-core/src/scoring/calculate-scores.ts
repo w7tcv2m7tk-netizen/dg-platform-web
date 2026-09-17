@@ -8,11 +8,22 @@ function clamp(value: number, min = 0, max = 100) {
 
 export type ScoreEvidenceState = "measured" | "derived" | "unavailable";
 export type BusinessHealthConfidence = "insufficient" | "low" | "medium" | "high";
-export type ScoreEvidence = { scoreId: ScoreId; state: ScoreEvidenceState; weight: number; source: string };
+
+export type ScoreEvidence = {
+  scoreId: ScoreId;
+  state: ScoreEvidenceState;
+  weight: number;
+  source: string;
+};
 
 const SCORE_WEIGHTS: Partial<Record<ScoreId, number>> = {
-  ai_visibility: 14, seo: 12, website_health: 16, business_growth: 12,
-  conversion: 16, reputation: 12, automation: 8,
+  ai_visibility: 14,
+  seo: 12,
+  website_health: 16,
+  business_growth: 12,
+  conversion: 16,
+  reputation: 12,
+  automation: 8,
 };
 const FINANCE_WEIGHT = 10;
 
@@ -22,52 +33,76 @@ function hasConnector(snapshot: DigitalTwinSnapshot, ...ids: string[]) {
 
 function scoreFromWebsite(snapshot: DigitalTwinSnapshot): number | null {
   const probe = snapshot.scores.websiteHealth;
-  return typeof probe === "number" && Number.isFinite(probe) && probe > 0 ? clamp(probe) : null;
+  return typeof probe === "number" && Number.isFinite(probe) && probe > 0
+    ? clamp(probe)
+    : null;
 }
 
 function scoreFromBusinessGrowth(snapshot: DigitalTwinSnapshot): number | null {
   const hasCrm = hasConnector(snapshot, "crm", "real-estate");
   const hasCommerce = hasConnector(snapshot, "commerce", "stripe");
   if (!hasCrm && !hasCommerce) return null;
+
   const components: number[] = [];
   if (hasCrm) {
     const leads = snapshot.metrics.activeLeads ?? 0;
     const pipeline = snapshot.metrics.pipelineValue ?? 0;
     components.push(clamp(leads * 12.5));
+    // Pipeline value is canonical only when supplied by live metrics; capture-snapshot
+    // deliberately no longer manufactures a value from lead counts.
     components.push(pipeline > 0 ? clamp((pipeline / 250_000) * 25) : 0);
   }
   if (hasCommerce) {
     const revenue = (snapshot.metrics.revenueMtdCents ?? 0) / 100;
     components.push(revenue > 0 ? clamp((revenue / 25_000) * 100) : 0);
   }
-  return components.length ? clamp(components.reduce((sum, value) => sum + value, 0) / components.length) : null;
+  return components.length
+    ? clamp(components.reduce((sum, value) => sum + value, 0) / components.length)
+    : null;
 }
 
 function scoreFromSales(snapshot: DigitalTwinSnapshot, metrics: OverviewMetricsContext): number | null {
   if (!hasConnector(snapshot, "crm", "real-estate")) return null;
+
   const activeLeads = snapshot.metrics.activeLeads ?? 0;
   const opportunities = snapshot.metrics.openOpportunities ?? 0;
   const activityScore = clamp(
-    Math.min(40, metrics.newLeadsThisWeek * 8) + Math.min(30, opportunities * 10) +
-    Math.min(20, activeLeads * 2) + (metrics.listedPropertyCount > 0 ? 10 : 0),
+    Math.min(40, metrics.newLeadsThisWeek * 8) +
+      Math.min(30, opportunities * 10) +
+      Math.min(20, activeLeads * 2) +
+      (metrics.listedPropertyCount > 0 ? 10 : 0),
   );
-  return clamp(activityScore - Math.min(40, metrics.overdueFollowUps * 8));
+  const followUpPenalty = Math.min(40, metrics.overdueFollowUps * 8);
+  return clamp(activityScore - followUpPenalty);
 }
 
-function scoreFromAutomation(snapshot: DigitalTwinSnapshot, enabledAppIds: string[], metrics: OverviewMetricsContext): number | null {
-  if (!enabledAppIds.includes("automation") || !hasConnector(snapshot, "automation")) return null;
-  const workloadScore = metrics.openTasksDue === 0 ? 100 : clamp(100 - Math.min(70, metrics.openTasksDue * 7));
-  const followUpScore = metrics.overdueFollowUps === 0 ? 100 : clamp(100 - Math.min(80, metrics.overdueFollowUps * 12));
-  return clamp((workloadScore + followUpScore) / 2 + (metrics.hasTimelineActivity ? 0 : -15));
+function scoreFromAutomation(
+  snapshot: DigitalTwinSnapshot,
+  enabledAppIds: string[],
+  metrics: OverviewMetricsContext,
+): number | null {
+  if (!enabledAppIds.includes("automation") || !hasConnector(snapshot, "automation")) {
+    return null;
+  }
+
+  const due = metrics.openTasksDue;
+  const overdue = metrics.overdueFollowUps;
+  const workloadScore = due === 0 ? 100 : clamp(100 - Math.min(70, due * 7));
+  const followUpScore = overdue === 0 ? 100 : clamp(100 - Math.min(80, overdue * 12));
+  const activityAdjustment = metrics.hasTimelineActivity ? 0 : -15;
+  return clamp((workloadScore + followUpScore) / 2 + activityAdjustment);
 }
 
 function scoreFromFinance(snapshot: DigitalTwinSnapshot, metrics: OverviewMetricsContext): number | null {
   if (!hasConnector(snapshot, "commerce", "stripe")) return null;
+
   const revenue = metrics.revenueMtdCents ?? snapshot.metrics.revenueMtdCents ?? 0;
   const overdue = snapshot.metrics.overdueArCents ?? 0;
   const outstanding = snapshot.metrics.outstandingArCents ?? 0;
   const collectionBase = outstanding > 0 ? clamp(100 - (overdue / outstanding) * 100) : 100;
-  return clamp(collectionBase * 0.5 + (revenue > 0 ? 100 : 50) * 0.35 + (metrics.activeSubscriptions > 0 ? 100 : 50) * 0.15);
+  const revenueEvidence = revenue > 0 ? 100 : 50;
+  const subscriptionEvidence = metrics.activeSubscriptions > 0 ? 100 : 50;
+  return clamp(collectionBase * 0.5 + revenueEvidence * 0.35 + subscriptionEvidence * 0.15);
 }
 
 export interface CalculateScoresInput {
@@ -75,8 +110,14 @@ export interface CalculateScoresInput {
   enabledAppIds: string[];
   metrics: OverviewMetricsContext;
   profile?: OrganisationBusinessProfile | null;
+  /** When set (e.g. from Reviews feed), this is measured reputation evidence. */
   reputationOverride?: number | null;
-  presenceAuditOverride?: { seo: number; aiVisibility: number; websiteHealth: number } | null;
+  /** Fresh org presence audit. These are measured scores, not profile heuristics. */
+  presenceAuditOverride?: {
+    seo: number;
+    aiVisibility: number;
+    websiteHealth: number;
+  } | null;
 }
 
 export interface OverviewMetricsContext {
@@ -93,7 +134,9 @@ export interface OverviewMetricsContext {
 export interface OrgScoresResult {
   scores: ScoreResult[];
   businessHealth: number;
+  /** No synthetic delta: history owns change calculations. */
   businessHealthDelta: number;
+  /** No synthetic trend: persisted history owns trend data. */
   healthTrend: number[];
   financeScore: number;
   evidence: ScoreEvidence[];
@@ -112,14 +155,25 @@ function confidenceFromCoverage(coverage: number, measuredCount: number): Busine
 
 /** Compute Business Health only from organisation-scoped, observed evidence. */
 export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult {
-  const { snapshot, enabledAppIds, metrics, reputationOverride, presenceAuditOverride } = input;
+  const {
+    snapshot,
+    enabledAppIds,
+    metrics,
+    reputationOverride,
+    presenceAuditOverride,
+  } = input;
   const now = new Date();
   const orgId = snapshot.organisationId;
   const scores: ScoreResult[] = [];
   const evidence: ScoreEvidence[] = [];
   const weighted: Array<{ value: number; weight: number }> = [];
 
-  const addScore = (scoreId: ScoreId, value: number | null, state: ScoreEvidenceState, source: string) => {
+  const addScore = (
+    scoreId: ScoreId,
+    value: number | null,
+    state: ScoreEvidenceState,
+    source: string,
+  ) => {
     const weight = SCORE_WEIGHTS[scoreId] ?? 0;
     evidence.push({ scoreId, state: value == null ? "unavailable" : state, weight, source });
     if (value == null) return;
@@ -129,40 +183,79 @@ export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult
   };
 
   const presence = presenceAuditOverride
-    ? { website: clamp(presenceAuditOverride.websiteHealth), seo: clamp(presenceAuditOverride.seo), ai: clamp(presenceAuditOverride.aiVisibility) }
+    ? {
+        website: clamp(presenceAuditOverride.websiteHealth),
+        seo: clamp(presenceAuditOverride.seo),
+        ai: clamp(presenceAuditOverride.aiVisibility),
+      }
     : null;
-  addScore("website_health", presence?.website ?? scoreFromWebsite(snapshot), "measured", presence ? "Latest presence audit" : "Website health probe");
+  const website = presence?.website ?? scoreFromWebsite(snapshot);
+  addScore(
+    "website_health",
+    website,
+    "measured",
+    presence ? "Latest presence audit" : "Website health probe",
+  );
   addScore("seo", presence?.seo ?? null, "measured", "Latest presence audit");
   addScore("ai_visibility", presence?.ai ?? null, "measured", "Latest presence audit");
-  addScore("business_growth", scoreFromBusinessGrowth(snapshot), "derived", "Canonical CRM and commerce metrics");
-  addScore("conversion", scoreFromSales(snapshot, metrics), "derived", "Canonical CRM pipeline and follow-up metrics");
+
+  const growth = scoreFromBusinessGrowth(snapshot);
+  addScore("business_growth", growth, "derived", "Canonical CRM and commerce metrics");
+
+  const sales = scoreFromSales(snapshot, metrics);
+  addScore("conversion", sales, "derived", "Canonical CRM pipeline and follow-up metrics");
 
   const twinReputation = snapshot.scores.reputation;
-  const reputation = reputationOverride != null && Number.isFinite(reputationOverride)
-    ? clamp(reputationOverride)
-    : typeof twinReputation === "number" && Number.isFinite(twinReputation)
-      ? clamp(twinReputation)
-      : null;
+  const reputation =
+    reputationOverride != null && Number.isFinite(reputationOverride)
+      ? clamp(reputationOverride)
+      : typeof twinReputation === "number" && Number.isFinite(twinReputation)
+        ? clamp(twinReputation)
+        : null;
   addScore("reputation", reputation, "measured", "Connected review feed");
 
-  addScore("automation", scoreFromAutomation(snapshot, enabledAppIds, metrics), "derived", "Automation task and follow-up activity");
+  const automation = scoreFromAutomation(snapshot, enabledAppIds, metrics);
+  addScore("automation", automation, "derived", "Automation task and follow-up activity");
 
   const finance = scoreFromFinance(snapshot, metrics);
-  evidence.push({ scoreId: "success_score", state: finance == null ? "unavailable" : "derived", weight: FINANCE_WEIGHT, source: "Canonical commerce, subscription and receivables metrics" });
+  evidence.push({
+    scoreId: "success_score",
+    state: finance == null ? "unavailable" : "derived",
+    weight: FINANCE_WEIGHT,
+    source: "Canonical commerce, subscription and receivables metrics",
+  });
   if (finance != null) weighted.push({ value: finance, weight: FINANCE_WEIGHT });
 
   const availableWeight = weighted.reduce((sum, item) => sum + item.weight, 0);
-  const businessHealth = availableWeight ? clamp(weighted.reduce((sum, item) => sum + item.value * item.weight, 0) / availableWeight) : 0;
+  const businessHealth = availableWeight
+    ? clamp(weighted.reduce((sum, item) => sum + item.value * item.weight, 0) / availableWeight)
+    : 0;
   const measuredDimensionCount = weighted.length;
   const evidenceCoveragePercent = clamp(availableWeight);
   const confidence = confidenceFromCoverage(evidenceCoveragePercent, measuredDimensionCount);
   const scoresLive = confidence !== "insufficient";
 
-  if (scoresLive) scores.push({ scoreId: "success_score", organisationId: orgId, value: businessHealth, maxValue: 100, calculatedAt: now });
+  if (scoresLive) {
+    scores.push({
+      scoreId: "success_score",
+      organisationId: orgId,
+      value: businessHealth,
+      maxValue: 100,
+      calculatedAt: now,
+    });
+  }
 
   return {
-    scores, businessHealth, businessHealthDelta: 0, healthTrend: [], financeScore: finance ?? 0,
-    evidence, evidenceCoveragePercent, measuredDimensionCount, confidence, scoresLive,
+    scores,
+    businessHealth,
+    businessHealthDelta: 0,
+    healthTrend: [],
+    financeScore: finance ?? 0,
+    evidence,
+    evidenceCoveragePercent,
+    measuredDimensionCount,
+    confidence,
+    scoresLive,
   };
 }
 
