@@ -43,10 +43,12 @@ export function ChatWidgetProvider({
   children,
   userName,
   showFloatingChat = true,
+  showAidaAvatar = false,
 }: {
   children: ReactNode;
   userName?: string;
   showFloatingChat?: boolean;
+  showAidaAvatar?: boolean;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -70,6 +72,7 @@ export function ChatWidgetProvider({
           onOpenChange={setOpen}
           initialDraft={pendingDraft}
           onDraftApplied={() => setPendingDraft(undefined)}
+          showAidaAvatar={showAidaAvatar}
         />
       ) : null}
     </ChatWidgetContext.Provider>
