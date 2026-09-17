@@ -15,6 +15,7 @@ export interface DigitalTwinScores {
   seo?: number;
   websiteHealth?: number;
   businessGrowth?: number;
+  marketing?: number;
   businessHealth?: number;
   reputation?: number;
   automation?: number;
@@ -41,6 +42,15 @@ export interface DigitalTwinSnapshot {
     openOpportunities?: number;
     consultations?: number;
     newEnquiriesThisWeek?: number;
+    /** Canonical web marketing evidence (GA4 + Search Console). */
+    webActiveUsers30d?: number;
+    webSessions30d?: number;
+    webEngagedSessions30d?: number;
+    webKeyEvents30d?: number;
+    searchClicks30d?: number;
+    searchImpressions30d?: number;
+    searchCtr30d?: number;
+    searchPosition30d?: number;
     /** Commerce / Financial Health (Digital Twin™) */
     revenueMtdCents?: number;
     outstandingArCents?: number;
