@@ -37,6 +37,7 @@ export function captureDigitalTwinSnapshot(input: CaptureTwinSnapshotInput): Dig
   if (enabledAppIds.includes("commerce")) connected.push("commerce");
   if (enabledAppIds.includes("automation")) connected.push("automation");
   if (metrics.reputationReviewCount > 0) connected.push("reputation");
+  if (metrics.marketing) connected.push("google-marketing");
   if (connectors.comms?.ok || hasAdvancedCommsEntitlement({ enabledAppIds })) connected.push("communications");
 
   const websiteScore = connectors.website?.score;
@@ -63,6 +64,14 @@ export function captureDigitalTwinSnapshot(input: CaptureTwinSnapshotInput): Dig
       pipelineValue,
       openTasks: metrics.openTasksDue,
       connectedConnectors: connected.length,
+      webActiveUsers30d: metrics.marketing?.activeUsers ?? undefined,
+      webSessions30d: metrics.marketing?.sessions ?? undefined,
+      webEngagedSessions30d: metrics.marketing?.engagedSessions ?? undefined,
+      webKeyEvents30d: metrics.marketing?.keyEvents ?? undefined,
+      searchClicks30d: metrics.marketing?.searchClicks ?? undefined,
+      searchImpressions30d: metrics.marketing?.searchImpressions ?? undefined,
+      searchCtr30d: metrics.marketing?.searchCtr ?? undefined,
+      searchPosition30d: metrics.marketing?.searchPosition ?? undefined,
       revenueMtdCents: metrics.revenueMtdCents,
       outstandingArCents: metrics.outstandingArCents,
       overdueArCents: metrics.overdueArCents,

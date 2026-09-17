@@ -5,6 +5,7 @@ export type ScoreId =
   | "seo"
   | "website_health"
   | "business_growth"
+  | "marketing"
   | "success_score"
   | "automation"
   | "conversion"
@@ -51,6 +52,13 @@ export const SCORE_DEFINITIONS: ScoreDefinition[] = [
     trademark: "Business Growth Score™",
     description: "Composite growth and conversion metrics",
     contributors: ["crm", "marketing", "analytics"],
+    maxValue: 100,
+  },
+  {
+    id: "marketing",
+    label: "Marketing Score",
+    description: "Measured web engagement, conversion and organic search performance",
+    contributors: ["marketing", "analytics"],
     maxValue: 100,
   },
   {

@@ -1,4 +1,5 @@
 import { getCommerceFinancialSnapshot } from "../commerce/payment-engine";
+import { fetchOrgGoogleWebEvidence } from "../connectors/google/analytics";
 import { getOrgGbpSyncSnapshot } from "../connectors/google/gbp";
 import { listLeads } from "../leads";
 import { getPlatformSetupStatus } from "../org/setup-status";
@@ -28,6 +29,18 @@ export interface OverviewLiveMetrics {
   /** Measured Reputation Score™ from the organisation's canonical connected review evidence. */
   reputationScore: number | null;
   reputationReviewCount: number;
+  /** Canonical organisation-scoped Google web evidence. Null means no usable evidence is connected. */
+  marketing: {
+    period: string;
+    activeUsers: number | null;
+    sessions: number | null;
+    engagedSessions: number | null;
+    keyEvents: number | null;
+    searchClicks: number | null;
+    searchImpressions: number | null;
+    searchCtr: number | null;
+    searchPosition: number | null;
+  } | null;
 }
 
 function startOfWeek() {
@@ -70,6 +83,7 @@ export async function gatherOverviewLiveMetrics(
     openLeadCount,
     consultationCount,
     gbp,
+    googleWebEvidence,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
     includeFinancials ? getCommerceFinancialSnapshot(organisationId) : Promise.resolve(null),
@@ -97,9 +111,24 @@ export async function gatherOverviewLiveMetrics(
       where: { organisationId, status: "open", pipelineId: "platform_consultation" },
     }),
     getOrgGbpSyncSnapshot(organisationId),
+    fetchOrgGoogleWebEvidence(organisationId).catch(() => null),
   ]);
 
   const reputation = computeReputationScore(mapGbpReviewsToFeed(gbp?.reviews ?? []));
+  const web = googleWebEvidence?.ok ? googleWebEvidence.data : null;
+  const marketing = web && (web.analytics || web.search)
+    ? {
+        period: web.period,
+        activeUsers: web.analytics?.activeUsers ?? null,
+        sessions: web.analytics?.sessions ?? null,
+        engagedSessions: web.analytics?.engagedSessions ?? null,
+        keyEvents: web.analytics?.keyEvents ?? null,
+        searchClicks: web.search?.clicks ?? null,
+        searchImpressions: web.search?.impressions ?? null,
+        searchCtr: web.search?.ctr ?? null,
+        searchPosition: web.search?.position ?? null,
+      }
+    : null;
 
   return {
     contactCount: setupStatus.contactCount,
@@ -123,5 +152,6 @@ export async function gatherOverviewLiveMetrics(
     consultationCount,
     reputationScore: reputation.score,
     reputationReviewCount: reputation.reviewCount,
+    marketing,
   };
 }

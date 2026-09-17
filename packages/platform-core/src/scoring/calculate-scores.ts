@@ -20,6 +20,7 @@ const SCORE_WEIGHTS: Partial<Record<ScoreId, number>> = {
   ai_visibility: 14,
   seo: 12,
   website_health: 16,
+  marketing: 0,
   business_growth: 12,
   conversion: 16,
   reputation: 12,
@@ -35,6 +36,44 @@ function scoreFromWebsite(snapshot: DigitalTwinSnapshot): number | null {
   const probe = snapshot.scores.websiteHealth;
   return typeof probe === "number" && Number.isFinite(probe) && probe > 0
     ? clamp(probe)
+    : null;
+}
+
+function scoreFromMarketing(snapshot: DigitalTwinSnapshot): number | null {
+  if (!hasConnector(snapshot, "google-marketing")) return null;
+
+  const sessions = snapshot.metrics.webSessions30d;
+  const engagedSessions = snapshot.metrics.webEngagedSessions30d;
+  const keyEvents = snapshot.metrics.webKeyEvents30d;
+  const clicks = snapshot.metrics.searchClicks30d;
+  const impressions = snapshot.metrics.searchImpressions30d;
+  const ctr = snapshot.metrics.searchCtr30d;
+  const position = snapshot.metrics.searchPosition30d;
+  const components: number[] = [];
+
+  if (typeof sessions === "number" && sessions >= 0) {
+    const engagementRate = sessions > 0 && typeof engagedSessions === "number"
+      ? engagedSessions / sessions
+      : 0;
+    components.push(clamp(engagementRate * 100));
+    const eventRate = sessions > 0 && typeof keyEvents === "number" ? keyEvents / sessions : 0;
+    components.push(clamp(eventRate * 500));
+  }
+  if (typeof impressions === "number" && impressions >= 0) {
+    const clickThroughRate =
+      typeof ctr === "number"
+        ? ctr
+        : impressions > 0 && typeof clicks === "number"
+          ? clicks / impressions
+          : 0;
+    components.push(clamp(clickThroughRate * 1000));
+  }
+  if (typeof position === "number" && Number.isFinite(position) && position > 0) {
+    components.push(clamp(110 - position * 5));
+  }
+
+  return components.length
+    ? clamp(components.reduce((sum, value) => sum + value, 0) / components.length)
     : null;
 }
 
@@ -198,6 +237,9 @@ export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult
   );
   addScore("seo", presence?.seo ?? null, "measured", "Latest presence audit");
   addScore("ai_visibility", presence?.ai ?? null, "measured", "Latest presence audit");
+
+  const marketing = scoreFromMarketing(snapshot);
+  addScore("marketing", marketing, "derived", "Google Analytics and Search Console evidence");
 
   const growth = scoreFromBusinessGrowth(snapshot);
   addScore("business_growth", growth, "derived", "Canonical CRM and commerce metrics");
