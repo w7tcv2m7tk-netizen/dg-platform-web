@@ -36,9 +36,11 @@ export default async function SocialAccountsPage({ searchParams }: PageProps) {
           flash={
             linkedinFlash === "connected"
               ? "connected"
-              : linkedinFlash === "error"
-                ? "error"
-                : null
+              : linkedinFlash === "attention"
+                ? "attention"
+                : linkedinFlash === "error"
+                  ? "error"
+                  : null
           }
           flashMessage={linkedinFlash ? flashMessage ?? null : null}
         />
