@@ -14,6 +14,7 @@ const isPublicRoute = createRouteMatcher(PUBLIC_ROUTE_PATTERNS);
 const isExternalOAuthCallback = createRouteMatcher([
   "/api/connectors/google/callback(.*)",
   "/api/connectors/linkedin/callback(.*)",
+  "/api/connectors/meta/callback(.*)",
 ]);
 
 const PLATFORM_HOSTS = new Set([
