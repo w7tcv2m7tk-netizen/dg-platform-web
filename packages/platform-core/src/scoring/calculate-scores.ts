@@ -20,7 +20,7 @@ const SCORE_WEIGHTS: Partial<Record<ScoreId, number>> = {
   ai_visibility: 14,
   seo: 12,
   website_health: 16,
-  marketing: 12,
+  marketing: 0,
   business_growth: 12,
   conversion: 16,
   reputation: 12,
@@ -239,7 +239,7 @@ export function calculateOrgScores(input: CalculateScoresInput): OrgScoresResult
   addScore("ai_visibility", presence?.ai ?? null, "measured", "Latest presence audit");
 
   const marketing = scoreFromMarketing(snapshot);
-  addScore("marketing", marketing, "measured", "Google Analytics and Search Console evidence");
+  addScore("marketing", marketing, "derived", "Google Analytics and Search Console evidence");
 
   const growth = scoreFromBusinessGrowth(snapshot);
   addScore("business_growth", growth, "derived", "Canonical CRM and commerce metrics");
