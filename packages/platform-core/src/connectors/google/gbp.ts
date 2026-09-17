@@ -224,11 +224,20 @@ export async function syncOrgGoogleGbp(organisationId: string): Promise<GbpSyncR
   reviews = reviews.slice(0, 200);
 
   const ok = locations.length > 0;
+  // Health is organisation-resource scoped. Discovery warnings from other Google
+  // accounts must not keep this organisation amber when every selected location
+  // is accessible and its review sync succeeds.
+  const selectedResourcesHealthy =
+    missing.length === 0 &&
+    locations.length === selectedNames.length &&
+    locations.length > 0 &&
+    reviewsOk;
+  const healthErrors = selectedResourcesHealthy ? [] : errors;
   const health: GbpConnectionHealth = {
-    status: ok ? (errors.length ? "degraded" : "connected") : "error",
-    lastSyncAt: syncedAt, lastError: errors[0] ?? null, accountCount: accounts.length, locationCount: locations.length,
+    status: ok ? (healthErrors.length ? "degraded" : "connected") : "error",
+    lastSyncAt: syncedAt, lastError: healthErrors[0] ?? null, accountCount: accounts.length, locationCount: locations.length,
     reviewsSynced: reviews.length, reviewsAvailable: reviewsOk, reviewsBlockedReason: reviewsOk ? null : reviewsBlockedReason,
-    message: buildSyncMessage({ accounts, locations, reviews, reviewsOk, reviewsBlockedReason, errors }),
+    message: buildSyncMessage({ accounts, locations, reviews, reviewsOk, reviewsBlockedReason, errors: healthErrors }),
   };
   await saveOrgGoogleGbpConnectorTokens(organisationId, { ...ensured.tokens, lastError: health.lastError ?? undefined, health, accounts, locations, reviews });
   return { ok, syncedAt, health, accounts, locations, reviews, reviewsAttempted, reviewsOk, errors };
