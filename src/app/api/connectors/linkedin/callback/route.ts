@@ -13,6 +13,14 @@ export const dynamic = "force-dynamic";
 
 const RETURN_PATH = "/apps/social/accounts";
 
+type LinkedInReturnState = "connected" | "attention";
+
+function returnPath(state: LinkedInReturnState, message?: string) {
+  const params = new URLSearchParams({ linkedin: state });
+  if (message) params.set("message", message);
+  return `${RETURN_PATH}?${params.toString()}`;
+}
+
 /**
  * LinkedIn OAuth redirect —
  * https://app.digitalgate.com.au/api/connectors/linkedin/callback
@@ -22,8 +30,8 @@ const RETURN_PATH = "/apps/social/accounts";
  */
 export async function GET(req: NextRequest) {
   const base = req.nextUrl.origin;
-  const connected = () =>
-    NextResponse.redirect(new URL(`${RETURN_PATH}?linkedin=connected`, base));
+  const finish = (state: LinkedInReturnState, message?: string) =>
+    NextResponse.redirect(new URL(returnPath(state, message), base));
   const fail = (msg: string) =>
     NextResponse.redirect(
       new URL(
@@ -69,19 +77,31 @@ export async function GET(req: NextRequest) {
     return fail(err instanceof Error ? err.message : "Failed to save LinkedIn tokens");
   }
 
+  let result: { state: LinkedInReturnState; message?: string } = {
+    state: "connected",
+  };
   try {
-    await probeOrgLinkedInConnection(organisationId);
-  } catch {
-    /* identity / ACL probe can be retried from Social → Accounts */
+    const probe = await probeOrgLinkedInConnection(organisationId);
+    if (!probe.ok) {
+      result = { state: "attention", message: probe.message };
+    }
+  } catch (err) {
+    result = {
+      state: "attention",
+      message:
+        err instanceof Error
+          ? `LinkedIn connected, but the account check needs attention: ${err.message}`
+          : "LinkedIn connected, but the account check needs attention.",
+    };
   }
 
   const { userId } = await auth();
   if (!userId) {
-    const after = `${RETURN_PATH}?linkedin=connected`;
+    const after = returnPath(result.state, result.message);
     return NextResponse.redirect(
       new URL(`/login?redirect_url=${encodeURIComponent(after)}`, base),
     );
   }
 
-  return connected();
+  return finish(result.state, result.message);
 }
