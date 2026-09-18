@@ -26,7 +26,7 @@ export default async function SocialOverviewPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Social</h1>
         <p className="text-sm text-slate-400">
-          Profile links, local drafts, LinkedIn connect
+          Connected social evidence, profile links and local drafts
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -94,7 +94,7 @@ export default async function SocialOverviewPage() {
               <Link href="/apps/social/accounts" className="text-sky-400 hover:underline">
                 Accounts
               </Link>{" "}
-              — Connect LinkedIn; Meta still pending
+              — manage organisation-scoped LinkedIn and Meta connections, Facebook/Instagram selection and Meta Ads accounts
             </li>
             <li>
               <Link href="/dashboard/business" className="text-sky-400 hover:underline">
