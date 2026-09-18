@@ -89,6 +89,7 @@ export async function gatherOverviewLiveMetrics(
     consultationCount,
     gbp,
     googleWebEvidence,
+    googleAdsEvidence,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
     includeFinancials ? getCommerceFinancialSnapshot(organisationId) : Promise.resolve(null),
@@ -117,6 +118,7 @@ export async function gatherOverviewLiveMetrics(
     }),
     getOrgGbpSyncSnapshot(organisationId),
     fetchOrgGoogleWebEvidence(organisationId).catch(() => null),
+    fetchOrgGoogleAdsEvidence(organisationId).catch(() => null),
   ]);
 
   const reputation = computeReputationScore(mapGbpReviewsToFeed(gbp?.reviews ?? []));
