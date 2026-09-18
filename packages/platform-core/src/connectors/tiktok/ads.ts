@@ -26,3 +26,17 @@ export async function exchangeTikTokAdsCode(authCode:string){
  const j=await r.json().catch(()=>null) as any;if(!r.ok||Number(j?.code)!==0||!j?.data?.access_token)return {ok:false as const,message:String(j?.message||`TikTok Ads token HTTP ${r.status}`)};
  return {ok:true as const,accessToken:String(j.data.access_token),scope:Array.isArray(j.data.scope)?j.data.scope.join(","):typeof j.data.scope==="string"?j.data.scope:undefined};
 }
+
+async function tiktokGet(accessToken:string,path:string,params:Record<string,string>={}){
+ const u=new URL(`https://business-api.tiktok.com/open_api/v1.3${path}`);for(const [k,v] of Object.entries(params))u.searchParams.set(k,v);
+ const r=await fetch(u,{headers:{"Access-Token":accessToken,Accept:"application/json"}}),j=await r.json().catch(()=>null) as any;
+ if(!r.ok||Number(j?.code)!==0)return {ok:false as const,message:String(j?.message||`TikTok Ads HTTP ${r.status}`)};
+ return {ok:true as const,data:j?.data};
+}
+export async function probeOrgTikTokAdsAdvertisers(org:string){
+ const t=await getOrgTikTokAdsTokens(org);if(!t?.accessToken)return {ok:false as const,message:"TikTok Ads is not connected for this organisation"};
+ const r=await tiktokGet(t.accessToken,"/oauth2/advertiser/get/",{app_id:process.env.TIKTOK_ADS_APP_ID?.trim()||"",secret:process.env.TIKTOK_ADS_APP_SECRET?.trim()||""});if(!r.ok)return r;
+ const rows=Array.isArray((r.data as any)?.list)?(r.data as any).list:[];const accounts:TikTokAdsAccount[]=rows.flatMap((x:any)=>x?.advertiser_id?[{advertiserId:String(x.advertiser_id),name:typeof x.advertiser_name==="string"?x.advertiser_name:undefined}]:[]);
+ const allowed=new Set(accounts.map(x=>x.advertiserId)),selectedAdvertiserIds=(t.selectedAdvertiserIds||[]).filter(id=>allowed.has(id));await saveOrgTikTokAdsTokens(org,{...t,accounts,selectedAdvertiserIds});return {ok:true as const,data:accounts,selectedAdvertiserIds};
+}
+export async function selectOrgTikTokAdsAdvertisers(org:string,advertiserIds:string[]){const p=await probeOrgTikTokAdsAdvertisers(org);if(!p.ok)return p;const allowed=new Set(p.data.map(x=>x.advertiserId)),selectedAdvertiserIds=[...new Set(advertiserIds)].filter(id=>allowed.has(id));const t=await getOrgTikTokAdsTokens(org);if(!t)return {ok:false as const,message:"TikTok Ads is not connected"};await saveOrgTikTokAdsTokens(org,{...t,accounts:p.data,selectedAdvertiserIds});return {ok:true as const,selectedAdvertiserIds}}
