@@ -121,7 +121,16 @@ export async function gatherOverviewLiveMetrics(
     fetchOrgGoogleAdsEvidence(organisationId).catch(() => null),
   ]);
 
-  const advertising = googleAdsEvidence?.ok && googleAdsEvidence.data.length ? {\n    period: "LAST_30_DAYS" as const,\n    spend: googleAdsEvidence.data.reduce((n, x) => n + x.performance.spend, 0),\n    impressions: googleAdsEvidence.data.reduce((n, x) => n + x.performance.impressions, 0),\n    clicks: googleAdsEvidence.data.reduce((n, x) => n + x.performance.clicks, 0),\n    conversions: googleAdsEvidence.data.reduce((n, x) => n + x.performance.conversions, 0),\n    conversionsValue: googleAdsEvidence.data.reduce((n, x) => n + x.performance.conversionsValue, 0),\n    campaignCount: googleAdsEvidence.data.reduce((n, x) => n + x.campaigns.length, 0),\n  } : null;\n  const reputation = computeReputationScore(mapGbpReviewsToFeed(gbp?.reviews ?? []));
+  const advertising = googleAdsEvidence?.ok && googleAdsEvidence.data.length ? {
+    period: "LAST_30_DAYS" as const,
+    spend: googleAdsEvidence.data.reduce((n, x) => n + x.performance.spend, 0),
+    impressions: googleAdsEvidence.data.reduce((n, x) => n + x.performance.impressions, 0),
+    clicks: googleAdsEvidence.data.reduce((n, x) => n + x.performance.clicks, 0),
+    conversions: googleAdsEvidence.data.reduce((n, x) => n + x.performance.conversions, 0),
+    conversionsValue: googleAdsEvidence.data.reduce((n, x) => n + x.performance.conversionsValue, 0),
+    campaignCount: googleAdsEvidence.data.reduce((n, x) => n + x.campaigns.length, 0),
+  } : null;
+  const reputation = computeReputationScore(mapGbpReviewsToFeed(gbp?.reviews ?? []));
   const web = googleWebEvidence?.ok ? googleWebEvidence.data : null;
   const marketing = web && (web.analytics || web.search)
     ? {
