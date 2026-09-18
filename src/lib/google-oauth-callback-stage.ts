@@ -13,7 +13,7 @@ export type GoogleOAuthCallbackStage =
  */
 export function logGoogleOAuthCallbackFailure(
   stage: GoogleOAuthCallbackStage,
-  input: { mode?: "analytics" | "gbp"; message?: string } = {},
+  input: { mode?: "analytics" | "ads" | "gbp"; message?: string } = {},
 ): void {
   console.error("[google-oauth-callback]", {
     stage,

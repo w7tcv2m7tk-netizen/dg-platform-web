@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
 
-export type GoogleOAuthMode = "analytics" | "gbp";
+export type GoogleOAuthMode = "analytics" | "ads" | "gbp";
 
 type GoogleOAuthStateInner = {
   o: string;
@@ -40,7 +40,7 @@ function parsedState(payload: GoogleOAuthStateInner) {
     ok: true as const,
     organisationId: payload.o,
     returnTo: typeof payload.r === "string" ? payload.r : null,
-    mode: payload.m === "analytics" ? ("analytics" as const) : ("gbp" as const),
+    mode: payload.m === "analytics" ? ("analytics" as const) : payload.m === "ads" ? ("ads" as const) : ("gbp" as const),
   };
 }
 
