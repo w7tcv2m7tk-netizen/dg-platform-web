@@ -290,6 +290,15 @@ export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
 /** Mirrors pricing page — Growth Apps (optional; same order as public pricing) */
 export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
   {
+    appId: "advertising",
+    label: "Advertising",
+    icon: "◎",
+    price: "Included",
+    badge: "Early Access",
+    status: "rolling-out",
+    description: "Paid media accounts, campaign performance, leads, attribution and optimisation across connected advertising channels",
+  },
+  {
     appId: "prospecting",
     premiumKey: "prospecting_pro",
     label: "Prospecting & Opportunity Engine",
