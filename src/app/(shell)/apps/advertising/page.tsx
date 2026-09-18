@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import { fetchOrgMetaAdsEvidence } from "@dg/platform-core";
+import { GoogleAdsConnectorPanel } from "@/components/settings/GoogleAdsConnectorPanel";
 
 export default async function AdvertisingPage() {
   const ctx=await getPlatformPageContext();
@@ -28,6 +29,7 @@ export default async function AdvertisingPage() {
         <p className="mt-2 text-sm text-slate-400">Meta is the first live advertising provider. Connect Meta and discover the ad accounts available to this organisation before performance evidence is ingested.</p>
         {meta.ok?meta.data.map(x=><div key={x.account.id} className="mt-4"><p className="text-sm font-medium text-white">{x.account.name||x.account.accountId||x.account.id}</p><p className="mt-1 text-xs text-slate-500">{x.campaigns.length} campaigns returned · {x.period}</p>{x.campaigns.slice(0,10).map(c=><div key={c.id} className="mt-2 rounded-lg border border-slate-800 px-3 py-2 text-sm text-slate-300">{c.name}<span className="ml-2 text-xs text-slate-500">{c.status||""}</span></div>)}</div>):null}<Link href="/apps/social/accounts" className="mt-4 inline-block text-sm font-medium text-sky-400 hover:underline">Manage Meta connection →</Link>
       </section>
+      <GoogleAdsConnectorPanel />
       <section className="dg-card border-white/10">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Business intelligence</p>
         <h2 className="mt-1 font-semibold text-white">Evidence before recommendations</h2>
