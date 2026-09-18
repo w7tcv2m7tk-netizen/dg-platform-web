@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ConnectedServicesCatalog } from "@/components/settings/ConnectedServicesCatalog";
 import { ConnectedServicesHealthOverview } from "@/components/settings/ConnectedServicesHealthOverview";
 import { GoogleBusinessProfileLocationSelector } from "@/components/settings/GoogleBusinessProfileLocationSelector";
+import { YouTubeConnectorPanel } from "@/components/settings/YouTubeConnectorPanel";
 import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
@@ -83,6 +84,7 @@ export default async function ConnectedServicesPage({
         </div>
 
         <GoogleBusinessProfileLocationSelector />
+        <YouTubeConnectorPanel />
         <ConnectedServicesCatalog />
 
         <div className="rounded-xl border border-slate-800 bg-slate-950/30 px-4 py-3 text-sm text-slate-400">
