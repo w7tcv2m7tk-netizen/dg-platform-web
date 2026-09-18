@@ -66,12 +66,13 @@ export interface DigitalTwinSnapshot {
     youtubeAverageViewDuration30d?: number;
     youtubeSubscribersGained30d?: number;
     youtubeSubscribersLost30d?: number;
-    /** Canonical organisation-scoped Google Ads evidence, last 30 days. */
-    googleAdsSpend30d?: number;
-    googleAdsImpressions30d?: number;
-    googleAdsClicks30d?: number;
-    googleAdsConversions30d?: number;
-    googleAdsConversionValue30d?: number;
+    /** Canonical provider-neutral advertising evidence, last 30 days. */
+    advertisingSpend30d?: number;
+    advertisingImpressions30d?: number;
+    advertisingClicks30d?: number;
+    advertisingConversions30d?: number;
+    advertisingConversionValue30d?: number;
+    advertisingCampaignCount30d?: number;
     /** Commerce / Financial Health (Digital Twin™) */
     revenueMtdCents?: number;
     outstandingArCents?: number;
