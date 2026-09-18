@@ -4,7 +4,7 @@ export const socialApp: AppManifest = {
   id: "social",
   name: "Social",
   description:
-    "Track social profiles, connect LinkedIn, and create local social drafts while network publishing remains in closed beta",
+    "Connect organisation-scoped social accounts, use authorised social evidence, and create local drafts while direct network publishing remains disabled",
   tier: "growth",
   version: "0.1.0",
   icon: "◎",
