@@ -131,7 +131,6 @@ const INDUSTRY_APP_ORDER = [
  * operating-intelligence rankings (not a second pipeline).
  */
 const GROW_APP_ORDER = [
-  "marketing",
   "advertising",
   "prospecting",
   "ai-visibility",
@@ -144,6 +143,7 @@ const GROW_APP_ORDER = [
 
 /** Hidden from sidebar IA — marketing undecided; opportunities live in CRM; advanced comms nests under Core Communications */
 const SIDEBAR_HIDDEN_APP_IDS = new Set([
+  "marketing",
   "opportunities",
   "ai-communications",
 ]);
