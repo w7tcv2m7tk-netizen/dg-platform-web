@@ -9,6 +9,8 @@ import {
   generateBusinessIntelligence,
   fetchOrgMetaInstagramEvidence,
   fetchOrgLinkedInCompanyEvidence,
+  fetchOrgYouTubeContentEvidence,
+  fetchOrgYouTubeAnalyticsEvidence,
   getAiQualityMetrics,
   getBusinessContext,
   getOrganisationBusinessProfile,
@@ -42,9 +44,11 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
-  const [instagramEvidence, linkedInEvidence] = await Promise.all([
+  const [instagramEvidence, linkedInEvidence, youtubeContent, youtubeAnalytics] = await Promise.all([
     fetchOrgMetaInstagramEvidence(session.organisationId),
     fetchOrgLinkedInCompanyEvidence(session.organisationId),
+    fetchOrgYouTubeContentEvidence(session.organisationId),
+    fetchOrgYouTubeAnalyticsEvidence(session.organisationId),
   ]);
   const instagramRows = instagramEvidence.ok ? instagramEvidence.data : [];
 
@@ -65,6 +69,19 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     snapshot = built.snapshot;
     if (linkedInEvidence.ok) {
       snapshot.connectors = [...new Set([...snapshot.connectors, "linkedin"])];
+    }
+    if (youtubeContent.ok) {
+      snapshot.connectors = [...new Set([...snapshot.connectors, "youtube"])];
+      snapshot.metrics.youtubeChannelCount = youtubeContent.data.length;
+      snapshot.metrics.youtubeRecentVideoCount = youtubeContent.data.reduce((total, row) => total + row.videos.length, 0);
+    }
+    if (youtubeAnalytics.ok) {
+      snapshot.connectors = [...new Set([...snapshot.connectors, "youtube"])];
+      snapshot.metrics.youtubeViews30d = youtubeAnalytics.data.reduce((total, row) => total + row.views, 0);
+      snapshot.metrics.youtubeWatchMinutes30d = youtubeAnalytics.data.reduce((total, row) => total + row.estimatedMinutesWatched, 0);
+      snapshot.metrics.youtubeAverageViewDuration30d = youtubeAnalytics.data.length ? youtubeAnalytics.data.reduce((total, row) => total + row.averageViewDuration, 0) / youtubeAnalytics.data.length : 0;
+      snapshot.metrics.youtubeSubscribersGained30d = youtubeAnalytics.data.reduce((total, row) => total + row.subscribersGained, 0);
+      snapshot.metrics.youtubeSubscribersLost30d = youtubeAnalytics.data.reduce((total, row) => total + row.subscribersLost, 0);
     }
     if (instagramRows.length) {
       snapshot.connectors = [...new Set([...snapshot.connectors, "instagram"])];
