@@ -8,6 +8,7 @@ import {
   gatherOverviewLiveMetrics,
   generateBusinessIntelligence,
   fetchOrgMetaInstagramEvidence,
+  fetchOrgLinkedInCompanyEvidence,
   getAiQualityMetrics,
   getBusinessContext,
   getOrganisationBusinessProfile,
@@ -41,7 +42,10 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
-  const instagramEvidence = await fetchOrgMetaInstagramEvidence(session.organisationId);
+  const [instagramEvidence, linkedInEvidence] = await Promise.all([
+    fetchOrgMetaInstagramEvidence(session.organisationId),
+    fetchOrgLinkedInCompanyEvidence(session.organisationId),
+  ]);
   const instagramRows = instagramEvidence.ok ? instagramEvidence.data : [];
 
   let twinScores = null;
@@ -59,6 +63,9 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     });
     twinScores = built.scores;
     snapshot = built.snapshot;
+    if (linkedInEvidence.ok) {
+      snapshot.connectors = [...new Set([...snapshot.connectors, "linkedin"])];
+    }
     if (instagramRows.length) {
       snapshot.connectors = [...new Set([...snapshot.connectors, "instagram"])];
       snapshot.metrics.instagramFollowers = instagramRows.reduce((total, row) => total + (row.followersCount ?? 0), 0);
@@ -74,6 +81,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
         0,
       );
     }
+    snapshot.metrics.connectedConnectors = snapshot.connectors.length;
   }
 
   const context = await getBusinessContext({
