@@ -6,6 +6,7 @@ import {
   gatherOverviewLiveMetrics,
   getBusinessContext,
   getOrganisationBusinessProfile,
+  fetchOrgMetaInstagramEvidence,
   getPlatformSetupStatus,
   listOrganisationActivities,
   metricsContextFromLiveMetrics,
@@ -31,6 +32,8 @@ export async function loadDigitalTwinPageData(): Promise<DigitalTwinDashboardBun
   ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
+  const instagramEvidence = await fetchOrgMetaInstagramEvidence(session.organisationId);
+  const instagramRows = instagramEvidence.ok ? instagramEvidence.data : [];
 
   let snapshot = null;
   let twinScores = null;
