@@ -184,7 +184,12 @@ function statusFromBlob(
   if (
     connectorId === "google-gbp" ||
     connectorId === "google-gmail" ||
+    connectorId === "google-ads" ||
+    connectorId === "youtube" ||
     connectorId === "microsoft-365" ||
+    connectorId === "microsoft-ads" ||
+    connectorId === "meta" ||
+    connectorId === "tiktok-ads" ||
     connectorId === "linkedin" ||
     connectorId === "domain"
   ) {
