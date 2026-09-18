@@ -2,8 +2,8 @@ import type { AppTier } from "./manifest";
 import { INDUSTRY_TAXONOMY } from "./industry-taxonomy";
 import { platformApps } from "./registry";
 
-export const FOUNDING_MODE_CORE_APP_IDS = ["crm", "commerce", "documents", "communications", "websites", "infrastructure", "opportunities", "marketing", "reviews"] as const;
-export const GROWTH_APP_IDS_FOR_MODE = ["marketing", "prospecting", "ai-visibility", "seo", "automation", "analytics", "social", "reviews"] as const;
+export const FOUNDING_MODE_CORE_APP_IDS = ["crm", "commerce", "documents", "communications", "websites", "infrastructure", "opportunities", "marketing", "advertising", "reviews"] as const;
+export const GROWTH_APP_IDS_FOR_MODE = ["marketing", "advertising", "prospecting", "ai-visibility", "seo", "automation", "analytics", "social", "reviews"] as const;
 export const INDUSTRY_APP_IDS_FOR_MODE = ["real-estate", "property-management", "commercial", "accommodation", "services", "finance", "automotive", "creator"] as const;
 
 export function isFoundingCustomerMode(enabledIds: string[]): boolean { const allowed = new Set<string>(FOUNDING_MODE_CORE_APP_IDS); for (const id of enabledIds) if (!allowed.has(id)) return false; return true; }
