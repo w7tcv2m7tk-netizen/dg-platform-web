@@ -109,6 +109,7 @@ export async function POST(req: Request) {
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
+  const microsoftAdsEvidence = await fetchOrgMicrosoftAdsEvidence(session.organisationId).catch(() => null);
   let twinScores = null;
   let snapshot = null;
   if (metrics) {
