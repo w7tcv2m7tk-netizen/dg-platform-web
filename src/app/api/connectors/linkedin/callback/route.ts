@@ -45,7 +45,17 @@ export async function GET(req: NextRequest) {
   const state = req.nextUrl.searchParams.get("state");
   const oauthError = req.nextUrl.searchParams.get("error");
   if (oauthError) {
-    return fail(req.nextUrl.searchParams.get("error_description") || oauthError);
+    const description = req.nextUrl.searchParams.get("error_description");
+    const errorUri = req.nextUrl.searchParams.get("error_uri");
+    const scope = req.nextUrl.searchParams.get("scope");
+    const detail = [
+      `LinkedIn OAuth error: ${oauthError}`,
+      description ? `description: ${description}` : null,
+      scope ? `scope: ${scope}` : null,
+      errorUri ? `error_uri: ${errorUri}` : null,
+    ].filter(Boolean).join(" · ");
+    console.warn("[linkedin/oauth]", detail);
+    return fail(detail);
   }
   if (!code || !state) {
     return fail("Missing code or state from LinkedIn");
