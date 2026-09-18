@@ -2,6 +2,7 @@ import { getCommerceFinancialSnapshot } from "../commerce/payment-engine";
 import { fetchOrgGoogleWebEvidence } from "../connectors/google/analytics";
 import { fetchOrgGoogleAdsEvidence } from "../connectors/google/ads";
 import { fetchOrgMetaAdsEvidence } from "../connectors/meta/auth";
+import { fetchOrgMicrosoftAdsEvidence } from "../connectors/microsoft/ads";
 import { getOrgGbpSyncSnapshot } from "../connectors/google/gbp";
 import { listLeads } from "../leads";
 import { getPlatformSetupStatus } from "../org/setup-status";
@@ -91,6 +92,7 @@ export async function gatherOverviewLiveMetrics(
     googleWebEvidence,
     googleAdsEvidence,
     metaAdsEvidence,
+    microsoftAdsEvidence,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
     includeFinancials ? getCommerceFinancialSnapshot(organisationId) : Promise.resolve(null),
@@ -121,6 +123,7 @@ export async function gatherOverviewLiveMetrics(
     fetchOrgGoogleWebEvidence(organisationId).catch(() => null),
     fetchOrgGoogleAdsEvidence(organisationId).catch(() => null),
     fetchOrgMetaAdsEvidence(organisationId).catch(() => null),
+    fetchOrgMicrosoftAdsEvidence(organisationId).catch(() => null),
   ]);
 
   const advertisingChannels = [];
@@ -144,6 +147,17 @@ export async function gatherOverviewLiveMetrics(
       conversions: null, conversionValue: null,
       reach: metaAdsEvidence.data.reduce((n, x) => n + x.performance.reach, 0),
       campaignCount: metaAdsEvidence.data.reduce((n, x) => n + x.campaigns.length, 0),
+    }));
+  }
+  if (microsoftAdsEvidence?.ok && microsoftAdsEvidence.data.length) {
+    advertisingChannels.push(withDerivedAdvertisingMetrics({
+      provider: "microsoft", period: "LAST_30_DAYS",
+      spend: microsoftAdsEvidence.data.reduce((n, x) => n + x.performance.spend, 0),
+      impressions: microsoftAdsEvidence.data.reduce((n, x) => n + x.performance.impressions, 0),
+      clicks: microsoftAdsEvidence.data.reduce((n, x) => n + x.performance.clicks, 0),
+      conversions: microsoftAdsEvidence.data.reduce((n, x) => n + x.performance.conversions, 0),
+      conversionValue: microsoftAdsEvidence.data.reduce((n, x) => n + x.performance.conversionValue, 0),
+      reach: null, campaignCount: microsoftAdsEvidence.data.reduce((n, x) => n + x.campaigns.length, 0),
     }));
   }
   const advertising = buildAdvertisingEvidence(advertisingChannels);
