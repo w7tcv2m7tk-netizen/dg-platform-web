@@ -57,3 +57,25 @@ export async function ensureValidOrgMicrosoftAdsAccessToken(org:string){
  if(!t.refreshToken)return {ok:false as const,message:"Microsoft Advertising access expired — reconnect"};
  const r=await refresh(t.refreshToken);if(!r.ok)return r;const next={...t,accessToken:r.accessToken,refreshToken:r.refreshToken||t.refreshToken,expiresAt:r.expiresAt,scope:r.scope||t.scope,lastError:undefined};await saveOrgMicrosoftAdsTokens(org,next);return {ok:true as const,accessToken:next.accessToken,tokens:next};
 }
+
+const CUSTOMER_MANAGEMENT_URL="https://clientcenter.api.bingads.microsoft.com/CustomerManagement/v13/CustomerManagementService.svc";
+async function customerManagement(accessToken:string,action:string,body:unknown){
+ if(!microsoftAdsDeveloperTokenConfigured())return {ok:false as const,message:"Microsoft Advertising developer token is not configured"};
+ const r=await fetch(CUSTOMER_MANAGEMENT_URL,{method:"POST",headers:{Authorization:`Bearer ${accessToken}`,"DeveloperToken":process.env.MICROSOFT_ADS_DEVELOPER_TOKEN!.trim(),"Content-Type":"application/json",SOAPAction:action},body:JSON.stringify(body)});
+ const j=await r.json().catch(()=>null) as any;if(!r.ok)return {ok:false as const,message:String(j?.OperationErrors?.[0]?.Message||j?.message||`Microsoft Advertising HTTP ${r.status}`)};return {ok:true as const,data:j};
+}
+export async function probeOrgMicrosoftAdsAccounts(org:string){
+ const e=await ensureValidOrgMicrosoftAdsAccessToken(org);if(!e.ok)return e;
+ const r=await customerManagement(e.accessToken,"GetUser",{});if(!r.ok)return r;
+ const user=(r.data as any)?.User;const customerId=String(user?.CustomerId||"");if(!customerId)return {ok:false as const,message:"Microsoft Advertising did not return a customer for this user"};
+ const a=await customerManagement(e.accessToken,"SearchAccounts",{Predicates:[{Field:"ParentCustomerId",Operator:"Equals",Value:customerId}],Ordering:null,PageInfo:{Index:0,Size:100}});
+ if(!a.ok)return a;const rows=Array.isArray((a.data as any)?.Accounts)?(a.data as any).Accounts:[];
+ const accounts:MicrosoftAdsAccount[]=rows.flatMap((x:any)=>x?.Id?[{accountId:String(x.Id),customerId:String(x.ParentCustomerId||customerId),name:typeof x.Name==="string"?x.Name:undefined,currencyCode:typeof x.CurrencyCode==="string"?x.CurrencyCode:undefined}]:[]);
+ const allowed=new Set(accounts.map(x=>x.accountId)),selectedAccountIds=(e.tokens.selectedAccountIds||[]).filter(id=>allowed.has(id));
+ await saveOrgMicrosoftAdsTokens(org,{...e.tokens,accounts,selectedAccountIds});
+ return {ok:true as const,data:accounts,selectedAccountIds};
+}
+export async function selectOrgMicrosoftAdsAccounts(org:string,accountIds:string[]){
+ const p=await probeOrgMicrosoftAdsAccounts(org);if(!p.ok)return p;const allowed=new Set(p.data.map(x=>x.accountId)),selectedAccountIds=[...new Set(accountIds)].filter(id=>allowed.has(id));
+ const t=await getOrgMicrosoftAdsTokens(org);if(!t)return {ok:false as const,message:"Microsoft Advertising is not connected for this organisation"};await saveOrgMicrosoftAdsTokens(org,{...t,accounts:p.data,selectedAccountIds});return {ok:true as const,selectedAccountIds};
+}
