@@ -13,11 +13,13 @@ async function adsGet(path: string, accessToken: string) {
   if (developerToken) headers["developer-token"] = developerToken;
   const res = await fetch(`${GOOGLE_ADS_ROOT}/${path}`, { headers });
   const text = await res.text();
-  let data: any = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  let data: unknown = null;
+  try { data = text ? JSON.parse(text) as unknown : null; } catch { data = text; }
   if (!res.ok) {
     const requestId = res.headers.get("request-id");
-    const message = data?.error?.message || `Google Ads API HTTP ${res.status}`;
+    const message = data && typeof data === "object" && "error" in data && (data as { error?: unknown }).error && typeof (data as { error?: { message?: unknown } }).error?.message === "string"
+      ? (data as { error: { message: string } }).error.message
+      : `Google Ads API HTTP ${res.status}`;
     return { ok:false as const, message: requestId ? `${message} · request ${requestId}` : message };
   }
   return { ok:true as const, data };
