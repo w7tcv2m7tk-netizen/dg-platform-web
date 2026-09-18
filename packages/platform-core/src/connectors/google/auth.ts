@@ -71,6 +71,8 @@ export type OrgGoogleGbpConnectorTokens = {
   selectedLocationNames?: string[];
   /** Explicit Google Ads customer resources assigned to this DigitalGate organisation. */
   selectedGoogleAdsCustomerIds?: string[];
+  /** Explicit YouTube channels assigned to this DigitalGate organisation. */
+  selectedYouTubeChannelIds?: string[];
   health?: {
     status: "connected" | "degraded" | "error" | "disconnected";
     lastSyncAt?: string | null;
@@ -223,6 +225,7 @@ export async function saveOrgGoogleGbpConnectorTokens(organisationId: string, to
     label: tokens.label ?? null, lastError: tokens.lastError ?? null,
     selectedLocationNames: tokens.selectedLocationNames ?? null,
     selectedGoogleAdsCustomerIds: tokens.selectedGoogleAdsCustomerIds ?? null,
+    selectedYouTubeChannelIds: tokens.selectedYouTubeChannelIds ?? null,
     health: tokens.health ?? null,
     accounts: tokens.accounts ?? null, locations: tokens.locations ?? null, reviews: tokens.reviews ?? null,
   });
