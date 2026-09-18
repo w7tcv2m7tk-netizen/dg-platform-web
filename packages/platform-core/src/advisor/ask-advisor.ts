@@ -64,7 +64,7 @@ function formatTransportSelected(plan: LlmTransportPlanEntry[]): string | null {
   return `${first.provider} · ${first.model}`;
 }
 
-function evidenceBlock(briefing: AskAdvisorInput["briefing"]): string {
+function evidenceBlock(briefing: AskAdvisorInput["briefing"], businessContext: BusinessContext): string {
   const recs = briefing.topRecommendations
     .slice(0, 5)
     .map(
@@ -79,9 +79,11 @@ function evidenceBlock(briefing: AskAdvisorInput["briefing"]): string {
       ? `Business Health: ${briefing.businessHealth}/100`
       : "Business Health: not yet scored",
     "",
+    instagramEvidence,
+    "",
     "Prioritised recommendations (from live Twin / Brain / Health — treat as evidence):",
     recs || "(none yet — say so honestly)",
-  ].join("\n");
+  ].filter((line): line is string => line !== null).join("\n");
 }
 
 function contextualEvidenceBlock(input: AskAdvisorInput): string {
@@ -202,7 +204,7 @@ export async function askBusinessAdvisor(
   }
 
   const correlationId = newCorrelationId();
-  const evidence = evidenceBlock(input.briefing);
+  const evidence = evidenceBlock(input.briefing, input.businessContext);
 
   if (!llmConfigured()) {
     const fallback = briefingFallback(input, "no_llm");
