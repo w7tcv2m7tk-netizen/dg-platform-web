@@ -69,6 +69,8 @@ export type OrgGoogleGbpConnectorTokens = {
   lastError?: string;
   /** Explicit GBP resources owned by this DigitalGate organisation. */
   selectedLocationNames?: string[];
+  /** Explicit Google Ads customer resources assigned to this DigitalGate organisation. */
+  selectedGoogleAdsCustomerIds?: string[];
   health?: {
     status: "connected" | "degraded" | "error" | "disconnected";
     lastSyncAt?: string | null;
@@ -204,6 +206,9 @@ export async function getOrgGoogleGbpConnectorTokens(organisationId: string): Pr
     selectedLocationNames: Array.isArray(blob.selectedLocationNames)
       ? blob.selectedLocationNames.filter((value): value is string => typeof value === "string" && value.startsWith("accounts/") && value.includes("/locations/"))
       : undefined,
+    selectedGoogleAdsCustomerIds: Array.isArray(blob.selectedGoogleAdsCustomerIds)
+      ? blob.selectedGoogleAdsCustomerIds.filter((value): value is string => typeof value === "string" && /^\\d+$/.test(value))
+      : undefined,
     health: blob.health && typeof blob.health === "object" ? blob.health as OrgGoogleGbpConnectorTokens["health"] : undefined,
     accounts: Array.isArray(blob.accounts) ? blob.accounts as OrgGoogleGbpConnectorTokens["accounts"] : undefined,
     locations: Array.isArray(blob.locations) ? blob.locations as OrgGoogleGbpConnectorTokens["locations"] : undefined,
@@ -217,6 +222,7 @@ export async function saveOrgGoogleGbpConnectorTokens(organisationId: string, to
     expiresAt: tokens.expiresAt ?? null, scope: tokens.scope ?? null, connectedAt: tokens.connectedAt ?? new Date().toISOString(),
     label: tokens.label ?? null, lastError: tokens.lastError ?? null,
     selectedLocationNames: tokens.selectedLocationNames ?? null,
+    selectedGoogleAdsCustomerIds: tokens.selectedGoogleAdsCustomerIds ?? null,
     health: tokens.health ?? null,
     accounts: tokens.accounts ?? null, locations: tokens.locations ?? null, reviews: tokens.reviews ?? null,
   });
