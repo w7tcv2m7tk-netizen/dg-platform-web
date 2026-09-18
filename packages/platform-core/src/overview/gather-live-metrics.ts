@@ -30,6 +30,10 @@ export interface OverviewLiveMetrics {
   /** Measured Reputation Score™ from the organisation's canonical connected review evidence. */
   reputationScore: number | null;
   reputationReviewCount: number;
+  /** Canonical organisation-scoped Google Ads evidence. Null means no selected account evidence is available. */
+  advertising: {
+    period: "LAST_30_DAYS"; spend: number; impressions: number; clicks: number; conversions: number; conversionsValue: number; campaignCount: number;
+  } | null;
   /** Canonical organisation-scoped Google web evidence. Null means no usable evidence is connected. */
   marketing: {
     period: string;
