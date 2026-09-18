@@ -1,10 +1,19 @@
+import { shouldShowIndustryApp } from "@dg/platform-core";
 import { redirect } from "next/navigation";
-import { platformApps } from "@dg/platform-core/apps/registry";
 
-export default function CreatorLayout({ children }: { children: React.ReactNode }) {
-  if (!platformApps.get("creator")?.enabled) {
-    redirect("/dashboard/apps#apps");
+import { getOrgEnabledAppIdsCached, getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
+
+export default async function CreatorLayout({ children }: { children: React.ReactNode }) {
+  const [enabledIds, industrySelectionIds] = await Promise.all([
+    getOrgEnabledAppIdsCached(),
+    getOrgIndustrySelectionIdsCached(),
+  ]);
+  const selectedForOrganisation = shouldShowIndustryApp("creator", {
+    gen2Onboarding: { operatingProfile: { templates: industrySelectionIds } },
+  });
+
+  if (!enabledIds.includes("creator") || !selectedForOrganisation) {
+    redirect("/dashboard/apps");
   }
-
   return children;
 }
