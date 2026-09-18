@@ -131,6 +131,7 @@ const INDUSTRY_APP_ORDER = [
  * operating-intelligence rankings (not a second pipeline).
  */
 const GROW_APP_ORDER = [
+  "advertising",
   "prospecting",
   "ai-visibility",
   "seo",
