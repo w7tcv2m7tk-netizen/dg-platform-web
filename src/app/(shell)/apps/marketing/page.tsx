@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPlatformPageContext } from "@/lib/org-apps";
 
 const SPECIALIST_APPS = [
+  { href: "/apps/advertising", name: "Advertising", description: "Paid media performance, attribution and optimisation." },
   { href: "/apps/seo", name: "SEO", description: "Search performance and optimisation." },
   { href: "/apps/ai-visibility", name: "AI Visibility", description: "Understand and improve how AI systems recommend your business." },
   { href: "/apps/reputation", name: "Reputation", description: "Reviews, reputation signals and customer advocacy." },
