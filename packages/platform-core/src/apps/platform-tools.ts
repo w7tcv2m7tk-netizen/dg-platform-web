@@ -22,8 +22,6 @@ export const SETTINGS_NAV_ROUTES: AppRoute[] = [
   },
   { path: "/dashboard/settings/billing", label: "Billing" },
   { path: "/dashboard/settings/api", label: "API" },
-  { path: "/dashboard/settings/security", label: "Security & Access" },
-  { path: "/dashboard/settings/notifications", label: "Notifications" },
   { path: "/dashboard/settings/audit", label: "Audit Log" },
 ];
 

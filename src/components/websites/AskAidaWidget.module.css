@@ -272,13 +272,13 @@
     flex-direction: column;
     align-items: flex-end;
     padding: 0 max(0.75rem, env(safe-area-inset-right, 0px))
-      max(0.75rem, env(safe-area-inset-bottom, 0px))
+      max(0.2rem, env(safe-area-inset-bottom, 0px))
       max(0.75rem, env(safe-area-inset-left, 0px));
   }
 
   .panel {
     width: 100%;
-    max-height: calc(100dvh - 5.75rem);
+    max-height: calc(100dvh - 4.5rem);
     margin-bottom: 0.65rem;
     border-radius: 1rem 1rem 0.35rem 0.35rem;
   }
