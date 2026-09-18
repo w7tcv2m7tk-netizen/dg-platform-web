@@ -10,6 +10,7 @@ import {
   gatherOverviewLiveMetrics,
   generateBusinessIntelligence,
   fetchOrgGoogleAdsEvidence,
+  fetchOrgMicrosoftAdsEvidence,
   getBusinessContext,
   getOrganisationBusinessProfile,
   getOrganisationGoals,
