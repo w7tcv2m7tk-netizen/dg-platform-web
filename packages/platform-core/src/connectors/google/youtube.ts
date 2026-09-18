@@ -1,0 +1,12 @@
+import { ensureValidOrgGoogleAccessToken, getOrgGoogleGbpConnectorTokens, googleApiGet, saveOrgGoogleGbpConnectorTokens } from "./auth";
+
+export type YouTubeChannelEvidence={id:string;title:string;description?:string;customUrl?:string;publishedAt?:string;thumbnailUrl?:string;subscribers:number|null;views:number|null;videos:number|null};
+
+export async function probeOrgYouTubeChannels(org:string){
+ const ensured=await ensureValidOrgGoogleAccessToken(org);if(!ensured.ok)return ensured;
+ const r=await googleApiGet("https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true",ensured.accessToken);if(!r.ok)return r;
+ const items=r.data&&typeof r.data==="object"&&Array.isArray((r.data as any).items)?(r.data as any).items:[];
+ const data:YouTubeChannelEvidence[]=items.flatMap((x:any)=>x?.id?[{id:String(x.id),title:String(x.snippet?.title||x.id),description:typeof x.snippet?.description==="string"?x.snippet.description:undefined,customUrl:typeof x.snippet?.customUrl==="string"?x.snippet.customUrl:undefined,publishedAt:typeof x.snippet?.publishedAt==="string"?x.snippet.publishedAt:undefined,thumbnailUrl:typeof x.snippet?.thumbnails?.default?.url==="string"?x.snippet.thumbnails.default.url:undefined,subscribers:x.statistics?.hiddenSubscriberCount?null:Number.isFinite(Number(x.statistics?.subscriberCount))?Number(x.statistics.subscriberCount):null,views:Number.isFinite(Number(x.statistics?.viewCount))?Number(x.statistics.viewCount):null,videos:Number.isFinite(Number(x.statistics?.videoCount))?Number(x.statistics.videoCount):null}]:[]);
+ const tokens=await getOrgGoogleGbpConnectorTokens(org);const allowed=new Set(data.map(x=>x.id)),selectedYouTubeChannelIds=(tokens?.selectedYouTubeChannelIds||[]).filter(id=>allowed.has(id));if(tokens)await saveOrgGoogleGbpConnectorTokens(org,{...tokens,selectedYouTubeChannelIds});return {ok:true as const,data,selectedYouTubeChannelIds};
+}
+export async function selectOrgYouTubeChannels(org:string,ids:string[]){const p=await probeOrgYouTubeChannels(org);if(!p.ok)return p;const allowed=new Set(p.data.map(x=>x.id)),selectedYouTubeChannelIds=[...new Set(ids)].filter(id=>allowed.has(id));const t=await getOrgGoogleGbpConnectorTokens(org);if(!t)return {ok:false as const,message:"Google is not connected for this organisation"};await saveOrgGoogleGbpConnectorTokens(org,{...t,selectedYouTubeChannelIds});return {ok:true as const,selectedYouTubeChannelIds}}
