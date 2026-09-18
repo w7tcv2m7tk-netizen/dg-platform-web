@@ -1,4 +1,9 @@
 import { llmChat, llmConfigured } from "../ai/llm";
+import { resolveEnabledAppIds } from "../apps/org-apps";
+import { getBusinessContext, buildAiSystemPrompt } from "../org/business-context";
+import { getOrganisationBusinessProfile } from "../org/onboarding-profile";
+import { gatherOverviewLiveMetrics } from "../overview/gather-live-metrics";
+import { captureDigitalTwinSnapshot } from "../twin/capture-snapshot";
 import { formatSupportMessage } from "./format";
 
 const SYSTEM_PROMPT = `You are Aida, DigitalGate's AI Business Advisor and Platform Support Assistant for the authenticated DigitalGate platform (Australian digital platform: websites, marketing, CRM, automation, real estate tools, accommodation apps, and the client portal at app.digitalgate.com.au).
@@ -91,6 +96,46 @@ export async function queueSupportAiReply(
     })
     .join("\n");
 
+  // Build context strictly from the organisation pinned to this conversation.
+  // Never infer tenant from the user or another active organisation.
+  let businessContextPrompt = "";
+  try {
+    const org = await prisma.organisation.findUnique({
+      where: { id: conversation.organisationId },
+      select: { id: true, name: true, locale: true, currency: true, timezone: true, industry: true, settings: true },
+    });
+    if (org) {
+      const settings = (org.settings as { apps?: { enabled?: string[] } } | null) ?? {};
+      const enabledAppIds = resolveEnabledAppIds(settings);
+      const [profile, metrics] = await Promise.all([
+        getOrganisationBusinessProfile(org.id),
+        gatherOverviewLiveMetrics(org.id, { includeFinancials: false }),
+      ]);
+      const twinSnapshot = captureDigitalTwinSnapshot({
+        organisationId: org.id,
+        organisationName: org.name,
+        enabledAppIds,
+        metrics,
+        connectors: {},
+        profile,
+      });
+      const context = await getBusinessContext({
+        organisationId: org.id,
+        organisationName: org.name,
+        locale: org.locale ?? "en-AU",
+        currency: org.currency ?? "AUD",
+        timezone: org.timezone,
+        industry: org.industry,
+        enabledAppIds,
+        twinSnapshot,
+        profileOverride: profile,
+      });
+      businessContextPrompt = buildAiSystemPrompt(context);
+    }
+  } catch (err) {
+    console.warn("[support-ai] business context unavailable", err instanceof Error ? err.message : err);
+  }
+
   const userPrompt = [
     `Client name: ${clientName}`,
     `Client email: ${clientEmail}`,
@@ -104,7 +149,7 @@ export async function queueSupportAiReply(
   try {
     const result = await llmChat({
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: businessContextPrompt ? `${SYSTEM_PROMPT}\n\n${businessContextPrompt}` : SYSTEM_PROMPT },
         { role: "user", content: userPrompt },
       ],
       maxTokens: 550,
