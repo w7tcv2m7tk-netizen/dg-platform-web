@@ -58,6 +58,14 @@ export interface DigitalTwinSnapshot {
     instagramRecentMediaCount?: number;
     instagramRecentLikes?: number;
     instagramRecentComments?: number;
+    /** Canonical organisation-scoped YouTube evidence, last 30 days where applicable. */
+    youtubeChannelCount?: number;
+    youtubeRecentVideoCount?: number;
+    youtubeViews30d?: number;
+    youtubeWatchMinutes30d?: number;
+    youtubeAverageViewDuration30d?: number;
+    youtubeSubscribersGained30d?: number;
+    youtubeSubscribersLost30d?: number;
     /** Canonical organisation-scoped Google Ads evidence, last 30 days. */
     googleAdsSpend30d?: number;
     googleAdsImpressions30d?: number;
