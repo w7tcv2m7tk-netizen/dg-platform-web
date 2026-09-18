@@ -10,6 +10,7 @@ import { gbpOAuthReturnPath } from "@/lib/oauth-return-path";
 export const dynamic = "force-dynamic";
 const GOOGLE_ANALYTICS_REQUIRED_SCOPES = ["openid","email","profile","https://www.googleapis.com/auth/business.manage","https://www.googleapis.com/auth/analytics.readonly","https://www.googleapis.com/auth/webmasters.readonly"].join(" ");
 const GOOGLE_ADS_REQUIRED_SCOPES = ["openid","email","profile","https://www.googleapis.com/auth/adwords"].join(" ");
+const YOUTUBE_REQUIRED_SCOPES = ["openid","email","profile","https://www.googleapis.com/auth/youtube.readonly","https://www.googleapis.com/auth/yt-analytics.readonly"].join(" ");
 
 export async function GET(req: Request) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || new URL(req.url).origin || "https://app.digitalgate.com.au";
@@ -28,14 +29,15 @@ export async function GET(req: Request) {
   const returnTo = gbpOAuthReturnPath(new URL(req.url).searchParams.get("returnTo"));
   const analyticsMode = returnTo === "/apps/analytics/connectors/google";
   const adsMode = returnTo === "/apps/advertising";
+  const youtubeMode = returnTo === "/apps/social/accounts";
   let state: string;
   try {
-    state = createGoogleOAuthState(session.organisationId, { returnTo, mode: analyticsMode ? "analytics" : adsMode ? "ads" : "gbp" });
+    state = createGoogleOAuthState(session.organisationId, { returnTo, mode: analyticsMode ? "analytics" : adsMode ? "ads" : youtubeMode ? "youtube" : "gbp" });
   } catch (err) {
     return NextResponse.json({ error: { code: "google_state", message: err instanceof Error ? err.message : "Could not create OAuth state" } }, { status: 503 });
   }
 
-  const authUrl = buildGoogleAuthorizeUrl({ state, scopes: analyticsMode ? GOOGLE_ANALYTICS_REQUIRED_SCOPES : adsMode ? GOOGLE_ADS_REQUIRED_SCOPES : undefined });
+  const authUrl = buildGoogleAuthorizeUrl({ state, scopes: analyticsMode ? GOOGLE_ANALYTICS_REQUIRED_SCOPES : adsMode ? GOOGLE_ADS_REQUIRED_SCOPES : youtubeMode ? YOUTUBE_REQUIRED_SCOPES : undefined });
   if (!authUrl.ok) return NextResponse.json({ error: { code: "google_config", message: authUrl.message } }, { status: 503 });
   return NextResponse.redirect(authUrl.url);
 }
