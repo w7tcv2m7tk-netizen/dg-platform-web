@@ -17,6 +17,7 @@ const ALLOWED_OAUTH_RETURN_PATHS = new Set([
   "/dashboard/settings/connectors",
   "/apps/analytics/connectors",
   "/apps/analytics/connectors/google",
+  "/apps/advertising",
   "/apps/reviews",
   "/apps/reviews/sources",
   "/apps/reviews/inbox",
