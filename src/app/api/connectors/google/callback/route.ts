@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     return res;
   };
   let returnTo = DEFAULT_GBP_OAUTH_RETURN;
-  let mode: "analytics" | "ads" | "gbp" | undefined;
+  let mode: "analytics" | "ads" | "youtube" | "gbp" | undefined;
   const fail = (stage: Parameters<typeof logGoogleOAuthCallbackFailure>[0], msg: string) => {
     logGoogleOAuthCallbackFailure(stage, { mode, message: msg });
     return finish(returnTo, "error", msg);
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     parsedState = parseGoogleOAuthState(state);
     if (parsedState.ok) {
       mode = parsedState.mode;
-      returnTo = parsedState.mode === "analytics" ? "/apps/analytics/connectors/google" : parsedState.mode === "ads" ? "/apps/advertising" : gbpOAuthReturnPath(parsedState.returnTo);
+      returnTo = parsedState.mode === "analytics" ? "/apps/analytics/connectors/google" : parsedState.mode === "ads" ? "/apps/advertising" : parsedState.mode === "youtube" ? "/apps/social/accounts" : gbpOAuthReturnPath(parsedState.returnTo);
     }
   }
 
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
   const parsed = parsedState ?? parseGoogleOAuthState(state);
   if (!parsed.ok) return fail("invalid_state", parsed.message);
   mode = parsed.mode;
-  returnTo = parsed.mode === "analytics" ? "/apps/analytics/connectors/google" : parsed.mode === "ads" ? "/apps/advertising" : gbpOAuthReturnPath(parsed.returnTo);
+  returnTo = parsed.mode === "analytics" ? "/apps/analytics/connectors/google" : parsed.mode === "ads" ? "/apps/advertising" : parsed.mode === "youtube" ? "/apps/social/accounts" : gbpOAuthReturnPath(parsed.returnTo);
   const organisationId = parsed.organisationId;
   const writeBlock = await tenantWriteEntitlementBlock({ organisationId });
   if (writeBlock) return fail("write_blocked", writeBlock.message);
@@ -57,6 +57,13 @@ export async function GET(req: NextRequest) {
 
   if (parsed.mode === "ads" && !(exchanged.token.scope || "").split(/\s+/).includes("https://www.googleapis.com/auth/adwords")) {
     return fail("missing_analytics_scopes", "Google did not grant the required Google Ads permission.");
+  }
+
+  if (parsed.mode === "youtube") {
+    const granted = new Set((exchanged.token.scope || "").split(/\\s+/).filter(Boolean));
+    const required = ["https://www.googleapis.com/auth/youtube.readonly","https://www.googleapis.com/auth/yt-analytics.readonly"];
+    const missing = required.filter(scope => !granted.has(scope));
+    if (missing.length) return fail("missing_analytics_scopes", `Google did not grant ${missing.length} required YouTube permission(s).`);
   }
 
   if (parsed.mode === "analytics") {
