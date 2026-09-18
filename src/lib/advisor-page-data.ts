@@ -9,8 +9,6 @@ import {
   generateBusinessIntelligence,
   fetchOrgMetaInstagramEvidence,
   fetchOrgLinkedInCompanyEvidence,
-  fetchOrgGoogleAdsEvidence,
-  fetchOrgMicrosoftAdsEvidence,
   getAiQualityMetrics,
   getBusinessContext,
   getOrganisationBusinessProfile,
@@ -44,11 +42,9 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
-  const [instagramEvidence, linkedInEvidence, googleAdsEvidence, microsoftAdsEvidence] = await Promise.all([
+  const [instagramEvidence, linkedInEvidence] = await Promise.all([
     fetchOrgMetaInstagramEvidence(session.organisationId),
     fetchOrgLinkedInCompanyEvidence(session.organisationId),
-    fetchOrgGoogleAdsEvidence(session.organisationId),
-    fetchOrgMicrosoftAdsEvidence(session.organisationId),
   ]);
   const instagramRows = instagramEvidence.ok ? instagramEvidence.data : [];
 
@@ -69,17 +65,6 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     snapshot = built.snapshot;
     if (linkedInEvidence.ok) {
       snapshot.connectors = [...new Set([...snapshot.connectors, "linkedin"])];
-    }
-    if (googleAdsEvidence.ok && googleAdsEvidence.data.length) {
-      snapshot.connectors = [...new Set([...snapshot.connectors, "google-ads"])];
-      snapshot.metrics.googleAdsSpend30d = googleAdsEvidence.data.reduce((n, x) => n + x.performance.spend, 0);
-      snapshot.metrics.googleAdsImpressions30d = googleAdsEvidence.data.reduce((n, x) => n + x.performance.impressions, 0);
-      snapshot.metrics.googleAdsClicks30d = googleAdsEvidence.data.reduce((n, x) => n + x.performance.clicks, 0);
-      snapshot.metrics.googleAdsConversions30d = googleAdsEvidence.data.reduce((n, x) => n + x.performance.conversions, 0);
-      snapshot.metrics.googleAdsConversionValue30d = googleAdsEvidence.data.reduce((n, x) => n + x.performance.conversionsValue, 0);
-    }
-    if (microsoftAdsEvidence.ok && microsoftAdsEvidence.data.length) {
-      snapshot.connectors = [...new Set([...snapshot.connectors, "microsoft-ads"])];
     }
     if (instagramRows.length) {
       snapshot.connectors = [...new Set([...snapshot.connectors, "instagram"])];
