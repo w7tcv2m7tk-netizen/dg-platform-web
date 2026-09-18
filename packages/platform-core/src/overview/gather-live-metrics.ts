@@ -231,7 +231,7 @@ export async function gatherOverviewLiveMetrics(
     instagramRecentLikes: instagramRows.length ? instagramRows.reduce((n, row) => n + row.media.reduce((sum, item) => sum + (item.likeCount ?? 0), 0), 0) : null,
     instagramRecentComments: instagramRows.length ? instagramRows.reduce((n, row) => n + row.media.reduce((sum, item) => sum + (item.commentsCount ?? 0), 0), 0) : null,
     linkedInCompanyConnected: Boolean(linkedInEvidence?.ok),
-    youtubeChannelCount: youtubeContentRows.length || youtubeAnalyticsRows.length ? youtubeContentRows.length : null,
+    youtubeChannelCount: youtubeContentRows.length ? youtubeContentRows.length : youtubeAnalyticsRows.length ? youtubeAnalyticsRows.length : null,
     youtubeRecentVideoCount: youtubeContentRows.length ? youtubeContentRows.reduce((n, row) => n + row.videos.length, 0) : null,
     youtubeViews30d: youtubeAnalyticsRows.length ? youtubeAnalyticsRows.reduce((n, row) => n + row.views, 0) : null,
     youtubeWatchMinutes30d: youtubeAnalyticsRows.length ? youtubeAnalyticsRows.reduce((n, row) => n + row.estimatedMinutesWatched, 0) : null,
