@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchOrgLinkedInCompanyEvidence, getOrganisationBusinessProfile } from "@dg/platform-core";
+import { fetchOrgLinkedInSocialEvidence, getOrganisationBusinessProfile } from "@dg/platform-core";
 
 import { getPlatformPageContext } from "@/lib/org-apps";
 import {
@@ -16,7 +16,7 @@ export default async function SocialOverviewPage() {
     : null;
   const social = profile?.social;
   const linkedIn = platformSession
-    ? await fetchOrgLinkedInCompanyEvidence(platformSession.organisationId)
+    ? await fetchOrgLinkedInSocialEvidence(platformSession.organisationId)
     : { ok: false as const, message: "No active organisation session" };
   const completeness = socialCompletenessPercent(social);
   const gaps = listSocialGaps(social);
@@ -44,12 +44,25 @@ export default async function SocialOverviewPage() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-wide text-slate-500">LinkedIn evidence</p>
-              <h2 className="mt-1 font-semibold text-white">{linkedIn.ok ? linkedIn.data.profile.name || linkedIn.data.organization.name || "Selected company page" : "Company page not available"}</h2>
-              {linkedIn.ok ? <p className="mt-1 text-sm text-slate-400">{linkedIn.data.profile.vanityName ? `linkedin.com/company/${linkedIn.data.profile.vanityName}` : "Organisation-scoped company identity verified"}</p> : <p className="mt-1 text-sm text-slate-400">{linkedIn.message}</p>}
+              <h2 className="mt-1 font-semibold text-white">{linkedIn.ok ? linkedIn.data.company.profile.name || linkedIn.data.company.organization.name || "Selected company page" : "Company page not available"}</h2>
+              {linkedIn.ok ? <p className="mt-1 text-sm text-slate-400">{linkedIn.data.company.profile.vanityName ? `linkedin.com/company/${linkedIn.data.company.profile.vanityName}` : "Organisation-scoped company identity verified"}</p> : <p className="mt-1 text-sm text-slate-400">{linkedIn.message}</p>}
             </div>
             <Link href="/apps/social/accounts" className="text-sm text-sky-400 hover:underline">Manage connection →</Link>
           </div>
         </section>
+
+        {linkedIn.ok ? (
+          <section className="dg-card">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Recent LinkedIn content</p>
+                <h2 className="mt-1 font-semibold text-white">{linkedIn.data.posts.length ? `${linkedIn.data.posts.length} recent company post${linkedIn.data.posts.length === 1 ? "" : "s"} available as evidence` : "No recent company posts available"}</h2>
+                <p className="mt-1 text-sm text-slate-400">{linkedIn.data.permissionLimited ? linkedIn.data.message : "Live organisation content from the LinkedIn company page selected for this tenant."}</p>
+              </div>
+            </div>
+            {linkedIn.data.posts.length ? <ul className="mt-4 space-y-3">{linkedIn.data.posts.slice(0, 5).map((post) => <li key={post.urn} className="rounded-lg border border-slate-800 px-3 py-2 text-sm text-slate-300"><p>{post.commentary || "LinkedIn company post"}</p>{post.publishedAt ? <p className="mt-1 text-xs text-slate-500">{new Date(post.publishedAt).toLocaleDateString("en-AU")}</p> : null}</li>)}</ul> : null}
+          </section>
+        ) : null}
 
         <section className="dg-card">
           <div className="flex flex-wrap items-end justify-between gap-4">
