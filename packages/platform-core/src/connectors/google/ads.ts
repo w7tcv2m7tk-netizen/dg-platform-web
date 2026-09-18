@@ -31,7 +31,7 @@ export async function probeOrgGoogleAdsAccounts(org: string): Promise<{ok:true;d
     return { ok:false, message:"Google Ads permission has not been authorised for this organisation — reconnect Google Ads." };
   }
   const result = await adsGet("customers:listAccessibleCustomers", ensured.accessToken);
-  if (!result.ok) return result;
+  if (!result.ok) return { ok:false, message:result.message };
   const resourceNames = Array.isArray(result.data?.resourceNames) ? result.data.resourceNames.filter((x:unknown):x is string=>typeof x==="string") : [];
   const data = resourceNames.map((resourceName:string)=>({resourceName,customerId:resourceName.replace(/^customers\//,"")})).filter((x:GoogleAdsAccount)=>/^\d+$/.test(x.customerId));
   const selectedCustomerIds = (ensured.tokens.selectedGoogleAdsCustomerIds || []).filter(id=>data.some(x=>x.customerId===id));
