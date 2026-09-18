@@ -1,5 +1,6 @@
 import { getCommerceFinancialSnapshot } from "../commerce/payment-engine";
 import { fetchOrgGoogleWebEvidence } from "../connectors/google/analytics";
+import { fetchOrgGoogleAdsEvidence } from "../connectors/google/ads";
 import { getOrgGbpSyncSnapshot } from "../connectors/google/gbp";
 import { listLeads } from "../leads";
 import { getPlatformSetupStatus } from "../org/setup-status";
