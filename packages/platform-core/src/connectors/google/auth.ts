@@ -245,7 +245,9 @@ export async function ensureValidOrgGoogleAccessToken(organisationId: string): P
   if (!tokens.refreshToken) return { ok: false, message: "Google access token expired — reconnect the account" };
   const refreshed = await refreshGoogleAccessToken({ refreshToken: tokens.refreshToken });
   if (!refreshed.ok) { await saveOrgGoogleGbpConnectorTokens(organisationId, { ...tokens, lastError: refreshed.message }); return { ok: false, message: refreshed.message }; }
-  // Google refresh responses may omit `scope`. Preserve the previously granted\n  // organisation capability set rather than accidentally downgrading it.\n  const next: OrgGoogleGbpConnectorTokens = { ...tokens, accessToken: refreshed.token.access_token, refreshToken: refreshed.token.refresh_token || tokens.refreshToken, expiresAt: refreshed.token.expiresAt, scope: refreshed.token.scope?.trim() || tokens.scope, lastError: undefined };
+  // Google refresh responses may omit `scope`. Preserve the previously granted
+  // organisation capability set rather than accidentally downgrading it.
+  const next: OrgGoogleGbpConnectorTokens = { ...tokens, accessToken: refreshed.token.access_token, refreshToken: refreshed.token.refresh_token || tokens.refreshToken, expiresAt: refreshed.token.expiresAt, scope: refreshed.token.scope?.trim() || tokens.scope, lastError: undefined };
   await saveOrgGoogleGbpConnectorTokens(organisationId, next);
   return { ok: true, accessToken: next.accessToken!, tokens: next };
 }
