@@ -30,7 +30,6 @@ export interface OverviewLiveMetrics {
   reputationScore: number | null;
   reputationReviewCount: number;
   /** Canonical organisation-scoped Google web evidence. Null means no usable evidence is connected. */
-  instagram: { accountCount: number; followers: number; following: number; mediaCount: number; recentMediaCount: number; recentLikes: number; recentComments: number } | null;
   marketing: {
     period: string;
     activeUsers: number | null;
@@ -131,8 +130,6 @@ export async function gatherOverviewLiveMetrics(
       }
     : null;
 
-  const instagram = null;
-
   return {
     contactCount: setupStatus.contactCount,
     activityCount: setupStatus.activityCount,
@@ -155,7 +152,6 @@ export async function gatherOverviewLiveMetrics(
     consultationCount,
     reputationScore: reputation.score,
     reputationReviewCount: reputation.reviewCount,
-    instagram,
     marketing,
   };
 }
