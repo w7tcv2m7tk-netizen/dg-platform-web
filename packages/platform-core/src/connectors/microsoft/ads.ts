@@ -79,3 +79,23 @@ export async function selectOrgMicrosoftAdsAccounts(org:string,accountIds:string
  const p=await probeOrgMicrosoftAdsAccounts(org);if(!p.ok)return p;const allowed=new Set(p.data.map(x=>x.accountId)),selectedAccountIds=[...new Set(accountIds)].filter(id=>allowed.has(id));
  const t=await getOrgMicrosoftAdsTokens(org);if(!t)return {ok:false as const,message:"Microsoft Advertising is not connected for this organisation"};await saveOrgMicrosoftAdsTokens(org,{...t,accounts:p.data,selectedAccountIds});return {ok:true as const,selectedAccountIds};
 }
+
+export type MicrosoftAdsEvidence={account:MicrosoftAdsAccount;period:"LAST_30_DAYS";campaigns:Array<{id:string;name:string;status?:string;spend:number;impressions:number;clicks:number;conversions:number;conversionValue:number}>;performance:{spend:number;impressions:number;clicks:number;conversions:number;conversionValue:number}};
+const REPORTING_URL="https://reporting.api.bingads.microsoft.com/Api/Advertiser/Reporting/v13/ReportingService.svc";
+async function reporting(accessToken:string,action:string,body:unknown){
+ if(!microsoftAdsDeveloperTokenConfigured())return {ok:false as const,message:"Microsoft Advertising developer token is not configured"};
+ const r=await fetch(REPORTING_URL,{method:"POST",headers:{Authorization:`Bearer ${accessToken}`,"DeveloperToken":process.env.MICROSOFT_ADS_DEVELOPER_TOKEN!.trim(),"Content-Type":"application/json",SOAPAction:action},body:JSON.stringify(body)});
+ const j=await r.json().catch(()=>null) as any;if(!r.ok)return {ok:false as const,message:String(j?.OperationErrors?.[0]?.Message||j?.message||`Microsoft Advertising reporting HTTP ${r.status}`)};return {ok:true as const,data:j};
+}
+export async function fetchOrgMicrosoftAdsEvidence(org:string):Promise<{ok:true;data:MicrosoftAdsEvidence[]}|{ok:false;message:string}>{
+ const e=await ensureValidOrgMicrosoftAdsAccessToken(org);if(!e.ok)return e;const t=e.tokens,selected=new Set(t.selectedAccountIds||[]);if(!selected.size)return {ok:false,message:"No Microsoft Advertising account is selected for this organisation"};
+ const accounts=(t.accounts||[]).filter(x=>selected.has(x.accountId));if(!accounts.length)return {ok:false,message:"Selected Microsoft Advertising accounts are no longer available"};
+ const out:MicrosoftAdsEvidence[]=[];
+ for(const account of accounts){
+  const req={ReportRequest:{Format:"Csv",ReportName:"DigitalGate last 30 days campaign evidence",ReturnOnlyCompleteData:false,Aggregation:"Daily",Columns:["CampaignId","CampaignName","CampaignStatus","Impressions","Clicks","Spend","Conversions","Revenue"],Scope:{AccountIds:[Number(account.accountId)]},Time:{PredefinedTime:"Last30Days"}}};
+  const submit=await reporting(e.accessToken,"SubmitGenerateReport",req);if(!submit.ok)return submit;
+  const reportRequestId=String((submit.data as any)?.ReportRequestId||"");if(!reportRequestId)return {ok:false,message:"Microsoft Advertising reporting did not return a report request id"};
+  return {ok:false,message:`Microsoft Advertising report ${reportRequestId} was submitted successfully; asynchronous report download is not yet available in this connector slice`};
+ }
+ return {ok:true,data:out};
+}
