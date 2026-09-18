@@ -47,6 +47,11 @@ export type BusinessContextTwinSummary = {
   activeLeads?: number;
   pipelineValue?: number;
   revenueMtdCents?: number;
+  instagramFollowers?: number;
+  instagramMediaCount?: number;
+  instagramRecentMediaCount?: number;
+  instagramRecentLikes?: number;
+  instagramRecentComments?: number;
   connectedSystems: string[];
   websites: string[];
 };
@@ -164,6 +169,11 @@ function snapshotToTwinSummary(snapshot?: DigitalTwinSnapshot | null): BusinessC
     activeLeads: snapshot.metrics.activeLeads,
     pipelineValue: snapshot.metrics.pipelineValue,
     revenueMtdCents: snapshot.metrics.revenueMtdCents,
+    instagramFollowers: snapshot.metrics.instagramFollowers,
+    instagramMediaCount: snapshot.metrics.instagramMediaCount,
+    instagramRecentMediaCount: snapshot.metrics.instagramRecentMediaCount,
+    instagramRecentLikes: snapshot.metrics.instagramRecentLikes,
+    instagramRecentComments: snapshot.metrics.instagramRecentComments,
     connectedSystems: snapshot.connectors,
     websites: snapshot.websites,
   };
