@@ -38,6 +38,9 @@ export function captureDigitalTwinSnapshot(input: CaptureTwinSnapshotInput): Dig
   if (enabledAppIds.includes("automation")) connected.push("automation");
   if (metrics.reputationReviewCount > 0) connected.push("reputation");
   if (metrics.marketing) connected.push("google-marketing");
+  if (metrics.social?.linkedInCompanyConnected) connected.push("linkedin");
+  if (metrics.social?.instagramFollowers !== null && metrics.social?.instagramFollowers !== undefined) connected.push("instagram");
+  if (metrics.social?.youtubeChannelCount !== null && metrics.social?.youtubeChannelCount !== undefined) connected.push("youtube");
   if (connectors.comms?.ok || hasAdvancedCommsEntitlement({ enabledAppIds })) connected.push("communications");
 
   const websiteScore = connectors.website?.score;
@@ -72,6 +75,19 @@ export function captureDigitalTwinSnapshot(input: CaptureTwinSnapshotInput): Dig
       searchImpressions30d: metrics.marketing?.searchImpressions ?? undefined,
       searchCtr30d: metrics.marketing?.searchCtr ?? undefined,
       searchPosition30d: metrics.marketing?.searchPosition ?? undefined,
+      instagramFollowers: metrics.social?.instagramFollowers ?? undefined,
+      instagramFollowing: metrics.social?.instagramFollowing ?? undefined,
+      instagramMediaCount: metrics.social?.instagramMediaCount ?? undefined,
+      instagramRecentMediaCount: metrics.social?.instagramRecentMediaCount ?? undefined,
+      instagramRecentLikes: metrics.social?.instagramRecentLikes ?? undefined,
+      instagramRecentComments: metrics.social?.instagramRecentComments ?? undefined,
+      youtubeChannelCount: metrics.social?.youtubeChannelCount ?? undefined,
+      youtubeRecentVideoCount: metrics.social?.youtubeRecentVideoCount ?? undefined,
+      youtubeViews30d: metrics.social?.youtubeViews30d ?? undefined,
+      youtubeWatchMinutes30d: metrics.social?.youtubeWatchMinutes30d ?? undefined,
+      youtubeAverageViewDuration30d: metrics.social?.youtubeAverageViewDuration30d ?? undefined,
+      youtubeSubscribersGained30d: metrics.social?.youtubeSubscribersGained30d ?? undefined,
+      youtubeSubscribersLost30d: metrics.social?.youtubeSubscribersLost30d ?? undefined,
       revenueMtdCents: metrics.revenueMtdCents,
       outstandingArCents: metrics.outstandingArCents,
       overdueArCents: metrics.overdueArCents,

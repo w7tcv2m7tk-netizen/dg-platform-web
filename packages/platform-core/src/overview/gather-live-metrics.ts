@@ -4,6 +4,9 @@ import { fetchOrgGoogleAdsEvidence } from "../connectors/google/ads";
 import { fetchOrgMetaAdsEvidence } from "../connectors/meta/auth";
 import { fetchOrgMicrosoftAdsEvidence } from "../connectors/microsoft/ads";
 import { fetchOrgTikTokAdsEvidence } from "../connectors/tiktok/ads";
+import { fetchOrgMetaInstagramEvidence } from "../connectors/meta/auth";
+import { fetchOrgLinkedInCompanyEvidence } from "../connectors/linkedin/auth";
+import { fetchOrgYouTubeContentEvidence, fetchOrgYouTubeAnalyticsEvidence } from "../connectors/google/youtube";
 import { getOrgGbpSyncSnapshot } from "../connectors/google/gbp";
 import { listLeads } from "../leads";
 import { getPlatformSetupStatus } from "../org/setup-status";
@@ -36,6 +39,23 @@ export interface OverviewLiveMetrics {
   reputationReviewCount: number;
   /** Canonical provider-neutral advertising evidence. */
   advertising: AdvertisingEvidence | null;
+  /** Canonical organisation-scoped organic social evidence. Null means no usable authorised evidence is connected. */
+  social: {
+    instagramFollowers: number | null;
+    instagramFollowing: number | null;
+    instagramMediaCount: number | null;
+    instagramRecentMediaCount: number | null;
+    instagramRecentLikes: number | null;
+    instagramRecentComments: number | null;
+    linkedInCompanyConnected: boolean;
+    youtubeChannelCount: number | null;
+    youtubeRecentVideoCount: number | null;
+    youtubeViews30d: number | null;
+    youtubeWatchMinutes30d: number | null;
+    youtubeAverageViewDuration30d: number | null;
+    youtubeSubscribersGained30d: number | null;
+    youtubeSubscribersLost30d: number | null;
+  } | null;
   /** Canonical organisation-scoped Google web evidence. Null means no usable evidence is connected. */
   marketing: {
     period: string;
@@ -95,6 +115,10 @@ export async function gatherOverviewLiveMetrics(
     metaAdsEvidence,
     microsoftAdsEvidence,
     tiktokAdsEvidence,
+    instagramEvidence,
+    linkedInEvidence,
+    youtubeContent,
+    youtubeAnalytics,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
     includeFinancials ? getCommerceFinancialSnapshot(organisationId) : Promise.resolve(null),
@@ -127,6 +151,10 @@ export async function gatherOverviewLiveMetrics(
     fetchOrgMetaAdsEvidence(organisationId).catch(() => null),
     fetchOrgMicrosoftAdsEvidence(organisationId).catch(() => null),
     fetchOrgTikTokAdsEvidence(organisationId).catch(() => null),
+    fetchOrgMetaInstagramEvidence(organisationId).catch(() => null),
+    fetchOrgLinkedInCompanyEvidence(organisationId).catch(() => null),
+    fetchOrgYouTubeContentEvidence(organisationId).catch(() => null),
+    fetchOrgYouTubeAnalyticsEvidence(organisationId).catch(() => null),
   ]);
 
   const advertisingChannels = [];
@@ -191,6 +219,27 @@ export async function gatherOverviewLiveMetrics(
       }
     : null;
 
+  const instagramRows = instagramEvidence?.ok ? instagramEvidence.data : [];
+  const youtubeContentRows = youtubeContent?.ok ? youtubeContent.data : [];
+  const youtubeAnalyticsRows = youtubeAnalytics?.ok ? youtubeAnalytics.data : [];
+  const hasSocialEvidence = instagramRows.length > 0 || Boolean(linkedInEvidence?.ok) || youtubeContentRows.length > 0 || youtubeAnalyticsRows.length > 0;
+  const social = hasSocialEvidence ? {
+    instagramFollowers: instagramRows.length ? instagramRows.reduce((n, row) => n + (row.followersCount ?? 0), 0) : null,
+    instagramFollowing: instagramRows.length ? instagramRows.reduce((n, row) => n + (row.followsCount ?? 0), 0) : null,
+    instagramMediaCount: instagramRows.length ? instagramRows.reduce((n, row) => n + (row.mediaCount ?? 0), 0) : null,
+    instagramRecentMediaCount: instagramRows.length ? instagramRows.reduce((n, row) => n + row.media.length, 0) : null,
+    instagramRecentLikes: instagramRows.length ? instagramRows.reduce((n, row) => n + row.media.reduce((sum, item) => sum + (item.likeCount ?? 0), 0), 0) : null,
+    instagramRecentComments: instagramRows.length ? instagramRows.reduce((n, row) => n + row.media.reduce((sum, item) => sum + (item.commentsCount ?? 0), 0), 0) : null,
+    linkedInCompanyConnected: Boolean(linkedInEvidence?.ok),
+    youtubeChannelCount: youtubeContentRows.length || youtubeAnalyticsRows.length ? youtubeContentRows.length : null,
+    youtubeRecentVideoCount: youtubeContentRows.length ? youtubeContentRows.reduce((n, row) => n + row.videos.length, 0) : null,
+    youtubeViews30d: youtubeAnalyticsRows.length ? youtubeAnalyticsRows.reduce((n, row) => n + row.views, 0) : null,
+    youtubeWatchMinutes30d: youtubeAnalyticsRows.length ? youtubeAnalyticsRows.reduce((n, row) => n + row.estimatedMinutesWatched, 0) : null,
+    youtubeAverageViewDuration30d: youtubeAnalyticsRows.length ? youtubeAnalyticsRows.reduce((n, row) => n + row.averageViewDuration, 0) / youtubeAnalyticsRows.length : null,
+    youtubeSubscribersGained30d: youtubeAnalyticsRows.length ? youtubeAnalyticsRows.reduce((n, row) => n + row.subscribersGained, 0) : null,
+    youtubeSubscribersLost30d: youtubeAnalyticsRows.length ? youtubeAnalyticsRows.reduce((n, row) => n + row.subscribersLost, 0) : null,
+  } : null;
+
   return {
     contactCount: setupStatus.contactCount,
     activityCount: setupStatus.activityCount,
@@ -214,6 +263,7 @@ export async function gatherOverviewLiveMetrics(
     reputationScore: reputation.score,
     reputationReviewCount: reputation.reviewCount,
     advertising,
+    social,
     marketing,
   };
 }
