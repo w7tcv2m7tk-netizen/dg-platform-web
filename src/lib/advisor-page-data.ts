@@ -7,10 +7,6 @@ import {
   computeReputationScore,
   gatherOverviewLiveMetrics,
   generateBusinessIntelligence,
-  fetchOrgMetaInstagramEvidence,
-  fetchOrgLinkedInCompanyEvidence,
-  fetchOrgYouTubeContentEvidence,
-  fetchOrgYouTubeAnalyticsEvidence,
   getAiQualityMetrics,
   getBusinessContext,
   getOrganisationBusinessProfile,
@@ -44,14 +40,6 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
-  const [instagramEvidence, linkedInEvidence, youtubeContent, youtubeAnalytics] = await Promise.all([
-    fetchOrgMetaInstagramEvidence(session.organisationId),
-    fetchOrgLinkedInCompanyEvidence(session.organisationId),
-    fetchOrgYouTubeContentEvidence(session.organisationId),
-    fetchOrgYouTubeAnalyticsEvidence(session.organisationId),
-  ]);
-  const instagramRows = instagramEvidence.ok ? instagramEvidence.data : [];
-
   let twinScores = null;
   let snapshot = null;
   if (metrics) {
@@ -67,38 +55,6 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     });
     twinScores = built.scores;
     snapshot = built.snapshot;
-    if (linkedInEvidence.ok) {
-      snapshot.connectors = [...new Set([...snapshot.connectors, "linkedin"])];
-    }
-    if (youtubeContent.ok) {
-      snapshot.connectors = [...new Set([...snapshot.connectors, "youtube"])];
-      snapshot.metrics.youtubeChannelCount = youtubeContent.data.length;
-      snapshot.metrics.youtubeRecentVideoCount = youtubeContent.data.reduce((total, row) => total + row.videos.length, 0);
-    }
-    if (youtubeAnalytics.ok) {
-      snapshot.connectors = [...new Set([...snapshot.connectors, "youtube"])];
-      snapshot.metrics.youtubeViews30d = youtubeAnalytics.data.reduce((total, row) => total + row.views, 0);
-      snapshot.metrics.youtubeWatchMinutes30d = youtubeAnalytics.data.reduce((total, row) => total + row.estimatedMinutesWatched, 0);
-      snapshot.metrics.youtubeAverageViewDuration30d = youtubeAnalytics.data.length ? youtubeAnalytics.data.reduce((total, row) => total + row.averageViewDuration, 0) / youtubeAnalytics.data.length : 0;
-      snapshot.metrics.youtubeSubscribersGained30d = youtubeAnalytics.data.reduce((total, row) => total + row.subscribersGained, 0);
-      snapshot.metrics.youtubeSubscribersLost30d = youtubeAnalytics.data.reduce((total, row) => total + row.subscribersLost, 0);
-    }
-    if (instagramRows.length) {
-      snapshot.connectors = [...new Set([...snapshot.connectors, "instagram"])];
-      snapshot.metrics.instagramFollowers = instagramRows.reduce((total, row) => total + (row.followersCount ?? 0), 0);
-      snapshot.metrics.instagramFollowing = instagramRows.reduce((total, row) => total + (row.followsCount ?? 0), 0);
-      snapshot.metrics.instagramMediaCount = instagramRows.reduce((total, row) => total + (row.mediaCount ?? 0), 0);
-      snapshot.metrics.instagramRecentMediaCount = instagramRows.reduce((total, row) => total + row.media.length, 0);
-      snapshot.metrics.instagramRecentLikes = instagramRows.reduce(
-        (total, row) => total + row.media.reduce((sum, item) => sum + (item.likeCount ?? 0), 0),
-        0,
-      );
-      snapshot.metrics.instagramRecentComments = instagramRows.reduce(
-        (total, row) => total + row.media.reduce((sum, item) => sum + (item.commentsCount ?? 0), 0),
-        0,
-      );
-    }
-    snapshot.metrics.connectedConnectors = snapshot.connectors.length;
   }
 
   const context = await getBusinessContext({
