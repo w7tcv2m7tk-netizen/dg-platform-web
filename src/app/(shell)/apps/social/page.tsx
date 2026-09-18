@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchOrgLinkedInSocialEvidence, getOrganisationBusinessProfile } from "@dg/platform-core";
+import { fetchOrgLinkedInSocialEvidence, fetchOrgYouTubeContentEvidence, fetchOrgYouTubeAnalyticsEvidence, getOrganisationBusinessProfile } from "@dg/platform-core";
 
 import { getPlatformPageContext } from "@/lib/org-apps";
 import {
@@ -18,6 +18,7 @@ export default async function SocialOverviewPage() {
   const linkedIn = platformSession
     ? await fetchOrgLinkedInSocialEvidence(platformSession.organisationId)
     : { ok: false as const, message: "No active organisation session" };
+  const [youtubeContent, youtubeAnalytics] = platformSession ? await Promise.all([fetchOrgYouTubeContentEvidence(platformSession.organisationId), fetchOrgYouTubeAnalyticsEvidence(platformSession.organisationId)]) : [{ ok:false as const, message:"No active organisation session" }, { ok:false as const, message:"No active organisation session" }];
   const completeness = socialCompletenessPercent(social);
   const gaps = listSocialGaps(social);
 
@@ -63,6 +64,8 @@ export default async function SocialOverviewPage() {
             {linkedIn.data.posts.length ? <ul className="mt-4 space-y-3">{linkedIn.data.posts.slice(0, 5).map((post) => <li key={post.urn} className="rounded-lg border border-slate-800 px-3 py-2 text-sm text-slate-300"><p>{post.commentary || "LinkedIn company post"}</p>{post.publishedAt ? <p className="mt-1 text-xs text-slate-500">{new Date(post.publishedAt).toLocaleDateString("en-AU")}</p> : null}</li>)}</ul> : null}
           </section>
         ) : null}
+
+        {youtubeContent.ok ? <section className="dg-card"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-wide text-slate-500">YouTube evidence</p><h2 className="mt-1 font-semibold text-white">{youtubeContent.data.reduce((n,row)=>n+row.videos.length,0)} recent video{youtubeContent.data.reduce((n,row)=>n+row.videos.length,0)===1?"":"s"} across {youtubeContent.data.length} selected channel{youtubeContent.data.length===1?"":"s"}</h2><p className="mt-1 text-sm text-slate-400">{youtubeAnalytics.ok ? `${youtubeAnalytics.data.reduce((n,row)=>n+row.views,0).toLocaleString("en-AU")} views · ${Math.round(youtubeAnalytics.data.reduce((n,row)=>n+row.estimatedMinutesWatched,0)).toLocaleString("en-AU")} minutes watched in the last 30 days` : "Recent channel content is available; private YouTube Analytics requires the authorised Analytics scope."}</p></div><Link href="/apps/social/accounts" className="text-sm text-sky-400 hover:underline">Manage channels →</Link></div>{youtubeContent.data.some(row=>row.videos.length)?<ul className="mt-4 space-y-3">{youtubeContent.data.flatMap(row=>row.videos).slice(0,5).map(video=><li key={video.id} className="rounded-lg border border-slate-800 px-3 py-2 text-sm text-slate-300"><p>{video.title}</p><p className="mt-1 text-xs text-slate-500">{video.publishedAt?new Date(video.publishedAt).toLocaleDateString("en-AU"):""}{video.views!==null?` · ${video.views.toLocaleString("en-AU")} views`:""}</p></li>)}</ul>:null}</section> : null}
 
         <section className="dg-card">
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -119,7 +122,7 @@ export default async function SocialOverviewPage() {
               <Link href="/apps/social/accounts" className="text-sky-400 hover:underline">
                 Accounts
               </Link>{" "}
-              — manage organisation-scoped LinkedIn and Meta connections, Facebook/Instagram selection and Meta Ads accounts
+              — manage organisation-scoped LinkedIn, Meta and YouTube connections and resource selections
             </li>
             <li>
               <Link href="/dashboard/business" className="text-sky-400 hover:underline">
