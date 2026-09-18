@@ -33,9 +33,7 @@ export default async function SocialOverviewPage() {
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
           <p className="font-medium text-amber-200">Honestly deferred for closed beta</p>
           <p className="mt-1 text-slate-400">
-            Publishing to networks is not live yet. LinkedIn can be connected under Accounts.
-            This surface still tracks Business Profile URLs and local drafts — no fake engagement
-            charts.
+            Publishing to networks is not live yet. LinkedIn and Meta can be connected under Accounts, with organisation-scoped company/page selection and Meta evidence. This surface also tracks Business Profile URLs and local drafts — no fake engagement charts.
           </p>
         </div>
 
