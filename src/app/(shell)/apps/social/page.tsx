@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getOrganisationBusinessProfile } from "@dg/platform-core";
+import { fetchOrgLinkedInCompanyEvidence, getOrganisationBusinessProfile } from "@dg/platform-core";
 
 import { getPlatformPageContext } from "@/lib/org-apps";
 import {
@@ -15,6 +15,9 @@ export default async function SocialOverviewPage() {
     ? await getOrganisationBusinessProfile(platformSession.organisationId)
     : null;
   const social = profile?.social;
+  const linkedIn = platformSession
+    ? await fetchOrgLinkedInCompanyEvidence(platformSession.organisationId)
+    : { ok: false as const, message: "No active organisation session" };
   const completeness = socialCompletenessPercent(social);
   const gaps = listSocialGaps(social);
 
@@ -36,6 +39,17 @@ export default async function SocialOverviewPage() {
             Publishing to networks is not live yet. LinkedIn and Meta can be connected under Accounts, with organisation-scoped company/page selection and Meta evidence. This surface also tracks Business Profile URLs and local drafts — no fake engagement charts.
           </p>
         </div>
+
+        <section className="dg-card">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-slate-500">LinkedIn evidence</p>
+              <h2 className="mt-1 font-semibold text-white">{linkedIn.ok ? linkedIn.data.profile.name || linkedIn.data.organization.name || "Selected company page" : "Company page not available"}</h2>
+              {linkedIn.ok ? <p className="mt-1 text-sm text-slate-400">{linkedIn.data.profile.vanityName ? `linkedin.com/company/${linkedIn.data.profile.vanityName}` : "Organisation-scoped company identity verified"}</p> : <p className="mt-1 text-sm text-slate-400">{linkedIn.message}</p>}
+            </div>
+            <Link href="/apps/social/accounts" className="text-sm text-sky-400 hover:underline">Manage connection →</Link>
+          </div>
+        </section>
 
         <section className="dg-card">
           <div className="flex flex-wrap items-end justify-between gap-4">
