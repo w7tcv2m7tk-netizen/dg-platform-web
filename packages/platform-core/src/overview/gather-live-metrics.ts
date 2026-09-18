@@ -1,7 +1,7 @@
 import { getCommerceFinancialSnapshot } from "../commerce/payment-engine";
 import { fetchOrgGoogleWebEvidence } from "../connectors/google/analytics";
 import { getOrgGbpSyncSnapshot } from "../connectors/google/gbp";
-import { fetchOrgMetaInstagramEvidence } from "../connectors/meta/auth";
+import { fetchOrgMetaInstagramEvidence, type MetaInstagramEvidence } from "../connectors/meta/auth";
 import { listLeads } from "../leads";
 import { getPlatformSetupStatus } from "../org/setup-status";
 import { listProperties } from "../properties";
@@ -142,15 +142,15 @@ export async function gatherOverviewLiveMetrics(
       }
     : null;
 
-  const instagramRows = instagramEvidence?.ok ? instagramEvidence.data : [];
+  const instagramRows: MetaInstagramEvidence[] = instagramEvidence?.ok ? instagramEvidence.data : [];
   const instagram = instagramRows.length ? {
     accountCount: instagramRows.length,
-    followers: instagramRows.reduce((n,x)=>n+(x.followersCount??0),0),
-    following: instagramRows.reduce((n,x)=>n+(x.followsCount??0),0),
-    mediaCount: instagramRows.reduce((n,x)=>n+(x.mediaCount??0),0),
-    recentMediaCount: instagramRows.reduce((n,x)=>n+x.media.length,0),
-    recentLikes: instagramRows.reduce((n,x)=>n+x.media.reduce((m,item)=>m+(item.likeCount??0),0),0),
-    recentComments: instagramRows.reduce((n,x)=>n+x.media.reduce((m,item)=>m+(item.commentsCount??0),0),0),
+    followers: instagramRows.reduce((n: number,x: MetaInstagramEvidence)=>n+(x.followersCount??0),0),
+    following: instagramRows.reduce((n: number,x: MetaInstagramEvidence)=>n+(x.followsCount??0),0),
+    mediaCount: instagramRows.reduce((n: number,x: MetaInstagramEvidence)=>n+(x.mediaCount??0),0),
+    recentMediaCount: instagramRows.reduce((n: number,x: MetaInstagramEvidence)=>n+x.media.length,0),
+    recentLikes: instagramRows.reduce((n: number,x: MetaInstagramEvidence)=>n+x.media.reduce((m: number,item: MetaInstagramEvidence["media"][number])=>m+(item.likeCount??0),0),0),
+    recentComments: instagramRows.reduce((n: number,x: MetaInstagramEvidence)=>n+x.media.reduce((m: number,item: MetaInstagramEvidence["media"][number])=>m+(item.commentsCount??0),0),0),
   } : null;
 
   return {
