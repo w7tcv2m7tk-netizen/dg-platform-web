@@ -29,6 +29,7 @@ const SYSTEM_LABELS: Record<string, string> = {
   reviews: "Reviews",
   "ai-communications": "Communications",
   communications: "Communications",
+  instagram: "Instagram",
 };
 
 const APP_LABELS: Record<string, string> = {
@@ -276,6 +277,28 @@ function buildDigitalLayer(input: BuildDigitalTwinDashboardInput): TwinLayer {
     signals.push({ label: "AI Visibility", value: `${aiVis}/100`, href: "/apps/ai-visibility" });
   }
 
+  const instagramFollowers = input.snapshot?.metrics.instagramFollowers;
+  const instagramMedia = input.snapshot?.metrics.instagramMediaCount;
+  const instagramRecentMedia = input.snapshot?.metrics.instagramRecentMediaCount;
+  const instagramRecentLikes = input.snapshot?.metrics.instagramRecentLikes;
+  const instagramRecentComments = input.snapshot?.metrics.instagramRecentComments;
+  if (instagramFollowers != null || instagramMedia != null) {
+    score += 10;
+    if (instagramFollowers != null) {
+      signals.push({ label: "Instagram followers", value: String(instagramFollowers), href: "/apps/social/accounts" });
+    }
+    if (instagramMedia != null) {
+      signals.push({ label: "Instagram media", value: String(instagramMedia), href: "/apps/social/accounts" });
+    }
+    if (instagramRecentMedia != null) {
+      signals.push({
+        label: "Recent Instagram evidence",
+        value: `${instagramRecentMedia} item${instagramRecentMedia === 1 ? "" : "s"} · ${instagramRecentLikes ?? 0} likes · ${instagramRecentComments ?? 0} comments`,
+        href: "/apps/social/accounts",
+      });
+    }
+  }
+
   if (reputation?.score != null) {
     score += 15;
     signals.push({
@@ -370,6 +393,8 @@ function buildConnectedSystems(input: BuildDigitalTwinDashboardInput): TwinConne
 
   if (connectors?.wordpress?.ok) add("wordpress", "WordPress", "live");
   if (connectors?.stripeOk) add("stripe", "Stripe", "live");
+  if (input.snapshot?.connectors.includes("instagram")) add("instagram", "Instagram", "live");
+
   if (connectors?.comms?.ok) add("communications", "Communications", "live");
   else if (
     hasAdvancedCommsEntitlement({ enabledAppIds: [...enabled] }) ||
