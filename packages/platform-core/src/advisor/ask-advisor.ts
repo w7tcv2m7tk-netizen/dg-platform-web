@@ -72,6 +72,11 @@ function evidenceBlock(briefing: AskAdvisorInput["briefing"], businessContext: B
         `${i + 1}. [${r.category}] ${r.title}\n   See: ${r.whatISee}\n   Recommend: ${r.whatIRecommend}`,
     )
     .join("\n");
+  const twin = businessContext.twin;
+  const instagramEvidence =
+    twin.instagramFollowers != null || twin.instagramMediaCount != null
+      ? `Instagram evidence: ${twin.instagramFollowers ?? "unknown"} followers · ${twin.instagramMediaCount ?? "unknown"} media · ${twin.instagramRecentMediaCount ?? 0} recent items · ${twin.instagramRecentLikes ?? 0} recent likes · ${twin.instagramRecentComments ?? 0} recent comments`
+      : null;
   return [
     `Today summary: ${briefing.todaySummary}`,
     `Business Brain completeness: ${briefing.brainCompleteness}%`,
