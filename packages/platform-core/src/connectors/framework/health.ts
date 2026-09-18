@@ -277,7 +277,8 @@ export async function listConnectorCatalogForOrg(
   const items: ConnectorCatalogItem[] = [];
 
   for (const manifest of manifests) {
-    const blob = await getOrgConnectorSettings(organisationId, manifest.id);
+    const settingsId = manifest.id === "google-ads" || manifest.id === "youtube" ? "google-gbp" : manifest.id;
+    const blob = await getOrgConnectorSettings(organisationId, settingsId);
     items.push({
       manifest,
       platformConfigured: isConnectorPlatformConfigured(manifest.id),
