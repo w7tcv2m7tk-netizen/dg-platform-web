@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
   const exchanged = await exchangeGoogleAuthorizationCode({ code });
   if (!exchanged.ok) return fail("token_exchange_failed", exchanged.message);
 
-  if (parsed.mode === "ads" && !(exchanged.token.scope || "").split(/\\s+/).includes("https://www.googleapis.com/auth/adwords")) {
+  if (parsed.mode === "ads" && !(exchanged.token.scope || "").split(/\s+/).includes("https://www.googleapis.com/auth/adwords")) {
     return fail("missing_analytics_scopes", "Google did not grant the required Google Ads permission.");
   }
 
