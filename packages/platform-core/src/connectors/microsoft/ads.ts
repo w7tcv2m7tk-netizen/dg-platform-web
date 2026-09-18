@@ -95,7 +95,24 @@ export async function fetchOrgMicrosoftAdsEvidence(org:string):Promise<{ok:true;
   const req={ReportRequest:{Format:"Csv",ReportName:"DigitalGate last 30 days campaign evidence",ReturnOnlyCompleteData:false,Aggregation:"Daily",Columns:["CampaignId","CampaignName","CampaignStatus","Impressions","Clicks","Spend","Conversions","Revenue"],Scope:{AccountIds:[Number(account.accountId)]},Time:{PredefinedTime:"Last30Days"}}};
   const submit=await reporting(e.accessToken,"SubmitGenerateReport",req);if(!submit.ok)return submit;
   const reportRequestId=String((submit.data as any)?.ReportRequestId||"");if(!reportRequestId)return {ok:false,message:"Microsoft Advertising reporting did not return a report request id"};
-  return {ok:false,message:`Microsoft Advertising report ${reportRequestId} was submitted successfully; asynchronous report download is not yet available in this connector slice`};
+  let downloadUrl="";
+  for(let attempt=0;attempt<6;attempt++){
+   if(attempt>0)await new Promise(resolve=>setTimeout(resolve,1000));
+   const poll=await reporting(e.accessToken,"PollGenerateReport",{ReportRequestId:reportRequestId});if(!poll.ok)return poll;
+   const status=String((poll.data as any)?.ReportRequestStatus?.Status||"");
+   downloadUrl=String((poll.data as any)?.ReportRequestStatus?.ReportDownloadUrl||"");
+   if(status==="Success"&&downloadUrl)break;
+   if(status==="Error")return {ok:false,message:"Microsoft Advertising report generation failed"};
+  }
+  if(!downloadUrl)return {ok:false,message:"Microsoft Advertising report is still processing — retry evidence sync shortly"};
+  const file=await fetch(downloadUrl);if(!file.ok)return {ok:false,message:`Microsoft Advertising report download HTTP ${file.status}`};
+  const csv=await file.text(),lines=csv.split(/\\r?\\n/).filter(line=>line.trim()&&!line.startsWith('"Report')&&!line.startsWith('"Time')&&!line.startsWith('"Last Completed'));
+  const headerIndex=lines.findIndex(line=>line.includes("CampaignId")&&line.includes("Impressions"));if(headerIndex<0)return {ok:false,message:"Microsoft Advertising report did not contain the expected campaign columns"};
+  const parse=(line:string)=>{const out:string[]=[];let v="",q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){v+='"';i++}else q=!q}else if(ch===","&&!q){out.push(v);v=""}else v+=ch}out.push(v);return out};
+  const headers=parse(lines[headerIndex]),idx=(name:string)=>headers.indexOf(name),byCampaign=new Map<string,MicrosoftAdsEvidence["campaigns"][number]>();
+  for(const line of lines.slice(headerIndex+1)){const row=parse(line),id=row[idx("CampaignId")];if(!id)continue;const prior=byCampaign.get(id)||{id,name:row[idx("CampaignName")]||id,status:row[idx("CampaignStatus")]||undefined,spend:0,impressions:0,clicks:0,conversions:0,conversionValue:0};prior.spend+=Number(row[idx("Spend")]||0);prior.impressions+=Number(row[idx("Impressions")]||0);prior.clicks+=Number(row[idx("Clicks")]||0);prior.conversions+=Number(row[idx("Conversions")]||0);prior.conversionValue+=Number(row[idx("Revenue")]||0);byCampaign.set(id,prior)}
+  const campaigns=[...byCampaign.values()],performance=campaigns.reduce((a,x)=>({spend:a.spend+x.spend,impressions:a.impressions+x.impressions,clicks:a.clicks+x.clicks,conversions:a.conversions+x.conversions,conversionValue:a.conversionValue+x.conversionValue}),{spend:0,impressions:0,clicks:0,conversions:0,conversionValue:0});
+  out.push({account,period:"LAST_30_DAYS",campaigns,performance});
  }
  return {ok:true,data:out};
 }
