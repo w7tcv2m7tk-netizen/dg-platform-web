@@ -4,7 +4,7 @@ import { fetchOrgMetaAdsEvidence } from "@dg/platform-core";
 
 export default async function AdvertisingPage() {
   const ctx=await getPlatformPageContext();
-  const meta=await fetchOrgMetaAdsEvidence(ctx.organisationId);
+  const meta=await fetchOrgMetaAdsEvidence(ctx.org.id);
   return <>
     <header className="dg-page-header">
       <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">Growth App</p>
