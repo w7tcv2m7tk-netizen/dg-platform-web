@@ -1068,8 +1068,22 @@ export function getCategorizedPlatformNavigation(
   ];
   /** Empty — Infrastructure is listed under CORE */
   const infrastructureApps: AppNavTreeItem[] = [];
+  const selectedIndustryAppIds = new Set(
+    (options?.industrySelectionIds ?? []).flatMap((selectionId) => {
+      const template = getTemplate(selectionId);
+      if (template?.appId) return [template.appId];
+      const industry = getIndustry(selectionId);
+      if (!industry) return [];
+      // A broad industry alone is not permission to reveal every sibling module.
+      // Only a single-module industry can safely resolve without an explicit business type.
+      const appIds = [...new Set(industry.templates.map((item) => item.appId).filter(Boolean))];
+      return appIds.length === 1 ? appIds : [];
+    }),
+  );
   const industryModuleApps = sortByOrder(
-    enabledApps.filter((a) => INDUSTRY_APP_IDS.has(a.id)),
+    enabledApps.filter(
+      (a) => INDUSTRY_APP_IDS.has(a.id) && selectedIndustryAppIds.has(a.id),
+    ),
     INDUSTRY_APP_ORDER,
   );
   const growApps = sortByOrder(
