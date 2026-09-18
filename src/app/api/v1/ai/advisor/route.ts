@@ -9,6 +9,7 @@ import {
   computeReputationScore,
   gatherOverviewLiveMetrics,
   generateBusinessIntelligence,
+  fetchOrgGoogleAdsEvidence,
   getBusinessContext,
   getOrganisationBusinessProfile,
   getOrganisationGoals,
