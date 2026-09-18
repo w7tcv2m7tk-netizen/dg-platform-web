@@ -116,7 +116,29 @@ export function PersonalisedAppsOverview({ industrySelectionIds, organisationNam
         )}
       </section>
 
-      <section>\n        <div className="mb-4"><p className="text-xs font-semibold uppercase tracking-widest text-blue-300">Growth Apps</p><h2 className="mt-2 text-xl font-bold text-white">Grow your business</h2></div>\n        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{["marketing","advertising",...GROWTH_APP_CATALOG.map((item)=>item.appId)].filter((id,index,all)=>all.indexOf(id)===index&&enabledIds.includes(id)).map((id)=>{const app=platformApps.get(id)?.manifest;const href=appHref(id);return app&&href?<Link key={id} href={href} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4"><h3 className="font-semibold text-white">{app.name}</h3><p className="mt-1 text-xs leading-relaxed text-slate-400">{app.description}</p><span className="mt-4 inline-flex text-xs font-semibold text-blue-400">Open {app.name} →</span></Link>:null})}</div>\n      </section>\n\n      <section className="rounded-2xl border border-slate-800 bg-slate-900/35 p-5">
+      <section>
+        <div className="mb-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-blue-300">Growth Apps</p>
+          <h2 className="mt-2 text-xl font-bold text-white">Grow your business</h2>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {["marketing", "advertising", ...GROWTH_APP_CATALOG.map((item) => item.appId)]
+            .filter((id, index, all) => all.indexOf(id) === index && enabledIds.includes(id))
+            .map((id) => {
+              const app = platformApps.get(id)?.manifest;
+              const href = appHref(id);
+              return app && href ? (
+                <Link key={id} href={href} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                  <h3 className="font-semibold text-white">{app.name}</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-400">{app.description}</p>
+                  <span className="mt-4 inline-flex text-xs font-semibold text-blue-400">Open {app.name} →</span>
+                </Link>
+              ) : null;
+            })}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-900/35 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="font-semibold text-white">Need something else?</h2>
