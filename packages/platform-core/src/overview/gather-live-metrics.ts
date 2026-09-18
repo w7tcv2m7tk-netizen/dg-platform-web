@@ -1,6 +1,7 @@
 import { getCommerceFinancialSnapshot } from "../commerce/payment-engine";
 import { fetchOrgGoogleWebEvidence } from "../connectors/google/analytics";
 import { getOrgGbpSyncSnapshot } from "../connectors/google/gbp";
+import { fetchOrgMetaInstagramEvidence } from "../connectors/meta/auth";
 import { listLeads } from "../leads";
 import { getPlatformSetupStatus } from "../org/setup-status";
 import { listProperties } from "../properties";
@@ -30,6 +31,15 @@ export interface OverviewLiveMetrics {
   reputationScore: number | null;
   reputationReviewCount: number;
   /** Canonical organisation-scoped Google web evidence. Null means no usable evidence is connected. */
+  instagram: {
+    accountCount: number;
+    followers: number;
+    following: number;
+    mediaCount: number;
+    recentMediaCount: number;
+    recentLikes: number;
+    recentComments: number;
+  } | null;
   marketing: {
     period: string;
     activeUsers: number | null;
@@ -84,6 +94,7 @@ export async function gatherOverviewLiveMetrics(
     consultationCount,
     gbp,
     googleWebEvidence,
+    instagramEvidence,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
     includeFinancials ? getCommerceFinancialSnapshot(organisationId) : Promise.resolve(null),
@@ -112,6 +123,7 @@ export async function gatherOverviewLiveMetrics(
     }),
     getOrgGbpSyncSnapshot(organisationId),
     fetchOrgGoogleWebEvidence(organisationId).catch(() => null),
+    fetchOrgMetaInstagramEvidence(organisationId).catch(() => null),
   ]);
 
   const reputation = computeReputationScore(mapGbpReviewsToFeed(gbp?.reviews ?? []));
@@ -129,6 +141,17 @@ export async function gatherOverviewLiveMetrics(
         searchPosition: web.search?.position ?? null,
       }
     : null;
+
+  const instagramRows = instagramEvidence?.ok ? instagramEvidence.data : [];
+  const instagram = instagramRows.length ? {
+    accountCount: instagramRows.length,
+    followers: instagramRows.reduce((n,x)=>n+(x.followersCount??0),0),
+    following: instagramRows.reduce((n,x)=>n+(x.followsCount??0),0),
+    mediaCount: instagramRows.reduce((n,x)=>n+(x.mediaCount??0),0),
+    recentMediaCount: instagramRows.reduce((n,x)=>n+x.media.length,0),
+    recentLikes: instagramRows.reduce((n,x)=>n+x.media.reduce((m,item)=>m+(item.likeCount??0),0),0),
+    recentComments: instagramRows.reduce((n,x)=>n+x.media.reduce((m,item)=>m+(item.commentsCount??0),0),0),
+  } : null;
 
   return {
     contactCount: setupStatus.contactCount,
@@ -152,6 +175,7 @@ export async function gatherOverviewLiveMetrics(
     consultationCount,
     reputationScore: reputation.score,
     reputationReviewCount: reputation.reviewCount,
+    instagram,
     marketing,
   };
 }
