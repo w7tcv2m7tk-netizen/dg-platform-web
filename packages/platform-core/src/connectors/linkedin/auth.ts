@@ -635,3 +635,30 @@ export async function probeOrgLinkedInConnection(organisationId: string): Promis
     selectedOrganizationUrn,
   };
 }
+
+
+export type LinkedInCompanyEvidence = {
+  organization: LinkedInOrganizationAcl;
+  profile: { id: string; name?: string; vanityName?: string; website?: string };
+};
+
+/** Read evidence only for the LinkedIn company explicitly selected for this tenant. */
+export async function fetchOrgLinkedInCompanyEvidence(organisationId: string): Promise<
+  | { ok: true; data: LinkedInCompanyEvidence }
+  | { ok: false; message: string }
+> {
+  const ensured = await ensureValidOrgLinkedInAccessToken(organisationId);
+  if (!ensured.ok) return ensured;
+  const selected = ensured.tokens.selectedOrganizationUrn;
+  if (!selected) return { ok: false, message: "Select a LinkedIn company page for this organisation first" };
+  const organization = (ensured.tokens.organizations ?? []).find((o) => o.urn === selected);
+  if (!organization) return { ok: false, message: "Selected LinkedIn company page is no longer available to this organisation connection" };
+  const id = organizationIdFromUrn(selected);
+  if (!id) return { ok: false, message: "Selected LinkedIn company page has an invalid organisation identifier" };
+  const rest = await linkedInApiGet(`https://api.linkedin.com/rest/organizations/${id}`, ensured.accessToken, true);
+  const probe = rest.ok ? rest : await linkedInApiGet(`https://api.linkedin.com/v2/organizations/${id}`, ensured.accessToken);
+  if (!probe.ok) return { ok: false, message: probe.message };
+  const rec = probe.data && typeof probe.data === "object" ? probe.data as Record<string, unknown> : {};
+  const website = typeof rec.website === "string" ? rec.website : undefined;
+  return { ok: true, data: { organization, profile: { id, name: typeof rec.localizedName === "string" ? rec.localizedName : organization.name, vanityName: typeof rec.vanityName === "string" ? rec.vanityName : organization.vanityName, website } } };
+}
