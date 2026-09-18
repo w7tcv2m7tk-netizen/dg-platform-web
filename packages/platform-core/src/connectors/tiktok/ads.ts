@@ -50,8 +50,8 @@ export async function fetchOrgTikTokAdsEvidence(org:string):Promise<{ok:true;dat
  for(const advertiser of advertisers){
   const r=await tiktokGet(t.accessToken,"/report/integrated/get/",{advertiser_id:advertiser.advertiserId,report_type:"BASIC",data_level:"AUCTION_CAMPAIGN",dimensions:JSON.stringify(["campaign_id"]),metrics:JSON.stringify(["campaign_name","spend","impressions","clicks","conversion","total_purchase_value"]),start_date:date(start),end_date:date(end),page_size:"1000"});
   if(!r.ok)return r;const rows=Array.isArray((r.data as any)?.list)?(r.data as any).list:[];
-  const campaigns=rows.flatMap((x:any)=>{const d=x?.dimensions||{},m=x?.metrics||{},id=d.campaign_id?String(d.campaign_id):"";return id?[{id,name:String(m.campaign_name||id),spend:Number(m.spend||0),impressions:Number(m.impressions||0),clicks:Number(m.clicks||0),conversions:Number(m.conversion||0),conversionValue:Number(m.total_purchase_value||0)}]:[]});
-  const performance=campaigns.reduce((a,x)=>({spend:a.spend+x.spend,impressions:a.impressions+x.impressions,clicks:a.clicks+x.clicks,conversions:a.conversions+x.conversions,conversionValue:a.conversionValue+x.conversionValue}),{spend:0,impressions:0,clicks:0,conversions:0,conversionValue:0});
+  const campaigns:TikTokAdsEvidence["campaigns"]=rows.flatMap((x:any)=>{const d=x?.dimensions||{},m=x?.metrics||{},id=d.campaign_id?String(d.campaign_id):"";return id?[{id,name:String(m.campaign_name||id),spend:Number(m.spend||0),impressions:Number(m.impressions||0),clicks:Number(m.clicks||0),conversions:Number(m.conversion||0),conversionValue:Number(m.total_purchase_value||0)}]:[]});
+  const performance=campaigns.reduce<TikTokAdsEvidence["performance"]>((a,x)=>({spend:a.spend+x.spend,impressions:a.impressions+x.impressions,clicks:a.clicks+x.clicks,conversions:a.conversions+x.conversions,conversionValue:a.conversionValue+x.conversionValue}),{spend:0,impressions:0,clicks:0,conversions:0,conversionValue:0});
   out.push({advertiser,period:"LAST_30_DAYS",campaigns,performance});
  }
  return {ok:true,data:out};
