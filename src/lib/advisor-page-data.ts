@@ -42,7 +42,10 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
-  const [instagramEvidence, linkedInEvidence] = await Promise.all([\n    fetchOrgMetaInstagramEvidence(session.organisationId),\n    fetchOrgLinkedInCompanyEvidence(session.organisationId),\n  ]);
+  const [instagramEvidence, linkedInEvidence] = await Promise.all([
+    fetchOrgMetaInstagramEvidence(session.organisationId),
+    fetchOrgLinkedInCompanyEvidence(session.organisationId),
+  ]);
   const instagramRows = instagramEvidence.ok ? instagramEvidence.data : [];
 
   let twinScores = null;
