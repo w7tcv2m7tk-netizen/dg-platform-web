@@ -47,6 +47,20 @@ export type BusinessContextTwinSummary = {
   activeLeads?: number;
   pipelineValue?: number;
   revenueMtdCents?: number;
+  webActiveUsers30d?: number;
+  webSessions30d?: number;
+  webEngagedSessions30d?: number;
+  webKeyEvents30d?: number;
+  searchClicks30d?: number;
+  searchImpressions30d?: number;
+  searchCtr30d?: number;
+  searchPosition30d?: number;
+  advertisingSpend30d?: number;
+  advertisingImpressions30d?: number;
+  advertisingClicks30d?: number;
+  advertisingConversions30d?: number;
+  advertisingConversionValue30d?: number;
+  advertisingCampaignCount30d?: number;
   instagramFollowers?: number;
   instagramMediaCount?: number;
   instagramRecentMediaCount?: number;
@@ -169,6 +183,20 @@ function snapshotToTwinSummary(snapshot?: DigitalTwinSnapshot | null): BusinessC
     activeLeads: snapshot.metrics.activeLeads,
     pipelineValue: snapshot.metrics.pipelineValue,
     revenueMtdCents: snapshot.metrics.revenueMtdCents,
+    webActiveUsers30d: snapshot.metrics.webActiveUsers30d,
+    webSessions30d: snapshot.metrics.webSessions30d,
+    webEngagedSessions30d: snapshot.metrics.webEngagedSessions30d,
+    webKeyEvents30d: snapshot.metrics.webKeyEvents30d,
+    searchClicks30d: snapshot.metrics.searchClicks30d,
+    searchImpressions30d: snapshot.metrics.searchImpressions30d,
+    searchCtr30d: snapshot.metrics.searchCtr30d,
+    searchPosition30d: snapshot.metrics.searchPosition30d,
+    advertisingSpend30d: snapshot.metrics.advertisingSpend30d,
+    advertisingImpressions30d: snapshot.metrics.advertisingImpressions30d,
+    advertisingClicks30d: snapshot.metrics.advertisingClicks30d,
+    advertisingConversions30d: snapshot.metrics.advertisingConversions30d,
+    advertisingConversionValue30d: snapshot.metrics.advertisingConversionValue30d,
+    advertisingCampaignCount30d: snapshot.metrics.advertisingCampaignCount30d,
     instagramFollowers: snapshot.metrics.instagramFollowers,
     instagramMediaCount: snapshot.metrics.instagramMediaCount,
     instagramRecentMediaCount: snapshot.metrics.instagramRecentMediaCount,
@@ -289,6 +317,27 @@ export function buildAiSystemPrompt(context: BusinessContext): string {
       lines.push(`AI Visibility: ${context.twin.aiVisibility}/100`);
     }
     if (context.twin.seo != null) lines.push(`SEO score: ${context.twin.seo}/100`);
+  }
+
+  const evidence = context.twin;
+  const hasMarketingEvidence = [evidence.webActiveUsers30d, evidence.webSessions30d, evidence.searchClicks30d, evidence.searchImpressions30d].some((v) => v != null);
+  const hasAdvertisingEvidence = [evidence.advertisingSpend30d, evidence.advertisingImpressions30d, evidence.advertisingClicks30d, evidence.advertisingConversions30d].some((v) => v != null);
+  if (hasMarketingEvidence || hasAdvertisingEvidence) {
+    lines.push("", "## Measured marketing evidence (last 30 days)");
+    if (evidence.webActiveUsers30d != null) lines.push(`GA4 active users: ${evidence.webActiveUsers30d}`);
+    if (evidence.webSessions30d != null) lines.push(`GA4 sessions: ${evidence.webSessions30d}`);
+    if (evidence.webEngagedSessions30d != null) lines.push(`GA4 engaged sessions: ${evidence.webEngagedSessions30d}`);
+    if (evidence.webKeyEvents30d != null) lines.push(`GA4 key events: ${evidence.webKeyEvents30d}`);
+    if (evidence.searchClicks30d != null) lines.push(`Search Console clicks: ${evidence.searchClicks30d}`);
+    if (evidence.searchImpressions30d != null) lines.push(`Search Console impressions: ${evidence.searchImpressions30d}`);
+    if (evidence.searchCtr30d != null) lines.push(`Search Console CTR: ${(evidence.searchCtr30d * 100).toFixed(2)}%`);
+    if (evidence.searchPosition30d != null) lines.push(`Search Console average position: ${evidence.searchPosition30d.toFixed(2)}`);
+    if (evidence.advertisingSpend30d != null) lines.push(`Advertising spend: ${evidence.advertisingSpend30d}`);
+    if (evidence.advertisingImpressions30d != null) lines.push(`Advertising impressions: ${evidence.advertisingImpressions30d}`);
+    if (evidence.advertisingClicks30d != null) lines.push(`Advertising clicks: ${evidence.advertisingClicks30d}`);
+    if (evidence.advertisingConversions30d != null) lines.push(`Advertising conversions: ${evidence.advertisingConversions30d}`);
+    if (evidence.advertisingConversionValue30d != null) lines.push(`Advertising conversion value: ${evidence.advertisingConversionValue30d}`);
+    if (evidence.advertisingCampaignCount30d != null) lines.push(`Advertising campaigns: ${evidence.advertisingCampaignCount30d}`);
   }
 
   const activeGoals = context.goals.filter((goal) => goal.status === "active");
