@@ -6,7 +6,7 @@
  *   LINKEDIN_CLIENT_SECRET
  *   LINKEDIN_REDIRECT_URI (default https://app.digitalgate.com.au/api/connectors/linkedin/callback)
  *   LINKEDIN_OAUTH_SCOPES (optional — if Community Management is still pending, use: openid profile email)
- *   LINKEDIN_API_VERSION (optional Rest.li version, default 202411)
+ *   LINKEDIN_API_VERSION (optional Rest.li version, default 202608)
  *
  * Products on the LinkedIn app: Sign In with LinkedIn (OpenID Connect) + Community Management API.
  */
@@ -107,7 +107,7 @@ export function getLinkedInOAuthConfig():
     process.env.LINKEDIN_REDIRECT_URI?.trim() || DEFAULT_REDIRECT;
   const scopes =
     process.env.LINKEDIN_OAUTH_SCOPES?.trim() || LINKEDIN_DEFAULT_OAUTH_SCOPES;
-  const apiVersion = process.env.LINKEDIN_API_VERSION?.trim() || "202411";
+  const apiVersion = process.env.LINKEDIN_API_VERSION?.trim() || "202608";
 
   if (!clientId || !clientSecret) {
     return {
@@ -267,7 +267,7 @@ function linkedInHeaders(accessToken: string, restli = false): HeadersInit {
   if (restli) {
     const cfg = getLinkedInOAuthConfig();
     headers["X-Restli-Protocol-Version"] = "2.0.0";
-    headers["Linkedin-Version"] = cfg.ok ? cfg.config.apiVersion : "202411";
+    headers["Linkedin-Version"] = cfg.ok ? cfg.config.apiVersion : "202608";
   }
   return headers;
 }
