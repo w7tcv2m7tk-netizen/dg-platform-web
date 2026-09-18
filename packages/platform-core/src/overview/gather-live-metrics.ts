@@ -1,5 +1,6 @@
 import { getCommerceFinancialSnapshot } from "../commerce/payment-engine";
 import { fetchOrgGoogleWebEvidence } from "../connectors/google/analytics";
+import { fetchOrgGoogleAdsEvidence } from "../connectors/google/ads";
 import { getOrgGbpSyncSnapshot } from "../connectors/google/gbp";
 import { listLeads } from "../leads";
 import { getPlatformSetupStatus } from "../org/setup-status";
@@ -29,6 +30,10 @@ export interface OverviewLiveMetrics {
   /** Measured Reputation Score™ from the organisation's canonical connected review evidence. */
   reputationScore: number | null;
   reputationReviewCount: number;
+  /** Canonical organisation-scoped Google Ads evidence. Null means no selected account evidence is available. */
+  advertising: {
+    period: "LAST_30_DAYS"; spend: number; impressions: number; clicks: number; conversions: number; conversionsValue: number; campaignCount: number;
+  } | null;
   /** Canonical organisation-scoped Google web evidence. Null means no usable evidence is connected. */
   marketing: {
     period: string;
@@ -84,6 +89,7 @@ export async function gatherOverviewLiveMetrics(
     consultationCount,
     gbp,
     googleWebEvidence,
+    googleAdsEvidence,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
     includeFinancials ? getCommerceFinancialSnapshot(organisationId) : Promise.resolve(null),
@@ -112,8 +118,18 @@ export async function gatherOverviewLiveMetrics(
     }),
     getOrgGbpSyncSnapshot(organisationId),
     fetchOrgGoogleWebEvidence(organisationId).catch(() => null),
+    fetchOrgGoogleAdsEvidence(organisationId).catch(() => null),
   ]);
 
+  const advertising = googleAdsEvidence?.ok && googleAdsEvidence.data.length ? {
+    period: "LAST_30_DAYS" as const,
+    spend: googleAdsEvidence.data.reduce((n, x) => n + x.performance.spend, 0),
+    impressions: googleAdsEvidence.data.reduce((n, x) => n + x.performance.impressions, 0),
+    clicks: googleAdsEvidence.data.reduce((n, x) => n + x.performance.clicks, 0),
+    conversions: googleAdsEvidence.data.reduce((n, x) => n + x.performance.conversions, 0),
+    conversionsValue: googleAdsEvidence.data.reduce((n, x) => n + x.performance.conversionsValue, 0),
+    campaignCount: googleAdsEvidence.data.reduce((n, x) => n + x.campaigns.length, 0),
+  } : null;
   const reputation = computeReputationScore(mapGbpReviewsToFeed(gbp?.reviews ?? []));
   const web = googleWebEvidence?.ok ? googleWebEvidence.data : null;
   const marketing = web && (web.analytics || web.search)
@@ -152,6 +168,7 @@ export async function gatherOverviewLiveMetrics(
     consultationCount,
     reputationScore: reputation.score,
     reputationReviewCount: reputation.reviewCount,
+    advertising,
     marketing,
   };
 }

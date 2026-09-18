@@ -46,6 +46,7 @@ export const marketingOverviewInput: BuildBusinessOverviewInput = {
     consultationCount: 0,
     reputationScore: null,
     reputationReviewCount: 0,
+    advertising: null,
     marketing: null,
   },
   connectorProbes: {
