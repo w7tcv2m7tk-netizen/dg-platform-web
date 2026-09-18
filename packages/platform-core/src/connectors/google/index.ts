@@ -5,3 +5,4 @@ export * from "./gbp";
 export * from "./gmail-auth";
 export * from "./gmail-sync";
 export * from "./project";
+export * from "./youtube";
