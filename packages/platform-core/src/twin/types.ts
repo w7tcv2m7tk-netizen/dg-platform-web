@@ -51,6 +51,13 @@ export interface DigitalTwinSnapshot {
     searchImpressions30d?: number;
     searchCtr30d?: number;
     searchPosition30d?: number;
+    /** Canonical organisation-scoped Instagram evidence. */
+    instagramFollowers?: number;
+    instagramFollowing?: number;
+    instagramMediaCount?: number;
+    instagramRecentMediaCount?: number;
+    instagramRecentLikes?: number;
+    instagramRecentComments?: number;
     /** Commerce / Financial Health (Digital Twin™) */
     revenueMtdCents?: number;
     outstandingArCents?: number;
