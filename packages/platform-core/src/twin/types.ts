@@ -58,6 +58,12 @@ export interface DigitalTwinSnapshot {
     instagramRecentMediaCount?: number;
     instagramRecentLikes?: number;
     instagramRecentComments?: number;
+    /** Canonical organisation-scoped Google Ads evidence, last 30 days. */
+    googleAdsSpend30d?: number;
+    googleAdsImpressions30d?: number;
+    googleAdsClicks30d?: number;
+    googleAdsConversions30d?: number;
+    googleAdsConversionValue30d?: number;
     /** Commerce / Financial Health (Digital Twin™) */
     revenueMtdCents?: number;
     outstandingArCents?: number;
