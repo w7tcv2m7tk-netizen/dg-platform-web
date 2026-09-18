@@ -30,6 +30,7 @@ const SYSTEM_LABELS: Record<string, string> = {
   "ai-communications": "Communications",
   communications: "Communications",
   instagram: "Instagram",
+  linkedin: "LinkedIn",
 };
 
 const APP_LABELS: Record<string, string> = {
@@ -394,6 +395,7 @@ function buildConnectedSystems(input: BuildDigitalTwinDashboardInput): TwinConne
   if (connectors?.wordpress?.ok) add("wordpress", "WordPress", "live");
   if (connectors?.stripeOk) add("stripe", "Stripe", "live");
   if (input.snapshot?.connectors.includes("instagram")) add("instagram", "Instagram", "live");
+  if (input.snapshot?.connectors.includes("linkedin")) add("linkedin", "LinkedIn", "live");
 
   if (connectors?.comms?.ok) add("communications", "Communications", "live");
   else if (
