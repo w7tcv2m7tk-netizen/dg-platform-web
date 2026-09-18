@@ -40,7 +40,7 @@ export async function probeOrgGoogleAdsAccounts(org: string): Promise<{ok:true;d
   const data = resourceNames.map((resourceName:string)=>({resourceName,customerId:resourceName.replace(/^customers\//,"")})).filter((x:GoogleAdsAccount)=>/^\d+$/.test(x.customerId));
   const selectedCustomerIds = (ensured.tokens.selectedGoogleAdsCustomerIds || []).filter(id=>data.some(x=>x.customerId===id));
   if (selectedCustomerIds.length !== (ensured.tokens.selectedGoogleAdsCustomerIds || []).length) {
-    await saveOrgGoogleGbpConnectorTokens(org,{...ensured.tokens,selectedGoogleAdsCustomerIds});
+    await saveOrgGoogleGbpConnectorTokens(org, { ...ensured.tokens, selectedGoogleAdsCustomerIds: selectedCustomerIds });
   }
   return { ok:true, data, selectedCustomerIds };
 }
