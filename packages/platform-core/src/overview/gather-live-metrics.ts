@@ -123,7 +123,7 @@ export async function gatherOverviewLiveMetrics(
     }),
     getOrgGbpSyncSnapshot(organisationId),
     fetchOrgGoogleWebEvidence(organisationId).catch(() => null),
-    fetchOrgMetaInstagramEvidence(organisationId),
+    fetchOrgMetaInstagramEvidence({ id: organisationId }),
   ]);
 
   const reputation = computeReputationScore(mapGbpReviewsToFeed(gbp?.reviews ?? []));
