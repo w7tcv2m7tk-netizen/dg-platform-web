@@ -3,6 +3,7 @@ import { getPlatformPageContext } from "@/lib/org-apps";
 import { fetchOrgGoogleAdsEvidence, fetchOrgMetaAdsEvidence, fetchOrgMicrosoftAdsEvidence } from "@dg/platform-core";
 import { GoogleAdsConnectorPanel } from "@/components/settings/GoogleAdsConnectorPanel";
 import { MicrosoftAdsConnectorPanel } from "@/components/settings/MicrosoftAdsConnectorPanel";
+import { TikTokAdsConnectorPanel } from "@/components/settings/TikTokAdsConnectorPanel";
 
 export default async function AdvertisingPage() {
   const ctx=await getPlatformPageContext();
@@ -32,6 +33,7 @@ export default async function AdvertisingPage() {
       </section>
       <GoogleAdsConnectorPanel />
       <MicrosoftAdsConnectorPanel />
+      <TikTokAdsConnectorPanel />
       <section className="dg-card">
         <p className="text-xs font-medium uppercase tracking-wide text-sky-400">Google Ads evidence</p>
         <h2 className="mt-1 text-lg font-semibold text-white">Last 30 days</h2>
