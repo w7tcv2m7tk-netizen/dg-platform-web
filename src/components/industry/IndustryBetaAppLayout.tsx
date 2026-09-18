@@ -1,7 +1,8 @@
-import { organisationHasIndustryAppBeta } from "@dg/platform-core";
+import { organisationHasIndustryAppBeta, shouldShowIndustryApp } from "@dg/platform-core";
 import Link from "next/link";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
 
 /**
  * Shared industry beta layout gate — route/direct URL same as nav + API.
@@ -21,11 +22,41 @@ export async function IndustryBetaAppLayout({
     return children;
   }
 
-  const allowed = await organisationHasIndustryAppBeta(
-    session.organisationId,
+  const [allowed, industrySelectionIds] = await Promise.all([
+    organisationHasIndustryAppBeta(session.organisationId, appId),
+    getOrgIndustrySelectionIdsCached(),
+  ]);
+  const selectedForOrganisation = shouldShowIndustryApp(
     appId,
+    {
+      gen2Onboarding: {
+        operatingProfile: {
+          templates: industrySelectionIds,
+        },
+      },
+    },
   );
-  if (allowed) return children;
+
+  if (allowed && selectedForOrganisation) return children;
+
+  if (allowed && !selectedForOrganisation) {
+    return (
+      <main className="dg-page-main">
+        <div className="dg-card space-y-3">
+          <p className="font-medium text-white">App not active for this business</p>
+          <p className="text-sm text-slate-400">
+            {title} is not one of the business types selected for this organisation.
+          </p>
+          <Link
+            href="/dashboard/apps"
+            className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
+          >
+            ← Back to Apps
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="dg-page-main">
