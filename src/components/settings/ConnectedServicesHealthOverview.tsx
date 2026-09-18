@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useEnabledAppsOptional } from "@/components/platform/EnabledAppsProvider";
+import { getTemplate } from "@dg/platform-core";
 
 type HealthState = "connected" | "attention" | "not_connected" | "available";
 type Maturity = "native" | "available" | "planned";
 
 type CatalogConnector = {
-  manifest: { id: string; name: string; maturity: Maturity };
+  manifest: { id: string; name: string; maturity: Maturity; appIds?: string[] };
   connectionScope: "platform" | "organisation";
   platformConfigured: boolean;
   organisation?: {
@@ -49,7 +51,8 @@ function stateFromConnector(connector: CatalogConnector): HealthState | null {
 }
 
 export function ConnectedServicesHealthOverview() {
-  const [connections, setConnections] = useState<ConnectionHealth[] | null>(null);
+  const apps = useEnabledAppsOptional();
+  const [connectors, setConnectors] = useState<CatalogConnector[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,18 +62,36 @@ export function ConnectedServicesHealthOverview() {
         if (!response.ok) throw new Error("Unable to load connector catalogue");
         const json = await response.json();
         const connectors: CatalogConnector[] = json?.data?.connectors ?? [];
-        const mapped = connectors.flatMap((connector) => {
-          const state = stateFromConnector(connector);
-          return state ? [{ id: connector.manifest.id, name: connector.manifest.name, state }] : [];
-        });
-        if (!cancelled) setConnections(mapped);
+        if (!cancelled) setConnectors(connectors);
       } catch {
-        if (!cancelled) setConnections([]);
+        if (!cancelled) setConnectors([]);
       }
     }
     void load();
     return () => { cancelled = true; };
   }, []);
+
+
+  const relevantAppIds = useMemo(() => {
+    const ids = new Set(apps?.enabledIds ?? []);
+    for (const selectionId of apps?.industrySelectionIds ?? []) {
+      const template = getTemplate(selectionId);
+      if (template?.appId) ids.add(template.appId);
+    }
+    return ids;
+  }, [apps?.enabledIds, apps?.industrySelectionIds]);
+
+  const connections = useMemo<ConnectionHealth[] | null>(() => {
+    if (!connectors) return null;
+    return connectors.flatMap((connector) => {
+      const state = stateFromConnector(connector);
+      if (!state) return [];
+      const connectedOrAttention = state === "connected" || state === "attention";
+      const relevant = connector.manifest.appIds?.some((id) => relevantAppIds.has(id)) ?? false;
+      if (!connectedOrAttention && !relevant) return [];
+      return [{ id: connector.manifest.id, name: connector.manifest.name, state }];
+    });
+  }, [connectors, relevantAppIds]);
 
   const counts = useMemo(() => {
     const initial = { connected: 0, attention: 0, not_connected: 0, available: 0 };
@@ -85,7 +106,7 @@ export function ConnectedServicesHealthOverview() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Your connected business</p>
           <h2 className="mt-1 text-xl font-semibold text-white">Connection health</h2>
-          <p className="mt-1 text-sm text-slate-400">Live organisation connection health from the DigitalGate Connector Engine.</p>
+          <p className="mt-1 text-sm text-slate-400">Health for services relevant to this organisation. Connected services and services needing attention always remain visible.</p>
         </div>
         <p className="text-sm text-slate-400">{connections.length} services shown</p>
       </div>
