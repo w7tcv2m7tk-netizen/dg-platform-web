@@ -662,3 +662,101 @@ export async function fetchOrgLinkedInCompanyEvidence(organisationId: string): P
   const website = typeof rec.website === "string" ? rec.website : undefined;
   return { ok: true, data: { organization, profile: { id, name: typeof rec.localizedName === "string" ? rec.localizedName : organization.name, vanityName: typeof rec.vanityName === "string" ? rec.vanityName : organization.vanityName, website } } };
 }
+
+
+export type LinkedInSocialEvidence = {
+  company: LinkedInCompanyEvidence;
+  posts: Array<{
+    urn: string;
+    commentary?: string;
+    publishedAt?: string;
+    lifecycleState?: string;
+  }>;
+  permissionLimited: boolean;
+  message?: string;
+};
+
+function parseLinkedInPosts(data: unknown): LinkedInSocialEvidence["posts"] {
+  if (!data || typeof data !== "object") return [];
+  const elements = (data as { elements?: unknown }).elements;
+  if (!Array.isArray(elements)) return [];
+  return elements.slice(0, 20).flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const rec = item as Record<string, unknown>;
+    const urn =
+      typeof rec.id === "string"
+        ? rec.id
+        : typeof rec.urn === "string"
+          ? rec.urn
+          : "";
+    if (!urn) return [];
+    const commentary =
+      typeof rec.commentary === "string"
+        ? rec.commentary
+        : typeof rec.text === "string"
+          ? rec.text
+          : undefined;
+    const publishedAt =
+      typeof rec.publishedAt === "number"
+        ? new Date(rec.publishedAt).toISOString()
+        : typeof rec.createdAt === "number"
+          ? new Date(rec.createdAt).toISOString()
+          : undefined;
+    return [{
+      urn,
+      commentary,
+      publishedAt,
+      lifecycleState:
+        typeof rec.lifecycleState === "string" ? rec.lifecycleState : undefined,
+    }];
+  });
+}
+
+/**
+ * Best-effort recent company content for the company page selected for this tenant.
+ * Company identity remains valid evidence when LinkedIn does not grant content read access.
+ */
+export async function fetchOrgLinkedInSocialEvidence(organisationId: string): Promise<
+  | { ok: true; data: LinkedInSocialEvidence }
+  | { ok: false; message: string }
+> {
+  const company = await fetchOrgLinkedInCompanyEvidence(organisationId);
+  if (!company.ok) return company;
+
+  const ensured = await ensureValidOrgLinkedInAccessToken(organisationId);
+  if (!ensured.ok) return ensured;
+
+  const author = encodeURIComponent(company.data.organization.urn);
+  const rest = await linkedInApiGet(
+    `https://api.linkedin.com/rest/posts?author=${author}&q=author&count=20&sortBy=LAST_MODIFIED`,
+    ensured.accessToken,
+    true,
+  );
+  const probe = rest.ok
+    ? rest
+    : await linkedInApiGet(
+        `https://api.linkedin.com/v2/ugcPosts?q=authors&authors=List(${author})&count=20`,
+        ensured.accessToken,
+      );
+
+  if (!probe.ok) {
+    return {
+      ok: true,
+      data: {
+        company: company.data,
+        posts: [],
+        permissionLimited: true,
+        message: `LinkedIn company identity verified; recent company content is unavailable: ${probe.message}`,
+      },
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      company: company.data,
+      posts: parseLinkedInPosts(probe.data),
+      permissionLimited: false,
+    },
+  };
+}
