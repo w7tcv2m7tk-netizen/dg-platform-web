@@ -7,6 +7,7 @@ import {
   computeReputationScore,
   gatherOverviewLiveMetrics,
   generateBusinessIntelligence,
+  fetchOrgMetaInstagramEvidence,
   getAiQualityMetrics,
   getBusinessContext,
   getOrganisationBusinessProfile,
@@ -40,6 +41,8 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
+  const instagramEvidence = await fetchOrgMetaInstagramEvidence(session.organisationId);
+  const instagramRows = instagramEvidence.ok ? instagramEvidence.data : [];
 
   let twinScores = null;
   let snapshot = null;
@@ -56,6 +59,21 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     });
     twinScores = built.scores;
     snapshot = built.snapshot;
+    if (instagramRows.length) {
+      snapshot.connectors = [...new Set([...snapshot.connectors, "instagram"])];
+      snapshot.metrics.instagramFollowers = instagramRows.reduce((total, row) => total + (row.followersCount ?? 0), 0);
+      snapshot.metrics.instagramFollowing = instagramRows.reduce((total, row) => total + (row.followsCount ?? 0), 0);
+      snapshot.metrics.instagramMediaCount = instagramRows.reduce((total, row) => total + (row.mediaCount ?? 0), 0);
+      snapshot.metrics.instagramRecentMediaCount = instagramRows.reduce((total, row) => total + row.media.length, 0);
+      snapshot.metrics.instagramRecentLikes = instagramRows.reduce(
+        (total, row) => total + row.media.reduce((sum, item) => sum + (item.likeCount ?? 0), 0),
+        0,
+      );
+      snapshot.metrics.instagramRecentComments = instagramRows.reduce(
+        (total, row) => total + row.media.reduce((sum, item) => sum + (item.commentsCount ?? 0), 0),
+        0,
+      );
+    }
   }
 
   const context = await getBusinessContext({
