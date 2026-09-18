@@ -30,7 +30,7 @@ export interface OverviewLiveMetrics {
   /** Measured Reputation Score™ from the organisation's canonical connected review evidence. */
   reputationScore: number | null;
   reputationReviewCount: number;
-  /** Canonical organisation-scoped Google web evidence. Null means no usable evidence is connected. */
+  /** Canonical organisation-scoped Instagram evidence. Null means no usable evidence is connected. */
   instagram: {
     accountCount: number;
     followers: number;
