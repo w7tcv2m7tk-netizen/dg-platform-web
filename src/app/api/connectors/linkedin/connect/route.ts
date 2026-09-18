@@ -88,7 +88,7 @@ export async function GET(req: Request) {
   const authUrl = buildLinkedInAuthorizeUrl({
     state,
     scopes:
-      "openid profile email r_organization_admin rw_organization_admin r_organization_social w_organization_social",
+      "openid profile email r_organization_admin r_organization_social w_organization_social",
   });
   if (!authUrl.ok) {
     return NextResponse.json(
