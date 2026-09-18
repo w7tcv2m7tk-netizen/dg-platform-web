@@ -16,6 +16,7 @@ import { automationApp } from "./builtins/automation-app";
 import { analyticsApp } from "./builtins/analytics";
 import { socialApp } from "./builtins/social";
 import { marketingApp } from "./builtins/marketing";
+import { advertisingApp } from "./builtins/advertising";
 import { reviewsApp } from "./builtins/reviews";
 import { seoApp, aiVisibilityApp } from "./builtins/seo";
 import { websitesApp } from "./builtins/websites";
@@ -51,6 +52,7 @@ const BUILTIN_APPS: RegisteredApp[] = [
   { manifest: analyticsApp, enabled: true },
   { manifest: socialApp, enabled: true },
   { manifest: marketingApp, enabled: true },
+  { manifest: advertisingApp, enabled: true },
   { manifest: reviewsApp, enabled: true },
   { manifest: prospectingApp, enabled: true },
   { manifest: aiCommunicationsApp, enabled: true },
