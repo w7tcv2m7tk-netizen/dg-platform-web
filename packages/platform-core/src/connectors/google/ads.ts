@@ -32,8 +32,9 @@ export async function probeOrgGoogleAdsAccounts(org: string): Promise<{ok:true;d
   }
   const result = await adsGet("customers:listAccessibleCustomers", ensured.accessToken);
   if (!result.ok) return { ok:false, message:result.message };
-  const payload = result.data as { resourceNames?: unknown } | null;
-  const resourceNames = Array.isArray(payload?.resourceNames) ? payload.resourceNames.filter((x:unknown):x is string=>typeof x==="string") : [];
+  const payload: { resourceNames?: unknown } = result.data && typeof result.data === "object" ? result.data as { resourceNames?: unknown } : {};
+  const rawResourceNames = payload.resourceNames;
+  const resourceNames: string[] = Array.isArray(rawResourceNames) ? rawResourceNames.filter((x: unknown): x is string => typeof x === "string") : [];
   const data = resourceNames.map((resourceName:string)=>({resourceName,customerId:resourceName.replace(/^customers\//,"")})).filter((x:GoogleAdsAccount)=>/^\d+$/.test(x.customerId));
   const selectedCustomerIds = (ensured.tokens.selectedGoogleAdsCustomerIds || []).filter(id=>data.some(x=>x.customerId===id));
   if (selectedCustomerIds.length !== (ensured.tokens.selectedGoogleAdsCustomerIds || []).length) {
