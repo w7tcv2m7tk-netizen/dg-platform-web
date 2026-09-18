@@ -3,6 +3,7 @@ import { fetchOrgGoogleWebEvidence } from "../connectors/google/analytics";
 import { fetchOrgGoogleAdsEvidence } from "../connectors/google/ads";
 import { fetchOrgMetaAdsEvidence } from "../connectors/meta/auth";
 import { fetchOrgMicrosoftAdsEvidence } from "../connectors/microsoft/ads";
+import { fetchOrgTikTokAdsEvidence } from "../connectors/tiktok/ads";
 import { getOrgGbpSyncSnapshot } from "../connectors/google/gbp";
 import { listLeads } from "../leads";
 import { getPlatformSetupStatus } from "../org/setup-status";
@@ -93,6 +94,7 @@ export async function gatherOverviewLiveMetrics(
     googleAdsEvidence,
     metaAdsEvidence,
     microsoftAdsEvidence,
+    tiktokAdsEvidence,
   ] = await Promise.all([
     getPlatformSetupStatus(organisationId),
     includeFinancials ? getCommerceFinancialSnapshot(organisationId) : Promise.resolve(null),
@@ -124,6 +126,7 @@ export async function gatherOverviewLiveMetrics(
     fetchOrgGoogleAdsEvidence(organisationId).catch(() => null),
     fetchOrgMetaAdsEvidence(organisationId).catch(() => null),
     fetchOrgMicrosoftAdsEvidence(organisationId).catch(() => null),
+    fetchOrgTikTokAdsEvidence(organisationId).catch(() => null),
   ]);
 
   const advertisingChannels = [];
@@ -158,6 +161,17 @@ export async function gatherOverviewLiveMetrics(
       conversions: microsoftAdsEvidence.data.reduce((n, x) => n + x.performance.conversions, 0),
       conversionValue: microsoftAdsEvidence.data.reduce((n, x) => n + x.performance.conversionValue, 0),
       reach: null, campaignCount: microsoftAdsEvidence.data.reduce((n, x) => n + x.campaigns.length, 0),
+    }));
+  }
+  if (tiktokAdsEvidence?.ok && tiktokAdsEvidence.data.length) {
+    advertisingChannels.push(withDerivedAdvertisingMetrics({
+      provider:"tiktok",period:"LAST_30_DAYS",
+      spend:tiktokAdsEvidence.data.reduce((n,x)=>n+x.performance.spend,0),
+      impressions:tiktokAdsEvidence.data.reduce((n,x)=>n+x.performance.impressions,0),
+      clicks:tiktokAdsEvidence.data.reduce((n,x)=>n+x.performance.clicks,0),
+      conversions:tiktokAdsEvidence.data.reduce((n,x)=>n+x.performance.conversions,0),
+      conversionValue:tiktokAdsEvidence.data.reduce((n,x)=>n+x.performance.conversionValue,0),
+      reach:null,campaignCount:tiktokAdsEvidence.data.reduce((n,x)=>n+x.campaigns.length,0),
     }));
   }
   const advertising = buildAdvertisingEvidence(advertisingChannels);

@@ -40,3 +40,19 @@ export async function probeOrgTikTokAdsAdvertisers(org:string){
  const allowed=new Set(accounts.map(x=>x.advertiserId)),selectedAdvertiserIds=(t.selectedAdvertiserIds||[]).filter(id=>allowed.has(id));await saveOrgTikTokAdsTokens(org,{...t,accounts,selectedAdvertiserIds});return {ok:true as const,data:accounts,selectedAdvertiserIds};
 }
 export async function selectOrgTikTokAdsAdvertisers(org:string,advertiserIds:string[]){const p=await probeOrgTikTokAdsAdvertisers(org);if(!p.ok)return p;const allowed=new Set(p.data.map(x=>x.advertiserId)),selectedAdvertiserIds=[...new Set(advertiserIds)].filter(id=>allowed.has(id));const t=await getOrgTikTokAdsTokens(org);if(!t)return {ok:false as const,message:"TikTok Ads is not connected"};await saveOrgTikTokAdsTokens(org,{...t,accounts:p.data,selectedAdvertiserIds});return {ok:true as const,selectedAdvertiserIds}}
+
+export type TikTokAdsEvidence={advertiser:TikTokAdsAccount;period:"LAST_30_DAYS";campaigns:Array<{id:string;name:string;spend:number;impressions:number;clicks:number;conversions:number;conversionValue:number}>;performance:{spend:number;impressions:number;clicks:number;conversions:number;conversionValue:number}};
+export async function fetchOrgTikTokAdsEvidence(org:string):Promise<{ok:true;data:TikTokAdsEvidence[]}|{ok:false;message:string}>{
+ const t=await getOrgTikTokAdsTokens(org);if(!t?.accessToken)return {ok:false,message:"TikTok Ads is not connected for this organisation"};
+ const selected=new Set(t.selectedAdvertiserIds||[]);if(!selected.size)return {ok:false,message:"No TikTok advertiser is selected for this organisation"};
+ const advertisers=(t.accounts||[]).filter(x=>selected.has(x.advertiserId));if(!advertisers.length)return {ok:false,message:"Selected TikTok advertisers are no longer available"};
+ const end=new Date(),start=new Date(end.getTime()-29*86400000),date=(d:Date)=>d.toISOString().slice(0,10),out:TikTokAdsEvidence[]=[];
+ for(const advertiser of advertisers){
+  const r=await tiktokGet(t.accessToken,"/report/integrated/get/",{advertiser_id:advertiser.advertiserId,report_type:"BASIC",data_level:"AUCTION_CAMPAIGN",dimensions:JSON.stringify(["campaign_id"]),metrics:JSON.stringify(["campaign_name","spend","impressions","clicks","conversion","total_purchase_value"]),start_date:date(start),end_date:date(end),page_size:"1000"});
+  if(!r.ok)return r;const rows=Array.isArray((r.data as any)?.list)?(r.data as any).list:[];
+  const campaigns:TikTokAdsEvidence["campaigns"]=rows.flatMap((x:any)=>{const d=x?.dimensions||{},m=x?.metrics||{},id=d.campaign_id?String(d.campaign_id):"";return id?[{id,name:String(m.campaign_name||id),spend:Number(m.spend||0),impressions:Number(m.impressions||0),clicks:Number(m.clicks||0),conversions:Number(m.conversion||0),conversionValue:Number(m.total_purchase_value||0)}]:[]});
+  const performance=campaigns.reduce<TikTokAdsEvidence["performance"]>((a,x)=>({spend:a.spend+x.spend,impressions:a.impressions+x.impressions,clicks:a.clicks+x.clicks,conversions:a.conversions+x.conversions,conversionValue:a.conversionValue+x.conversionValue}),{spend:0,impressions:0,clicks:0,conversions:0,conversionValue:0});
+  out.push({advertiser,period:"LAST_30_DAYS",campaigns,performance});
+ }
+ return {ok:true,data:out};
+}
