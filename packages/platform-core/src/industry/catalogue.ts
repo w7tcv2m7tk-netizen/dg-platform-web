@@ -55,7 +55,7 @@ export type IndustryCatalogueIndustry = {
 const DEFAULT_INCLUDED_BY_INDUSTRY: Record<string, string> = {
   property: "real-estate",
   "hospitality-accommodation": "short-stay",
-  services: "trades",
+  services: "general-services",
   finance: "accounting",
   "creator-media": "creators",
   automotive: "dealerships",
@@ -211,12 +211,21 @@ export function listTemplates(industryId?: string): IndustryCatalogueTemplate[] 
 export function getTemplate(id: string): IndustryCatalogueTemplate | undefined {
   const key = id.trim() === "holiday-rentals" ? "short-stay" : id.trim();
   if (!key) return undefined;
+
+  // Exact customer-facing identity always wins. Shared runtime appIds are only a
+  // legacy fallback and resolve to that parent Industry's default child.
   for (const industry of INDUSTRY_CATALOGUE) {
-    const match = industry.templates.find((t) => {
-      if (t.id === key || t.slug === key || t.appId === key) return true;
+    const exact = industry.templates.find((t) => {
+      if (t.id === key || t.slug === key) return true;
       return platformTemplateId(t) === key;
     });
-    if (match) return match;
+    if (exact) return exact;
+  }
+
+  for (const industry of INDUSTRY_CATALOGUE) {
+    const appMatches = industry.templates.filter((t) => t.appId === key);
+    if (!appMatches.length) continue;
+    return appMatches.find((t) => t.isDefaultIncluded) ?? appMatches[0];
   }
   return undefined;
 }
@@ -255,8 +264,7 @@ export function getIndustryPrimaryHref(
       const isActive =
         activeSet.has(template.id) ||
         activeSet.has(template.slug) ||
-        (tid != null && activeSet.has(tid)) ||
-        (template.appId != null && activeSet.has(template.appId));
+        (tid != null && activeSet.has(tid));
       if (isActive && template.appId) {
         return template.primaryHref;
       }
