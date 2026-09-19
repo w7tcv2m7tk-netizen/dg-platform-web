@@ -19,7 +19,7 @@ export function resolveEnabledAppIds(orgSettings?: { apps?: OrgAppsSettings } | 
 export function isAppEnabled(appId: string, enabledIds: string[]): boolean { return enabledIds.includes(appId); }
 
 const SERVICE_TEMPLATE_TO_SUBINDUSTRY: Record<string, string> = { electrician: "electrical", plumber: "plumbing", cleaner: "cleaning", maintenance: "maintenance", builder: "building-construction", landscaper: "landscaping", hvac: "hvac", pest_control: "pest-control", painter: "painting", handyman: "handyman", solar: "solar", pool_service: "pool-service", general: "general-services" };
-type IndustrySelectionSettings = { apps?: { planPreview?: { industryApps?: string[]; industryTemplates?: string[] } }; profile?: { purchasedApps?: string[] }; services?: { templateKey?: string }; industry?: { templates?: Record<string, { active?: boolean }> }; gen2Onboarding?: { operatingProfile?: { primaryIndustry?: string; secondaryIndustries?: string[]; primaryTemplate?: string; templates?: string[] } } };
+type IndustrySelectionSettings = { apps?: { planPreview?: { industryApps?: string[]; industryTemplates?: string[] } }; profile?: { purchasedApps?: string[] }; services?: { templateKey?: string; activeTemplateKeys?: string[]; primaryTemplateKey?: string }; industry?: { templates?: Record<string, { active?: boolean }> }; gen2Onboarding?: { operatingProfile?: { primaryIndustry?: string; secondaryIndustries?: string[]; primaryTemplate?: string; templates?: string[] } } };
 export function collectIndustrySelectionIds(settings?: IndustrySelectionSettings | null): string[] {
   const ids = new Set<string>();
   const operating = settings?.gen2Onboarding?.operatingProfile;
@@ -29,7 +29,17 @@ export function collectIndustrySelectionIds(settings?: IndustrySelectionSettings
   for (const id of settings?.apps?.planPreview?.industryApps ?? []) if (typeof id === "string" && id.trim()) ids.add(id.trim());
   for (const id of settings?.apps?.planPreview?.industryTemplates ?? []) if (typeof id === "string" && id.trim()) ids.add(id.trim());
   for (const [id, entry] of Object.entries(settings?.industry?.templates ?? {})) if (entry?.active === true && id.trim()) ids.add(id.trim());
-  const templateKey = settings?.services?.templateKey; if (typeof templateKey === "string" && templateKey.trim()) { const key = templateKey.trim(); ids.add(SERVICE_TEMPLATE_TO_SUBINDUSTRY[key] ?? key); }
+  const serviceKeys = [
+    ...(settings?.services?.activeTemplateKeys ?? []),
+    settings?.services?.primaryTemplateKey,
+    settings?.services?.templateKey,
+  ];
+  for (const templateKey of serviceKeys) {
+    if (typeof templateKey === "string" && templateKey.trim()) {
+      const key = templateKey.trim();
+      ids.add(SERVICE_TEMPLATE_TO_SUBINDUSTRY[key] ?? key);
+    }
+  }
   return [...ids];
 }
 
@@ -37,8 +47,13 @@ function explicitSubindustryAppIds(settings?: IndustrySelectionSettings | null):
   const explicit = new Set<string>();
   const operating = settings?.gen2Onboarding?.operatingProfile;
   const selections = [operating?.primaryTemplate, ...(operating?.templates ?? []), ...(settings?.apps?.planPreview?.industryTemplates ?? []), ...Object.entries(settings?.industry?.templates ?? {}).filter(([, entry]) => entry?.active === true).map(([id]) => id)];
-  const serviceTemplate = settings?.services?.templateKey;
-  if (serviceTemplate) selections.push(SERVICE_TEMPLATE_TO_SUBINDUSTRY[serviceTemplate] ?? serviceTemplate);
+  for (const serviceTemplate of [
+    ...(settings?.services?.activeTemplateKeys ?? []),
+    settings?.services?.primaryTemplateKey,
+    settings?.services?.templateKey,
+  ]) {
+    if (serviceTemplate) selections.push(SERVICE_TEMPLATE_TO_SUBINDUSTRY[serviceTemplate] ?? serviceTemplate);
+  }
   for (const selectionId of selections) {
     if (!selectionId) continue;
     const subIndustry = INDUSTRY_TAXONOMY.flatMap((item) => item.subIndustries).find((item) => item.id === selectionId);
