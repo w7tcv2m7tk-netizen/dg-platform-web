@@ -8,7 +8,7 @@ html:not([data-theme="light"]) .dg-branded-shell {
   --org-bg-inset: #050c17;
   --org-border: #26364d;
   --org-border-subtle: #1c2b40;
-  --org-shell-gradient: radial-gradient(circle at 82% -10%, rgba(124, 58, 237, 0.08), transparent 30%), linear-gradient(180deg, #091426 0%, #07101d 48%, #050b14 100%);
+  --org-shell-gradient: radial-gradient(circle at 82% -10%, rgba(124, 58, 237, 0.08), transparent 30%), linear-gradient(180deg, #091426 0%, #07101d 62%, #07101d 100%);
 }
 
 html:not([data-theme="light"]) .dg-branded-sidebar {

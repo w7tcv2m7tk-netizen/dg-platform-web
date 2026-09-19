@@ -73,7 +73,8 @@ export function resolveOrgShellPalette(
     textMuted: `color-mix(in srgb, ${primary} 28%, #94a3b8)`,
     gradient: [
       `radial-gradient(ellipse 120% 80% at 100% -20%, color-mix(in srgb, ${primary} 24%, transparent), transparent 55%)`,
-      `radial-gradient(ellipse 90% 70% at 0% 100%, color-mix(in srgb, ${atmosphere} 20%, transparent), transparent 52%)`,
+      `radial-gradient(ellipse 90% 55% at 0% 12%, color-mix(in srgb, ${atmosphere} 16%, transparent), transparent 50%)`,
+      `linear-gradient(to top, #07101d 0%, transparent 22%)`,
       bgBase,
     ].join(", "),
   };
