@@ -171,6 +171,8 @@ export function DomainConnectorPanel({
             </>
           ) : null}
         </div>
+      ) : null}
+
       <button
         type="button"
         onClick={() => void load()}
