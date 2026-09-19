@@ -31,6 +31,12 @@ type OrgSettings = {
     [key: string]: unknown;
   };
   industry?: Record<string, unknown>;
+  services?: {
+    templateKey?: string;
+    activeTemplateKeys?: string[];
+    primaryTemplateKey?: string;
+    appliedAt?: string;
+  };
   featureFlags?: Record<string, boolean>;
 };
 
@@ -232,9 +238,45 @@ export async function PATCH(req: Request) {
       ? enrolIndustryBetasForAppIds(settings.featureFlags, [template.appId])
       : (settings.featureFlags ?? {});
 
+  // Industry entitlements are canonical. Mirror Services runtime keys from the exact
+  // active Services child Apps so shared-engine consumers cannot invent siblings.
+  const serviceTemplateKeyBySubindustry: Record<string, string> = {
+    trades: "general", electrical: "electrician", plumbing: "plumber", hvac: "hvac",
+    cleaning: "cleaner", maintenance: "handyman", landscaping: "landscaper",
+    "construction-services": "builder", "pest-control": "pest_control", "field-services": "general",
+  };
+  const resolvedAfterPatch = resolveIndustryEntitlements({
+    enabledAppIds: enabled,
+    purchasedApps: settings.profile?.purchasedApps ?? [],
+    planPreviewIndustryApps: settings.apps?.planPreview?.industryApps ?? [],
+    industrySettings: industryPatch,
+  });
+  const activeServiceTemplateKeys = Array.from(new Set(
+    resolvedAfterPatch.industries.find((item) => item.industryId === "services")
+      ?.activeTemplateIds.map((id) => serviceTemplateKeyBySubindustry[id])
+      .filter((id): id is string => Boolean(id)) ?? [],
+  ));
+  const primaryServiceSubindustry = industryPatch.primaryTemplateByIndustry?.services;
+  const requestedPrimaryServiceKey = primaryServiceSubindustry
+    ? serviceTemplateKeyBySubindustry[primaryServiceSubindustry]
+    : undefined;
+  const primaryServiceTemplateKey = requestedPrimaryServiceKey && activeServiceTemplateKeys.includes(requestedPrimaryServiceKey)
+    ? requestedPrimaryServiceKey
+    : activeServiceTemplateKeys[0];
+  const services = template.industryId === "services" || settings.services
+    ? {
+        ...(settings.services ?? {}),
+        activeTemplateKeys: activeServiceTemplateKeys,
+        primaryTemplateKey: primaryServiceTemplateKey,
+        templateKey: primaryServiceTemplateKey,
+        appliedAt: new Date().toISOString(),
+      }
+    : settings.services;
+
   const nextSettings: OrgSettings = {
     ...settings,
     featureFlags,
+    ...(services ? { services } : {}),
     apps: {
       ...settings.apps,
       enabled,
