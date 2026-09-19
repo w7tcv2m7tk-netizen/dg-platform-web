@@ -51,7 +51,7 @@ export function AppShellLayout({ children, activeOrganisationId, activeOrganisat
       <OrgBrandHead iconUrl={brandTheme.iconUrl} />
       <PrefetchCriticalRoutes />
       <MobileNavContext.Provider value={{ close }}>
-        <div className="dg-branded-shell fixed left-0 top-0 z-0 flex h-[100dvh] w-full overflow-hidden print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible" style={orgBrandStyle(brandTheme)}>
+        <div className="fixed inset-0 z-0 overflow-hidden bg-[var(--org-bg-base,#07101d)] print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible" style={orgBrandStyle(brandTheme)}><div className="dg-branded-shell absolute inset-x-0 top-0 flex h-[100dvh] min-h-full w-full overflow-hidden print:static print:h-auto print:min-h-0 print:overflow-visible">
           <ChatWidgetProvider userName={chatUserName} showFloatingChat={showFloatingChat}>
             {isDesktop ? <div className="flex h-full min-h-0 w-56 shrink-0 flex-col print:hidden"><Sidebar {...sidebarProps} /></div> : null}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -69,6 +69,7 @@ export function AppShellLayout({ children, activeOrganisationId, activeOrganisat
               </div>
             </div>
           </ChatWidgetProvider>
+          </div>
         </div>
       </MobileNavContext.Provider>
     </OrgBrandProvider>
