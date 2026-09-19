@@ -77,8 +77,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     display: "standalone",
     display_override: ["standalone", "minimal-ui"],
     orientation: "any",
-    background_color: "#0c0716",
-    theme_color: "#0c0716",
+    background_color: "#07101d",
+    theme_color: "#07101d",
     categories: ["business", "productivity"],
     icons: [
       {
