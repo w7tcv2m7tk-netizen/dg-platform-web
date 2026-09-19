@@ -110,12 +110,17 @@ export const getOrgIndustrySelectionIdsCached = cache(async (): Promise<string[]
   });
 
   const settings = readOrgNavSettings(org?.settings as OrgNavSettings);
-  const activeTemplateIds = Object.entries(settings?.industry?.templates ?? {})
+  const canonicalTemplates = settings?.industry?.templates ?? {};
+  const activeTemplateIds = Object.entries(canonicalTemplates)
     .filter(([, entry]) => entry?.active === true)
     .map(([id]) => id);
+  const hasCanonicalIndustryState = Object.keys(canonicalTemplates).length > 0;
 
-  // Once canonical Industry activation exists, it is the navigation truth.
-  // Legacy onboarding / purchase markers remain a fallback for organisations
-  // that have not yet written exact active child state.
-  return activeTemplateIds.length ? activeTemplateIds : collectIndustrySelectionIds(settings);
+  // Once canonical Industry activation exists, it is the navigation truth —
+  // including the intentional state where every child is inactive.
+  // Legacy onboarding / purchase markers are fallback-only for organisations
+  // that have never written canonical child state.
+  return hasCanonicalIndustryState
+    ? activeTemplateIds
+    : collectIndustrySelectionIds(settings);
 });
