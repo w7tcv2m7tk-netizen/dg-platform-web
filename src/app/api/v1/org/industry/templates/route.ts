@@ -23,6 +23,7 @@ type OrgSettings = {
     enabled?: string[];
     planPreview?: {
       industryApps?: string[];
+      industryTemplates?: string[];
       [key: string]: unknown;
     };
   };
@@ -36,6 +37,12 @@ type OrgSettings = {
     activeTemplateKeys?: string[];
     primaryTemplateKey?: string;
     appliedAt?: string;
+  };
+  gen2Onboarding?: {
+    operatingProfile?: {
+      primaryTemplate?: string;
+      templates?: string[];
+    };
   };
   featureFlags?: Record<string, boolean>;
 };
@@ -62,6 +69,44 @@ function enrolIndustryBetasForAppIds(
   return next;
 }
 
+function industrySettingsForOrg(settings: OrgSettings) {
+  const persisted = readOrgIndustrySettings(settings);
+  if (persisted) return persisted;
+
+  // Bootstrap organisations onboarded before canonical Industry activation was
+  // persisted. Exact onboarding child choices beat shared runtime defaults.
+  const legacyTemplateIds = Array.from(
+    new Set([
+      ...(settings.apps?.planPreview?.industryTemplates ?? []),
+      ...(settings.gen2Onboarding?.operatingProfile?.templates ?? []),
+    ]),
+  );
+  if (!legacyTemplateIds.length) return null;
+
+  const templates: Record<string, { active?: boolean }> = {};
+  const primaryTemplateByIndustry: Record<string, string> = {};
+  for (const id of legacyTemplateIds) {
+    const template = getTemplate(id);
+    if (!template || !isTemplateActivatable(template.status)) continue;
+    templates[template.id] = { active: true };
+    if (!primaryTemplateByIndustry[template.industryId]) {
+      primaryTemplateByIndustry[template.industryId] = template.id;
+    }
+  }
+
+  const requestedPrimary = settings.gen2Onboarding?.operatingProfile?.primaryTemplate;
+  if (requestedPrimary) {
+    const template = getTemplate(requestedPrimary);
+    if (template && templates[template.id]?.active === true) {
+      primaryTemplateByIndustry[template.industryId] = template.id;
+    }
+  }
+
+  return Object.keys(templates).length
+    ? { templates, primaryTemplateByIndustry }
+    : null;
+}
+
 function entitlementsForOrg(settings: OrgSettings) {
   const enabled = resolveEnabledAppIds(settings);
   const purchasedApps = settings.profile?.purchasedApps ?? [];
@@ -70,7 +115,7 @@ function entitlementsForOrg(settings: OrgSettings) {
     enabledAppIds: enabled,
     purchasedApps,
     planPreviewIndustryApps,
-    industrySettings: readOrgIndustrySettings(settings),
+    industrySettings: industrySettingsForOrg(settings),
   });
 }
 
@@ -206,7 +251,7 @@ export async function PATCH(req: Request) {
 
   const settings = (org?.settings as OrgSettings | null) ?? {};
   let enabled = resolveEnabledAppIds(settings);
-  const currentIndustry = readOrgIndustrySettings(settings);
+  const currentIndustry = industrySettingsForOrg(settings);
   const industryPatch = buildTemplateActivationPatch(
     currentIndustry,
     template.id,
