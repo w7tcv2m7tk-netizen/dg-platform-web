@@ -444,7 +444,6 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
       {
         id: "financial-advice",
         label: "Financial Advice",
-        appId: "finance",
         templateId: "financial-planning",
         status: "soon",
         summary: "Client discovery, advice workflows, reviews and compliance",
@@ -452,7 +451,6 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
       {
         id: "accounting-bookkeeping",
         label: "Accounting & Bookkeeping",
-        appId: "finance",
         templateId: "accounting-practice",
         status: "soon",
         summary: "Client work, recurring obligations, documents and deadlines",
@@ -460,7 +458,6 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
       {
         id: "insurance-broking",
         label: "Insurance Broking",
-        appId: "finance",
         templateId: "insurance-broking",
         status: "soon",
         summary: "Quotes, policies, renewals and claims coordination",

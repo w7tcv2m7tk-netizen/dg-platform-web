@@ -15,7 +15,7 @@ export default function AppsCataloguePage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Explore Apps</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Add or remove the exact business types and specialist capabilities this organisation needs. Only active business types appear in the sidebar. Billing and subscribe live under Settings → Billing.
+          Add or remove the exact sub-industry Apps and specialist capabilities this organisation needs. Only active sub-industry Apps appear in the sidebar. Billing and subscribe live under Settings → Billing.
         </p>
       </header>
       <main className="dg-page-main space-y-12">

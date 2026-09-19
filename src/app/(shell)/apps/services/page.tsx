@@ -3,6 +3,18 @@ import { notFound } from "next/navigation";
 import { canAccessCommandCentre, getServicesOverview, sessionHasFeature } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+
+function servicesHref(
+  path: string,
+  templateKey: string | null,
+  params: Record<string, string> = {},
+): string {
+  const query = new URLSearchParams();
+  if (templateKey) query.set("template", templateKey);
+  for (const [key, value] of Object.entries(params)) query.set(key, value);
+  const suffix = query.toString();
+  return suffix ? `${path}?${suffix}` : path;
+}
 import { canConfigureServices, canManageServices } from "@/lib/services-page-access";
 import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
 import { getServicesWorkspaceProfile } from "@/lib/services-workspace-profiles";
@@ -58,7 +70,7 @@ export default async function ServicesOverviewPage({
             href="/dashboard/apps/catalogue#industry-apps"
             className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-sky-500 hover:text-white"
           >
-            + Add service type
+            + Add service App
           </Link>
         ) : null}
       </div>
@@ -73,15 +85,15 @@ export default async function ServicesOverviewPage({
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Link href="/apps/services/jobs?status=open" className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500">
+        <Link href={servicesHref("/apps/services/jobs", overview.templateKey, { status: "open" })} className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500">
           <p className="text-xs uppercase tracking-wide text-slate-500">Open {jobWord}s</p>
           <p className="mt-1 text-3xl font-semibold text-white">{overview.counts.openJobs}</p>
         </Link>
-        <Link href="/apps/services/scheduling" className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500">
+        <Link href={servicesHref("/apps/services/scheduling", overview.templateKey)} className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500">
           <p className="text-xs uppercase tracking-wide text-slate-500">Scheduled (7d)</p>
           <p className="mt-1 text-3xl font-semibold text-white">{overview.counts.scheduledThisWeek}</p>
         </Link>
-        <Link href="/apps/services/jobs?assignee=unassigned&status=open" className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500">
+        <Link href={servicesHref("/apps/services/jobs", overview.templateKey, { assignee: "unassigned", status: "open" })} className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500">
           <p className="text-xs uppercase tracking-wide text-slate-500">Unassigned</p>
           <p className="mt-1 text-3xl font-semibold text-white">{overview.counts.unassignedOpen}</p>
         </Link>
@@ -136,7 +148,7 @@ export default async function ServicesOverviewPage({
           {!overview.nextJobs.length ? (
             <p className="text-sm text-slate-500">
               Nothing scheduled in the next 14 days.
-              {canWriteJobs ? <> <Link href="/apps/services/jobs" className="inline-flex min-h-11 items-center text-sky-400 hover:underline">Set a start time on a {jobWord}</Link>.</> : null}
+              {canWriteJobs ? <> <Link href={servicesHref("/apps/services/jobs", overview.templateKey)} className="inline-flex min-h-11 items-center text-sky-400 hover:underline">Set a start time on a {jobWord}</Link>.</> : null}
             </p>
           ) : (
             <ul className="divide-y divide-slate-800">
@@ -162,20 +174,20 @@ export default async function ServicesOverviewPage({
             <ul className="space-y-2 text-sm">
               {overview.stageBreakdown.map((s) => (
                 <li key={s.stage} className="flex min-h-11 items-center justify-between text-slate-300">
-                  <Link href={`/apps/services/jobs?stage=${encodeURIComponent(s.stage)}&status=open`} className="inline-flex min-h-11 items-center hover:text-white hover:underline">{s.label}</Link>
+                  <Link href={servicesHref("/apps/services/jobs", overview.templateKey, { stage: s.stage, status: "open" })} className="inline-flex min-h-11 items-center hover:text-white hover:underline">{s.label}</Link>
                   <span className="tabular-nums text-white">{s.count}</span>
                 </li>
               ))}
             </ul>
           )}
-          <Link href="/apps/services/jobs" className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">View all {jobWord}s →</Link>
+          <Link href={servicesHref("/apps/services/jobs", overview.templateKey)} className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">View all {jobWord}s →</Link>
         </section>
       </div>
 
       <section className="dg-card">
         <h2 className="font-semibold text-white">Recent {jobWord}s</h2>
         {!overview.recentJobs.length ? (
-          <p className="mt-3 text-sm text-slate-500">No {jobWord}s yet.{canWriteJobs ? <> <Link href="/apps/services/jobs" className="inline-flex min-h-11 items-center text-sky-400 hover:underline">Create one</Link></> : null}</p>
+          <p className="mt-3 text-sm text-slate-500">No {jobWord}s yet.{canWriteJobs ? <> <Link href={servicesHref("/apps/services/jobs", overview.templateKey)} className="inline-flex min-h-11 items-center text-sky-400 hover:underline">Create one</Link></> : null}</p>
         ) : (
           <ul className="mt-3 divide-y divide-slate-800">
             {overview.recentJobs.map((job) => (

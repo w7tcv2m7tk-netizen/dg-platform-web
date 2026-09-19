@@ -811,9 +811,23 @@ function unionAppRoutes(routes: AppRoute[]): AppRoute[] {
   return out;
 }
 
+function scopeRouteToPrimaryQuery(route: AppRoute, primaryHref: string): AppRoute {
+  const query = primaryHref.split("?")[1];
+  if (!query) return route;
+  const rawPath = pathWithoutQuery(route.path);
+  return {
+    ...route,
+    path: `${rawPath}?${query}`,
+    matchAlso: Array.from(new Set([...(route.matchAlso ?? []), rawPath])),
+  };
+}
+
 /**
- * One sidebar row per entitled Industry App (Property, Services, …).
- * Templates are switched in-context — not separate sidebar apps.
+ * One sidebar row per active sub-industry App.
+ *
+ * Parent Industry Apps are commercial/catalogue boundaries. Customer navigation
+ * follows the exact child Apps the organisation selected, so sibling workflows
+ * never collapse back into a generic Property / Services / Finance row.
  */
 function buildIndustryNavApps(
   enabledIndustryApps: AppNavTreeItem[],
@@ -830,63 +844,51 @@ function buildIndustryNavApps(
   const items: AppNavTreeItem[] = [];
   const consumedAppIds = new Set<string>();
 
-  // Catalogue order matches INDUSTRY_PLATFORMS
+  // Catalogue order matches INDUSTRY_PLATFORMS; child order follows each parent.
   for (const industry of listIndustries()) {
     const entitlement = industries.find((e) => e.industryId === industry.id);
     if (!entitlement?.entitled) continue;
 
-    const activeTemplateIds = entitlement.activeTemplateIds;
-    const primaryHref =
-      getIndustryPrimaryHref(industry.id, activeTemplateIds) ??
-      `/apps/industry/${industry.slug}`;
-
-    const collected: AppRoute[] = [];
-    for (const templateId of activeTemplateIds) {
+    for (const templateId of entitlement.activeTemplateIds) {
       const template = getTemplate(templateId);
-      if (!template) continue;
-      if (template.appId) {
-        consumedAppIds.add(template.appId);
-        const app = byAppId.get(template.appId);
-        if (app?.routes.length) {
-          collected.push(...app.routes);
-        }
-      }
-      const href = pathWithoutQuery(template.primaryHref);
-      collected.push({ path: href, label: template.name });
-    }
+      if (!template || template.industryId !== industry.id) continue;
 
-    if (collected.length === 0) {
-      const fallback = getIndustry(industry.id);
-      const included = fallback?.templates.find((t) => t.isDefaultIncluded) ?? fallback?.templates[0];
-      if (included?.appId) {
-        consumedAppIds.add(included.appId);
-        const app = byAppId.get(included.appId);
-        if (app?.routes.length) collected.push(...app.routes);
-      }
-      collected.push({
-        path: pathWithoutQuery(primaryHref),
-        label: industry.name,
+      const app = template.appId ? byAppId.get(template.appId) : undefined;
+      if (template.appId) consumedAppIds.add(template.appId);
+
+      const exactHref = template.primaryHref;
+      const routePath = pathWithoutQuery(exactHref);
+      const routes = app?.routes?.length
+        ? unionAppRoutes([
+            scopeRouteToPrimaryQuery({ path: routePath, label: "Overview" }, exactHref),
+            ...app.routes
+              .filter((route) => pathWithoutQuery(route.path) !== routePath)
+              .map((route) => scopeRouteToPrimaryQuery(route, exactHref)),
+          ])
+        : [scopeRouteToPrimaryQuery({ path: routePath, label: "Overview" }, exactHref)];
+
+      items.push({
+        kind: "app",
+        id: `industry--${industry.id}--${template.id}`,
+        name: template.name,
+        icon: industry.icon,
+        tier: "business",
+        enabled: true,
+        primaryHref: exactHref,
+        routes,
       });
     }
-
-    items.push({
-      kind: "app",
-      id: `industry--${industry.id}`,
-      name: industry.name,
-      icon: industry.icon,
-      tier: "business",
-      enabled: true,
-      primaryHref: pathWithoutQuery(primaryHref),
-      routes: unionAppRoutes(collected),
-    });
   }
 
-  // Preserve unexpected enabled apps that did not fold into an Industry row
+  // Preserve unexpected enabled modules that have no exact sub-industry identity.
+  // This is a compatibility fallback only; it must never generate sibling rows.
   for (const app of sortByOrder(enabledIndustryApps, INDUSTRY_APP_ORDER)) {
     if (consumedAppIds.has(app.id)) continue;
-    // Skip Gen 2 modules that belong to an entitled industry we already emitted
     const template = getTemplate(app.id);
-    if (template && items.some((i) => i.id === `industry--${template.industryId}`)) {
+    if (
+      template &&
+      items.some((item) => item.id.startsWith(`industry--${template.industryId}--`))
+    ) {
       continue;
     }
     items.push(app);

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getActiveServiceTemplate,
+  getServiceTemplate,
+  isServiceTemplateKey,
   listContacts,
   listOrganisationMembers,
   listServiceJobs,
@@ -24,7 +26,7 @@ function memberLabel(m: { displayName: string | null; email: string | null; cler
 }
 
 interface PageProps {
-  searchParams: Promise<{ q?: string; stage?: string; assignee?: string; status?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ q?: string; stage?: string; assignee?: string; status?: string; from?: string; to?: string; template?: string }>;
 }
 
 export default async function ServicesJobsPage({ searchParams }: PageProps) {
@@ -50,13 +52,19 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
     select: { settings: true, timezone: true },
   });
   const timeZone = org?.timezone || SERVICES_DEFAULT_TZ;
-  const template = getActiveServiceTemplate(org?.settings);
+  const requestedTemplateKey =
+    params.template && isServiceTemplateKey(params.template) ? params.template : null;
+  const template = requestedTemplateKey
+    ? getServiceTemplate(requestedTemplateKey)
+    : getActiveServiceTemplate(org?.settings);
+  const templateKey = template.key;
   const scheduledFrom = filters.from ? zonedDayBoundsIso(filters.from, timeZone).from : undefined;
   const scheduledTo = filters.to ? zonedDayBoundsIso(filters.to, timeZone).to : undefined;
 
   const [{ items, meta }, contacts, members] = await Promise.all([
     listServiceJobs({
       organisationId: session.organisationId,
+      templateKey,
       limit: 50,
       q: filters.q || undefined,
       stage: filters.stage || undefined,
@@ -100,12 +108,12 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
           />
         ) : null}
       </div>
-      <JobsListFilters filters={filters} stages={template.workflow} members={memberOptions} />
+      <JobsListFilters filters={filters} stages={template.workflow} members={memberOptions} templateKey={templateKey} />
       <div className="dg-card">
         {!items.length ? (
           <div className="space-y-2">
             <p className="text-sm text-slate-500">{hasFilters ? "No jobs match these filters." : canWriteJobs ? `No jobs yet. Create one to start the ${template.workflow.map((s) => s.label).slice(0, 4).join(" → ")}… flow.` : "No jobs yet."}</p>
-            {hasFilters ? <Link href="/apps/services/jobs" className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">Clear filters</Link> : null}
+            {hasFilters ? <Link href={`/apps/services/jobs?template=${encodeURIComponent(templateKey)}`} className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">Clear filters</Link> : null}
           </div>
         ) : (
           <ul className="divide-y divide-slate-800">

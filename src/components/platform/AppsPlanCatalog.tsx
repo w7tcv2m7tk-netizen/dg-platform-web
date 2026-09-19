@@ -95,27 +95,63 @@ function CatalogAppCard({
 }
 
 export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
-  const { enabledIds, applyPlan, resetApps, syncing, lastError, clearError } = useEnabledApps();
+  const { enabledIds, industrySelectionIds, applyPlan, resetApps, syncing, lastError, clearError } = useEnabledApps();
   const [activeTier, setActiveTier] = useState<PlatformTier>("professional");
 
-  const selectionFromEnabled = useMemo(
-    () => ({
-      industryApps: INDUSTRY_PLATFORM_CATALOG.flatMap((platform) =>
-        platform.specialisations.flatMap((specialisation) =>
-          specialisation.appId && enabledIds.includes(specialisation.appId)
-            ? [specialisation.id]
-            : [],
+  const selectionFromCurrentState = useMemo(() => {
+    const selectedIds = new Set(industrySelectionIds);
+
+    const canonicalIndustrySelections = INDUSTRY_PLATFORM_CATALOG.flatMap((platform) => {
+      const selectedChildren = platform.specialisations
+        .filter((specialisation) => selectedIds.has(specialisation.id))
+        .map((specialisation) => specialisation.id);
+
+      // Exact child Apps always beat their parent Industry marker.
+      if (selectedChildren.length) return selectedChildren;
+
+      // Legacy parent-only state: preserve the runtime that is already mounted,
+      // but never infer or activate sibling children from the parent marker.
+      if (selectedIds.has(platform.platformId)) {
+        return Array.from(
+          new Set(
+            platform.specialisations.flatMap((specialisation) =>
+              specialisation.appId && enabledIds.includes(specialisation.appId)
+                ? [specialisation.appId]
+                : [],
+            ),
+          ),
+        );
+      }
+
+      return [];
+    });
+
+    const fallbackRuntimeSelections = INDUSTRY_PLATFORM_CATALOG.flatMap((platform) =>
+      Array.from(
+        new Set(
+          platform.specialisations.flatMap((specialisation) =>
+            specialisation.appId && enabledIds.includes(specialisation.appId)
+              ? [specialisation.appId]
+              : [],
+          ),
         ),
       ),
-      premiumApps: GROWTH_APP_CATALOG.flatMap((item) => item.premiumKey && enabledIds.includes(item.appId) ? [item.premiumKey] : []),
-    }),
-    [enabledIds],
-  );
+    );
+
+    return {
+      industryApps: canonicalIndustrySelections.length
+        ? canonicalIndustrySelections
+        : fallbackRuntimeSelections,
+      premiumApps: GROWTH_APP_CATALOG.flatMap((item) =>
+        item.premiumKey && enabledIds.includes(item.appId) ? [item.premiumKey] : [],
+      ),
+    };
+  }, [enabledIds, industrySelectionIds]);
 
   const applyTier = (tier: PlatformTier) => {
     setActiveTier(tier);
     if (tier === "enterprise") return;
-    void applyPlan({ platformTier: tier, industryApps: selectionFromEnabled.industryApps, premiumApps: selectionFromEnabled.premiumApps });
+    void applyPlan({ platformTier: tier, industryApps: selectionFromCurrentState.industryApps, premiumApps: selectionFromCurrentState.premiumApps });
   };
 
   const appHref = (appId: string) => {
@@ -186,7 +222,7 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
       </section>
 
       <section id="industry-apps" className="scroll-mt-24">
-        <SectionHeader label="🧩 3 · Industry Apps" title="Built around how your business operates" description="Choose the exact business types this organisation operates. Active business types appear independently in the sidebar; other business types remain here in Apps until needed." />
+        <SectionHeader label="🧩 3 · Industry Apps" title="Built around how your business operates" description="Choose the exact sub-industry Apps this organisation operates. Active sub-industry Apps appear independently in the sidebar; unselected siblings remain here in Apps until needed." />
         {industryApps}
       </section>
 
