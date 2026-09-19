@@ -851,7 +851,7 @@ export function resolveIndustrySpecialisation(id: string): {
   return resolveIndustryFromAppId(normalised);
 }
 
-/** Map Gen 2 app install id → Industry + Template (first match when appId is shared). */
+/** Map a Gen 2 runtime app id to its parent Industry. The returned child is legacy/default metadata only; callers must not use a shared runtime id as exact sub-industry identity. */
 export function resolveIndustryFromAppId(appId: string): {
   platform: IndustryPlatform;
   specialisation: IndustrySpecialisation;
