@@ -67,6 +67,8 @@ export interface OverviewLiveMetrics {
     searchImpressions: number | null;
     searchCtr: number | null;
     searchPosition: number | null;
+    /** Source-specific failure state. Missing means the source did not report a failure. */
+    errors?: { analytics?: string; search?: string };
   } | null;
 }
 
@@ -216,6 +218,7 @@ export async function gatherOverviewLiveMetrics(
         searchImpressions: web.search?.impressions ?? null,
         searchCtr: web.search?.ctr ?? null,
         searchPosition: web.search?.position ?? null,
+        errors: web.errors,
       }
     : null;
 
