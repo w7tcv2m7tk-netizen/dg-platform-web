@@ -54,8 +54,8 @@ export const INDUSTRY_ARCHITECTURE_POSITIONING =
  * Canonical Industry commercial rule (lock — August 2026).
  *
  * Industry App = major vertical capability / infrastructure ($99/mo).
- * Industry Template = specialised workflow configuration within that App.
- * One primary Template is included with each Industry App; extras are +$29/mo.
+ * Sub-industry App = specialised customer-facing app/workflow configuration within that parent App.
+ * One primary sub-industry App is included with each Industry App; extras are +$29/mo.
  */
 export const INDUSTRY_COMMERCIAL_LOCK = {
   industryPrice: "$99/mo",
@@ -71,7 +71,7 @@ export const INDUSTRY_COMMERCIAL_LOCK = {
     industryApp:
       "The major vertical capability and infrastructure the customer buys.",
     industryTemplate:
-      "A specialised workflow configuration within that Industry App.",
+      "A specialised customer-facing sub-industry App within that parent Industry App.",
     primaryTemplateRule:
       "Each Industry App includes exactly one primary Template. Additional Templates are optional paid expansions.",
   },
@@ -101,9 +101,9 @@ export const INDUSTRY_COMMERCIAL_LOCK = {
   ],
   say: [
     "Industry App — $99/mo — one connected vertical operating platform",
-    "Includes 1 Industry Template — customer chooses their primary business model",
-    "Additional Templates — +$29/mo each",
-    "Industry App is the commercial boundary; Templates are the expansion layer",
+    "Includes 1 sub-industry App — customer chooses their primary business model",
+    "Additional sub-industry Apps — +$29/mo each",
+    "Parent Industry App is the commercial boundary; sub-industry Apps are the expansion layer",
     "Architecture can be broad; public pricing stays honest about readiness",
   ],
 } as const;
@@ -177,7 +177,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     summary:
       "Property transactions, ownership and development — not short-stay hospitality.",
     proposition:
-      "Real Estate is the founding Template. PM, Commercial, Development and Buyers Agency follow.",
+      "Property is the parent Industry App. Real Estate, Property Management, Commercial, Development and Buyers Agency are distinct sub-industry Apps.",
     specialisations: [
       {
         id: "real-estate",
@@ -428,7 +428,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     summary:
       "Money and financial relationships — Accounting first. Not an “Accounting App”.",
     proposition:
-      "Accounting · Bookkeeping · Broking · Planning · Insurance · Lending on one Finance platform.",
+      "Finance is the parent Industry App. Accounting, Bookkeeping, Broking, Planning, Insurance and Lending are distinct sub-industry Apps on shared Finance infrastructure.",
     specialisations: [
       {
         id: "accounting",
@@ -613,7 +613,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     roadmap: "coming",
     publicSurface: true,
     summary: "Vehicle sales and workshop services.",
-    proposition: "Dealerships, mechanics and auto services on Core.",
+    proposition: "Automotive is the parent Industry App. Dealerships, Workshops, Mechanics, Auto Electrical and Vehicle Services are distinct sub-industry Apps.",
     specialisations: [
       {
         id: "dealerships",
@@ -698,7 +698,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     roadmap: "early-access",
     publicSurface: true,
     summary: "Creators, artists, music, media and personal brands.",
-    proposition: "Aëtherra and creator businesses sit naturally here.",
+    proposition: "Creator & Media is the parent Industry App. Creators, Artists, Musicians, Agencies and other selected sub-industries are distinct child Apps.",
     specialisations: [
       {
         id: "creators",
@@ -831,7 +831,7 @@ export function getPublicIndustryPlatforms(): IndustryPlatform[] {
   return INDUSTRY_PLATFORMS.filter((p) => p.publicSurface);
 }
 
-/** Map specialisation / template / app id → Industry + Template. */
+/** Map exact sub-industry/template identity first, then fall back to a runtime app id. */
 export function resolveIndustrySpecialisation(id: string): {
   platform: IndustryPlatform;
   specialisation: IndustrySpecialisation;
@@ -841,12 +841,14 @@ export function resolveIndustrySpecialisation(id: string): {
   // Legacy alias — Holiday Rentals collapsed into Short-Stay Accommodation.
   const normalised = key === "holiday-rentals" ? "short-stay" : key;
   for (const platform of INDUSTRY_PLATFORMS) {
-    const specialisation = platform.specialisations.find(
-      (s) => s.id === normalised || s.appId === normalised || s.templateId === normalised,
+    const exact = platform.specialisations.find(
+      (s) => s.id === normalised || s.templateId === normalised,
     );
-    if (specialisation) return { platform, specialisation };
+    if (exact) return { platform, specialisation: exact };
   }
-  return null;
+  // Shared runtime ids are infrastructure, not customer identity. Preserve this
+  // fallback only for legacy callers that have no exact sub-industry key.
+  return resolveIndustryFromAppId(normalised);
 }
 
 /** Map Gen 2 app install id → Industry + Template (first match when appId is shared). */
