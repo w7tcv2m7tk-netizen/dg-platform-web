@@ -60,7 +60,7 @@ export function IndustryBusinessTypeManager() {
         error?: { message?: string };
       } | null;
       if (!res.ok) {
-        setError(json?.error?.message ?? "Could not update business type");
+        setError(json?.error?.message ?? "Could not update sub-industry App");
         return;
       }
       if (json?.data?.entitlements) setEntitlements(json.data.entitlements);
@@ -75,7 +75,7 @@ export function IndustryBusinessTypeManager() {
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-lg font-semibold text-white">Industry & sub-industry apps</h3>
+        <h3 className="text-lg font-semibold text-white">Industry & sub-industry Apps</h3>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">
           Each Industry is a parent app. Activate the sub-industry apps this organisation actually operates — each selected sub-industry gets its own navigation entry and tailored workspace, while unselected siblings stay hidden.
         </p>
