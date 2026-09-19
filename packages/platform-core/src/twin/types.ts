@@ -51,9 +51,9 @@ export interface DigitalTwinSnapshot {
     searchImpressions30d?: number;
     searchCtr30d?: number;
     searchPosition30d?: number;
-    /** Source-specific Google web evidence failures; absent means no reported source failure. */
-    webAnalyticsError?: string;
-    searchConsoleError?: string;
+    /** Explicit Google web evidence source state. */
+    webAnalyticsStatus?: "available" | "not_configured" | "failed";
+    searchConsoleStatus?: "available" | "not_configured" | "failed";
     /** Canonical organisation-scoped Instagram evidence. */
     instagramFollowers?: number;
     instagramFollowing?: number;
