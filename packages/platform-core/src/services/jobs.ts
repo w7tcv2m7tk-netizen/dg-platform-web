@@ -161,6 +161,7 @@ export async function listServiceJobs(options: ListServiceJobsOptions) {
     organisationId: options.organisationId,
   };
   if (options.status) where.status = options.status;
+  if (options.templateKey) where.templateKey = options.templateKey;
   if (options.stage) where.stage = options.stage;
   if (options.contactId) where.contactId = options.contactId;
   if (options.unassigned) {

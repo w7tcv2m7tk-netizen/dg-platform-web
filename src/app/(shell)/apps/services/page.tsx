@@ -7,16 +7,21 @@ import { canConfigureServices, canManageServices } from "@/lib/services-page-acc
 import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
 import { getServicesWorkspaceProfile } from "@/lib/services-workspace-profiles";
 
-export default async function ServicesOverviewPage() {
+export default async function ServicesOverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ template?: string }>;
+}) {
   const session = await getAuthorisedPlatformPageSession("services.jobs.read");
   if (!session) notFound();
 
+  const { template: requestedTemplate } = await searchParams;
   const canWriteJobs = canManageServices(session);
   const canConfigure = canConfigureServices(session);
   const canReadCommerce = sessionHasFeature(session, "commerce.read");
   const { prisma } = await import("@dg/database");
   const [overview, org] = await Promise.all([
-    getServicesOverview(session.organisationId),
+    getServicesOverview(session.organisationId, undefined, requestedTemplate),
     prisma.organisation.findUnique({
       where: { id: session.organisationId },
       select: { timezone: true },

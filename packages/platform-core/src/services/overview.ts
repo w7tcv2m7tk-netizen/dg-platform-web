@@ -1,4 +1,5 @@
 import { getActiveServiceTemplate, readOrgServicesSettings } from "./org-settings";
+import { getServiceTemplate, isServiceTemplateKey } from "./templates";
 import { listServiceJobs } from "./jobs";
 
 export type ServicesOverview = {
@@ -21,6 +22,7 @@ export type ServicesOverview = {
 export async function getServicesOverview(
   organisationId: string,
   orgSettings?: unknown,
+  templateKey?: string | null,
 ): Promise<ServicesOverview> {
   const { prisma } = await import("@dg/database");
   const org =
@@ -31,8 +33,13 @@ export async function getServicesOverview(
           select: { settings: true },
         });
 
-  const template = getActiveServiceTemplate(org?.settings);
   const servicesCfg = readOrgServicesSettings(org?.settings);
+  const requestedTemplateKey = templateKey && isServiceTemplateKey(templateKey) ? templateKey : null;
+  const template = requestedTemplateKey
+    ? getServiceTemplate(requestedTemplateKey)
+    : getActiveServiceTemplate(org?.settings);
+  const workspaceTemplateKey = requestedTemplateKey ?? servicesCfg.primaryTemplateKey ?? servicesCfg.templateKey ?? null;
+  const jobScope = workspaceTemplateKey ? { templateKey: workspaceTemplateKey } : {};
 
   const now = new Date();
   const weekEnd = new Date(now);
@@ -50,21 +57,23 @@ export async function getServicesOverview(
     recent,
   ] = await Promise.all([
     prisma.serviceJob.count({
-      where: { organisationId, status: "open" },
+      where: { organisationId, status: "open", ...jobScope },
     }),
     prisma.serviceJob.count({
       where: {
         organisationId,
         status: "open",
+        ...jobScope,
         scheduledStartAt: { gte: now, lte: weekEnd },
       },
     }),
     prisma.serviceJob.count({
-      where: { organisationId, status: "open", assignedUserId: null },
+      where: { organisationId, status: "open", assignedUserId: null, ...jobScope },
     }),
     prisma.serviceJob.count({
       where: {
         organisationId,
+        ...jobScope,
         OR: [{ stage: "completed" }, { completedAt: { not: null } }],
       },
     }),
@@ -72,17 +81,18 @@ export async function getServicesOverview(
     listServiceJobs({
       organisationId,
       status: "open",
+      ...jobScope,
       scheduledFrom: now.toISOString(),
       scheduledTo: horizon.toISOString(),
       sort: "scheduled",
       limit: 6,
     }),
-    listServiceJobs({ organisationId, sort: "updated", limit: 8 }),
+    listServiceJobs({ organisationId, ...jobScope, sort: "updated", limit: 8 }),
   ]);
 
   const stageGroups = await prisma.serviceJob.groupBy({
     by: ["stage"],
-    where: { organisationId, status: "open" },
+    where: { organisationId, status: "open", ...jobScope },
     _count: { _all: true },
   });
 
@@ -103,7 +113,7 @@ export async function getServicesOverview(
     });
 
   return {
-    templateKey: servicesCfg.templateKey ?? null,
+    templateKey: workspaceTemplateKey,
     templateLabel: template.label,
     terminology: template.terminology,
     counts: {
