@@ -21,10 +21,14 @@ export function InsightsDashboard({ organisationName, intelligence }: { organisa
         </div>
       ) : null}
 
-      <section className="rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-slate-950/40 to-slate-950/40 px-6 py-6">
-        <p className="text-xs font-medium uppercase tracking-widest text-violet-300/90">Insights</p>
-        <h2 className="mt-2 text-xl font-bold text-white">What DigitalGate is noticing</h2>
-        <p className="mt-2 text-sm text-slate-300">{intelligence?.dailyBriefing ?? `Insights for ${organisationName} appear when live business data is connected.`}</p>
+      <section className="relative overflow-hidden rounded-2xl border border-violet-500/20 bg-gradient-to-br from-violet-500/10 via-slate-950/40 to-slate-950/40 px-6 py-6 sm:min-h-[250px] sm:pr-[280px]">
+        <div className="relative z-10">
+          <p className="text-xs font-medium uppercase tracking-widest text-violet-300/90">Insights</p>
+          <h2 className="mt-2 text-xl font-bold text-white">What DigitalGate is noticing</h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300">{intelligence?.dailyBriefing ?? `Insights for ${organisationName} appear when live business data is connected.`}</p>
+          <Link href="/dashboard/advisor" className="mt-5 inline-flex text-sm font-semibold text-violet-300 hover:text-violet-200">Ask Aida about these insights →</Link>
+        </div>
+        <img src="/aida/aida-thinking.webp" alt="" aria-hidden className="pointer-events-none absolute bottom-0 right-3 hidden h-[245px] w-auto select-none object-contain object-bottom sm:block" />
       </section>
 
       {intelligence?.insights.length ? (
