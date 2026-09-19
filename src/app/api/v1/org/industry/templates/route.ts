@@ -241,9 +241,19 @@ export async function PATCH(req: Request) {
   // Industry entitlements are canonical. Mirror Services runtime keys from the exact
   // active Services child Apps so shared-engine consumers cannot invent siblings.
   const serviceTemplateKeyBySubindustry: Record<string, string> = {
-    trades: "general", electrical: "electrician", plumbing: "plumber", hvac: "hvac",
-    cleaning: "cleaner", maintenance: "handyman", landscaping: "landscaper",
-    "construction-services": "builder", "pest-control": "pest_control", "field-services": "general",
+    electrical: "electrician",
+    plumbing: "plumber",
+    cleaning: "cleaner",
+    maintenance: "maintenance",
+    hvac: "hvac",
+    "building-construction": "builder",
+    landscaping: "landscaper",
+    "pest-control": "pest_control",
+    painting: "painter",
+    handyman: "handyman",
+    solar: "solar",
+    "pool-service": "pool_service",
+    "general-services": "general",
   };
   const resolvedAfterPatch = resolveIndustryEntitlements({
     enabledAppIds: enabled,
