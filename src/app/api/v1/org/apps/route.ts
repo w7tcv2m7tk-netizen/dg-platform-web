@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import {
   appIdsFromPlanSelection,
   assertEntitlement,
+  buildTemplateActivationPatch,
+  getTemplate,
   getDefaultEnabledAppIds,
   industryBetaFlagForAppId,
   isIndustryBetaGatedApp,
   hasPlatformAuthority,
   normalisePaidAppKeys,
   paidAppKeyForAppId,
+  readOrgIndustrySettings,
   resolveEnabledAppIds,
 } from "@dg/platform-core";
 
@@ -25,6 +28,14 @@ type OrgSettings = {
   profile?: {
     purchasedPremium?: unknown;
   };
+  industry?: Record<string, unknown>;
+  services?: {
+    templateKey?: string;
+    activeTemplateKeys?: string[];
+    primaryTemplateKey?: string;
+    appliedAt?: string;
+    [key: string]: unknown;
+  };
   featureFlags?: Record<string, boolean>;
 };
 
@@ -33,6 +44,115 @@ const APP_ENABLE_BETA_FLAGS: Record<string, string> = {
   "real-estate": "re.beta",
   accommodation: "acc.beta",
 };
+
+const SERVICE_SUBINDUSTRY_TO_TEMPLATE: Record<string, string> = {
+  electrical: "electrician",
+  plumbing: "plumber",
+  cleaning: "cleaner",
+  maintenance: "maintenance",
+  "building-construction": "builder",
+  landscaping: "landscaper",
+  hvac: "hvac",
+  "pest-control": "pest_control",
+  painting: "painter",
+  handyman: "handyman",
+  solar: "solar",
+  "pool-service": "pool_service",
+  "general-services": "general",
+};
+
+function exactIndustryTemplateIdsFromPlan(plan: unknown): string[] {
+  if (!plan || typeof plan !== "object") return [];
+  const industryApps = (plan as { industryApps?: unknown }).industryApps;
+  if (!Array.isArray(industryApps)) return [];
+
+  return Array.from(
+    new Set(
+      industryApps.flatMap((id) => {
+        if (typeof id !== "string") return [];
+        const template = getTemplate(id);
+        // Shared runtime ids such as "services" are legacy implementation
+        // markers, not permission to infer a default customer-facing child.
+        return template && template.id === id ? [template.id] : [];
+      }),
+    ),
+  );
+}
+
+function syncCanonicalIndustryState(
+  settings: OrgSettings,
+  selectedTemplateIds: string[],
+  now: string,
+) {
+  let industry = readOrgIndustrySettings(settings) ?? {
+    templates: {},
+    primaryTemplateByIndustry: {},
+  };
+  const selected = new Set(selectedTemplateIds);
+
+  for (const [id, entry] of Object.entries(industry.templates ?? {})) {
+    if (entry?.active === true && !selected.has(id)) {
+      industry = buildTemplateActivationPatch(industry, id, false, now);
+    }
+  }
+  for (const id of selectedTemplateIds) {
+    industry = buildTemplateActivationPatch(industry, id, true, now);
+  }
+
+  const primaryTemplateByIndustry = { ...(industry.primaryTemplateByIndustry ?? {}) };
+  const selectedByIndustry = new Map<string, string[]>();
+  for (const id of selectedTemplateIds) {
+    const template = getTemplate(id);
+    if (!template) continue;
+    const list = selectedByIndustry.get(template.industryId) ?? [];
+    list.push(template.id);
+    selectedByIndustry.set(template.industryId, list);
+  }
+
+  for (const industryId of new Set([
+    ...Object.keys(primaryTemplateByIndustry),
+    ...selectedByIndustry.keys(),
+  ])) {
+    const ids = selectedByIndustry.get(industryId) ?? [];
+    if (!ids.length) {
+      delete primaryTemplateByIndustry[industryId];
+      continue;
+    }
+    const current = primaryTemplateByIndustry[industryId];
+    primaryTemplateByIndustry[industryId] =
+      current && ids.includes(current) ? current : ids[0]!;
+  }
+
+  const serviceTemplateKeys = selectedTemplateIds
+    .map((id) => SERVICE_SUBINDUSTRY_TO_TEMPLATE[id])
+    .filter((key): key is string => Boolean(key));
+  const uniqueServiceTemplateKeys = Array.from(new Set(serviceTemplateKeys));
+  const {
+    activeTemplateKeys: _activeTemplateKeys,
+    primaryTemplateKey: _primaryTemplateKey,
+    templateKey: _templateKey,
+    ...serviceBase
+  } = settings.services ?? {};
+
+  const services = uniqueServiceTemplateKeys.length
+    ? {
+        ...serviceBase,
+        activeTemplateKeys: uniqueServiceTemplateKeys,
+        primaryTemplateKey: uniqueServiceTemplateKeys[0],
+        templateKey: uniqueServiceTemplateKeys[0],
+        appliedAt: now,
+      }
+    : {
+        ...serviceBase,
+        activeTemplateKeys: [],
+        appliedAt: now,
+      };
+
+  return {
+    industry: { ...industry, primaryTemplateByIndustry },
+    services,
+  };
+}
 
 /** Enrol industry closed-beta flags when Apps toggles those floors on. */
 function enrolIndustryBetasForEnabled(
@@ -244,12 +364,28 @@ export async function PATCH(req: Request) {
     );
   }
 
+  const now = new Date().toISOString();
   const planPreview =
     body.action === "apply_plan" && body.plan
-      ? { ...body.plan, appliedAt: new Date().toISOString() }
-      : settings.apps?.planPreview;
+      ? { ...body.plan, appliedAt: now }
+      : body.action === "reset"
+        ? undefined
+        : settings.apps?.planPreview;
 
   const featureFlags = enrolIndustryBetasForEnabled(settings.featureFlags, enabled);
+
+  let nextIndustry = settings.industry;
+  let nextServices = settings.services;
+  if (body.action === "apply_plan" && body.plan) {
+    const exactTemplateIds = exactIndustryTemplateIdsFromPlan(body.plan);
+    const synced = syncCanonicalIndustryState(settings, exactTemplateIds, now);
+    nextIndustry = synced.industry;
+    nextServices = synced.services;
+  } else if (body.action === "reset") {
+    const synced = syncCanonicalIndustryState(settings, [], now);
+    nextIndustry = synced.industry;
+    nextServices = synced.services;
+  }
 
   await prisma.organisation.update({
     where: { id: session.organisationId },
@@ -257,14 +393,16 @@ export async function PATCH(req: Request) {
       settings: {
         ...settings,
         featureFlags,
+        ...(nextIndustry ? { industry: nextIndustry } : {}),
+        ...(nextServices ? { services: nextServices } : {}),
         apps: {
           ...settings.apps,
           enabled,
-          planPreview,
+          ...(planPreview ? { planPreview } : { planPreview: undefined }),
         },
       } as unknown as InputJsonValue,
     },
   });
 
-  return NextResponse.json({ data: { enabled, planPreview } });
+  return NextResponse.json({ data: { enabled, planPreview: planPreview ?? null } });
 }
