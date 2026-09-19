@@ -12,7 +12,7 @@ import type { PlatformTier } from "@/lib/plans";
 import {
   COMMUNICATIONS_ADDON_CATALOG,
   GROWTH_APP_CATALOG,
-  INDUSTRY_APP_CATALOG,
+  INDUSTRY_PLATFORM_CATALOG,
   PLATFORM_ADDON_CATALOG,
   PLATFORM_CAPABILITY_CATALOG,
   PLATFORM_TIER_CATALOG,
@@ -100,7 +100,13 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
 
   const selectionFromEnabled = useMemo(
     () => ({
-      industryApps: INDUSTRY_APP_CATALOG.filter((item) => enabledIds.includes(item.appId)).map((item) => item.industryKey),
+      industryApps: INDUSTRY_PLATFORM_CATALOG.flatMap((platform) =>
+        platform.specialisations.flatMap((specialisation) =>
+          specialisation.appId && enabledIds.includes(specialisation.appId)
+            ? [specialisation.id]
+            : [],
+        ),
+      ),
       premiumApps: GROWTH_APP_CATALOG.flatMap((item) => item.premiumKey && enabledIds.includes(item.appId) ? [item.premiumKey] : []),
     }),
     [enabledIds],

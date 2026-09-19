@@ -1,4 +1,4 @@
-import type { Addon, IndustryApp, PlatformTier, PremiumApp } from "@/lib/plans";
+import type { Addon, PlatformTier, PremiumApp } from "@/lib/plans";
 import {
   INDUSTRY_PLATFORMS as CORE_INDUSTRY_PLATFORMS,
   INDUSTRY_PUBLIC_GROUPS,
@@ -26,16 +26,6 @@ export type PlatformAddonCatalogItem = {
   price: string;
   description: string;
   pricingHref: string;
-};
-
-export type IndustryAppCatalogItem = {
-  appId: string;
-  industryKey: IndustryApp;
-  label: string;
-  icon: string;
-  price: string;
-  description: string;
-  status: CatalogStatus;
 };
 
 export type GrowthAppCatalogItem = {
@@ -210,82 +200,6 @@ export const INDUSTRY_PLATFORM_CATALOG: IndustryPlatformCatalogItem[] =
   });
 
 export { INDUSTRY_PUBLIC_GROUPS };
-
-/** @deprecated Prefer INDUSTRY_PLATFORM_CATALOG or listIndustries() — flat Gen 2 module toggles only */
-export const INDUSTRY_APP_CATALOG: IndustryAppCatalogItem[] = [
-  {
-    appId: "real-estate",
-    industryKey: "real-estate",
-    label: "Real Estate",
-    icon: "🏠",
-    price: "Property",
-    description: "Property specialisation — vendors, appraisals, listings & buyers",
-    status: "live",
-  },
-  {
-    appId: "accommodation",
-    industryKey: "accommodation",
-    label: "Accommodation",
-    icon: "🏨",
-    price: "Hospitality & Accommodation",
-    description: "Hospitality & Accommodation Template — bookings, guests & short-stay",
-    status: "rolling-out",
-  },
-  {
-    appId: "property-management",
-    industryKey: "property-management",
-    label: "Property Management",
-    icon: "🔑",
-    price: "Property",
-    description: "Property specialisation — owners, tenants, leases",
-    status: "soon",
-  },
-  {
-    appId: "commercial",
-    industryKey: "commercial",
-    label: "Commercial Property",
-    icon: "🏢",
-    price: "Property",
-    description: "Property specialisation — commercial sales & leasing",
-    status: "soon",
-  },
-  {
-    appId: "services",
-    industryKey: "services",
-    label: "Services",
-    icon: "🔧",
-    price: "+$99/mo",
-    description: "Services Industry — jobs & quotes; trades via Service Templates",
-    status: "soon",
-  },
-  {
-    appId: "finance",
-    industryKey: "finance",
-    label: "Finance",
-    icon: "💰",
-    price: "+$99/mo",
-    description: "Finance Industry — Accounting first; broking, planning, insurance templates",
-    status: "soon",
-  },
-  {
-    appId: "automotive",
-    industryKey: "automotive",
-    label: "Automotive",
-    icon: "🚗",
-    price: "+$99/mo",
-    description: "Automotive Industry — dealerships, mechanical & detailing",
-    status: "soon",
-  },
-  {
-    appId: "creator",
-    industryKey: "creator",
-    label: "Creator",
-    icon: "✨",
-    price: "+$99/mo",
-    description: "Creator & Media Industry — audience, content & studio",
-    status: "rolling-out",
-  },
-];
 
 /** Mirrors pricing page — Growth Apps (optional; same order as public pricing) */
 export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
