@@ -63,8 +63,21 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
 
   const operatingApps = nextProgress.operatingProfile?.recommendedIndustryApps ?? [];
   const operatingTemplates = nextProgress.operatingProfile?.templates ?? [];
-  const industryApps = Array.isArray(cleanPatch.industryApps) ? cleanPatch.industryApps : operatingApps.length ? operatingApps : nextProgress.industryApps ?? [];
-  const industryTemplates = Array.isArray(cleanPatch.industryTemplates) ? cleanPatch.industryTemplates : operatingTemplates.length ? operatingTemplates : nextProgress.industryTemplates ?? [];
+  const operatingProfilePatched = Boolean(cleanPatch.operatingProfile);
+  const industryApps = Array.isArray(cleanPatch.industryApps)
+    ? cleanPatch.industryApps
+    : operatingProfilePatched
+      ? operatingApps
+      : operatingApps.length
+        ? operatingApps
+        : nextProgress.industryApps ?? [];
+  const industryTemplates = Array.isArray(cleanPatch.industryTemplates)
+    ? cleanPatch.industryTemplates
+    : operatingProfilePatched
+      ? operatingTemplates
+      : operatingTemplates.length
+        ? operatingTemplates
+        : nextProgress.industryTemplates ?? [];
   nextProgress.industryApps = industryApps; nextProgress.industryTemplates = industryTemplates;
 
   const hasAppSelectionPatch = Array.isArray(cleanPatch.industryApps) || Array.isArray(cleanPatch.industryTemplates) || Array.isArray(cleanPatch.premiumApps) || Boolean(cleanPatch.platformTier) || Boolean(cleanPatch.operatingProfile);
