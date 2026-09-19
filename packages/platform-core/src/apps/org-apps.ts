@@ -1,5 +1,6 @@
 import type { AppTier } from "./manifest";
 import { INDUSTRY_TAXONOMY } from "./industry-taxonomy";
+import { getTemplate } from "../industry/catalogue";
 import { platformApps } from "./registry";
 
 export const FOUNDING_MODE_CORE_APP_IDS = ["crm", "commerce", "documents", "communications", "websites", "infrastructure", "opportunities", "marketing", "advertising", "reviews"] as const;
@@ -16,12 +17,18 @@ const TIER_BASE_APPS: Record<string, string[]> = { starter: [...FOUNDING_MODE_CO
 export type PlanSelectionInput = { platformTier: string; industryApps: string[]; premiumApps: string[] };
 
 function runtimeAppIdsForIndustrySelection(selectionId: string): string[] {
-  if (platformApps.get(selectionId)?.enabled) return [selectionId];
-
   const subIndustry = INDUSTRY_TAXONOMY
     .flatMap((group) => group.subIndustries)
     .find((item) => item.id === selectionId);
-  if (subIndustry) return [subIndustry.appId];
+  if (subIndustry) {
+    const template = getTemplate(subIndustry.id);
+    const runtimeAppId = template?.appId;
+    return runtimeAppId && platformApps.get(runtimeAppId)?.enabled ? [runtimeAppId] : [];
+  }
+
+  // Preserve legacy settings that stored a mounted runtime id rather than an
+  // exact sub-industry identity. Exact child selections suppress these below.
+  if (platformApps.get(selectionId)?.enabled) return [selectionId];
 
   const taxonomySelectionId =
     selectionId === "hospitality-accommodation" ? "accommodation-hospitality" : selectionId;
@@ -30,14 +37,37 @@ function runtimeAppIdsForIndustrySelection(selectionId: string): string[] {
 
   // A parent Industry marker is not permission to mount every child runtime.
   // Only single-runtime parents can safely resolve without an exact child.
-  return group.appIds.length === 1 ? group.appIds : [];
+  return group.appIds.length === 1 && platformApps.get(group.appIds[0]!)?.enabled
+    ? [group.appIds[0]!]
+    : [];
+}
+
+function parentSelectionIdsForGroup(groupId: string): string[] {
+  return groupId === "accommodation-hospitality"
+    ? [groupId, "hospitality-accommodation"]
+    : [groupId];
 }
 
 export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[] {
   const ids = new Set<string>(
     TIER_BASE_APPS[selection.platformTier] ?? TIER_BASE_APPS.professional,
   );
+  const selected = new Set(selection.industryApps);
+  const suppressedParents = new Set<string>();
+
+  // An exact child App always beats its broad parent marker. This prevents
+  // Finance + Accounting from mounting the broker runtime and prevents a
+  // multi-runtime parent such as Property from expanding sibling Apps.
+  for (const group of INDUSTRY_TAXONOMY) {
+    const hasExactChild = group.subIndustries.some((child) => selected.has(child.id));
+    if (!hasExactChild) continue;
+    for (const parentId of parentSelectionIdsForGroup(group.id)) {
+      suppressedParents.add(parentId);
+    }
+  }
+
   for (const industrySelection of selection.industryApps) {
+    if (suppressedParents.has(industrySelection)) continue;
     for (const appId of runtimeAppIdsForIndustrySelection(industrySelection)) ids.add(appId);
   }
   for (const premium of selection.premiumApps) {
@@ -45,6 +75,7 @@ export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[]
   }
   return [...ids].filter((id) => Boolean(platformApps.get(id)?.enabled));
 }
+
 export function resolveEnabledAppIds(orgSettings?: { apps?: OrgAppsSettings } | null): string[] { const configured = orgSettings?.apps?.enabled; const ids = Array.isArray(configured) && configured.length ? configured.filter((id) => Boolean(platformApps.get(id)?.enabled)) : getDefaultEnabledAppIds(); const next = [...ids]; for (const id of FOUNDING_MODE_CORE_APP_IDS) if (platformApps.get(id)?.enabled && !next.includes(id)) next.push(id); return next; }
 export function isAppEnabled(appId: string, enabledIds: string[]): boolean { return enabledIds.includes(appId); }
 
