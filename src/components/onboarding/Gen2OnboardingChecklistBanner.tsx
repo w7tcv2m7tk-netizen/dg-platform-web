@@ -43,6 +43,9 @@ export async function Gen2OnboardingChecklistBanner({ organisationId }: { organi
   }
 
   const stats = gen2ChecklistStats(progress);
+  const workspaceConfigured = ["business_identity", "business_profile", "operating_profile", "goals", "plan", "apps", "platform_preparation"].every((step) => progress.completedSteps.includes(step));
+  if (workspaceConfigured) return null;
+
   if (stats.done === 0 && progress.currentStep === "welcome") {
     return (
       <div className="mb-6 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-4">
