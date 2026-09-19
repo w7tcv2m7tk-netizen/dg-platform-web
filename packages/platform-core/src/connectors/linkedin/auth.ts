@@ -5,10 +5,10 @@
  *   LINKEDIN_CLIENT_ID
  *   LINKEDIN_CLIENT_SECRET
  *   LINKEDIN_REDIRECT_URI (default https://app.digitalgate.com.au/api/connectors/linkedin/callback)
- *   LINKEDIN_OAUTH_SCOPES (optional — if Community Management is still pending, use: openid profile email)
+ *   LINKEDIN_OAUTH_SCOPES (optional — defaults to identity + organisation-admin discovery)
  *   LINKEDIN_API_VERSION (optional Rest.li version, default 202608)
  *
- * Products on the LinkedIn app: Sign In with LinkedIn (OpenID Connect) + Community Management API.
+ * Base connector uses Sign In with LinkedIn (OpenID Connect) plus organisation-admin discovery. Organisation social read/write remains an external LinkedIn product entitlement.
  */
 
 import { decryptSecret, encryptSecret } from "../../crypto/secret-field";
@@ -26,13 +26,12 @@ export const LINKEDIN_AUTH_TOKEN_URL =
   "https://www.linkedin.com/oauth/v2/accessToken";
 export const LINKEDIN_USERINFO_URL = "https://api.linkedin.com/v2/userinfo";
 
-/** OpenID + company-page read/write. Override via LINKEDIN_OAUTH_SCOPES if products are pending. */
+/** Proven base grant: OpenID identity + administered company-page discovery. */
 export const LINKEDIN_DEFAULT_OAUTH_SCOPES = [
   "openid",
   "profile",
   "email",
-  "w_organization_social",
-  "r_organization_social",
+  "r_organization_admin",
 ].join(" ");
 
 const DEFAULT_REDIRECT =
