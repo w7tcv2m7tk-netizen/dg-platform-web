@@ -54,8 +54,9 @@ export const PLATFORM_TIERS: {
 ];
 
 /**
- * Industry Apps ($99/mo · 1 Template included · +$29/mo each additional).
- * Selecting a platform activates a default Template module.
+ * Industry Apps ($99/mo · 1 sub-industry App included · +$29/mo each additional).
+ * Exact sub-industry Apps are the customer-facing identity; defaultApp remains
+ * legacy compatibility metadata for older signup / Stripe flows.
  * @see @dg/platform-core industry/platform.ts
  */
 export type IndustryPlatformKey =
@@ -77,91 +78,91 @@ export const INDUSTRY_PLATFORMS: {
   label: string;
   price: string;
   specialisations: string;
-  /** Default Gen 2 module enabled when this Industry is selected at signup */
+  /** Legacy runtime fallback for older signup / Stripe flows; never customer-facing child identity. */
   defaultApp: IndustryApp | null;
 }[] = [
   {
     key: "property",
     label: "Property",
     price: "+$99/mo",
-    specialisations: "Real Estate · PM · Commercial · Development · Buyers Agency",
+    specialisations: "Real Estate · Property Management · Commercial Property · Property Development · Buyers Agency · Property Advisory",
     defaultApp: "real-estate",
   },
   {
     key: "hospitality-accommodation",
     label: "Hospitality & Accommodation",
     price: "+$99/mo",
-    specialisations: "Short-Stay Accommodation · Hotels · F&B · Venues",
+    specialisations: "Short-Stay · Hotels & Motels · Holiday Parks & Retreats · Venues & Events · Restaurants & Cafés · Bars",
     defaultApp: "accommodation",
   },
   {
     key: "services",
     label: "Services",
     price: "+$99/mo",
-    specialisations: "Trades · Cleaning · Maintenance · Construction · Field",
+    specialisations: "Electrical · Plumbing · Cleaning · Maintenance · HVAC · Building & Construction · Landscaping · Pest Control · Painting · Handyman · Solar · Pool Service",
     defaultApp: "services",
   },
   {
     key: "finance",
     label: "Finance",
     price: "+$99/mo",
-    specialisations: "Accounting · Planning · Broking · Insurance · Advisory",
+    specialisations: "Mortgage & Finance Broking · Lending · Financial Advice · Accounting & Bookkeeping · Insurance Broking · Wealth Management",
     defaultApp: "finance",
   },
   {
     key: "professional",
     label: "Professional",
     price: "+$99/mo",
-    specialisations: "Legal · Surveying · Engineering · Architecture · Consulting",
+    specialisations: "Legal · Consulting · Engineering · Architecture · Surveying · Recruitment · HR Advisory · Marketing Agency",
     defaultApp: null,
   },
   {
     key: "health-wellness",
     label: "Health & Wellness",
     price: "+$99/mo",
-    specialisations: "Medical · Allied · Dental · Vet",
+    specialisations: "Medical Practice · Allied Health · Physiotherapy · Psychology · Dental · Veterinary · Fitness & Wellness",
     defaultApp: null,
   },
   {
     key: "automotive",
     label: "Automotive",
     price: "+$99/mo",
-    specialisations: "Dealerships · Mechanical · Auto Services · Detailing",
+    specialisations: "Vehicle Dealerships · Service & Repair · Vehicle Rental · Tyres & Automotive Parts",
     defaultApp: "automotive",
   },
   {
     key: "retail-commerce",
     label: "Retail & Commerce",
     price: "+$99/mo",
-    specialisations: "Retail · E-commerce · Wholesale · Distribution",
+    specialisations: "Retail · E-commerce · Wholesale & Distribution · Consumer Products & Brands · Franchise & Multi-location Retail",
     defaultApp: null,
   },
   {
     key: "creator-media",
     label: "Creator & Media",
     price: "+$99/mo",
-    specialisations: "Creators · Music · Media · Artists",
+    specialisations: "Creators & Influencers · Music & Artists · Creative Agencies · Publishers & Media · Production & Media · Digital Products",
     defaultApp: "creator",
   },
   {
     key: "transport-logistics",
     label: "Transport & Logistics",
     price: "+$99/mo",
-    specialisations: "Transport · Logistics · Courier",
+    specialisations: "Transport · Courier & Delivery · Freight & Logistics · Warehousing · Fleet Operations · Removalists",
     defaultApp: null,
   },
   {
     key: "agriculture-primary",
     label: "Agriculture & Primary Industries",
     price: "+$99/mo",
-    specialisations: "Architecture reserved",
+    specialisations: "Farming · Horticulture · Livestock · Rural Services · Primary Production",
     defaultApp: null,
   },
   {
     key: "education-organisations",
     label: "Education & Organisations",
     price: "+$99/mo",
-    specialisations: "Education · Training · Associations",
+    specialisations: "Education & Training · Schools · Childcare · Membership Organisations · Associations & Clubs · Non-profits",
     defaultApp: null,
   },
 ];
@@ -175,8 +176,8 @@ export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string; un
     price: "Included w/ Hospitality",
     under: "hospitality-accommodation",
   },
-  { key: "property-management", label: "Property Management", price: "+$29/mo Template", under: "property" },
-  { key: "commercial", label: "Commercial Property", price: "+$29/mo Template", under: "property" },
+  { key: "property-management", label: "Property Management", price: "+$29/mo sub-industry App", under: "property" },
+  { key: "commercial", label: "Commercial Property", price: "+$29/mo sub-industry App", under: "property" },
   { key: "services", label: "Services", price: "+$99/mo", under: "services" },
   { key: "finance", label: "Finance", price: "+$99/mo", under: "finance" },
   { key: "automotive", label: "Automotive", price: "+$99/mo", under: "automotive" },
@@ -235,9 +236,6 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
     // Knowledge firms → Professional Industry (Coming); do not map to trades Services
     "Property Management": "property-management",
     "Commercial Property": "commercial",
-    Automotive: "automotive",
-    "Creators & Personal Brands": "creator",
-    "Creator & Media": "creator",
   };
   const industryApps: IndustryApp[] = [];
   const mapped = input.industry ? industryMap[input.industry] : undefined;
