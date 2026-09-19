@@ -97,13 +97,7 @@ export function DomainConnectorPanel({
           <p className="text-xs uppercase tracking-wide text-slate-500">Property</p>
           <h2 className="font-semibold text-white">Domain</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Property syndication (Listings Management) · OAuth on{" "}
-            <span className="text-slate-300">app.digitalgate.com.au</span>. Sandbox vs production
-            is controlled by{" "}
-            <code className="text-slate-300">DOMAIN_API_PATH_PREFIX</code> (
-            <code className="text-slate-300">/sandbox</code> vs Primary{" "}
-            <code className="text-slate-300">/v1</code>) — never assume listings are live on
-            Domain.com.au until the prefix and agency token match production.
+            Connect this organisation to Domain for property listing syndication and listing-status evidence.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -140,98 +134,43 @@ export function DomainConnectorPanel({
       ) : null}
 
       {platform ? (
-        <ul className="mt-4 space-y-2 text-sm text-slate-400">
-          <li>
-            Platform credentials:{" "}
+        <div className="mt-4 space-y-3 text-sm text-slate-400">
+          <p>
+            DigitalGate:{" "}
             <span className={platform.configured ? "text-emerald-400" : "text-amber-400"}>
-              {platform.configured ? "Configured" : "Missing DOMAIN_CLIENT_ID / SECRET"}
+              {platform.configured ? "Ready" : "Platform setup required"}
             </span>
-          </li>
-          <li className="font-mono text-xs text-slate-500">
-            Redirect: {platform.redirectUri}
-          </li>
-            <li className="font-mono text-xs text-slate-500">
-            API path prefix:{" "}
-            {platform.apiPathPrefix ? (
-              platform.apiPathPrefix
-            ) : (
-              <span className="text-amber-400">
-                (none — Primary /v1/…). For Sandbox package set DOMAIN_API_PATH_PREFIX=/sandbox
-              </span>
-            )}
-            </li>
-          {platform.probe ? (
-            <li>
-              Client-credentials probe:{" "}
-              <span
-                className={
-                  platform.probe.skipped
-                    ? "text-slate-300"
-                    : platform.probe.ok
-                      ? "text-emerald-400"
-                      : "text-amber-400"
-                }
-              >
-                {platform.probe.message}
-              </span>
-            </li>
-          ) : null}
+          </p>
           {org ? (
             <>
-              <li>
-                Org ({org.name}):{" "}
-                <span className={org.connected ? "text-emerald-400" : "text-slate-500"}>
-                  {org.connected
-                    ? `Connected${org.connectedAt ? ` · ${new Date(org.connectedAt).toLocaleString("en-AU")}` : ""}`
-                    : "Not connected — use Connect Domain account for agency context"}
+              <p>
+                {org.name}:{" "}
+                <span className={org.connected && org.probe?.ok ? "text-emerald-400" : org.connected ? "text-amber-400" : "text-slate-500"}>
+                  {org.connected && org.probe?.ok
+                    ? "Connected and authorised for Domain Listings Management"
+                    : org.connected
+                      ? "Connected to Domain — Listings Management access needs attention"
+                      : "Not connected"}
                 </span>
-              </li>
-              {org.scope ? (
-                <li className="font-mono text-xs text-slate-500">Org token scopes: {org.scope}</li>
-              ) : org.connected ? (
-                <li className="text-xs text-amber-400">
-                  Org token scopes: (none stored) — reconnect after confirming portal scopes
-                </li>
+              </p>
+              {org.connected && org.probe?.apiOk === false ? (
+                <p className="text-amber-400">
+                  Domain sign-in succeeded, but Listings Management access is not yet authorised for this organisation. Confirm the correct Domain Listings Management package and environment, then reconnect.
+                </p>
               ) : null}
               {org.domainAgencyId ? (
-                <li className="font-mono text-xs text-slate-500">
-                  Preferred Domain agency id: {org.domainAgencyId}
-                </li>
+                <p className="text-slate-400">Domain agency ID: {org.domainAgencyId}</p>
               ) : null}
               {org.agencies && org.agencies.length > 0 ? (
-                <li className="text-xs text-slate-500">
-                  Agencies:{" "}
-                  {org.agencies
-                    .map((a) => (a.name ? `${a.name} (${a.id})` : String(a.id)))
-                    .join(", ")}
-                </li>
+                <p className="text-slate-400">
+                  Available {org.agencies.length === 1 ? "agency" : "agencies"}:{" "}
+                  {org.agencies.map((a) => a.name ?? String(a.id)).join(", ")}
+                </p>
               ) : null}
-              {org.probe ? (
-                <li>
-                  Org API probe
-                  {org.probe.probePath ? ` (${org.probe.probePath})` : ""}:{" "}
-                  <span className={org.probe.ok ? "text-emerald-400" : "text-amber-400"}>
-                    {org.probe.message}
-                  </span>
-                  {org.probe.securityReason ? (
-                    <span className="mt-1 block text-xs text-amber-500">
-                      X-Domain-Security-Reason: {org.probe.securityReason}
-                    </span>
-                  ) : null}
-                  {org.probe.apiOk === false ? (
-                    <span className="mt-2 block text-xs text-slate-400">
-                      OAuth connected ≠ authorised for Listings Management. Fix portal package /
-                      env prefix / scopes, then use Reconnect (do not treat as green).
-                    </span>
-                  ) : null}
-                </li>
-              ) : null}
-              {org.lastError ? (
-                <li className="text-amber-400">Last token error: {org.lastError}</li>
-              ) : null}
+              {org.lastError ? <p className="text-amber-400">{org.lastError}</p> : null}
             </>
           ) : null}
-        </ul>
+        </div>
       ) : null}
 
       <button
