@@ -13,10 +13,12 @@ export function JobsListFilters({
   filters,
   stages,
   members,
+  templateKey,
 }: {
   filters: Filters;
   stages: { id: string; label: string }[];
   members: { clerkUserId: string; label: string }[];
+  templateKey?: string | null;
 }) {
   const hasActive =
     Boolean(filters.q) ||
