@@ -211,6 +211,9 @@ export async function getOrgGoogleGbpConnectorTokens(organisationId: string): Pr
     selectedGoogleAdsCustomerIds: Array.isArray(blob.selectedGoogleAdsCustomerIds)
       ? blob.selectedGoogleAdsCustomerIds.filter((value): value is string => typeof value === "string" && /^\d+$/.test(value))
       : undefined,
+    selectedYouTubeChannelIds: Array.isArray(blob.selectedYouTubeChannelIds)
+      ? blob.selectedYouTubeChannelIds.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      : undefined,
     health: blob.health && typeof blob.health === "object" ? blob.health as OrgGoogleGbpConnectorTokens["health"] : undefined,
     accounts: Array.isArray(blob.accounts) ? blob.accounts as OrgGoogleGbpConnectorTokens["accounts"] : undefined,
     locations: Array.isArray(blob.locations) ? blob.locations as OrgGoogleGbpConnectorTokens["locations"] : undefined,
