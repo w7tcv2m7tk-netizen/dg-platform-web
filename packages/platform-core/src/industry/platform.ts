@@ -2,10 +2,11 @@
  * DigitalGate Industry Platform — Gen 2 lock (August 2026).
  *
  * Industry App = broad commercial vertical ($99/mo)
- * Template = specialised business model within that vertical
+ * Sub-industry App = specialised customer-facing app experience within that vertical
  *
- * Do not add new top-level Industry Apps for every business type —
- * add a Template under one of these twelve verticals.
+ * Do not add new top-level Industry Apps for every business type. Sub-industries remain
+ * children of the parent Industry App, but each selected sub-industry should feel like
+ * its own app in navigation and workspace UX. Shared runtimes are an implementation detail.
  */
 
 export type IndustryRoadmapLane =
@@ -47,7 +48,7 @@ export type IndustryPlatform = {
 };
 
 export const INDUSTRY_ARCHITECTURE_POSITIONING =
-  "Industry Apps specialise DigitalGate around how your business operates. Choose an Industry, activate a Template, and DigitalGate configures workflows, objects and AI context. New business types become Templates — not new top-level Apps.";
+  "Industry Apps specialise DigitalGate around how your business operates. Choose a parent Industry App, then activate the sub-industry Apps your business needs. Each sub-industry gets its own customer-facing app experience while shared runtime infrastructure stays behind the scenes.";
 
 /**
  * Canonical Industry commercial rule (lock — August 2026).
@@ -317,7 +318,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     publicSurface: true,
     summary:
       "Physical and field service work — jobs, quotes, schedule. Templates customise trades.",
-    proposition: "One Services App + Templates — never Electrician App / Plumber App.",
+    proposition: "Services is the parent Industry App. Electrical, Plumbing, Cleaning and other selected sub-industries appear as distinct child apps with their own tailored workspace experience.",
     specialisations: [
       {
         id: "trades",
