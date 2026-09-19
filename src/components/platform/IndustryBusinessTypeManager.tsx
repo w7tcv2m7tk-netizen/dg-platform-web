@@ -75,9 +75,9 @@ export function IndustryBusinessTypeManager() {
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-lg font-semibold text-white">Your business types</h3>
+        <h3 className="text-lg font-semibold text-white">Industry & sub-industry apps</h3>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">
-          Activate only the business types this organisation operates. Each active business type appears independently in the sidebar; the broader Industry category stays behind the scenes.
+          Each Industry is a parent app. Activate the sub-industry apps this organisation actually operates — each selected sub-industry gets its own navigation entry and tailored workspace, while unselected siblings stay hidden.
         </p>
       </div>
 
