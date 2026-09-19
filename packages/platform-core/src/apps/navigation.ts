@@ -811,6 +811,17 @@ function unionAppRoutes(routes: AppRoute[]): AppRoute[] {
   return out;
 }
 
+function scopeRouteToPrimaryQuery(route: AppRoute, primaryHref: string): AppRoute {
+  const query = primaryHref.split("?")[1];
+  if (!query) return route;
+  const rawPath = pathWithoutQuery(route.path);
+  return {
+    ...route,
+    path: `${rawPath}?${query}`,
+    matchAlso: Array.from(new Set([...(route.matchAlso ?? []), rawPath])),
+  };
+}
+
 /**
  * One sidebar row per active sub-industry App.
  *
@@ -849,10 +860,12 @@ function buildIndustryNavApps(
       const routePath = pathWithoutQuery(exactHref);
       const routes = app?.routes?.length
         ? unionAppRoutes([
-            { path: routePath, label: "Overview" },
-            ...app.routes.filter((route) => route.path !== routePath),
+            scopeRouteToPrimaryQuery({ path: routePath, label: "Overview" }, exactHref),
+            ...app.routes
+              .filter((route) => pathWithoutQuery(route.path) !== routePath)
+              .map((route) => scopeRouteToPrimaryQuery(route, exactHref)),
           ])
-        : [{ path: routePath, label: "Overview" }];
+        : [scopeRouteToPrimaryQuery({ path: routePath, label: "Overview" }, exactHref)];
 
       items.push({
         kind: "app",
