@@ -33,7 +33,7 @@ const CONNECTION_PROVIDERS = new Set(["google_workspace", "microsoft_365", "appl
 const CONNECTION_CAPABILITIES = new Set(["contacts", "calendar", "mail"]);
 const CONNECTION_STATUSES = new Set(["not_started", "planned", "connected", "attention_required"]);
 
-type AllowedClientProgress = Partial<Pick<Gen2OnboardingProgress, "platformTier" | "billingCadence" | "industryApps" | "industryTemplates" | "premiumApps" | "checklist" | "vipSetup">>;
+type AllowedClientProgress = Partial<Pick<Gen2OnboardingProgress, "platformTier" | "supportPlan" | "billingCadence" | "industryApps" | "industryTemplates" | "premiumApps" | "checklist" | "vipSetup">>;
 
 async function effectiveCommercialOffer(organisationId: string) {
   const [programmeRecord, current] = await Promise.all([getFoundingOnboarding(organisationId), getOrganisationCommercialOffer(organisationId)]);
@@ -91,6 +91,7 @@ function safeClientProgress(raw: unknown): AllowedClientProgress {
   if (!raw || typeof raw !== "object") return {};
   const source = raw as Record<string, unknown>; const safe: AllowedClientProgress = {};
   if (["starter", "professional", "business"].includes(String(source.platformTier))) safe.platformTier = source.platformTier as Gen2OnboardingProgress["platformTier"];
+  if (["standard", "priority", "success_partner", "enterprise_success"].includes(String(source.supportPlan))) safe.supportPlan = source.supportPlan as Gen2OnboardingProgress["supportPlan"];
   if (source.billingCadence === "monthly" || source.billingCadence === "annual") safe.billingCadence = source.billingCadence;
   if (Array.isArray(source.industryApps)) safe.industryApps = source.industryApps.filter((v): v is string => typeof v === "string" && v.length <= 80).slice(0, 20);
   if (Array.isArray(source.industryTemplates)) safe.industryTemplates = source.industryTemplates.filter((v): v is string => typeof v === "string" && v.length <= 80).slice(0, 30);
@@ -163,7 +164,7 @@ export async function PATCH(req: Request) {
     appearance: requestedVipSetup?.appearance ?? existingProgress.vipSetup?.appearance ?? "system", timezone: requestedVipSetup?.timezone ?? existingProgress.vipSetup?.timezone ?? "Australia/Brisbane",
     locale: requestedVipSetup?.locale ?? existingProgress.vipSetup?.locale ?? "en-AU", currency: requestedVipSetup?.currency ?? existingProgress.vipSetup?.currency ?? "AUD",
   } : requestedVipSetup;
-  const allowedProgress: AllowedClientProgress = { platformTier: clientProgress.platformTier, billingCadence: clientProgress.billingCadence, industryApps: clientProgress.industryApps, industryTemplates: clientProgress.industryTemplates, premiumApps: clientProgress.premiumApps, checklist: clientProgress.checklist, vipSetup: requiredVipSetup };
+  const allowedProgress: AllowedClientProgress = { platformTier: clientProgress.platformTier, supportPlan: clientProgress.supportPlan, billingCadence: clientProgress.billingCadence, industryApps: clientProgress.industryApps, industryTemplates: clientProgress.industryTemplates, premiumApps: clientProgress.premiumApps, checklist: clientProgress.checklist, vipSetup: requiredVipSetup };
   const lockedProgress: AllowedClientProgress = offer ? { ...allowedProgress, platformTier: offer.platformTier, billingCadence: offer.cadence, industryApps: offer.industryApps, premiumApps: offer.premiumApps } : allowedProgress;
   const progress = await saveGen2OnboardingProgress(session.organisationId, { ...lockedProgress, ...(markStepComplete === "stripe" ? { subscriptionActivatedAt: new Date().toISOString() } : {}), markStepComplete });
   return NextResponse.json({ data: { progress } });
