@@ -105,7 +105,7 @@ export function AppContextNav() {
   const showRouteCrumb = Boolean(pageTitle) && pageTitle !== active.itemName;
 
   return (
-    <div className="dg-context-nav shrink-0 border-b border-[var(--org-border-subtle,rgb(30_41_59))] bg-[color-mix(in_srgb,var(--org-bg-elevated,rgb(2_6_23))_55%,transparent)] px-4 py-3 sm:px-6 md:px-8">
+    <div className="dg-context-nav shrink-0 border-b border-[var(--org-border-subtle,rgb(30_41_59))] bg-[color-mix(in_srgb,var(--org-bg-elevated,rgb(2_6_23))_55%,transparent)] px-3 py-3 sm:px-6 md:px-8">
       <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
           <span className="font-semibold uppercase tracking-wider">{active.sectionLabel}</span>

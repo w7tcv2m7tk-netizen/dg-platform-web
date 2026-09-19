@@ -246,6 +246,25 @@ body {
   }
 }
 
+/* Cover the large viewport, not just 100dvh. iOS paints the home-indicator gap with the document canvas. */
+.dg-shell-viewport {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100dvh;
+  height: 100lvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background-color: #050b14;
+}
+
+html[data-theme="light"] .dg-shell-viewport {
+  background-color: #f8fafc;
+}
+
 .dg-branded-shell {
   background: var(--org-shell-gradient, var(--org-bg-base, #020617));
   color: #f1f5f9;
@@ -259,9 +278,16 @@ html[data-theme="light"] .dg-branded-shell {
 html.dg-shell-scroll-lock,
 html.dg-shell-scroll-lock body {
   height: 100dvh;
+  height: 100lvh;
   min-height: 100dvh;
   overflow: hidden;
   overscroll-behavior: none;
+  background-color: #050b14;
+}
+
+html[data-theme="light"].dg-shell-scroll-lock,
+html[data-theme="light"].dg-shell-scroll-lock body {
+  background-color: #f8fafc;
 }
 
 .dg-branded-sidebar {
@@ -372,8 +398,8 @@ html.dg-shell-scroll-lock body {
 
   .dg-page-main {
     flex: 1 1 0%;
-    padding: 1rem;
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    /* Phones: edge-to-edge. Side padding returns from 640px. Landscape notches still inset. */
+    padding: 1rem env(safe-area-inset-right) max(1rem, env(safe-area-inset-bottom)) env(safe-area-inset-left);
     max-width: 100%;
     overflow-x: clip;
   }
@@ -713,6 +739,7 @@ html.dg-shell-scroll-lock body {
     display: none !important;
   }
 
+  .dg-shell-viewport,
   .dg-branded-shell {
     display: block !important;
     position: static !important;
@@ -727,6 +754,7 @@ html.dg-shell-scroll-lock body {
   html.dg-shell-scroll-lock body {
     height: auto !important;
     overflow: visible !important;
+    background: white !important;
   }
 
   .au-document {

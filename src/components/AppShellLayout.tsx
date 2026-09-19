@@ -21,7 +21,7 @@ import { PrefetchCriticalRoutes } from "@/components/platform/PrefetchCriticalRo
 import { Sidebar } from "@/components/Sidebar";
 import { useIsDesktopShell } from "@/hooks/useIsDesktopShell";
 import type { BillingBannerModel, OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
-import { DEFAULT_ORG_BRAND_THEME, orgBrandCssVariables } from "@/lib/brand-client";
+import { DEFAULT_ORG_BRAND_THEME } from "@/lib/brand-client";
 
 type MobileNavContextValue = { close: () => void };
 const MobileNavContext = createContext<MobileNavContextValue>({ close: () => {} });
@@ -34,16 +34,18 @@ export function AppShellLayout({ children, activeOrganisationId, activeOrganisat
   useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => {
     const html = document.documentElement; const body = document.body;
-    const prev = { htmlOverflow: html.style.overflow, bodyOverflow: body.style.overflow, bodyHeight: body.style.height, bodyMinHeight: body.style.minHeight };
-    html.classList.add("dg-shell-scroll-lock"); html.style.overflow = "hidden"; body.style.overflow = "hidden"; body.style.height = "100dvh"; body.style.minHeight = "100dvh";
-    return () => { html.classList.remove("dg-shell-scroll-lock"); html.style.overflow = prev.htmlOverflow; body.style.overflow = prev.bodyOverflow; body.style.height = prev.bodyHeight; body.style.minHeight = prev.bodyMinHeight; };
+    const prev = { htmlOverflow: html.style.overflow, htmlHeight: html.style.height, htmlMinHeight: html.style.minHeight, bodyOverflow: body.style.overflow, bodyHeight: body.style.height, bodyMinHeight: body.style.minHeight };
+    html.classList.add("dg-shell-scroll-lock"); html.style.overflow = "hidden"; body.style.overflow = "hidden"; html.style.height = "100lvh"; html.style.minHeight = "100dvh"; body.style.height = "100lvh"; body.style.minHeight = "100dvh";
+    return () => { html.classList.remove("dg-shell-scroll-lock"); html.style.overflow = prev.htmlOverflow; html.style.height = prev.htmlHeight; html.style.minHeight = prev.htmlMinHeight; body.style.overflow = prev.bodyOverflow; body.style.height = prev.bodyHeight; body.style.minHeight = prev.bodyMinHeight; };
   }, []);
   useEffect(() => {
-    const vars = orgBrandCssVariables(brandTheme); const previousBackground = document.body.style.background; const previousColor = document.body.style.color;
-    const applyBodyChrome = () => { const theme = document.documentElement.getAttribute("data-theme"); if (theme === "light") { document.body.style.background = "linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)"; document.body.style.color = "#0f172a"; return; } document.body.style.background = vars["--org-shell-gradient"] ?? vars["--org-bg-base"] ?? ""; document.body.style.color = "#f1f5f9"; };
-    applyBodyChrome(); const observer = new MutationObserver(applyBodyChrome); observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    return () => { observer.disconnect(); document.body.style.background = previousBackground; document.body.style.color = previousColor; };
-  }, [brandTheme]);
+    const html = document.documentElement; const body = document.body;
+    const previousHtmlBackground = html.style.background; const previousBackground = body.style.background; const previousColor = body.style.color;
+    // Document canvas must match the shell. The org atmosphere gradient is violet at the bottom and shows as a purple band wherever iOS paints past 100dvh.
+    const applyBodyChrome = () => { const theme = html.getAttribute("data-theme"); if (theme === "light") { html.style.background = "#f8fafc"; body.style.background = "linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)"; body.style.color = "#0f172a"; return; } html.style.background = "#050b14"; body.style.background = "#050b14"; body.style.color = "#f1f5f9"; };
+    applyBodyChrome(); const observer = new MutationObserver(applyBodyChrome); observer.observe(html, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => { observer.disconnect(); html.style.background = previousHtmlBackground; body.style.background = previousBackground; body.style.color = previousColor; };
+  }, []);
   function close() { setOpen(false); }
   const sidebarProps = { activeOrganisationId, activeOrganisationName, organisations };
   return (
@@ -51,7 +53,7 @@ export function AppShellLayout({ children, activeOrganisationId, activeOrganisat
       <OrgBrandHead iconUrl={brandTheme.iconUrl} />
       <PrefetchCriticalRoutes />
       <MobileNavContext.Provider value={{ close }}>
-        <div className="fixed inset-0 z-0 overflow-hidden bg-[var(--org-bg-base,#07101d)] print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible" style={orgBrandStyle(brandTheme)}><div className="dg-branded-shell absolute inset-x-0 top-0 flex h-[100dvh] min-h-full w-full overflow-hidden print:static print:h-auto print:min-h-0 print:overflow-visible">
+        <div className="dg-shell-viewport" style={orgBrandStyle(brandTheme)}><div className="dg-branded-shell absolute inset-0 flex w-full overflow-hidden print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible">
           <ChatWidgetProvider userName={chatUserName} showFloatingChat={showFloatingChat}>
             {isDesktop ? <div className="flex h-full min-h-0 w-56 shrink-0 flex-col print:hidden"><Sidebar {...sidebarProps} /></div> : null}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
