@@ -1,4 +1,5 @@
 import { getActiveServiceTemplate, readOrgServicesSettings } from "./org-settings";
+import { getServiceTemplate, isServiceTemplateKey } from "./templates";
 import { listServiceJobs } from "./jobs";
 
 export type ServicesOverview = {
@@ -50,7 +51,7 @@ export async function getServicesOverview(
     recent,
   ] = await Promise.all([
     prisma.serviceJob.count({
-      where: { organisationId, status: "open" },
+      where: { organisationId, status: "open", ...jobScope },
     }),
     prisma.serviceJob.count({
       where: {
@@ -60,11 +61,12 @@ export async function getServicesOverview(
       },
     }),
     prisma.serviceJob.count({
-      where: { organisationId, status: "open", assignedUserId: null },
+      where: { organisationId, status: "open", assignedUserId: null, ...jobScope },
     }),
     prisma.serviceJob.count({
       where: {
         organisationId,
+        ...jobScope,
         OR: [{ stage: "completed" }, { completedAt: { not: null } }],
       },
     }),
@@ -77,12 +79,12 @@ export async function getServicesOverview(
       sort: "scheduled",
       limit: 6,
     }),
-    listServiceJobs({ organisationId, sort: "updated", limit: 8 }),
+    listServiceJobs({ organisationId, ...jobScope, sort: "updated", limit: 8 }),
   ]);
 
   const stageGroups = await prisma.serviceJob.groupBy({
     by: ["stage"],
-    where: { organisationId, status: "open" },
+    where: { organisationId, status: "open", ...jobScope },
     _count: { _all: true },
   });
 
@@ -103,7 +105,7 @@ export async function getServicesOverview(
     });
 
   return {
-    templateKey: servicesCfg.templateKey ?? null,
+    templateKey: workspaceTemplateKey,
     templateLabel: template.label,
     terminology: template.terminology,
     counts: {
