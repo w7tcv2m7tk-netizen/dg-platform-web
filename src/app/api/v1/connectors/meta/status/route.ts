@@ -37,6 +37,7 @@ export async function GET(req: Request) {
         label: refreshedTokens?.label ?? null,
         pages: refreshedTokens?.pages ?? [],
         selectedPageIds: refreshedTokens?.selectedPageIds ?? [],
+        selectedAdAccountIds: refreshedTokens?.selectedAdAccountIds ?? [],
         health: refreshedTokens?.health ?? null,
         lastError: refreshedTokens?.lastError ?? null,
         probe: probe ? { ok: probe.ok, message: probe.message } : null,
