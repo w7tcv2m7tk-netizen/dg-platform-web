@@ -66,11 +66,9 @@ function filterSettingsRoutes(
       );
     }
     if (path.includes("/connectors")) {
-      if (isOrgMemberOnly(ctx)) return false;
-      return (
-        hasPermission(ctx, { module: "settings", action: "edit", scope: "organisation" }) ||
-        hasPermission(ctx, { module: "settings", action: "manage", scope: "organisation" })
-      );
+      // Connector Engine exposes platform infrastructure and provider diagnostics.
+      // Customer organisations use Connected Services instead.
+      return isPlatformStaff(ctx);
     }
     return canView(ctx, "settings");
   });
