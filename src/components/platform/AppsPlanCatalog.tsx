@@ -109,17 +109,22 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
 
     // Legacy organisations may only have the shared runtime app enabled. Preserve
     // the parent Industry in that case, but never infer every child from one engine.
-    const fallbackParentSelections = INDUSTRY_PLATFORM_CATALOG.flatMap((platform) => {
-      const runtimeEnabled = platform.specialisations.some(
-        (specialisation) => specialisation.appId && enabledIds.includes(specialisation.appId),
-      );
-      return runtimeEnabled ? [platform.platformId] : [];
-    });
+    const fallbackRuntimeSelections = INDUSTRY_PLATFORM_CATALOG.flatMap((platform) =>
+      Array.from(
+        new Set(
+          platform.specialisations.flatMap((specialisation) =>
+            specialisation.appId && enabledIds.includes(specialisation.appId)
+              ? [specialisation.appId]
+              : [],
+          ),
+        ),
+      ),
+    );
 
     return {
       industryApps: exactIndustrySelections.length
         ? exactIndustrySelections
-        : fallbackParentSelections,
+        : fallbackRuntimeSelections,
       premiumApps: GROWTH_APP_CATALOG.flatMap((item) =>
         item.premiumKey && enabledIds.includes(item.appId) ? [item.premiumKey] : [],
       ),
