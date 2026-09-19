@@ -1,7 +1,7 @@
 import type { Gen2OnboardingProgress, Gen2OnboardingStep } from "./gen2-journey";
 import { emptyGen2Progress, GEN2_ONBOARDING_STEPS, isGen2OnboardingStep, nextGen2Step } from "./gen2-journey";
 import { appIdsFromPlanSelection } from "../apps/org-apps";
-import { getTemplate } from "../industry/catalogue";
+import { getTemplate, isTemplateActivatable } from "../industry/catalogue";
 import { buildTemplateActivationPatch, readOrgIndustrySettings, type OrgIndustrySettings } from "../industry/entitlements";
 
 type OrgSettings = { gen2Onboarding?: Gen2OnboardingProgress; foundingOnboarding?: unknown; apps?: { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string } }; industry?: OrgIndustrySettings; services?: { templateKey?: string; activeTemplateKeys?: string[]; primaryTemplateKey?: string; appliedAt?: string; [key: string]: unknown }; [key: string]: unknown };
@@ -68,7 +68,7 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
   nextProgress.industryApps = industryApps; nextProgress.industryTemplates = industryTemplates;
 
   const hasAppSelectionPatch = Array.isArray(cleanPatch.industryApps) || Array.isArray(cleanPatch.industryTemplates) || Array.isArray(cleanPatch.premiumApps) || Boolean(cleanPatch.platformTier) || Boolean(cleanPatch.operatingProfile);
-  const selectedAppIds = hasAppSelectionPatch ? appIdsFromPlanSelection({ platformTier: nextProgress.platformTier ?? "professional", industryApps, premiumApps: nextProgress.premiumApps ?? [] }) : undefined;
+  const selectedAppIds = hasAppSelectionPatch ? appIdsFromPlanSelection({ platformTier: nextProgress.platformTier ?? "professional", industryApps: Array.from(new Set([...industryApps, ...industryTemplates])), premiumApps: nextProgress.premiumApps ?? [] }) : undefined;
   const nextApps = hasAppSelectionPatch ? { ...(settings.apps ?? {}), enabled: selectedAppIds, planPreview: { ...(settings.apps?.planPreview ?? {}), platformTier: nextProgress.platformTier, industryApps, industryTemplates, premiumApps: nextProgress.premiumApps ?? [], appliedAt: now, source: "onboarding-operating-profile" } } : settings.apps;
 
   const shouldSyncCanonicalIndustry = Boolean(cleanPatch.operatingProfile) || Array.isArray(cleanPatch.industryTemplates);
@@ -78,8 +78,9 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
     const selectedTemplateIds = Array.from(
       new Set(
         industryTemplates
-          .map((id) => getTemplate(id)?.id)
-          .filter((id): id is string => Boolean(id)),
+          .map((id) => getTemplate(id))
+          .filter((template) => Boolean(template && isTemplateActivatable(template.status)))
+          .map((template) => template!.id),
       ),
     );
     const selectedSet = new Set(selectedTemplateIds);
