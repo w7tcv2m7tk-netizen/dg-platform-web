@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (parsed.mode === "youtube") {
-    const granted = new Set((exchanged.token.scope || "").split(/\\s+/).filter(Boolean));
+    const granted = new Set((exchanged.token.scope || "").split(/\s+/).filter(Boolean));
     const required = ["https://www.googleapis.com/auth/youtube.readonly","https://www.googleapis.com/auth/yt-analytics.readonly"];
     const missing = required.filter(scope => !granted.has(scope));
     if (missing.length) return fail("missing_analytics_scopes", `Google did not grant ${missing.length} required YouTube permission(s).`);
