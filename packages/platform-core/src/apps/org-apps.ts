@@ -23,8 +23,14 @@ function runtimeAppIdsForIndustrySelection(selectionId: string): string[] {
     .find((item) => item.id === selectionId);
   if (subIndustry) return [subIndustry.appId];
 
-  const group = INDUSTRY_TAXONOMY.find((item) => item.id === selectionId);
-  return group?.appIds ?? [];
+  const taxonomySelectionId =
+    selectionId === "hospitality-accommodation" ? "accommodation-hospitality" : selectionId;
+  const group = INDUSTRY_TAXONOMY.find((item) => item.id === taxonomySelectionId);
+  if (!group) return [];
+
+  // A parent Industry marker is not permission to mount every child runtime.
+  // Only single-runtime parents can safely resolve without an exact child.
+  return group.appIds.length === 1 ? group.appIds : [];
 }
 
 export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[] {
