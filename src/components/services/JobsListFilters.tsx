@@ -31,6 +31,7 @@ export function JobsListFilters({
       method="get"
       className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-700/80 bg-slate-950/40 p-4"
     >
+      {templateKey ? <input type="hidden" name="template" value={templateKey} /> : null}
       <label className="min-w-[12rem] flex-1 text-xs text-slate-500">
         Search
         <input
@@ -112,7 +113,7 @@ export function JobsListFilters({
         </button>
         {hasActive ? (
           <Link
-            href="/apps/services/jobs"
+            href={templateKey ? `/apps/services/jobs?template=${encodeURIComponent(templateKey)}` : "/apps/services/jobs"}
             className="rounded-lg border border-slate-600 px-4 py-2 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
           >
             Clear
