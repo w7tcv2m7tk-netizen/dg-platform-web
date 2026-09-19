@@ -330,7 +330,15 @@ export default async function DashboardPage() {
           <BusinessOverviewDashboard
             overview={overview}
             workspaceSetup={<Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />}
-            growthScorecard={<DigitalPerformanceStrip signals={digitalPerformanceSignals} />}
+            growthScorecard={<DigitalPerformanceStrip
+              signals={digitalPerformanceSignals}
+              reputation={liveMetrics ? { score: liveMetrics.reputationScore, reviewCount: liveMetrics.reputationReviewCount } : undefined}
+              social={liveMetrics ? {
+                connected: Boolean(liveMetrics.social?.linkedInCompanyConnected || liveMetrics.social?.instagramFollowers != null || liveMetrics.social?.youtubeChannelCount != null),
+                activityCount: (liveMetrics.social?.instagramRecentMediaCount ?? 0) + (liveMetrics.social?.youtubeRecentVideoCount ?? 0),
+              } : undefined}
+              prospecting={liveMetrics ? { openOpportunityCount: liveMetrics.openOpportunityCount } : undefined}
+            />}
           />
         )}
       </main>
