@@ -222,7 +222,7 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
       </section>
 
       <section id="industry-apps" className="scroll-mt-24">
-        <SectionHeader label="🧩 3 · Industry Apps" title="Built around how your business operates" description="Choose the exact business types this organisation operates. Active business types appear independently in the sidebar; other business types remain here in Apps until needed." />
+        <SectionHeader label="🧩 3 · Industry Apps" title="Built around how your business operates" description="Choose the exact sub-industry Apps this organisation operates. Active sub-industry Apps appear independently in the sidebar; unselected siblings remain here in Apps until needed." />
         {industryApps}
       </section>
 
