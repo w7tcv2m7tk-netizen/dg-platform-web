@@ -36,17 +36,15 @@ export function FirstLoginAidaHandover({
 
   return (
     <section className="mb-7 overflow-hidden rounded-[1.75rem] border border-violet-300/20 bg-gradient-to-br from-violet-950/65 via-slate-950/80 to-slate-950/90 shadow-2xl shadow-black/20">
-      <div className="grid gap-5 p-5 sm:grid-cols-[190px_1fr] sm:p-7">
-        <div className="flex items-end justify-center">
-          <Image
-            src="/aida/aida-presenting.webp"
-            alt="Aida presenting your DigitalGate workspace"
-            width={220}
-            height={260}
-            className="h-48 w-auto object-contain object-bottom sm:h-52"
-          />
-        </div>
-        <div>
+      <div className="relative p-5 sm:p-7 lg:pr-[250px]">
+        <Image
+          src="/aida/aida-portrait.webp"
+          alt="Aida, your DigitalGate Business Advisor"
+          width={220}
+          height={280}
+          className="pointer-events-none absolute bottom-0 right-7 hidden h-[245px] w-auto select-none object-contain object-bottom lg:block"
+        />
+        <div className="relative z-10">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Your workspace is ready</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-white">
             I’ve configured DigitalGate for {organisationName}.
