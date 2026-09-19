@@ -9,6 +9,7 @@
  *   MICROSOFT_ADS_REDIRECT_URI
  *   MICROSOFT_ADS_DEVELOPER_TOKEN
  */
+import { inflateRawSync } from "node:zlib";
 import { decryptSecret, encryptSecret } from "../../crypto/secret-field";
 import { clearOrgConnectorSettings, getOrgConnectorSettings, saveOrgConnectorSettings } from "../framework/store";
 
@@ -81,6 +82,21 @@ export async function selectOrgMicrosoftAdsAccounts(org:string,accountIds:string
 }
 
 export type MicrosoftAdsEvidence={account:MicrosoftAdsAccount;period:"LAST_30_DAYS";campaigns:Array<{id:string;name:string;status?:string;spend:number;impressions:number;clicks:number;conversions:number;conversionValue:number}>;performance:{spend:number;impressions:number;clicks:number;conversions:number;conversionValue:number}};
+
+function microsoftAdsReportText(bytes:Uint8Array){
+ const b=Buffer.from(bytes);
+ if(b.length<4||b.readUInt32LE(0)!==0x04034b50)return b.toString("utf8");
+ let offset=0;
+ while(offset+30<=b.length&&b.readUInt32LE(offset)===0x04034b50){
+  const flags=b.readUInt16LE(offset+6),method=b.readUInt16LE(offset+8),compressedSize=b.readUInt32LE(offset+18),fileNameLength=b.readUInt16LE(offset+26),extraLength=b.readUInt16LE(offset+28);
+  if(flags&0x08)throw new Error("Microsoft Advertising report ZIP uses unsupported data descriptors");
+  const dataStart=offset+30+fileNameLength+extraLength,dataEnd=dataStart+compressedSize;if(dataEnd>b.length)throw new Error("Microsoft Advertising report ZIP is truncated");
+  const name=b.subarray(offset+30,offset+30+fileNameLength).toString("utf8"),payload=b.subarray(dataStart,dataEnd);
+  if(!name.endsWith("/")){if(method===0)return payload.toString("utf8");if(method===8)return inflateRawSync(payload).toString("utf8");throw new Error(`Microsoft Advertising report ZIP compression method ${method} is unsupported`)}
+  offset=dataEnd;
+ }
+ throw new Error("Microsoft Advertising report ZIP did not contain a report file");
+}
 const REPORTING_URL="https://reporting.api.bingads.microsoft.com/Api/Advertiser/Reporting/v13/ReportingService.svc";
 async function reporting(accessToken:string,action:string,body:unknown){
  if(!microsoftAdsDeveloperTokenConfigured())return {ok:false as const,message:"Microsoft Advertising developer token is not configured"};
@@ -106,7 +122,8 @@ export async function fetchOrgMicrosoftAdsEvidence(org:string):Promise<{ok:true;
   }
   if(!downloadUrl)return {ok:false,message:"Microsoft Advertising report is still processing — retry evidence sync shortly"};
   const file=await fetch(downloadUrl);if(!file.ok)return {ok:false,message:`Microsoft Advertising report download HTTP ${file.status}`};
-  const csv=await file.text(),lines=csv.split(/\\r?\\n/).filter(line=>line.trim()&&!line.startsWith('"Report')&&!line.startsWith('"Time')&&!line.startsWith('"Last Completed'));
+  let csv:string;try{csv=microsoftAdsReportText(new Uint8Array(await file.arrayBuffer()))}catch{return {ok:false,message:"Microsoft Advertising report archive could not be read"}}
+  const lines=csv.split(/\\r?\\n/).filter(line=>line.trim()&&!line.startsWith('"Report')&&!line.startsWith('"Time')&&!line.startsWith('"Last Completed'));
   const headerIndex=lines.findIndex(line=>line.includes("CampaignId")&&line.includes("Impressions"));if(headerIndex<0)return {ok:false,message:"Microsoft Advertising report did not contain the expected campaign columns"};
   const parse=(line:string)=>{const out:string[]=[];let v="",q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(q&&line[i+1]==='"'){v+='"';i++}else q=!q}else if(ch===","&&!q){out.push(v);v=""}else v+=ch}out.push(v);return out};
   const headers=parse(lines[headerIndex]),idx=(name:string)=>headers.indexOf(name),byCampaign=new Map<string,MicrosoftAdsEvidence["campaigns"][number]>();
