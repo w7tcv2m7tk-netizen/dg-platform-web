@@ -7,6 +7,7 @@ import {
   getDefaultEnabledAppIds,
   industryBetaFlagForAppId,
   isIndustryBetaGatedApp,
+  isTemplateActivatable,
   hasPlatformAuthority,
   normalisePaidAppKeys,
   paidAppKeyForAppId,
@@ -73,7 +74,9 @@ function exactIndustryTemplateIdsFromPlan(plan: unknown): string[] {
         const template = getTemplate(id);
         // Shared runtime ids such as "services" are legacy implementation
         // markers, not permission to infer a default customer-facing child.
-        return template && template.id === id ? [template.id] : [];
+        return template && template.id === id && isTemplateActivatable(template.status)
+          ? [template.id]
+          : [];
       }),
     ),
   );
@@ -395,11 +398,12 @@ export async function PATCH(req: Request) {
         featureFlags,
         ...(nextIndustry ? { industry: nextIndustry } : {}),
         ...(nextServices ? { services: nextServices } : {}),
-        apps: {
-          ...settings.apps,
-          enabled,
-          ...(planPreview ? { planPreview } : { planPreview: undefined }),
-        },
+        apps: (() => {
+          const { planPreview: _previousPlanPreview, ...appsBase } = settings.apps ?? {};
+          return planPreview
+            ? { ...appsBase, enabled, planPreview }
+            : { ...appsBase, enabled };
+        })(),
       } as unknown as InputJsonValue,
     },
   });
