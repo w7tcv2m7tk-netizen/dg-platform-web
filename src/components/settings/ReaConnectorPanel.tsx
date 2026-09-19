@@ -148,80 +148,45 @@ export function ReaConnectorPanel({
       {loading ? (
         <p className="text-sm text-slate-500">Loading REA status…</p>
       ) : status ? (
-        <ul className="space-y-2 text-sm text-slate-400">
-          <li>
-            Platform credentials:{" "}
+        <div className="space-y-3 text-sm text-slate-400">
+          <p>
+            DigitalGate:{" "}
             <span className={configured ? "text-emerald-400" : "text-amber-400"}>
-              {configured ? "Configured" : "Missing REA_CLIENT_ID / SECRET"}
+              {configured ? "Ready" : "Platform setup required"}
             </span>
-          </li>
-          <li className="font-mono text-xs text-slate-500">
-            API: {status.platform.apiBaseUrl} · auth:{" "}
-            {status.platform.authMode || "client_credentials"}
-          </li>
-          <li>
-            Listing upload:{" "}
-            <span
-              className={
-                status.platform.publishImplemented ? "text-sky-300" : "text-amber-400"
-              }
-            >
-              {status.platform.publishImplemented
-                ? "Wired (accept → pending)"
-                : "Not implemented"}
-            </span>
-          </li>
-          {status.platform.probe ? (
-            <li>
-              Platform probe:{" "}
-              <span className={platformProbeOk ? "text-emerald-400" : "text-amber-400"}>
-                {status.platform.probe.message}
-              </span>
-            </li>
+          </p>
+          {configured && !connected ? (
+            <p className="text-slate-300">
+              Complete the REA Ignite / Change of Uploader activation for{" "}
+              <span className="font-medium text-white">{status.organisation?.name}</span>, then enter
+              the REA agency ID below.
+            </p>
           ) : null}
-          {integrations.length > 0 ? (
-            <li className="text-xs text-slate-500">
-              Integrations:{" "}
-              {integrations
-                .map((i) =>
-                  i.scopes.length
-                    ? `${i.ownerId} [${i.scopes.join(", ")}]`
-                    : i.ownerId,
-                )
-                .join(" · ")}
-            </li>
-          ) : null}
-          <li>
-            Organisation ({status.organisation?.name}):{" "}
-            {connected ? (
+          {connected ? (
+            <p>
+              Organisation ({status.organisation?.name}):{" "}
               <span className="text-emerald-400">
-                Agency {status.organisation?.reaAgencyId}
+                Connected to agency {status.organisation?.reaAgencyId}
                 {status.organisation?.connectedAt
                   ? ` · ${new Date(status.organisation.connectedAt).toLocaleString("en-AU")}`
                   : ""}
               </span>
-            ) : (
-              <span className="text-slate-500">Not activated — bind agency id below</span>
-            )}
-          </li>
-          {status.organisation?.probe ? (
-            <li
-              className={
-                status.organisation.probe.ok ? "text-emerald-400/90" : "text-amber-400/90"
-              }
-            >
-              Org probe: {status.organisation.probe.message}
-            </li>
+            </p>
+          ) : null}
+          {status.organisation?.probe && connected ? (
+            <p className={status.organisation.probe.ok ? "text-emerald-400/90" : "text-amber-400/90"}>
+              {status.organisation.probe.message}
+            </p>
           ) : null}
           {status.organisation?.lastError ? (
-            <li className="text-amber-400">Last note: {status.organisation.lastError}</li>
+            <p className="text-amber-400">{status.organisation.lastError}</p>
           ) : null}
-        </ul>
+        </div>
       ) : null}
 
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex min-w-[12rem] flex-1 flex-col gap-1 text-xs text-slate-500">
-          REA agency id (agentID)
+          REA agency ID
           <input
             type="text"
             value={agencyId}
