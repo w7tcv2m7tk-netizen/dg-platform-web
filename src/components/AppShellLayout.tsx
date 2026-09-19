@@ -20,6 +20,7 @@ import { ChatWidgetProvider } from "@/components/platform/ChatWidgetProvider";
 import { PrefetchCriticalRoutes } from "@/components/platform/PrefetchCriticalRoutes";
 import { Sidebar } from "@/components/Sidebar";
 import { useIsDesktopShell } from "@/hooks/useIsDesktopShell";
+import { useShellViewportHeight } from "@/hooks/useShellViewportHeight";
 import type { BillingBannerModel, OrgBrandTheme, UserOrganisationSummary } from "@dg/platform-core";
 import { DEFAULT_ORG_BRAND_THEME } from "@/lib/brand-client";
 
@@ -62,6 +63,7 @@ export function AppShellLayout({
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const isDesktop = useIsDesktopShell();
+  useShellViewportHeight();
 
   useEffect(() => {
     setOpen(false);
@@ -135,11 +137,9 @@ export function AppShellLayout({
       <OrgBrandHead iconUrl={brandTheme.iconUrl} />
       <PrefetchCriticalRoutes />
       <MobileNavContext.Provider value={{ close }}>
-        <div
-          className="dg-shell-underlay fixed inset-0 z-0 overflow-hidden bg-[#07101d] print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible"
-        >
+        <div className="dg-shell-underlay dg-shell-viewport fixed left-0 top-0 z-0 overflow-hidden bg-[#07101d] print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible">
           <div
-            className="dg-branded-shell dg-shell-viewport absolute inset-0 flex overflow-hidden print:static print:h-auto print:min-h-0 print:overflow-visible"
+            className="dg-branded-shell dg-shell-viewport absolute left-0 top-0 flex overflow-hidden print:static print:h-auto print:min-h-0 print:overflow-visible"
             style={orgBrandStyle(brandTheme)}
           >
             <ChatWidgetProvider
