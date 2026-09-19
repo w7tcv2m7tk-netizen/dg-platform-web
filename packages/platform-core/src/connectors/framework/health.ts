@@ -88,6 +88,17 @@ export function isConnectorPlatformConfigured(connectorId: string): boolean {
       return Boolean(envTrim("TELNYX_API_KEY"));
     case "meta":
       return Boolean(envTrim("META_APP_ID") && envTrim("META_APP_SECRET"));
+    case "google-ads":
+    case "youtube":
+      return Boolean(envTrim("GOOGLE_CLIENT_ID") && envTrim("GOOGLE_CLIENT_SECRET"));
+    case "microsoft-ads":
+      return Boolean(
+        envTrim("MICROSOFT_ADS_CLIENT_ID") &&
+          envTrim("MICROSOFT_ADS_CLIENT_SECRET") &&
+          envTrim("MICROSOFT_ADS_DEVELOPER_TOKEN"),
+      );
+    case "tiktok-ads":
+      return Boolean(envTrim("TIKTOK_ADS_APP_ID") && envTrim("TIKTOK_ADS_APP_SECRET"));
     case "xero":
       return Boolean(envTrim("XERO_CLIENT_ID") && envTrim("XERO_CLIENT_SECRET"));
     case "shopify":
@@ -142,6 +153,40 @@ function oauthOrgStatusFromBlob(
   };
 }
 
+
+function scopeSetFromBlob(blob: Record<string, unknown>): Set<string> {
+  const scope = typeof blob.scope === "string" ? blob.scope : "";
+  return new Set(scope.split(/[\s,]+/).filter(Boolean));
+}
+
+function capabilityStatusFromSharedGoogleBlob(
+  blob: Record<string, unknown>,
+  connectorId: "google-ads" | "youtube",
+): ConnectorCatalogItem["organisation"] {
+  const base = oauthOrgStatusFromBlob(blob);
+  if (base.status !== "connected") return base;
+
+  const scopes = scopeSetFromBlob(blob);
+  const required =
+    connectorId === "google-ads"
+      ? ["https://www.googleapis.com/auth/adwords"]
+      : [
+          "https://www.googleapis.com/auth/youtube.readonly",
+          "https://www.googleapis.com/auth/yt-analytics.readonly",
+        ];
+  const missing = required.filter((scope) => !scopes.has(scope));
+  if (!missing.length) return base;
+
+  return {
+    ...base,
+    status: "degraded",
+    lastError:
+      connectorId === "google-ads"
+        ? "Google is connected, but Google Ads access has not been authorised for this organisation."
+        : "Google is connected, but YouTube read/analytics access has not been authorised for this organisation.",
+  };
+}
+
 function statusFromBlob(
   blob: Record<string, unknown> | null,
   connectorId: string,
@@ -181,11 +226,13 @@ function statusFromBlob(
     };
   }
 
+  if (connectorId === "google-ads" || connectorId === "youtube") {
+    return capabilityStatusFromSharedGoogleBlob(blob, connectorId);
+  }
+
   if (
     connectorId === "google-gbp" ||
     connectorId === "google-gmail" ||
-    connectorId === "google-ads" ||
-    connectorId === "youtube" ||
     connectorId === "microsoft-365" ||
     connectorId === "microsoft-ads" ||
     connectorId === "meta" ||
@@ -266,7 +313,20 @@ function organisationForCatalog(
     return { status: "connected", label: "Platform shared" };
   }
 
-  return statusFromBlob(blob, manifest.id);
+  const organisation = statusFromBlob(blob, manifest.id);
+  if (
+    !platformReady &&
+    (organisation.status === "connected" || organisation.status === "degraded")
+  ) {
+    return {
+      ...organisation,
+      status: "degraded",
+      lastError:
+        organisation.lastError ??
+        `${manifest.name} platform credentials or required provider configuration are incomplete.`,
+    };
+  }
+  return organisation;
 }
 
 /** Catalog + coarse org status for Settings Connectors page. */
