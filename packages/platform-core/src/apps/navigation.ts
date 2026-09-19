@@ -844,12 +844,21 @@ function buildIndustryNavApps(
   const items: AppNavTreeItem[] = [];
   const consumedAppIds = new Set<string>();
 
+  const exactSelectionIds = new Set(industrySelectionIds);
+
   // Catalogue order matches INDUSTRY_PLATFORMS; child order follows each parent.
   for (const industry of listIndustries()) {
     const entitlement = industries.find((e) => e.industryId === industry.id);
-    if (!entitlement?.entitled) continue;
+    const explicitActiveTemplateIds = industry.templates
+      .filter((template) => exactSelectionIds.has(template.id) || exactSelectionIds.has(template.slug))
+      .map((template) => template.id);
+    const activeTemplateIds = explicitActiveTemplateIds.length
+      ? explicitActiveTemplateIds
+      : (entitlement?.activeTemplateIds ?? []);
 
-    for (const templateId of entitlement.activeTemplateIds) {
+    if (!entitlement?.entitled && activeTemplateIds.length === 0) continue;
+
+    for (const templateId of activeTemplateIds) {
       const template = getTemplate(templateId);
       if (!template || template.industryId !== industry.id) continue;
 
