@@ -22,6 +22,7 @@ export type ServicesOverview = {
 export async function getServicesOverview(
   organisationId: string,
   orgSettings?: unknown,
+  templateKey?: string | null,
 ): Promise<ServicesOverview> {
   const { prisma } = await import("@dg/database");
   const org =
@@ -32,8 +33,13 @@ export async function getServicesOverview(
           select: { settings: true },
         });
 
-  const template = getActiveServiceTemplate(org?.settings);
   const servicesCfg = readOrgServicesSettings(org?.settings);
+  const requestedTemplateKey = templateKey && isServiceTemplateKey(templateKey) ? templateKey : null;
+  const template = requestedTemplateKey
+    ? getServiceTemplate(requestedTemplateKey)
+    : getActiveServiceTemplate(org?.settings);
+  const workspaceTemplateKey = requestedTemplateKey ?? servicesCfg.primaryTemplateKey ?? servicesCfg.templateKey ?? null;
+  const jobScope = workspaceTemplateKey ? { templateKey: workspaceTemplateKey } : {};
 
   const now = new Date();
   const weekEnd = new Date(now);
@@ -57,6 +63,7 @@ export async function getServicesOverview(
       where: {
         organisationId,
         status: "open",
+        ...jobScope,
         scheduledStartAt: { gte: now, lte: weekEnd },
       },
     }),
@@ -74,6 +81,7 @@ export async function getServicesOverview(
     listServiceJobs({
       organisationId,
       status: "open",
+      ...jobScope,
       scheduledFrom: now.toISOString(),
       scheduledTo: horizon.toISOString(),
       sort: "scheduled",
