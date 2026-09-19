@@ -55,6 +55,8 @@ export type BusinessContextTwinSummary = {
   searchImpressions30d?: number;
   searchCtr30d?: number;
   searchPosition30d?: number;
+  webAnalyticsError?: string;
+  searchConsoleError?: string;
   advertisingSpend30d?: number;
   advertisingImpressions30d?: number;
   advertisingClicks30d?: number;
@@ -191,6 +193,8 @@ function snapshotToTwinSummary(snapshot?: DigitalTwinSnapshot | null): BusinessC
     searchImpressions30d: snapshot.metrics.searchImpressions30d,
     searchCtr30d: snapshot.metrics.searchCtr30d,
     searchPosition30d: snapshot.metrics.searchPosition30d,
+    webAnalyticsError: snapshot.metrics.webAnalyticsError,
+    searchConsoleError: snapshot.metrics.searchConsoleError,
     advertisingSpend30d: snapshot.metrics.advertisingSpend30d,
     advertisingImpressions30d: snapshot.metrics.advertisingImpressions30d,
     advertisingClicks30d: snapshot.metrics.advertisingClicks30d,
@@ -321,8 +325,9 @@ export function buildAiSystemPrompt(context: BusinessContext): string {
 
   const evidence = context.twin;
   const hasMarketingEvidence = [evidence.webActiveUsers30d, evidence.webSessions30d, evidence.searchClicks30d, evidence.searchImpressions30d].some((v) => v != null);
+  const hasMarketingSourceState = Boolean(evidence.webAnalyticsError || evidence.searchConsoleError);
   const hasAdvertisingEvidence = [evidence.advertisingSpend30d, evidence.advertisingImpressions30d, evidence.advertisingClicks30d, evidence.advertisingConversions30d].some((v) => v != null);
-  if (hasMarketingEvidence || hasAdvertisingEvidence) {
+  if (hasMarketingEvidence || hasAdvertisingEvidence || hasMarketingSourceState) {
     lines.push("", "## Measured marketing evidence (last 30 days)");
     if (evidence.webActiveUsers30d != null) lines.push(`GA4 active users: ${evidence.webActiveUsers30d}`);
     if (evidence.webSessions30d != null) lines.push(`GA4 sessions: ${evidence.webSessions30d}`);
@@ -332,6 +337,8 @@ export function buildAiSystemPrompt(context: BusinessContext): string {
     if (evidence.searchImpressions30d != null) lines.push(`Search Console impressions: ${evidence.searchImpressions30d}`);
     if (evidence.searchCtr30d != null) lines.push(`Search Console CTR: ${(evidence.searchCtr30d * 100).toFixed(2)}%`);
     if (evidence.searchPosition30d != null) lines.push(`Search Console average position: ${evidence.searchPosition30d.toFixed(2)}`);
+    if (evidence.webAnalyticsError) lines.push(`GA4 evidence unavailable: ${evidence.webAnalyticsError}`);
+    if (evidence.searchConsoleError) lines.push(`Search Console evidence unavailable: ${evidence.searchConsoleError}`);
     if (evidence.advertisingSpend30d != null) lines.push(`Advertising spend: ${evidence.advertisingSpend30d}`);
     if (evidence.advertisingImpressions30d != null) lines.push(`Advertising impressions: ${evidence.advertisingImpressions30d}`);
     if (evidence.advertisingClicks30d != null) lines.push(`Advertising clicks: ${evidence.advertisingClicks30d}`);
