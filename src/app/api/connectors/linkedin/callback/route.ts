@@ -1,5 +1,6 @@
 import {
   exchangeLinkedInAuthorizationCode,
+  getOrgLinkedInConnectorTokens,
   probeOrgLinkedInConnection,
   saveOrgLinkedInConnectorTokens,
 } from "@dg/platform-core";
@@ -76,13 +77,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const existing = await getOrgLinkedInConnectorTokens(organisationId);
     await saveOrgLinkedInConnectorTokens(organisationId, {
+      ...(existing ?? {}),
       accessToken: exchanged.token.access_token,
-      refreshToken: exchanged.token.refresh_token,
+      refreshToken: exchanged.token.refresh_token || existing?.refreshToken,
       expiresAt: exchanged.token.expiresAt,
-      refreshExpiresAt: exchanged.token.refreshExpiresAt,
-      scope: exchanged.token.scope,
+      refreshExpiresAt: exchanged.token.refreshExpiresAt || existing?.refreshExpiresAt,
+      scope: exchanged.token.scope || existing?.scope,
       connectedAt: new Date().toISOString(),
+      lastError: undefined,
     });
   } catch (err) {
     return fail(err instanceof Error ? err.message : "Failed to save LinkedIn tokens");
