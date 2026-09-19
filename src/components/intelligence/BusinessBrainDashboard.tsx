@@ -202,7 +202,7 @@ export function BusinessBrainDashboard({ data }: { data: BusinessBrainDashboardB
           DigitalGate&apos;s Platform Docs.
         </p>
         <div className="mt-4 rounded-lg border border-dashed border-slate-700 bg-slate-950/40 px-4 py-6 text-center">
-          <p className="text-sm font-medium text-white">Teach DigitalGate how your business works</p>
+          <p className="text-sm font-medium text-white">Teach Aida how your business works</p>
           <p className="mt-2 text-xs text-slate-500">
             Add current organisational knowledge and review discoveries from authorised sources
             before they become approved truth used by Business Brain and Advisor.
