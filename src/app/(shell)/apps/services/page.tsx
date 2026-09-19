@@ -70,7 +70,7 @@ export default async function ServicesOverviewPage({
             href="/dashboard/apps/catalogue#industry-apps"
             className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-sky-500 hover:text-white"
           >
-            + Add service type
+            + Add service App
           </Link>
         ) : null}
       </div>
