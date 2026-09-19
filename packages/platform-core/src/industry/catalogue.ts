@@ -56,8 +56,8 @@ const DEFAULT_INCLUDED_BY_INDUSTRY: Record<string, string> = {
   property: "real-estate",
   "hospitality-accommodation": "short-stay",
   services: "general-services",
-  finance: "accounting",
-  "creator-media": "creators",
+  finance: "accounting-bookkeeping",
+  "creator-media": "creators-influencers",
   automotive: "dealerships",
 };
 
