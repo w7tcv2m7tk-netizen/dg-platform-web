@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import {
+  assertPlatformOperator,
   bootConnectorEngine,
   getOrgWordPressConnectorSettings,
   isCloudflareConfigured,
@@ -51,6 +53,8 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
   } = await searchParams;
   const context = await getPlatformPageContext();
   const session = context?.session ?? null;
+  const operator = assertPlatformOperator(session);
+  if (!operator) notFound();
 
   const lastSync = session ? await getLastWordPressSync(session.organisationId) : null;
   const [wpSettings, wpResolved] = session
