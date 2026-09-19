@@ -36,14 +36,14 @@ export function FirstLoginAidaHandover({
 
   return (
     <section className="mb-7 overflow-hidden rounded-[1.75rem] border border-violet-300/20 bg-gradient-to-br from-violet-950/65 via-slate-950/80 to-slate-950/90 shadow-2xl shadow-black/20">
-      <div className="grid gap-5 p-5 sm:grid-cols-[140px_1fr] sm:p-7">
+      <div className="grid gap-5 p-5 sm:grid-cols-[190px_1fr] sm:p-7">
         <div className="flex items-end justify-center">
           <Image
             src="/aida/aida-presenting.webp"
             alt="Aida presenting your DigitalGate workspace"
             width={220}
             height={260}
-            className="h-40 w-auto object-contain object-bottom"
+            className="h-48 w-auto object-contain object-bottom sm:h-52"
           />
         </div>
         <div>
