@@ -150,7 +150,7 @@ export const INDUSTRY_LAYER_STACK = [
     label: "Industry",
     body: "Twelve verticals — Property · Hospitality & Accommodation · Services · Finance · Professional · Health & Wellness · Automotive · Retail & Commerce · Creator & Media · Transport & Logistics · Agriculture · Education & Organisations",
   },
-  { id: "template", label: "Template", body: "Specialised business model within an Industry" },
+  { id: "template", label: "Sub-industry App", body: "Specialised business model within a parent Industry App" },
   {
     id: "growth",
     label: "Growth",
