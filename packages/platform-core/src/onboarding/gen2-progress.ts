@@ -2,8 +2,9 @@ import type { Gen2OnboardingProgress, Gen2OnboardingStep } from "./gen2-journey"
 import { emptyGen2Progress, GEN2_ONBOARDING_STEPS, isGen2OnboardingStep, nextGen2Step } from "./gen2-journey";
 import { appIdsFromPlanSelection } from "../apps/org-apps";
 import { getTemplate } from "../industry/catalogue";
+import { buildTemplateActivationPatch, readOrgIndustrySettings, type OrgIndustrySettings } from "../industry/entitlements";
 
-type OrgSettings = { gen2Onboarding?: Gen2OnboardingProgress; foundingOnboarding?: unknown; apps?: { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string } }; services?: { templateKey?: string; [key: string]: unknown }; [key: string]: unknown };
+type OrgSettings = { gen2Onboarding?: Gen2OnboardingProgress; foundingOnboarding?: unknown; apps?: { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string } }; industry?: OrgIndustrySettings; services?: { templateKey?: string; activeTemplateKeys?: string[]; primaryTemplateKey?: string; appliedAt?: string; [key: string]: unknown }; [key: string]: unknown };
 const SERVICE_SUBINDUSTRY_TO_TEMPLATE: Record<string, string> = { electrical: "electrician", plumbing: "plumber", cleaning: "cleaner", maintenance: "maintenance", "building-construction": "builder", landscaping: "landscaper", hvac: "hvac", "pest-control": "pest_control", painting: "painter", handyman: "handyman", solar: "solar", "pool-service": "pool_service", "general-services": "general" };
 
 function parseProgress(raw: unknown, founding: boolean): Gen2OnboardingProgress {
@@ -18,19 +19,29 @@ function definedProgressPatch(patch: Partial<Gen2OnboardingProgress>): Partial<G
   return Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)) as Partial<Gen2OnboardingProgress>;
 }
 
+function canonicalIndustryId(id: string | undefined): string | undefined {
+  if (!id) return undefined;
+  return id === "accommodation-hospitality" ? "hospitality-accommodation" : id;
+}
+
 function normaliseOperatingProfile(profile: Gen2OnboardingProgress["operatingProfile"]): Gen2OnboardingProgress["operatingProfile"] {
   if (!profile) return profile;
   const primaryIndustry = profile.primaryIndustry?.trim() || undefined;
   const secondaryIndustries = Array.from(new Set((profile.secondaryIndustries ?? []).map((id) => id.trim()).filter((id) => id && id !== primaryIndustry)));
-  const selectedIndustries = new Set([primaryIndustry, ...secondaryIndustries].filter((id): id is string => Boolean(id)));
+  const selectedIndustries = new Set(
+    [primaryIndustry, ...secondaryIndustries]
+      .map(canonicalIndustryId)
+      .filter((id): id is string => Boolean(id)),
+  );
+  const canonicalPrimaryIndustry = canonicalIndustryId(primaryIndustry);
   const templates = Array.from(new Set((profile.templates ?? []).map((id) => id.trim()).filter(Boolean))).filter((id) => {
     const template = getTemplate(id);
     return Boolean(template && selectedIndustries.has(template.industryId));
   });
   const requestedPrimaryTemplate = profile.primaryTemplate?.trim();
-  const primaryTemplate = requestedPrimaryTemplate && getTemplate(requestedPrimaryTemplate)?.industryId === primaryIndustry && templates.includes(requestedPrimaryTemplate)
+  const primaryTemplate = requestedPrimaryTemplate && getTemplate(requestedPrimaryTemplate)?.industryId === canonicalPrimaryIndustry && templates.includes(requestedPrimaryTemplate)
     ? requestedPrimaryTemplate
-    : templates.find((id) => getTemplate(id)?.industryId === primaryIndustry);
+    : templates.find((id) => getTemplate(id)?.industryId === canonicalPrimaryIndustry);
   return { ...profile, primaryIndustry, secondaryIndustries, templates, primaryTemplate };
 }
 
@@ -55,12 +66,84 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
   const industryApps = Array.isArray(cleanPatch.industryApps) ? cleanPatch.industryApps : operatingApps.length ? operatingApps : nextProgress.industryApps ?? [];
   const industryTemplates = Array.isArray(cleanPatch.industryTemplates) ? cleanPatch.industryTemplates : operatingTemplates.length ? operatingTemplates : nextProgress.industryTemplates ?? [];
   nextProgress.industryApps = industryApps; nextProgress.industryTemplates = industryTemplates;
+
   const hasAppSelectionPatch = Array.isArray(cleanPatch.industryApps) || Array.isArray(cleanPatch.industryTemplates) || Array.isArray(cleanPatch.premiumApps) || Boolean(cleanPatch.platformTier) || Boolean(cleanPatch.operatingProfile);
   const selectedAppIds = hasAppSelectionPatch ? appIdsFromPlanSelection({ platformTier: nextProgress.platformTier ?? "professional", industryApps, premiumApps: nextProgress.premiumApps ?? [] }) : undefined;
   const nextApps = hasAppSelectionPatch ? { ...(settings.apps ?? {}), enabled: selectedAppIds, planPreview: { ...(settings.apps?.planPreview ?? {}), platformTier: nextProgress.platformTier, industryApps, industryTemplates, premiumApps: nextProgress.premiumApps ?? [], appliedAt: now, source: "onboarding-operating-profile" } } : settings.apps;
-  const selectedServiceTemplate = industryTemplates.map((id) => SERVICE_SUBINDUSTRY_TO_TEMPLATE[id]).find((key): key is string => Boolean(key));
-  const nextServices = selectedServiceTemplate ? { ...(settings.services ?? {}), templateKey: selectedServiceTemplate } : settings.services;
-  await prisma.organisation.update({ where: { id: organisationId }, data: { settings: { ...settings, ...(nextApps ? { apps: nextApps } : {}), ...(nextServices ? { services: nextServices } : {}), gen2Onboarding: nextProgress } as never } });
+
+  const shouldSyncCanonicalIndustry = Boolean(cleanPatch.operatingProfile) || Array.isArray(cleanPatch.industryTemplates);
+  let nextIndustry = settings.industry;
+  if (shouldSyncCanonicalIndustry) {
+    let canonical = readOrgIndustrySettings({ industry: settings.industry }) ?? { templates: {}, primaryTemplateByIndustry: {} };
+    const selectedTemplateIds = Array.from(
+      new Set(
+        industryTemplates
+          .map((id) => getTemplate(id)?.id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+    const selectedSet = new Set(selectedTemplateIds);
+
+    for (const [id, entry] of Object.entries(canonical.templates ?? {})) {
+      if (entry?.active === true && !selectedSet.has(id)) {
+        canonical = buildTemplateActivationPatch(canonical, id, false, now);
+      }
+    }
+    for (const id of selectedTemplateIds) {
+      canonical = buildTemplateActivationPatch(canonical, id, true, now);
+    }
+
+    const touchedIndustries = new Set(
+      [
+        ...Object.keys(canonical.primaryTemplateByIndustry ?? {}),
+        ...selectedTemplateIds.map((id) => getTemplate(id)?.industryId),
+      ].filter((id): id is string => Boolean(id)),
+    );
+    const preferredPrimary = nextProgress.operatingProfile?.primaryTemplate;
+    const primaryTemplateByIndustry = { ...(canonical.primaryTemplateByIndustry ?? {}) };
+    for (const industryId of touchedIndustries) {
+      const selectedForIndustry = selectedTemplateIds.filter((id) => getTemplate(id)?.industryId === industryId);
+      if (!selectedForIndustry.length) {
+        delete primaryTemplateByIndustry[industryId];
+        continue;
+      }
+      const preferred =
+        preferredPrimary && selectedForIndustry.includes(preferredPrimary)
+          ? preferredPrimary
+          : primaryTemplateByIndustry[industryId] && selectedForIndustry.includes(primaryTemplateByIndustry[industryId]!)
+            ? primaryTemplateByIndustry[industryId]
+            : selectedForIndustry[0];
+      if (preferred) primaryTemplateByIndustry[industryId] = preferred;
+    }
+    nextIndustry = { ...canonical, primaryTemplateByIndustry };
+  }
+
+  const selectedServiceTemplateKeys = Array.from(
+    new Set(
+      industryTemplates
+        .map((id) => SERVICE_SUBINDUSTRY_TO_TEMPLATE[id])
+        .filter((key): key is string => Boolean(key)),
+    ),
+  );
+  const preferredServiceSubindustry = nextProgress.operatingProfile?.primaryTemplate;
+  const preferredServiceTemplateKey = preferredServiceSubindustry
+    ? SERVICE_SUBINDUSTRY_TO_TEMPLATE[preferredServiceSubindustry]
+    : undefined;
+  const primaryServiceTemplateKey =
+    preferredServiceTemplateKey && selectedServiceTemplateKeys.includes(preferredServiceTemplateKey)
+      ? preferredServiceTemplateKey
+      : selectedServiceTemplateKeys[0];
+  const nextServices = shouldSyncCanonicalIndustry && selectedServiceTemplateKeys.length
+    ? {
+        ...(settings.services ?? {}),
+        activeTemplateKeys: selectedServiceTemplateKeys,
+        primaryTemplateKey: primaryServiceTemplateKey,
+        templateKey: primaryServiceTemplateKey,
+        appliedAt: now,
+      }
+    : settings.services;
+
+  await prisma.organisation.update({ where: { id: organisationId }, data: { settings: { ...settings, ...(nextApps ? { apps: nextApps } : {}), ...(nextIndustry ? { industry: nextIndustry } : {}), ...(nextServices ? { services: nextServices } : {}), gen2Onboarding: nextProgress } as never } });
   return nextProgress;
 }
 
