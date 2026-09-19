@@ -120,6 +120,8 @@ export type ListServiceJobsOptions = {
   assignedUserId?: string;
   /** Only jobs with no assignee */
   unassigned?: boolean;
+  /** Restrict results to one Services sub-industry app. */
+  templateKey?: string;
   /** Case-insensitive search across title, site address, description */
   q?: string;
   /** Jobs scheduled on/after this ISO date */
