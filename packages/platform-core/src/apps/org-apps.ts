@@ -14,7 +14,31 @@ export type OrgAppsSettings = { enabled?: string[]; planPreview?: { platformTier
 const PREMIUM_APP_MAP: Record<string, string[]> = { prospecting_pro: ["prospecting"], ai_visibility_pro: ["ai-visibility"], seo_pro: ["seo"], automation_pro: ["automation"], analytics_pro: ["analytics"], social_pro: ["social"], voice_ai: ["ai-communications"] };
 const TIER_BASE_APPS: Record<string, string[]> = { starter: [...FOUNDING_MODE_CORE_APP_IDS], professional: [...FOUNDING_MODE_CORE_APP_IDS], business: [...FOUNDING_MODE_CORE_APP_IDS], enterprise: [...FOUNDING_MODE_CORE_APP_IDS] };
 export type PlanSelectionInput = { platformTier: string; industryApps: string[]; premiumApps: string[] };
-export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[] { const ids = new Set<string>(TIER_BASE_APPS[selection.platformTier] ?? TIER_BASE_APPS.professional); for (const industry of selection.industryApps) ids.add(industry); for (const premium of selection.premiumApps) for (const appId of PREMIUM_APP_MAP[premium] ?? []) ids.add(appId); return [...ids].filter((id) => Boolean(platformApps.get(id)?.enabled)); }
+
+function runtimeAppIdsForIndustrySelection(selectionId: string): string[] {
+  if (platformApps.get(selectionId)?.enabled) return [selectionId];
+
+  const subIndustry = INDUSTRY_TAXONOMY
+    .flatMap((group) => group.subIndustries)
+    .find((item) => item.id === selectionId);
+  if (subIndustry) return [subIndustry.appId];
+
+  const group = INDUSTRY_TAXONOMY.find((item) => item.id === selectionId);
+  return group?.appIds ?? [];
+}
+
+export function appIdsFromPlanSelection(selection: PlanSelectionInput): string[] {
+  const ids = new Set<string>(
+    TIER_BASE_APPS[selection.platformTier] ?? TIER_BASE_APPS.professional,
+  );
+  for (const industrySelection of selection.industryApps) {
+    for (const appId of runtimeAppIdsForIndustrySelection(industrySelection)) ids.add(appId);
+  }
+  for (const premium of selection.premiumApps) {
+    for (const appId of PREMIUM_APP_MAP[premium] ?? []) ids.add(appId);
+  }
+  return [...ids].filter((id) => Boolean(platformApps.get(id)?.enabled));
+}
 export function resolveEnabledAppIds(orgSettings?: { apps?: OrgAppsSettings } | null): string[] { const configured = orgSettings?.apps?.enabled; const ids = Array.isArray(configured) && configured.length ? configured.filter((id) => Boolean(platformApps.get(id)?.enabled)) : getDefaultEnabledAppIds(); const next = [...ids]; for (const id of FOUNDING_MODE_CORE_APP_IDS) if (platformApps.get(id)?.enabled && !next.includes(id)) next.push(id); return next; }
 export function isAppEnabled(appId: string, enabledIds: string[]): boolean { return enabledIds.includes(appId); }
 
