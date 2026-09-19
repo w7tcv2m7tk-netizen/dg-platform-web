@@ -99,16 +99,33 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
   const [activeTier, setActiveTier] = useState<PlatformTier>("professional");
 
   const selectionFromCurrentState = useMemo(() => {
-    const knownSelectionIds = new Set(
-      INDUSTRY_PLATFORM_CATALOG.flatMap((platform) => [
-        platform.platformId,
-        ...platform.specialisations.map((specialisation) => specialisation.id),
-      ]),
-    );
-    const exactIndustrySelections = industrySelectionIds.filter((id) => knownSelectionIds.has(id));
+    const selectedIds = new Set(industrySelectionIds);
 
-    // Legacy organisations may only have the shared runtime app enabled. Preserve
-    // the parent Industry in that case, but never infer every child from one engine.
+    const canonicalIndustrySelections = INDUSTRY_PLATFORM_CATALOG.flatMap((platform) => {
+      const selectedChildren = platform.specialisations
+        .filter((specialisation) => selectedIds.has(specialisation.id))
+        .map((specialisation) => specialisation.id);
+
+      // Exact child Apps always beat their parent Industry marker.
+      if (selectedChildren.length) return selectedChildren;
+
+      // Legacy parent-only state: preserve the runtime that is already mounted,
+      // but never infer or activate sibling children from the parent marker.
+      if (selectedIds.has(platform.platformId)) {
+        return Array.from(
+          new Set(
+            platform.specialisations.flatMap((specialisation) =>
+              specialisation.appId && enabledIds.includes(specialisation.appId)
+                ? [specialisation.appId]
+                : [],
+            ),
+          ),
+        );
+      }
+
+      return [];
+    });
+
     const fallbackRuntimeSelections = INDUSTRY_PLATFORM_CATALOG.flatMap((platform) =>
       Array.from(
         new Set(
@@ -122,8 +139,8 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
     );
 
     return {
-      industryApps: exactIndustrySelections.length
-        ? exactIndustrySelections
+      industryApps: canonicalIndustrySelections.length
+        ? canonicalIndustrySelections
         : fallbackRuntimeSelections,
       premiumApps: GROWTH_APP_CATALOG.flatMap((item) =>
         item.premiumKey && enabledIds.includes(item.appId) ? [item.premiumKey] : [],
