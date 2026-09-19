@@ -276,7 +276,9 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
       </div>
 
       {/* Ask your Advisor */}
-      <section className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-slate-950/50 to-slate-950/40 px-6 py-6">
+      <section className="relative overflow-hidden rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-slate-950/50 to-slate-950/40 px-6 py-6 sm:min-h-[340px] sm:pr-[300px]">
+        <img src="/aida/aida-welcome.webp" alt="" aria-hidden className="pointer-events-none absolute bottom-0 right-3 hidden h-[330px] w-auto select-none object-contain object-bottom sm:block" />
+        <div className="relative z-10">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300/90">
           Ask your Advisor
         </p>
@@ -380,6 +382,7 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
             </p>
           </div>
         ) : null}
+              </div>
       </section>
 
       {/* Recommended Actions — prioritisation output */}
