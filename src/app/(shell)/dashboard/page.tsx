@@ -329,7 +329,6 @@ export default async function DashboardPage() {
         ) : (
           <BusinessOverviewDashboard
             overview={overview}
-            workspaceSetup={<Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />}
             growthScorecard={<DigitalPerformanceStrip
               signals={digitalPerformanceSignals}
               reputation={liveMetrics ? { score: liveMetrics.reputationScore, reviewCount: liveMetrics.reputationReviewCount } : undefined}
