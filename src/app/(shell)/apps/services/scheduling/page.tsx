@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getActiveServiceTemplate,
+  getServiceTemplate,
+  isServiceTemplateKey,
   listOrganisationMembers,
   listServiceJobs,
 } from "@dg/platform-core";
@@ -26,7 +28,12 @@ function memberLabel(m: {
   return m.displayName?.trim() || m.email || m.clerkUserId.slice(0, 8);
 }
 
-export default async function ServicesSchedulingPage() {
+export default async function ServicesSchedulingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ template?: string }>;
+}) {
+  const { template: requestedTemplate } = await searchParams;
   const session = await getAuthorisedPlatformPageSession("services.jobs.read");
   if (!session) notFound();
 
@@ -41,7 +48,11 @@ export default async function ServicesSchedulingPage() {
     listOrganisationMembers(session.organisationId),
   ]);
   const timeZone = org?.timezone || SERVICES_DEFAULT_TZ;
-  const template = getActiveServiceTemplate(org?.settings);
+  const template =
+    requestedTemplate && isServiceTemplateKey(requestedTemplate)
+      ? getServiceTemplate(requestedTemplate)
+      : getActiveServiceTemplate(org?.settings);
+  const templateKey = template.key;
 
   const startKey = todayKey(timeZone);
   const dayKeys = dayKeyRange(startKey, 14);
@@ -55,6 +66,7 @@ export default async function ServicesSchedulingPage() {
   const [{ items: scheduledWindow }, { items: needsSchedule }] = await Promise.all([
     listServiceJobs({
       organisationId: session.organisationId,
+      templateKey,
       status: "open",
       scheduledFrom: rangeStart.toISOString(),
       scheduledTo: rangeEnd.toISOString(),
@@ -63,6 +75,7 @@ export default async function ServicesSchedulingPage() {
     }),
     listServiceJobs({
       organisationId: session.organisationId,
+      templateKey,
       status: "open",
       sort: "updated",
       limit: 50,
