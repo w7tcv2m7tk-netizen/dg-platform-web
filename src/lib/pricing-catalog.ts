@@ -167,7 +167,7 @@ function mapSpecStatus(
 /**
  * Industry Platforms — derived from platform-core lock (`INDUSTRY_PLATFORMS`).
  * Prefer `listIndustries()` / `INDUSTRY_CATALOGUE` for UX status + Template hrefs;
- * this catalog keeps AppsPlanCatalog pricing cards aligned with platform truth.
+ * this catalogue keeps AppsPlanCatalog pricing cards aligned with platform truth.
  * Public pricing groups: Available · Early Access · Coming Soon · Architecture Reserved.
  */
 export const INDUSTRY_PLATFORM_CATALOG: IndustryPlatformCatalogItem[] =
@@ -184,7 +184,7 @@ export const INDUSTRY_PLATFORM_CATALOG: IndustryPlatformCatalogItem[] =
       expansion:
         platform.roadmap === "reserved"
           ? "Architecture reserved — not an active sell"
-          : "1 Template included · +$29/mo each additional",
+          : "1 sub-industry App included · +$29/mo each additional",
       description: platform.summary,
       proposition: platform.proposition,
       roadmap: platform.roadmap,
