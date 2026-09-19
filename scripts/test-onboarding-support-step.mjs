@@ -15,6 +15,10 @@ expect(wizard.includes('id:"support", label:"Support", step:"support"'), "Adapti
 expect(wizard.includes('go("support")'), "Apps must advance to Support");
 expect(wizard.includes('mark("support"'), "Support must be completable");
 expect(api.includes('clientProgress.supportPlan'), "API must accept the safe support plan field");
-expect(api.includes('"self_managed", "guided", "managed", "custom"'), "API must whitelist canonical support plan IDs");
+expect(api.includes('"standard", "priority", "success_partner", "enterprise_success"'), "API must whitelist canonical support plan IDs");
 
+expect(journey.includes('name: "Priority", monthlyCents: 19900'), "Priority must remain $199/mo");
+expect(journey.includes('name: "Success Partner", monthlyCents: 49900'), "Success Partner must remain $499/mo");
+expect(journey.includes('name: "Standard", monthlyCents: 0'), "Standard must remain included");
+expect(journey.includes('name: "Enterprise Success", monthlyCents: null'), "Enterprise Success must remain custom");
 console.log("Onboarding Support step regression checks passed.");
