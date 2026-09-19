@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { ShellNavLink } from "@/components/ShellNavLink";
@@ -33,12 +33,15 @@ export function AppHorizontalSubnav({
   ariaLabel: string;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const location = query ? `${pathname}?${query}` : pathname;
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMoreOpen(false);
-  }, [pathname]);
+  }, [location]);
 
   useEffect(() => {
     if (!moreOpen) return;
@@ -56,7 +59,7 @@ export function AppHorizontalSubnav({
   const useOverflow = typeof maxVisible === "number" && routes.length > maxVisible;
   const visible = useOverflow ? routes.slice(0, maxVisible) : routes;
   const overflow = useOverflow ? routes.slice(maxVisible) : [];
-  const overflowActive = overflow.some((route) => routeIsActive(pathname, route.path, routes));
+  const overflowActive = overflow.some((route) => routeIsActive(location, route.path, routes));
 
   return (
     <nav
@@ -64,7 +67,7 @@ export function AppHorizontalSubnav({
       aria-label={ariaLabel}
     >
       {visible.map((route) => {
-        const active = routeIsActive(pathname, route.path, routes);
+        const active = routeIsActive(location, route.path, routes);
         return (
           <ShellNavLink
             key={`${route.path}-${route.label}`}
@@ -90,7 +93,7 @@ export function AppHorizontalSubnav({
           {moreOpen ? (
             <div className="absolute left-0 top-full z-20 mt-1 min-w-[10rem] rounded-lg border border-slate-800 bg-slate-950 py-1 shadow-xl">
               {overflow.map((route) => {
-                const active = routeIsActive(pathname, route.path, routes);
+                const active = routeIsActive(location, route.path, routes);
                 return (
                   <Link
                     key={`${route.path}-${route.label}`}

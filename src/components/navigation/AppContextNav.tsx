@@ -1,11 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { AppHorizontalSubnav } from "@/components/navigation/AppHorizontalSubnav";
-import { resolveActiveAppNavigation } from "@dg/platform-core";
+import { resolveActiveAppNavigation, routeIsActive } from "@dg/platform-core";
 
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
 
@@ -15,11 +15,14 @@ const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
  */
 export function AppContextNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const location = query ? `${pathname}?${query}` : pathname;
   const { nav } = useEnabledApps();
 
   const active = useMemo(
-    () => resolveActiveAppNavigation(pathname, nav.ia),
-    [pathname, nav.ia],
+    () => resolveActiveAppNavigation(location, nav.ia),
+    [location, nav.ia],
   );
 
   const routes = useMemo(() => {
@@ -76,9 +79,10 @@ export function AppContextNav() {
     if (active.sectionId === "industry") {
       const mount = pathname.match(/^(\/apps\/[^/]+)/)?.[1];
       if (mount) {
-        const scoped = active.routes.filter(
-          (r) => r.path === mount || r.path.startsWith(`${mount}/`),
-        );
+        const scoped = active.routes.filter((r) => {
+          const routePath = r.path.split("?")[0] ?? r.path;
+          return routePath === mount || routePath.startsWith(`${mount}/`);
+        });
         if (scoped.length) return scoped;
       }
     }
@@ -87,17 +91,11 @@ export function AppContextNav() {
 
   const pageTitle = useMemo(() => {
     if (!active) return "";
-    const activeInScoped =
-      routes.find((r) => r.path === pathname) ??
-      routes.find(
-        (r) =>
-          r.matchAlso?.some(
-            (match) => pathname === match || pathname.startsWith(`${match}/`),
-          ) ?? false,
-      ) ??
-      routes.find((r) => pathname === r.path || pathname.startsWith(`${r.path}/`));
+    const activeInScoped = routes.find((route) =>
+      routeIsActive(location, route.path, routes),
+    );
     return activeInScoped?.label ?? active.activeRoute?.label ?? active.itemName;
-  }, [active, pathname, routes]);
+  }, [active, location, routes]);
 
   if (!active || SKIP_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return null;

@@ -1,13 +1,13 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { ShellNavLink } from "@/components/ShellNavLink";
 import { SidebarIcon } from "@/components/SidebarIcon";
 import { itemHasActiveRoute } from "@/lib/nav-route-match";
-import { getTemplate, type AppRoute, type NavIaSection } from "@dg/platform-core";
+import { type AppRoute, type NavIaSection } from "@dg/platform-core";
 
 function linkClass(active: boolean, pending = false) {
   return `flex min-h-11 items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition ${
@@ -155,61 +155,12 @@ const DIGITALGATE_OPERATOR_NAMES: Record<string, string> = {
   "dg-platform-intelligence": "Intelligence",
 };
 
-const INDUSTRY_TEMPLATE_ICONS: Record<string, string> = {
-  "real-estate": "⌂",
-  "property-management": "◇",
-  commercial: "▦",
-  "property-development": "△",
-  "buyers-agency": "◎",
-  valuation: "▥",
-  "short-stay": "◫",
-  hotels: "▣",
-  motels: "▤",
-  restaurants: "◉",
-  cafes: "◌",
-  venues: "✦",
-  trades: "⬡",
-  cleaning: "◇",
-  maintenance: "⎔",
-  accounting: "▣",
-  brokerage: "◎",
-  lending: "◈",
-  dealerships: "⬢",
-  creators: "✦",
-};
-
-function personaliseIndustrySection(
-  section: NavIaSection,
-  industrySelectionIds: string[],
-): NavIaSection {
-  if (industrySelectionIds.length === 0) return section;
-
-  const selectedTemplates = industrySelectionIds
-    .map((id) => getTemplate(id))
-    .filter((template): template is NonNullable<typeof template> => Boolean(template));
-
-  if (selectedTemplates.length === 0) return section;
-
-  const projected = selectedTemplates.flatMap((template) => {
-    const source = section.apps.find((app) => app.id === `industry--${template.industryId}`);
-    if (!source) return [];
-    const href = template.primaryHref.split("?")[0] || template.primaryHref;
-    return [{
-      ...source,
-      id: `industry-template--${template.id}`,
-      name: template.name,
-      icon: INDUSTRY_TEMPLATE_ICONS[template.id] ?? source.icon,
-      primaryHref: href,
-      routes: source.routes,
-    }];
-  });
-
-  return projected.length > 0 ? { ...section, apps: projected } : section;
-}
-
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { nav, industrySelectionIds } = useEnabledApps();
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const location = query ? `${pathname}?${query}` : pathname;
+  const { nav } = useEnabledApps();
   const [ccBadge, setCcBadge] = useState<number | null>(null);
   const ia = nav.ia;
 
@@ -271,7 +222,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         {intelligenceAppsForRender.length > 0 ? (
           <FlatAppLinks
             items={intelligenceAppsForRender}
-            pathname={pathname}
+            pathname={location}
             onNavigate={onNavigate}
           />
         ) : null}
@@ -297,7 +248,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     ...ia.core,
     apps: ia.core.apps.filter((app) => app.id !== "infrastructure"),
   };
-  const industrySection = personaliseIndustrySection(ia.industry, industrySelectionIds);
+  const industrySection = ia.industry;
 
   const marketingApp = nav.tiers
     .find((group) => group.tier === "growth")
@@ -349,7 +300,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         className={ia.digitalgate.apps.length > 0 ? undefined : "mt-0"}
       />
 
-      <IaSectionBlock section={industrySection} pathname={pathname} onNavigate={onNavigate} />
+      <IaSectionBlock section={industrySection} pathname={location} onNavigate={onNavigate} />
       <IaSectionBlock section={growthSection} pathname={pathname} onNavigate={onNavigate} />
       {intelligenceSection}
       <IaSectionBlock section={ia.partners} pathname={pathname} onNavigate={onNavigate} />
