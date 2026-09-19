@@ -142,7 +142,17 @@ function ScoreCard({ card }: { card: GrowthSummaryCard }) {
   );
 }
 
-export async function DigitalPerformanceStrip({ signals }: { signals: DigitalPerformanceSignal[] }) {
+export async function DigitalPerformanceStrip({
+  signals,
+  reputation,
+  social,
+  prospecting,
+}: {
+  signals: DigitalPerformanceSignal[];
+  reputation?: { score: number | null; reviewCount: number };
+  social?: { connected: boolean; activityCount: number };
+  prospecting?: { openOpportunityCount: number };
+}) {
   const enabledAppIds = await getOrgEnabledAppIdsCached();
   const enabled = new Set(enabledAppIds);
 
@@ -158,6 +168,42 @@ export async function DigitalPerformanceStrip({ signals }: { signals: DigitalPer
       detail: signal.detail,
       href: signal.href,
       state: signal.state,
+    });
+  }
+
+  if (enabled.has("reviews") && reputation && reputation.reviewCount > 0) {
+    measuredByApp.set("reviews", {
+      id: "reviews",
+      appId: "reviews",
+      label: "Reputation",
+      value: reputation.score == null ? `${reputation.reviewCount} reviews` : `${reputation.score} / 100`,
+      detail: `${reputation.reviewCount} connected review${reputation.reviewCount === 1 ? "" : "s"} contributing live reputation evidence.`,
+      href: "/apps/reviews",
+      state: "live",
+    });
+  }
+  if (enabled.has("social") && social?.connected) {
+    measuredByApp.set("social", {
+      id: "social",
+      appId: "social",
+      label: "Social",
+      value: social.activityCount > 0 ? `${social.activityCount} recent activities` : "Connected",
+      detail: social.activityCount > 0
+        ? "Live authorised social evidence is contributing to your Business Brain."
+        : "A social account is authorised and connected; activity will appear as it is measured.",
+      href: "/apps/social",
+      state: "live",
+    });
+  }
+  if (enabled.has("prospecting") && prospecting && prospecting.openOpportunityCount > 0) {
+    measuredByApp.set("prospecting", {
+      id: "prospecting",
+      appId: "prospecting",
+      label: "Prospecting",
+      value: `${prospecting.openOpportunityCount} open opportunit${prospecting.openOpportunityCount === 1 ? "y" : "ies"}`,
+      detail: "Live CRM opportunity evidence is available for prospecting and pipeline decisions.",
+      href: "/apps/prospecting",
+      state: "live",
     });
   }
 

@@ -88,6 +88,7 @@ function buildDigitalPerformanceSignals(input: {
   websiteScore?: number;
   websiteLabel?: string;
   matchedAudit: Awaited<ReturnType<typeof latestDomainMatchedSeoAudit>>;
+  liveMetrics: Awaited<ReturnType<typeof gatherOverviewLiveMetrics>> | null;
 }): DigitalPerformanceSignal[] {
   const operationsScore = scoreValue(input.websiteScore);
   const audit = input.matchedAudit;
@@ -97,6 +98,21 @@ function buildDigitalPerformanceSignals(input: {
       : "stale"
     : "unavailable";
   const auditDate = audit ? formatAuditDate(audit.auditedAt) : null;
+  const analytics = input.liveMetrics?.marketing ?? null;
+  const analyticsAvailable = analytics?.sources.analytics === "available";
+  const searchAvailable = analytics?.sources.search === "available";
+  const analyticsValue = analyticsAvailable
+    ? `${(analytics?.sessions ?? 0).toLocaleString("en-AU")} sessions`
+    : searchAvailable
+      ? `${(analytics?.searchClicks ?? 0).toLocaleString("en-AU")} search clicks`
+      : "Not connected";
+  const analyticsDetail = analyticsAvailable && searchAvailable
+    ? `Google Analytics and Search Console are live · ${(analytics?.activeUsers ?? 0).toLocaleString("en-AU")} users · ${(analytics?.searchImpressions ?? 0).toLocaleString("en-AU")} search impressions in the last 30 days.`
+    : analyticsAvailable
+      ? `Google Analytics is live · ${(analytics?.activeUsers ?? 0).toLocaleString("en-AU")} active users in the last 30 days.`
+      : searchAvailable
+        ? `Google Search Console is live · ${(analytics?.searchImpressions ?? 0).toLocaleString("en-AU")} impressions in the last 30 days.`
+        : "Connect Google Analytics or Search Console before showing traffic, users or conversion performance here.";
 
   return [
     {
@@ -133,10 +149,10 @@ function buildDigitalPerformanceSignals(input: {
     {
       id: "analytics",
       label: "Web Analytics",
-      value: "Not connected",
-      detail: "Connect a real web analytics source before showing traffic, users or conversion performance here.",
-      href: "/apps/analytics/connectors",
-      state: "unavailable",
+      value: analyticsValue,
+      detail: analyticsDetail,
+      href: "/apps/analytics",
+      state: analyticsAvailable || searchAvailable ? "live" : "unavailable",
     },
   ];
 }
@@ -183,6 +199,7 @@ export default async function DashboardPage() {
     websiteScore: connectorProbes.website?.score,
     websiteLabel: connectorProbes.website?.siteLabel ?? businessProfile?.websiteUrl ?? undefined,
     matchedAudit: matchedSeoAudit,
+    liveMetrics,
   });
 
   let healthScores: OrgScoresResult | null = null;
@@ -313,7 +330,15 @@ export default async function DashboardPage() {
           <BusinessOverviewDashboard
             overview={overview}
             workspaceSetup={<Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />}
-            growthScorecard={<DigitalPerformanceStrip signals={digitalPerformanceSignals} />}
+            growthScorecard={<DigitalPerformanceStrip
+              signals={digitalPerformanceSignals}
+              reputation={liveMetrics ? { score: liveMetrics.reputationScore, reviewCount: liveMetrics.reputationReviewCount } : undefined}
+              social={liveMetrics ? {
+                connected: Boolean(liveMetrics.social?.linkedInCompanyConnected || liveMetrics.social?.instagramFollowers != null || liveMetrics.social?.youtubeChannelCount != null),
+                activityCount: (liveMetrics.social?.instagramRecentMediaCount ?? 0) + (liveMetrics.social?.youtubeRecentVideoCount ?? 0),
+              } : undefined}
+              prospecting={liveMetrics ? { openOpportunityCount: liveMetrics.openOpportunityCount } : undefined}
+            />}
           />
         )}
       </main>
