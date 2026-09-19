@@ -34,9 +34,9 @@ export function AppShellLayout({ children, activeOrganisationId, activeOrganisat
   useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => {
     const html = document.documentElement; const body = document.body;
-    const prev = { htmlOverflow: html.style.overflow, bodyOverflow: body.style.overflow, bodyHeight: body.style.height };
-    html.classList.add("dg-shell-scroll-lock"); html.style.overflow = "hidden"; body.style.overflow = "hidden"; body.style.height = "100%";
-    return () => { html.classList.remove("dg-shell-scroll-lock"); html.style.overflow = prev.htmlOverflow; body.style.overflow = prev.bodyOverflow; body.style.height = prev.bodyHeight; };
+    const prev = { htmlOverflow: html.style.overflow, bodyOverflow: body.style.overflow, bodyHeight: body.style.height, bodyMinHeight: body.style.minHeight };
+    html.classList.add("dg-shell-scroll-lock"); html.style.overflow = "hidden"; body.style.overflow = "hidden"; body.style.height = "100dvh"; body.style.minHeight = "100dvh";
+    return () => { html.classList.remove("dg-shell-scroll-lock"); html.style.overflow = prev.htmlOverflow; body.style.overflow = prev.bodyOverflow; body.style.height = prev.bodyHeight; body.style.minHeight = prev.bodyMinHeight; };
   }, []);
   useEffect(() => {
     const vars = orgBrandCssVariables(brandTheme); const previousBackground = document.body.style.background; const previousColor = document.body.style.color;
@@ -51,7 +51,7 @@ export function AppShellLayout({ children, activeOrganisationId, activeOrganisat
       <OrgBrandHead iconUrl={brandTheme.iconUrl} />
       <PrefetchCriticalRoutes />
       <MobileNavContext.Provider value={{ close }}>
-        <div className="dg-branded-shell fixed inset-0 z-0 flex overflow-hidden print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible" style={orgBrandStyle(brandTheme)}>
+        <div className="dg-branded-shell fixed left-0 top-0 z-0 flex h-[100dvh] w-full overflow-hidden print:static print:inset-auto print:h-auto print:min-h-0 print:overflow-visible" style={orgBrandStyle(brandTheme)}>
           <ChatWidgetProvider userName={chatUserName} showFloatingChat={showFloatingChat}>
             {isDesktop ? <div className="flex h-full min-h-0 w-56 shrink-0 flex-col print:hidden"><Sidebar {...sidebarProps} /></div> : null}
             <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
