@@ -91,7 +91,7 @@ function safeClientProgress(raw: unknown): AllowedClientProgress {
   if (!raw || typeof raw !== "object") return {};
   const source = raw as Record<string, unknown>; const safe: AllowedClientProgress = {};
   if (["starter", "professional", "business"].includes(String(source.platformTier))) safe.platformTier = source.platformTier as Gen2OnboardingProgress["platformTier"];
-  if (["self_managed", "guided", "managed", "custom"].includes(String(source.supportPlan))) safe.supportPlan = source.supportPlan as Gen2OnboardingProgress["supportPlan"];
+  if (["standard", "priority", "success_partner", "enterprise_success"].includes(String(source.supportPlan))) safe.supportPlan = source.supportPlan as Gen2OnboardingProgress["supportPlan"];
   if (source.billingCadence === "monthly" || source.billingCadence === "annual") safe.billingCadence = source.billingCadence;
   if (Array.isArray(source.industryApps)) safe.industryApps = source.industryApps.filter((v): v is string => typeof v === "string" && v.length <= 80).slice(0, 20);
   if (Array.isArray(source.industryTemplates)) safe.industryTemplates = source.industryTemplates.filter((v): v is string => typeof v === "string" && v.length <= 80).slice(0, 30);
