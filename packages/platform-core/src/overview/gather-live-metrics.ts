@@ -67,8 +67,8 @@ export interface OverviewLiveMetrics {
     searchImpressions: number | null;
     searchCtr: number | null;
     searchPosition: number | null;
-    /** Source-specific failure state. Missing means the source did not report a failure. */
-    errors?: { analytics?: string; search?: string };
+    /** Explicit source state; genuine zero metrics remain available evidence. */
+    sources: { analytics: "available" | "not_configured" | "failed"; search: "available" | "not_configured" | "failed" };
   } | null;
 }
 
@@ -207,7 +207,7 @@ export async function gatherOverviewLiveMetrics(
   const advertising = buildAdvertisingEvidence(advertisingChannels);
   const reputation = computeReputationScore(mapGbpReviewsToFeed(gbp?.reviews ?? []));
   const web = googleWebEvidence?.ok ? googleWebEvidence.data : null;
-  const marketing = web && (web.analytics || web.search)
+  const marketing = web
     ? {
         period: web.period,
         activeUsers: web.analytics?.activeUsers ?? null,
@@ -218,7 +218,7 @@ export async function gatherOverviewLiveMetrics(
         searchImpressions: web.search?.impressions ?? null,
         searchCtr: web.search?.ctr ?? null,
         searchPosition: web.search?.position ?? null,
-        errors: web.errors,
+        sources: web.sources,
       }
     : null;
 
