@@ -25,8 +25,10 @@ export type IndustrySpecialisationStatus =
 export type IndustrySpecialisation = {
   id: string;
   label: string;
-  /** Existing Gen 2 module id when one exists */
+  /** Existing Gen 2 module id when one exists. */
   appId?: string;
+  /** False when the module exists only as a deferred/scaffold runtime and must not be sold or routed as mounted. */
+  runtimeReady?: boolean;
   templateId: string;
   status: IndustrySpecialisationStatus;
   summary: string;
@@ -117,7 +119,7 @@ export const INDUSTRY_PUBLIC_GROUPS = [
   {
     id: "early-access",
     label: "Early Access",
-    industryIds: ["hospitality-accommodation", "finance", "creator-media"],
+    industryIds: ["hospitality-accommodation", "finance"],
   },
   {
     id: "coming",
@@ -126,6 +128,7 @@ export const INDUSTRY_PUBLIC_GROUPS = [
       "professional",
       "health-wellness",
       "automotive",
+      "creator-media",
       "retail-commerce",
       "transport-logistics",
       "education-organisations",
@@ -533,6 +536,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         id: "dealerships",
         label: "Vehicle Dealerships",
         appId: "automotive",
+        runtimeReady: false,
         templateId: "dealership",
         status: "soon",
         summary: "Inventory, enquiries, test drives, trade-ins and delivery",
@@ -541,6 +545,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         id: "service-repair",
         label: "Service & Repair",
         appId: "automotive",
+        runtimeReady: false,
         templateId: "workshop",
         status: "soon",
         summary: "Bookings, workshop jobs, inspections, parts and approvals",
@@ -587,7 +592,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     price: "$99/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
-    roadmap: "early-access",
+    roadmap: "coming",
     publicSurface: true,
     summary: "Creators, artists, music, media and digital-product businesses.",
     proposition: "Creator & Media is the parent Industry App. Creators & Influencers, Music & Artists, Creative Agencies, Publishers & Media, Production & Media and Digital Products are distinct sub-industry Apps.",
@@ -596,14 +601,16 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         id: "creators-influencers",
         label: "Creators & Influencers",
         appId: "creator",
+        runtimeReady: false,
         templateId: "creator",
-        status: "rolling-out",
+        status: "soon",
         summary: "Audience CRM, content, partnerships and creator businesses",
       },
       {
         id: "music-artists",
         label: "Music & Artists",
         appId: "creator",
+        runtimeReady: false,
         templateId: "musicians",
         status: "soon",
         summary: "Releases, catalogue, audience, promotion and bookings",
@@ -612,6 +619,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
         id: "creative-agencies",
         label: "Creative Agencies",
         appId: "creator",
+        runtimeReady: false,
         templateId: "media-agencies",
         status: "soon",
         summary: "Leads, briefs, projects, approvals and retainers",

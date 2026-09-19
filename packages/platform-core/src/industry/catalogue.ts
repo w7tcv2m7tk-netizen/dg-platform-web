@@ -109,7 +109,7 @@ function buildPrimaryHref(
   templateSlug: string,
 ): string {
   const id = spec.id;
-  const appId = spec.appId;
+  const appId = spec.runtimeReady === false ? undefined : spec.appId;
 
   if (id === "real-estate" || appId === "real-estate") return "/apps/re";
   if (id === "property-management" || appId === "property-management") {
@@ -152,11 +152,11 @@ function buildTemplate(
     slug,
     description: spec.summary,
     status: mapSpecialisationStatus(spec.status, {
-      appId: spec.appId,
+      appId: spec.runtimeReady === false ? undefined : spec.appId,
       specialisationId: spec.id,
       industryId: platform.id,
     }),
-    appId: spec.appId,
+    appId: spec.runtimeReady === false ? undefined : spec.appId,
     primaryHref: buildPrimaryHref(spec, platform.id, slug),
     isDefaultIncluded: isDefaultIncluded || undefined,
   };
