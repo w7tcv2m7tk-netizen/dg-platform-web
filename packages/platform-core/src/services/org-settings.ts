@@ -5,7 +5,12 @@ import { getServiceTemplate, isServiceTemplateKey } from "./templates";
 import type { ServiceTemplate, ServiceTemplateKey } from "./types";
 
 export type OrgServicesSettings = {
+  /** @deprecated Legacy single-template pointer. Retained for migration only. */
   templateKey?: ServiceTemplateKey;
+  /** Active Services sub-industry apps. Multiple may coexist. */
+  activeTemplateKeys?: ServiceTemplateKey[];
+  /** Preferred Services sub-industry when a route does not specify one. */
+  primaryTemplateKey?: ServiceTemplateKey;
   appliedAt?: string;
 };
 
@@ -14,18 +19,30 @@ export function readOrgServicesSettings(
 ): OrgServicesSettings {
   const root = (settings as { services?: OrgServicesSettings } | null)?.services;
   if (!root || typeof root !== "object") return {};
+  const legacyTemplateKey =
+    root.templateKey && isServiceTemplateKey(root.templateKey) ? root.templateKey : undefined;
+  const activeTemplateKeys = Array.isArray(root.activeTemplateKeys)
+    ? root.activeTemplateKeys.filter(
+        (key): key is ServiceTemplateKey => typeof key === "string" && isServiceTemplateKey(key),
+      )
+    : legacyTemplateKey
+      ? [legacyTemplateKey]
+      : [];
+  const primaryTemplateKey =
+    root.primaryTemplateKey && isServiceTemplateKey(root.primaryTemplateKey)
+      ? root.primaryTemplateKey
+      : legacyTemplateKey ?? activeTemplateKeys[0];
   return {
-    templateKey:
-      root.templateKey && isServiceTemplateKey(root.templateKey)
-        ? root.templateKey
-        : undefined,
+    templateKey: legacyTemplateKey,
+    activeTemplateKeys: [...new Set(activeTemplateKeys)],
+    primaryTemplateKey,
     appliedAt: typeof root.appliedAt === "string" ? root.appliedAt : undefined,
   };
 }
 
 export function getActiveServiceTemplate(settings: unknown): ServiceTemplate {
-  const { templateKey } = readOrgServicesSettings(settings);
-  return enhanceServiceTemplate(getServiceTemplate(templateKey));
+  const { primaryTemplateKey, templateKey } = readOrgServicesSettings(settings);
+  return enhanceServiceTemplate(getServiceTemplate(primaryTemplateKey ?? templateKey));
 }
 
 /**
@@ -64,6 +81,10 @@ export async function applyServiceTemplate(input: {
   const brandVoice =
     (profile.brandVoice as Record<string, unknown> | undefined) ?? {};
 
+  const currentServices = readOrgServicesSettings(settings);
+  const activeTemplateKeys = new Set(currentServices.activeTemplateKeys ?? []);
+  activeTemplateKeys.add(template.key);
+
   const enabled = new Set([
     ...(Array.isArray(apps.enabled) ? apps.enabled : resolveEnabledAppIds({ apps })),
     "services",
@@ -76,7 +97,11 @@ export async function applyServiceTemplate(input: {
     ...settings,
     apps: { ...apps, enabled: [...enabled] },
     services: {
-      templateKey: template.key,
+      ...currentServices,
+      // Keep the legacy pointer aligned with the primary selection during migration.
+      templateKey: currentServices.primaryTemplateKey ?? template.key,
+      activeTemplateKeys: [...activeTemplateKeys],
+      primaryTemplateKey: currentServices.primaryTemplateKey ?? template.key,
       appliedAt: new Date().toISOString(),
     },
     profile: {
