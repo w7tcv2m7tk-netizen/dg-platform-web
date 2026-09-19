@@ -20,21 +20,32 @@ test("authenticated shell switches from fixed sidebar to a mobile drawer", async
 });
 
 test("authenticated mobile shell covers the visual viewport without a purple home-indicator strip", async () => {
-  const [shell, css, brand] = await Promise.all([
+  const [shell, css, brand, viewport] = await Promise.all([
     source("src/components/AppShellLayout.tsx"),
     source("src/app/globals.css"),
     source("packages/platform-core/src/org/brand-theme.ts"),
+    source("src/hooks/useShellViewportHeight.ts"),
   ]);
 
-  assert.match(shell, /dg-shell-underlay fixed inset-0/);
-  assert.match(shell, /dg-branded-shell dg-shell-viewport absolute inset-0/);
+  assert.match(shell, /useShellViewportHeight\(\)/);
+  assert.match(shell, /dg-shell-underlay dg-shell-viewport fixed left-0 top-0/);
+  assert.match(shell, /dg-branded-shell dg-shell-viewport absolute left-0 top-0/);
   assert.match(shell, /PLATFORM_SHELL_CHROME = "#07101d"/);
   assert.match(shell, /document\.body\.style\.background = PLATFORM_SHELL_CHROME/);
   assert.doesNotMatch(shell, /org-shell-gradient/);
   assert.doesNotMatch(shell, /h-\[100dvh\]/);
+  assert.doesNotMatch(shell, /fixed inset-0 z-0/);
 
-  assert.match(css, /min-height:\s*100lvh/);
-  assert.match(css, /min-height:\s*-webkit-fill-available/);
+  assert.match(viewport, /visualViewport/);
+  assert.match(viewport, /--dg-shell-height/);
+  assert.match(viewport, /visual\.height \+ visual\.offsetTop/);
+
+  assert.match(css, /--dg-shell-height, 100lvh/);
+  assert.match(css, /calc\(100dvh \+ env\(safe-area-inset-bottom/);
+  assert.doesNotMatch(
+    css,
+    /\.dg-shell-viewport \{[^}]*\binset:\s*0\b/s,
+  );
   assert.match(css, /\.dg-shell-underlay\s*\{[^}]*background-color:\s*#07101d/s);
 
   assert.doesNotMatch(brand, /at 0% 100%/);
