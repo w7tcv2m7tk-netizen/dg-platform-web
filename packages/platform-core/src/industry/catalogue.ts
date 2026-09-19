@@ -196,8 +196,11 @@ export function listIndustries(): IndustryCatalogueIndustry[] {
 }
 
 export function getIndustry(id: string): IndustryCatalogueIndustry | undefined {
-  const key = id.trim();
-  if (!key) return undefined;
+  const raw = id.trim();
+  if (!raw) return undefined;
+  // Onboarding taxonomy historically names this parent in the opposite word order.
+  // Keep the stored/catalogue id stable while accepting the canonical onboarding alias.
+  const key = raw === "accommodation-hospitality" ? "hospitality-accommodation" : raw;
   return INDUSTRY_CATALOGUE.find((i) => i.id === key || i.slug === key);
 }
 
