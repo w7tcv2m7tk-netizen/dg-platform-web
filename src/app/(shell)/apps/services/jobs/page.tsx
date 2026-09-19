@@ -108,7 +108,7 @@ export default async function ServicesJobsPage({ searchParams }: PageProps) {
           />
         ) : null}
       </div>
-      <JobsListFilters filters={filters} stages={template.workflow} members={memberOptions} />
+      <JobsListFilters filters={filters} stages={template.workflow} members={memberOptions} templateKey={templateKey} />
       <div className="dg-card">
         {!items.length ? (
           <div className="space-y-2">
