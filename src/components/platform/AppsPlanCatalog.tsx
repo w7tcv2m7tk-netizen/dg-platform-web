@@ -95,27 +95,41 @@ function CatalogAppCard({
 }
 
 export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
-  const { enabledIds, applyPlan, resetApps, syncing, lastError, clearError } = useEnabledApps();
+  const { enabledIds, industrySelectionIds, applyPlan, resetApps, syncing, lastError, clearError } = useEnabledApps();
   const [activeTier, setActiveTier] = useState<PlatformTier>("professional");
 
-  const selectionFromEnabled = useMemo(
-    () => ({
-      industryApps: INDUSTRY_PLATFORM_CATALOG.flatMap((platform) =>
-        platform.specialisations.flatMap((specialisation) =>
-          specialisation.appId && enabledIds.includes(specialisation.appId)
-            ? [specialisation.id]
-            : [],
-        ),
+  const selectionFromCurrentState = useMemo(() => {
+    const knownSelectionIds = new Set(
+      INDUSTRY_PLATFORM_CATALOG.flatMap((platform) => [
+        platform.platformId,
+        ...platform.specialisations.map((specialisation) => specialisation.id),
+      ]),
+    );
+    const exactIndustrySelections = industrySelectionIds.filter((id) => knownSelectionIds.has(id));
+
+    // Legacy organisations may only have the shared runtime app enabled. Preserve
+    // the parent Industry in that case, but never infer every child from one engine.
+    const fallbackParentSelections = INDUSTRY_PLATFORM_CATALOG.flatMap((platform) => {
+      const runtimeEnabled = platform.specialisations.some(
+        (specialisation) => specialisation.appId && enabledIds.includes(specialisation.appId),
+      );
+      return runtimeEnabled ? [platform.platformId] : [];
+    });
+
+    return {
+      industryApps: exactIndustrySelections.length
+        ? exactIndustrySelections
+        : fallbackParentSelections,
+      premiumApps: GROWTH_APP_CATALOG.flatMap((item) =>
+        item.premiumKey && enabledIds.includes(item.appId) ? [item.premiumKey] : [],
       ),
-      premiumApps: GROWTH_APP_CATALOG.flatMap((item) => item.premiumKey && enabledIds.includes(item.appId) ? [item.premiumKey] : []),
-    }),
-    [enabledIds],
-  );
+    };
+  }, [enabledIds, industrySelectionIds]);
 
   const applyTier = (tier: PlatformTier) => {
     setActiveTier(tier);
     if (tier === "enterprise") return;
-    void applyPlan({ platformTier: tier, industryApps: selectionFromEnabled.industryApps, premiumApps: selectionFromEnabled.premiumApps });
+    void applyPlan({ platformTier: tier, industryApps: selectionFromCurrentState.industryApps, premiumApps: selectionFromCurrentState.premiumApps });
   };
 
   const appHref = (appId: string) => {
