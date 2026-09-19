@@ -133,15 +133,28 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
     preferredServiceTemplateKey && selectedServiceTemplateKeys.includes(preferredServiceTemplateKey)
       ? preferredServiceTemplateKey
       : selectedServiceTemplateKeys[0];
-  const nextServices = shouldSyncCanonicalIndustry && selectedServiceTemplateKeys.length
-    ? {
-        ...(settings.services ?? {}),
-        activeTemplateKeys: selectedServiceTemplateKeys,
-        primaryTemplateKey: primaryServiceTemplateKey,
-        templateKey: primaryServiceTemplateKey,
-        appliedAt: now,
-      }
-    : settings.services;
+  let nextServices = settings.services;
+  if (shouldSyncCanonicalIndustry) {
+    const {
+      activeTemplateKeys: _activeTemplateKeys,
+      primaryTemplateKey: _primaryTemplateKey,
+      templateKey: _templateKey,
+      ...serviceBase
+    } = settings.services ?? {};
+    nextServices = selectedServiceTemplateKeys.length
+      ? {
+          ...serviceBase,
+          activeTemplateKeys: selectedServiceTemplateKeys,
+          primaryTemplateKey: primaryServiceTemplateKey,
+          templateKey: primaryServiceTemplateKey,
+          appliedAt: now,
+        }
+      : {
+          ...serviceBase,
+          activeTemplateKeys: [],
+          appliedAt: now,
+        };
+  }
 
   await prisma.organisation.update({ where: { id: organisationId }, data: { settings: { ...settings, ...(nextApps ? { apps: nextApps } : {}), ...(nextIndustry ? { industry: nextIndustry } : {}), ...(nextServices ? { services: nextServices } : {}), gen2Onboarding: nextProgress } as never } });
   return nextProgress;
