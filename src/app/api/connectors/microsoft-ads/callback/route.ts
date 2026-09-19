@@ -1,6 +1,6 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeMicrosoftAdsCode, saveOrgMicrosoftAdsTokens } from "@dg/platform-core";
+import { exchangeMicrosoftAdsCode, getOrgMicrosoftAdsTokens, saveOrgMicrosoftAdsTokens } from "@dg/platform-core";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { parseGoogleOAuthState } from "@/lib/google-oauth-state";
 import { requirePermission } from "@/lib/platform-api";
@@ -18,6 +18,6 @@ export async function GET(req:NextRequest){
  const denied=requirePermission(session,{module:"settings",action:"manage",scope:"organisation"});if(denied)return fail("You do not have permission to manage organisation connections");
  const block=await tenantWriteEntitlementBlock(session);if(block)return fail(block.message);
  const x=await exchangeMicrosoftAdsCode(code);if(!x.ok)return fail(x.message);
- await saveOrgMicrosoftAdsTokens(session.organisationId,{accessToken:x.accessToken,refreshToken:x.refreshToken,expiresAt:x.expiresAt,scope:x.scope,connectedAt:new Date().toISOString(),selectedAccountIds:[],accounts:[]});
+ const existing=await getOrgMicrosoftAdsTokens(session.organisationId);await saveOrgMicrosoftAdsTokens(session.organisationId,{...(existing??{}),accessToken:x.accessToken,refreshToken:x.refreshToken||existing?.refreshToken,expiresAt:x.expiresAt,scope:x.scope||existing?.scope,connectedAt:new Date().toISOString(),lastError:undefined});
  return NextResponse.redirect(new URL("/apps/advertising?microsoftAds=connected",base));
 }
