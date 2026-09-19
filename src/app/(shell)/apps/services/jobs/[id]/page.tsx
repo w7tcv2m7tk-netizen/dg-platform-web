@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getActiveServiceTemplate,
+  getServiceTemplate,
   getContact,
   getServiceJob,
   listOrganisationActivities,
@@ -61,7 +62,8 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
     ]);
 
   const timeZone = org?.timezone || SERVICES_DEFAULT_TZ;
-  const template = getActiveServiceTemplate(org?.settings);
+  const fallbackTemplate = getActiveServiceTemplate(org?.settings);
+  const template = job.templateKey ? getServiceTemplate(job.templateKey) : fallbackTemplate;
   const contact =
     canReadContacts && job.contactId
       ? await getContact(session.organisationId, job.contactId)
@@ -106,7 +108,7 @@ export default async function ServiceJobDetailPage({ params }: PageProps) {
     <>
       <header className="dg-page-header">
         <Link
-          href="/apps/services/jobs"
+          href={`/apps/services/jobs?template=${encodeURIComponent(template.key)}`}
           className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
         >
           ← Jobs
