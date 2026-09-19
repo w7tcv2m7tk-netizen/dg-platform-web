@@ -247,7 +247,7 @@ body {
 }
 
 .dg-branded-shell {
-  background: var(--org-shell-gradient, var(--org-bg-base, #020617));
+  background: var(--org-shell-gradient, var(--org-bg-base, #07101d));
   color: #f1f5f9;
 }
 
@@ -255,13 +255,35 @@ html[data-theme="light"] .dg-branded-shell {
   color: #0f172a;
 }
 
+/* Cover the iOS visual viewport (home indicator / dynamic toolbar) — 100dvh alone leaves a brand-tinted strip. */
+.dg-shell-underlay,
+.dg-shell-viewport {
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  min-height: 100lvh;
+  min-height: -webkit-fill-available;
+}
+
+.dg-shell-underlay {
+  background-color: #07101d;
+}
+
 /* Authenticated shell: document never scrolls — panes own overflow. */
 html.dg-shell-scroll-lock,
 html.dg-shell-scroll-lock body {
-  height: 100dvh;
+  height: 100%;
+  min-height: 100%;
   min-height: 100dvh;
+  min-height: 100lvh;
+  min-height: -webkit-fill-available;
   overflow: hidden;
   overscroll-behavior: none;
+}
+
+html.dg-shell-scroll-lock:not([data-theme="light"]),
+html.dg-shell-scroll-lock:not([data-theme="light"]) body {
+  background-color: #07101d;
 }
 
 .dg-branded-sidebar {
@@ -713,7 +735,9 @@ html.dg-shell-scroll-lock body {
     display: none !important;
   }
 
-  .dg-branded-shell {
+  .dg-branded-shell,
+  .dg-shell-underlay,
+  .dg-shell-viewport {
     display: block !important;
     position: static !important;
     inset: auto !important;

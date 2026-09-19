@@ -19,6 +19,28 @@ test("authenticated shell switches from fixed sidebar to a mobile drawer", async
   assert.match(shell, /overflow-x-clip overflow-y-auto/);
 });
 
+test("authenticated mobile shell covers the visual viewport without a purple home-indicator strip", async () => {
+  const [shell, css, brand] = await Promise.all([
+    source("src/components/AppShellLayout.tsx"),
+    source("src/app/globals.css"),
+    source("packages/platform-core/src/org/brand-theme.ts"),
+  ]);
+
+  assert.match(shell, /dg-shell-underlay fixed inset-0/);
+  assert.match(shell, /dg-branded-shell dg-shell-viewport absolute inset-0/);
+  assert.match(shell, /PLATFORM_SHELL_CHROME = "#07101d"/);
+  assert.match(shell, /document\.body\.style\.background = PLATFORM_SHELL_CHROME/);
+  assert.doesNotMatch(shell, /org-shell-gradient/);
+  assert.doesNotMatch(shell, /h-\[100dvh\]/);
+
+  assert.match(css, /min-height:\s*100lvh/);
+  assert.match(css, /min-height:\s*-webkit-fill-available/);
+  assert.match(css, /\.dg-shell-underlay\s*\{[^}]*background-color:\s*#07101d/s);
+
+  assert.doesNotMatch(brand, /at 0% 100%/);
+  assert.match(brand, /linear-gradient\(to top, #07101d/);
+});
+
 test("Website Studio collapses its desktop editor grid on narrow viewports", async () => {
   const studio = await source("src/components/websites/WebsiteStudioClient.tsx");
 
