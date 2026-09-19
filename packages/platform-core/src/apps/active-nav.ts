@@ -8,6 +8,37 @@ import type {
 } from "./navigation";
 import { flattenAppRoutes } from "./route-tree";
 
+type ParsedNavLocation = {
+  pathname: string;
+  search: URLSearchParams;
+};
+
+function parseNavLocation(value: string): ParsedNavLocation {
+  const queryIndex = value.indexOf("?");
+  if (queryIndex < 0) return { pathname: value, search: new URLSearchParams() };
+  return {
+    pathname: value.slice(0, queryIndex),
+    search: new URLSearchParams(value.slice(queryIndex + 1)),
+  };
+}
+
+function routeOwnsLocation(location: string, routePath: string, exact = false): boolean {
+  const current = parseNavLocation(location);
+  const target = parseNavLocation(routePath);
+
+  for (const [key, value] of target.search.entries()) {
+    if (current.search.get(key) !== value) return false;
+  }
+
+  if (current.pathname === target.pathname) return true;
+  if (exact) return false;
+  return current.pathname.startsWith(`${target.pathname}/`);
+}
+
+function locationPathname(location: string): string {
+  return parseNavLocation(location).pathname;
+}
+
 function findRoute(routes: AppRoute[], routePath: string): AppRoute | undefined {
   for (const route of routes) {
     if (route.path === routePath) return route;
@@ -19,38 +50,33 @@ function findRoute(routes: AppRoute[], routePath: string): AppRoute | undefined 
   return undefined;
 }
 
-/** Match a nav route against the current pathname. */
-export function routeIsActive(pathname: string, routePath: string, routes: AppRoute[]): boolean {
-  if (pathname === routePath) return true;
+/** Match a nav route against the current location. Route query params are constraints. */
+export function routeIsActive(location: string, routePath: string, routes: AppRoute[]): boolean {
+  if (routeOwnsLocation(location, routePath, true)) return true;
 
   const route = findRoute(routes, routePath);
   if (
-    route?.matchAlso?.some((prefix) => {
-      const base = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
-      return pathname === base || pathname === prefix || pathname.startsWith(`${base}/`);
-    })
+    route?.matchAlso?.some((prefix) => routeOwnsLocation(location, prefix, false))
   ) {
     return true;
   }
 
   if (route?.children?.length) {
-    return itemHasActiveRoute(pathname, route.children);
+    return itemHasActiveRoute(location, route.children);
   }
 
   // Hub landings (exact: true) never claim child paths.
   if (route?.exact) return false;
 
   const leafRoutes = flattenAppRoutes(routes).filter((r) => !r.children?.length);
-  // Only yield to siblings that actually own this pathname (e.g. /apps/catalogue),
-  // not merely because other routes share the parent prefix.
+  // Only yield to siblings that actually own this location, including any query
+  // constraint declared by that sibling.
   const siblingOwnsPath = leafRoutes.some(
-    (r) =>
-      r.path !== routePath &&
-      (pathname === r.path || pathname.startsWith(`${r.path}/`)),
+    (r) => r.path !== routePath && routeOwnsLocation(location, r.path, false),
   );
   if (siblingOwnsPath) return false;
 
-  return pathname.startsWith(`${routePath}/`);
+  return routeOwnsLocation(location, routePath, false);
 }
 
 export function itemHasActiveRoute(pathname: string, routes: AppRoute[]): boolean {
@@ -60,8 +86,9 @@ export function itemHasActiveRoute(pathname: string, routes: AppRoute[]): boolea
   return false;
 }
 
-function shellLinkActive(pathname: string, href: string, routes?: AppRoute[]): boolean {
-  if (routes?.length) return itemHasActiveRoute(pathname, routes);
+function shellLinkActive(location: string, href: string, routes?: AppRoute[]): boolean {
+  if (routes?.length) return itemHasActiveRoute(location, routes);
+  const pathname = locationPathname(location);
   if (pathname === href) return true;
   if (href === "/dashboard") return pathname === "/dashboard";
   if (href === "/dashboard/settings") {
@@ -93,7 +120,8 @@ const INTELLIGENCE_PATH_PREFIXES = [
   "/dashboard/reports",
 ] as const;
 
-function isIntelligencePath(pathname: string): boolean {
+function isIntelligencePath(location: string): boolean {
+  const pathname = locationPathname(location);
   return INTELLIGENCE_PATH_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
@@ -121,40 +149,36 @@ function resolveActiveRoute(pathname: string, routes: AppRoute[]): AppRoute | nu
  * When scoring matchAlso, use the matched alias length — never the longer
  * declared alien path.
  */
-function matchSpecificity(pathname: string, routes: AppRoute[]): number {
+function matchSpecificity(location: string, routes: AppRoute[]): number {
   let bestPrimary = -1;
   let bestAlias = -1;
 
   for (const route of flattenAppRoutes(routes)) {
-    const primaryExact =
-      pathname === route.path ||
-      (!route.exact && pathname.startsWith(`${route.path}/`));
-    if (primaryExact) {
-      // Prefer leaf ownership: exact path beats parent prefix among peers via length.
+    if (routeOwnsLocation(location, route.path, route.exact === true)) {
+      // Query-constrained child routes naturally outrank generic routes because
+      // their declared path is longer.
       bestPrimary = Math.max(bestPrimary, route.path.length);
     }
 
     for (const also of route.matchAlso ?? []) {
-      const base = also.endsWith("/") ? also.slice(0, -1) : also;
-      if (pathname === base || pathname === also || pathname.startsWith(`${base}/`)) {
-        bestAlias = Math.max(bestAlias, base.length);
+      if (routeOwnsLocation(location, also, false)) {
+        bestAlias = Math.max(bestAlias, also.length);
       }
     }
   }
 
   if (bestPrimary >= 0) {
-    // Primary owners always beat alias-only matches (alias scores stay < 1e6).
     return 1_000_000 + bestPrimary;
   }
   return bestAlias;
 }
 
 function matchAppItem(
-  pathname: string,
+  location: string,
   section: NavIaSection,
   item: AppNavTreeItem,
 ): ResolvedActiveNav | null {
-  if (!itemHasActiveRoute(pathname, item.routes)) return null;
+  if (!itemHasActiveRoute(location, item.routes)) return null;
   return {
     sectionId: section.id,
     sectionLabel: section.label,
@@ -162,16 +186,16 @@ function matchAppItem(
     itemId: item.id,
     itemName: item.name,
     routes: item.routes,
-    activeRoute: resolveActiveRoute(pathname, item.routes),
+    activeRoute: resolveActiveRoute(location, item.routes),
   };
 }
 
 function matchShellLink(
-  pathname: string,
+  location: string,
   section: NavIaSection,
   link: PlatformShellNavItem,
 ): ResolvedActiveNav | null {
-  if (!shellLinkActive(pathname, link.href, link.routes)) return null;
+  if (!shellLinkActive(location, link.href, link.routes)) return null;
   const routes =
     link.routes ??
     (link.href.startsWith("/dashboard/") ||
@@ -189,15 +213,15 @@ function matchShellLink(
     itemId: link.href,
     itemName: link.label,
     routes,
-    activeRoute: resolveActiveRoute(pathname, routes),
+    activeRoute: resolveActiveRoute(location, routes),
   };
 }
 
 function resolveIntelligenceGroup(
-  pathname: string,
+  location: string,
   section: NavIaSection,
 ): ResolvedActiveNav | null {
-  if (!isIntelligencePath(pathname) || section.links.length === 0) return null;
+  if (!isIntelligencePath(location) || section.links.length === 0) return null;
   const routes: AppRoute[] = section.links.map((link) => ({
     path: link.href,
     label: link.label,
@@ -209,7 +233,7 @@ function resolveIntelligenceGroup(
     itemId: "intelligence-surfaces",
     itemName: section.label,
     routes,
-    activeRoute: resolveActiveRoute(pathname, routes),
+    activeRoute: resolveActiveRoute(location, routes),
   };
 }
 
@@ -232,7 +256,7 @@ const IA_SECTION_ORDER: (keyof CategorizedPlatformNavigation["ia"])[] = [
  * like `/command` never steal Organisations / Commercial / Product / etc.
  */
 export function resolveActiveAppNavigation(
-  pathname: string,
+  location: string,
   ia: CategorizedPlatformNavigation["ia"],
 ): ResolvedActiveNav | null {
   let best: ResolvedActiveNav | null = null;
@@ -241,9 +265,9 @@ export function resolveActiveAppNavigation(
   for (const key of IA_SECTION_ORDER) {
     const section = ia[key];
 
-    const intelligenceMatch = resolveIntelligenceGroup(pathname, section);
+    const intelligenceMatch = resolveIntelligenceGroup(location, section);
     if (intelligenceMatch) {
-      const score = matchSpecificity(pathname, intelligenceMatch.routes);
+      const score = matchSpecificity(location, intelligenceMatch.routes);
       if (score > bestScore) {
         best = intelligenceMatch;
         bestScore = score;
@@ -251,12 +275,12 @@ export function resolveActiveAppNavigation(
     }
 
     for (const app of section.apps) {
-      const match = matchAppItem(pathname, section, app);
+      const match = matchAppItem(location, section, app);
       if (!match) continue;
       // Single-route apps: no horizontal subnav (sidebar is enough) —
       // except Industry, where Template switcher still needs context.
       if (match.routes.length <= 1 && section.id !== "industry") continue;
-      const score = matchSpecificity(pathname, match.routes);
+      const score = matchSpecificity(location, match.routes);
       if (score > bestScore) {
         best = match;
         bestScore = score;
@@ -264,9 +288,9 @@ export function resolveActiveAppNavigation(
     }
 
     for (const link of [...section.links, ...(section.trailingLinks ?? [])]) {
-      const match = matchShellLink(pathname, section, link);
+      const match = matchShellLink(location, section, link);
       if (!match) continue;
-      const score = matchSpecificity(pathname, match.routes);
+      const score = matchSpecificity(location, match.routes);
       if (score > bestScore) {
         best = match;
         bestScore = score;
