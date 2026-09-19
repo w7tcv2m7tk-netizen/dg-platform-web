@@ -18,9 +18,9 @@ export const dynamic = "force-dynamic";
 /**
  * Start LinkedIn OAuth.
  *
- * DigitalGate has LinkedIn Community Management API access, so request the
- * organisation scopes needed to discover administered Pages and support
- * organisation publishing alongside the member identity connection.
+ * Request the proven organisation-admin read grant used to discover administered
+ * company Pages. LinkedIn organisation social read/write remains separately
+ * permission-gated and must not be silently requested by the base reconnect.
  *
  * GET /api/connectors/linkedin/connect
  */
