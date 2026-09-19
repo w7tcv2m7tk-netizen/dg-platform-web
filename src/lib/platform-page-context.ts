@@ -109,5 +109,13 @@ export const getOrgIndustrySelectionIdsCached = cache(async (): Promise<string[]
     select: { settings: true },
   });
 
-  return collectIndustrySelectionIds(readOrgNavSettings(org?.settings as OrgNavSettings));
+  const settings = readOrgNavSettings(org?.settings as OrgNavSettings);
+  const activeTemplateIds = Object.entries(settings?.industry?.templates ?? {})
+    .filter(([, entry]) => entry?.active === true)
+    .map(([id]) => id);
+
+  // Once canonical Industry activation exists, it is the navigation truth.
+  // Legacy onboarding / purchase markers remain a fallback for organisations
+  // that have not yet written exact active child state.
+  return activeTemplateIds.length ? activeTemplateIds : collectIndustrySelectionIds(settings);
 });
