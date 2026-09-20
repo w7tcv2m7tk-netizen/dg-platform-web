@@ -585,11 +585,15 @@
     /* ============================================================ */
     /* ===== FAQ SECTION ===== */
     /* ============================================================ */
+    /* Native details — scripts do not run after Website Studio innerHTML inject */
     .faq-section { max-width: 800px; margin: 60px auto; padding: 0 2rem; }
     .faq-item { background: #1E293B; border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid #334155; }
-    .faq-question { font-weight: 700; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .faq-answer { color: #94A3B8; font-size: 0.85rem; margin-top: 0.75rem; display: none; }
-    .faq-answer.show { display: block; }
+    .faq-question { font-weight: 700; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; list-style: none; }
+    .faq-question::-webkit-details-marker { display: none; }
+    .faq-question::marker { content: ""; }
+    .faq-question::after { content: "▾"; color: #93C5FD; font-size: 0.85rem; opacity: 0.7; margin-left: 1rem; flex-shrink: 0; }
+    .faq-item[open] .faq-question::after { content: "▴"; }
+    .faq-answer { color: #94A3B8; font-size: 0.85rem; margin-top: 0.75rem; }
 
 
     .pricing-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 40px; }
@@ -1800,58 +1804,58 @@
       <h2>Frequently Asked Questions</h2>
       <p>Everything you need to know</p>
     </div>
-    <div class="faq-item">
-      <div class="faq-question">What&apos;s the difference between Platform, Apps, Services and Success? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    <details class="faq-item">
+      <summary class="faq-question">What&apos;s the difference between Platform, Apps, Services and Success?</summary>
       <div class="faq-answer">Four commercial layers: <strong>1. Core Platform</strong> (Starter $99 / Growth $249 / Scale $499 / Enterprise custom). <strong>2. Growth</strong> — Growth Suite $399 is the recommended add-on (Advertising, Marketing, Prospecting &amp; Opportunity Engine, AI Visibility, SEO, Automation, Analytics, Social, Reputation). Individual Growth Apps remain available. <strong>3. Industry</strong> — $149/mo each, one primary sub-industry included; extra sub-industry Apps +$29/mo. <strong>4. Support &amp; Success</strong> is optional and separate. Professional Services are optional people work. Growth Suite and Industry do <strong>not</strong> include the Core Platform.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">Do I need Professional Services or Customer Success? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">Do I need Professional Services or Customer Success?</summary>
       <div class="faq-answer">No. The platform is self-service from day one with Standard support included. Add Professional Services for setup, migration or custom work. Add Priority or Success Partner if you want dedicated success management and strategy sessions.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">What is the App hierarchy? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">What is the App hierarchy?</summary>
       <div class="faq-answer">Buy in this order: Core Platform → Growth (preferably Growth Suite) → Industry if you need specialist workflows → optional Support. Core and Infrastructure sit with the platform. Growth Suite $399 and Industry $149 are add-ons. Individual Growth Apps: Advertising $99 · Marketing $99 · Prospecting &amp; Opportunity Engine $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · Reputation Free. AI Communications $99 is Coming Soon and is <strong>not</strong> in Growth Suite.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">Is Website Builder fully included? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">Is Website Builder fully included?</summary>
       <div class="faq-answer">No. Platform Core includes website connection &amp; management. <strong>Website Builder</strong> is software capability — create and manage websites in DigitalGate, progressively by platform tier. It is not a done-for-you agency build.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">Website Migration vs Website Build — which do I need? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">Website Migration vs Website Build — which do I need?</summary>
       <div class="faq-answer"><strong>Website Migration &amp; DigitalGate Setup (From $1,497)</strong> moves your <em>existing</em> website into DigitalGate Infrastructure so it runs and is managed on the platform (files, DNS, hosting, SSL, forms, redirects, testing and launch). It does <strong>not</strong> include redesign or redevelopment. <strong>Website Build (From $1,997)</strong> creates a <em>new</em> professional website on DigitalGate. After either path, you manage ongoing changes via Website Builder (by tier) or optional Professional Services / Success / Growth Apps.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">What is a Website Build? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">What is a Website Build?</summary>
       <div class="faq-answer">An optional Professional Service — a new website designed, configured and launched on DigitalGate. Public pricing is <strong>From $1,997 one-time</strong>; project price depends on scope, pages, integrations and content. Separate from Platform subscription and from Website Builder. Founding programme benefits do not automatically include Website Build unless expressly included in your Founding offer.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">What is Success Partner? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">What is Success Partner?</summary>
       <div class="faq-answer">Success Partner ($499/mo) is a Customer Success plan — not marketing execution. You get a dedicated success manager, monthly strategy sessions, AI optimisation reviews, team training and quarterly roadmap planning.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">Are there lock-in contracts? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">Are there lock-in contracts?</summary>
       <div class="faq-answer">No lock-in contracts. Choose monthly or annual billing. Annual is priced at approximately 10 months of monthly pricing (save ~2 months). You can upgrade, downgrade, or cancel subject to your plan terms. Try DigitalGate free for 14 days.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">What is the Founding Customer Programme? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">What is the Founding Customer Programme?</summary>
       <div class="faq-answer">The early commercial path for businesses operating on DigitalGate. <strong>Founding 10 is open now</strong> — limited places with exclusivity, early access, priority onboarding and influence at <strong>standard published pricing</strong> (not a recurring % discount), plus cohort-based direct referral benefits (20% / 15% / 10% by cohort). Referral commission is completely separate from your own subscription. Full rules: <a href="/founding-customer-terms/">Founding Customer Terms</a>.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">Do I need an Industry App? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">Do I need an Industry App?</summary>
       <div class="faq-answer">No. Industry Apps are optional. The Core Platform works standalone. Add an Industry App (Property, Services, Hospitality &amp; Accommodation, …) when you need specialist industry operating capability — and only when that Industry is Available or Coming Soon. Prefer Growth Suite + Industry ($499 add-on) if you also want the complete Growth collection.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">How do Industry Apps and sub-industry Apps price? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">How do Industry Apps and sub-industry Apps price?</summary>
       <div class="faq-answer"><strong>Industry App = $149/mo</strong> — specialist industry operating capability. <strong>One primary sub-industry App is included</strong>. <strong>Additional sub-industry Apps = +$29/mo each</strong>. Example: Property + Real Estate = $149 — not two $149 charges. Add Property Management → $178. Do not buy the parent Industry and the included primary sub-industry as two Industry Apps.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">Do Founding customers get a pricing discount? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">Do Founding customers get a pricing discount?</summary>
       <div class="faq-answer">No. Founding customers pay standard published Core Platform + Growth + Industry + Support pricing. Founding benefits are limited access, early capability access, priority onboarding and influence — not a recurring percentage discount. Referral commissions (20/15/10 by cohort) remain separate. Full rules: <a href="/founding-customer-terms/">Founding Customer Terms</a>.</div>
-    </div>
-    <div class="faq-item">
-      <div class="faq-question">What is Growth Suite — and does $499 include the Core Platform? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+    </details>
+    <details class="faq-item">
+      <summary class="faq-question">What is Growth Suite — and does $499 include the Core Platform?</summary>
       <div class="faq-answer"><strong>Growth Suite is $399/month</strong> and is the recommended way to buy DigitalGate&apos;s growth capability. It includes Advertising, Marketing, Prospecting &amp; Opportunity Engine, AI Visibility, SEO, Automation, Analytics, Social and Reputation. <strong>Growth Suite + Industry is $499/month</strong> (Growth Suite $399 + Industry $149 = $548 separately — save $49/month) and includes one Industry App with one primary sub-industry. Both prices are <strong>add-ons</strong> to your Core Platform plan. They do <strong>not</strong> include Starter, Growth, Scale or Enterprise. Example: Growth Core Platform $249 + Growth Suite + Industry $499 = <strong>$748/month</strong>.</div>
-    </div>
+    </details>
   </section>
 
   <!-- ============================================================ -->
@@ -1940,24 +1944,6 @@
     var heroCta = document.querySelector('.hero-cta');
     if (heroCta && STRIPE_PAYMENT_LINKS.hero_trial) heroCta.href = STRIPE_PAYMENT_LINKS.hero_trial;
     // Founding CTAs stay on /founding-customers/ — do not overwrite with trial link
-  </script>
-
-  <!-- ============================================================ -->
-  <!-- ===== FAQ SCRIPT ===== -->
-  <!-- ============================================================ -->
-  <script defer>
-    const faqItems = document.querySelectorAll('.faq-item');
-    faqItems.forEach(item => {
-      const question = item.querySelector('.faq-question');
-      const answer = item.querySelector('.faq-answer');
-      question.addEventListener('click', () => {
-        answer.classList.toggle('show');
-        const icon = question.querySelector('.dg-ic-chevron');
-        if (icon) {
-          icon.classList.toggle('is-open');
-        }
-      });
-    });
   </script>
 
   <!-- ============================================================ -->
