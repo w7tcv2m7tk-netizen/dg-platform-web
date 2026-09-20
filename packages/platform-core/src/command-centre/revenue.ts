@@ -65,8 +65,19 @@ export async function getCommandMrrAttribution(): Promise<CommandMrrAttribution>
     },
   });
 
-  const monthly = subscriptions.filter((s) => s.interval === "month");
-  const annual = subscriptions.filter((s) => s.interval === "year");
+  const customerSubscriptions = subscriptions.filter(
+    (s) =>
+      !isPlatformOperatorOrganisation({
+        organisationId: s.organisation.id,
+        organisationSlug: s.organisation.slug,
+        organisationName: s.organisation.name,
+      }) &&
+      !/^digitalgate[\\s-]+demo\\b/i.test(s.organisation.name.trim()) &&
+      !/^digitalgate-demo(?:-|$)/i.test(s.organisation.slug.trim()),
+  );
+
+  const monthly = customerSubscriptions.filter((s) => s.interval === "month");
+  const annual = customerSubscriptions.filter((s) => s.interval === "year");
   const monthlyMrrCents = monthly.reduce((sum, s) => sum + s.amountCents, 0);
   const annualAmountsCents = annual.reduce((sum, s) => sum + s.amountCents, 0);
   const arrCents = monthlyMrrCents * 12 + annualAmountsCents;
