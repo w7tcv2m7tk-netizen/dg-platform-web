@@ -13,7 +13,7 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 
 | Layer | Rule |
 |-------|------|
-| **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom |
+| **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom. **Native specialist industry-platform integrations & API access require Scale or Enterprise.** |
 | **Industry App** | **$99/mo** — major vertical capability and infrastructure |
 | **Industry Template** | **1 included** with each Industry App (primary business model); **+$29/mo** each additional |
 | **Growth Apps** | Optional · billed separately. **Prospecting & Opportunity Engine $99** · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · **Reputation Free** |
@@ -21,6 +21,14 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 | **Professional Services** | Optional people work — never required. Includes **Website Migration & DigitalGate Setup** (From $1,497) and **Website Build** (From $1,997). One-off charges, separate from recurring Platform / Apps / Templates / Success |
 | **Customer Success plans** | Standard included; Priority / Success Partner optional |
 | **AI / Twin / Intelligence** | Across the platform — not sold as separate Apps |
+
+### Industry integration entitlement
+
+Native integrations between DigitalGate Industry Apps / Templates and specialist third-party industry platforms are a **Scale ($499/mo) or Enterprise** platform entitlement. Industry App access by itself does not grant specialist industry API access.
+
+Examples include finance/lending platforms such as Lend, property portals and property systems, accommodation/PMS channels, and trade/job-management platforms. Connector availability still depends on the relevant provider API and the customer's activated Industry App / Template.
+
+This entitlement must be enforced server-side; lower tiers may surface an upgrade path but must not receive connector credentials or execute specialist industry API operations. Bespoke commercial offers may explicitly override the standard tier only where the organisation-specific offer grants the capability.
 
 ### Growth Apps (optional · billed separately)
 
