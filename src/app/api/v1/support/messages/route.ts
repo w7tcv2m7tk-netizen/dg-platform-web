@@ -23,7 +23,8 @@ export async function POST(req: Request) {
   if (isNextResponse(session)) return session;
 
   const body = await req.json().catch(() => null);
-  const message = typeof body?.message === "string" ? body.message.trim() : "";\r\n  const surfacePath = typeof body?.surfacePath === "string" ? body.surfacePath.trim() : undefined;
+  const message = typeof body?.message === "string" ? body.message.trim() : "";
+  const surfacePath = typeof body?.surfacePath === "string" ? body.surfacePath.trim() : undefined;
   if (!message) {
     return NextResponse.json(
       { error: { code: "validation_error", message: "Message is required" } },
