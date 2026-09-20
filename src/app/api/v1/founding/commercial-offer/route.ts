@@ -88,6 +88,7 @@ export async function POST(req: Request) {
     body?.platformTier === "business"
       ? body.platformTier
       : null;
+  const supportPlan = body?.supportPlan === "priority" || body?.supportPlan === "success_partner" || body?.supportPlan === "enterprise_success" || body?.supportPlan === "standard" ? body.supportPlan : "standard";
   const seats = Number(body?.seats);
   const trialDays = Number(body?.trialDays);
 
@@ -132,6 +133,7 @@ export async function POST(req: Request) {
     platformTier,
     industryApps: stringList(body?.industryApps),
     premiumApps: stringList(body?.premiumApps),
+    supportPlan,
     seats: Math.min(seats, 10000),
     trialDays,
     ...(oneOffAmountCents > 0 ? { oneOffAmountCents, oneOffLabel } : {}),
