@@ -96,7 +96,8 @@ export async function queueSupportAiReply(
             : "Staff";
       return `${who}: ${row.body.trim()}`;
     })
-    .join("\n");
+    .join("
+");
 
   // Build context strictly from the organisation pinned to this conversation.
   // Never infer tenant from the user or another active organisation.
@@ -136,24 +137,48 @@ export async function queueSupportAiReply(
         buildAiSystemPrompt(context),
         "",
         formatAidaEvidencePrompt(buildAidaEvidenceContext(context)),
-      ].join("\n");
+      ].join("
+");
     }
   } catch (err) {
     console.warn("[support-ai] business context unavailable", err instanceof Error ? err.message : err);
   }
 
-  const safeSurfacePath = surfacePath?.startsWith("/") && !surfacePath.includes("?") && !surfacePath.includes("#")\n    ? surfacePath.slice(0, 240)\n    : undefined;\n  const surfaceLabel = safeSurfacePath\n    ? safeSurfacePath.startsWith("/apps/crm") ? "CRM"\n      : safeSurfacePath.startsWith("/apps/analytics") ? "Analytics"\n      : safeSurfacePath.startsWith("/apps/advertising") ? "Advertising"\n      : safeSurfacePath.startsWith("/apps/seo") ? "SEO"\n      : safeSurfacePath.startsWith("/apps/ai-visibility") ? "AI Visibility"\n      : safeSurfacePath.startsWith("/apps/reviews") ? "Reviews & Reputation"\n      : safeSurfacePath.startsWith("/apps/websites") ? "Websites"\n      : safeSurfacePath.startsWith("/apps/automation") ? "Automation"\n      : safeSurfacePath.startsWith("/apps/") ? "Industry or platform app"\n      : safeSurfacePath.startsWith("/dashboard") ? "Business Overview"\n      : "Platform"\n    : undefined;\n\n  const userPrompt = [\n    `Client name: ${clientName}`,
-    `Client email: ${clientEmail}`,\n    ...(surfaceLabel ? [`Current platform surface: ${surfaceLabel} (${safeSurfacePath})`, "Treat this route only as a navigation hint; organisation evidence above remains authoritative."] : []),\n    "",
+  const safeSurfacePath = surfacePath?.startsWith("/") && !surfacePath.includes("?") && !surfacePath.includes("#")
+    ? surfacePath.slice(0, 240)
+    : undefined;
+  const surfaceLabel = safeSurfacePath
+    ? safeSurfacePath.startsWith("/apps/crm") ? "CRM"
+      : safeSurfacePath.startsWith("/apps/analytics") ? "Analytics"
+      : safeSurfacePath.startsWith("/apps/advertising") ? "Advertising"
+      : safeSurfacePath.startsWith("/apps/seo") ? "SEO"
+      : safeSurfacePath.startsWith("/apps/ai-visibility") ? "AI Visibility"
+      : safeSurfacePath.startsWith("/apps/reviews") ? "Reviews & Reputation"
+      : safeSurfacePath.startsWith("/apps/websites") ? "Websites"
+      : safeSurfacePath.startsWith("/apps/automation") ? "Automation"
+      : safeSurfacePath.startsWith("/apps/") ? "Industry or platform app"
+      : safeSurfacePath.startsWith("/dashboard") ? "Business Overview"
+      : "Platform"
+    : undefined;
+
+  const userPrompt = [
+    `Client name: ${clientName}`,
+    `Client email: ${clientEmail}`,
+    ...(surfaceLabel ? [`Current platform surface: ${surfaceLabel} (${safeSurfacePath})`, "Treat this route only as a navigation hint; organisation evidence above remains authoritative."] : []),
+    "",
     "Recent thread:",
     transcript,
     "",
     "Write Aida's next reply only (no role prefix).",
-  ].join("\n");
+  ].join("
+");
 
   try {
     const result = await llmChat({
       messages: [
-        { role: "system", content: businessContextPrompt ? `${SYSTEM_PROMPT}\n\n${businessContextPrompt}` : SYSTEM_PROMPT },
+        { role: "system", content: businessContextPrompt ? `${SYSTEM_PROMPT}
+
+${businessContextPrompt}` : SYSTEM_PROMPT },
         { role: "user", content: userPrompt },
       ],
       maxTokens: 550,
