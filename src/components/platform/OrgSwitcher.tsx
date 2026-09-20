@@ -19,9 +19,6 @@ export function OrgSwitcher({
   const [pendingLabel, setPendingLabel] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newTemplate, setNewTemplate] = useState<
-    "real-estate" | "accommodation" | "creator" | "services" | "default"
-  >("default");
   const [error, setError] = useState<string | null>(null);
 
   async function switchOrg(organisationId: string) {
@@ -61,7 +58,7 @@ export function OrgSwitcher({
     const res = await fetch("/api/v1/org/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: newName.trim(), template: newTemplate }),
+      body: JSON.stringify({ name: newName.trim(), template: "default" }),
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -71,11 +68,7 @@ export function OrgSwitcher({
       setError(json.error?.message ?? "Could not create organisation");
       return;
     }
-    if (newTemplate === "real-estate") {
-      window.location.assign("/dashboard/business?reOnboarding=1");
-      return;
-    }
-    window.location.assign("/dashboard");
+    window.location.assign("/onboarding");
   }
 
   const hasMultiple = organisations.length > 1;
@@ -143,26 +136,6 @@ export function OrgSwitcher({
                 placeholder="e.g. Roe Realty"
                 className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-white placeholder:text-slate-600"
               />
-              <select
-                value={newTemplate}
-                onChange={(e) =>
-                  setNewTemplate(
-                    e.target.value as
-                      | "real-estate"
-                      | "accommodation"
-                      | "creator"
-                      | "services"
-                      | "default",
-                  )
-                }
-                className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-sm text-slate-200"
-              >
-                <option value="real-estate">Real Estate template</option>
-                <option value="accommodation">Accommodation template</option>
-                <option value="services">Services template</option>
-                <option value="creator">Creator template</option>
-                <option value="default">General business</option>
-              </select>
               <button
                 type="submit"
                 disabled={creating || pending || !newName.trim()}
