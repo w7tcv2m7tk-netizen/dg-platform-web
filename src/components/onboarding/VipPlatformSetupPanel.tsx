@@ -64,15 +64,15 @@ async function extractPalette(file: File): Promise<[string, string] | null> {
     ctx.drawImage(bitmap, 0, 0, 48, 48);
     const data = ctx.getImageData(0, 0, 48, 48).data;
     const buckets = new Map<string, { count: number; r: number; g: number; b: number }>();
-    for (let i = 0; i < data.length; i += 16) {
+    for (let i = 0; i < data.length; i += 4) {
       const alpha = data[i + 3] ?? 0;
-      if (alpha < 160) continue;
+      if (alpha < 96) continue;
       const r = data[i] ?? 0;
       const g = data[i + 1] ?? 0;
       const b = data[i + 2] ?? 0;
       const max = Math.max(r, g, b);
       const min = Math.min(r, g, b);
-      if (max > 242 || max < 20 || max - min < 18) continue;
+      if (max >= 246 || max <= 14) continue;
       const qr = Math.round(r / 32) * 32;
       const qg = Math.round(g / 32) * 32;
       const qb = Math.round(b / 32) * 32;
@@ -84,14 +84,14 @@ async function extractPalette(file: File): Promise<[string, string] | null> {
       current.b += b;
       buckets.set(key, current);
     }
-    const ranked = [...buckets.values()].sort((a, b) => b.count - a.count).slice(0, 2);
+    const ranked = [...buckets.values()].sort((a, b) => b.count - a.count).slice(0, 8);
     if (!ranked.length) return null;
     const colours = ranked.map((entry) => rgbToHex(
       Math.round(entry.r / entry.count),
       Math.round(entry.g / entry.count),
       Math.round(entry.b / entry.count),
     ));
-    return [colours[0]!, colours[1] ?? colours[0]!];
+    const primary = colours[0]!;\n    const primaryRgb = ranked[0]!;\n    const accentIndex = ranked.findIndex((entry, index) => index > 0 && Math.hypot(\n      entry.r / entry.count - primaryRgb.r / primaryRgb.count,\n      entry.g / entry.count - primaryRgb.g / primaryRgb.count,\n      entry.b / entry.count - primaryRgb.b / primaryRgb.count,\n    ) >= 70);\n    return [primary, accentIndex > 0 ? colours[accentIndex]! : primary];
   } catch {
     return null;
   }
@@ -187,9 +187,9 @@ export function VipPlatformSetupPanel({
           brandColoursOverridden: false,
         };
         setSetup(next);
-        await persist(next, { brandColours: palette.join(",") });
+        const saved = await persist(next, { brandColours: palette.join(",") });\n        if (saved) setMessage("Brand colours detected: " + palette[0] + " · " + palette[1]);
       } else {
-        setMessage("Brand image uploaded");
+        setMessage("Brand image uploaded. We could not confidently detect colours — choose them below.");
       }
     } finally {
       setSaving(false);
