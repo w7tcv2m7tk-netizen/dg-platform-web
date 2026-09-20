@@ -19,6 +19,56 @@ type BrandAssetsEditorProps = {
   colourSaveLabel?: string;
 };
 
+
+function rgbToHex(r: number, g: number, b: number) {
+  return `#${[r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function colourDistance(a: [number, number, number], b: [number, number, number]) {
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
+
+async function extractBrandColours(file: File): Promise<[string, string] | null> {
+  if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) return null;
+  const bitmap = await createImageBitmap(file);
+  try {
+    const max = 160;
+    const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return null;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    const data = ctx.getImageData(0, 0, width, height).data;
+    const buckets = new Map<string, { count: number; rgb: [number, number, number] }>();
+    for (let i = 0; i < data.length; i += 4) {
+      const alpha = data[i + 3];
+      if (alpha < 160) continue;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      const maxChannel = Math.max(r, g, b), minChannel = Math.min(r, g, b);
+      const saturation = maxChannel - minChannel;
+      const luminance = (r * 299 + g * 587 + b * 114) / 1000;
+      // Ignore transparent/background white and near-black text unless the logo has no stronger colours.
+      if (luminance > 242 || luminance < 18 || (saturation < 12 && (luminance > 220 || luminance < 45))) continue;
+      const qr = Math.round(r / 24) * 24, qg = Math.round(g / 24) * 24, qb = Math.round(b / 24) * 24;
+      const key = `${qr},${qg},${qb}`;
+      const entry = buckets.get(key);
+      if (entry) entry.count += 1;
+      else buckets.set(key, { count: 1, rgb: [r, g, b] });
+    }
+    const ranked = [...buckets.values()].sort((a, b) => b.count - a.count);
+    if (!ranked.length) return null;
+    const primary = ranked[0].rgb;
+    const accent = ranked.find((entry) => colourDistance(primary, entry.rgb) >= 72)?.rgb ?? ranked[1]?.rgb ?? primary;
+    return [rgbToHex(...primary), rgbToHex(...accent)];
+  } finally {
+    bitmap.close();
+  }
+}
+
 const inputClass =
   "w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
 
@@ -86,14 +136,21 @@ export function BrandAssetsEditor({
     setError(null);
     setSavedNote(null);
     try {
+      const extracted = kind === "logo" ? await extractBrandColours(file).catch(() => null) : null;
       const url = await uploadBrandAsset(file);
-      const patch = kind === "icon" ? { iconUrl: url } : { logoUrl: url };
+      const patch: Partial<OrganisationBusinessProfile> =
+        kind === "icon" ? { iconUrl: url } : { logoUrl: url };
+      if (extracted) {
+        patch.brandColours = serializeBrandColours(extracted[0], extracted[1], background);
+      }
       onChange(patch);
       await persistBrandPatch(patch);
       setSavedNote(
         kind === "icon"
           ? "Icon saved — sidebar and compact UI."
-          : "Logo saved — invoices, quotes, email, and websites.",
+          : extracted
+            ? "Logo saved — brand colours detected and applied. You can adjust them below."
+            : "Logo saved — invoices, quotes, email, and websites.",
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
