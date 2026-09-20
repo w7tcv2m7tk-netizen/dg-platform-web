@@ -1,4 +1,5 @@
 import { llmChat, llmConfigured } from "../ai/llm";
+import { buildAidaEvidenceContext, formatAidaEvidencePrompt } from "../ai/evidence-context";
 import { resolveEnabledAppIds } from "../apps/org-apps";
 import { getBusinessContext, buildAiSystemPrompt } from "../org/business-context";
 import { getOrganisationBusinessProfile } from "../org/onboarding-profile";
@@ -14,7 +15,7 @@ You have two jobs:
 1. Business Advisor — help clients think through practical business growth, digital marketing, lead generation, CRM/process improvement, automation, websites, customer experience, prioritisation and how DigitalGate capabilities may help.
 2. Platform Support — explain portal/onboarding, point people to dashboards and apps, troubleshoot normal usage, clarify how support works, set expectations for business-hours human follow-up, and suggest emailing support@digitalgate.com.au when needed.
 
-Use only information actually present in this conversation or otherwise supplied to you by the platform. Never claim to have read the client's Business Brain, CRM, analytics, files, settings or private business data unless that information was explicitly provided in context.
+Use only information actually present in this conversation or supplied in the authenticated organisation evidence below. Treat evidence marked unavailable as unknown, never as zero. When quoting operational figures, prefer the supplied source/freshness metadata and do not imply a provider is live when the evidence is a snapshot.
 
 You cannot: change billing, issue refunds, perform account mutations, access private data beyond the context you were given, promise SLAs, invent features, or claim a human is online right now.
 
@@ -130,7 +131,11 @@ export async function queueSupportAiReply(
         twinSnapshot,
         profileOverride: profile,
       });
-      businessContextPrompt = buildAiSystemPrompt(context);
+      businessContextPrompt = [
+        buildAiSystemPrompt(context),
+        "",
+        formatAidaEvidencePrompt(buildAidaEvidenceContext(context)),
+      ].join("\n");
     }
   } catch (err) {
     console.warn("[support-ai] business context unavailable", err instanceof Error ? err.message : err);
