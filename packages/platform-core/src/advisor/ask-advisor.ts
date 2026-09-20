@@ -5,6 +5,7 @@
  */
 
 import { buildAiSystemPrompt, type BusinessContext } from "../org/business-context";
+import { buildAidaEvidenceContext, formatAidaEvidencePrompt } from "../ai/evidence-context";
 import {
   describeLlmTransportPlan,
   LlmChatError,
@@ -210,6 +211,7 @@ export async function askBusinessAdvisor(
 
   const correlationId = newCorrelationId();
   const evidence = evidenceBlock(input.briefing, input.businessContext);
+  const authoritativeEvidence = formatAidaEvidencePrompt(buildAidaEvidenceContext(input.businessContext));
 
   if (!llmConfigured()) {
     const fallback = briefingFallback(input, "no_llm");
@@ -248,7 +250,7 @@ export async function askBusinessAdvisor(
     input.contextLabel ? `Ask about: ${input.contextLabel}` : "Ask about: Entire Business",
     `Question: ${question}`,
     "",
-    "Evidence from DigitalGate (Twin / Brain / Health):",
+    "Advisor interpretation and recommendations (derived from the authoritative evidence above):",
     `${evidence}${contextualEvidenceBlock(input)}`,
   ].join("\n");
 
