@@ -361,7 +361,14 @@ export function UnifiedOnboardingJourney({
         return;
       }
       setProfile((current) => ({ ...current, [kind === "logo" ? "logoUrl" : "iconUrl"]: json.data.url }));
-      setMessage(`${kind === "logo" ? "Logo" : "Icon"} uploaded.`);
+      if (kind === "logo" && Array.isArray(json.data.brandColours) && json.data.brandColours.length >= 2 && !setup.brandColoursOverridden) {
+        const [primary, accent] = json.data.brandColours as [string, string];
+        setSetup((current) => ({ ...current, brandPrimary: primary, brandAccent: accent, brandColoursExtracted: true }));
+        setProfile((current) => ({ ...current, brandColours: `${primary}, ${accent}` }));
+        setMessage(`Logo uploaded · brand colours detected ${primary} + ${accent}.`);
+      } else {
+        setMessage(`${kind === "logo" ? "Logo" : "Icon"} uploaded.`);
+      }
     } finally {
       setSaving(false);
     }
