@@ -1,5 +1,13 @@
 export type PlatformTier = "starter" | "professional" | "business" | "enterprise";
 
+/** Canonical tier gate for native specialist industry-platform integrations/APIs. */
+export const INDUSTRY_INTEGRATION_MIN_TIER: PlatformTier = "business";
+
+export function canUseIndustryIntegrations(tier: PlatformTier | null | undefined): boolean {
+  return tier === "business" || tier === "enterprise";
+}
+
+
 export type IndustryApp =
   | "real-estate"
   | "accommodation"
