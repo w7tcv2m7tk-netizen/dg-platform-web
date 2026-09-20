@@ -102,7 +102,7 @@ export const INDUSTRY_COMMERCIAL_LOCK = {
     "Buy Accommodation as a separate Industry App",
   ],
   say: [
-    "Industry App — $149/mo — one connected vertical operating platform"
+    "Industry App — $149/mo — one connected vertical operating platform",
     "Includes 1 sub-industry App — customer chooses their primary business model",
     "Additional sub-industry Apps — +$29/mo each",
     "Parent Industry App is the commercial boundary; sub-industry Apps are the expansion layer",
