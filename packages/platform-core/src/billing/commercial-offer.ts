@@ -14,6 +14,7 @@ export type NegotiatedCommercialOffer = {
   platformTier: Gen2PlatformTier;
   industryApps: string[];
   premiumApps: string[];
+  supportPlan?: "standard" | "priority" | "success_partner" | "enterprise_success";
   seats?: number;
   trialDays: number;
   oneOffAmountCents?: number;
@@ -81,6 +82,10 @@ export function parseNegotiatedCommercialOffer(value: unknown): NegotiatedCommer
   ) {
     return null;
   }
+  const supportPlan =
+    raw.supportPlan === "priority" || raw.supportPlan === "success_partner" || raw.supportPlan === "enterprise_success" || raw.supportPlan === "standard"
+      ? raw.supportPlan
+      : undefined;
   const seats =
     typeof raw.seats === "number" && Number.isInteger(raw.seats) && raw.seats > 0
       ? Math.min(raw.seats, 10000)
@@ -106,6 +111,7 @@ export function parseNegotiatedCommercialOffer(value: unknown): NegotiatedCommer
     platformTier,
     industryApps: asStringArray(raw.industryApps),
     premiumApps: asStringArray(raw.premiumApps),
+    supportPlan,
     seats,
     trialDays,
     oneOffAmountCents,
@@ -193,6 +199,7 @@ export async function createNegotiatedCommercialCheckoutSession(input: {
     dg_billing_cadence: offer.cadence,
     dg_industry_apps: offer.industryApps.join(","),
     dg_premium_apps: offer.premiumApps.join(","),
+    dg_support_plan: offer.supportPlan ?? "standard",
     dg_commercial_offer_id: offer.id,
     dg_commercial_offer_label: offer.label,
     dg_subscription_amount_cents: String(offer.amountCents),
