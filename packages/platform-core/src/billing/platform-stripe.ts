@@ -195,13 +195,24 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     });
   }
 
-  const supportAmounts: Record<string, number> = { priority: 19900, success_partner: 49900 };
-  const supportLabels: Record<string, string> = { priority: "DigitalGate Priority Support", success_partner: "DigitalGate Success Partner" };
   const supportPlan = input.supportPlan ?? "standard";
-  const supportMonthly = supportAmounts[supportPlan] ?? 0;
-  if (supportMonthly > 0) {
-    const supportAmount = annual ? annualPriceFromMonthlyCents(supportMonthly) : supportMonthly;
-    lineItems.push({ quantity: 1, price_data: { currency: "aud", unit_amount: supportAmount, recurring, product_data: { name: annual ? `${supportLabels[supportPlan] ?? "DigitalGate Support"} (Annual)` : (supportLabels[supportPlan] ?? "DigitalGate Support") } } });
+  const supportOption =
+    supportPlan === "priority"
+      ? { monthlyCents: 19900, label: "DigitalGate Priority Support" }
+      : supportPlan === "success_partner"
+        ? { monthlyCents: 49900, label: "DigitalGate Success Partner" }
+        : null;
+  if (supportOption) {
+    const supportAmount = annual ? annualPriceFromMonthlyCents(supportOption.monthlyCents) : supportOption.monthlyCents;
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: "aud",
+        unit_amount: supportAmount,
+        recurring,
+        product_data: { name: annual ? `${supportOption.label} (Annual)` : supportOption.label },
+      },
+    });
   }
 
   const base = appBaseUrl();
