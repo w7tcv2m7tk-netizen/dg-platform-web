@@ -16,7 +16,7 @@ export type AbrGuidEnvKey = (typeof ABR_GUID_ENV_KEYS)[number];
 
 export type AbrConnectorStatus = "configured" | "not_configured" | "error";
 
-export type AbrLookupMethod = "SearchByABNv202001" | "SearchByASICv201408";
+export type AbrLookupMethod = "SearchByABNv202001" | "SearchByASICv201408" | "ABRSearchByNameAdvancedSimpleProtocol2017";
 
 export type AbrBusinessName = {
   organisationName: string;
@@ -70,3 +70,6 @@ export type AbrLookupErr = {
 };
 
 export type AbrLookupResult = AbrLookupOk | AbrLookupErr;
+
+export type AbrNameSearchMatch = { abn: string; name: string; nameType?: string; stateCode?: string; postcode?: string; abnStatus?: string; score?: string };
+export type AbrNameSearchResult = { ok: true; matches: AbrNameSearchMatch[] } | AbrLookupErr;
