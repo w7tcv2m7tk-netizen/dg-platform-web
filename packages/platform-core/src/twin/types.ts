@@ -39,6 +39,8 @@ export interface DigitalTwinSnapshot {
     connectedConnectors?: number;
     pendingAutomations?: number;
     unrepliedReviews?: number;
+    /** Published reviews represented in the current organisation-scoped reputation snapshot. */
+    reputationReviewCount?: number;
     openOpportunities?: number;
     consultations?: number;
     newEnquiriesThisWeek?: number;
