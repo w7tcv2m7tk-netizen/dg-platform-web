@@ -138,6 +138,7 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req); if (isNextResponse(session)) return session;
   const resolvedOrganisationId = resolveOrganisationId(req, session); if (isNextResponse(resolvedOrganisationId)) return resolvedOrganisationId;
+  if (resolvedOrganisationId !== session.organisationId) return NextResponse.json({ error: { code: "operator_read_only", message: "Customer onboarding is read-only in operator view." } }, { status: 409 });
   const denied = requirePermission(session, { module: "settings", action: "edit", scope: "organisation" }); if (denied) return denied;
   const blocked = await rejectDemoLiveAction(session); if (blocked) return blocked;
   const body = await req.json().catch(() => ({}));
