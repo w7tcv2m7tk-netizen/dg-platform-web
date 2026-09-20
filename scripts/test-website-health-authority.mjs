@@ -13,5 +13,5 @@ test("native Website Health is the default organisation-scoped path", () => {
 
 test("legacy dashboard is explicitly WordPress migration-only", () => {
   assert.match(legacy, /WordPress migration/);
-  assert.doesNotMatch(legacy, /connected migration site ·/);
+  assert.doesNotMatch(legacy, /connected migration site/);
 });
