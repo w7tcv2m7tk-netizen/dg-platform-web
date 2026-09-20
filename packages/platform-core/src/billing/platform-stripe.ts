@@ -13,6 +13,7 @@ import type { OrganisationBusinessProfile } from "../org/business-profile-types"
 import {
   normalisePaidAppKeys,
   paidAppCheckoutLines,
+  GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS,
   type PaidAppKey,
 } from "./paid-apps";
 
@@ -77,6 +78,7 @@ export interface PlatformCheckoutInput {
   industryApps?: string[];
   premiumApps?: string[];
   businessName?: string;
+  supportPlan?: "standard" | "priority" | "success_partner" | "enterprise_success";
   /** monthly (default) or annual — annual uses BILLING_COMMERCIAL_CONFIG months-equivalent. */
   billingCadence?: PlatformBillingCadence;
   /** Where Stripe returns after success (defaults to apps catalog). */
@@ -131,7 +133,34 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         },
       ];
 
-  for (const line of industryCheckoutLines(industryApps)) {
+  const growthSuiteSelected = premiumApps.includes("growth_suite");
+  const industryLines = industryCheckoutLines(industryApps);
+  const primaryIndustryLine = industryLines.find((line) => line.kind === "industry") ?? null;
+  const bundledPrimaryIndustry = growthSuiteSelected && primaryIndustryLine
+    ? primaryIndustryLine
+    : null;
+
+  if (bundledPrimaryIndustry) {
+    const bundleAmount = annual
+      ? annualPriceFromMonthlyCents(GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS)
+      : GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS;
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: "aud",
+        unit_amount: bundleAmount,
+        recurring,
+        product_data: {
+          name: annual
+            ? `DigitalGate Growth Suite + ${bundledPrimaryIndustry.industryLabel} Industry App (Annual)`
+            : `DigitalGate Growth Suite + ${bundledPrimaryIndustry.industryLabel} Industry App`,
+        },
+      },
+    });
+  }
+
+  for (const line of industryLines) {
+    if (bundledPrimaryIndustry === line) continue;
     const lineAmount = annual
       ? annualPriceFromMonthlyCents(line.amountCents)
       : line.amountCents;
@@ -149,6 +178,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   }
 
   for (const line of paidAppCheckoutLines(premiumApps)) {
+    if (bundledPrimaryIndustry && line.key === "growth_suite") continue;
     const lineAmount = annual
       ? annualPriceFromMonthlyCents(line.amountCents)
       : line.amountCents;
@@ -161,6 +191,26 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         product_data: {
           name: annual ? `${line.name} (Annual)` : line.name,
         },
+      },
+    });
+  }
+
+  const supportPlan = input.supportPlan ?? "standard";
+  const supportOption =
+    supportPlan === "priority"
+      ? { monthlyCents: 19900, label: "DigitalGate Priority Support" }
+      : supportPlan === "success_partner"
+        ? { monthlyCents: 49900, label: "DigitalGate Success Partner" }
+        : null;
+  if (supportOption) {
+    const supportAmount = annual ? annualPriceFromMonthlyCents(supportOption.monthlyCents) : supportOption.monthlyCents;
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: "aud",
+        unit_amount: supportAmount,
+        recurring,
+        product_data: { name: annual ? `${supportOption.label} (Annual)` : supportOption.label },
       },
     });
   }
@@ -184,6 +234,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
       organisation_id: input.organisationId,
       contact_email: input.email,
       business_name: input.businessName ?? "",
+      dg_support_plan: supportPlan,
     },
     subscription_data: {
       metadata: {
@@ -191,6 +242,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         dg_billing_cadence: cadence,
         dg_industry_apps: industryApps.join(","),
         dg_premium_apps: premiumApps.join(","),
+        dg_support_plan: supportPlan,
         organisation_id: input.organisationId,
         dg_platform_subscription: "true",
       },

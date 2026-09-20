@@ -196,7 +196,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const platformTier = offer?.platformTier ?? (body.platformTier as string | undefined) ?? progress.platformTier ?? "professional";
   const billingCadence = offer?.cadence ?? (body.billingCadence === "annual" || progress.billingCadence === "annual" ? ("annual" as const) : ("monthly" as const));
-  const industryApps = offer?.industryApps ?? body.industryApps ?? progress.industryApps; const premiumApps = offer?.premiumApps ?? body.premiumApps ?? progress.premiumApps;
+  const industryApps = offer?.industryApps ?? body.industryApps ?? progress.industryApps; const premiumApps = offer?.premiumApps ?? body.premiumApps ?? progress.premiumApps; const supportPlan = progress.supportPlan ?? "standard";
   if (billing?.kind === "platform_exempt") {
     await saveGen2OnboardingProgress(resolvedOrganisationId, {
       platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps,
@@ -206,7 +206,7 @@ export async function POST(req: Request) {
   }
   try {
     const checkout = offer ? await createNegotiatedCommercialCheckoutSession({ organisationId: resolvedOrganisationId, email: session.email, businessName: session.organisationName, offer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
-      : await createPlatformCheckoutSession({ organisationId: resolvedOrganisationId, email: session.email, platformTier, industryApps, premiumApps, businessName: session.organisationName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
+      : await createPlatformCheckoutSession({ organisationId: resolvedOrganisationId, email: session.email, platformTier, industryApps, premiumApps, supportPlan, businessName: session.organisationName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
     await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
     return NextResponse.json({ data: checkout });
   } catch (error) {

@@ -1,7 +1,7 @@
 /**
  * DigitalGate Industry Platform — Gen 2 lock (August 2026).
  *
- * Industry App = broad commercial vertical ($99/mo)
+ * Industry App = broad commercial vertical ($149/mo)
  * Sub-industry App = specialised customer-facing app experience within that vertical
  *
  * Do not add new top-level Industry Apps for every business type. Sub-industries remain
@@ -55,13 +55,13 @@ export const INDUSTRY_ARCHITECTURE_POSITIONING =
 /**
  * Canonical Industry commercial rule (lock — August 2026).
  *
- * Industry App = major vertical capability / infrastructure ($99/mo).
+ * Industry App = major vertical capability / infrastructure ($149/mo).
  * Sub-industry App = specialised customer-facing app/workflow configuration within that parent App.
  * One primary sub-industry App is included with each Industry App; extras are +$29/mo.
  */
 export const INDUSTRY_COMMERCIAL_LOCK = {
-  industryPrice: "$99/mo",
-  industryPriceCents: 9900,
+  industryPrice: "$149/mo",
+  industryPriceCents: 14900,
   includedTemplates: 1,
   /** @deprecated Prefer includedTemplates — same meaning as specialisations */
   includedSpecialisations: 1,
@@ -172,7 +172,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "property",
     label: "Property",
     icon: "🏠",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "available",
@@ -234,7 +234,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "hospitality-accommodation",
     label: "Hospitality & Accommodation",
     icon: "🏨",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "early-access",
@@ -293,7 +293,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "services",
     label: "Services",
     icon: "🔧",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "available",
@@ -419,7 +419,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "finance",
     label: "Finance",
     icon: "💰",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "early-access",
@@ -478,7 +478,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "professional",
     label: "Professional Services",
     icon: "⚖️",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
@@ -502,7 +502,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "health-wellness",
     label: "Health & Wellness",
     icon: "🏥",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
@@ -524,7 +524,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "automotive",
     label: "Automotive",
     icon: "🚗",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
@@ -570,7 +570,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "retail-commerce",
     label: "Retail & Commerce",
     icon: "🛍️",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
@@ -589,7 +589,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "creator-media",
     label: "Creator & Media",
     icon: "🎨",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
@@ -651,7 +651,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "transport-logistics",
     label: "Transport & Logistics",
     icon: "🚚",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
@@ -671,7 +671,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "agriculture-primary",
     label: "Agriculture & Primary Industries",
     icon: "🌾",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "reserved",
@@ -690,7 +690,7 @@ export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
     id: "education-organisations",
     label: "Education & Organisations",
     icon: "🏛️",
-    price: "$99/mo",
+    price: "$149/mo",
     includedSpecialisations: 1,
     additionalSpecialisationPrice: "+$29/mo",
     roadmap: "coming",
