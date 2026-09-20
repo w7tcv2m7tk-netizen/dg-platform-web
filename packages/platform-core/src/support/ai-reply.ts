@@ -46,6 +46,7 @@ export async function queueSupportAiReply(
   triggerMessageId: number,
   clientName: string,
   clientEmail: string,
+  surfacePath?: string,
 ) {
   if (!aiEnabled()) return;
 
@@ -141,9 +142,27 @@ export async function queueSupportAiReply(
     console.warn("[support-ai] business context unavailable", err instanceof Error ? err.message : err);
   }
 
+  const safeSurfacePath = surfacePath?.startsWith("/") && !surfacePath.includes("?") && !surfacePath.includes("#")
+    ? surfacePath.slice(0, 240)
+    : undefined;
+  const surfaceLabel = safeSurfacePath
+    ? safeSurfacePath.startsWith("/apps/crm") ? "CRM"
+      : safeSurfacePath.startsWith("/apps/analytics") ? "Analytics"
+      : safeSurfacePath.startsWith("/apps/advertising") ? "Advertising"
+      : safeSurfacePath.startsWith("/apps/seo") ? "SEO"
+      : safeSurfacePath.startsWith("/apps/ai-visibility") ? "AI Visibility"
+      : safeSurfacePath.startsWith("/apps/reviews") ? "Reviews & Reputation"
+      : safeSurfacePath.startsWith("/apps/websites") ? "Websites"
+      : safeSurfacePath.startsWith("/apps/automation") ? "Automation"
+      : safeSurfacePath.startsWith("/apps/") ? "Industry or platform app"
+      : safeSurfacePath.startsWith("/dashboard") ? "Business Overview"
+      : "Platform"
+    : undefined;
+
   const userPrompt = [
     `Client name: ${clientName}`,
     `Client email: ${clientEmail}`,
+    ...(surfaceLabel ? [`Current platform surface: ${surfaceLabel} (${safeSurfacePath})`, "Treat this route only as a navigation hint; organisation evidence above remains authoritative."] : []),
     "",
     "Recent thread:",
     transcript,
@@ -154,7 +173,9 @@ export async function queueSupportAiReply(
   try {
     const result = await llmChat({
       messages: [
-        { role: "system", content: businessContextPrompt ? `${SYSTEM_PROMPT}\n\n${businessContextPrompt}` : SYSTEM_PROMPT },
+        { role: "system", content: businessContextPrompt ? `${SYSTEM_PROMPT}
+
+${businessContextPrompt}` : SYSTEM_PROMPT },
         { role: "user", content: userPrompt },
       ],
       maxTokens: 550,

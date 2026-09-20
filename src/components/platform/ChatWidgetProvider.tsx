@@ -66,6 +66,7 @@ export function ChatWidgetProvider({
       {floating ? (
         <SupportChatWidget
           userName={userName}
+          surfacePath={pathname ?? undefined}
           open={open}
           onOpenChange={setOpen}
           initialDraft={pendingDraft}

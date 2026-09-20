@@ -130,6 +130,7 @@ export async function getSupportMessages(
 export async function postSupportClientMessage(
   session: PlatformSession,
   message: string,
+  surfacePath?: string,
 ): Promise<SupportPostMessageResult> {
   const body = message.trim();
   if (!body) {
@@ -189,6 +190,7 @@ export async function postSupportClientMessage(
       row.id,
       session.name,
       session.email,
+      surfacePath,
     );
 
     const messages = await loadMessages(conversation.id, session.name);

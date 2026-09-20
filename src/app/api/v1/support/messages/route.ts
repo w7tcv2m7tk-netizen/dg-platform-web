@@ -24,6 +24,7 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => null);
   const message = typeof body?.message === "string" ? body.message.trim() : "";
+  const surfacePath = typeof body?.surfacePath === "string" ? body.surfacePath.trim() : undefined;
   if (!message) {
     return NextResponse.json(
       { error: { code: "validation_error", message: "Message is required" } },
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const result = await postSupportMessageFromSession(session, message);
+  const result = await postSupportMessageFromSession(session, message, surfacePath);
   if (!result.ok) {
     return NextResponse.json(
       { error: { code: "send_failed", message: result.message } },

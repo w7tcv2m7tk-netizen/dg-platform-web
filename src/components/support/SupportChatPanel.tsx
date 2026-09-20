@@ -33,11 +33,13 @@ export function SupportChatPanel({
   userName,
   initialDraft,
   onDraftApplied,
+  surfacePath,
 }: {
   embedded?: boolean;
   userName?: string;
   initialDraft?: string;
   onDraftApplied?: () => void;
+  surfacePath?: string;
 }) {
   const [messages, setMessages] = useState<SupportChatMessage[]>([]);
   const [lastId, setLastId] = useState(0);
@@ -135,7 +137,7 @@ export function SupportChatPanel({
     const res = await fetch("/api/v1/support/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text, surfacePath }),
     });
     const json = await res.json().catch(() => null);
     setSending(false);
@@ -290,12 +292,14 @@ export function SupportChatWidget({
   onOpenChange,
   initialDraft,
   onDraftApplied,
+  surfacePath,
 }: {
   userName?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   initialDraft?: string;
   onDraftApplied?: () => void;
+  surfacePath?: string;
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
@@ -329,6 +333,7 @@ export function SupportChatWidget({
             userName={userName}
             initialDraft={initialDraft}
             onDraftApplied={onDraftApplied}
+            surfacePath={surfacePath}
           />
         </div>
       ) : null}
