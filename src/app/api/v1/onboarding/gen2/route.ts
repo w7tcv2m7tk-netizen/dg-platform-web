@@ -178,7 +178,7 @@ export async function PATCH(req: Request) {
     locale: requestedVipSetup?.locale ?? existingProgress.vipSetup?.locale ?? "en-AU", currency: requestedVipSetup?.currency ?? existingProgress.vipSetup?.currency ?? "AUD",
   } : requestedVipSetup;
   const allowedProgress: AllowedClientProgress = { platformTier: clientProgress.platformTier, supportPlan: clientProgress.supportPlan, billingCadence: clientProgress.billingCadence, industryApps: clientProgress.industryApps, industryTemplates: clientProgress.industryTemplates, premiumApps: clientProgress.premiumApps, checklist: clientProgress.checklist, vipSetup: requiredVipSetup };
-  const lockedProgress: AllowedClientProgress = offer ? { ...allowedProgress, platformTier: offer.platformTier, billingCadence: offer.cadence, industryApps: offer.industryApps, premiumApps: offer.premiumApps } : allowedProgress;
+  const lockedProgress: AllowedClientProgress = offer ? { ...allowedProgress, platformTier: offer.platformTier, billingCadence: offer.cadence, industryApps: offer.industryApps, premiumApps: offer.premiumApps, ...(offer.supportPlan ? { supportPlan: offer.supportPlan } : {}) } : allowedProgress;
   const progress = await saveGen2OnboardingProgress(resolvedOrganisationId, { ...lockedProgress, ...(markStepComplete === "stripe" ? { subscriptionActivatedAt: new Date().toISOString() } : {}), markStepComplete });
   return NextResponse.json({ data: { progress } });
 }
@@ -196,7 +196,7 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const platformTier = offer?.platformTier ?? (body.platformTier as string | undefined) ?? progress.platformTier ?? "professional";
   const billingCadence = offer?.cadence ?? (body.billingCadence === "annual" || progress.billingCadence === "annual" ? ("annual" as const) : ("monthly" as const));
-  const industryApps = offer?.industryApps ?? body.industryApps ?? progress.industryApps; const premiumApps = offer?.premiumApps ?? body.premiumApps ?? progress.premiumApps; const supportPlan = progress.supportPlan ?? "standard";
+  const industryApps = offer?.industryApps ?? body.industryApps ?? progress.industryApps; const premiumApps = offer?.premiumApps ?? body.premiumApps ?? progress.premiumApps; const supportPlan = offer?.supportPlan ?? progress.supportPlan ?? "standard";
   if (billing?.kind === "platform_exempt") {
     await saveGen2OnboardingProgress(resolvedOrganisationId, {
       platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps,
