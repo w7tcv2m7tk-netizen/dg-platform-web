@@ -3,6 +3,7 @@ import {
   abrGuidEnvKeyPresent,
   getAbrConnectorStatus,
   lookupBusinessIdentityByAbn,
+  searchByName,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -19,13 +20,35 @@ export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
-  const abn = new URL(req.url).searchParams.get("abn")?.trim() ?? "";
+  const params = new URL(req.url).searchParams;
+  const name = params.get("name")?.trim() ?? "";
+  const abn = params.get("abn")?.trim() ?? "";
+
+  if (name) {
+    const result = await searchByName(name);
+    const status = result.ok ? 200 : result.code === "not_configured" ? 503 : 422;
+    return NextResponse.json(
+      {
+        data: {
+          connector: "abr",
+          method: "ABRSearchByNameAdvancedSimpleProtocol2017",
+          status: getAbrConnectorStatus(),
+          configured: abrCredentialsConfigured(),
+          guidEnvKeyPresent: abrGuidEnvKeyPresent(),
+          matches: result.ok ? result.matches : [],
+          abr: result,
+        },
+      },
+      { status },
+    );
+  }
+
   if (!abn) {
     return NextResponse.json(
       {
         error: {
           code: "invalid_request",
-          message: "Query param abn is required",
+          message: "Query param abn or name is required",
         },
         data: {
           configured: abrCredentialsConfigured(),

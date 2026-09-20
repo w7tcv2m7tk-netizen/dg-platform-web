@@ -80,18 +80,18 @@ export const INDUSTRY_COMMERCIAL_LOCK = {
   foundingCommercial: {
     rule:
       "Founding customers pay standard published Platform + Industry App + Template pricing. Benefits are exclusivity, early access, priority onboarding and influence — not a recurring percentage discount.",
-    exampleListCents: 99_00 + 99_00 + 29_00, // Starter + Property + PM Template
+    exampleListCents: 99_00 + 149_00 + 29_00, // Starter + Property + PM sub-industry App
     exampleNarrative:
-      "Starter $99 + Property $99 (Real Estate included) + Property Management $29 = $227/mo at published pricing. Try DigitalGate free for 14 days. Annual billing ≈ 10 months of monthly pricing.",
+      "Starter $99 + Property $149 (Real Estate included) + Property Management $29 = $277/mo at published pricing. Try DigitalGate free for 14 days. Annual billing ≈ 10 months of monthly pricing.",
   },
   /** @deprecated Prefer foundingCommercial — Founding % discount removed. */
   foundingDiscount: {
     rule:
       "Founding customers pay standard published pricing. No recurring founding percentage discount.",
-    exampleListCents: 99_00 + 99_00 + 29_00,
-    exampleFounding10Cents: 99_00 + 99_00 + 29_00,
+    exampleListCents: 99_00 + 149_00 + 29_00,
+    exampleFounding10Cents: 99_00 + 149_00 + 29_00,
     exampleNarrative:
-      "Starter $99 + Property $99 (Real Estate included) + Property Management $29 = $227/mo at published pricing.",
+      "Starter $99 + Property $149 (Real Estate included) + Property Management $29 = $277/mo at published pricing.",
   },
   avoidWording: [
     "Get Real Estate, Property Management, Accommodation… for $99",
@@ -102,7 +102,7 @@ export const INDUSTRY_COMMERCIAL_LOCK = {
     "Buy Accommodation as a separate Industry App",
   ],
   say: [
-    "Industry App — $99/mo — one connected vertical operating platform",
+    "Industry App — $149/mo — one connected vertical operating platform",
     "Includes 1 sub-industry App — customer chooses their primary business model",
     "Additional sub-industry Apps — +$29/mo each",
     "Parent Industry App is the commercial boundary; sub-industry Apps are the expansion layer",
@@ -910,7 +910,7 @@ export type IndustryCheckoutLine = {
 
 /**
  * Build Stripe-ready line items from selected Industry / Template ids.
- * First Template per Industry is included in the $99 Industry fee;
+ * First sub-industry App per Industry is included in the $149 Industry fee;
  * each additional Template under the same Industry is +$29/mo.
  */
 export function industryCheckoutLines(

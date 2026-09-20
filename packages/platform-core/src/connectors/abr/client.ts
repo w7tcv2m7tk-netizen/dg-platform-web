@@ -11,6 +11,7 @@ import type {
   AbrEntitySnapshot,
   AbrLookupMethod,
   AbrLookupResult,
+  AbrNameSearchResult,
 } from "./types";
 import { ABR_GUID_ENV_KEYS } from "./types";
 import { allBlocks, firstBlock, stripNs, textBetween } from "./xml";
@@ -287,4 +288,44 @@ export async function searchByAcn(acn: string): Promise<AbrLookupResult> {
 /** @deprecated Use searchByAbn — kept for Business Setup naming. */
 export async function verifyAbn(abn: string): Promise<AbrLookupResult> {
   return searchByAbn(abn);
+}
+
+function nameSearchText(block: string, tag: string): string | undefined {
+  const value = textBetween(block, tag);
+  return value?.trim() || undefined;
+}
+
+/** Search ABR by business/entity name. Returns candidate entities for user selection. */
+export async function searchByName(name: string): Promise<AbrNameSearchResult> {
+  const query = name.trim();
+  if (query.length < 2) return { ok: false, code: "invalid_identifier", message: "Business name must be at least 2 characters" };
+  const guid = resolveAbrGuid();
+  if (!guid) return { ok: false, code: "not_configured", message: "ABR GUID not configured." };
+  const url = new URL(`${ABR_BASE}/ABRSearchByNameAdvancedSimpleProtocol2017`);
+  url.searchParams.set("name", query);
+  url.searchParams.set("postcode", "");
+  url.searchParams.set("legalName", "Y");
+  url.searchParams.set("tradingName", "Y");
+  url.searchParams.set("NSW", "Y"); url.searchParams.set("SA", "Y"); url.searchParams.set("ACT", "Y");
+  url.searchParams.set("VIC", "Y"); url.searchParams.set("WA", "Y"); url.searchParams.set("NT", "Y");
+  url.searchParams.set("QLD", "Y"); url.searchParams.set("TAS", "Y");
+  url.searchParams.set("authenticationGuid", guid);
+  let res: Response;
+  try { res = await fetch(url.toString(), { signal: AbortSignal.timeout(15_000), headers: { Accept: "text/xml" } }); }
+  catch (err) { return { ok:false, code:"upstream_error", message:err instanceof Error?err.message:"ABR request failed" }; }
+  if (!res.ok) return { ok:false, code:"upstream_error", message:`ABR HTTP ${res.status}` };
+  const xml = stripNs(await res.text());
+  const exception = textBetween(xml,"exceptionDescription") || textBetween(xml,"exceptionCode");
+  if (exception) return { ok:false, code:/no records|not found/i.test(exception)?"not_found":"upstream_error", message:exception };
+  const blocks = allBlocks(xml,"searchResultsRecord");
+  const matches = blocks.map(block => ({
+    abn: nameSearchText(block,"ABN") || nameSearchText(block,"identifierValue") || "",
+    name: nameSearchText(block,"mainName") || nameSearchText(block,"organisationName") || nameSearchText(block,"businessName") || "",
+    nameType: nameSearchText(block,"nameType"),
+    stateCode: nameSearchText(block,"stateCode"),
+    postcode: nameSearchText(block,"postcode"),
+    abnStatus: nameSearchText(block,"ABNStatus") || nameSearchText(block,"identifierStatus"),
+    score: nameSearchText(block,"score"),
+  })).filter(m => /^\d{11}$/.test(m.abn.replace(/\s/g,"")) && Boolean(m.name)).slice(0,20);
+  return { ok:true, matches };
 }
