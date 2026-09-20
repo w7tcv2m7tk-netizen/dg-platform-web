@@ -13,6 +13,7 @@ import {
   type Gen2OnboardingProgress,
   type Gen2OnboardingStep,
   type Gen2VipSetup,
+  type PlatformSession,
   isGen2OnboardingStep,
   assertPlatformOperator,
 } from "@dg/platform-core";
@@ -34,8 +35,7 @@ const CONNECTION_PROVIDERS = new Set(["google_workspace", "microsoft_365", "appl
 const CONNECTION_CAPABILITIES = new Set(["contacts", "calendar", "mail"]);
 const CONNECTION_STATUSES = new Set(["not_started", "planned", "connected", "attention_required"]);
 
-function resolveOrganisationId(req: Request, session: Awaited<ReturnType<typeof requirePlatformAuth>>) {
-  if (isNextResponse(session)) return session;
+function resolveOrganisationId(req: Request, session: PlatformSession) {
   const requested = req.headers.get("x-dg-operator-organisation")?.trim();
   if (!requested || requested === session.organisationId) return session.organisationId;
   const operator = assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email });
@@ -116,8 +116,8 @@ function safeClientProgress(raw: unknown): AllowedClientProgress {
 }
 
 export async function GET(req: Request) {
-  const resolvedOrganisationId = resolveOrganisationId(req, await requirePlatformAuth(req)); if (isNextResponse(resolvedOrganisationId)) return resolvedOrganisationId;
   const session = await requirePlatformAuth(req); if (isNextResponse(session)) return session;
+  const resolvedOrganisationId = resolveOrganisationId(req, session); if (isNextResponse(resolvedOrganisationId)) return resolvedOrganisationId;
   const [progress, profile, goals, commercialOffer, billing] = await Promise.all([
     getGen2OnboardingProgress(resolvedOrganisationId), getOrganisationBusinessProfile(resolvedOrganisationId),
     getOrganisationGoals(resolvedOrganisationId).catch(() => []), effectiveCommercialOffer(resolvedOrganisationId),
@@ -136,8 +136,8 @@ export async function GET(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const resolvedOrganisationId = resolveOrganisationId(req, await requirePlatformAuth(req)); if (isNextResponse(resolvedOrganisationId)) return resolvedOrganisationId;
   const session = await requirePlatformAuth(req); if (isNextResponse(session)) return session;
+  const resolvedOrganisationId = resolveOrganisationId(req, session); if (isNextResponse(resolvedOrganisationId)) return resolvedOrganisationId;
   const denied = requirePermission(session, { module: "settings", action: "edit", scope: "organisation" }); if (denied) return denied;
   const blocked = await rejectDemoLiveAction(session); if (blocked) return blocked;
   const body = await req.json().catch(() => ({}));
@@ -184,8 +184,8 @@ export async function PATCH(req: Request) {
 
 /** Start Stripe Checkout from onboarding order summary. */
 export async function POST(req: Request) {
-  const resolvedOrganisationId = resolveOrganisationId(req, await requirePlatformAuth(req)); if (isNextResponse(resolvedOrganisationId)) return resolvedOrganisationId;
   const session = await requirePlatformAuth(req); if (isNextResponse(session)) return session;
+  const resolvedOrganisationId = resolveOrganisationId(req, session); if (isNextResponse(resolvedOrganisationId)) return resolvedOrganisationId;
   const blocked = await rejectDemoLiveAction(session); if (blocked) return blocked;
   if (resolvedOrganisationId !== session.organisationId) return NextResponse.json({ error: { code: "operator_checkout_disabled", message: "Subscription checkout is disabled while testing a customer organisation." } }, { status: 409 });
   const denied = requirePermission(session, { module: "billing", action: "manage", scope: "organisation" }); if (denied) return denied;
