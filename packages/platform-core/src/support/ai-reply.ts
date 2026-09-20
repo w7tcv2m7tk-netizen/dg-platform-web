@@ -96,8 +96,7 @@ export async function queueSupportAiReply(
             : "Staff";
       return `${who}: ${row.body.trim()}`;
     })
-    .join("
-");
+    .join("\n");
 
   // Build context strictly from the organisation pinned to this conversation.
   // Never infer tenant from the user or another active organisation.
@@ -137,8 +136,7 @@ export async function queueSupportAiReply(
         buildAiSystemPrompt(context),
         "",
         formatAidaEvidencePrompt(buildAidaEvidenceContext(context)),
-      ].join("
-");
+      ].join("\n");
     }
   } catch (err) {
     console.warn("[support-ai] business context unavailable", err instanceof Error ? err.message : err);
@@ -170,8 +168,7 @@ export async function queueSupportAiReply(
     transcript,
     "",
     "Write Aida's next reply only (no role prefix).",
-  ].join("
-");
+  ].join("\n");
 
   try {
     const result = await llmChat({
