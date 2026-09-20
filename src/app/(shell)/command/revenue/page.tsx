@@ -99,7 +99,7 @@ export default async function CommandRevenuePage() {
               />
               <p className="text-sm text-slate-400">
                 <span className="font-medium text-slate-300">MRR</span> is recurring subscription
-                value (monthly interval only in the MRR figure; annual contributes via ARR). It is
+                value (monthly subscriptions plus the monthly equivalent of annual subscriptions). It is
                 not the same as{" "}
                 <span className="font-medium text-slate-300">revenue received</span> (invoices paid
                 MTD) or Growth Engine{" "}
@@ -114,7 +114,7 @@ export default async function CommandRevenuePage() {
                 </div>
               ) : null}
               <p className="text-xs text-slate-500">
-                Stripe mode: {data.billing.stripeMode}
+                Commerce ledger · Stripe mode: {data.billing.stripeMode}
                 {data.billing.stripeOk ? " · configured" : " · setup incomplete"}
               </p>
             </section>
