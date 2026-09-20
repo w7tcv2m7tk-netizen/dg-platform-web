@@ -50,7 +50,7 @@ export function HealthCentreDashboard({ snapshot }: { snapshot: SiteHealthSnapsh
         <StatCard
           label="Website Health Score™"
           value={snapshot.score}
-          hint={snapshot.site || "Legacy migration site"}
+          hint={snapshot.site || "Connected WordPress migration site"}
         />
         <StatCard label="Pass" value={snapshot.pass} />
         <StatCard label="Warnings" value={snapshot.warn} />
@@ -63,7 +63,7 @@ export function HealthCentreDashboard({ snapshot }: { snapshot: SiteHealthSnapsh
             <div>
               <h2 className="font-semibold text-white">Health checks</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Checks from the connected migration site · {generated}
+                Checks from the connected WordPress migration site · {generated}
               </p>
             </div>
             <p className={`text-3xl font-bold ${scoreColor(snapshot.score)}`}>
@@ -96,7 +96,7 @@ export function HealthCentreDashboard({ snapshot }: { snapshot: SiteHealthSnapsh
           <div className="dg-card">
             <h2 className="font-semibold text-white">PageSpeed</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Google PageSpeed Insights cached for this migration site
+              Google PageSpeed Insights cached for this WordPress migration site
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <StatCard
@@ -137,9 +137,9 @@ export function HealthCentreDashboard({ snapshot }: { snapshot: SiteHealthSnapsh
 export function HealthCentreError() {
   return (
     <div className="dg-card border-amber-500/30 bg-amber-500/5">
-      <h2 className="font-semibold text-amber-200">Could not load migration site health</h2>
+      <h2 className="font-semibold text-amber-200">Could not load WordPress migration health</h2>
       <p className="mt-2 text-sm text-slate-300">
-        The connected migration site did not return health information. Check the migration connection and try again.
+        The connected WordPress migration site did not return health information. Check the WordPress connector and try again.
       </p>
     </div>
   );
