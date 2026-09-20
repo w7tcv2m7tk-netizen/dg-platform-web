@@ -92,6 +92,7 @@ export async function PATCH(req: Request) {
     ? (assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email }) ? requestedOrganisationId : null)
     : session.organisationId;
   if (!targetOrganisationId) return NextResponse.json({ error: { code: "operator_only", message: "DigitalGate operator authority required." } }, { status: 403 });
+  if (targetOrganisationId !== session.organisationId) return NextResponse.json({ error: { code: "operator_read_only", message: "Customer onboarding is read-only in operator view." } }, { status: 409 });
   const denied = requirePermission(session, { module: "settings", action: "edit", scope: "organisation" });
   if (denied) return denied;
   const blocked = await rejectDemoLiveAction(session);
