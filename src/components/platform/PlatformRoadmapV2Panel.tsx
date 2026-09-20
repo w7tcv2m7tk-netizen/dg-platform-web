@@ -6,6 +6,7 @@ import {
 } from "@dg/platform-core";
 import { INDUSTRY_SUBINDUSTRY_ROADMAP } from "@dg/platform-core/roadmap/industry-roadmap";
 import { PLATFORM_STRATEGIC_ROADMAP } from "@dg/platform-core/roadmap/strategic-roadmap";
+import { reconcileRoadmapItems } from "@dg/platform-core/roadmap/reconciliation";
 import type { RoadmapItem, RoadmapStatus } from "@dg/platform-core";
 
 import { RoadmapStatusBadge } from "@/components/platform/RoadmapStatusBadge";
@@ -43,7 +44,7 @@ function ProgressCard({ title, subtitle, items, href }: { title: string; subtitl
 }
 
 export function PlatformRoadmapV2Panel({ view = "overview" }: { view?: RoadmapView }) {
-  const all = [...PLATFORM_ROADMAP, ...PLATFORM_STRATEGIC_ROADMAP, ...INDUSTRY_SUBINDUSTRY_ROADMAP];
+  const all = reconcileRoadmapItems([...PLATFORM_ROADMAP, ...PLATFORM_STRATEGIC_ROADMAP, ...INDUSTRY_SUBINDUSTRY_ROADMAP]);
   const catalogue = getAppsByTier();
   const businessIds = new Set(catalogue.business.map((app) => app.manifest.id));
   const growthIds = new Set(catalogue.growth.map((app) => app.manifest.id));
