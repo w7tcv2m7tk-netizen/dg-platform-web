@@ -78,6 +78,7 @@ export interface PlatformCheckoutInput {
   industryApps?: string[];
   premiumApps?: string[];
   businessName?: string;
+  supportPlan?: "standard" | "priority" | "success_partner" | "enterprise_success";
   /** monthly (default) or annual — annual uses BILLING_COMMERCIAL_CONFIG months-equivalent. */
   billingCadence?: PlatformBillingCadence;
   /** Where Stripe returns after success (defaults to apps catalog). */
@@ -194,6 +195,15 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     });
   }
 
+  const supportAmounts: Record<string, number> = { priority: 19900, success_partner: 49900 };
+  const supportLabels: Record<string, string> = { priority: "DigitalGate Priority Support", success_partner: "DigitalGate Success Partner" };
+  const supportPlan = input.supportPlan ?? "standard";
+  const supportMonthly = supportAmounts[supportPlan] ?? 0;
+  if (supportMonthly > 0) {
+    const supportAmount = annual ? annualPriceFromMonthlyCents(supportMonthly) : supportMonthly;
+    lineItems.push({ quantity: 1, price_data: { currency: "aud", unit_amount: supportAmount, recurring, product_data: { name: annual ? `${supportLabels[supportPlan]} (Annual)` : supportLabels[supportPlan]! } } });
+  }
+
   const base = appBaseUrl();
   const successPath = input.successPath ?? "/dashboard/apps?sync=1&checkout=success";
   const cancelPath =
@@ -213,6 +223,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
       organisation_id: input.organisationId,
       contact_email: input.email,
       business_name: input.businessName ?? "",
+      dg_support_plan: supportPlan,
     },
     subscription_data: {
       metadata: {
@@ -220,6 +231,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         dg_billing_cadence: cadence,
         dg_industry_apps: industryApps.join(","),
         dg_premium_apps: premiumApps.join(","),
+        dg_support_plan: supportPlan,
         organisation_id: input.organisationId,
         dg_platform_subscription: "true",
       },
