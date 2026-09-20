@@ -10,12 +10,13 @@ import { AdaptiveOnboardingJourney } from "@/components/onboarding/AdaptiveOnboa
 import { PlatformOperatorSetup } from "@/components/onboarding/PlatformOperatorSetup";
 import { VipOnboardingExperience } from "@/components/onboarding/VipOnboardingExperience";
 import { getPlatformPageContext } from "@/lib/org-apps";
+import { getPlatformOperatorContext } from "@/lib/platform-operator";
 import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
 
 const VERIFIED_CHECKOUT_KINDS = new Set(["trial", "subscribed", "cancel_at_period_end"]);
 const PLATFORM_OPERATOR_SLUG = "digitalgate";
 
-export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ invite?: string; journey?: string; checkout?: string; review?: string }> }) {
+export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ invite?: string; journey?: string; checkout?: string; review?: string; operatorOrg?: string }> }) {
   const params = await searchParams;
   const { session } = await getPlatformPageContext();
   const invite = params.invite?.trim();
@@ -32,6 +33,15 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
     if (params.review) redirectParams.set("review", params.review);
     const onboardingPath = redirectParams.toString() ? `/onboarding?${redirectParams}` : "/onboarding";
     return <main className="dg-page-main mx-auto max-w-lg px-6 py-16"><h1 className="text-2xl font-bold text-white">Welcome to DigitalGate</h1><p className="mt-3 text-sm leading-6 text-slate-400">Sign in to begin your private Business Operating Platform setup with Aida.</p><a href={`/login?redirect_url=${encodeURIComponent(onboardingPath)}`} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 py-2.5 text-sm font-medium text-white">Sign in to continue</a></main>;
+  }
+
+  const operatorTarget = params.operatorOrg?.trim();
+  if (operatorTarget) {
+    const operator = await getPlatformOperatorContext();
+    if (!operator) {
+      return <main className="dg-page-main mx-auto max-w-2xl px-6 py-16"><h1 className="text-2xl font-bold text-white">Operator access required</h1><p className="mt-3 text-sm text-slate-400">Customer onboarding inspection is restricted to DigitalGate platform operators.</p></main>;
+    }
+    return <VipOnboardingExperience businessName="Customer organisation" aidaWelcome="Operator test mode is active. You are working against this customer’s saved onboarding state."><AdaptiveOnboardingJourney initial={emptyGen2Progress(false)} businessName="Customer organisation" reviewMode operatorTargetOrganisationId={operatorTarget} /></VipOnboardingExperience>;
   }
 
   if (session.organisationSlug === PLATFORM_OPERATOR_SLUG) {

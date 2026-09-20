@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { BrandAssetStorageError, storeOrgFile } from "@dg/platform-core/assets/org-brand-storage";
-import { updateOrganisationBusinessProfile } from "@dg/platform-core";
+import { assertPlatformOperator, updateOrganisationBusinessProfile } from "@dg/platform-core";
 
 import {
   isNextResponse,
@@ -26,6 +26,11 @@ function sniffImageType(buffer: Buffer, declared: string): string | null {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const requestedOrganisationId = req.headers.get("x-dg-operator-organisation")?.trim();
+  const targetOrganisationId = requestedOrganisationId && requestedOrganisationId !== session.organisationId
+    ? (assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email }) ? requestedOrganisationId : null)
+    : session.organisationId;
+  if (!targetOrganisationId) return NextResponse.json({ error: { code: "operator_only", message: "DigitalGate operator authority required." } }, { status: 403 });
   const denied = requirePermission(session, { module: "settings", action: "manage", scope: "organisation" });
   if (denied) return denied;
   const blocked = await rejectDemoLiveAction(session);
@@ -55,14 +60,14 @@ export async function POST(req: Request) {
 
   try {
     const stored = await storeOrgFile({
-      organisationId: session.organisationId,
+      organisationId: targetOrganisationId,
       buffer,
       contentType,
       maxBytes: MAX_BYTES,
       keyPrefix: "brand-assets",
       sizeLabel: "Brand image",
     });
-    await updateOrganisationBusinessProfile(session.organisationId, {
+    await updateOrganisationBusinessProfile(targetOrganisationId, {
       ...(kind === "icon" ? { iconUrl: stored.url } : { logoUrl: stored.url }),
     });
     return NextResponse.json({ data: { kind, url: stored.url, storage: stored.storage } });

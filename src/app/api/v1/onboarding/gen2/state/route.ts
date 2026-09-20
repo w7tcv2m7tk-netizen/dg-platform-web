@@ -1,5 +1,6 @@
 import {
   getGen2OnboardingProgress,
+  assertPlatformOperator,
   INDUSTRY_TAXONOMY,
   isGen2OnboardingStep,
   saveGen2OnboardingProgress,
@@ -86,13 +87,18 @@ function sanitiseVipSetup(raw: unknown, current: Gen2VipSetup): Gen2VipSetup {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const requestedOrganisationId = req.headers.get("x-dg-operator-organisation")?.trim();
+  const targetOrganisationId = requestedOrganisationId && requestedOrganisationId !== session.organisationId
+    ? (assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email }) ? requestedOrganisationId : null)
+    : session.organisationId;
+  if (!targetOrganisationId) return NextResponse.json({ error: { code: "operator_only", message: "DigitalGate operator authority required." } }, { status: 403 });
   const denied = requirePermission(session, { module: "settings", action: "edit", scope: "organisation" });
   if (denied) return denied;
   const blocked = await rejectDemoLiveAction(session);
   if (blocked) return blocked;
 
   const body = await req.json().catch(() => ({})) as Record<string, unknown>;
-  const current = await getGen2OnboardingProgress(session.organisationId);
+  const current = await getGen2OnboardingProgress(targetOrganisationId);
   const vipSetup = sanitiseVipSetup(body.vipSetup, current.vipSetup!);
   const onboardingCompleted = Boolean(current.vipSetup?.completedAt || vipSetup.completedAt);
   const journeyPosition = onboardingCompleted
@@ -111,6 +117,6 @@ export async function PATCH(req: Request) {
     ...(body.industryApps !== undefined ? { industryApps: strings(body.industryApps) } : {}),
     ...(body.premiumApps !== undefined ? { premiumApps: strings(body.premiumApps) } : {}),
   };
-  const progress = await saveGen2OnboardingProgress(session.organisationId, patch);
+  const progress = await saveGen2OnboardingProgress(targetOrganisationId, patch);
   return NextResponse.json({ data: { progress } });
 }
