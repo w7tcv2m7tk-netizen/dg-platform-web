@@ -19,8 +19,18 @@ const wizard = fs.readFileSync(
 
 assert.match(
   route,
-  /getOrganisationBillingStatus\(session\.organisationId\)/,
-  "Stripe completion must be verified against canonical organisation billing state",
+  /getOrganisationBillingStatus\(resolvedOrganisationId\)/,
+  "Stripe completion must be verified against the authorised canonical organisation billing state",
+);
+assert.match(
+  route,
+  /assertPlatformOperator[\s\S]*x-dg-operator-organisation/,
+  "cross-tenant onboarding access must require platform-operator authority",
+);
+assert.match(
+  route,
+  /resolvedOrganisationId !== session\.organisationId[\s\S]*operator_checkout_disabled/,
+  "operator customer testing must never initiate subscription checkout",
 );
 assert.match(
   route,
