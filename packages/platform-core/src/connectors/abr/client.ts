@@ -11,6 +11,7 @@ import type {
   AbrEntitySnapshot,
   AbrLookupMethod,
   AbrLookupResult,
+  AbrNameSearchResult,
 } from "./types";
 import { ABR_GUID_ENV_KEYS } from "./types";
 import { allBlocks, firstBlock, stripNs, textBetween } from "./xml";
