@@ -11,6 +11,9 @@ export type IndustryApp =
   | "property-management";
 
 export type PremiumApp =
+  | "advertising_pro"
+  | "marketing_pro"
+  | "growth_suite"
   | "seo_pro"
   | "social_pro"
   | "analytics_pro"
