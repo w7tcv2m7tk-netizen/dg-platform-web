@@ -8,7 +8,7 @@ import type { RoadmapItem, RoadmapStatus } from "./index";
  * promote an item when current production code/certification provides direct evidence.
  * This deliberately does not infer "done" merely because a route exists.
  */
-const STATUS_OVERRIDES: Record<string, RoadmapStatus> = {
+export const CERTIFIED_ROADMAP_STATUS: Record<string, RoadmapStatus> = {
   // Native Gen 2 is now the normal runtime; the former WordPress detachment programme is closed.
   "detach.roe_sot": "done",
   "detach.portal_billing": "done",
@@ -63,7 +63,13 @@ const DESCRIPTION_OVERRIDES: Record<string, string> = {
 export function reconcileRoadmapItems(items: RoadmapItem[]): RoadmapItem[] {
   return items.map((item) => ({
     ...item,
-    status: STATUS_OVERRIDES[item.id] ?? item.status,
+    status: CERTIFIED_ROADMAP_STATUS[item.id] ?? item.status,
     description: DESCRIPTION_OVERRIDES[item.id] ?? item.description,
   }));
+}
+
+
+/** IDs whose displayed status is backed by explicit remediation/certification evidence. */
+export function certifiedRoadmapIds(): string[] {
+  return Object.keys(CERTIFIED_ROADMAP_STATUS);
 }
