@@ -23,7 +23,8 @@ type Stage = "welcome" | "business" | "operating" | "goals" | "plan" | "apps" | 
 type OperatingSubstep = "industry" | "business_type" | "profile";
 type PreparationSubstep = "brand" | "website" | "data" | "connections" | "ai_reporting" | "workspace" | "review";
 type Profile = { businessName:string; tradingName:string; abn:string; websiteUrl:string; phone:string; email:string; primaryContactName:string; description:string; services:string; targetCustomers:string; differentiators:string; challenges:string; logoUrl:string; iconUrl:string };
-type CommercialOffer = { amountCents?:number; cadence?:BillingCadence; platformTier?:"starter"|"professional"|"business"; industryApps?:string[]; premiumApps?:string[]; trialDays?:number };\ntype AbrNameMatch = { abn:string; name:string; nameType?:string; stateCode?:string; postcode?:string; abnStatus?:string; score?:string };
+type CommercialOffer = { amountCents?:number; cadence?:BillingCadence; platformTier?:"starter"|"professional"|"business"; industryApps?:string[]; premiumApps?:string[]; trialDays?:number };
+type AbrNameMatch = { abn:string; name:string; nameType?:string; stateCode?:string; postcode?:string; abnStatus?:string; score?:string };
 
 const STAGES: Array<{ id:Stage; label:string; step:Gen2OnboardingStep }> = [
   { id:"welcome", label:"Welcome", step:"welcome" },
