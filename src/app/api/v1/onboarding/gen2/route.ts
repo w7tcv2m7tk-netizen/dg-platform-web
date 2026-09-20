@@ -38,7 +38,7 @@ function resolveOrganisationId(req: Request, session: Awaited<ReturnType<typeof 
   if (isNextResponse(session)) return session;
   const requested = req.headers.get("x-dg-operator-organisation")?.trim();
   if (!requested || requested === session.organisationId) return session.organisationId;
-  const operator = assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email, name: session.name });
+  const operator = assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email });
   if (!operator) return NextResponse.json({ error: { code: "operator_only", message: "DigitalGate operator authority required." } }, { status: 403 });
   return requested;
 }
