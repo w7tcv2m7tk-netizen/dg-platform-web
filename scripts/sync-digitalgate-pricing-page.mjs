@@ -79,16 +79,36 @@ export function assertCanonicalPricingArchitecture(html) {
   if (html.includes('data-dg-stripe="addon-voice-ai"')) {
     errors.push("AI Communications still has a Stripe Add App control");
   }
-  const growthGrid = html.match(
+
+  const growthSection = html.match(/<section[^>]*id="growth"[\s\S]*?<\/section>/)?.[0] ?? "";
+  const growthGrid = growthSection.match(
     /<details class="individual-growth">[\s\S]*?<\/details>/,
   )?.[0] ?? "";
-  if (!growthGrid) {
-    errors.push("individual Growth Apps <details> grid is missing");
-  } else if (/AI Communications/.test(growthGrid)) {
-    errors.push("AI Communications still appears in the individual Growth grid");
+  const aiSection = html.match(/<section[^>]*id="ai-communications"[\s\S]*?<\/section>/)?.[0] ?? "";
+  const growthIdx = html.indexOf('id="growth"');
+  const aiIdx = html.indexOf('id="ai-communications"');
+  const industryIdx = html.indexOf('id="industry"');
+
+  if (!growthSection || !growthGrid) {
+    errors.push("Growth section or individual Growth Apps grid is missing");
+  } else if (/AI Communications/.test(growthSection)) {
+    errors.push("AI Communications still appears in the Growth section or grid");
   }
-  if (/Early Access/.test(html.match(/id="ai-communications"[\s\S]*?<\/section>/)?.[0] ?? "")) {
-    errors.push("AI Communications standalone section is labelled Early Access");
+  if (!aiSection) {
+    errors.push("AI & Communications section is missing");
+  } else {
+    if (!/Coming Soon/.test(aiSection)) {
+      errors.push("AI Communications section is not Coming Soon");
+    }
+    if (/Add App/.test(aiSection) || /data-dg-stripe/.test(aiSection)) {
+      errors.push("AI Communications section still has an Add App / checkout action");
+    }
+    if (/Early Access/.test(aiSection)) {
+      errors.push("AI Communications standalone section is labelled Early Access");
+    }
+  }
+  if (!(growthIdx > -1 && aiIdx > growthIdx && industryIdx > aiIdx)) {
+    errors.push("AI & Communications section must sit after Growth and before Industry");
   }
   if (errors.length) {
     throw new Error(`Canonical pricing architecture check failed: ${errors.join("; ")}`);

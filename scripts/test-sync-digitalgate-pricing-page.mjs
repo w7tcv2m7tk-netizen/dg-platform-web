@@ -69,10 +69,14 @@ describe("canonical pricing HTML", () => {
     assertCanonicalPricingArchitecture(html);
     assert.match(html, /id="ai-communications"/);
     assert.doesNotMatch(html, /data-dg-stripe="addon-voice-ai"/);
+    assert.doesNotMatch(
+      html.match(/<section[^>]*id="growth"[\s\S]*?<\/section>/)?.[0] ?? "",
+      /AI Communications/,
+    );
     assert.ok(sha256Short(html).length === 12);
   });
 
-  it("refuses HTML that puts AI Communications back in Growth", () => {
+  it("refuses HTML that puts AI Communications back in the Growth grid", () => {
     const html = loadCanonicalPricingHtml();
     const broken = html.replace(
       '<details class="individual-growth">',
@@ -80,7 +84,7 @@ describe("canonical pricing HTML", () => {
     );
     assert.throws(
       () => assertCanonicalPricingArchitecture(broken),
-      /individual Growth grid/,
+      /Growth section or grid/,
     );
   });
 });
