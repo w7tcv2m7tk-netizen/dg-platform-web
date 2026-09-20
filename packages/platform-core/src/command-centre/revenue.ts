@@ -35,7 +35,7 @@ export type CommandMrrAttributionRow = {
 
 export type CommandMrrAttribution = {
   generatedAt: string;
-  /** Sum of monthly-interval subscription amounts only. */
+  /** True MRR: monthly subscriptions + monthly equivalent of annual subscriptions. */
   monthlyMrrCents: number;
   monthlyMrrLabel: string;
   /**
@@ -78,9 +78,11 @@ export async function getCommandMrrAttribution(): Promise<CommandMrrAttribution>
 
   const monthly = customerSubscriptions.filter((s) => s.interval === "month");
   const annual = customerSubscriptions.filter((s) => s.interval === "year");
-  const monthlyMrrCents = monthly.reduce((sum, s) => sum + s.amountCents, 0);
+  const monthlyRecurringCents = monthly.reduce((sum, s) => sum + s.amountCents, 0);
   const annualAmountsCents = annual.reduce((sum, s) => sum + s.amountCents, 0);
-  const arrCents = monthlyMrrCents * 12 + annualAmountsCents;
+  const annualMrrEquivalentCents = annual.reduce((sum, s) => sum + mrrEquivalentFromAnnualCents(s.amountCents), 0);
+  const monthlyMrrCents = monthlyRecurringCents + annualMrrEquivalentCents;
+  const arrCents = monthlyRecurringCents * 12 + annualAmountsCents;
   const trialCount = customerSubscriptions.filter((s) => s.status === "trialing").length;
   const annualCount = annual.length;
 
@@ -126,6 +128,6 @@ export async function getCommandMrrAttribution(): Promise<CommandMrrAttribution>
       };
     }),
     note:
-      "MRR is recurring subscription value from Commerce records (monthly interval + annual÷12). It is not the same as revenue received (invoices paid) or Growth Engine “MRR Won”. Stripe may differ until webhook sync is complete.",
+      "MRR is recurring subscription value from organisation-attributed Commerce records: monthly subscriptions plus the monthly equivalent of annual subscriptions. ARR is monthly subscriptions annualised plus annual contract value. Revenue received (paid invoices) and Growth Engine ‘MRR Won’ are separate measures. Commerce is the platform ledger; Stripe may differ until webhook sync completes.",
   };
 }
