@@ -13,6 +13,7 @@ import type { OrganisationBusinessProfile } from "../org/business-profile-types"
 import {
   normalisePaidAppKeys,
   paidAppCheckoutLines,
+  GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS,
   type PaidAppKey,
 } from "./paid-apps";
 
@@ -131,7 +132,34 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         },
       ];
 
-  for (const line of industryCheckoutLines(industryApps)) {
+  const growthSuiteSelected = premiumApps.includes("growth_suite");
+  const industryLines = industryCheckoutLines(industryApps);
+  const primaryIndustryLine = industryLines.find((line) => line.kind === "industry") ?? null;
+  const bundledPrimaryIndustry = growthSuiteSelected && primaryIndustryLine
+    ? primaryIndustryLine
+    : null;
+
+  if (bundledPrimaryIndustry) {
+    const bundleAmount = annual
+      ? annualPriceFromMonthlyCents(GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS)
+      : GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS;
+    lineItems.push({
+      quantity: 1,
+      price_data: {
+        currency: "aud",
+        unit_amount: bundleAmount,
+        recurring,
+        product_data: {
+          name: annual
+            ? `DigitalGate Growth Suite + ${bundledPrimaryIndustry.industryLabel} Industry App (Annual)`
+            : `DigitalGate Growth Suite + ${bundledPrimaryIndustry.industryLabel} Industry App`,
+        },
+      },
+    });
+  }
+
+  for (const line of industryLines) {
+    if (bundledPrimaryIndustry === line) continue;
     const lineAmount = annual
       ? annualPriceFromMonthlyCents(line.amountCents)
       : line.amountCents;
@@ -149,6 +177,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   }
 
   for (const line of paidAppCheckoutLines(premiumApps)) {
+    if (bundledPrimaryIndustry && line.key === "growth_suite") continue;
     const lineAmount = annual
       ? annualPriceFromMonthlyCents(line.amountCents)
       : line.amountCents;
