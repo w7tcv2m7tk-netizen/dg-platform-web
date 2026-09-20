@@ -139,7 +139,7 @@ export function HealthCentreError() {
     <div className="dg-card border-amber-500/30 bg-amber-500/5">
       <h2 className="font-semibold text-amber-200">Could not load WordPress migration health</h2>
       <p className="mt-2 text-sm text-slate-300">
-        The connected WordPress migration site did not return health information. Check the WordPress connector and try again.
+        The connected WordPress migration site did not return health information. Check the migration connection and try again.
       </p>
     </div>
   );
