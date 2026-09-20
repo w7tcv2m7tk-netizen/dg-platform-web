@@ -1,7 +1,7 @@
 <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Pricing | DigitalGate Business Platform</title>
-  <meta name="description" content="Platform from $99/mo. Industry Apps $99 with 1 Template included; extra Templates +$29. Website Build from $1,997.">
+  <meta name="description" content="Core Platform from $99/mo. Growth Suite $399/mo. Industry Apps $149/mo with one primary sub-industry included. Growth Suite + Industry $499/mo. Website Build from $1,997.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
@@ -791,7 +791,39 @@
 
     .plan-outcome { font-style: italic; color: #BFDBFE; font-size: 0.88rem; margin-bottom: 0.75rem; min-height: 2.5em; }
     .trial-note { margin-top: 0.75rem; font-size: 0.72rem; color: #64748B; line-height: 1.4; text-align: center; }
-    .how-buy { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; }
+    .how-buy { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+    .suite-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; max-width: 960px; margin: 0 auto 1.5rem; }
+    .suite-included { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.75rem 0 1.25rem; }
+    .suite-included span {
+      font-size: 0.75rem; padding: 0.3rem 0.7rem; border-radius: 999px;
+      background: rgba(15,23,42,0.8); border: 1px solid #334155; color: #CBD5E1;
+    }
+    .bundle-math {
+      background: #0F172A; border: 1px solid #1E293B; border-radius: 12px;
+      padding: 0.85rem 1rem; margin: 0.75rem 0 1rem; font-size: 0.82rem; color: #94A3B8; line-height: 1.55;
+    }
+    .bundle-math strong { color: #F9FAFB; }
+    .bundle-math .save { color: #34D399; font-weight: 700; }
+    .addon-callout {
+      max-width: 820px; margin: 0 auto 1.75rem; padding: 1.1rem 1.25rem;
+      background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.22);
+      border-radius: 14px; text-align: center; color: #94A3B8; font-size: 0.92rem; line-height: 1.65;
+    }
+    .addon-callout strong { color: #F9FAFB; }
+    .individual-growth {
+      max-width: 1100px; margin: 1.5rem auto 0; border: 1px solid #334155;
+      border-radius: 16px; background: #111827; padding: 0.85rem 1rem 1rem;
+    }
+    .individual-growth summary {
+      cursor: pointer; list-style: none; font-weight: 700; color: #E2E8F0;
+      font-size: 0.95rem; padding: 0.5rem 0.25rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    .individual-growth summary::-webkit-details-marker { display: none; }
+    .individual-growth summary::after { content: "▾"; color: #93C5FD; font-size: 0.85rem; }
+    .individual-growth[open] summary::after { content: "▴"; }
+    .individual-growth .apps-grid { margin-top: 1rem; }
+    @media (max-width: 1024px) { .suite-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .suite-grid { grid-template-columns: 1fr; } }
     .how-buy-card { background:#1E293B; border:1px solid #334155; border-radius:12px; padding:1rem 0.85rem; text-align:center; }
     .how-buy-card strong { display:block; color:#F9FAFB; font-size:0.88rem; margin-bottom:0.35rem; }
     .how-buy-card span { color:#94A3B8; font-size:0.75rem; line-height:1.4; }
@@ -1143,10 +1175,11 @@
   <nav class="pricing-nav" aria-label="Pricing sections">
     <div class="container">
       <div class="pricing-nav-inner">
-        <a href="#platform"><span class="num">1</span> Platform</a>
-        <a href="#apps"><span class="num">2</span> Apps</a>
-        <a href="#professional-services"><span class="num">3</span> Professional Services</a>
-        <a href="#customer-success"><span class="num">4</span> Customer Success</a>
+        <a href="#platform"><span class="num">1</span> Core Platform</a>
+        <a href="#growth"><span class="num">2</span> Growth</a>
+        <a href="#industry"><span class="num">3</span> Industry</a>
+        <a href="#customer-success"><span class="num">4</span> Support</a>
+        <a href="#professional-services">Professional Services</a>
         <a href="#founding"><span class="num">★</span> Founding</a>
       </div>
     </div>
@@ -1157,15 +1190,14 @@
     <div class="container">
       <div class="section-header" style="margin:0 auto 1.5rem;">
         <span class="sub-label">HOW DIGITALGATE IS SOLD</span>
-        <h2>Platform · Apps · Services · Success · Intelligence</h2>
-        <p>Clear commercial layers — so you always know what you&apos;re buying.</p>
+        <h2>Four layers. Always add-ons on top of Core.</h2>
+        <p>Choose your Core Platform first. Growth and Industry sit on top. Support is optional and separate.</p>
       </div>
       <div class="how-buy" style="max-width:960px;margin:0 auto;">
-        <div class="how-buy-card"><strong>Platform</strong><span>The operating system</span></div>
-        <div class="how-buy-card"><strong>Apps</strong><span>Add-ons — Core · Infra · Industry · Growth</span></div>
-        <div class="how-buy-card"><strong>Professional Services</strong><span>People — optional; never required</span></div>
-        <div class="how-buy-card"><strong>Customer Success</strong><span>Ongoing support plans</span></div>
-        <div class="how-buy-card"><strong>Intelligence layer</strong><span>AI · Twin · Automation · Intelligence — across everything</span></div>
+        <div class="how-buy-card"><strong>1. Core Platform</strong><span>Starter · Growth · Scale · Enterprise</span></div>
+        <div class="how-buy-card"><strong>2. Growth</strong><span>Growth Suite $399 — or individual Apps</span></div>
+        <div class="how-buy-card"><strong>3. Industry</strong><span>Specialist capability $149 — if you need it</span></div>
+        <div class="how-buy-card"><strong>4. Support</strong><span>Optional Success plans — separate from 1–3</span></div>
       </div>
     </div>
   </section>
@@ -1175,8 +1207,8 @@
     <div class="container">
       <div class="section-header">
         <span class="sub-label">01 · PLATFORM</span>
-        <h2>The platform is the product</h2>
-        <p>Start with the core operating system. Add Apps and services only when you need them.</p>
+        <h2>Choose your DigitalGate Core Platform</h2>
+        <p>This is the operating system. Growth Suite, Industry Apps and Support are add-ons on top of this plan.</p>
       </div>
       <div class="commercial-callout founding-benefit">
         <span class="sub-label" style="display:block;margin-bottom:0.5rem;">FOUNDING CUSTOMER BENEFIT</span>
@@ -1253,9 +1285,9 @@
   <section class="apps-section" id="apps">
     <div class="container">
       <div class="section-header">
-        <span class="sub-label">02 · APPS</span>
-        <h2>Core → Infrastructure → Industry → Growth</h2>
-        <p>An operating platform with Apps — not an App marketplace. Add only what you need. <a href="/apps/" style="color:#93C5FD;font-weight:600;">Explore the Apps hub →</a></p>
+        <span class="sub-label">INCLUDED WITH CORE</span>
+        <h2>Core and Infrastructure sit with the platform</h2>
+        <p>These are not extra commercial layers. Add Growth and Industry next. <a href="/apps/" style="color:#93C5FD;font-weight:600;">Explore the Apps hub →</a></p>
       </div>
       <div class="commercial-callout apps-addon">
         <h3>Apps are optional add-ons</h3>
@@ -1275,7 +1307,7 @@
           <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">📅</div><div class="app-name"><a href="/apps/core/calendar/">Calendar</a></div><div class="app-price">Included</div><div class="app-desc">Bookings and schedule</div></div>
           <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">📄</div><div class="app-name"><a href="/apps/core/documents/">Documents</a></div><div class="app-price">Included</div><div class="app-desc">Files attached to business records</div></div>
           <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">💬</div><div class="app-name"><a href="/apps/core/communications/">Communications</a></div><div class="app-price">Included</div><div class="app-desc">Email and message history in context</div></div>
-          <div class="dg-app-card"><span class="app-badge app-badge-soon">Early Access</span><div class="app-icon">💳</div><div class="app-name"><a href="/apps/core/commerce/">Commerce</a></div><div class="app-price">Included with Core when available</div><div class="app-desc">Quotes, invoices and payments — progressively rolling out</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Included</span><div class="app-icon">💳</div><div class="app-name"><a href="/apps/core/commerce/">Commerce</a></div><div class="app-price">Included</div><div class="app-desc">Quotes, invoices and payments on Core</div></div>
         </div>
       </div>
 
@@ -1287,10 +1319,10 @@
         <div class="apps-grid apps-grid-3">
           <div class="dg-app-card"><span class="app-badge app-badge-core">Available</span><div class="app-icon">🛠️</div><div class="app-name"><a href="/apps/infrastructure/website/">Website connection &amp; management</a></div><div class="app-price">Platform Core</div><div class="app-desc">Connect and manage your website with CRM, SEO and platform context — expands with platform tier</div></div>
           <div class="dg-app-card"><span class="app-badge app-badge-soon">Growth+</span><div class="app-icon">🌐</div><div class="app-name"><a href="/apps/infrastructure/website-builder/">Website Builder</a></div><div class="app-price">Progressive</div><div class="app-desc">Advanced creation, AI generation, publishing and management — not included in every plan</div></div>
-          <div class="dg-app-card"><span class="app-badge app-badge-soon">Early Access</span><div class="app-icon">🔗</div><div class="app-name"><a href="/apps/infrastructure/domains/">Domains</a></div><div class="app-price">Progressive</div><div class="app-desc">Connect and manage domains from the platform</div></div>
-          <div class="dg-app-card"><span class="app-badge app-badge-soon">Early Access</span><div class="app-icon">🧭</div><div class="app-name"><a href="/apps/infrastructure/dns/">DNS</a></div><div class="app-price">Progressive</div><div class="app-desc">DNS records alongside your digital identity</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Available</span><div class="app-icon">🔗</div><div class="app-name"><a href="/apps/infrastructure/domains/">Domains</a></div><div class="app-price">Progressive</div><div class="app-desc">Connect and manage domains from the platform</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Available</span><div class="app-icon">🧭</div><div class="app-name"><a href="/apps/infrastructure/dns/">DNS</a></div><div class="app-price">Progressive</div><div class="app-desc">DNS records alongside your digital identity</div></div>
           <div class="dg-app-card"><span class="app-badge app-badge-soon">Coming Soon</span><div class="app-icon">☁️</div><div class="app-name"><a href="/apps/infrastructure/hosting/">Hosting</a></div><div class="app-price">Progressive</div><div class="app-desc">Hosting abstraction as commercially ready</div></div>
-          <div class="dg-app-card"><span class="app-badge app-badge-soon">Early Access</span><div class="app-icon">✉️</div><div class="app-name"><a href="/apps/infrastructure/email/">Email</a></div><div class="app-price">Progressive</div><div class="app-desc">Mailbox and transactional email infrastructure</div></div>
+          <div class="dg-app-card"><span class="app-badge app-badge-core">Available</span><div class="app-icon">✉️</div><div class="app-name"><a href="/apps/infrastructure/email/">Email</a></div><div class="app-price">Progressive</div><div class="app-desc">Mailbox and transactional email infrastructure</div></div>
           <div class="dg-app-card"><span class="app-badge app-badge-soon">Coming Soon</span><div class="app-icon">🔒</div><div class="app-name"><a href="/apps/infrastructure/ssl/">SSL</a></div><div class="app-price">Progressive</div><div class="app-desc">Certificates managed with your site</div></div>
           <div class="dg-app-card"><span class="app-badge app-badge-soon">Coming Soon</span><div class="app-icon">💾</div><div class="app-name"><a href="/apps/infrastructure/backups/">Backups</a></div><div class="app-price">Progressive</div><div class="app-desc">Backup and restore for managed presence</div></div>
           <div class="dg-app-card"><span class="app-badge app-badge-soon">Coming Soon</span><div class="app-icon">🛡️</div><div class="app-name"><a href="/apps/infrastructure/cloudflare/">Cloudflare</a></div><div class="app-price">Progressive</div><div class="app-desc">CDN and edge controls when ready</div></div>
@@ -1298,124 +1330,75 @@
         <p style="text-align:center;margin-top:1.25rem;color:#94A3B8;font-size:0.85rem;">Infrastructure pricing is introduced as each capability is commercially ready — progressive readiness, not placeholder pricing.</p>
       </div>
 
-      <div class="apps-subsection section-spacer" id="industry-apps">
-        <div class="apps-subsection-header">
-          <h3>Industry — Specialise your workflows</h3>
-          <p>Industry Apps are vertical operating platforms ($99/mo · 1 Template included · +$29/mo each additional). Architecture spans twelve Industries — public pricing stays honest about readiness.</p>
+    </div>
+  </section>
+
+  <!-- ===== 02 GROWTH ===== -->
+  <section class="apps-section" id="growth">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">02 · GROWTH</span>
+        <h2>Add Growth — preferably Growth Suite</h2>
+        <p>Growth Suite is the recommended way to buy DigitalGate&apos;s growth capability. It is an add-on to your Core Platform plan — it does not replace Core.</p>
+      </div>
+      <div class="suite-grid">
+        <div class="pricing-card popular">
+          <div class="popular-badge">RECOMMENDED</div>
+          <div class="plan-name">Growth Suite</div>
+          <p class="plan-outcome">The complete Growth App collection in one add-on.</p>
+          <div class="plan-price">$399<span>/mo</span></div>
+          <div class="plan-users">Add-on to your selected Core Platform plan</div>
+          <div class="suite-included">
+            <span>Advertising</span><span>Marketing</span><span>Prospecting &amp; Opportunity Engine</span>
+            <span>AI Visibility</span><span>SEO</span><span>Automation</span>
+            <span>Analytics</span><span>Social</span><span>Reputation</span>
+          </div>
+          <p class="plan-description">Customers can still buy individual Growth Apps instead. Growth Suite does not include the Core Platform.</p>
+          <a href="https://digitalgate.com.au/founding-customers/#application" class="btn-primary"><span class="dg-ic dg-ic-card" aria-hidden="true"></span> Apply for Founding 10 →</a>
         </div>
-        <p style="text-align:center;color:#94A3B8;font-size:0.85rem;margin:0 0 1rem;">Available · Early Access · Coming Soon · Architecture Reserved</p>
-        <div class="apps-grid apps-grid-4">
-          <div class="dg-app-card" data-dg-stripe="app-property">
-            <span class="app-badge app-badge-live">Available</span>
-            <div class="app-icon">🏠</div>
-            <div class="app-name"><a href="/apps/industry/property/">Property</a></div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Real Estate, PM, Commercial, Development, Buyers Agency — Real Estate Template live</div>
-            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add Industry</a>
+        <div class="pricing-card">
+          <div class="popular-badge">SAVE $49/MO</div>
+          <div class="plan-name">Growth Suite + Industry</div>
+          <p class="plan-outcome">Complete Growth Suite plus one Industry App.</p>
+          <div class="plan-price">$499<span>/mo</span></div>
+          <div class="plan-users">Add-on to your selected Core Platform plan</div>
+          <div class="bundle-math">
+            Growth Suite <strong>$399</strong><br>
+            + Industry App <strong>$149</strong><br>
+            = <strong>$548</strong> separately<br>
+            Bundle price <strong>$499/month</strong> — <span class="save">save $49/month</span>.
           </div>
-          <div class="dg-app-card" data-dg-stripe="app-services">
-            <span class="app-badge app-badge-live">Available</span>
-            <div class="app-icon">🔧</div>
-            <div class="app-name"><a href="/apps/industry/services/">Services</a></div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Jobs, quotes and scheduling — one App with trade Templates</div>
-            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add Industry</a>
-          </div>
-          <div class="dg-app-card" data-dg-stripe="app-hospitality-accommodation">
-            <span class="app-badge app-badge-live">Early Access</span>
-            <div class="app-icon">🏨</div>
-            <div class="app-name"><a href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation</a></div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Short-stay, holiday rentals, hotels, F&amp;B and venues — Accommodation early access</div>
-            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add Industry</a>
-          </div>
-          <div class="dg-app-card soon">
-            <span class="app-badge app-badge-soon">Early Access</span>
-            <div class="app-icon">💰</div>
-            <div class="app-name"><a href="/apps/industry/finance/">Finance</a></div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Accounting first — broking, planning, insurance and advisory Templates</div>
-            <a href="/contact/" class="btn-app">Enquire</a>
-          </div>
-          <div class="dg-app-card soon">
-            <span class="app-badge app-badge-soon">Early Access</span>
-            <div class="app-icon">✨</div>
-            <div class="app-name"><a href="/apps/industry/creator/">Creator &amp; Media</a></div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Audience, content and studio — founding interest welcome</div>
-            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app">Founding interest</a>
-          </div>
-          <div class="dg-app-card soon">
-            <span class="app-badge app-badge-soon">Coming Soon</span>
-            <div class="app-icon">⚖️</div>
-            <div class="app-name">Professional</div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Legal, Surveying, Engineering, Architecture, Consulting — Templates, not separate Apps</div>
-            <a href="/contact/" class="btn-app">Enquire</a>
-          </div>
-          <div class="dg-app-card soon">
-            <span class="app-badge app-badge-soon">Coming Soon</span>
-            <div class="app-icon">🚗</div>
-            <div class="app-name"><a href="/apps/industry/automotive/">Automotive</a></div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Dealerships, mechanical and auto services</div>
-            <a href="/contact/" class="btn-app">Enquire</a>
-          </div>
-          <div class="dg-app-card soon">
-            <span class="app-badge app-badge-soon">Coming Soon</span>
-            <div class="app-icon">🛒</div>
-            <div class="app-name">Retail &amp; Commerce</div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Retail, e-commerce, wholesale and distribution Templates</div>
-            <a href="/contact/" class="btn-app">Enquire</a>
-          </div>
-          <div class="dg-app-card soon">
-            <span class="app-badge app-badge-soon">Coming Soon</span>
-            <div class="app-icon">💚</div>
-            <div class="app-name">Health &amp; Wellness</div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Medical, allied, dental and vet — privacy-first roadmap</div>
-            <a href="/contact/" class="btn-app">Enquire</a>
-          </div>
-          <div class="dg-app-card soon">
-            <span class="app-badge app-badge-soon">Coming Soon</span>
-            <div class="app-icon">🚚</div>
-            <div class="app-name">Transport &amp; Logistics</div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Transport, logistics and courier operators</div>
-            <a href="/contact/" class="btn-app">Enquire</a>
-          </div>
-          <div class="dg-app-card soon">
-            <span class="app-badge app-badge-soon">Coming Soon</span>
-            <div class="app-icon">🎓</div>
-            <div class="app-name">Education &amp; Organisations</div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">Education, training and associations</div>
-            <a href="/contact/" class="btn-app">Enquire</a>
-          </div>
-          <div class="dg-app-card soon">
-            <span class="app-badge app-badge-soon">Reserved</span>
-            <div class="app-icon">🌾</div>
-            <div class="app-name">Agriculture &amp; Primary</div>
-            <div class="app-price">Architecture</div>
-            <div class="app-desc">Architecture reserved — not an active sell</div>
-            <a href="/contact/" class="btn-app">Enquire</a>
-          </div>
-        </div>
-        <p style="text-align:center;margin-top:1rem;color:#64748B;font-size:0.8rem;">Accommodation belongs under Hospitality &amp; Accommodation — not Property. Do not market twelve finished products.</p>
-        <div style="max-width:720px;margin:1.5rem auto 0;padding:1.25rem 1.5rem;border:1px solid #1E293B;border-radius:12px;background:#0F172A;">
-          <p style="margin:0 0 0.5rem;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#93C5FD;">Canonical pricing</p>
-          <p style="margin:0 0 0.75rem;color:#E2E8F0;font-size:0.95rem;"><strong>Industry App $99/mo</strong> includes <strong>1 Industry Template</strong>. Additional Templates <strong>+$29/mo</strong> each. The Industry App is the commercial boundary; Templates are the expansion layer.</p>
-          <p style="margin:0;color:#94A3B8;font-size:0.85rem;">Example: Property + Real Estate = $99. Add Property Management → $128/mo. Starter + Property + PM = $227/mo at published pricing. Try DigitalGate free for 14 days. Annual ≈ 10 months of monthly pricing.</p>
+          <ul class="feature-list">
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Complete Growth Suite</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> One Industry App</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> One primary sub-industry App included</li>
+            <li><span class="dg-ic dg-ic-check" aria-hidden="true"></span> Additional sub-industry Apps +$29/mo each</li>
+          </ul>
+          <p class="plan-description">$499 does <strong>not</strong> include Starter, Growth, Scale or Enterprise. Example: Growth Core Platform $249 + this bundle $499 = <strong>$748/month</strong>.</p>
+          <a href="https://digitalgate.com.au/founding-customers/#application" class="btn-primary"><span class="dg-ic dg-ic-card" aria-hidden="true"></span> Apply for Founding 10 →</a>
         </div>
       </div>
-
-      <div class="apps-subsection section-spacer" id="growth-apps">
-        <div class="apps-subsection-header">
-          <h3>Growth — Visibility, acquisition, conversion</h3>
-          <p>grow — optional · billed separately. Prospecting $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free.</p>
-        </div>
+      <div class="addon-callout">
+        <strong>Add-on, not a platform replacement.</strong> Growth Suite $399 and Growth Suite + Industry $499 sit on top of your Core Platform plan.
+      </div>
+      <details class="individual-growth">
+        <summary>Prefer individual Growth Apps instead?</summary>
+        <p style="color:#94A3B8;font-size:0.85rem;margin:0.25rem 0 1rem;">Existing standalone prices. Advertising is $99/month. Reputation remains Free. AI Communications is not part of Growth Suite.</p>
         <div class="apps-grid apps-grid-3">
+          <div class="dg-app-card" data-dg-stripe="premium-advertising">
+            <div class="app-icon">📢</div>
+            <div class="app-name"><a href="/advertising/">Advertising</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Google Ads, Meta Ads and paid campaign management — connected to CRM and attribution</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
+          <div class="dg-app-card" data-dg-stripe="premium-marketing">
+            <div class="app-icon">📣</div>
+            <div class="app-name"><a href="/marketing/">Marketing</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">Email campaigns, audiences, sequences and marketing automation — powered by connected CRM context</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
           <div class="dg-app-card" data-dg-stripe="premium-prospecting">
             <div class="app-icon">◎</div>
             <div class="app-name"><a href="/prospecting/">Prospecting &amp; Opportunity Engine</a></div>
@@ -1458,23 +1441,143 @@
             <div class="app-desc">Publish and manage social from the platform</div>
             <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
           </div>
-          <div class="dg-app-card" data-dg-stripe="addon-voice-ai">
-            <span class="app-badge app-badge-soon">Early Access</span>
-            <div class="app-icon">🎙️</div>
-            <div class="app-name"><a href="/ai-communications/">AI Communications</a></div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">AI-assisted communications — Voice Agents still in development</div>
-            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
-          </div>
           <div class="dg-app-card">
             <span class="app-badge app-badge-live">Free</span>
             <div class="app-icon">★</div>
             <div class="app-name"><a href="/reputation/">Reputation</a></div>
             <div class="app-price">Free</div>
-            <div class="app-desc">Review inbox and reputation surface — no Growth App charge</div>
+            <div class="app-desc">Review inbox and reputation surface — included in Growth Suite and free standalone</div>
             <a href="https://app.digitalgate.com.au/apps/reviews" class="btn-app">Open in platform</a>
           </div>
+          <div class="dg-app-card" data-dg-stripe="addon-voice-ai">
+            <span class="app-badge app-badge-soon">Coming Soon</span>
+            <div class="app-icon">🎙️</div>
+            <div class="app-name"><a href="/ai-communications/">AI Communications</a></div>
+            <div class="app-price">+$99<span>/mo</span></div>
+            <div class="app-desc">AI-assisted communications — Voice Agents still in development. Not included in Growth Suite.</div>
+            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
+          </div>
         </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ===== 03 INDUSTRY ===== -->
+  <section class="platform-section" id="industry">
+    <div class="container">
+      <div class="section-header">
+        <span class="sub-label">03 · INDUSTRY</span>
+        <h2>Add specialist Industry capability if you need it</h2>
+        <p>Industry Apps are specialist operating capability layered onto DigitalGate — $149/month each. One primary sub-industry App is included. Extra sub-industry Apps remain +$29/month.</p>
+      </div>
+      <div class="commercial-callout">
+        <h3>One Industry charge — not two</h3>
+        <p>Property at $149 includes your primary sub-industry (for example Real Estate). Do not add a second $149 for that included sub-industry. Additional sub-industries such as Property Management are +$29/month.</p>
+      </div>
+      <p style="text-align:center;color:#94A3B8;font-size:0.85rem;margin:0 0 1rem;">Available · Coming Soon · Architecture Reserved</p>
+      <div class="apps-grid apps-grid-4">
+        <div class="dg-app-card" data-dg-stripe="app-property">
+          <span class="app-badge app-badge-live">Available</span>
+          <div class="app-icon">🏠</div>
+          <div class="app-name"><a href="/apps/industry/property/">Property</a></div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Includes one primary sub-industry — Real Estate, Property Management, Commercial and more</div>
+          <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add Industry</a>
+        </div>
+        <div class="dg-app-card" data-dg-stripe="app-services">
+          <span class="app-badge app-badge-live">Available</span>
+          <div class="app-icon">🔧</div>
+          <div class="app-name"><a href="/apps/industry/services/">Services</a></div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Includes one primary trade — Electrical, Plumbing, Cleaning, Maintenance and more</div>
+          <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add Industry</a>
+        </div>
+        <div class="dg-app-card" data-dg-stripe="app-hospitality-accommodation">
+          <span class="app-badge app-badge-live">Available</span>
+          <div class="app-icon">🏨</div>
+          <div class="app-name"><a href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation</a></div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Includes one primary sub-industry — short-stay, holiday rentals, hotels, F&amp;B or venues</div>
+          <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add Industry</a>
+        </div>
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Coming Soon</span>
+          <div class="app-icon">💰</div>
+          <div class="app-name"><a href="/apps/industry/finance/">Finance</a></div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Includes one primary sub-industry — Mortgage &amp; Finance Broking, Lending and more</div>
+          <a href="/contact/" class="btn-app">Enquire</a>
+        </div>
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Coming Soon</span>
+          <div class="app-icon">✨</div>
+          <div class="app-name"><a href="/apps/industry/creator/">Creator &amp; Media</a></div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Audience, content and studio — founding interest welcome</div>
+          <a href="https://digitalgate.com.au/founding-customers/" class="btn-app">Founding interest</a>
+        </div>
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Coming Soon</span>
+          <div class="app-icon">⚖️</div>
+          <div class="app-name">Professional</div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Legal, Surveying, Engineering, Architecture, Consulting — sub-industry Apps, not separate Industry charges</div>
+          <a href="/contact/" class="btn-app">Enquire</a>
+        </div>
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Coming Soon</span>
+          <div class="app-icon">🚗</div>
+          <div class="app-name"><a href="/apps/industry/automotive/">Automotive</a></div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Dealerships, mechanical and auto services</div>
+          <a href="/contact/" class="btn-app">Enquire</a>
+        </div>
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Coming Soon</span>
+          <div class="app-icon">🛒</div>
+          <div class="app-name">Retail &amp; Commerce</div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Retail, e-commerce, wholesale and distribution</div>
+          <a href="/contact/" class="btn-app">Enquire</a>
+        </div>
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Coming Soon</span>
+          <div class="app-icon">💚</div>
+          <div class="app-name">Health &amp; Wellness</div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Medical, allied, dental and vet — privacy-first roadmap</div>
+          <a href="/contact/" class="btn-app">Enquire</a>
+        </div>
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Coming Soon</span>
+          <div class="app-icon">🚚</div>
+          <div class="app-name">Transport &amp; Logistics</div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Transport, logistics and courier operators</div>
+          <a href="/contact/" class="btn-app">Enquire</a>
+        </div>
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Coming Soon</span>
+          <div class="app-icon">🎓</div>
+          <div class="app-name">Education &amp; Organisations</div>
+          <div class="app-price">+$149<span>/mo</span></div>
+          <div class="app-desc">Education, training and associations</div>
+          <a href="/contact/" class="btn-app">Enquire</a>
+        </div>
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Reserved</span>
+          <div class="app-icon">🌾</div>
+          <div class="app-name">Agriculture &amp; Primary</div>
+          <div class="app-price">Architecture</div>
+          <div class="app-desc">Architecture reserved — not an active sell</div>
+          <a href="/contact/" class="btn-app">Enquire</a>
+        </div>
+      </div>
+      <p style="text-align:center;margin-top:1rem;color:#64748B;font-size:0.8rem;">Accommodation belongs under Hospitality &amp; Accommodation — not Property.</p>
+      <div style="max-width:720px;margin:1.5rem auto 0;padding:1.25rem 1.5rem;border:1px solid #1E293B;border-radius:12px;background:#0F172A;">
+        <p style="margin:0 0 0.5rem;font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#93C5FD;">Industry pricing</p>
+        <p style="margin:0 0 0.75rem;color:#E2E8F0;font-size:0.95rem;"><strong>Industry App $149/mo</strong> includes <strong>one primary sub-industry App</strong>. Additional sub-industry Apps <strong>+$29/mo</strong> each.</p>
+        <p style="margin:0;color:#94A3B8;font-size:0.85rem;">Example: Property + Real Estate = $149. Add Property Management → $178/mo. Starter + Property + PM = $277/mo. Growth Core $249 + Growth Suite + Industry $499 = $748/mo.</p>
       </div>
     </div>
   </section>
@@ -1485,7 +1588,7 @@
       <div class="section-header">
         <span class="sub-label">03 · PROFESSIONAL SERVICES</span>
         <h2>Expert help when you want it — never required</h2>
-        <p>Optional people work on top of the platform — setup, migration, training, advice and website builds. DigitalGate remains Platform → Apps → Professional Services → Customer Success. One-off services are separate from your subscription.</p>
+        <p>Optional people work on top of the platform — setup, migration, training, advice and website builds. One-off services are separate from Core Platform, Growth, Industry and Support subscriptions.</p>
       </div>
       <div class="pro-services-grid">
         <div class="pro-service-card" id="website-migration">
@@ -1538,8 +1641,8 @@
     <div class="container">
       <div class="section-header">
         <span class="sub-label">04 · SUPPORT &amp; SUCCESS</span>
-        <h2>Support &amp; Success Plans</h2>
-        <p>Help your team adopt the platform and stay ahead. All platform tiers include Standard support.</p>
+        <h2>Choose optional Support &amp; Success</h2>
+        <p>Support is optional and separate from Core Platform, Growth capability and Industry capability. All platform tiers include Standard support.</p>
       </div>
       <div class="support-grid">
         <div class="support-card included">
@@ -1617,44 +1720,44 @@
 
       <div class="section-header" style="margin-top:2rem;">
         <span class="sub-label">BY INDUSTRY</span>
-        <h2>Industry Apps · Templates underneath</h2>
-        <p>Buy the Industry (+$99/mo · 1 Template included). Categories like Real Estate or Short-Stay are Templates — not separate Industry SKUs.</p>
+        <h2>Industry Apps · sub-industry Apps underneath</h2>
+        <p>Buy the Industry (+$149/mo · one primary sub-industry included). Real Estate or Short-Stay are sub-industry Apps — not a second $149 charge.</p>
       </div>
       <div class="value-industry-grid">
         <div class="value-industry-card">
           <div class="ind-head"><span class="ind-icon" aria-hidden="true">🏠</span><h3>Property</h3><span class="badge badge-ga">Available</span></div>
-          <p>One Industry App (+$99/mo · 1 Template included). Templates: <strong>Real Estate</strong> (Available) · Property Management · Commercial · Development · Buyers Agency.</p>
-          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Templates +$29/mo each extra</span></div>
+          <p>One Industry App (+$149/mo · one primary sub-industry included). Sub-industries: <strong>Real Estate</strong> (Available) · Property Management · Commercial · Development · Buyers Agency.</p>
+          <div class="ind-pricing"><strong>+$149/mo</strong> <span>Industry App · extra sub-industry Apps +$29/mo each</span></div>
         </div>
         <div class="value-industry-card">
           <div class="ind-head"><span class="ind-icon" aria-hidden="true">🔧</span><h3>Services</h3><span class="badge badge-ga">Available</span></div>
-          <p>Jobs, quotes and scheduling — one Industry App with trade Templates (not separate Industry products).</p>
-          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Templates +$29/mo each extra</span></div>
+          <p>Jobs, quotes and scheduling — one Industry App with trade sub-industry Apps (not separate Industry products).</p>
+          <div class="ind-pricing"><strong>+$149/mo</strong> <span>Industry App · extra sub-industry Apps +$29/mo each</span></div>
         </div>
         <div class="value-industry-card">
-          <div class="ind-head"><span class="ind-icon" aria-hidden="true">🏨</span><h3>Hospitality &amp; Accommodation</h3><span class="badge badge-ga">Early Access</span></div>
-          <p>One Industry App. Templates: Short-Stay / Accommodation · Holiday Rentals · Hotels · F&amp;B · Venues. Accommodation is not under Property.</p>
-          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Early Access</span></div>
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">🏨</span><h3>Hospitality &amp; Accommodation</h3><span class="badge badge-ga">Available</span></div>
+          <p>One Industry App. Sub-industries: Short-Stay / Accommodation · Holiday Rentals · Hotels · F&amp;B · Venues. Accommodation is not under Property.</p>
+          <div class="ind-pricing"><strong>+$149/mo</strong> <span>Industry App · extra sub-industry Apps +$29/mo each</span></div>
         </div>
         <div class="value-industry-card">
-          <div class="ind-head"><span class="ind-icon" aria-hidden="true">💰</span><h3>Finance</h3><span class="badge badge-ga">Early Access</span></div>
-          <p>Accounting first — broking, planning and insurance as Templates under Finance (not “Accounting” as a separate Industry).</p>
-          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Early Access</span></div>
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">💰</span><h3>Finance</h3><span class="badge badge-soon">Coming Soon</span></div>
+          <p>One Industry App. Sub-industries: Mortgage &amp; Finance Broking, Lending, accounting, planning and insurance — not “Accounting” as a separate Industry.</p>
+          <div class="ind-pricing"><strong>+$149/mo</strong> <span>Industry App · Coming Soon</span></div>
         </div>
         <div class="value-industry-card">
-          <div class="ind-head"><span class="ind-icon" aria-hidden="true">✨</span><h3>Creator &amp; Media</h3><span class="badge badge-ga">Early Access</span></div>
-          <p>Audience, content and studio — founding interest welcome. Templates specialise creator workflows.</p>
-          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Early Access</span></div>
+          <div class="ind-head"><span class="ind-icon" aria-hidden="true">✨</span><h3>Creator &amp; Media</h3><span class="badge badge-soon">Coming Soon</span></div>
+          <p>Audience, content and studio — founding interest welcome. Sub-industry Apps specialise creator workflows.</p>
+          <div class="ind-pricing"><strong>+$149/mo</strong> <span>Industry App · Coming Soon</span></div>
         </div>
         <div class="value-industry-card">
           <div class="ind-head"><span class="ind-icon" aria-hidden="true">🚗</span><h3>Automotive</h3><span class="badge badge-soon">Coming Soon</span></div>
-          <p>Dealerships and workshops as Templates under one Automotive Industry App.</p>
-          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry App · Coming Soon</span></div>
+          <p>Dealerships and workshops as sub-industry Apps under one Automotive Industry App.</p>
+          <div class="ind-pricing"><strong>+$149/mo</strong> <span>Industry App · Coming Soon</span></div>
         </div>
         <div class="value-industry-card">
           <div class="ind-head"><span class="ind-icon" aria-hidden="true">⚖️</span><h3>Professional · Retail · Health · Transport · Education</h3><span class="badge badge-soon">Coming Soon</span></div>
-          <p>Each is an Industry App with Templates underneath — not twelve finished products today.</p>
-          <div class="ind-pricing"><strong>+$99/mo</strong> <span>Industry Apps · Coming Soon</span></div>
+          <p>Each is an Industry App with sub-industry Apps underneath — not twelve finished products today.</p>
+          <div class="ind-pricing"><strong>+$149/mo</strong> <span>Industry Apps · Coming Soon</span></div>
         </div>
         <div class="value-industry-card">
           <div class="ind-head"><span class="ind-icon" aria-hidden="true">🌾</span><h3>Agriculture &amp; Primary</h3><span class="badge badge-soon">Reserved</span></div>
@@ -1698,7 +1801,7 @@
     </div>
     <div class="faq-item">
       <div class="faq-question">What&apos;s the difference between Platform, Apps, Services and Success? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
-      <div class="faq-answer">Platform is the operating system (Starter / Growth / Scale / Enterprise). Apps are add-ons in Core → Infrastructure → Industry → Growth order. Professional Services are optional people (implementation, migration, training). Customer Success is ongoing support (Standard included; Priority and Success Partner optional). AI is built into the intelligence layer by platform tier. <strong>Growth Apps are optional and billed separately:</strong> Prospecting &amp; Opportunity Engine $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free. Prospecting &amp; Opportunity Engine is one App (Prospecting, Discovery and scoring included — not separate SKUs).</div>
+      <div class="faq-answer">Four commercial layers: <strong>1. Core Platform</strong> (Starter $99 / Growth $249 / Scale $499 / Enterprise custom). <strong>2. Growth</strong> — Growth Suite $399 is the recommended add-on (Advertising, Marketing, Prospecting &amp; Opportunity Engine, AI Visibility, SEO, Automation, Analytics, Social, Reputation). Individual Growth Apps remain available. <strong>3. Industry</strong> — $149/mo each, one primary sub-industry included; extra sub-industry Apps +$29/mo. <strong>4. Support &amp; Success</strong> is optional and separate. Professional Services are optional people work. Growth Suite and Industry do <strong>not</strong> include the Core Platform.</div>
     </div>
     <div class="faq-item">
       <div class="faq-question">Do I need Professional Services or Customer Success? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
@@ -1706,7 +1809,7 @@
     </div>
     <div class="faq-item">
       <div class="faq-question">What is the App hierarchy? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
-      <div class="faq-answer">Canonical order is Core (run) → Infrastructure (power) → Industry (specialise) → Growth (grow). Core is included with the platform. Infrastructure is priced progressively as commercially ready. Industry and Growth Apps are optional add-ons billed separately — Growth: Prospecting &amp; Opportunity Engine $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · AI Communications $99 · Reputation Free. AI is an intelligence layer included by tier; specialist AI Apps are licensed as Growth Apps where applicable.</div>
+      <div class="faq-answer">Buy in this order: Core Platform → Growth (preferably Growth Suite) → Industry if you need specialist workflows → optional Support. Core and Infrastructure sit with the platform. Growth Suite $399 and Industry $149 are add-ons. Individual Growth Apps: Advertising $99 · Marketing $99 · Prospecting &amp; Opportunity Engine $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · Reputation Free. AI Communications $99 is Coming Soon and is <strong>not</strong> in Growth Suite.</div>
     </div>
     <div class="faq-item">
       <div class="faq-question">Is Website Builder fully included? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
@@ -1734,15 +1837,19 @@
     </div>
     <div class="faq-item">
       <div class="faq-question">Do I need an Industry App? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
-      <div class="faq-answer">No. Industry Apps are optional. The core platform works standalone. Add an Industry App (Property, Services, Hospitality &amp; Accommodation, …) when you need specialised workflows — and only when that Industry is ready for your stage (Available, Early Access or Coming Soon).</div>
+      <div class="faq-answer">No. Industry Apps are optional. The Core Platform works standalone. Add an Industry App (Property, Services, Hospitality &amp; Accommodation, …) when you need specialist industry operating capability — and only when that Industry is Available or Coming Soon. Prefer Growth Suite + Industry ($499 add-on) if you also want the complete Growth collection.</div>
     </div>
     <div class="faq-item">
-      <div class="faq-question">How do Industry Apps and Templates price? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
-      <div class="faq-answer"><strong>Industry App = $99/mo</strong> — the major vertical capability. <strong>1 Industry Template is included</strong> (your primary business model). <strong>Additional Templates = +$29/mo each</strong>. Example: Property with Real Estate = $99; add Property Management = $128. Templates are not separate Industry products.</div>
+      <div class="faq-question">How do Industry Apps and sub-industry Apps price? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer"><strong>Industry App = $149/mo</strong> — specialist industry operating capability. <strong>One primary sub-industry App is included</strong>. <strong>Additional sub-industry Apps = +$29/mo each</strong>. Example: Property + Real Estate = $149 — not two $149 charges. Add Property Management → $178. Do not buy the parent Industry and the included primary sub-industry as two Industry Apps.</div>
     </div>
     <div class="faq-item">
       <div class="faq-question">Do Founding customers get a pricing discount? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
-      <div class="faq-answer">No. Founding customers pay standard published Platform + Industry App + Template pricing. Founding benefits are limited access, early capability access, priority onboarding and influence — not a recurring percentage discount. Referral commissions (20/15/10 by cohort) remain separate. Full rules: <a href="/founding-customer-terms/">Founding Customer Terms</a>.</div>
+      <div class="faq-answer">No. Founding customers pay standard published Core Platform + Growth + Industry + Support pricing. Founding benefits are limited access, early capability access, priority onboarding and influence — not a recurring percentage discount. Referral commissions (20/15/10 by cohort) remain separate. Full rules: <a href="/founding-customer-terms/">Founding Customer Terms</a>.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">What is Growth Suite — and does $499 include the Core Platform? <span class="dg-ic dg-ic-chevron" aria-hidden="true"></span></div>
+      <div class="faq-answer"><strong>Growth Suite is $399/month</strong> and is the recommended way to buy DigitalGate&apos;s growth capability. It includes Advertising, Marketing, Prospecting &amp; Opportunity Engine, AI Visibility, SEO, Automation, Analytics, Social and Reputation. <strong>Growth Suite + Industry is $499/month</strong> (Growth Suite $399 + Industry $149 = $548 separately — save $49/month) and includes one Industry App with one primary sub-industry. Both prices are <strong>add-ons</strong> to your Core Platform plan. They do <strong>not</strong> include Starter, Growth, Scale or Enterprise. Example: Growth Core Platform $249 + Growth Suite + Industry $499 = <strong>$748/month</strong>.</div>
     </div>
   </section>
 
@@ -1774,7 +1881,7 @@
       // Support Plans
       'support-priority':        'https://buy.stripe.com/6oU6oGeUL6KIfrKcJZb7y0u',
       'support-success-partner': 'https://buy.stripe.com/dRmeVceULfhe2EYaBRb7y0v',
-      // Industry Apps (+$99/mo) — Property / Hospitality are Industry SKUs; legacy RE/Accommodation links alias until Stripe products are remapped
+      // Industry Apps (+$149/mo) — public price only; Stripe products are not remapped in this marketing update
       'app-property':         'https://buy.stripe.com/5kQ7sKh2T8SQenGdO3b7y0i',
       'app-hospitality-accommodation': 'https://buy.stripe.com/cNiaEWaEv2uscfycJZb7y0g',
       'app-real-estate':       'https://buy.stripe.com/5kQ7sKh2T8SQenGdO3b7y0i',

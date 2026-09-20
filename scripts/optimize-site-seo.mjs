@@ -492,7 +492,7 @@ const PLANS = {
       ),
       pricing: seo(
         "Pricing | DigitalGate Business Platform",
-        "Platform from $99/mo. Industry Apps $99 with 1 Template included; extra Templates +$29. Website Build from $1,997.",
+        "Core Platform from $99/mo. Growth Suite $399/mo. Industry Apps $149/mo with one primary sub-industry included. Growth Suite + Industry $499/mo. Website Build from $1,997.",
         ["digitalgate pricing", "industry app pricing", "website build"],
       ),
       insights: seo(
@@ -527,37 +527,37 @@ const PLANS = {
       ),
       apps: seo(
         "DigitalGate Apps | Core, Infrastructure, Industry, Growth",
-        "Apps on an operating system — Core, Infrastructure, Industry Apps with Templates, and Growth. Not a tool catalogue.",
+        "Apps on an operating system — Core, Infrastructure, Industry Apps with sub-industry Apps, and Growth Suite. Not a tool catalogue.",
         ["digitalgate apps", "industry apps", "property industry app"],
       ),
       "apps/industry": seo(
         "Industry Apps | DigitalGate",
-        "Twelve Industry Apps. Property and Services available. Templates specialise each vertical — 1 included, +$29 each extra.",
+        "Twelve Industry Apps at $149/mo. Property, Services and Hospitality available. One primary sub-industry included; extra sub-industry Apps +$29/mo.",
         ["industry apps", "property app", "hospitality accommodation"],
       ),
       "apps/industry/property": seo(
         "Property Industry App | DigitalGate",
-        "One Property Industry App ($99/mo). Real Estate Template included. Add PM, Commercial and more at +$29/mo each.",
+        "One Property Industry App ($149/mo). Real Estate included as the primary sub-industry. Add PM, Commercial and more at +$29/mo each.",
         ["property industry app", "real estate template", "digitalgate property"],
       ),
       "apps/industry/hospitality-accommodation": seo(
         "Hospitality & Accommodation | DigitalGate",
-        "Hospitality & Accommodation Industry App — short-stay and venues. Accommodation is a Template here, not under Property.",
+        "Hospitality & Accommodation Industry App ($149/mo). Short-stay is the primary sub-industry here, not under Property.",
         ["hospitality app", "accommodation template", "short stay crm"],
       ),
       "apps/industry/real-estate": seo(
         "Real Estate Template | Property | DigitalGate",
-        "Real Estate Template under the Property Industry App — vendors, buyers, appraisals and listings on DigitalGate.",
+        "Real Estate sub-industry under the Property Industry App ($149/mo) — vendors, buyers, appraisals and listings on DigitalGate.",
         ["real estate template", "property crm", "vendor pipeline"],
       ),
       "apps/industry/services": seo(
         "Services Industry App | DigitalGate",
-        "Services Industry App for trades and field work — one App with Templates like Cleaning, Electrical and Maintenance.",
+        "Services Industry App ($149/mo) for trades and field work — one App with sub-industries like Cleaning, Electrical and Maintenance.",
         ["services industry app", "trades crm", "digitalgate services"],
       ),
       "apps/industry/accommodation": seo(
         "Accommodation Template | Hospitality | DigitalGate",
-        "Short-Stay / Accommodation Template under Hospitality & Accommodation — bookings, guests and operations.",
+        "Short-Stay / Accommodation sub-industry under Hospitality & Accommodation ($149/mo) — bookings, guests and operations.",
         ["accommodation template", "short stay", "hospitality crm"],
       ),
       "appraisal-magnet-system": seo(

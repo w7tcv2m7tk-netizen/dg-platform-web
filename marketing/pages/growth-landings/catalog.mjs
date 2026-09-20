@@ -356,7 +356,7 @@ export const GROWTH_LANDINGS = [
     },
     audience: {
       title: "Who it is for",
-      bullets: ["Operators who want Learn → Grow without exporting to another tool first", "Early Access customers building connector coverage"],
+      bullets: ["Operators who want Learn → Grow without exporting to another tool first", "Teams building connector coverage on DigitalGate"],
     },
     faq: [
       {
@@ -375,7 +375,7 @@ export const GROWTH_LANDINGS = [
     slug: "social",
     seoTitle: "Social Media Management on Your Business Platform | DigitalGate",
     metaDescription:
-      "Compose, schedule and manage social activity with business context on DigitalGate — Early Access; channel availability varies by connector.",
+      "Compose, schedule and manage social activity with business context on DigitalGate. Included in Growth Suite ($399/mo) or +$79/mo standalone. Channel availability varies by connector.",
     keywords: ["social media management", "social scheduling platform"],
     h1: "Manage social as part of the business",
     heroLead:
@@ -393,7 +393,7 @@ export const GROWTH_LANDINGS = [
     },
     approach: {
       title: "Social on the operating layer",
-      body: "DigitalGate Social is Early Access — compose, schedule and workflow capabilities expand as connectors mature. We do not claim live publishing to a network unless that connector is operational.",
+      body: "DigitalGate Social is a Growth App — compose, schedule and workflow capabilities expand as connectors mature. We do not claim live publishing to a network unless that connector is operational.",
     },
     capabilities: [
       { title: "Compose & drafts", body: "Create content with review workflows." },
@@ -419,7 +419,7 @@ export const GROWTH_LANDINGS = [
     },
     audience: {
       title: "Who it is for",
-      bullets: ["Teams wanting social on-platform during Early Access", "Businesses already centralising CRM on DigitalGate"],
+      bullets: ["Teams wanting social on-platform as part of Growth Suite or a standalone Growth App", "Businesses already centralising CRM on DigitalGate"],
     },
     faq: [
       {

@@ -519,7 +519,7 @@ function hubPage() {
   <section class="alt cta-band">
     <div class="wrap">
       <h2>Start with the platform. Add Apps as you grow.</h2>
-      <p>Starter $99 · Growth $249 · Scale $499. Industry and Growth Apps are add-ons. Core capabilities listed as Included on Pricing are the explicit exception.</p>
+      <p>Starter $99 · Growth $249 · Scale $499. Growth Suite $399 and Industry Apps $149 are add-ons — they do not include Core. One primary sub-industry is included with each Industry App.</p>
       <div class="ctas">
         <a class="btn btn-primary" href="${FOUNDING}">Founding Customer Programme →</a>
         <a class="btn btn-secondary" href="${CONTACT}">Platform Consultation</a>
