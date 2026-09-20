@@ -188,8 +188,14 @@ export async function POST(req: Request) {
   const session = await requirePlatformAuth(req); if (isNextResponse(session)) return session;
   const resolvedOrganisationId = resolveOrganisationId(req, session); if (isNextResponse(resolvedOrganisationId)) return resolvedOrganisationId;
   const blocked = await rejectDemoLiveAction(session); if (blocked) return blocked;
-  if (resolvedOrganisationId !== session.organisationId) return NextResponse.json({ error: { code: "operator_checkout_disabled", message: "Subscription checkout is disabled while testing a customer organisation." } }, { status: 409 });
-  const denied = requirePermission(session, { module: "billing", action: "manage", scope: "organisation" }); if (denied) return denied;
+  const operatorPreview = resolvedOrganisationId !== session.organisationId && req.headers.get("x-dg-operator-checkout-preview") === "true";
+  if (resolvedOrganisationId !== session.organisationId && !operatorPreview) return NextResponse.json({ error: { code: "operator_checkout_disabled", message: "Subscription checkout is disabled while testing a customer organisation." } }, { status: 409 });
+  if (operatorPreview) {
+    const operator = assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email });
+    if (!operator) return NextResponse.json({ error: { code: "operator_only", message: "DigitalGate operator authority required." } }, { status: 403 });
+  } else {
+    const denied = requirePermission(session, { module: "billing", action: "manage", scope: "organisation" }); if (denied) return denied;
+  }
   const [progress, offer, billing] = await Promise.all([
     getGen2OnboardingProgress(resolvedOrganisationId), effectiveCommercialOffer(resolvedOrganisationId), getOrganisationBillingStatus(resolvedOrganisationId),
   ]);
@@ -205,9 +211,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ data: { exempt: true, url: "/onboarding?checkout=success" } });
   }
   try {
-    const checkout = offer ? await createNegotiatedCommercialCheckoutSession({ organisationId: resolvedOrganisationId, email: session.email, businessName: session.organisationName, offer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
-      : await createPlatformCheckoutSession({ organisationId: resolvedOrganisationId, email: session.email, platformTier, industryApps, premiumApps, supportPlan, businessName: session.organisationName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
-    await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
+    const targetProfile = operatorPreview ? await getOrganisationBusinessProfile(resolvedOrganisationId) : null;
+    const checkoutEmail = operatorPreview ? (targetProfile?.businessEmail || targetProfile?.contactEmail || session.email) : session.email;
+    const checkoutBusinessName = operatorPreview ? (targetProfile?.businessName || targetProfile?.tradingName || "Customer") : session.organisationName;
+    const checkout = offer ? await createNegotiatedCommercialCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, businessName: checkoutBusinessName, offer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
+      : await createPlatformCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, platformTier, industryApps, premiumApps, supportPlan, businessName: checkoutBusinessName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
+    if (!operatorPreview) await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
     return NextResponse.json({ data: checkout });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown checkout error";
