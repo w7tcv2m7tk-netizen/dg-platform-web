@@ -208,8 +208,7 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
     label: "Advertising",
     icon: "◎",
     price: "Included",
-    badge: "Early Access",
-    status: "rolling-out",
+    status: "live",
     description: "Paid media accounts, campaign performance, leads, attribution and optimisation across connected advertising channels",
   },
   {
@@ -267,8 +266,8 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
     label: "Reputation",
     icon: "★",
     price: "Free",
-    badge: "Included · Early Access",
-    status: "rolling-out",
+    badge: "Included",
+    status: "live",
     description:
       "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists — no Growth App charge",
   },
@@ -330,9 +329,9 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     label: "Commerce",
     icon: "💳",
     price: "Included",
-    badge: "Founding Customer Early Access",
+    badge: "Included",
     description: "Payments, quotes, invoices & checkout",
-    status: "rolling-out",
+    status: "included",
   },
   {
     appId: "documents",
@@ -366,9 +365,9 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     label: "Infrastructure",
     icon: "⚙",
     price: "Included",
-    badge: "Founding Customer Early Access",
-    description: "Domains, DNS, email, SSL & hosting — available progressively",
-    status: "rolling-out",
+    badge: "Included",
+    description: "Domains, DNS, email, SSL & hosting",
+    status: "included",
   },
 ];
 
