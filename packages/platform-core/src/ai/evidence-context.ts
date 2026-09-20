@@ -4,7 +4,7 @@ export type AidaEvidenceFreshness = "live" | "snapshot" | "configured" | "unavai
 
 export type AidaEvidenceItem = {
   id: string;
-  domain: "business" | "crm" | "commercial" | "analytics" | "advertising" | "seo" | "ai_visibility" | "connectors" | "websites" | "apps";
+  domain: "business" | "crm" | "commercial" | "analytics" | "advertising" | "seo" | "ai_visibility" | "reputation" | "connectors" | "websites" | "apps";
   label: string;
   value: string | number | null;
   source: string;
@@ -51,6 +51,9 @@ export function buildAidaEvidenceContext(context: BusinessContext): AidaEvidence
       snapshot("commercial.pipeline","commercial","Pipeline value",t.pipelineValue ?? null,"Digital Twin / CRM"),
       snapshot("business.health","business","Business Health score",t.businessHealth ?? null,"Digital Twin"),
       snapshot("commercial.revenue_mtd","commercial","Revenue MTD",t.revenueMtdCents ?? null,"Digital Twin / Commerce"),
+      snapshot("commercial.mrr","commercial","MRR",t.mrrCents ?? null,"Commerce subscription ledger"),
+      snapshot("reputation.score","reputation","Reputation score",t.reputation ?? null,"Digital Twin / Reputation"),
+      snapshot("reputation.review_count","reputation","Review count",t.reputationReviewCount ?? null,"Digital Twin / Reputation"),
       snapshot("analytics.sessions_30d","analytics","GA4 sessions (30d)",t.webSessions30d ?? null,"Google Analytics / Digital Twin"),
       snapshot("analytics.active_users_30d","analytics","GA4 active users (30d)",t.webActiveUsers30d ?? null,"Google Analytics / Digital Twin"),
       snapshot("analytics.search_clicks_30d","analytics","Search clicks (30d)",t.searchClicks30d ?? null,"Search Console / Digital Twin"),
