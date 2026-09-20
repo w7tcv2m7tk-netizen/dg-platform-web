@@ -201,7 +201,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   const supportMonthly = supportAmounts[supportPlan] ?? 0;
   if (supportMonthly > 0) {
     const supportAmount = annual ? annualPriceFromMonthlyCents(supportMonthly) : supportMonthly;
-    lineItems.push({ quantity: 1, price_data: { currency: "aud", unit_amount: supportAmount, recurring, product_data: { name: annual ? `${supportLabels[supportPlan]} (Annual)` : supportLabels[supportPlan]! } } });
+    lineItems.push({ quantity: 1, price_data: { currency: "aud", unit_amount: supportAmount, recurring, product_data: { name: annual ? `${supportLabels[supportPlan] ?? "DigitalGate Support"} (Annual)` : (supportLabels[supportPlan] ?? "DigitalGate Support") } } });
   }
 
   const base = appBaseUrl();
