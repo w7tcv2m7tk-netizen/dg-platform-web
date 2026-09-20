@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   if (isNextResponse(session)) return session;
   const requestedOrganisationId = req.headers.get("x-dg-operator-organisation")?.trim();
   const targetOrganisationId = requestedOrganisationId && requestedOrganisationId !== session.organisationId
-    ? (assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email, name: session.name }) ? requestedOrganisationId : null)
+    ? (assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email }) ? requestedOrganisationId : null)
     : session.organisationId;
   if (!targetOrganisationId) return NextResponse.json({ error: { code: "operator_only", message: "DigitalGate operator authority required." } }, { status: 403 });
   const denied = requirePermission(session, { module: "settings", action: "manage", scope: "organisation" });
