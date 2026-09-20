@@ -271,7 +271,9 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     ]),
   );
 
-  const scored = orgRows.map((org) => {
+  const customerOrgRows = orgRows.filter((org) => !/^digitalgate[\s-]+demo\b/i.test(org.name.trim()) && !/^digitalgate-demo(?:-|$)/i.test(org.slug.trim()));
+
+  const scored = customerOrgRows.map((org) => {
     const installedApps = org.appInstallations.map((a) => a.appId);
     const settings = (org.settings as OrgSettings | null) ?? {};
     const reBeta = settings.featureFlags?.["re.beta"] === true;
