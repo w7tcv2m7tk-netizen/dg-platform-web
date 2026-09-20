@@ -22,6 +22,8 @@ export {
   type AbrLookupMethod,
   type AbrLookupOk,
   type AbrLookupResult,
+  type AbrNameSearchMatch,
+  type AbrNameSearchResult,
   type AbrPhysicalAddress,
 } from "./types";
 
@@ -35,6 +37,7 @@ export {
   resolveAbrGuid,
   searchByAbn,
   searchByAcn,
+  searchByName,
   verifyAbn,
 } from "./client";
 
