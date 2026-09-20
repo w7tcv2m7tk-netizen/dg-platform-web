@@ -13,7 +13,7 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 
 | Layer | Rule |
 |-------|------|
-| **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom. **Native specialist industry-platform integrations & API access require Scale or Enterprise.** |
+| **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom. **Native specialist industry-platform integrations & API access, and multiple businesses under one subscription account, require Scale or Enterprise.** |
 | **Industry App** | **$99/mo** — major vertical capability and infrastructure |
 | **Industry Template** | **1 included** with each Industry App (primary business model); **+$29/mo** each additional |
 | **Growth Apps** | Optional · billed separately. **Prospecting & Opportunity Engine $99** · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · **Reputation Free** |
@@ -29,6 +29,12 @@ Native integrations between DigitalGate Industry Apps / Templates and specialist
 Examples include finance/lending platforms such as Lend, property portals and property systems, accommodation/PMS channels, and trade/job-management platforms. Connector availability still depends on the relevant provider API and the customer's activated Industry App / Template.
 
 This entitlement must be enforced server-side; lower tiers may surface an upgrade path but must not receive connector credentials or execute specialist industry API operations. Bespoke commercial offers may explicitly override the standard tier only where the organisation-specific offer grants the capability.
+
+### Multi-business entitlement
+
+Managing **multiple businesses / organisations under one subscription account** is a **Scale ($499/mo) or Enterprise** platform entitlement. Starter and Growth are single-business subscription tiers.
+
+Each business remains a distinct tenant with its own organisation-scoped data, permissions, connectors, CRM, evidence and Aida context; Scale grants account-level access to multiple businesses, not shared tenant data. Creating or attaching an additional business to the same subscription account must be enforced server-side. Organisation-specific commercial offers may override the standard tier only where the offer explicitly grants multi-business access.
 
 ### Growth Apps (optional · billed separately)
 
