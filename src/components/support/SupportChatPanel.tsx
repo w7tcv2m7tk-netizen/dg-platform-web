@@ -135,7 +135,7 @@ export function SupportChatPanel({
     const res = await fetch("/api/v1/support/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text, surfacePath }),
     });
     const json = await res.json().catch(() => null);
     setSending(false);
