@@ -105,6 +105,14 @@ export default async function CommandRevenuePage() {
                 MTD) or Growth Engine{" "}
                 <span className="font-medium text-slate-300">MRR Won</span>.
               </p>
+              {data.billing.invoicePaidMtdCents > 0 && data.billing.activeSubscriptions === 0 ? (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">
+                  Revenue MTD is paid-invoice revenue recorded in Commerce. There are currently no
+                  active Commerce subscriptions, so this revenue is not recurring MRR. Review the
+                  subscription ledger and invoice/webhook sync before treating it as subscription
+                  revenue.
+                </div>
+              ) : null}
               <p className="text-xs text-slate-500">
                 Stripe mode: {data.billing.stripeMode}
                 {data.billing.stripeOk ? " · configured" : " · setup incomplete"}
