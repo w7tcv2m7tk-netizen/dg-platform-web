@@ -4,3 +4,5 @@ export * from "./listing-description";
 export * from "./platform-intelligence";
 export * from "./tools";
 export * from "./usage";
+
+export * from "./evidence-context";
