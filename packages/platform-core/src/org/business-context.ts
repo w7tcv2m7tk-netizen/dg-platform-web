@@ -43,6 +43,9 @@ export type BusinessContextTwinSummary = {
   aiVisibility?: number;
   seo?: number;
   websiteHealth?: number;
+  reputation?: number;
+  reputationReviewCount?: number;
+  mrrCents?: number;
   contactCount?: number;
   activeLeads?: number;
   pipelineValue?: number;
@@ -181,6 +184,9 @@ function snapshotToTwinSummary(snapshot?: DigitalTwinSnapshot | null): BusinessC
     aiVisibility: snapshot.scores.aiVisibility,
     seo: snapshot.scores.seo,
     websiteHealth: snapshot.scores.websiteHealth,
+    reputation: snapshot.scores.reputation,
+    reputationReviewCount: snapshot.metrics.reputationReviewCount,
+    mrrCents: snapshot.metrics.mrrCents,
     contactCount: snapshot.metrics.contactCount,
     activeLeads: snapshot.metrics.activeLeads,
     pipelineValue: snapshot.metrics.pipelineValue,
