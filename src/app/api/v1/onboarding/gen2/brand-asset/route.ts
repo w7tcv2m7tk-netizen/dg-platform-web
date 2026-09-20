@@ -73,6 +73,14 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ data: { kind, url: stored.url, storage: stored.storage } });
   } catch (error) {
+    console.error("[onboarding.brand-asset] upload failed", {
+      organisationId: auth.session.organisationId,
+      kind,
+      mimeType: file.type,
+      size: file.size,
+      error: error instanceof Error ? error.message : String(error),
+      storageCode: error instanceof BrandAssetStorageError ? error.code : undefined,
+    });
     if (error instanceof BrandAssetStorageError) {
       return NextResponse.json({ error: { code: error.code, message: error.message } }, { status: error.status });
     }
