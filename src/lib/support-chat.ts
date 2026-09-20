@@ -35,6 +35,7 @@ export async function fetchSupportMessagesFromSession(
 export async function postSupportMessageFromSession(
   session: Awaited<ReturnType<typeof requirePlatformSession>>,
   message: string,
+  surfacePath?: string,
 ) {
   if (isNextResponse(session)) {
     return { ok: false as const, message: "Sign in required" };
