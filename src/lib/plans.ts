@@ -54,7 +54,7 @@ export const PLATFORM_TIERS: {
 ];
 
 /**
- * Industry Apps ($99/mo · 1 sub-industry App included · +$29/mo each additional).
+ * Industry Apps ($149/mo · 1 sub-industry App included · +$29/mo each additional).
  * Exact sub-industry Apps are the customer-facing identity; defaultApp remains
  * legacy compatibility metadata for older signup / Stripe flows.
  * @see @dg/platform-core industry/platform.ts
@@ -84,84 +84,84 @@ export const INDUSTRY_PLATFORMS: {
   {
     key: "property",
     label: "Property",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Real Estate · Property Management · Commercial Property · Property Development · Buyers Agency · Property Advisory",
     defaultApp: "real-estate",
   },
   {
     key: "hospitality-accommodation",
     label: "Hospitality & Accommodation",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Short-Stay · Hotels & Motels · Holiday Parks & Retreats · Venues & Events · Restaurants & Cafés · Bars",
     defaultApp: "accommodation",
   },
   {
     key: "services",
     label: "Services",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Electrical · Plumbing · Cleaning · Maintenance · HVAC · Building & Construction · Landscaping · Pest Control · Painting · Handyman · Solar · Pool Service",
     defaultApp: "services",
   },
   {
     key: "finance",
     label: "Finance",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Mortgage & Finance Broking · Lending · Financial Advice · Accounting & Bookkeeping · Insurance Broking · Wealth Management",
     defaultApp: "finance",
   },
   {
     key: "professional",
     label: "Professional",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Legal · Consulting · Engineering · Architecture · Surveying · Recruitment · HR Advisory · Marketing Agency",
     defaultApp: null,
   },
   {
     key: "health-wellness",
     label: "Health & Wellness",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Medical Practice · Allied Health · Physiotherapy · Psychology · Dental · Veterinary · Fitness & Wellness",
     defaultApp: null,
   },
   {
     key: "automotive",
     label: "Automotive",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Vehicle Dealerships · Service & Repair · Vehicle Rental · Tyres & Automotive Parts",
     defaultApp: "automotive",
   },
   {
     key: "retail-commerce",
     label: "Retail & Commerce",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Retail · E-commerce · Wholesale & Distribution · Consumer Products & Brands · Franchise & Multi-location Retail",
     defaultApp: null,
   },
   {
     key: "creator-media",
     label: "Creator & Media",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Creators & Influencers · Music & Artists · Creative Agencies · Publishers & Media · Production & Media · Digital Products",
     defaultApp: "creator",
   },
   {
     key: "transport-logistics",
     label: "Transport & Logistics",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Transport · Courier & Delivery · Freight & Logistics · Warehousing · Fleet Operations · Removalists",
     defaultApp: null,
   },
   {
     key: "agriculture-primary",
     label: "Agriculture & Primary Industries",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Farming · Horticulture · Livestock · Rural Services · Primary Production",
     defaultApp: null,
   },
   {
     key: "education-organisations",
     label: "Education & Organisations",
-    price: "+$99/mo",
+    price: "+$149/mo",
     specialisations: "Education & Training · Schools · Childcare · Membership Organisations · Associations & Clubs · Non-profits",
     defaultApp: null,
   },
@@ -178,10 +178,10 @@ export const INDUSTRY_APPS: { key: IndustryApp; label: string; price: string; un
   },
   { key: "property-management", label: "Property Management", price: "+$29/mo sub-industry App", under: "property" },
   { key: "commercial", label: "Commercial Property", price: "+$29/mo sub-industry App", under: "property" },
-  { key: "services", label: "Services", price: "+$99/mo", under: "services" },
-  { key: "finance", label: "Finance", price: "+$99/mo", under: "finance" },
-  { key: "automotive", label: "Automotive", price: "+$99/mo", under: "automotive" },
-  { key: "creator", label: "Creator", price: "+$99/mo", under: "creator-media" },
+  { key: "services", label: "Services", price: "+$149/mo", under: "services" },
+  { key: "finance", label: "Finance", price: "+$149/mo", under: "finance" },
+  { key: "automotive", label: "Automotive", price: "+$149/mo", under: "automotive" },
+  { key: "creator", label: "Creator", price: "+$149/mo", under: "creator-media" },
 ];
 
 export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] = [
