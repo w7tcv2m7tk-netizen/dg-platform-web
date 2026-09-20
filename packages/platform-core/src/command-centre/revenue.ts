@@ -3,6 +3,7 @@
  */
 
 import { mrrEquivalentFromAnnualCents } from "../billing/subscription-types";
+import { isPlatformOperatorOrganisation } from "./access";
 
 function formatAud(cents: number) {
   return new Intl.NumberFormat("en-AU", {
@@ -69,7 +70,7 @@ export async function getCommandMrrAttribution(): Promise<CommandMrrAttribution>
   const monthlyMrrCents = monthly.reduce((sum, s) => sum + s.amountCents, 0);
   const annualAmountsCents = annual.reduce((sum, s) => sum + s.amountCents, 0);
   const arrCents = monthlyMrrCents * 12 + annualAmountsCents;
-  const trialCount = subscriptions.filter((s) => s.status === "trialing").length;
+  const trialCount = customerSubscriptions.filter((s) => s.status === "trialing").length;
   const annualCount = annual.length;
 
   return {
@@ -78,10 +79,10 @@ export async function getCommandMrrAttribution(): Promise<CommandMrrAttribution>
     monthlyMrrLabel: formatAud(monthlyMrrCents),
     arrCents,
     arrLabel: formatAud(arrCents),
-    activeSubscriptionCount: subscriptions.length,
+    activeSubscriptionCount: customerSubscriptions.length,
     trialCount,
     annualCount,
-    rows: subscriptions.map((s) => {
+    rows: customerSubscriptions.map((s) => {
       const isAnnual = s.interval === "year";
       const isMonthly = s.interval === "month";
       // Annual amount is the yearly charge; MRR equivalent = round(annual/12).
