@@ -15,7 +15,9 @@ export default async function CustomerPortfolioPage() {
   const intel = process.env.DATABASE_URL
     ? await getOperatorClientIntelligence(operator)
     : null;
-  const clients = intel?.clients ?? [];
+  const allOrganisations = intel?.clients ?? [];
+  const clients = allOrganisations.filter((c) => !c.isInternalOrg);
+  const rankedClients = clients.map((client, index) => ({ ...client, rank: index + 1 }));
   const attentionClients = clients.filter((c) => c.needsAttention);
 
   return (
@@ -106,7 +108,7 @@ export default async function CustomerPortfolioPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80">
-                    {clients.map((client) => (
+                    {rankedClients.map((client) => (
                       <tr key={client.organisationId} className="bg-slate-950/30">
                         <td className="px-4 py-3 tabular-nums text-slate-500">{client.rank}</td>
                         <td className="px-4 py-3">
@@ -154,7 +156,7 @@ export default async function CustomerPortfolioPage() {
                   </tbody>
                 </table>
               </div>
-              {clients.length === 0 ? (
+              {rankedClients.length === 0 ? (
                 <p className="mt-4 text-sm text-slate-500">No customer organisations yet.</p>
               ) : null}
             </section>
