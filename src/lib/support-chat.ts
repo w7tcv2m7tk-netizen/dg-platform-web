@@ -39,7 +39,7 @@ export async function postSupportMessageFromSession(
   if (isNextResponse(session)) {
     return { ok: false as const, message: "Sign in required" };
   }
-  const result = await postSupportClientMessage(session, message);
+  const result = await postSupportClientMessage(session, message, surfacePath);
   if (!result.ok) return { ok: false as const, message: result.message };
   return { ok: true as const, messages: result.messages };
 }
