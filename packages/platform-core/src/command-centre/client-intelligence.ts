@@ -271,7 +271,17 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     ]),
   );
 
-  const customerOrgRows = orgRows.filter((org) => !/^digitalgate[\s-]+demo\b/i.test(org.name.trim()) && !/^digitalgate-demo(?:-|$)/i.test(org.slug.trim()));
+  const customerOrgRows = orgRows.filter((org) => {
+    const isInternalOrg = isPlatformOperatorOrganisation({
+      organisationId: org.id,
+      organisationSlug: org.slug,
+      organisationName: org.name,
+    });
+    const isDemoOrg =
+      /^digitalgate[\s-]+demo\b/i.test(org.name.trim()) ||
+      /^digitalgate-demo(?:-|$)/i.test(org.slug.trim());
+    return !isInternalOrg && !isDemoOrg;
+  });
 
   const scored = customerOrgRows.map((org) => {
     const installedApps = org.appInstallations.map((a) => a.appId);
