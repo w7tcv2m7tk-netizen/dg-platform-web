@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { BrandAssetStorageError, storeOrgFile } from "@dg/platform-core/assets/org-brand-storage";
 import { assertPlatformOperator, updateOrganisationBusinessProfile } from "@dg/platform-core";
+import { extractBrandColours } from "@/lib/brand-colour-extraction";
 
 import {
   isNextResponse,
@@ -68,10 +69,20 @@ export async function POST(req: Request) {
       keyPrefix: "brand-assets",
       sizeLabel: "Brand image",
     });
+    const extractedColours = kind === "logo" ? await extractBrandColours(buffer).catch(() => null) : null;
+    const brandColours = extractedColours?.join(", ");
     await updateOrganisationBusinessProfile(targetOrganisationId, {
       ...(kind === "icon" ? { iconUrl: stored.url } : { logoUrl: stored.url }),
+      ...(brandColours ? { brandColours } : {}),
     });
-    return NextResponse.json({ data: { kind, url: stored.url, storage: stored.storage } });
+    return NextResponse.json({
+      data: {
+        kind,
+        url: stored.url,
+        storage: stored.storage,
+        brandColours: extractedColours ?? undefined,
+      },
+    });
   } catch (error) {
     if (error instanceof BrandAssetStorageError) {
       return NextResponse.json({ error: { code: error.code, message: error.message } }, { status: error.status });
