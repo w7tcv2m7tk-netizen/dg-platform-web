@@ -194,7 +194,24 @@ export async function POST(req: Request) {
       : await createPlatformCheckoutSession({ organisationId: session.organisationId, email: session.email, platformTier, industryApps, premiumApps, businessName: session.organisationName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
     await saveGen2OnboardingProgress(session.organisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
     return NextResponse.json({ data: checkout });
-  } catch {
-    return NextResponse.json({ error: { code: "checkout_failed", message: "We couldn't start subscription checkout. Please try again or contact DigitalGate." } }, { status: 422 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown checkout error";
+    console.error("[onboarding.checkout] Stripe checkout failed", {
+      organisationId: session.organisationId,
+      platformTier,
+      billingCadence,
+      hasCommercialOffer: Boolean(offer),
+      message,
+    });
+    return NextResponse.json(
+      {
+        error: {
+          code: "checkout_failed",
+          message: "We couldn't start subscription checkout. Please try again or contact DigitalGate.",
+          ...(process.env.NODE_ENV !== "production" ? { detail: message } : {}),
+        },
+      },
+      { status: 422 },
+    );
   }
 }
