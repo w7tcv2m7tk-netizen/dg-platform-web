@@ -46,6 +46,7 @@ export async function queueSupportAiReply(
   triggerMessageId: number,
   clientName: string,
   clientEmail: string,
+  surfacePath?: string,
 ) {
   if (!aiEnabled()) return;
 
@@ -141,10 +142,8 @@ export async function queueSupportAiReply(
     console.warn("[support-ai] business context unavailable", err instanceof Error ? err.message : err);
   }
 
-  const userPrompt = [
-    `Client name: ${clientName}`,
-    `Client email: ${clientEmail}`,
-    "",
+  const safeSurfacePath = surfacePath?.startsWith("/") && !surfacePath.includes("?") && !surfacePath.includes("#")\n    ? surfacePath.slice(0, 240)\n    : undefined;\n  const surfaceLabel = safeSurfacePath\n    ? safeSurfacePath.startsWith("/apps/crm") ? "CRM"\n      : safeSurfacePath.startsWith("/apps/analytics") ? "Analytics"\n      : safeSurfacePath.startsWith("/apps/advertising") ? "Advertising"\n      : safeSurfacePath.startsWith("/apps/seo") ? "SEO"\n      : safeSurfacePath.startsWith("/apps/ai-visibility") ? "AI Visibility"\n      : safeSurfacePath.startsWith("/apps/reviews") ? "Reviews & Reputation"\n      : safeSurfacePath.startsWith("/apps/websites") ? "Websites"\n      : safeSurfacePath.startsWith("/apps/automation") ? "Automation"\n      : safeSurfacePath.startsWith("/apps/") ? "Industry or platform app"\n      : safeSurfacePath.startsWith("/dashboard") ? "Business Overview"\n      : "Platform"\n    : undefined;\n\n  const userPrompt = [\n    `Client name: ${clientName}`,
+    `Client email: ${clientEmail}`,\n    ...(surfaceLabel ? [`Current platform surface: ${surfaceLabel} (${safeSurfacePath})`, "Treat this route only as a navigation hint; organisation evidence above remains authoritative."] : []),\n    "",
     "Recent thread:",
     transcript,
     "",
