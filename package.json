@@ -25,7 +25,7 @@
     "test:aida-public-advisor": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-aida-public-advisor.mjs",
     "test:visual-storytelling": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-digitalgate-visual-storytelling.mjs",
     "test:business-brain-knowledge": "node --test scripts/test-business-brain-knowledge.mjs",
-    "test:env-pairing": "node --test scripts/test-env-pairing.mjs scripts/test-verify-env.mjs",
+    "test:env-pairing": "node --test scripts/test-env-pairing.mjs scripts/test-verify-env.mjs scripts/test-sync-digitalgate-pricing-page.mjs",
     "verify-env": "node scripts/verify-env.mjs",
     "test:webhook-receipt-state": "node --experimental-strip-types --test scripts/test-webhook-receipt-state.mjs",
     "test:cron-followup-claim": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-cron-followup-claim.mjs",
@@ -49,6 +49,7 @@
     "abr:smoke": "node scripts/abr-smoke.mjs",
     "capture:screenshots": "node scripts/capture-marketing-screenshots.mjs",
     "sync:dg-apps": "dotenv -e .env.local -- node scripts/sync-digitalgate-apps-pages.mjs",
+    "sync:dg-pricing": "dotenv -e .env.local -- node scripts/sync-digitalgate-pricing-page.mjs",
     "sync:dg-growth": "dotenv -e .env.local -- node scripts/sync-digitalgate-growth-landings.mjs",
     "sync:dg-insights": "dotenv -e .env.local -- node scripts/sync-digitalgate-insights-pages.mjs",
     "postinstall": "npm run db:generate"
