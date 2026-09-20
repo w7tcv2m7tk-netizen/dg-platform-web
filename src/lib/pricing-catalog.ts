@@ -168,7 +168,7 @@ function mapSpecStatus(
  * Industry Platforms — derived from platform-core lock (`INDUSTRY_PLATFORMS`).
  * Prefer `listIndustries()` / `INDUSTRY_CATALOGUE` for UX status + Template hrefs;
  * this catalogue keeps AppsPlanCatalog pricing cards aligned with platform truth.
- * Public pricing groups: Available · Early Access · Coming Soon · Architecture Reserved.
+ * Public pricing groups: Available · Coming Soon · Architecture Reserved.
  */
 export const INDUSTRY_PLATFORM_CATALOG: IndustryPlatformCatalogItem[] =
   CORE_INDUSTRY_PLATFORMS.map((platform) => {
@@ -207,10 +207,10 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
     appId: "advertising",
     label: "Advertising",
     icon: "◎",
-    price: "Included",
-    badge: "Early Access",
-    status: "rolling-out",
-    description: "Paid media accounts, campaign performance, leads, attribution and optimisation across connected advertising channels",
+    price: "+$99/mo",
+    badge: "Growth App",
+    status: "live",
+    description: "Paid media accounts, campaign performance, leads, attribution and optimisation — $99 standalone or included in Growth Suite $399 (add-on to Core)",
   },
   {
     appId: "prospecting",
@@ -267,8 +267,8 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
     label: "Reputation",
     icon: "★",
     price: "Free",
-    badge: "Included · Early Access",
-    status: "rolling-out",
+    badge: "Free",
+    status: "live",
     description:
       "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists — no Growth App charge",
   },
@@ -330,7 +330,7 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     label: "Commerce",
     icon: "💳",
     price: "Included",
-    badge: "Founding Customer Early Access",
+    badge: "Included",
     description: "Payments, quotes, invoices & checkout",
     status: "rolling-out",
   },
@@ -366,7 +366,7 @@ export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
     label: "Infrastructure",
     icon: "⚙",
     price: "Included",
-    badge: "Founding Customer Early Access",
+    badge: "Progressive",
     description: "Domains, DNS, email, SSL & hosting — available progressively",
     status: "rolling-out",
   },

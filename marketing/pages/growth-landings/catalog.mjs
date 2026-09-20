@@ -586,7 +586,7 @@ export const GROWTH_LANDINGS = [
     slug: "ai-communications",
     seoTitle: "AI Communications for Business | DigitalGate",
     metaDescription:
-      "AI-assisted voice, chat, email and SMS on Core Communications — Early Access; distinct from Core Communications infrastructure.",
+      "AI-assisted voice, chat, email and SMS on Core Communications — Coming Soon; distinct from Core Communications infrastructure. Not included in Growth Suite.",
     keywords: ["AI communications", "AI voice agent business", "AI messaging"],
     h1: "AI-powered communications — distinct from Core Communications",
     heroLead:
@@ -604,7 +604,7 @@ export const GROWTH_LANDINGS = [
     },
     approach: {
       title: "Assist on Core Communications",
-      body: "AI Communications is Early Access — AI-assisted messaging on Core plumbing. Voice agents remain in development; we do not sell a live call-centre product before it exists.",
+      body: "AI Communications is Coming Soon — AI-assisted messaging on Core plumbing. Voice agents remain in development; we do not sell a live call-centre product before it exists.",
     },
     capabilities: [
       { title: "AI-assisted messaging", body: "Draft and assist across channels where supported." },
@@ -643,7 +643,7 @@ export const GROWTH_LANDINGS = [
       },
       {
         q: "Are voice agents live?",
-        a: "Voice remains in development. Commercial pages reflect Early Access scope — check platform status for what is operational today.",
+        a: "Voice remains in development. Commercial pages reflect Coming Soon scope — check platform status for what is operational today.",
       },
     ],
     related: [

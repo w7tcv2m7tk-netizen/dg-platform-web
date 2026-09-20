@@ -111,15 +111,23 @@ function patchHomepageGrowthChips(html) {
     [/<a class="app-chip" href="\/apps\/growth\/social\/">Social<\/a>/g, `<a class="app-chip" href="/social/">Social</a>`],
     [
       /<a class="app-chip soon" href="\/apps\/growth\/reputation\/">Reputation — Early Access<\/a>/g,
-      `<a class="app-chip soon" href="/reputation/">Reputation — Early Access</a>`,
+      `<a class="app-chip" href="/reputation/">Reputation — Free</a>`,
     ],
     [
       /<a class="app-chip soon" href="\/apps\/growth\/ai-communications\/">AI Communications — Early Access<\/a>/g,
-      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Early Access</a>`,
+      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Coming Soon</a>`,
     ],
     [
       /<a class="app-chip" href="\/apps\/growth\/prospecting\/">Prospecting &amp; Opportunity Engine<\/a>/g,
       `<a class="app-chip" href="/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/reputation\/">Reputation — Early Access<\/a>/g,
+      `<a class="app-chip" href="/reputation/">Reputation — Free</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/ai-communications\/">AI Communications — Early Access<\/a>/g,
+      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Coming Soon</a>`,
     ],
   ];
   for (const [re, rep] of chipReplacements) out = out.replace(re, rep);

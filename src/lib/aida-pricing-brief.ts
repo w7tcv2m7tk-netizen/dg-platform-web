@@ -18,13 +18,20 @@ export function publicAidaPricingBrief(): string {
   const growth = GROWTH_APP_CATALOG.map((g) => `- ${g.label} — ${g.price} — ${g.description}`);
   return [
     "Published platform pricing (authoritative catalog — do not invent other prices):",
+    "Four commercial layers. Growth Suite and Industry are add-ons on top of the selected Core Platform — they do not replace Core.",
+    "1. Core Platform: Starter $99/mo · Growth $249/mo · Scale $499/mo · Enterprise custom.",
+    "2. Growth: Growth Suite $399/mo is the recommended add-on (Advertising, Marketing, Prospecting & Opportunity Engine, AI Visibility, SEO, Automation, Analytics, Social, Reputation). Individual Growth Apps remain available.",
+    "3. Industry Apps: $149/mo each, one primary sub-industry included, extra sub-industry Apps +$29/mo. Do not charge the parent Industry and its included primary sub-industry as two $149 items.",
+    "4. Support & Success is optional and separate (Standard included; Priority $199/mo; Success Partner $499/mo; Enterprise custom).",
+    "Growth Suite + Industry is $499/mo as an add-on (Growth Suite $399 + Industry $149 = $548 separately; save $49/mo). It does not include Starter, Growth, Scale or Enterprise. Example: Growth Core $249 + Growth Suite + Industry $499 = $748/mo.",
+    "AI Communications $99/mo is Coming Soon and is not in Growth Suite.",
     "Platform tiers:",
     ...tiers,
     "Platform capabilities:",
     ...caps,
     "Add-ons:",
     ...addons,
-    "Growth Apps (optional, billed separately unless listed as included):",
+    "Individual Growth Apps (optional, billed separately unless listed as included or Free):",
     ...growth,
     "If unpublished packaging, discounts, or custom quotes are requested, do not guess — offer a handoff to the DigitalGate team.",
   ].join("\n");

@@ -83,7 +83,7 @@ function patchHomepageAppsSection(html) {
     [/<span class="app-chip">Communications<\/span>/g, `<a class="app-chip" href="/apps/core/communications/">Communications</a>`],
     [
       /<span class="app-chip soon">Commerce — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/core/commerce/">Commerce — Early Access</a>`,
+      `<a class="app-chip" href="/apps/core/commerce/">Commerce — Included</a>`,
     ],
     [
       /<span class="app-chip">Website connection &amp; management<\/span>/g,
@@ -95,11 +95,11 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip soon">Domains — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/infrastructure/domains/">Domains — Early Access</a>`,
+      `<a class="app-chip" href="/apps/infrastructure/domains/">Domains</a>`,
     ],
     [
       /<span class="app-chip soon">DNS — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/infrastructure/dns/">DNS — Early Access</a>`,
+      `<a class="app-chip" href="/apps/infrastructure/dns/">DNS</a>`,
     ],
     [
       /<span class="app-chip soon">Hosting — Coming Soon<\/span>/g,
@@ -107,7 +107,7 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip soon">Email — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/infrastructure/email/">Email — Early Access</a>`,
+      `<a class="app-chip" href="/apps/infrastructure/email/">Email</a>`,
     ],
     [
       /<span class="app-chip soon">SSL — Coming Soon<\/span>/g,
@@ -131,11 +131,11 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip">Accommodation — Early Access<\/span>/g,
-      `<a class="app-chip" href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation — Early Access</a>`,
+      `<a class="app-chip" href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation — Available</a>`,
     ],
     [
       /<span class="app-chip">Hospitality &amp; Accommodation — Early Access<\/span>/g,
-      `<a class="app-chip" href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation — Early Access</a>`,
+      `<a class="app-chip" href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation — Available</a>`,
     ],
     [
       /<span class="app-chip soon">Property Management — Coming Soon<\/span>/g,
@@ -151,11 +151,11 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip soon">Finance — Coming Soon<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Early Access</a>`,
+      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Coming Soon</a>`,
     ],
     [
       /<span class="app-chip soon">Finance — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Early Access</a>`,
+      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Coming Soon</a>`,
     ],
     [
       /<span class="app-chip soon">Automotive — Coming Soon<\/span>/g,
@@ -163,11 +163,11 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip soon">Creator — Coming \/ Founding<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/creator/">Creator &amp; Media — Early Access</a>`,
+      `<a class="app-chip soon" href="/apps/industry/creator/">Creator &amp; Media — Coming Soon</a>`,
     ],
     [
       /<span class="app-chip soon">Creator &amp; Media — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/creator/">Creator &amp; Media — Early Access</a>`,
+      `<a class="app-chip soon" href="/apps/industry/creator/">Creator &amp; Media — Coming Soon</a>`,
     ],
     [
       /<span class="app-chip">AI Visibility<\/span>/g,
@@ -185,11 +185,11 @@ function patchHomepageAppsSection(html) {
     [/<span class="app-chip">Social<\/span>/g, `<a class="app-chip" href="/social/">Social</a>`],
     [
       /<span class="app-chip soon">Reputation — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/reputation/">Reputation — Early Access</a>`,
+      `<a class="app-chip" href="/reputation/">Reputation — Free</a>`,
     ],
     [
       /<span class="app-chip soon">AI Communications — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Early Access</a>`,
+      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Coming Soon</a>`,
     ],
     [
       /<span class="app-chip soon">Prospecting \/ Opportunity Engine — Early Access<\/span>/g,
@@ -228,15 +228,51 @@ function patchHomepageAppsSection(html) {
     [/<a class="app-chip" href="\/apps\/growth\/social\/">Social<\/a>/g, `<a class="app-chip" href="/social/">Social</a>`],
     [
       /<a class="app-chip soon" href="\/apps\/growth\/reputation\/">Reputation — Early Access<\/a>/g,
-      `<a class="app-chip soon" href="/reputation/">Reputation — Early Access</a>`,
+      `<a class="app-chip" href="/reputation/">Reputation — Free</a>`,
     ],
     [
       /<a class="app-chip soon" href="\/apps\/growth\/ai-communications\/">AI Communications — Early Access<\/a>/g,
-      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Early Access</a>`,
+      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Coming Soon</a>`,
     ],
     [
       /<a class="app-chip" href="\/apps\/growth\/prospecting\/">Prospecting &amp; Opportunity Engine<\/a>/g,
       `<a class="app-chip" href="/prospecting/">Prospecting &amp; Opportunity Engine</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/apps\/core\/commerce\/">Commerce — Early Access<\/a>/g,
+      `<a class="app-chip" href="/apps/core/commerce/">Commerce — Included</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/apps\/infrastructure\/domains\/">Domains — Early Access<\/a>/g,
+      `<a class="app-chip" href="/apps/infrastructure/domains/">Domains</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/apps\/infrastructure\/dns\/">DNS — Early Access<\/a>/g,
+      `<a class="app-chip" href="/apps/infrastructure/dns/">DNS</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/apps\/infrastructure\/email\/">Email — Early Access<\/a>/g,
+      `<a class="app-chip" href="/apps/infrastructure/email/">Email</a>`,
+    ],
+    [
+      /<a class="app-chip" href="\/apps\/industry\/hospitality-accommodation\/">Hospitality &amp; Accommodation — Early Access<\/a>/g,
+      `<a class="app-chip" href="/apps/industry/hospitality-accommodation/">Hospitality &amp; Accommodation — Available</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/apps\/industry\/finance\/">Finance — Early Access<\/a>/g,
+      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Coming Soon</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/apps\/industry\/creator\/">Creator &amp; Media — Early Access<\/a>/g,
+      `<a class="app-chip soon" href="/apps/industry/creator/">Creator &amp; Media — Coming Soon</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/reputation\/">Reputation — Early Access<\/a>/g,
+      `<a class="app-chip" href="/reputation/">Reputation — Free</a>`,
+    ],
+    [
+      /<a class="app-chip soon" href="\/ai-communications\/">AI Communications — Early Access<\/a>/g,
+      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Coming Soon</a>`,
     ],
   ];
   if (!out.includes('href="/apps/core/crm/"')) {

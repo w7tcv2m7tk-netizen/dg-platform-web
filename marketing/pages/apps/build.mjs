@@ -279,7 +279,7 @@ function pricingSection(app, isSoon) {
     <div class="wrap">
       <p class="sub">Pricing</p>
       <h2 class="section-title">Commercial model</h2>
-      <div class="pricing-box">${esc(text)} · <a href="${PRICING}#apps">Apps &amp; pricing →</a></div>
+      <div class="pricing-box">${esc(text)} · <a href="${PRICING}#growth">Growth Suite &amp; pricing →</a></div>
       <p class="section-note">${esc(app.commercial)}</p>
     </div>
   </section>`;
@@ -304,7 +304,7 @@ function appPage(app) {
   const isTemplate = app.kind === "template";
   const isIndustryApp = app.kind === "industry-app" || (!app.kind && app.layer === "industry" && !isTemplate);
   const title = isTemplate
-    ? `${app.name} Template | ${app.parentIndustryLabel || "Industry"} | DigitalGate`
+    ? `${app.name} | ${app.parentIndustryLabel || "Industry"} | DigitalGate`
     : isIndustryApp
       ? `${app.name} Industry App | DigitalGate`
       : `${app.name} | DigitalGate ${layer.name} App`;
@@ -312,14 +312,14 @@ function appPage(app) {
 
   const heroBadge = app.commercialStatus
     ? `<span class="badge commercial full">${esc(app.commercialStatus)}</span>`
-    : `<span class="badge ${app.depth}">${esc(isTemplate ? "Template" : layer.name)} · ${esc(app.badge)}</span>`;
+    : `<span class="badge ${app.depth}">${esc(isTemplate ? "Sub-industry" : layer.name)} · ${esc(app.badge)}</span>`;
 
   const parentNote = isTemplate && app.parentIndustryLabel
-    ? `<p class="parent-note">Template under <a href="/apps/industry/${esc(app.parentIndustry)}/" style="color:#BFDBFE;font-weight:700;">${esc(app.parentIndustryLabel)}</a> Industry App — not a separate Industry product.</p>`
+    ? `<p class="parent-note">Sub-industry App under <a href="/apps/industry/${esc(app.parentIndustry)}/" style="color:#BFDBFE;font-weight:700;">${esc(app.parentIndustryLabel)}</a> — included in that Industry App, not a second Industry charge.</p>`
     : "";
 
   const templatesBody = Array.isArray(app.templates) && app.templates.length
-    ? `<p class="section-body">Activate the Template that matches your business. One Industry App subscription — Templates specialise workflows.</p>
+    ? `<p class="section-body">Activate the sub-industry App that matches your business. One Industry App subscription ($149/mo) includes one primary sub-industry. Extra sub-industry Apps are +$29/mo.</p>
       <div class="templates-list">${app.templates.map((t) =>
         `<a href="${esc(t.href || "#")}"><span class="t-name">${esc(t.name)}</span><span class="t-status">${esc(t.status || "")}</span></a>`
       ).join("")}</div>`
@@ -354,7 +354,7 @@ function appPage(app) {
         templatesBody
           ? sectionBlock({
               alt: true,
-              label: "Templates",
+              label: "Sub-industry Apps",
               title: "Specialisations in this Industry App",
               body: templatesBody,
             })
@@ -403,7 +403,7 @@ function appPage(app) {
       <div class="card"><h3>Current status</h3><p>${esc(app.status)}</p></div>
     </div>
   </section>
-  ${templatesBody ? sectionBlock({ label: "Templates", title: "Specialisations in this Industry App", body: templatesBody }) : ""}
+  ${templatesBody ? sectionBlock({ label: "Sub-industry Apps", title: "Specialisations in this Industry App", body: templatesBody }) : ""}
   ${
     builtForBody
       ? sectionBlock({ label: "Built for", title: "Who it’s for", body: builtForBody })
@@ -477,7 +477,7 @@ function hubPage() {
   const layersHtml = LAYERS.map((layer) => {
     const all = appsInLayer(layer.id);
     const apps = layer.id === "industry" ? industryAppsOnly(all) : all;
-    return `<div class="apps-block">
+    return `<div class="apps-block"${layer.id === "industry" ? ' id="industry-apps"' : ""}>
         <div class="layer-head">
           <p class="sub">${esc(layer.name)} — ${esc(layer.verb)}</p>
           <h2><a href="/apps/${layer.id}/" style="color:#F9FAFB">${esc(layer.name)}</a> <span style="color:#64748B;font-weight:600;font-size:0.95rem;">${esc(layer.tagline)}</span></h2>
@@ -497,7 +497,7 @@ function hubPage() {
       <p class="status">Fully developed pages exist for Apps we can demonstrate and sell now. Everything else uses a status template — architecture without theatre.</p>
       <div class="ctas">
         <a class="btn btn-primary" href="${FOUNDING}">Become a Founding Customer →</a>
-        <a class="btn btn-secondary" href="${PRICING}#apps">Apps &amp; pricing</a>
+        <a class="btn btn-secondary" href="${PRICING}#growth">Growth Suite &amp; pricing</a>
       </div>
       <div class="model">
         <div>Core<span>foundational capabilities</span></div>
@@ -543,9 +543,9 @@ function layerPage(layer) {
   const templates = isIndustry ? templatesOnly(all) : [];
   const templatesBlock = templates.length
     ? `<div style="margin-top:2.5rem;">
-        <p class="sub">Templates</p>
+        <p class="sub">Sub-industry Apps</p>
         <h2 style="font-size:1.35rem;margin-bottom:0.5rem;">Specialisations under Industry Apps</h2>
-        <p style="color:#94A3B8;margin-bottom:1.25rem;max-width:40rem;">Templates are not separate Industry products. Buy the Industry App, then activate the Template that matches your business.</p>
+        <p style="color:#94A3B8;margin-bottom:1.25rem;max-width:40rem;">Sub-industry Apps are not a second $149 charge. Buy the Industry App, then activate the sub-industry that matches your business. One primary sub-industry is included.</p>
         <div class="app-grid">${templates.map(tile).join("")}</div>
       </div>`
     : "";
