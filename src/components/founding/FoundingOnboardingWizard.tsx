@@ -17,6 +17,7 @@ import {
   FOUNDING_ONBOARDING_STEP_LABELS,
   FOUNDING_ONBOARDING_STEPS,
   GROWTH_APP_OPTIONS,
+  STANDALONE_CAPABILITY_OPTIONS,
   INDUSTRY_APP_OPTIONS,
   INFRA_APP_OPTIONS,
   MARKETING_SYSTEMS,
@@ -511,6 +512,14 @@ export function FoundingOnboardingWizard({
                   selected={answers.growthApps}
                   onChange={(growthApps) => patch({ growthApps })}
                 />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">AI &amp; Communications</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {STANDALONE_CAPABILITY_OPTIONS.join(", ")} is a standalone Coming Soon
+                  capability — not a Growth App, not in Growth Suite, and not selectable
+                  for checkout yet. Register interest on the Founding form.
+                </p>
               </div>
               <p className="text-sm text-slate-500">
                 Choose priorities — DigitalGate recommends the initial configuration. You do

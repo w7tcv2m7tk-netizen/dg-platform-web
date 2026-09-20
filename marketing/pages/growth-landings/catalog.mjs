@@ -15,9 +15,11 @@ export function commercialFromApp(appSlug) {
     badge: app.badge,
     pricing:
       app.pricing ||
-      (app.badge === "Free"
-        ? "Free Growth App — no separate charge."
-        : "Optional Growth App — see Apps & pricing."),
+      (app.standalone
+        ? "Standalone capability — see Pricing."
+        : app.badge === "Free"
+          ? "Free Growth App — no separate charge."
+          : "Optional Growth App — see Apps & pricing."),
     status: app.status,
     appName: app.name,
     depth: app.depth,
@@ -41,7 +43,7 @@ export const GROWTH_HUB = {
   slug: "growth",
   seoTitle: "Growth Apps | SEO, AI Visibility, Automation & More | DigitalGate",
   metaDescription:
-    "DigitalGate Growth capabilities — SEO, AI Visibility, Automation, Analytics, Social, Reputation, Prospecting and AI Communications — connected to Core, Industry and Intelligence.",
+    "DigitalGate Growth capabilities — SEO, AI Visibility, Automation, Analytics, Social, Reputation and Prospecting — connected to Core, Industry and Intelligence. AI Communications is a separate Coming Soon capability, not a Growth App.",
   h1: "Make your business more visible, discoverable and effective",
   lead:
     "Growth is not a pile of unrelated SaaS tools. It is the layer of DigitalGate that helps a connected business be found, understood, measured and followed through — on the same platform as CRM, Communications and Intelligence.",
@@ -584,9 +586,10 @@ export const GROWTH_LANDINGS = [
 
   L("ai-communications", {
     slug: "ai-communications",
+    standalone: true,
     seoTitle: "AI Communications for Business | DigitalGate",
     metaDescription:
-      "AI-assisted voice, chat, email and SMS on Core Communications — Coming Soon; distinct from Core Communications infrastructure. Not included in Growth Suite.",
+      "AI-assisted voice, chat, email and SMS on Core Communications — Coming Soon; distinct from Core Communications infrastructure. Not a Growth App and not included in Growth Suite.",
     keywords: ["AI communications", "AI voice agent business", "AI messaging"],
     h1: "AI-powered communications — distinct from Core Communications",
     heroLead:
@@ -639,7 +642,7 @@ export const GROWTH_LANDINGS = [
     faq: [
       {
         q: "Is AI Communications the same as Communications in Core?",
-        a: "No. Core Communications is the connected communication infrastructure included in the platform foundation. AI Communications is an optional Growth App for advanced AI capabilities.",
+        a: "No. Core Communications is the connected communication infrastructure included in the platform foundation. AI Communications is a standalone Coming Soon capability for advanced AI assistance — not a Growth App and not included in Growth Suite.",
       },
       {
         q: "Are voice agents live?",
@@ -649,7 +652,7 @@ export const GROWTH_LANDINGS = [
     related: [
       { href: "/apps/core/communications/", label: "Core Communications" },
       { href: "/automation/", label: "Automation" },
-      { href: "/apps/growth/ai-communications/", label: "AI Communications App detail →" },
+      { href: "/apps/core/ai-communications/", label: "AI Communications App detail →" },
     ],
   }),
 ];
@@ -659,7 +662,7 @@ export function landingBySlug(slug) {
 }
 
 export function growthAppTiles() {
-  return GROWTH_LANDINGS.map((l) => ({
+  return GROWTH_LANDINGS.filter((l) => !l.standalone).map((l) => ({
     href: `/${l.slug}/`,
     name: l.appName || l.slug,
     headline: l.h1,

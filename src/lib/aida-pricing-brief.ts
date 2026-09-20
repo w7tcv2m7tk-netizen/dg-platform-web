@@ -1,5 +1,7 @@
 import {
+  AI_COMMUNICATIONS_PUBLIC,
   GROWTH_APP_CATALOG,
+  GROWTH_SUITE_APP_IDS,
   PLATFORM_ADDON_CATALOG,
   PLATFORM_CAPABILITY_CATALOG,
   PLATFORM_TIER_CATALOG,
@@ -24,7 +26,7 @@ export function publicAidaPricingBrief(): string {
     "3. Industry Apps: $149/mo each, one primary sub-industry included, extra sub-industry Apps +$29/mo. Do not charge the parent Industry and its included primary sub-industry as two $149 items.",
     "4. Support & Success is optional and separate (Standard included; Priority $199/mo; Success Partner $499/mo; Enterprise custom).",
     "Growth Suite + Industry is $499/mo as an add-on (Growth Suite $399 + Industry $149 = $548 separately; save $49/mo). It does not include Starter, Growth, Scale or Enterprise. Example: Growth Core $249 + Growth Suite + Industry $499 = $748/mo.",
-    "AI Communications $99/mo is Coming Soon and is not in Growth Suite.",
+    `${AI_COMMUNICATIONS_PUBLIC.label} ${AI_COMMUNICATIONS_PUBLIC.price} is Coming Soon. It is not a Growth App, is not in Growth Suite (${GROWTH_SUITE_APP_IDS.length} Growth capabilities), and cannot be purchased yet.`,
     "Platform tiers:",
     ...tiers,
     "Platform capabilities:",

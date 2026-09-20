@@ -221,7 +221,8 @@ function recommendPlan(data: NormalizedDiscovery, maturity: ReturnType<typeof ca
   ) {
     apps.push("automation_pro");
   }
-  if (data.interested_in.includes("Voice AI")) apps.push("voice_ai");
+  // voice_ai / AI Communications stays independently addressable for a future
+  // $99/mo release. Do not add it to recommended checkout while Coming Soon.
 
   const recommendedApps = [...new Set(apps)];
 

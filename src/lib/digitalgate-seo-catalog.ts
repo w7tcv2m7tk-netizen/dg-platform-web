@@ -45,7 +45,6 @@ export const DG_GROWTH_SLUGS = new Set([
   "social",
   "reputation",
   "prospecting",
-  "ai-communications",
 ]);
 
 /** Intelligence / framework thought-leadership pages. */
@@ -129,9 +128,7 @@ export function dgBreadcrumbs(
       const label =
         slug === "ai-visibility"
           ? "AI Visibility"
-          : slug === "ai-communications"
-            ? "AI Communications"
-            : slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
+          : slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
       crumbs.push({ name: label, path: `/${slug}` });
     }
     return crumbs;

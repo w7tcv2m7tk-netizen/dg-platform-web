@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { APPS, LAYERS, appBySlug, appsInLayer, hrefFor } from "./catalog.mjs";
+import { APPS, LAYERS, appBySlug, appsInLayer, hrefFor, standaloneApps } from "./catalog.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const OUT = join(ROOT, "html");
@@ -279,7 +279,7 @@ function pricingSection(app, isSoon) {
     <div class="wrap">
       <p class="sub">Pricing</p>
       <h2 class="section-title">Commercial model</h2>
-      <div class="pricing-box">${esc(text)} · <a href="${PRICING}#growth">Growth Suite &amp; pricing →</a></div>
+      <div class="pricing-box">${esc(text)} · <a href="${PRICING}${app.standalone ? "#ai-communications" : "#growth"}">${app.standalone ? "AI Communications pricing →" : "Growth Suite &amp; pricing →"}</a></div>
       <p class="section-note">${esc(app.commercial)}</p>
     </div>
   </section>`;
@@ -307,12 +307,14 @@ function appPage(app) {
     ? `${app.name} | ${app.parentIndustryLabel || "Industry"} | DigitalGate`
     : isIndustryApp
       ? `${app.name} Industry App | DigitalGate`
-      : `${app.name} | DigitalGate ${layer.name} App`;
+      : app.standalone
+        ? `${app.name} | DigitalGate standalone capability`
+        : `${app.name} | DigitalGate ${layer.name} App`;
   const description = app.subhead || app.headline || app.what;
 
   const heroBadge = app.commercialStatus
     ? `<span class="badge commercial full">${esc(app.commercialStatus)}</span>`
-    : `<span class="badge ${app.depth}">${esc(isTemplate ? "Sub-industry" : layer.name)} · ${esc(app.badge)}</span>`;
+    : `<span class="badge ${app.depth}">${esc(isTemplate ? "Sub-industry" : app.standalone ? "Standalone" : layer.name)} · ${esc(app.badge)}</span>`;
 
   const parentNote = isTemplate && app.parentIndustryLabel
     ? `<p class="parent-note">Sub-industry App under <a href="/apps/industry/${esc(app.parentIndustry)}/" style="color:#BFDBFE;font-weight:700;">${esc(app.parentIndustryLabel)}</a> — included in that Industry App, not a second Industry charge.</p>`
@@ -486,6 +488,17 @@ function hubPage() {
         <div class="app-grid">${apps.map(tile).join("")}</div>
       </div>`;
   }).join("");
+  const standalone = standaloneApps();
+  const standaloneHtml = standalone.length
+    ? `<div class="apps-block" id="ai-communications">
+        <div class="layer-head">
+          <p class="sub">AI &amp; Communications — standalone</p>
+          <h2>AI &amp; Communications <span style="color:#64748B;font-weight:600;font-size:0.95rem;">not a Growth App</span></h2>
+          <p>AI Communications is a standalone capability — Coming Soon at $99/mo when available. It is not included in Growth Suite and cannot be purchased yet. Voice Agents remain in development.</p>
+        </div>
+        <div class="app-grid">${standalone.map(tile).join("")}</div>
+      </div>`
+    : "";
 
   const inner = `
   <section class="hero hub-hero">
@@ -514,7 +527,7 @@ function hubPage() {
     </div>
   </section>
   <section>
-    <div class="wrap layers">${layersHtml}</div>
+      <div class="wrap layers">${layersHtml}${standaloneHtml}</div>
   </section>
   <section class="alt cta-band">
     <div class="wrap">

@@ -253,9 +253,8 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
     premiumApps.push("automation_pro");
   }
 
-  if (interested.includes("Voice AI") || interested.includes("AI Communications")) {
-    premiumApps.push("voice_ai");
-  }
+  // AI Communications / voice_ai remains independently addressable at $99/mo
+  // when released. Do not add it to checkout while Coming Soon.
   if (
     interested.includes("Prospecting") ||
     interested.includes("Prospecting & Opportunity Engine") ||

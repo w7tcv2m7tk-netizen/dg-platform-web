@@ -201,6 +201,33 @@ export const INDUSTRY_PLATFORM_CATALOG: IndustryPlatformCatalogItem[] =
 
 export { INDUSTRY_PUBLIC_GROUPS };
 
+/** Canonical Growth Suite membership — AI Communications is intentionally absent. */
+export const GROWTH_SUITE_APP_IDS = [
+  "advertising",
+  "marketing",
+  "prospecting",
+  "ai-visibility",
+  "seo",
+  "automation",
+  "analytics",
+  "social",
+  "reviews",
+] as const;
+
+/** Standalone Coming Soon capability — not a Growth App and not in Growth Suite. */
+export const AI_COMMUNICATIONS_PUBLIC = {
+  appId: "ai-communications",
+  premiumKey: "voice_ai" as const,
+  label: "AI Communications",
+  icon: "🎙️",
+  price: "$99/mo when available",
+  status: "soon" as const,
+  purchasable: false,
+  inGrowthSuite: false,
+  description:
+    "Standalone capability — AI-assisted communications with Voice Agents in development. Coming Soon. Not a Growth App and not included in Growth Suite.",
+} as const;
+
 /** Mirrors pricing page — Growth Apps (optional; same order as public pricing) */
 export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
   {

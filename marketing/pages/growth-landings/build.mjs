@@ -248,20 +248,29 @@ function landingPage(L) {
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "DigitalGate", item: SITE },
-        { "@type": "ListItem", position: 2, name: "Growth", item: `${SITE}/growth/` },
-        { "@type": "ListItem", position: 3, name: L.appName, item: canonical },
-      ],
+      itemListElement: L.standalone
+        ? [
+            { "@type": "ListItem", position: 1, name: "DigitalGate", item: SITE },
+            { "@type": "ListItem", position: 2, name: L.appName, item: canonical },
+          ]
+        : [
+            { "@type": "ListItem", position: 1, name: "DigitalGate", item: SITE },
+            { "@type": "ListItem", position: 2, name: "Growth", item: `${SITE}/growth/` },
+            { "@type": "ListItem", position: 3, name: L.appName, item: canonical },
+          ],
     },
   ];
 
   const inner = `
   <section class="hero">
     <div class="wrap">
-      <p class="crumbs"><a href="${SITE}/">DigitalGate</a> · <a href="/growth/">Growth</a> · ${esc(L.appName)}</p>
+      <p class="crumbs">${
+        L.standalone
+          ? `<a href="${SITE}/">DigitalGate</a> · ${esc(L.appName)}`
+          : `<a href="${SITE}/">DigitalGate</a> · <a href="/growth/">Growth</a> · ${esc(L.appName)}`
+      }</p>
       <div class="badge-row">
-        <span class="badge growth">Growth · ${esc(L.badge)}</span>
+        <span class="badge growth">${L.standalone ? "Standalone" : "Growth"} · ${esc(L.badge)}</span>
         <span class="badge price">${esc(L.pricing)}</span>
       </div>
       <h1>${esc(L.h1)}</h1>
@@ -380,7 +389,11 @@ function landingPage(L) {
   <section class="alt cta-band">
     <div class="wrap">
       <h2>Run ${esc(L.appName)} on DigitalGate</h2>
-      <p>Growth capabilities work alongside Core, Industry and Intelligence — not as isolated tools. ${esc(L.pricing)}</p>
+      <p>${
+        L.standalone
+          ? `AI Communications is a standalone Coming Soon capability — not a Growth App and not in Growth Suite. ${esc(L.pricing)}`
+          : `Growth capabilities work alongside Core, Industry and Intelligence — not as isolated tools. ${esc(L.pricing)}`
+      }</p>
       ${ctas()}
     </div>
   </section>`;
@@ -423,6 +436,7 @@ function hubPage() {
           )
           .join("")}
       </div>
+      <p class="body" style="margin-top:1.25rem;">AI Communications is a standalone Coming Soon capability — not a Growth App and not in Growth Suite. <a href="/ai-communications/">AI Communications →</a></p>
       <p class="body" style="margin-top:1.5rem;"><a href="/apps/growth/">Technical App pages →</a> · <a href="${PRICING}#apps">Pricing →</a> · <a href="/apps/">Full Apps hub →</a></p>
     </div>
   </section>

@@ -104,8 +104,10 @@ export const GROWTH_APP_OPTIONS = [
   "Analytics",
   "Reputation",
   "Social",
-  "AI Communications",
 ] as const;
+
+/** Standalone interest — not a Growth App and not in Growth Suite. */
+export const STANDALONE_CAPABILITY_OPTIONS = ["AI Communications"] as const;
 
 export const OUTCOME_OPTIONS = [
   "Generate more leads",

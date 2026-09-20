@@ -66,6 +66,22 @@ describe("Ask Aida public website advisor", () => {
     assert.equal(isPublicAidaSiteSlug(""), false);
   });
 
+  it("keeps AI Communications out of Growth Suite in the public pricing brief", async () => {
+    const { publicAidaPricingBrief } = await import("../src/lib/aida-pricing-brief.ts");
+    const brief = publicAidaPricingBrief();
+    assert.match(brief, /AI Communications \$99\/mo when available is Coming Soon/);
+    assert.match(brief, /not a Growth App/);
+    assert.match(brief, /cannot be purchased yet/);
+    assert.match(
+      brief,
+      /Growth Suite \$399\/mo is the recommended add-on \(Advertising, Marketing, Prospecting/,
+    );
+    assert.doesNotMatch(
+      brief,
+      /Growth Suite \$399\/mo[^\n]*AI Communications/,
+    );
+  });
+
   it("never treats staff or customer-brain slugs as public Aida knowledge", () => {
     for (const slug of PUBLIC_AIDA_DOC_SLUGS) {
       assert.equal(isPublicAidaDocSlug(slug), true);

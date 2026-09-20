@@ -233,6 +233,8 @@ function patchHomepageAppsSection(html) {
     [
       /<a class="app-chip soon" href="\/apps\/growth\/ai-communications\/">AI Communications — Early Access<\/a>/g,
       `<a class="app-chip soon" href="/ai-communications/">AI Communications — Coming Soon</a>`,
+      /<a class="app-chip soon" href="\/apps\/core\/ai-communications\/">AI Communications — Early Access<\/a>/g,
+      `<a class="app-chip soon" href="/ai-communications/">AI Communications — Coming Soon</a>`,
     ],
     [
       /<a class="app-chip" href="\/apps\/growth\/prospecting\/">Prospecting &amp; Opportunity Engine<\/a>/g,

@@ -826,6 +826,14 @@
     .individual-growth summary::after { content: "▾"; color: #93C5FD; font-size: 0.85rem; }
     .individual-growth[open] summary::after { content: "▴"; }
     .individual-growth .apps-grid { margin-top: 1rem; }
+    .ai-comms-section { max-width: 1100px; margin: 0 auto 0.5rem; }
+    .ai-comms-section .section-header { margin-bottom: 1.25rem; }
+    .ai-comms-grid { display: grid; grid-template-columns: minmax(260px, 380px); gap: 1.25rem; }
+    .ai-comms-unavailable {
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-top: 0.85rem; padding: 0.55rem 0.9rem; border-radius: 999px;
+      border: 1px dashed #475569; color: #94A3B8; font-size: 0.8rem; font-weight: 700;
+    }
     @media (max-width: 1024px) { .suite-grid { grid-template-columns: 1fr; } }
     @media (max-width: 768px) { .suite-grid { grid-template-columns: 1fr; } }
     .how-buy-card { background:#1E293B; border:1px solid #334155; border-radius:12px; padding:1rem 0.85rem; text-align:center; }
@@ -1387,7 +1395,7 @@
       </div>
       <details class="individual-growth">
         <summary>Prefer individual Growth Apps instead?</summary>
-        <p style="color:#94A3B8;font-size:0.85rem;margin:0.25rem 0 1rem;">Existing standalone prices. Advertising is $99/month. Reputation remains Free. AI Communications is not part of Growth Suite.</p>
+        <p style="color:#94A3B8;font-size:0.85rem;margin:0.25rem 0 1rem;">Existing standalone prices. Advertising is $99/month. Reputation remains Free.</p>
         <div class="apps-grid apps-grid-3">
           <div class="dg-app-card" data-dg-stripe="premium-advertising">
             <div class="app-icon">📢</div>
@@ -1453,16 +1461,29 @@
             <div class="app-desc">Review inbox and reputation surface — included in Growth Suite and free standalone</div>
             <a href="https://app.digitalgate.com.au/apps/reviews" class="btn-app">Open in platform</a>
           </div>
-          <div class="dg-app-card" data-dg-stripe="addon-voice-ai">
-            <span class="app-badge app-badge-soon">Coming Soon</span>
-            <div class="app-icon">🎙️</div>
-            <div class="app-name"><a href="/ai-communications/">AI Communications</a></div>
-            <div class="app-price">+$99<span>/mo</span></div>
-            <div class="app-desc">AI-assisted communications — Voice Agents still in development. Not included in Growth Suite.</div>
-            <a href="https://digitalgate.com.au/founding-customers/" class="btn-app"><span class="dg-ic dg-ic-plus" aria-hidden="true"></span> Add App</a>
-          </div>
         </div>
       </details>
+    </div>
+  </section>
+
+  <!-- ===== AI & COMMUNICATIONS (standalone — not a Growth App) ===== -->
+  <section class="apps-section" id="ai-communications">
+    <div class="container ai-comms-section">
+      <div class="section-header">
+        <span class="sub-label">AI &amp; COMMUNICATIONS</span>
+        <h2>Standalone capability — not a Growth App</h2>
+        <p>AI Communications is its own category. It is Coming Soon, is not included in Growth Suite, and cannot be added to checkout yet. Voice Agents remain in development.</p>
+      </div>
+      <div class="ai-comms-grid">
+        <div class="dg-app-card soon">
+          <span class="app-badge app-badge-soon">Coming Soon</span>
+          <div class="app-icon">🎙️</div>
+          <div class="app-name"><a href="/ai-communications/">AI Communications</a></div>
+          <div class="app-price">$99<span>/mo when available</span></div>
+          <div class="app-desc">AI-assisted communications with Voice Agents in development. Not a Growth App and not included in Growth Suite.</div>
+          <span class="ai-comms-unavailable">Available when released</span>
+        </div>
+      </div>
     </div>
   </section>
 

@@ -34,8 +34,21 @@ export const LAYERS = [
     verb: "grow",
     tagline: "visibility, acquisition, conversion",
     intro:
-      "Growth Suite ($399/mo) is the recommended add-on — Advertising, Marketing, Prospecting & Opportunity Engine, AI Visibility, SEO, Automation, Analytics, Social and Reputation. Individual Apps remain available: Advertising $99 · Marketing $99 · Prospecting $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · Reputation Free. AI Communications $99 is Coming Soon and is not in Growth Suite. Growth Suite does not include the Core Platform.",
+      "Growth Suite ($399/mo) is the recommended add-on — Advertising, Marketing, Prospecting & Opportunity Engine, AI Visibility, SEO, Automation, Analytics, Social and Reputation. Individual Apps remain available: Advertising $99 · Marketing $99 · Prospecting $99 · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · Reputation Free. Growth Suite does not include the Core Platform. AI Communications is a separate Coming Soon capability — not a Growth App and not in Growth Suite.",
   },
+];
+
+/** Canonical Growth Suite membership — AI Communications is intentionally absent. */
+export const GROWTH_SUITE_SLUGS = [
+  "advertising",
+  "marketing",
+  "prospecting",
+  "ai-visibility",
+  "seo",
+  "automation",
+  "analytics",
+  "social",
+  "reputation",
 ];
 
 const LOOP = [
@@ -49,8 +62,9 @@ const LOOP = [
 ];
 
 function app(partial) {
-  const layerName =
-    partial.layer === "core"
+  const layerName = partial.standalone
+    ? "Standalone capability"
+    : partial.layer === "core"
       ? "Core"
       : partial.layer === "infrastructure"
         ? "Infrastructure"
@@ -877,16 +891,20 @@ export const APPS = [
   }),
   app({
     slug: "ai-communications",
-    layer: "growth",
-    name: "AI Voice Agents",
-    depth: "lite",
+    layer: "core",
+    standalone: true,
+    growthSuite: false,
+    name: "AI Communications",
+    depth: "soon",
     badge: "Coming Soon",
     status:
-      "Coming Soon — Advanced AI Communications under Core Communications. Voice Agents still in development — not a live call-centre product. Not included in Growth Suite.",
-    headline: "Advanced communications under Core — not a Growth App silo.",
-    what: "AI Voice Agents, Call Centre and related capabilities as a Core Communications add-on (voice_ai).",
+      "Coming Soon — standalone capability at $99/mo when available. Voice Agents still in development — not a live call-centre product. Not a Growth App and not included in Growth Suite.",
+    headline: "AI-assisted communications — Coming Soon.",
+    what: "Standalone AI Communications capability on Core Communications (voice_ai). Voice Agents remain in development.",
     connects: "Communications, Contacts, Automation and Knowledge.",
-    who: "Founding teams who want advanced AI assistance now and voice later — without overclaiming.",
+    who: "Founding teams who want advanced AI assistance later — without overclaiming what is live today.",
+    pricing:
+      "$99/mo when available. Coming Soon — not purchasable yet. Not a Growth App and not included in Growth Suite.",
     highlight: ["Act"],
     related: ["communications", "automation", "crm"],
   }),
@@ -901,5 +919,13 @@ export function appBySlug(slug) {
 }
 
 export function appsInLayer(layerId) {
-  return APPS.filter((a) => a.layer === layerId);
+  return APPS.filter((a) => a.layer === layerId && !a.standalone);
+}
+
+export function standaloneApps() {
+  return APPS.filter((a) => a.standalone);
+}
+
+export function isGrowthSuiteApp(app) {
+  return GROWTH_SUITE_SLUGS.includes(app.slug);
 }
