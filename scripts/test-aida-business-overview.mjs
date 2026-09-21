@@ -26,3 +26,15 @@ test("Aida is the named intelligence layer and Command Centre links to the real 
   assert.match(advisor, /What Aida recommends you do next/);
   assert.match(advisor, /href="\/command"[\s\S]*Open Command Centre/);
 });
+
+test("Aida stays available across customer and Command Centre surfaces", async () => {
+  const [provider, panel] = await Promise.all([
+    readFile("src/components/platform/ChatWidgetProvider.tsx", "utf8"),
+    readFile("src/components/support/SupportChatPanel.tsx", "utf8"),
+  ]);
+
+  assert.doesNotMatch(provider, /pathname\.startsWith\("\/command"\)/);
+  assert.match(provider, /pathname\.startsWith\("\/support"\)/);
+  assert.match(panel, /href="\/onboarding"/);
+  assert.doesNotMatch(panel, /digitalgate\.com\.au\/onboarding/);
+});
