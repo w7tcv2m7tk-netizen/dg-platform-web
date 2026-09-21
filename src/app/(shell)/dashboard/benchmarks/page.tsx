@@ -44,7 +44,7 @@ export default async function BenchmarksPage({
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
           <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
-            AI Advisor →
+            Ask Aida →
           </Link>
           <Link href="/dashboard/brain" className="text-sky-400 hover:underline">
             Business Brain →
@@ -60,7 +60,7 @@ export default async function BenchmarksPage({
             <p className="font-medium text-blue-100">Benchmark evidence is incomplete</p>
             <p className="mt-1 text-sm text-slate-400">
               DigitalGate needs more connected business data before every comparison can be treated as
-              live evidence. Connect the missing sources or ask Advisor what will improve coverage fastest.
+              live evidence. Connect the missing sources or ask Aida what will improve coverage fastest.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <ResolutionAction
@@ -84,7 +84,7 @@ export default async function BenchmarksPage({
             </p>
             <p className="mt-1 text-sm text-slate-400">
               These are evidence-backed areas where your business is trailing the selected comparison group.
-              Advisor can prioritise the next action and direct you to the right app or setting.
+              Aida can prioritise the next action and direct you to the right app or setting.
             </p>
             <ResolutionAction
               href="/dashboard/advisor"
