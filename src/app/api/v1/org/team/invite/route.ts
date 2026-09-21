@@ -47,7 +47,7 @@ export async function POST(req: Request) {
           {
             error: {
               code: "plan_user_limit",
-              message: `Your ${tier === "professional" ? "Growth" : "Starter"} plan supports up to ${maxUsers} user${maxUsers === 1 ? "" : "s"}. Upgrade the Core Platform plan to add another user.`,
+              message: `Your ${tier === "professional" ? "Growth" : tier === "business" ? "Scale" : "Starter"} plan supports up to ${maxUsers} user${maxUsers === 1 ? "" : "s"}. Upgrade the Core Platform plan to add another user.`,
             },
           },
           { status: 403 },

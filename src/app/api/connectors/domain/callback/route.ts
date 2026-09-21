@@ -6,6 +6,7 @@ import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { tenantWriteEntitlementBlock } from "@/lib/write-entitlement";
+import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,13 @@ export async function GET(req: NextRequest) {
 
   const writeBlock = await tenantWriteEntitlementBlock({ organisationId });
   if (writeBlock) return fail(writeBlock.message);
+
+  const { prisma } = await import("@dg/database");
+  const subscription = await prisma.platformSubscription.findUnique({ where: { organisationId }, select: { planTier: true } });
+  const tier = subscription?.planTier as PlatformTier | null;
+  if (!canUseIndustryIntegrations(tier)) return fail("Specialist Industry integrations require the Scale or Enterprise Core Platform plan.");
+  const industryApp = await prisma.appInstallation.findFirst({ where: { organisationId, appId: { in: ["property", "real-estate"] }, enabled: true }, select: { id: true } });
+  if (!industryApp) return fail("The relevant Property / Real Estate Industry App must be active before connecting Domain.");
 
   const exchanged = await exchangeDomainAuthorizationCode({ code });
   if (!exchanged.ok) {
