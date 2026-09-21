@@ -49,6 +49,15 @@ export async function POST(req: Request) {
     }
 
     const refreshCotality = body.refreshCotality === true;
+    if (refreshCotality) {
+      const industryAccess = await checkIndustryIntegrationAccess(session.organisationId, ["property", "real-estate"]);
+      if (!industryAccess.ok) {
+        return NextResponse.json(
+          { error: { code: industryAccess.code, message: industryAccess.message } },
+          { status: industryAccess.status },
+        );
+      }
+    }
     const sendTo =
       typeof body.to === "string"
         ? body.to.trim()
