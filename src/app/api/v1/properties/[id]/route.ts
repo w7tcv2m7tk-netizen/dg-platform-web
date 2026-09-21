@@ -17,6 +17,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { checkIndustryIntegrationAccess } from "@/lib/industry-integration-entitlement";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -90,6 +91,13 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   }
 
   if (body?.action === "match_cotality") {
+    const industryAccess = await checkIndustryIntegrationAccess(session.organisationId, ["property", "real-estate"]);
+    if (!industryAccess.ok) {
+      return NextResponse.json(
+        { error: { code: industryAccess.code, message: industryAccess.message } },
+        { status: industryAccess.status },
+      );
+    }
     const result = await matchPropertyWithCotality(
       session.organisationId,
       id,
@@ -148,6 +156,13 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   }
 
   if (body?.action === "pull_cotality" || body?.action === "refresh_cotality_details") {
+    const industryAccess = await checkIndustryIntegrationAccess(session.organisationId, ["property", "real-estate"]);
+    if (!industryAccess.ok) {
+      return NextResponse.json(
+        { error: { code: industryAccess.code, message: industryAccess.message } },
+        { status: industryAccess.status },
+      );
+    }
     const result = await pullCotalityPropertyDetails(
       session.organisationId,
       id,
