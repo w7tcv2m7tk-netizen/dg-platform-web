@@ -24,6 +24,7 @@ export function publicAidaPricingBrief(): string {
     "3. Industry Apps: $149/mo each, one primary sub-industry included, extra sub-industry Apps +$29/mo. Do not charge the parent Industry and its included primary sub-industry as two $149 items.",
     "4. Support & Success is optional and separate (Standard included; Priority $199/mo; Success Partner $499/mo; Enterprise custom).",
     "Growth Suite + Industry is $499/mo as an add-on (Growth Suite $399 + Industry $149 = $548 separately; save $49/mo). It does not include Starter, Growth, Scale or Enterprise. Example: Growth Core $249 + Growth Suite + Industry $499 = $748/mo.",
+    "Scale multi-business rules: up to 5 active businesses total; businesses must be owned, operated or legitimately managed by the subscribing customer/group; this is not a reseller licence for unrelated clients. Each business remains a separate tenant. Businesses may be in different industries. Industry API access requires the relevant paid Industry App/Template and does not include third-party provider fees/services. Archived businesses do not consume an active slot; abuse of archiving to circumvent the limit is not permitted. More than 5 active businesses requires Enterprise/custom.",
     "AI Communications $99/mo is Coming Soon and is not in Growth Suite.",
     "Platform tiers:",
     ...tiers,
