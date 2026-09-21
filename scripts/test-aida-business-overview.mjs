@@ -38,3 +38,24 @@ test("Aida stays available across customer and Command Centre surfaces", async (
   assert.match(panel, /href="\/onboarding"/);
   assert.doesNotMatch(panel, /digitalgate\.com\.au\/onboarding/);
 });
+
+test("Aida is named consistently across the intelligence surfaces", async () => {
+  const paths = [
+    "src/app/(shell)/dashboard/insights/page.tsx",
+    "src/app/(shell)/dashboard/health/page.tsx",
+    "src/app/(shell)/dashboard/benchmarks/page.tsx",
+    "src/app/(shell)/dashboard/twin/page.tsx",
+  ];
+  const sources = await Promise.all(paths.map((path) => readFile(path, "utf8")));
+
+  for (const source of sources) {
+    assert.doesNotMatch(source, /AI Advisor/);
+    assert.doesNotMatch(source, /\bAdvisor can\b/);
+    assert.doesNotMatch(source, /ask Advisor\b/);
+  }
+  assert.match(sources[0], /What is Aida noticing\?/);
+  assert.match(sources[0], /Ask Aida →/);
+  assert.match(sources[1], /Ask Aida →/);
+  assert.match(sources[2], /Aida can prioritise the next action/);
+  assert.match(sources[3], /Health, Benchmarks and Aida read/);
+});
