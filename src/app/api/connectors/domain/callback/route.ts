@@ -55,6 +55,9 @@ export async function GET(req: NextRequest) {
   const writeBlock = await tenantWriteEntitlementBlock({ organisationId });
   if (writeBlock) return fail(writeBlock.message);
 
+  const industryAccess = await checkIndustryIntegrationAccess(organisationId, ["property", "real-estate"]);
+  if (!industryAccess.ok) return fail(industryAccess.message);
+
   const exchanged = await exchangeDomainAuthorizationCode({ code });
   if (!exchanged.ok) {
     return fail(exchanged.message);
