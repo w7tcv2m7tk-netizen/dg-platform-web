@@ -8,6 +8,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { checkIndustryIntegrationAccess } from "@/lib/industry-integration-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -17,23 +18,28 @@ bootConnectorEngine();
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const industryAccess = await checkIndustryIntegrationAccess(session.organisationId, ["property", "real-estate"]);
+  const specialistEnabled = industryAccess.ok;
 
   const configured = domainCredentialsConfigured();
   const orgTokens = await getOrgDomainConnectorTokens(session.organisationId);
   const connected = Boolean(orgTokens?.accessToken || orgTokens?.refreshToken);
 
   let platformProbe: Awaited<ReturnType<typeof probeDomainConnection>> | null = null;
-  if (configured) {
+  if (configured && specialistEnabled) {
     platformProbe = await probeDomainConnection();
   }
 
   let orgProbe: Awaited<ReturnType<typeof probeOrgDomainConnection>> | null = null;
-  if (connected) {
+  if (connected && specialistEnabled) {
     orgProbe = await probeOrgDomainConnection(session.organisationId);
   }
 
   return NextResponse.json({
     data: {
+      entitlement: industryAccess.ok
+        ? { allowed: true, tier: industryAccess.tier }
+        : { allowed: false, code: industryAccess.code, message: industryAccess.message },
       platform: {
         configured,
         clientIdSet: Boolean(process.env.DOMAIN_CLIENT_ID?.trim()),
