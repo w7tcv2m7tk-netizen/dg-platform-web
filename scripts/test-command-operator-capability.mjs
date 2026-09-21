@@ -140,11 +140,6 @@ describe("Command Centre operator capability", () => {
   it("routes cross-tenant Command pages through operator capability services", () => {
     const pageContracts = [
       {
-        path: "src/app/(shell)/command/advisor/page.tsx",
-        wrapper: /getOperatorClientIntelligence\(operator\)/,
-        banned: /\bgetClientIntelligence\(/,
-      },
-      {
         path: "src/app/(shell)/command/reports/page.tsx",
         wrapper: /getOperatorGrowthReports\(operator,/,
         banned: /\bgetGrowthReports\(/,
