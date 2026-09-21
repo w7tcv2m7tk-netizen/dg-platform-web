@@ -140,6 +140,9 @@ async function resolvePublishContact(
 export async function publishPropertyToRea(
   input: PublishPropertyToReaInput,
 ): Promise<PublishPropertyToReaResult> {
+  const entitlement = await checkOrgIndustryIntegrationEntitlement(input.organisationId, ["property", "real-estate"]);
+  if (!entitlement.ok) return { ok: false, reason: "validation", message: entitlement.message };
+
   if (!reaCredentialsConfigured()) {
     return {
       ok: false,
