@@ -20,6 +20,7 @@ for (const file of [
   "src/app/api/v1/connectors/google/ads/selection/route.ts",
   "src/app/api/v1/connectors/google/youtube/selection/route.ts",
   "src/app/api/v1/connectors/linkedin/selection/route.ts",
+  "src/app/api/v1/connectors/meta/selection/route.ts",
   "src/app/api/v1/connectors/meta/ads/selection/route.ts",
   "src/app/api/v1/connectors/microsoft-ads/selection/route.ts",
   "src/app/api/v1/connectors/tiktok-ads/selection/route.ts",
