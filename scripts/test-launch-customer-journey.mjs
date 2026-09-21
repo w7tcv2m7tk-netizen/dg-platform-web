@@ -114,3 +114,11 @@ test("implementation handoff uses the canonical integration hub without overstat
   assert.doesNotMatch(implementation, /href="\/dashboard\/settings\/connections"/);
   assert.doesNotMatch(implementation, /\["Connections",\s*completed\.has\("connect"\)\]/);
 });
+
+test("onboarding completion is described as a platform hand-off, not delivery implementation", () => {
+  const journey = read("packages/platform-core/src/onboarding/gen2-journey.ts");
+  assert.match(journey, /implementation:\s*"Platform hand-off"/);
+  assert.match(journey, /Platform hand-off complete/);
+  assert.match(implementation, /Onboarding hand-off/);
+  assert.doesNotMatch(implementation, /\["Implementation",\s*onboardingComplete\]/);
+});
