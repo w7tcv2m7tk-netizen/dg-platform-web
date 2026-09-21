@@ -6,6 +6,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { requirePermission } from "@/lib/platform-api";
 import {
   tenantWriteEntitlementBlock,
   writeEntitlementResponse,
@@ -66,6 +67,13 @@ export async function GET(req: Request) {
       { status: 400 },
     );
   }
+
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const writeBlock = await tenantWriteEntitlementBlock(session);
   if (writeBlock) return writeEntitlementResponse(writeBlock);
