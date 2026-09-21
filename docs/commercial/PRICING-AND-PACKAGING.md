@@ -13,7 +13,7 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 
 | Layer | Rule |
 |-------|------|
-| **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom |
+| **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom. **Native specialist industry-platform integrations & API access, and up to 5 businesses under one subscription account, require Scale or Enterprise.** |
 | **Industry App** | **$99/mo** — major vertical capability and infrastructure |
 | **Industry Template** | **1 included** with each Industry App (primary business model); **+$29/mo** each additional |
 | **Growth Apps** | Optional · billed separately. **Prospecting & Opportunity Engine $99** · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · **Reputation Free** |
@@ -21,6 +21,30 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 | **Professional Services** | Optional people work — never required. Includes **Website Migration & DigitalGate Setup** (From $1,497) and **Website Build** (From $1,997). One-off charges, separate from recurring Platform / Apps / Templates / Success |
 | **Customer Success plans** | Standard included; Priority / Success Partner optional |
 | **AI / Twin / Intelligence** | Across the platform — not sold as separate Apps |
+
+### Industry integration entitlement
+
+Native integrations between DigitalGate Industry Apps / Templates and specialist third-party industry platforms are a **Scale ($499/mo) or Enterprise** platform entitlement. Industry App access by itself does not grant specialist industry API access.
+
+Examples include finance/lending platforms such as Lend, property portals and property systems, accommodation/PMS channels, and trade/job-management platforms. Connector availability still depends on the relevant provider API and the customer's activated Industry App / Template.
+
+This entitlement must be enforced server-side; lower tiers may surface an upgrade path but must not receive connector credentials or execute specialist industry API operations. Bespoke commercial offers may explicitly override the standard tier only where the organisation-specific offer grants the capability.
+
+### Multi-business entitlement
+
+Managing **multiple businesses / organisations under one subscription account** is a **Scale ($499/mo) or Enterprise** platform entitlement. Starter and Growth are single-business subscription tiers. **Scale supports up to 5 businesses total (including the primary business); Enterprise limits are custom.**
+
+Scale's five-business allowance is for businesses **owned, operated, or legitimately managed by the subscribing customer or business group**. It is not a five-client reseller licence and must not be used to provide unrelated third parties with independent DigitalGate subscriptions.
+
+Each business remains a distinct tenant with its own organisation-scoped data, permissions, connectors, CRM, Digital Twin, evidence, Aida context, Industry Apps and integration credentials. Data and credentials must never be pooled or automatically shared between businesses. The five businesses may operate in different industries.
+
+Scale's unlimited-user entitlement applies at the subscription/account level. A person may be authorised for one or more of the customer's businesses without consuming duplicate user seats; organisation-level permissions still determine which businesses and data that person may access.
+
+Specialist Industry API access is available only for Industry Apps / Templates to which the relevant business is entitled. Scale unlocks the right to use eligible specialist integrations; it does not include every Industry App or third-party service. Provider availability, third-party fees, rate limits and terms may still apply.
+
+Only **active** businesses consume the five-business allowance. Archived businesses do not consume an active slot, but DigitalGate may prevent repeated archive/create cycling or other use intended to circumvent the limit. More than five active businesses requires Enterprise or another expressly agreed commercial arrangement.
+
+Creating or attaching an additional business to the same subscription account must be enforced server-side. Organisation-specific commercial offers may override the standard tier only where the offer explicitly grants multi-business access. DigitalGate may apply reasonable fair-use controls to unusually high API, AI, automation, messaging, storage or processing usage.
 
 ### Growth Apps (optional · billed separately)
 

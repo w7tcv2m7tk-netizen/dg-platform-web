@@ -4,6 +4,13 @@ import { ORG_BRAND_PRESETS } from "./brand-presets";
 import { seedWordPressConnectorForTemplate } from "../connectors/wordpress/org-connector";
 import type { ProvisionOrganisationResult } from "./provision";
 
+const ACTIVE_BUSINESS_LIMIT_BY_TIER: Record<string, number | null> = {
+  starter: 1,
+  professional: 1,
+  business: 5,
+  enterprise: null,
+};
+
 export type OrgTemplate =
   | "default"
   | "real-estate"
@@ -184,6 +191,38 @@ export async function createOrganisationForUser(
   }
 
   const { prisma } = await import("@dg/database");
+
+  // Provisioning entitlement only: organisations remain isolated tenants.
+  const ownedActiveOrganisations = await prisma.membership.findMany({
+    where: {
+      clerkUserId: input.clerkUserId,
+      role: "owner",
+      status: "active",
+      organisation: { status: { not: "archived" } },
+    },
+    select: { organisationId: true },
+  });
+
+  if (ownedActiveOrganisations.length > 0) {
+    const subscriptions = await prisma.platformSubscription.findMany({
+      where: { organisationId: { in: ownedActiveOrganisations.map((m) => m.organisationId) } },
+      select: { planTier: true },
+    });
+    const tierRank: Record<string, number> = { starter: 0, professional: 1, business: 2, enterprise: 3 };
+    const accountTier = subscriptions
+      .map((s) => s.planTier)
+      .filter((tier): tier is string => Boolean(tier && tier in tierRank))
+      .sort((a, b) => tierRank[b] - tierRank[a])[0] ?? "starter";
+    const limit = ACTIVE_BUSINESS_LIMIT_BY_TIER[accountTier] ?? 1;
+
+    if (limit != null && ownedActiveOrganisations.length >= limit) {
+      const planName = accountTier === "business" ? "Scale" : accountTier === "professional" ? "Growth" : "Starter";
+      throw new Error(
+        `plan_business_limit: ${planName} supports up to ${limit} active business${limit === 1 ? "" : "es"} under this account. Upgrade the Core Platform plan to add another business.`,
+      );
+    }
+  }
+
   type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
 
   let uniqueSlug = slug;

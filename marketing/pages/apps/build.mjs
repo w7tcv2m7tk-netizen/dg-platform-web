@@ -538,6 +538,19 @@ function hubPage() {
 
 function layerPage(layer) {
   const all = appsInLayer(layer.id);
+  const coreCommercial = layer.id === "core"
+    ? `<div style="margin-top:2rem;">
+        <p class="sub">Core Platform plans</p>
+        <h2 style="font-size:1.35rem;margin-bottom:0.5rem;">One operating foundation. More capacity as you grow.</h2>
+        <div class="grid-3" style="margin-top:1rem;">
+          <div class="card"><h3>Starter · $99/mo</h3><p>1 user · 1 business</p></div>
+          <div class="card"><h3>Growth · $249/mo</h3><p>Up to 5 users · 1 business</p></div>
+          <div class="card"><h3>Scale · $499/mo</h3><p>Unlimited users · up to 5 active businesses · specialist Industry integrations &amp; API access.</p></div>
+        </div>
+        <p class="section-note">Each Scale business remains a separate secure DigitalGate organisation. Specialist Industry integrations require the relevant Industry App. More than 5 active businesses or custom organisation requirements move to Enterprise.</p>
+        <div class="ctas"><a class="btn btn-secondary" href="${PRICING}">Compare Core Platform plans</a></div>
+      </div>`
+    : "";
   const isIndustry = layer.id === "industry";
   const apps = isIndustry ? industryAppsOnly(all) : all;
   const templates = isIndustry ? templatesOnly(all) : [];
@@ -563,6 +576,7 @@ function layerPage(layer) {
     <div class="wrap">
       ${isIndustry ? `<p class="sub" style="margin-bottom:1rem;">Industry Apps</p>` : ""}
       <div class="app-grid">${apps.map(tile).join("")}</div>
+      ${coreCommercial}
       ${templatesBlock}
       <p style="margin-top:1.5rem;"><a href="${HUB}" class="btn btn-secondary">← All Apps</a></p>
     </div>
