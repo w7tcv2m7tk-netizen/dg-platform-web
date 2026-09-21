@@ -46,7 +46,7 @@ function activityCategory(item: {
 
 /**
  * Priorities home — Act first.
- * Nav flow: Priorities → AI Advisor → Alerts (Act → Understand → Monitor).
+ * Nav flow: Priorities → Aida → Alerts (Act → Understand → Monitor).
  */
 export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
   const [showTechnicalActivity, setShowTechnicalActivity] = useState(false);
@@ -284,7 +284,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
         )}
       </section>
 
-      {/* AI Advisor — understand / decide (nav: after Priorities, before Alerts) */}
+      {/* Aida — understand / decide (nav: after Priorities, before Alerts) */}
       <section className="rounded-xl border border-violet-500/25 bg-violet-500/5 px-5 py-5">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-400">
           AI Advisor
@@ -299,7 +299,7 @@ export function CommandOpsHome({ data }: { data: CommandCentreOpsHome }) {
           href="/command/advisor"
           className="mt-4 inline-flex rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500"
         >
-          Open AI Advisor →
+          Open Aida →
         </Link>
       </section>
     </div>
