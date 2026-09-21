@@ -14,7 +14,7 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 | Layer | Rule |
 |-------|------|
 | **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom. **Native specialist industry-platform integrations & API access, and up to 5 businesses under one subscription account, require Scale or Enterprise.** |
-| **Industry App** | **$99/mo** — major vertical capability and infrastructure |
+| **Industry App** | **$149/mo** — major vertical capability and infrastructure |
 | **Industry Template** | **1 included** with each Industry App (primary business model); **+$29/mo** each additional |
 | **Growth Apps** | Optional · billed separately. **Prospecting & Opportunity Engine $99** · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · **Reputation Free** |
 | **Platform / Core add-ons** | Extra Users · White Label · **Advanced AI Communications / AI Voice Agents (`voice_ai`) $99** — under Core Communications, not a Growth App |
@@ -81,10 +81,10 @@ A customer has **one primary Template included** with each Industry App. Additio
 
 | Stack | List | Notes |
 |-------|------|-------|
-| Property + Real Estate | **$99/mo** | Template included |
-| Property + Real Estate + PM | **$128/mo** | $99 + $29 |
-| Services + Cleaning + Maintenance | **$128/mo** | Same expansion math |
-| Starter + Property + RE + PM | **$227/mo** | Platform + Industry + extra Template |
+| Property + Real Estate | **$149/mo** | Template included |
+| Property + Real Estate + PM | **$178/mo** | $149 + $29 |
+| Services + Cleaning + Maintenance | **$178/mo** | Same expansion math |
+| Starter + Property + RE + PM | **$277/mo** | Platform + Industry + extra Template |
 
 Do not publish “1 Industry App included” in the **platform** tier, “Unlimited Industry Apps,” “all Property apps for $99,” or Real Estate / Accommodation as separate Industry SKUs.
 
