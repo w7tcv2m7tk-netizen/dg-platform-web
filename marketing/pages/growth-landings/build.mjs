@@ -17,7 +17,7 @@ import {
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const OUT = join(ROOT, "html");
 
-const FOUNDING = `${SITE}/founding-customers/`;
+const TRIAL = "https://app.digitalgate.com.au/onboarding";
 const CONTACT = `${SITE}/contact/#platform-consultation`;
 const PRICING = `${SITE}/pricing/`;
 
@@ -192,7 +192,7 @@ ${inner}
 
 function ctas() {
   return `<div class="ctas">
-    <a class="btn btn-primary" href="${FOUNDING}">Become a Founding Customer →</a>
+    <a class="btn btn-primary" href="${TRIAL}">Start free 14-day trial →</a>
     <a class="btn btn-secondary" href="${CONTACT}">Book a Platform Consultation</a>
     <a class="btn btn-secondary" href="${PRICING}#apps">View Apps &amp; pricing</a>
   </div>`;
