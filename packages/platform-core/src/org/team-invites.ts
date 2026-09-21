@@ -76,6 +76,41 @@ export async function activateTeamInviteSeat(input: {
     orderBy: { updatedAt: "desc" },
   });
 
+  // Re-check the current Core plan when an invite is claimed. A seat reserved
+  // before a downgrade must not push the account above its new user limit.
+  if (!existing || existing.status !== "active") {
+    const subscription = await prisma.platformSubscription.findUnique({
+      where: { organisationId: input.organisationId },
+      select: { planTier: true },
+    });
+    const maxUsersByTier: Record<string, number | null> = {
+      starter: 1,
+      professional: 5,
+      business: null,
+      enterprise: null,
+    };
+    const maxUsers = subscription?.planTier
+      ? (maxUsersByTier[subscription.planTier] ?? 1)
+      : null;
+    if (maxUsers != null) {
+      const occupiedSeats = await prisma.membership.count({
+        where: {
+          organisationId: input.organisationId,
+          status: { in: ["active", "invited"] },
+        },
+      });
+      const seatAlreadyReserved = Boolean(pending);
+      const wouldExceed = seatAlreadyReserved
+        ? occupiedSeats > maxUsers
+        : occupiedSeats >= maxUsers;
+      if (wouldExceed) {
+        throw new Error(
+          `plan_user_limit: This Core Platform plan supports up to ${maxUsers} user${maxUsers === 1 ? "" : "s"}. Upgrade the plan before activating another seat.`,
+        );
+      }
+    }
+  }
+
   if (existing) {
     const updated = await prisma.membership.update({
       where: { id: existing.id },
