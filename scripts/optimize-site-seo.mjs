@@ -492,7 +492,7 @@ const PLANS = {
       ),
       pricing: seo(
         "Pricing | DigitalGate Business Platform",
-        "Core Platform from $99/mo. Add Growth Suite $399/mo or Growth Suite + Industry $499/mo — add-ons on top of Core, not an all-in plan. Industry Apps $149/mo with one primary sub-industry included.",
+        "Core Platform from $99/mo. Starter 1 user/1 business · Growth up to 5 users/1 business · Scale unlimited users and up to 5 active businesses. Growth Suite $399/mo or Growth Suite + Industry $499/mo are add-ons — not Scale. Industry Apps $149/mo with one primary sub-industry included.",
         ["digitalgate pricing", "industry app pricing", "website build"],
       ),
       insights: seo(

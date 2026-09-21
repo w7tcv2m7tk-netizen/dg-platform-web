@@ -86,13 +86,20 @@ export function PlanPicker({ onContinue, continueLabel = "Continue to your detai
             </button>
           ))}
         </div>
+        <p className="mt-3 text-xs text-slate-500">
+          Scale&apos;s five businesses are five active organisations in total, owned, operated or
+          legitimately managed by the subscriber — not a reseller licence. Specialist Industry
+          integrations require Scale or Enterprise plus the relevant Industry App. Growth Suite +
+          Industry $499 is an add-on and does not grant Scale entitlements.
+        </p>
       </section>
 
       <section>
         <h2 className="mb-1 text-lg font-semibold text-white">Industry Apps</h2>
         <p className="mb-3 text-sm text-slate-500">
           Choose from the industry apps available now. We&apos;ll add your selected workflow to
-          your onboarding journey.
+          your onboarding journey. An Industry App does not include Scale-level specialist API
+          access unless you are on Scale or Enterprise.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {SIGNUP_INDUSTRY_PLATFORMS.map((platform) => (

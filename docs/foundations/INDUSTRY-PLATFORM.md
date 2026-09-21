@@ -107,6 +107,8 @@ Terminology:
 - **Industry App** = the commercial boundary (Property, Services, Finance, …)
 - **Industry Template** = specialised workflow configuration within that App (Real Estate, Cleaning, Accounting, Legal, …)
 
+**Specialist Industry integrations / API access:** Native specialist Industry integrations (for example finance/lending platforms such as Lend, property portals and property operating systems, accommodation/PMS/channel systems, trade/job-management systems) require **Scale or Enterprise and the relevant Industry App**. Scale unlocks the right to use eligible specialist integrations; it does not include every Industry App. Foundational connections such as Google Analytics, Search Console, Google Business Profile, Meta and Stripe are not specialist Scale-only Industry APIs. Third-party availability, approval, fees and terms may apply.
+
 Example — Property: $99 includes Real Estate; add Property Management → **$128/mo**.  
 Example — Services: $99 includes Cleaning; add Maintenance → **$128/mo**.  
 Example — Starter + Property + PM Template: **$227/mo** at published pricing (Founding customers pay the same stack price; benefits are access/influence, not a % discount).

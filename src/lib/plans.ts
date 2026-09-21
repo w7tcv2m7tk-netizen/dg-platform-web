@@ -34,25 +34,25 @@ export const PLATFORM_TIERS: {
     key: "starter",
     label: "Starter",
     price: "$99/mo",
-    tagline: "For businesses replacing spreadsheets",
+    tagline: "1 user · 1 business — for businesses replacing spreadsheets",
   },
   {
     key: "professional",
     label: "Growth",
     price: "$249/mo",
-    tagline: "For businesses ready to automate growth",
+    tagline: "Up to 5 users · 1 business — ready to automate growth",
   },
   {
     key: "business",
     label: "Scale",
     price: "$499/mo",
-    tagline: "For teams running their entire operation",
+    tagline: "Unlimited users · up to 5 active businesses — multiple operations and specialist industry integrations",
   },
   {
     key: "enterprise",
     label: "Enterprise",
     price: "Custom",
-    tagline: "For organisations needing complete customisation",
+    tagline: "Unlimited users · business allowance by agreement — custom structure and integrations",
   },
 ];
 

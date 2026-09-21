@@ -75,8 +75,8 @@ Billing grants **features**, not Apps directly:
 |------|----------|
 | Starter | Platform Core essentials, CRM & Dashboard, AI Assistant, Digital Twin snapshot, Standard support |
 | Growth | + Automation & workflows, website integration, advanced AI, reporting, email/SMS, Growth-tier platform capabilities (**Apps still add-ons**) |
-| Scale | + Unlimited users, multiple pipelines, advanced automation/AI, API, advanced reporting/permissions/BI (**Apps still add-ons**) |
-| Enterprise | Custom feature set + integrations + SLA + dedicated support |
+| Scale | + Unlimited users, up to 5 active businesses in total, multiple pipelines, advanced automation/AI, specialist Industry integrations & API access (plus the relevant Industry App), advanced reporting/permissions/BI (**Apps still add-ons**; Scale is not a reseller licence) |
+| Enterprise | Custom feature set + more than five active businesses / custom organisation structure + integrations + SLA + dedicated support |
 
 Platform tiers grant **platform features**, not free Industry/Growth App seats. Apps attach via add-on licensing.
 

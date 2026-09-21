@@ -39,10 +39,10 @@ export function publicAidaProductBriefing(pricingBrief?: string): string {
     pricingBrief?.trim() ||
     [
       "Published platform pricing (authoritative catalog):",
-      "- Starter — $99/month — 1 user — Platform Core, CRM & Dashboard, AI Assistant, Digital Twin snapshot.",
-      "- Growth — $249/month — 5 users — automation & workflows, email + SMS, websites, advanced reporting.",
-      "- Scale — $499/month — unlimited users — advanced AI & automation, API access, multiple pipelines, advanced permissions & BI.",
-      "- Enterprise — custom — white label, priority support & SLA, custom integrations.",
+      "- Starter — $99/month — 1 user · 1 business — Platform Core, CRM & Dashboard, AI Assistant, Digital Twin snapshot.",
+      "- Growth — $249/month — up to 5 users · 1 business — automation & workflows, email + SMS, websites, advanced reporting.",
+      "- Scale — $499/month — unlimited users · up to 5 active businesses in total — advanced AI & automation, industry integrations & API access, multiple pipelines, advanced permissions & BI. Not a reseller licence. Specialist Industry APIs also require the relevant Industry App.",
+      "- Enterprise — custom — unlimited users, business allowance by agreement, white label, priority support & SLA, custom integrations.",
       "Optional add-ons include Extra Users (+$29/user) and White Label (+$199/mo).",
       "Selected Growth Apps are billed separately (e.g. Prospecting +$99/mo, AI Visibility +$99/mo, SEO +$99/mo, Automation +$49/mo).",
       "If a visitor asks for a discount, custom quote, or unpublished packaging, do not invent it — offer to pass them to the DigitalGate team.",

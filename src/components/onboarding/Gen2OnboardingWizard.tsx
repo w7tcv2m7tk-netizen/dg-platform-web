@@ -695,6 +695,11 @@ export function Gen2OnboardingWizard({
                   <p className="mt-1 text-sm text-slate-400">{p.blurb}</p>
                 </button>
               ))}
+              <p className="text-xs text-slate-500">
+                Scale is unlimited users and up to 5 active businesses in total — not a reseller licence.
+                Specialist Industry integrations require Scale or Enterprise plus the relevant Industry App.
+                Growth Suite + Industry $499 is an add-on and does not grant Scale entitlements.
+              </p>
             </section>
           )
         ) : null}

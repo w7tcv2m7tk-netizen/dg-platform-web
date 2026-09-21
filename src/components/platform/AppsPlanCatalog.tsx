@@ -179,7 +179,7 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
       </nav>
 
       <section id="platform" className="scroll-mt-24">
-        <SectionHeader label="☁️ 1 · Platform" title="The platform is the product" description="Start with the core operating system. Add apps only when you need them. Applying a tier is preview-only; Subscribe under Billing is the paid path." />
+        <SectionHeader label="☁️ 1 · Platform" title="The platform is the product" description="Start with the core operating system. Add apps only when you need them. Applying a tier is preview-only; Subscribe under Billing is the paid path. Starter is 1 user / 1 business · Growth is up to 5 users / 1 business · Scale is unlimited users and up to 5 active businesses in total — not a reseller licence. Specialist Industry integrations require Scale or Enterprise plus the relevant Industry App. Growth Suite + Industry $499 is an add-on and does not grant Scale entitlements." />
         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
           {PLATFORM_TIER_CATALOG.map((tier) => {
             const isActive = activeTier === tier.key;
@@ -222,7 +222,7 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
       </section>
 
       <section id="industry-apps" className="scroll-mt-24">
-        <SectionHeader label="🧩 3 · Industry Apps" title="Built around how your business operates" description="Choose the exact sub-industry Apps this organisation operates. Active sub-industry Apps appear independently in the sidebar; unselected siblings remain here in Apps until needed." />
+        <SectionHeader label="🧩 3 · Industry Apps" title="Built around how your business operates" description="Choose the exact sub-industry Apps this organisation operates. Active sub-industry Apps appear independently in the sidebar; unselected siblings remain here in Apps until needed. Specialist Industry integrations and API access require Scale or Enterprise plus the relevant Industry App — Scale does not include every Industry App." />
         {industryApps}
       </section>
 

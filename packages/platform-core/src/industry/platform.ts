@@ -107,6 +107,8 @@ export const INDUSTRY_COMMERCIAL_LOCK = {
     "Additional sub-industry Apps — +$29/mo each",
     "Parent Industry App is the commercial boundary; sub-industry Apps are the expansion layer",
     "Architecture can be broad; public pricing stays honest about readiness",
+    "Specialist Industry integrations and API access require Scale or Enterprise plus the relevant Industry App",
+    "Scale does not include every Industry App",
   ],
 } as const;
 
