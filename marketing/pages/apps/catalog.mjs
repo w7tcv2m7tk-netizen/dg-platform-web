@@ -26,7 +26,7 @@ export const LAYERS = [
     verb: "specialise",
     tagline: "vertical workflows",
     intro:
-      "Industry Apps are specialist operating capability ($99/mo). One primary sub-industry App is included; extra sub-industry Apps +$29/mo each. Property, Services and Hospitality & Accommodation are Available. Finance, Creator & Media and later verticals are Coming Soon. New business types become sub-industry Apps — never a second $99 parent charge.",
+      "Industry Apps are specialist operating capability (+$149/mo). One primary sub-industry App is included; extra sub-industry Apps +$29/mo each. Property, Services and Hospitality & Accommodation are Available. Finance, Creator & Media and later verticals are Coming Soon. New business types become sub-industry Apps — never a second $149 parent charge.",
   },
   {
     id: "growth",
