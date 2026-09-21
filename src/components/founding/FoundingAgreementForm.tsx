@@ -52,7 +52,7 @@ export function FoundingAgreementForm({
   if (alreadySigned) {
     return (
       <div className="dg-card max-w-2xl">
-        <p className="text-emerald-300">Founding Agreement recorded.</p>
+        <p className="text-emerald-300">Founding 10 terms accepted.</p>
         {commercialOffer ? (
           <div className="mt-2 space-y-1 text-sm text-slate-300">
             <p>
@@ -76,8 +76,7 @@ export function FoundingAgreementForm({
   return (
     <div className="dg-card max-w-2xl space-y-4">
       <p className="text-sm text-slate-400">
-        This confirms Founding 10 participation for {businessName || "your business"}. It is
-        separate from onboarding. Legal terms live on the public Founding Customer Terms page.
+        Confirm the Founding 10 terms for {businessName || "your business"}, then continue directly into setup. The full legal terms are available on the Founding Customer Terms page.
       </p>
       {commercialOffer ? (
         <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-4">
@@ -123,8 +122,8 @@ export function FoundingAgreementForm({
           onChange={(e) => setAgreed(e.target.checked)}
         />
         {commercialOffer
-          ? `I confirm the Founding 10 terms and the ${commercialOffer.label} commercial offer shown above, including any one-off fee shown, and want DigitalGate to proceed to onboarding.`
-          : "I confirm the Founding 10 commercial terms (standard published Platform + Apps pricing, Founding programme benefits, Founding Acquisition Partner referral terms where invited, and programme participation) and want DigitalGate to proceed to onboarding."}
+          ? `I confirm the Founding 10 terms and the ${commercialOffer.label} commercial offer shown above, including any one-off fee shown, and agree to start my DigitalGate setup and 14-day free trial.`
+          : "I confirm the Founding 10 commercial terms (standard published Platform + Apps pricing, Founding programme benefits, Founding Acquisition Partner referral terms where invited, and programme participation) and agree to start my DigitalGate setup and 14-day free trial."}
       </label>
       {message ? <p className="text-sm text-amber-300">{message}</p> : null}
       <button
@@ -133,7 +132,7 @@ export function FoundingAgreementForm({
         disabled={status === "saving"}
         className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
       >
-        Confirm agreement &amp; start onboarding
+        Accept terms &amp; start setup
       </button>
     </div>
   );

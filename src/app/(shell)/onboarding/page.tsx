@@ -8,6 +8,7 @@ import {
 
 import { AdaptiveOnboardingJourney } from "@/components/onboarding/AdaptiveOnboardingJourney";
 import { OnboardingCheckoutPending } from "@/components/onboarding/OnboardingCheckoutPending";
+import { FirstOrganisationOnboardingStart } from "@/components/onboarding/FirstOrganisationOnboardingStart";
 import { PlatformOperatorSetup } from "@/components/onboarding/PlatformOperatorSetup";
 import { VipOnboardingExperience } from "@/components/onboarding/VipOnboardingExperience";
 import { getPlatformPageContext } from "@/lib/org-apps";
@@ -27,13 +28,17 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   const progress = session ? await getGen2OnboardingProgress(session.organisationId) : null;
 
   if (!session) {
+    const { clerkUserId, portal } = await getPlatformPageContext();
+    if (clerkUserId) {
+      return <FirstOrganisationOnboardingStart initialBusinessName={portal?.org_name ?? ""} />;
+    }
     const redirectParams = new URLSearchParams();
     if (invite) redirectParams.set("invite", invite);
     if (params.journey) redirectParams.set("journey", params.journey);
     if (params.checkout) redirectParams.set("checkout", params.checkout);
     if (params.review) redirectParams.set("review", params.review);
     const onboardingPath = redirectParams.toString() ? `/onboarding?${redirectParams}` : "/onboarding";
-    return <main className="dg-page-main mx-auto max-w-lg px-6 py-16"><h1 className="text-2xl font-bold text-white">Welcome to DigitalGate</h1><p className="mt-3 text-sm leading-6 text-slate-400">Sign in to begin your private Business Operating Platform setup with Aida.</p><a href={`/login?redirect_url=${encodeURIComponent(onboardingPath)}`} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 py-2.5 text-sm font-medium text-white">Sign in to continue</a></main>;
+    return <main className="dg-page-main mx-auto max-w-lg px-6 py-16"><h1 className="text-2xl font-bold text-white">Welcome to DigitalGate</h1><p className="mt-3 text-sm leading-6 text-slate-400">Sign in to start your 14-day free trial and set up your Business Operating Platform with Aida.</p><a href={`/login?redirect_url=${encodeURIComponent(onboardingPath)}`} className="mt-6 inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 py-2.5 text-sm font-medium text-white">Start free trial →</a></main>;
   }
 
   const operatorTarget = params.operatorOrg?.trim();

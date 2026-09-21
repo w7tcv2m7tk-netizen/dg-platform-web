@@ -38,7 +38,7 @@ anywhere else fails the build.
 - Middleware
 - Dashboard / page loading
 - Sign-up
-- Onboarding (it configures an already-created tenant; it does not implicitly create one)
+- Onboarding page/API reads and Gen 2 configuration must not implicitly create a tenant. The explicit first-business action inside onboarding may call the allowlisted `POST /api/v1/org/create` boundary.
 - Team-invite claiming when there is **no** invitation
 - Any "user synchronisation" or normal login/refresh
 
@@ -55,7 +55,7 @@ no pending invite and no `organisationId`, it returns `null` and creates nothing
 | C | Existing user + valid active-org selection (`dg_active_org`) | Honour the selected organisation |
 | D | New user + valid invitation | Activate the existing invited membership (no org creation) |
 | E | New user + **no** invitation + **no** membership | **Do not create an organisation.** Enter explicit onboarding / memberless state |
-| F | Explicit "Create Organisation" | Create an organisation intentionally (`createOrganisationForUser`) |
+| F | Explicit first-business onboarding start / "Create Organisation" | Create an organisation intentionally through `POST /api/v1/org/create` → `createOrganisationForUser` |
 | G | Operator prospect → client conversion | Create the client organisation intentionally (`createClientOrganisation`, operator-gated) |
 
 `dg_active_org` is a **browser cookie** (`src/lib/active-org-cookie.ts`), not a database

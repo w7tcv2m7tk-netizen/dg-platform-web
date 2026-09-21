@@ -7,8 +7,9 @@
  *
  * These tests FAIL if a new implicit organisation-creation path is introduced.
  * Organisations may be created ONLY through the reviewable allowlist below; and
- * authentication / session / middleware / signup / onboarding / invite-claim
- * paths must never create an organisation.
+ * authentication / session / middleware / signup / Gen 2 configuration / invite-claim
+ * paths must never create an organisation. Explicit onboarding start may call the
+ * allowlisted /api/v1/org/create boundary.
  *
  * See docs/foundations/ORGANISATION-LIFECYCLE.md.
  */
@@ -77,14 +78,14 @@ describe("organisation creation is confined to the explicit allowlist", () => {
   });
 });
 
-describe("authentication / session / routing never create a tenant", () => {
+describe("authentication / session / routing never implicitly create a tenant", () => {
   const MUST_NOT_CREATE = [
     "src/app/api/webhooks/clerk/route.ts", // Clerk user.created
     "src/lib/active-platform-session.ts", // session resolution
     "packages/platform-core/src/session/index.ts", // session builder
     "src/middleware.ts", // middleware
     "src/app/api/v1/onboarding/gen2/route.ts", // onboarding (configures existing org)
-    "src/app/api/onboarding/route.ts", // onboarding proxy
+    "src/app/api/onboarding/route.ts", // legacy onboarding intent proxy
   ];
   const BANNED = /\borganisation\.create(Many)?\s*\(|provisionOrganisation|createOrganisationForUser|createClientOrganisation/;
 
@@ -133,5 +134,21 @@ describe("invite claiming never creates an organisation", () => {
       if (savedDb === undefined) delete process.env.DATABASE_URL;
       else process.env.DATABASE_URL = savedDb;
     }
+  });
+});
+
+
+describe("explicit onboarding start owns the first-tenant boundary", () => {
+  it("org/create uses the canonical createOrganisationForUser factory and permits memberless identity", () => {
+    const source = read(path.join(root, "src/app/api/v1/org/create/route.ts"));
+    assert.match(source, /createOrganisationForUser/);
+    assert.match(source, /firstOrganisation/);
+    assert.match(source, /currentUser/);
+    assert.doesNotMatch(source, /requirePlatformAuth\(/, "first-org creation must not require an existing tenant session");
+  });
+
+  it("onboarding presents explicit first-organisation setup for an authenticated memberless user", () => {
+    const source = read(path.join(root, "src/app/(shell)/onboarding/page.tsx"));
+    assert.match(source, /FirstOrganisationOnboardingStart/);
   });
 });
