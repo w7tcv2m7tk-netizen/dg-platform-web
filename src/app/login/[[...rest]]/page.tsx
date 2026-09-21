@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 
 import { ClientSignIn } from "@/components/auth/ClientSignIn";
 import { AuthShell } from "@/components/AuthShell";
+import { getPlatformOperatorContext } from "@/lib/platform-operator";
 import {
   loginAudienceCopy,
   resolvePostSignInRedirect,
@@ -40,6 +41,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   const { userId } = await auth();
   if (userId) {
+    const hasExplicitDestination = Boolean(redirectUrl?.trim());
+    if (!hasExplicitDestination && copy.audience === "client") {
+      const operator = await getPlatformOperatorContext();
+      if (operator) redirect("/command");
+    }
     redirect(afterSignIn);
   }
 
