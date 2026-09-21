@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 
 import { ClientSignIn } from "@/components/auth/ClientSignIn";
 import { AuthShell } from "@/components/AuthShell";
+import { resolveAuthenticatedHome } from "@/lib/auth-home";
 import {
   loginAudienceCopy,
   resolvePostSignInRedirect,
@@ -40,6 +41,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   const { userId } = await auth();
   if (userId) {
+    if (!redirectUrl && copy.audience === "client") redirect(await resolveAuthenticatedHome());
     redirect(afterSignIn);
   }
 
