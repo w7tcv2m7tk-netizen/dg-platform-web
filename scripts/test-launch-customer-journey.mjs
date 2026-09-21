@@ -8,6 +8,7 @@ const signup = read("src/components/SignupForm.tsx");
 const signupLayout = read("src/app/signup/(platform)/layout.tsx");
 const planPicker = read("src/components/PlanPicker.tsx");
 const onboarding = read("src/app/(shell)/onboarding/page.tsx");
+const checkoutPending = read("src/components/onboarding/OnboardingCheckoutPending.tsx");
 const publicRoutes = read("src/lib/public-routes.ts");
 const platformShellLoader = read("src/components/PlatformShellLoader.tsx");
 const businessSetup = read("src/app/(shell)/dashboard/business-setup/page.tsx");
@@ -83,7 +84,9 @@ test("signed-out onboarding recovery does not render authenticated app chrome", 
 
 test("onboarding sign-in and billing recovery meet the native touch-target floor", () => {
   assert.match(onboarding, /Sign in[\s\S]{0,900}min-h-11|className="[^"]*min-h-11[^"]*"[\s\S]{0,300}>\s*Sign in/);
-  assert.match(onboarding, /className="[^"]*min-h-11[^"]*"[\s\S]{0,300}>\s*Check confirmation/);
+  assert.match(onboarding, /OnboardingCheckoutPending/);
+  assert.match(checkoutPending, /className="[^"]*min-h-11[^"]*"[\s\S]{0,300}>\s*Check confirmation/);
+  assert.match(checkoutPending, /router\.refresh\(\)/);
 });
 
 test("Start Your Business stays customer-facing rather than exposing implementation internals", () => {
