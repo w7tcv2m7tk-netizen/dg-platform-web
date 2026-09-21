@@ -21,6 +21,40 @@ export async function POST(req: Request) {
   const auth = await authenticatePlatformOrConnector(req);
   if (isNextResponse(auth)) return auth;
 
+
+  // Legacy platform-wide connector keys are not tenant-scoped and therefore
+  // cannot satisfy per-organisation commercial entitlements.
+  if (auth.mode !== "session") {
+    return NextResponse.json(
+      { error: { code: "tenant_auth_required", message: "A tenant-scoped platform session or API key is required for this specialist Industry integration." } },
+      { status: 403 },
+    );
+  }
+  const organisationId = auth.session.organisationId;
+
+  const { prisma } = await import("@dg/database");
+  const subscription = await prisma.platformSubscription.findUnique({
+    where: { organisationId: organisationId },
+    select: { planTier: true },
+  });
+  const tier = subscription?.planTier as PlatformTier | null;
+  if (!canUseIndustryIntegrations(tier)) {
+    return NextResponse.json(
+      { error: { code: "industry_integration_plan_required", message: "Specialist Industry integrations require the Scale or Enterprise Core Platform plan." } },
+      { status: 403 },
+    );
+  }
+  const industryApp = await prisma.appInstallation.findFirst({
+    where: { organisationId: organisationId, appId: { in: ["property", "real-estate"] }, enabled: true },
+    select: { id: true },
+  });
+  if (!industryApp) {
+    return NextResponse.json(
+      { error: { code: "industry_app_required", message: "The relevant Property / Real Estate Industry App must be active before using Cotality/CoreLogic." } },
+      { status: 403 },
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const address = (
     body?.address ??

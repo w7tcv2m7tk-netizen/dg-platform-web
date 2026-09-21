@@ -26,6 +26,13 @@ export async function POST(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
+  const { prisma } = await import("@dg/database");
+  const subscription = await prisma.platformSubscription.findUnique({ where: { organisationId: session.organisationId }, select: { planTier: true } });
+  const tier = subscription?.planTier as PlatformTier | null;
+  if (!canUseIndustryIntegrations(tier)) return NextResponse.json({ error: { code: "industry_integration_plan_required", message: "Specialist Industry integrations require the Scale or Enterprise Core Platform plan." } }, { status: 403 });
+  const industryApp = await prisma.appInstallation.findFirst({ where: { organisationId: session.organisationId, appId: { in: ["property", "real-estate"] }, enabled: true }, select: { id: true } });
+  if (!industryApp) return NextResponse.json({ error: { code: "industry_app_required", message: "The relevant Property / Real Estate Industry App must be active before publishing to REA." } }, { status: 403 });
+
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
 
