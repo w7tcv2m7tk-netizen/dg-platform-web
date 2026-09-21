@@ -128,7 +128,7 @@ Founding programme benefits (access / influence) **do not** automatically includ
 - Benefits are **exclusivity, early access, priority onboarding, founder relationship and roadmap influence** — **not** a recurring percentage discount.
 - **Try DigitalGate free for 14 days** (see `BILLING_COMMERCIAL_CONFIG.trialDays`; may become 21 or 28).
 - **Annual billing** ≈ **10 months** of monthly pricing (save ~2 months) — see `BILLING_COMMERCIAL_CONFIG.annualMonthsEquivalent`.
-- **Founding referral commissions** remain separate: Founding 10 **20%** · Founding 100 **15%** · Founding 1,000+ **10%** on qualifying fees actually received for 12 months per referred customer (eligibility window — credited on revenue received, including annual in full when paid).
+- **Founding referral commission** remains separate: Founding 10 **20%** on qualifying fees actually received for the first 12 months per referred customer. Standard customer referral programmes, where offered, are separate and are not additional Founding cohorts.
 - Exact programme terms in the offer/agreement — not a second public price list.
 - Customer cohort status and Acquisition Partner commission are **separate**. Commission is a % of **qualifying collected** Platform + App (+ Template) fees — not list price.
 
