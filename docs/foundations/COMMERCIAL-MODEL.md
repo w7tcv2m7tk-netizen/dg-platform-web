@@ -21,7 +21,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 
 **Public pricing lock:** Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** + **Apps additional**. Industry and Growth Apps are **not** included in platform tier pricing. Avoid wording such as “1 Industry App included” or “Unlimited Industry Apps.”
 
-**Founding cohorts (GTM):** Founding 10 is the only founding cohort. It is invitation-only and layered on top of published pricing; there is no Founding 100 or Founding 1,000 programme. Customer 11 onward follows the standard self-serve trial and onboarding journey. Canon: [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md).
+**Founding cohorts (GTM):** Founding 10 is the only founding cohort. It is invitation-only and layered on top of published pricing; there is no standard customer or standard customer programme. Customer 11 onward follows the standard self-serve trial and onboarding journey. Canon: [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md).
 
 ---
 
