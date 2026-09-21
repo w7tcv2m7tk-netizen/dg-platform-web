@@ -17,7 +17,7 @@ import {
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const OUT = join(ROOT, "html");
 
-const TRIAL = "https://app.digitalgate.com.au/onboarding";
+const TRIAL = "https://app.digitalgate.com.au/signup/account";
 const CONTACT = `${SITE}/contact/#platform-consultation`;
 const PRICING = `${SITE}/pricing/`;
 
