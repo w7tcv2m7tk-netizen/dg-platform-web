@@ -71,6 +71,9 @@ export type BusinessContextTwinSummary = {
   instagramRecentMediaCount?: number;
   instagramRecentLikes?: number;
   instagramRecentComments?: number;
+  automationRecentRunCount?: number;
+  automationLastRunAt?: string;
+  automationLastRunStatus?: "success" | "partial";
   connectedSystems: string[];
   websites: string[];
 };
@@ -234,13 +237,42 @@ export type GetBusinessContextInput = {
 export async function getBusinessContext(
   input: GetBusinessContextInput,
 ): Promise<BusinessContext> {
-  const [profile, goals] = await Promise.all([
+  const [profile, goals, automationEvidence] = await Promise.all([
     input.profileOverride !== undefined
       ? Promise.resolve(input.profileOverride)
       : getOrganisationBusinessProfile(input.organisationId),
     input.goalsOverride !== undefined
       ? Promise.resolve(input.goalsOverride ?? [])
       : getOrganisationGoals(input.organisationId),
+    (async () => {
+      if (!process.env.DATABASE_URL) return null;
+      try {
+        const { listOrganisationActivities } = await import("../activities");
+        const { items } = await listOrganisationActivities({
+          organisationId: input.organisationId,
+          sourceApp: "automation",
+          limit: 50,
+        });
+        const runs = items.filter(
+          (activity) =>
+            activity.activityType === "automation.run" ||
+            activity.activityType === "automation.run_partial",
+        );
+        const latest = runs[0];
+        return {
+          recentRunCount: runs.length,
+          lastRunAt: latest?.createdAt,
+          lastRunStatus:
+            latest?.activityType === "automation.run"
+              ? ("success" as const)
+              : latest?.activityType === "automation.run_partial"
+                ? ("partial" as const)
+                : undefined,
+        };
+      } catch {
+        return null;
+      }
+    })(),
   ]);
 
   const orgMeta = {
@@ -264,7 +296,16 @@ export async function getBusinessContext(
       targetAudience: profile?.brandVoice?.targetAudience,
       competitors: profile?.brandVoice?.competitors,
     },
-    twin: snapshotToTwinSummary(input.twinSnapshot),
+    twin: {
+      ...snapshotToTwinSummary(input.twinSnapshot),
+      ...(automationEvidence && automationEvidence.recentRunCount > 0
+        ? {
+            automationRecentRunCount: automationEvidence.recentRunCount,
+            automationLastRunAt: automationEvidence.lastRunAt,
+            automationLastRunStatus: automationEvidence.lastRunStatus,
+          }
+        : {}),
+    },
     profile,
     goals,
     capturedAt: new Date().toISOString(),
