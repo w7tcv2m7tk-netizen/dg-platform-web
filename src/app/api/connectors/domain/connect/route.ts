@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
+import { requirePermission } from "@/lib/platform-api";
 import {
   tenantWriteEntitlementBlock,
   writeEntitlementResponse,
@@ -61,6 +62,13 @@ export async function GET() {
       { status: 400 },
     );
   }
+
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const writeBlock = await tenantWriteEntitlementBlock(session);
   if (writeBlock) return writeEntitlementResponse(writeBlock);
