@@ -13,7 +13,7 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 
 | Layer | Rule |
 |-------|------|
-| **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom. **Native specialist industry-platform integrations & API access, and multiple businesses under one subscription account, require Scale or Enterprise.** |
+| **Platform** | Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** · Enterprise custom. **Native specialist industry-platform integrations & API access, and up to 5 businesses under one subscription account, require Scale or Enterprise.** |
 | **Industry App** | **$99/mo** — major vertical capability and infrastructure |
 | **Industry Template** | **1 included** with each Industry App (primary business model); **+$29/mo** each additional |
 | **Growth Apps** | Optional · billed separately. **Prospecting & Opportunity Engine $99** · AI Visibility $99 · SEO $99 · Automation $49 · Analytics $49 · Social $79 · **Reputation Free** |
@@ -32,7 +32,7 @@ This entitlement must be enforced server-side; lower tiers may surface an upgrad
 
 ### Multi-business entitlement
 
-Managing **multiple businesses / organisations under one subscription account** is a **Scale ($499/mo) or Enterprise** platform entitlement. Starter and Growth are single-business subscription tiers.
+Managing **multiple businesses / organisations under one subscription account** is a **Scale ($499/mo) or Enterprise** platform entitlement. Starter and Growth are single-business subscription tiers. **Scale supports up to 5 businesses total (including the primary business); Enterprise limits are custom.**
 
 Each business remains a distinct tenant with its own organisation-scoped data, permissions, connectors, CRM, evidence and Aida context; Scale grants account-level access to multiple businesses, not shared tenant data. Creating or attaching an additional business to the same subscription account must be enforced server-side. Organisation-specific commercial offers may override the standard tier only where the offer explicitly grants multi-business access.
 
