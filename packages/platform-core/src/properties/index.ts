@@ -1,6 +1,7 @@
 import type { Property, Prisma } from "@dg/database";
 
 import { writeAuditLog } from "../audit";
+import { checkOrgIndustryIntegrationEntitlement } from "../billing/industry-integration-entitlement";
 import { platformEvents } from "../events";
 import { updateLeadStage, type VendorStage } from "../leads";
 import { leadStageForPropertyStatus } from "../real-estate/pipeline";
