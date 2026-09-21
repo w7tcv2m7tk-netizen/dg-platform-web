@@ -16,6 +16,10 @@ const wizard = fs.readFileSync(
   path.join(root, "src/components/onboarding/Gen2OnboardingWizard.tsx"),
   "utf8",
 );
+const pending = fs.readFileSync(
+  path.join(root, "src/components/onboarding/OnboardingCheckoutPending.tsx"),
+  "utf8",
+);
 
 assert.match(
   route,
@@ -109,8 +113,23 @@ assert.match(
 );
 assert.match(
   page,
+  /OnboardingCheckoutPending/,
+  "unconfirmed Stripe returns must render the dedicated pending confirmation recovery",
+);
+assert.match(
+  pending,
   /Confirming your subscription/,
-  "unconfirmed Stripe returns must show a truthful pending state",
+  "pending checkout recovery must show a truthful confirmation state",
+);
+assert.match(
+  pending,
+  /router\.refresh\(\)/,
+  "pending checkout recovery must re-check canonical billing state automatically",
+);
+assert.match(
+  pending,
+  /MAX_AUTO_CHECKS/,
+  "automatic checkout re-checking must be bounded",
 );
 
 const checkoutFinalisation = wizard.slice(
