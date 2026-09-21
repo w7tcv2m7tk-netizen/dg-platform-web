@@ -78,10 +78,9 @@ export default async function FoundingAgreementPage({
         <p className="text-xs font-semibold uppercase tracking-widest text-sky-300">
           Founding 10
         </p>
-        <h1 className="mt-2 text-2xl font-bold text-white">Founding Agreement</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white">Confirm your Founding 10 terms</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Confirm commercial terms before onboarding. The legal agreement stays separate from
-          configuring your platform.
+          One quick confirmation, then continue straight into your DigitalGate setup and 14-day free trial.
         </p>
       </header>
       <main className="dg-page-main">
