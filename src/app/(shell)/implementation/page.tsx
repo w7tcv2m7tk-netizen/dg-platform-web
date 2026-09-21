@@ -50,7 +50,7 @@ export default async function ImplementationPage() {
     ["Apps", completed.has("apps")],
     ["Subscription", subscriptionActive],
     ["Connection setup reviewed", completed.has("connect")],
-    ["Implementation", onboardingComplete],
+    ["Onboarding hand-off", onboardingComplete],
   ] as const;
 
   return (
