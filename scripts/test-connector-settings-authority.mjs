@@ -27,6 +27,7 @@ for (const file of [
   const src = fs.readFileSync(file, "utf8");
   assert.match(src, /requirePermission\(/, `${file} must require settings:manage`);
   assert.match(src, /module:\s*"settings"[\s\S]*action:\s*"manage"[\s\S]*scope:\s*"organisation"/);
+  assert.match(src, /tenantWriteEntitlementBlock\(/, `${file} must enforce tenant write entitlement`);
 }
 
 console.log("Connector settings authority regression checks passed");
