@@ -6,6 +6,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, rejectDemoLiveAction, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
+import { maxUsersForTier, type PlatformTier } from "@/lib/plans";
 
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
@@ -25,6 +26,35 @@ export async function POST(req: Request) {
     .trim()
     .toLowerCase();
   const role = normalizeTeamInviteRole(body.role);
+
+  const { prisma } = await import("@dg/database");
+  const subscription = await prisma.platformSubscription.findUnique({
+    where: { organisationId: session.organisationId },
+    select: { planTier: true },
+  });
+  const tier = subscription?.planTier as PlatformTier | null;
+  if (tier) {
+    const maxUsers = maxUsersForTier(tier);
+    if (maxUsers != null) {
+      const occupiedSeats = await prisma.membership.count({
+        where: {
+          organisationId: session.organisationId,
+          status: { in: ["active", "invited"] },
+        },
+      });
+      if (occupiedSeats >= maxUsers) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "plan_user_limit",
+              message: `Your ${tier === "professional" ? "Growth" : "Starter"} plan supports up to ${maxUsers} user${maxUsers === 1 ? "" : "s"}. Upgrade the Core Platform plan to add another user.`,
+            },
+          },
+          { status: 403 },
+        );
+      }
+    }
+  }
 
   if (!email || !email.includes("@")) {
     return NextResponse.json(
