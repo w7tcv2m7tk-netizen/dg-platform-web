@@ -8,7 +8,6 @@ import {
   getPlatformSetupStatus,
   healthDeltaFromHistory,
   healthTrendFromHistory,
-  isFoundingCustomerMode,
   listOrganisationActivities,
   listOrgSeoAudits,
   loadHealthHistory,
@@ -22,7 +21,6 @@ import {
   DigitalPerformanceStrip,
   type DigitalPerformanceSignal,
 } from "@/components/overview/DigitalPerformanceStrip";
-import { FoundingOperatorHome } from "@/components/overview/FoundingOperatorHome";
 import { Gen2OnboardingChecklistBanner } from "@/components/onboarding/Gen2OnboardingChecklistBanner";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
@@ -160,9 +158,6 @@ function buildDigitalPerformanceSignals(input: {
 export default async function DashboardPage() {
   const { user, name, portal, session: platformSession } = await getPlatformPageContext();
   const enabledAppIds = await getOrgEnabledAppIdsCached();
-  const foundingCustomerMode =
-    Boolean(platformSession) && isFoundingCustomerMode(enabledAppIds);
-
   let liveMetrics = null;
   let activities = null;
   let healthHistory: Awaited<ReturnType<typeof loadHealthHistory>> = [];
@@ -293,17 +288,9 @@ export default async function DashboardPage() {
             Sign in to open your live Business Overview.
           </p>
         </header>
-      ) : foundingCustomerMode ? (
-        <header className="dg-page-header md:py-6 text-center md:text-left">
-          <p className="text-lg text-slate-300">{overview.greeting} 👋</p>
-          <h1 className="mt-1 text-2xl font-bold text-white">Here&apos;s what matters</h1>
-          <p className="mt-2 text-sm text-slate-400">
-            {overview.organisationName} · Updated {overview.lastUpdatedLabel}
-          </p>
-        </header>
       ) : null}
 
-      <main className={platformSession && !foundingCustomerMode ? "dg-page-main pt-4 md:pt-6" : "dg-page-main"}>
+      <main className={platformSession ? "dg-page-main pt-4 md:pt-6" : "dg-page-main"}>
         {platformSession ? <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} organisationName={platformSession.organisationName} /> : null}
         {!platformSession ? (
           <div className="dg-card mb-6 border-sky-500/30">
@@ -318,14 +305,6 @@ export default async function DashboardPage() {
               Sign in →
             </Link>
           </div>
-        ) : foundingCustomerMode ? (
-          <>
-            <FoundingOperatorHome
-              overview={overview}
-              enabledAppIds={enabledAppIds}
-              openOpportunityCount={liveMetrics?.openOpportunityCount ?? 0}
-            />
-          </>
         ) : (
           <BusinessOverviewDashboard
             overview={overview}
