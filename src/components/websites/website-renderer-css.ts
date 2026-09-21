@@ -46,7 +46,7 @@ const websiteRendererCssBase = `
 /* DigitalGate audit — solid base only; atmosphere layers live inside the funnel */
 .wb-root.wb-product-funnel .dg-ba-funnel,
 .wb-root.wb-product-funnel .dg-business-audit-funnel {
-  background-color: #03050A !important;
+  background-color: #0A0A12 !important;
   background-image: none !important;
 }
 html:has(.wb-root.wb-product-funnel),
@@ -55,6 +55,10 @@ html:has(.wb-root.wb-product-funnel) body {
   min-height: 100%;
   margin: 0;
   background: #0a0e17;
+}
+html:has(.dg-ba-funnel),
+html:has(.dg-ba-funnel) body {
+  background: #0A0A12;
 }
 
 .wb-nav {
