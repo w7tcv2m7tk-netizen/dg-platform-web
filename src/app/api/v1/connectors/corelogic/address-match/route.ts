@@ -22,9 +22,19 @@ export async function POST(req: Request) {
   if (isNextResponse(auth)) return auth;
 
 
+  // Legacy platform-wide connector keys are not tenant-scoped and therefore
+  // cannot satisfy per-organisation commercial entitlements.
+  if (auth.mode !== "session") {
+    return NextResponse.json(
+      { error: { code: "tenant_auth_required", message: "A tenant-scoped platform session or API key is required for this specialist Industry integration." } },
+      { status: 403 },
+    );
+  }
+  const organisationId = organisationId;
+
   const { prisma } = await import("@dg/database");
   const subscription = await prisma.platformSubscription.findUnique({
-    where: { organisationId: auth.session.organisationId },
+    where: { organisationId: organisationId },
     select: { planTier: true },
   });
   const tier = subscription?.planTier as PlatformTier | null;
@@ -35,7 +45,7 @@ export async function POST(req: Request) {
     );
   }
   const industryApp = await prisma.appInstallation.findFirst({
-    where: { organisationId: auth.session.organisationId, appId: { in: ["property", "real-estate"] }, enabled: true },
+    where: { organisationId: organisationId, appId: { in: ["property", "real-estate"] }, enabled: true },
     select: { id: true },
   });
   if (!industryApp) {
