@@ -3,12 +3,13 @@ export type PlatformTier = "starter" | "professional" | "business" | "enterprise
 /** Canonical tier gate for native specialist industry-platform integrations/APIs. */
 export const INDUSTRY_INTEGRATION_MIN_TIER: PlatformTier = "business";
 export const MULTI_BUSINESS_MIN_TIER: PlatformTier = "business";
+export const SCALE_MAX_BUSINESSES = 5;
 
 export function canUseIndustryIntegrations(tier: PlatformTier | null | undefined): boolean {
   return tier === "business" || tier === "enterprise";
 }
 
-/** Multiple businesses/organisations under one subscription account require Scale+. */
+/** Multiple businesses/organisations under one subscription account require Scale+; Scale supports up to 5 businesses total. */
 export function canUseMultipleBusinesses(tier: PlatformTier | null | undefined): boolean {
   return tier === "business" || tier === "enterprise";
 }
