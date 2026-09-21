@@ -1,8 +1,9 @@
 import { createOrganisationForUser, type OrgTemplate } from "@dg/platform-core";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { writeActiveOrganisationId } from "@/lib/active-org-cookie";
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
 const VALID_TEMPLATES = new Set<OrgTemplate>([
   "default",
@@ -13,10 +14,27 @@ const VALID_TEMPLATES = new Set<OrgTemplate>([
 ]);
 
 export async function POST(req: Request) {
-  const session = await requirePlatformAuth(req);
-  if (isNextResponse(session)) return session;
+  // This is the explicit first-tenant boundary used by onboarding. Authentication
+  // establishes identity; this route intentionally permits a memberless Clerk user.
+  const { userId } = await auth();
+  const user = await currentUser();
+  if (!userId || !user) {
+    return NextResponse.json(
+      { error: { code: "unauthorized", message: "Sign in required" } },
+      { status: 401 },
+    );
+  }
+  const email = user.primaryEmailAddress?.emailAddress ?? "";
+  const displayName =
+    user.fullName ?? [user.firstName, user.lastName].filter(Boolean).join(" ") ?? email;
+  const existingSession = await resolveActivePlatformSession({
+    clerkUserId: userId,
+    email,
+    name: displayName,
+  });
 
   const body = await req.json().catch(() => ({}));
+  const firstOrganisation = body.firstOrganisation === true;
   const name = (body.name as string | undefined)?.trim();
   const template = (body.template as OrgTemplate | undefined) ?? "default";
 
@@ -34,11 +52,18 @@ export async function POST(req: Request) {
     );
   }
 
+  if (firstOrganisation && existingSession) {
+    return NextResponse.json(
+      { error: { code: "already_has_organisation", message: "This account already has an organisation" } },
+      { status: 409 },
+    );
+  }
+
   try {
     const created = await createOrganisationForUser({
-      clerkUserId: session.clerkUserId,
-      email: session.email,
-      name: session.name,
+      clerkUserId: userId,
+      email,
+      name: displayName,
       orgName: name,
       template,
     });
