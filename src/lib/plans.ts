@@ -68,7 +68,7 @@ export type PremiumApp =
   | "voice_ai"
   | "prospecting_pro";
 
-export type Addon = "white_label" | "extra_users";
+export type Addon = "white_label";
 
 export const PLATFORM_TIERS: {
   key: PlatformTier;
@@ -244,7 +244,6 @@ export const PREMIUM_APPS: { key: PremiumApp; label: string; price: string }[] =
 ];
 
 export const ADDONS: { key: Addon; label: string; price: string }[] = [
-  { key: "extra_users", label: "Extra Users", price: "+$29/user" },
   { key: "white_label", label: "White Label", price: "+$199/mo" },
 ];
 
