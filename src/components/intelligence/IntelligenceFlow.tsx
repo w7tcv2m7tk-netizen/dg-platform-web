@@ -43,7 +43,7 @@ function Arrow() {
   );
 }
 
-export function IntelligenceFlow({ active = "AI Advisor" }: { active?: string }) {
+export function IntelligenceFlow({ active = "Aida" }: { active?: string }) {
   return (
     <div className="rounded-xl border border-slate-800/80 bg-slate-950/20 px-5 py-4">
       <p className="text-xs font-medium uppercase tracking-widest text-slate-500">

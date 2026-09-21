@@ -12,3 +12,17 @@ test("Business Overview always renders the Aida-led dashboard for signed-in orga
   assert.doesNotMatch(source, /isFoundingCustomerMode/);
   assert.doesNotMatch(source, /foundingCustomerMode/);
 });
+
+test("Aida is the named intelligence layer and Command Centre links to the real command surface", async () => {
+  const [model, advisor] = await Promise.all([
+    readFile("src/components/intelligence/intelligence-model.ts", "utf8"),
+    readFile("src/components/intelligence/AiAdvisorDashboard.tsx", "utf8"),
+  ]);
+
+  assert.match(model, /id: "advisor",[\s\S]*label: "Aida"/);
+  assert.match(model, /id: "command",[\s\S]*href: "\/command"/);
+  assert.doesNotMatch(model, /label: "AI Advisor"/);
+  assert.match(advisor, /Ask Aida/);
+  assert.match(advisor, /What Aida recommends you do next/);
+  assert.match(advisor, /href="\/command"[\s\S]*Open Command Centre/);
+});
