@@ -10,20 +10,20 @@ export function CommandBetaStatus() {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="rounded-xl border border-slate-700/80 bg-slate-950/40">
+    <section className="border-t border-white/5 pt-4">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex min-h-11 w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        className="flex min-h-11 w-full items-center justify-between gap-3 py-2 text-left"
       >
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
           System status / operator notes
         </span>
-        <span className="text-xs text-slate-500">{open ? "▾" : "▸"}</span>
+        <span className="text-xs text-slate-600">{open ? "▾" : "▸"}</span>
       </button>
       {open ? (
-        <div className="space-y-3 border-t border-slate-800 px-4 py-4">
-          <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2.5 text-sm text-sky-50">
+        <div className="space-y-3 pb-2 pt-2">
+          <div className="text-sm leading-6 text-slate-400">
             <span className="font-medium text-white">Operator beta.</span> The active sales loop lives in{" "}
             <Link
               href="/command/growth-engine"

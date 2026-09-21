@@ -1,5 +1,6 @@
 import type {
   AgencyHealthTier,
+  CommandCentreOpsHome,
   CommandClientRow,
   CommandRecentActivity,
   CommandTodayItem,
@@ -338,4 +339,321 @@ export function buildTodaySummary(input: {
   }
 
   return items;
+}
+
+export type CommandPlatformStatusTone = "critical" | "attention" | "steady";
+
+export type CommandCockpitMetric = {
+  id: string;
+  label: string;
+  value: string;
+  detail: string;
+  href: string;
+  available: boolean;
+};
+
+export type CommandCockpitBriefingLine = {
+  id: string;
+  text: string;
+  href?: string;
+};
+
+export type CommandCockpitPresentation = {
+  status: CommandPlatformStatusTone;
+  statusLabel: string;
+  statusDetail: string;
+  generatedLabel: string;
+  pulseMetrics: CommandCockpitMetric[];
+  criticalAlertCount: number;
+  whatChanged: CommandCockpitBriefingLine[];
+  needsAttention: CommandCockpitBriefingLine[];
+  opportunities: CommandCockpitBriefingLine[];
+  nextActions: CommandCockpitBriefingLine[];
+  briefingHeadline: string;
+};
+
+function plural(count: number, singular: string, pluralLabel = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : pluralLabel}`;
+}
+
+function formatGeneratedAt(iso: string): string {
+  const ts = Date.parse(iso);
+  if (!Number.isFinite(ts)) return "Live snapshot";
+  return `As of ${new Date(ts).toLocaleString("en-AU", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Australia/Brisbane",
+  })} AEST`;
+}
+
+/**
+ * Executive cockpit presentation — live CommandCentreOpsHome fields only.
+ * Does not invent trials, health percentages, or commercial figures.
+ */
+export function buildCommandCockpitPresentation(
+  data: CommandCentreOpsHome,
+): CommandCockpitPresentation {
+  const urgent = data.actions.filter((action) => action.severity === "urgent");
+  const today = data.actions.filter((action) => action.severity === "today");
+  const watch = data.actions.filter((action) => action.severity === "watch");
+  const criticalAlerts = (data.deliveryAlerts ?? []).filter(
+    (alert) => alert.severity === "critical",
+  );
+  const warningAlerts = (data.deliveryAlerts ?? []).filter(
+    (alert) => alert.severity === "warning",
+  );
+
+  let status: CommandPlatformStatusTone = "steady";
+  let statusLabel = "Steady";
+  let statusDetail = "No urgent platform actions — cockpit is quiet.";
+
+  if (urgent.length > 0 || criticalAlerts.length > 0 || data.delivery.blocked > 0) {
+    status = "critical";
+    statusLabel = "Needs intervention";
+    const parts: string[] = [];
+    if (urgent.length > 0) parts.push(plural(urgent.length, "urgent action"));
+    if (criticalAlerts.length > 0) parts.push(plural(criticalAlerts.length, "critical alert"));
+    if (data.delivery.blocked > 0) {
+      parts.push(plural(data.delivery.blocked, "blocked delivery"));
+    }
+    statusDetail = parts.join(" · ");
+  } else if (
+    !data.billing.stripeOk ||
+    today.length > 0 ||
+    data.organisationHealth.needsAttentionCount > 0 ||
+    warningAlerts.length > 0
+  ) {
+    status = "attention";
+    statusLabel = "Watch closely";
+    const parts: string[] = [];
+    if (!data.billing.stripeOk) parts.push(`Stripe ${data.billing.stripeMode}`);
+    if (today.length > 0) parts.push(plural(today.length, "action due today"));
+    if (data.organisationHealth.needsAttentionCount > 0) {
+      parts.push(
+        plural(data.organisationHealth.needsAttentionCount, "organisation needs attention", "organisations need attention"),
+      );
+    }
+    if (warningAlerts.length > 0) parts.push(plural(warningAlerts.length, "delivery warning"));
+    statusDetail = parts.join(" · ");
+  }
+
+  const pulseMetrics: CommandCockpitMetric[] = [
+    {
+      id: "customers",
+      label: "Customers",
+      value: String(data.pulse.organisations),
+      detail: `${plural(data.pulse.users, "active member")} · ${plural(
+        data.organisationHealth.needsAttentionCount,
+        "needs attention",
+        "need attention",
+      )}`,
+      href: "/command/clients",
+      available: true,
+    },
+    {
+      id: "mrr",
+      label: "MRR",
+      value: data.billing.estimatedMrrLabel,
+      detail: `${plural(data.billing.activeSubscriptions, "active subscription")} · Stripe ${data.billing.stripeMode}`,
+      href: "/command/revenue",
+      available: true,
+    },
+    {
+      id: "pipeline",
+      label: "Leads / pipeline",
+      value: String(data.pulse.openOpportunities),
+      detail: `${plural(data.pulse.leadsThisWeek, "new lead")} this week · ${plural(
+        data.pulse.leads,
+        "lead",
+      )} total`,
+      href: "/command/opportunities",
+      available: true,
+    },
+    {
+      id: "trials",
+      label: "Trials / onboarding",
+      value: "—",
+      detail: "Dedicated trial count is not in this view",
+      href: "/command/clients",
+      available: false,
+    },
+    {
+      id: "health",
+      label: "Platform health",
+      value: data.organisationHealth.averageHealthLabel,
+      detail: `${data.organisationHealth.organisationsWithSufficientData}/${data.organisationHealth.totalOrganisations} organisations with sufficient data`,
+      href: "/command/platform-health",
+      available: data.organisationHealth.averageHealth != null,
+    },
+    {
+      id: "alerts",
+      label: "Critical alerts",
+      value: String(urgent.length + criticalAlerts.length),
+      detail:
+        urgent.length + criticalAlerts.length === 0
+          ? "No critical alerts in this snapshot"
+          : `${plural(urgent.length, "urgent action")} · ${plural(criticalAlerts.length, "critical delivery alert")}`,
+      href: "#command-attention",
+      available: true,
+    },
+  ];
+
+  const whatChanged: CommandCockpitBriefingLine[] = [];
+  if (data.pulse.leadsThisWeek > 0) {
+    whatChanged.push({
+      id: "leads-week",
+      text: `${plural(data.pulse.leadsThisWeek, "new lead")} this week`,
+      href: "/command/opportunities",
+    });
+  }
+  if (data.pulse.growthEngagementsThisWeek > 0) {
+    whatChanged.push({
+      id: "engagements-week",
+      text: `${plural(data.growthEngine.engagementsThisWeek, "Growth Engine engagement")} this week`,
+      href: data.growthEngine.href,
+    });
+  }
+  if (data.billing.invoicePaidMtdCents > 0) {
+    whatChanged.push({
+      id: "invoices-mtd",
+      text: `${data.billing.invoicePaidMtdLabel} invoiced and paid this month`,
+      href: "/command/revenue",
+    });
+  }
+  for (const item of data.recentActivity.slice(0, 2)) {
+    whatChanged.push({
+      id: `activity-${item.id}`,
+      text: `${item.humanTitle} · ${item.organisationName}`,
+    });
+  }
+  if (whatChanged.length === 0) {
+    whatChanged.push({
+      id: "quiet-change",
+      text: "No material platform changes in this snapshot.",
+    });
+  }
+
+  const needsAttention: CommandCockpitBriefingLine[] = [
+    ...urgent.map((action) => ({
+      id: action.id,
+      text: action.title,
+      href: action.href,
+    })),
+    ...today.map((action) => ({
+      id: action.id,
+      text: action.title,
+      href: action.href,
+    })),
+    ...criticalAlerts.map((alert) => ({
+      id: alert.id,
+      text: alert.message,
+      href: alert.href,
+    })),
+    ...watch.map((action) => ({
+      id: action.id,
+      text: action.title,
+      href: action.href,
+    })),
+  ];
+  if (needsAttention.length === 0) {
+    needsAttention.push({
+      id: "quiet-attention",
+      text: "Nothing requires operator intervention right now.",
+    });
+  }
+
+  const opportunities: CommandCockpitBriefingLine[] = [];
+  if (data.pulse.openOpportunities > 0) {
+    opportunities.push({
+      id: "open-opps",
+      text: `${plural(data.pulse.openOpportunities, "open opportunity")} in the platform pipeline`,
+      href: "/command/opportunities",
+    });
+  }
+  if (data.growthEngine.prospects > 0) {
+    const top = data.growthEngine.topPriorityLabel
+      ? ` · next ${data.growthEngine.topPriorityLabel}`
+      : "";
+    opportunities.push({
+      id: "growth-prospects",
+      text: `${plural(data.growthEngine.prospects, "Growth Engine prospect")} · ${plural(
+        data.growthEngine.activePipeline,
+        "in pipeline",
+        "in pipeline",
+      )}${top}`,
+      href: data.growthEngine.href,
+    });
+  }
+  if (data.prospectingToday && data.prospectingToday.recommendedCount > 0) {
+    opportunities.push({
+      id: "prospecting-today",
+      text: `${plural(data.prospectingToday.recommendedCount, "recommended prospect")} today${
+        data.prospectingToday.topBusinessName
+          ? ` · ${data.prospectingToday.topBusinessName}`
+          : ""
+      }`,
+      href: data.growthEngine.href,
+    });
+  }
+  if (data.partnerPulse.foundingResellers > 0 || data.partnerPulse.activeProspects > 0) {
+    opportunities.push({
+      id: "partners",
+      text: `${plural(data.partnerPulse.foundingResellers, "active partner")} · ${plural(
+        data.partnerPulse.activeProspects,
+        "partner prospect",
+      )}`,
+      href: "/command/partners",
+    });
+  }
+  if (opportunities.length === 0) {
+    opportunities.push({
+      id: "quiet-opportunities",
+      text: "No live growth or pipeline opportunities in this snapshot.",
+    });
+  }
+
+  const nextActions: CommandCockpitBriefingLine[] = [
+    ...data.actions.slice(0, 4).map((action) => ({
+      id: `next-${action.id}`,
+      text: action.title,
+      href: action.href,
+    })),
+    ...data.today
+      .filter((item) => !data.actions.some((action) => action.href === item.href))
+      .slice(0, 2)
+      .map((item) => ({
+        id: `today-${item.id}`,
+        text: item.label,
+        href: item.href,
+      })),
+  ];
+  if (nextActions.length === 0) {
+    nextActions.push({
+      id: "quiet-next",
+      text: "Hold the line — no ranked operator actions in this snapshot.",
+    });
+  }
+
+  const briefingHeadline =
+    status === "critical"
+      ? "Intervention required — start with the urgent queue."
+      : status === "attention"
+        ? "The platform is operating, but a few signals need a closer look."
+        : "DigitalGate is quiet. Use the time for growth and delivery.";
+
+  return {
+    status,
+    statusLabel,
+    statusDetail,
+    generatedLabel: formatGeneratedAt(data.generatedAt),
+    pulseMetrics,
+    criticalAlertCount: urgent.length + criticalAlerts.length,
+    whatChanged: whatChanged.slice(0, 4),
+    needsAttention: needsAttention.slice(0, 5),
+    opportunities: opportunities.slice(0, 4),
+    nextActions: nextActions.slice(0, 4),
+    briefingHeadline,
+  };
 }

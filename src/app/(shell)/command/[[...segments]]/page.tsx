@@ -2,12 +2,12 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import {
+  buildCommandCockpitPresentation,
   getOperatorClientIntelligence,
   getOperatorCommandCentreOpsHome,
   resolveSalesWeekPrompt,
 } from "@dg/platform-core";
 
-import { AiAdvisorPanel } from "@/components/command/AiAdvisorPanel";
 import { CommandBetaStatus } from "@/components/command/CommandBetaStatus";
 import { CommandOpsHome } from "@/components/command/CommandOpsHome";
 import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
@@ -45,6 +45,14 @@ async function CommandOverviewPage({ initialOrgId }: { initialOrgId?: string }) 
       scoreProvisional: client.scoreProvisional,
       needsAttention: client.needsAttention,
     })) ?? [];
+  const cockpit = data ? buildCommandCockpitPresentation(data) : null;
+  const statusDot = !cockpit
+    ? "bg-amber-400 shadow-[0_0_16px_rgba(251,191,36,.7)]"
+    : cockpit.status === "critical"
+      ? "bg-rose-400 shadow-[0_0_16px_rgba(251,113,133,.85)]"
+      : cockpit.status === "attention"
+        ? "bg-amber-400 shadow-[0_0_16px_rgba(251,191,36,.7)]"
+        : "bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,.8)]";
 
   return (
     <>
@@ -53,49 +61,50 @@ async function CommandOverviewPage({ initialOrgId }: { initialOrgId?: string }) 
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 82% 22%, rgba(139,92,246,.24), transparent 28%), radial-gradient(circle at 18% 8%, rgba(14,165,233,.16), transparent 34%), linear-gradient(135deg, rgba(2,6,23,.2), rgba(15,23,42,.78))",
+              "radial-gradient(circle at 88% 18%, rgba(124,58,237,.22), transparent 26%), radial-gradient(circle at 12% 0%, rgba(59,130,246,.14), transparent 32%), linear-gradient(180deg, rgba(10,10,18,.2), rgba(15,15,26,.72))",
           }}
         />
-        <div className="relative grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="py-2">
+        <div className="relative grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_220px]">
+          <div className="py-1">
             <Link
               href="/dashboard"
-              className="inline-flex min-h-11 items-center text-sm text-sky-300 transition hover:text-white"
+              className="inline-flex min-h-11 items-center text-sm text-violet-200 transition hover:text-white"
             >
               ← Business workspace
             </Link>
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1.5 backdrop-blur">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,.8)]" />
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1.5 backdrop-blur">
+              <span className={`h-2 w-2 rounded-full ${statusDot}`} />
               <span className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-100">
-                DigitalGate · Live command
+                DigitalGate · {cockpit?.statusLabel ?? "Live aggregates unavailable"}
               </span>
             </div>
-            <h1 className="mt-5 max-w-3xl text-4xl font-bold tracking-[-0.035em] text-white sm:text-5xl">
+            <h1 className="mt-5 max-w-3xl text-4xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
               Command Centre
             </h1>
-            <p className="mt-3 max-w-2xl text-lg font-medium text-sky-100">
-              One view of the DigitalGate platform.
+            <p className="mt-3 max-w-2xl text-lg font-medium text-violet-100/90">
+              The operating cockpit for DigitalGate.
             </p>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-              {data?.briefing ??
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+              {cockpit?.briefingHeadline ??
+                data?.briefing ??
                 "See customers, revenue, delivery, growth and platform health together — with Aida watching the signals and surfacing what matters next."}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a
                 href="#command-advisor"
-                className="inline-flex min-h-11 items-center rounded-xl bg-violet-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 transition hover:bg-violet-400"
+                className="inline-flex min-h-11 items-center rounded-full bg-gradient-to-r from-violet-600 to-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(124,58,237,.28)] transition hover:brightness-110"
               >
                 Ask Aida
               </a>
               <a
                 href="#command-attention"
-                className="inline-flex min-h-11 items-center rounded-xl border border-slate-600/80 bg-slate-950/40 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-sky-400/50 hover:text-white"
+                className="inline-flex min-h-11 items-center rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-semibold text-slate-100 transition hover:border-violet-400/40 hover:text-white"
               >
                 Review priorities
               </a>
               <Link
                 href="/command/platform-health"
-                className="inline-flex min-h-11 items-center rounded-xl border border-slate-700/80 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
+                className="inline-flex min-h-11 items-center px-2 text-sm font-medium text-slate-400 transition hover:text-white"
               >
                 Platform health →
               </Link>
@@ -103,50 +112,33 @@ async function CommandOverviewPage({ initialOrgId }: { initialOrgId?: string }) 
           </div>
 
           <div className="relative hidden self-end lg:block">
-            <div className="absolute inset-x-6 bottom-4 h-24 rounded-full bg-violet-500/20 blur-3xl" />
+            <div className="absolute inset-x-4 bottom-3 h-16 rounded-full bg-violet-500/25 blur-3xl" />
             <img
               src="/aida/aida-thinking.webp"
               alt="Aida, DigitalGate intelligence"
-              className="relative ml-auto max-h-[330px] w-full object-contain object-bottom drop-shadow-[0_22px_40px_rgba(0,0,0,.4)]"
+              className="relative ml-auto max-h-[200px] w-full object-contain object-bottom drop-shadow-[0_18px_32px_rgba(0,0,0,.45)]"
             />
-            <div className="absolute bottom-5 right-0 rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 shadow-xl backdrop-blur">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-300">Aida</p>
-              <p className="mt-0.5 text-xs text-slate-300">Platform intelligence</p>
-            </div>
           </div>
         </div>
       </header>
 
-      <main className="dg-page-main space-y-8">
-        <SalesWeekNowBanner prompt={salesPrompt} compact />
-
-        <section id="command-advisor" className="space-y-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300/80">
-              Aida command briefing
-            </p>
-            <h2 className="mt-1 text-xl font-semibold text-white">
-              Understand, prioritise and act from one cockpit
-            </h2>
-            <p className="mt-1 max-w-3xl text-sm text-slate-400">
-              Ask Aida about a customer, risk or operating question without leaving Command. Ranked priorities and live alerts continue directly below.
-            </p>
-          </div>
-          {intelligence ? (
-            <AiAdvisorPanel orgs={orgs} initialOrgId={initialOrgId} />
-          ) : (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-              Operator intelligence is temporarily unavailable. Live priorities and platform diagnostics remain available below.
-            </div>
-          )}
-        </section>
-
+      <main className="dg-page-main space-y-16">
         {!data ? (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">
-            Live Command Centre aggregates are temporarily unavailable. Use Platform for operational diagnostics and retry when the data service is restored.
+          <div className="space-y-8">
+            <SalesWeekNowBanner prompt={salesPrompt} compact />
+            <div className="border-l-2 border-amber-400/50 pl-4 text-sm leading-6 text-amber-100">
+              Live Command Centre aggregates are temporarily unavailable. Use Platform for operational
+              diagnostics and retry when the data service is restored.
+            </div>
           </div>
         ) : (
-          <CommandOpsHome data={data} />
+          <CommandOpsHome
+            data={data}
+            orgs={orgs}
+            initialOrgId={initialOrgId}
+            intelligenceAvailable={Boolean(intelligence)}
+            salesPrompt={salesPrompt}
+          />
         )}
 
         <CommandBetaStatus />

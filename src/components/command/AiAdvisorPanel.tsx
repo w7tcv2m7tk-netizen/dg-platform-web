@@ -90,9 +90,11 @@ function priorityBadge(index: number): string {
 export function AiAdvisorPanel({
   orgs,
   initialOrgId,
+  compact = false,
 }: {
   orgs: OrgOption[];
   initialOrgId?: string;
+  compact?: boolean;
 }) {
   const defaultOrg = useMemo(() => {
     if (initialOrgId && orgs.some((o) => o.organisationId === initialOrgId)) {
@@ -141,23 +143,33 @@ export function AiAdvisorPanel({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-slate-950/50 to-slate-950/40 px-6 py-6">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300/90">
-          Ask your Advisor
-        </p>
-        <h2 className="mt-2 text-lg font-semibold text-white">What would you like help with?</h2>
-        <p className="mt-1 text-sm text-slate-400">
-          Reason across Customer Intelligence, Organisation Health, connectors and live signals —
-          then decide what DigitalGate should do next.
-        </p>
+      <section
+        className={
+          compact
+            ? "border-t border-white/10 pt-5"
+            : "rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-slate-950/50 to-slate-950/40 px-6 py-6"
+        }
+      >
+        {compact ? null : (
+          <>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300/90">
+              Ask your Advisor
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-white">What would you like help with?</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Reason across Customer Intelligence, Organisation Health, connectors and live signals —
+              then decide what DigitalGate should do next.
+            </p>
+          </>
+        )}
 
-        <div className="mt-5 grid gap-4 md:grid-cols-[1fr_2fr]">
+        <div className={compact ? "grid gap-4" : "mt-5 grid gap-4 md:grid-cols-[1fr_2fr]"}>
           <label className="block text-sm">
             <span className="text-slate-400">Organisation</span>
             <select
               value={organisationId}
               onChange={(e) => setOrganisationId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-white"
+              className="mt-1 w-full rounded-lg border border-white/10 bg-[#0F0F1A] px-3 py-2.5 text-white"
             >
               {orgs.map((org) => (
                 <option key={org.organisationId} value={org.organisationId}>
@@ -172,9 +184,9 @@ export function AiAdvisorPanel({
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              rows={2}
+              rows={compact ? 3 : 2}
               placeholder="Ask a question or describe a problem..."
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white placeholder:text-slate-600"
+              className="mt-1 w-full rounded-lg border border-white/10 bg-[#0F0F1A] px-3 py-2 text-white placeholder:text-slate-600"
             />
           </label>
         </div>
@@ -184,9 +196,9 @@ export function AiAdvisorPanel({
             type="button"
             onClick={() => void runAdvisor()}
             disabled={loading || !organisationId}
-            className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-50"
+            className="inline-flex min-h-11 items-center rounded-full bg-gradient-to-r from-violet-600 to-blue-600 px-5 py-2 text-sm font-semibold text-white hover:brightness-110 disabled:opacity-50"
           >
-            {loading ? "Thinking…" : "Ask Advisor →"}
+            {loading ? "Thinking…" : "Ask Aida →"}
           </button>
         </div>
 
@@ -196,7 +208,7 @@ export function AiAdvisorPanel({
               <button
                 type="button"
                 onClick={() => setQuestion(example)}
-                className="rounded-full border border-slate-700 bg-slate-950/50 px-3 py-1.5 text-left text-xs text-slate-300 hover:border-violet-500/50 hover:text-white"
+                className="rounded-full border border-white/10 px-3 py-1.5 text-left text-xs text-slate-300 transition hover:border-violet-400/40 hover:text-white"
               >
                 “{example}”
               </button>

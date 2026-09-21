@@ -77,6 +77,7 @@ test("primary Command actions meet the native touch-target floor", () => {
     "src/app/(shell)/command/reports/page.tsx",
     "src/app/(shell)/command/revenue/page.tsx",
     "src/components/command/CommandBetaStatus.tsx",
+    "src/components/command/CommandOpsHome.tsx",
     "src/components/command/OperatorDataUnavailable.tsx",
   ];
 

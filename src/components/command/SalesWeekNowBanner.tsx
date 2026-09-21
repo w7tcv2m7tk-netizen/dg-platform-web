@@ -15,10 +15,10 @@ export function SalesWeekNowBanner({
 
   if (compact) {
     return (
-      <section className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-5 py-4">
+      <section className="border-l border-emerald-400/40 pl-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-emerald-300/90">
               Today&apos;s operating plan
             </p>
             <p className="mt-1 text-sm font-semibold text-white">
@@ -26,25 +26,25 @@ export function SalesWeekNowBanner({
                 ? `Day ${prompt.lockDay} / ${prompt.lockDays} · ${prompt.theme}`
                 : `${prompt.dayLabel} · ${prompt.theme}`}
             </p>
-            <p className="mt-0.5 text-sm text-slate-300">{prompt.doNow}</p>
+            <p className="mt-1 text-sm leading-6 text-slate-300">{prompt.doNow}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
               href="/command/docs/founding-10-outreach"
-              className="rounded-full border border-emerald-700/80 px-3 py-1 text-xs text-emerald-100 hover:border-emerald-500"
+              className="inline-flex min-h-11 items-center px-1 text-xs text-emerald-100 hover:text-white"
             >
               Distribute
             </Link>
             <Link
               href="/command/sales-week"
-              className="rounded-full border border-emerald-700/80 px-3 py-1 text-xs text-emerald-100 hover:border-emerald-500"
+              className="inline-flex min-h-11 items-center px-1 text-xs text-emerald-100 hover:text-white"
             >
               Full week
             </Link>
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
-              className="text-xs text-slate-500 hover:text-slate-300"
+              className="inline-flex min-h-11 items-center text-xs text-slate-500 hover:text-slate-300"
             >
               {expanded ? "Less" : "Details"}
             </button>
