@@ -18,7 +18,7 @@ assert.match(
 assert.match(
   pricing,
   /key:\s*"business"[\s\S]*users:\s*"Unlimited Users"/,
-  "Scale must retain unlimited users in canonical pricing",
+  "Scale must retain the 20-user cap in canonical pricing",
 );
 assert.match(
   pricing,
