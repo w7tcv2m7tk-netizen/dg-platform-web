@@ -74,6 +74,14 @@ export async function GET() {
   const writeBlock = await tenantWriteEntitlementBlock(session);
   if (writeBlock) return writeEntitlementResponse(writeBlock);
 
+  const industryAccess = await checkIndustryIntegrationAccess(session.organisationId, ["property", "real-estate"]);
+  if (!industryAccess.ok) {
+    return NextResponse.json(
+      { error: { code: industryAccess.code, message: industryAccess.message } },
+      { status: industryAccess.status },
+    );
+  }
+
   const state = randomBytes(24).toString("hex");
   const nonce = randomBytes(24).toString("hex");
   const authUrl = buildDomainAuthorizeUrl({ state, nonce });
