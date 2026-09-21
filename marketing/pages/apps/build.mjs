@@ -6,7 +6,7 @@ import { APPS, LAYERS, appBySlug, appsInLayer, hrefFor } from "./catalog.mjs";
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const OUT = join(ROOT, "html");
 
-const TRIAL = "https://app.digitalgate.com.au/onboarding";
+const TRIAL = "https://app.digitalgate.com.au/signup/account";
 const CONTACT = "https://digitalgate.com.au/contact/#platform-consultation";
 const PRICING = "https://digitalgate.com.au/pricing/";
 const HUB = "/apps/";
