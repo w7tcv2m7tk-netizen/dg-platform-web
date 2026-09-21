@@ -319,7 +319,7 @@ function appPage(app) {
     : "";
 
   const templatesBody = Array.isArray(app.templates) && app.templates.length
-    ? `<p class="section-body">Activate the sub-industry App that matches your business. One Industry App subscription ($99/mo) includes one primary sub-industry. Extra sub-industry Apps are +$29/mo.</p>
+    ? `<p class="section-body">Activate the sub-industry App that matches your business. One Industry App subscription ($149/mo) includes one primary sub-industry. Extra sub-industry Apps are +$29/mo.</p>
       <div class="templates-list">${app.templates.map((t) =>
         `<a href="${esc(t.href || "#")}"><span class="t-name">${esc(t.name)}</span><span class="t-status">${esc(t.status || "")}</span></a>`
       ).join("")}</div>`
