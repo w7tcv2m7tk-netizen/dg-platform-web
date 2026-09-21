@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { INDUSTRY_TAXONOMY, type Gen2OnboardingProgress } from "@dg/platform-core";
+import { getIndustry, INDUSTRY_TAXONOMY, type Gen2OnboardingProgress } from "@dg/platform-core";
 
 export function VipIndustryProfileSetup({
   initial,
@@ -21,9 +21,13 @@ export function VipIndustryProfileSetup({
 
   const relevantGroups = useMemo(() => {
     const enabled = new Set(initial.industryApps ?? []);
-    const matches = INDUSTRY_TAXONOMY.filter(
-      (group) => enabled.has(group.id) || group.appIds.some((appId) => enabled.has(appId)),
-    );
+    const matches = INDUSTRY_TAXONOMY.filter((group) => {
+      const canonicalIndustryId = getIndustry(group.id)?.id ?? group.id;
+      const parentSelected = Array.from(enabled).some(
+        (id) => (getIndustry(id)?.id ?? id) === canonicalIndustryId,
+      );
+      return parentSelected || group.appIds.some((appId) => enabled.has(appId));
+    });
     if (matches.length) return matches;
     if (recommendedTemplate) {
       const group = INDUSTRY_TAXONOMY.find((item) => item.subIndustries.some((sub) => sub.id === recommendedTemplate));
