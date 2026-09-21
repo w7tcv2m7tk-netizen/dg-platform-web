@@ -326,18 +326,31 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       },
     }),
     prisma.organisation.count({ where: { billingCustomerId: { not: null } } }),
-    prisma.commerceSubscription.count({ where: { status: "active" } }),
-    prisma.commerceSubscription.aggregate({
-      where: { status: "active", interval: "month" },
-      _sum: { amountCents: true },
-    }),
-    prisma.commerceInvoice.aggregate({
-      where: {
-        status: "paid",
-        paidAt: { gte: monthStart },
-      },
-      _sum: { totalCents: true },
-    }),
+    operatorOrganisationId
+      ? prisma.commerceSubscription.count({
+          where: { organisationId: operatorOrganisationId, status: "active" },
+        })
+      : Promise.resolve(0),
+    operatorOrganisationId
+      ? prisma.commerceSubscription.aggregate({
+          where: {
+            organisationId: operatorOrganisationId,
+            status: "active",
+            interval: "month",
+          },
+          _sum: { amountCents: true },
+        })
+      : Promise.resolve({ _sum: { amountCents: null } }),
+    operatorOrganisationId
+      ? prisma.commerceInvoice.aggregate({
+          where: {
+            organisationId: operatorOrganisationId,
+            status: "paid",
+            paidAt: { gte: monthStart },
+          },
+          _sum: { totalCents: true },
+        })
+      : Promise.resolve({ _sum: { totalCents: null } }),
     prisma.platformReferral.count(),
     prisma.platformReferral.groupBy({
       by: ["status"],
