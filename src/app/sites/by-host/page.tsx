@@ -134,8 +134,19 @@ function resolvePage(
     pages.find((p) => p.slug === pageSlug) ||
     null;
   if (exact) return exact;
+
+  // Nested Studio slugs (for example apps/core and apps/core/crm) are
+  // authoritative paths. Never fall back to a same-named leaf page for them:
+  // that can render the wrong page and makes nested publication ambiguous.
+  if (pageSlug.includes("/")) {
+    const legacyAccommodation = pageSlug.replace(/^accommodation\//, "");
+    if (legacyAccommodation !== pageSlug) {
+      return pages.find((p) => p.slug === legacyAccommodation) || null;
+    }
+    return null;
+  }
+
   return (
-    pages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, "")) ||
     pages.find((p) => {
       const leaf = pageSlug.split("/").filter(Boolean).pop();
       return Boolean(leaf && p.slug === leaf);
