@@ -30,7 +30,7 @@ export default async function InsightsPage() {
         </p>
         <h1 className="mt-2 text-2xl font-bold text-white">Insights</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          What is DigitalGate noticing? Interpreted signals from your connected business — not raw
+          What is Aida noticing? Interpreted signals from your connected business — not raw
           metrics. For the underlying numbers, use Analytics.
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
@@ -38,7 +38,7 @@ export default async function InsightsPage() {
             Analytics →
           </Link>
           <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
-            AI Advisor →
+            Ask Aida →
           </Link>
         </div>
       </header>
