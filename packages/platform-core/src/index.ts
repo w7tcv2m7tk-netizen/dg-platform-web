@@ -115,6 +115,7 @@ export * from "./billing/subscription-types";
 export * from "./billing/subscription-store";
 export * from "./billing/billing-service";
 export * from "./billing/entitlement-resolver";
+export * from "./billing/industry-integration-entitlement";
 export * from "./billing/commercial-offer";
 export * from "./overview/growth-opportunities";
 export * from "./twin/build-live-twin";
