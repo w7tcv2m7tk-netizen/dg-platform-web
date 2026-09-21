@@ -82,9 +82,9 @@ A customer has **one primary Template included** with each Industry App. Additio
 | Stack | List | Notes |
 |-------|------|-------|
 | Property + Real Estate | **$99/mo** | Template included |
-| Property + Real Estate + PM | **$128/mo** | $99 + $29 |
-| Services + Cleaning + Maintenance | **$128/mo** | Same expansion math |
-| Starter + Property + RE + PM | **$227/mo** | Platform + Industry + extra Template |
+| Property + Real Estate + PM | **$178/mo** | $99 + $29 |
+| Services + Cleaning + Maintenance | **$178/mo** | Same expansion math |
+| Starter + Property + RE + PM | **$277/mo** | Platform + Industry + extra Template |
 
 Do not publish “1 Industry App included” in the **platform** tier, “Unlimited Industry Apps,” “all Property apps for $99,” or Real Estate / Accommodation as separate Industry SKUs.
 
