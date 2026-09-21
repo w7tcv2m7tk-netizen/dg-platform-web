@@ -11,6 +11,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { checkIndustryIntegrationAccess } from "@/lib/industry-integration-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,8 @@ bootConnectorEngine();
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const industryAccess = await checkIndustryIntegrationAccess(session.organisationId, ["property", "real-estate"]);
+  const specialistEnabled = industryAccess.ok;
 
   const configured = reaCredentialsConfigured();
   const oauthEndpointsReady = reaOAuthEndpointsConfigured();
@@ -28,17 +31,20 @@ export async function GET(req: Request) {
   const connected = Boolean(orgTokens?.reaAgencyId?.trim());
 
   let platformProbe: Awaited<ReturnType<typeof probeReaConnection>> | null = null;
-  if (configured) {
+  if (configured && specialistEnabled) {
     platformProbe = await probeReaConnection();
   }
 
   let orgProbe: Awaited<ReturnType<typeof probeOrgReaConnection>> | null = null;
-  if (connected) {
+  if (connected && specialistEnabled) {
     orgProbe = await probeOrgReaConnection(session.organisationId);
   }
 
   return NextResponse.json({
     data: {
+      entitlement: industryAccess.ok
+        ? { allowed: true, tier: industryAccess.tier }
+        : { allowed: false, code: industryAccess.code, message: industryAccess.message },
       platform: {
         configured,
         oauthEndpointsReady,
