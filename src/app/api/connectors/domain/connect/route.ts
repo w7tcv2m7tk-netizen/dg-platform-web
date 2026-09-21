@@ -14,6 +14,7 @@ import {
   writeEntitlementResponse,
 } from "@/lib/write-entitlement";
 import { fetchPortalMe } from "@/lib/dg-api";
+import { checkIndustryIntegrationAccess } from "@/lib/industry-integration-entitlement";
 
 export const dynamic = "force-dynamic";
 
