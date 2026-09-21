@@ -26,7 +26,6 @@ export function PublicFoundingInviteAccept({
     alreadyAccepted || alreadyInProgramme ? "done" : "idle",
   );
   const [message, setMessage] = useState("");
-  const consult = "https://digitalgate.com.au/strategy-session";
 
   async function accept() {
     setStatus("saving");
@@ -43,8 +42,7 @@ export function PublicFoundingInviteAccept({
       return;
     }
     setStatus("done");
-    const next = typeof json.data?.consultationUrl === "string" ? json.data.consultationUrl : consult;
-    window.location.assign(next);
+    window.location.assign(`/founding/agreement?invite=${encodeURIComponent(token)}`);
   }
 
   return (
@@ -63,15 +61,12 @@ export function PublicFoundingInviteAccept({
         </p>
       ) : alreadyAccepted || status === "done" ? (
         <p className="mt-4 text-slate-300">
-          Invitation accepted. Next is a short Platform Consultation — not automatic
-          acceptance into the 10.
+          Invitation accepted. Continue to confirm the Founding 10 terms and start your 14-day trial.
         </p>
       ) : (
         <>
           <p className="mt-4 text-slate-300">
-            Hi {firstName}. After our conversation, {businessName} looks like a strong fit
-            for the first cohort. Accepting this invitation starts consultation and
-            onboarding — it does not yet count as one of the 10 places.
+            Hi {firstName}. {businessName} has been invited to join DigitalGate&apos;s Founding 10. Accept your invitation to continue straight into setup and your 14-day free trial.
           </p>
           <h2 className="mt-8 text-lg font-semibold text-white">Founding 10 benefits</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-300">
@@ -93,10 +88,10 @@ export function PublicFoundingInviteAccept({
           </button>
         ) : (
           <a
-            href={consult}
+            href={`/founding/agreement?invite=${encodeURIComponent(token)}`} 
             className="rounded-full bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-500"
           >
-            Book Platform Consultation →
+            Continue setup →
           </a>
         )}
         <a
