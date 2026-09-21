@@ -26,7 +26,7 @@ export const LAYERS = [
     verb: "specialise",
     tagline: "vertical workflows",
     intro:
-      "Industry Apps are specialist operating capability (+$99/mo). One primary sub-industry App is included; extra sub-industry Apps +$29/mo each. Property, Services and Hospitality & Accommodation are Available. Finance, Creator & Media and later verticals are Coming Soon. New business types become sub-industry Apps — never a second $99 parent charge.",
+      "Industry Apps are specialist operating capability (+$149/mo). One primary sub-industry App is included; extra sub-industry Apps +$29/mo each. Property, Services and Hospitality & Accommodation are Available. Finance, Creator & Media and later verticals are Coming Soon. New business types become sub-industry Apps — never a second $149 parent charge.",
   },
   {
     id: "growth",
@@ -394,7 +394,7 @@ export const APPS = [
       "Property Industry App — one connected property operating platform. Activate a primary sub-industry for how you sell, manage or develop.",
     headline: "One Property Industry App. Specialise with sub-industry Apps.",
     subhead:
-      "You buy Property once ($99/mo). Real Estate, Property Management, Commercial, Development and Buyers Agency are sub-industry Apps — not a second $99 charge.",
+      "You buy Property once ($99/mo). Real Estate, Property Management, Commercial, Development and Buyers Agency are sub-industry Apps — not a second $149 charge.",
     what: "Property transactions, ownership and development workflows on DigitalGate Core. Short-stay hospitality lives under Hospitality & Accommodation — not here.",
     connects: "CRM, Opportunities, Documents, Commerce, Growth Apps and the Digital Twin™ share the same property context.",
     who: "Agencies, PMs, commercial operators and developers who want one property OS — starting with Real Estate as the founding Template.",
@@ -422,7 +422,7 @@ export const APPS = [
       "Hospitality & Accommodation Industry App — stays, venues and hospitality groups. Accommodation belongs here, not under Property.",
     headline: "Stays and hospitality on the same operating system.",
     subhead:
-      "One Industry App ($99/mo). Short-Stay Accommodation, Hotels, F&B and Venues are sub-industry Apps — not a second $99 charge.",
+      "One Industry App ($149/mo). Short-Stay Accommodation, Hotels, F&B and Venues are sub-industry Apps — not a second $149 charge.",
     what: "Bookings, guests, availability, housekeeping and hospitality operations on Core Contacts and Calendar.",
     connects: "Guests are Contacts. Stays create work. Reviews, Website and Growth Apps see the same business.",
     who: "Short-stay operators (including Currumbin Valley Hideaway) — Short-Stay Accommodation Template in early access.",
