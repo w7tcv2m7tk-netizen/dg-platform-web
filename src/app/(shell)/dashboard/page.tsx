@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   buildBusinessOverview,
   buildLiveTwinWithScores,
@@ -23,6 +24,7 @@ import {
 } from "@/components/overview/DigitalPerformanceStrip";
 import { Gen2OnboardingChecklistBanner } from "@/components/onboarding/Gen2OnboardingChecklistBanner";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
+import { getPlatformOperatorContext } from "@/lib/platform-operator";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
 
 const AUDIT_FRESH_MS = 30 * 24 * 60 * 60 * 1000;
@@ -156,6 +158,11 @@ function buildDigitalPerformanceSignals(input: {
 }
 
 export default async function DashboardPage() {
+  // /dashboard is the customer home. Platform operators default to the
+  // DigitalGate-wide Command Centre, including Clerk post-sign-in redirects.
+  const operator = await getPlatformOperatorContext();
+  if (operator) redirect("/command");
+
   const { user, name, portal, session: platformSession } = await getPlatformPageContext();
   const enabledAppIds = await getOrgEnabledAppIdsCached();
 
