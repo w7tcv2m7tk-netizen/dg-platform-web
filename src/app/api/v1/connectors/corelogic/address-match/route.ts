@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       { status: 403 },
     );
   }
-  const organisationId = organisationId;
+  const organisationId = auth.session.organisationId;
 
   const { prisma } = await import("@dg/database");
   const subscription = await prisma.platformSubscription.findUnique({
