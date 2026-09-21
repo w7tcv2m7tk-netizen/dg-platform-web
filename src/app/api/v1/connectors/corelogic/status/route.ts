@@ -6,6 +6,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { checkIndustryIntegrationAccess } from "@/lib/industry-integration-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -15,18 +16,23 @@ bootConnectorEngine();
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const industryAccess = await checkIndustryIntegrationAccess(session.organisationId, ["property", "real-estate"]);
+  const specialistEnabled = industryAccess.ok;
 
   const configured = coreLogicCredentialsConfigured();
   const clientIdSet = Boolean(process.env.CORELOGIC_CLIENT_ID?.trim());
   const secretSet = Boolean(process.env.CORELOGIC_CLIENT_SECRET?.trim());
 
   let probe: Awaited<ReturnType<typeof probeCoreLogicConnection>> | null = null;
-  if (configured) {
+  if (configured && specialistEnabled) {
     probe = await probeCoreLogicConnection();
   }
 
   return NextResponse.json({
     data: {
+      entitlement: industryAccess.ok
+        ? { allowed: true, tier: industryAccess.tier }
+        : { allowed: false, code: industryAccess.code, message: industryAccess.message },
       connectorId: "corelogic",
       name: "Cotality (CoreLogic / RP Data)",
       platform: {
