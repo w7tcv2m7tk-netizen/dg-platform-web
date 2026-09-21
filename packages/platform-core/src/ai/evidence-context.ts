@@ -4,7 +4,7 @@ export type AidaEvidenceFreshness = "live" | "snapshot" | "configured" | "unavai
 
 export type AidaEvidenceItem = {
   id: string;
-  domain: "business" | "crm" | "commercial" | "analytics" | "advertising" | "seo" | "ai_visibility" | "reputation" | "connectors" | "websites" | "apps";
+  domain: "business" | "crm" | "commercial" | "analytics" | "advertising" | "seo" | "ai_visibility" | "reputation" | "connectors" | "websites" | "apps" | "automation";
   label: string;
   value: string | number | null;
   source: string;
@@ -71,6 +71,24 @@ export function buildAidaEvidenceContext(context: BusinessContext): AidaEvidence
       configured("connectors.connected","connectors","Connected systems",t.connectedSystems.length ? t.connectedSystems.join(", ") : null,"Connector Engine"),
       configured("websites.connected","websites","Websites",t.websites.length ? t.websites.join(", ") : null,"Digital Twin / Websites"),
       configured("apps.enabled","apps","Enabled apps",context.enabledAppIds.length ? context.enabledAppIds.join(", ") : null,"App Registry"),
+      item({
+        id: "automation.recent_runs",
+        domain: "automation",
+        label: "Observed automation executions (recent activity window)",
+        value: t.automationRecentRunCount ?? null,
+        source: "Organisation Activity / Automation Engine",
+        observedAt: t.automationLastRunAt ?? at,
+        freshness: t.automationRecentRunCount == null ? "unavailable" : "live",
+      }),
+      item({
+        id: "automation.last_status",
+        domain: "automation",
+        label: "Latest observed automation execution status",
+        value: t.automationLastRunStatus ?? null,
+        source: "Organisation Activity / Automation Engine",
+        observedAt: t.automationLastRunAt ?? at,
+        freshness: t.automationLastRunStatus == null ? "unavailable" : "live",
+      }),
     ],
   };
 }
