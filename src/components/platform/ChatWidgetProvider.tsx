@@ -21,7 +21,7 @@ const ChatWidgetContext = createContext<ChatWidgetContextValue | null>(null);
 function shouldShowFloatingChat(pathname: string | null, forced?: boolean) {
   if (forced === false) return false;
   if (!pathname) return true;
-  return !(pathname.startsWith("/command") || pathname.startsWith("/support"));
+  return !pathname.startsWith("/support");
 }
 
 export function useChatWidget() {

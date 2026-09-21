@@ -183,11 +183,9 @@ export function SupportChatPanel({
             <p>{error}</p>
             <div className="mt-3 flex flex-wrap justify-center gap-3">
               <Link
-                href="https://digitalgate.com.au/onboarding/"
+                href="/onboarding"
                 className="inline-flex min-h-11 items-center rounded-full bg-[var(--org-primary,#3b82f6)] px-4 py-2 font-semibold text-white hover:brightness-110"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+                              >
                 Complete onboarding →
               </Link>
               <a
