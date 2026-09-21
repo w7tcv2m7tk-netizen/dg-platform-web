@@ -6,6 +6,7 @@ const oauthRoutes = [
   "src/app/api/connectors/google/connect/route.ts",
   "src/app/api/connectors/linkedin/connect/route.ts",
   "src/app/api/connectors/meta/connect/route.ts",
+  "src/app/api/connectors/microsoft-ads/connect/route.ts",
   "src/app/api/connectors/tiktok-ads/connect/route.ts",
 ];
 
