@@ -1,12 +1,11 @@
 import { matchCoreLogicAddress } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
-
 import {
   authenticatePlatformOrConnector,
   isNextResponse,
 } from "@/lib/platform-api";
+import { checkIndustryIntegrationAccess } from "@/lib/industry-integration-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +19,19 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request) {
   const auth = await authenticatePlatformOrConnector(req);
   if (isNextResponse(auth)) return auth;
+  if (auth.mode !== "session") {
+    return NextResponse.json(
+      { error: { code: "industry_integration_context_required", message: "Specialist Industry integrations require an organisation-scoped authenticated session or API key." } },
+      { status: 403 },
+    );
+  }
+  const industryAccess = await checkIndustryIntegrationAccess(auth.session.organisationId, ["property", "real-estate"]);
+  if (!industryAccess.ok) {
+    return NextResponse.json(
+      { error: { code: industryAccess.code, message: industryAccess.message } },
+      { status: industryAccess.status },
+    );
+  }
 
   const body = await req.json().catch(() => null);
   const address = (
