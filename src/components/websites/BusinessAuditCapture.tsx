@@ -154,7 +154,8 @@ const FUNNEL_CSS = `
   position: relative;
   width: 100%;
   min-height: 100dvh;
-  overflow: clip;
+  overflow-x: clip;
+  overflow-y: auto;
   isolation: isolate;
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -716,8 +717,11 @@ const FUNNEL_CSS = `
 @media (max-width: 860px) {
   .dg-ba-funnel__shell {
     grid-template-columns: 1fr;
-    align-content: center;
+    align-content: start;
+    min-height: auto;
     gap: 1.5rem;
+    padding-top: clamp(1.75rem, 8vw, 3rem);
+    padding-bottom: 2.5rem;
   }
 }
 `;
