@@ -15,7 +15,7 @@ CORE → INFRASTRUCTURE → INDUSTRY → TEMPLATE → GROWTH → INTELLIGENCE
 
 | Layer | Role |
 |-------|------|
-| **Industry App** | Commercial product the customer buys (~$99/mo) — one of twelve verticals |
+| **Industry App** | Commercial product the customer buys (~$149/mo) — one of twelve verticals |
 | **Template** | Specialised business model within that Industry (e.g. Real Estate, Short-Stay) |
 
 **Internal name:** Industry → Template  
@@ -31,7 +31,7 @@ CORE → INFRASTRUCTURE → INDUSTRY → TEMPLATE → GROWTH → INTELLIGENCE
 
 Pricing lock (code: `INDUSTRY_COMMERCIAL_LOCK`):
 
-- Industry App **$99/mo**
+- Industry App **$149/mo**
 - One primary Template **included**
 - Additional Templates **+$29/mo** each
 
@@ -98,7 +98,7 @@ Commercial packaging (canonical):
 
 | Item | Price |
 |------|-------|
-| **Industry App** | **$99/mo** — major vertical capability and infrastructure |
+| **Industry App** | **$149/mo** — major vertical capability and infrastructure |
 | **Primary Industry Template** | **Included** (customer chooses one primary business model) |
 | **Additional Industry Templates** | **+$29/mo each** |
 
@@ -107,9 +107,9 @@ Terminology:
 - **Industry App** = the commercial boundary (Property, Services, Finance, …)
 - **Industry Template** = specialised workflow configuration within that App (Real Estate, Cleaning, Accounting, Legal, …)
 
-Example — Property: $99 includes Real Estate; add Property Management → **$128/mo**.  
-Example — Services: $99 includes Cleaning; add Maintenance → **$128/mo**.  
-Example — Starter + Property + PM Template: **$227/mo** at published pricing (Founding customers pay the same stack price; benefits are access/influence, not a % discount).
+Example — Property: $149 includes Real Estate; add Property Management → **$178/mo**.  
+Example — Services: $149 includes Cleaning; add Maintenance → **$178/mo**.  
+Example — Starter + Property + PM Template: **$277/mo** at published pricing (Founding customers pay the same stack price; benefits are access/influence, not a % discount).
 
 Code lock: `INDUSTRY_COMMERCIAL_LOCK` · `industryCheckoutLines()` in `packages/platform-core/src/industry/platform.ts`.
 
@@ -140,7 +140,7 @@ Code lock: `INDUSTRY_COMMERCIAL_LOCK` · `industryCheckoutLines()` in `packages/
 | `resolveIndustryEntitlements` / `buildTemplateActivationPatch` | Org Template activation |
 | `buildIndustryNavApps` | Sidebar: one Industry per entitled platform |
 | `INDUSTRY_PUBLIC_GROUPS` | Available / Early Access / Coming / Reserved |
-| `INDUSTRY_COMMERCIAL_LOCK` | Price + terminology + founding example lock ($99 / +$29) |
-| `industryCheckoutLines()` | Billing: $99 Industry + +$29 extra Templates |
+| `INDUSTRY_COMMERCIAL_LOCK` | Price + terminology + founding example lock ($149 / +$29) |
+| `industryCheckoutLines()` | Billing: $149 Industry + +$29 extra Templates |
 | `INDUSTRY_CLASSIFICATION_RULES` | Classification helpers |
 | API `GET/PATCH /api/v1/org/industry/templates` | Read entitlements · activate / deactivate Templates |
