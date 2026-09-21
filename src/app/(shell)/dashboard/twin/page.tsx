@@ -34,7 +34,7 @@ export default async function DigitalTwinPage() {
         <h1 className="mt-2 text-2xl font-bold text-white">Digital Twin</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
           The live digital state of your business — what is happening right now. Business Profile is
-          what you edit; the Twin is what DigitalGate, Health, Benchmarks, and Advisor read.
+          what you edit; the Twin is what DigitalGate, Health, Benchmarks and Aida read.
         </p>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
           <Link href="/dashboard/business" className="text-sky-400 hover:underline">
@@ -44,7 +44,7 @@ export default async function DigitalTwinPage() {
             Business Brain →
           </Link>
           <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
-            AI Advisor →
+            Ask Aida →
           </Link>
         </div>
       </header>
@@ -54,7 +54,7 @@ export default async function DigitalTwinPage() {
             <p className="font-medium text-amber-100">Your Digital Twin can be improved</p>
             <p className="mt-1 text-sm text-slate-400">
               DigitalGate has identified missing or incomplete business context. Add the missing data
-              or ask Advisor to guide you to the most useful next fix.
+              or ask Aida to guide you to the most useful next fix.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               <ResolutionAction
