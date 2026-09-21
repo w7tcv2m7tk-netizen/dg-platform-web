@@ -220,11 +220,8 @@ function flowHtml(flow) {
     .join("")}</div>`;
 }
 
-function ctas(app) {
-  const primary =
-    app.depth === "soon" || app.badge === "Early Access" || app.badge === "Coming / Founding"
-      ? { href: TRIAL, label: "Start free 14-day trial →" }
-      : { href: TRIAL, label: "Start free 14-day trial →" };
+function ctas() {
+  const primary = { href: TRIAL, label: "Start free 14-day trial →" };
   return `<div class="ctas">
       <a class="btn btn-primary" href="${primary.href}">${esc(primary.label)}</a>
       <a class="btn btn-secondary" href="${CONTACT}">Book a Platform Consultation</a>
