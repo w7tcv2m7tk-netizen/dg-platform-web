@@ -49,7 +49,7 @@ export default async function ImplementationPage() {
     ["Platform plan", completed.has("plan") && Boolean(progress.platformTier)],
     ["Apps", completed.has("apps")],
     ["Subscription", subscriptionActive],
-    ["Connections", completed.has("connect")],
+    ["Connection setup reviewed", completed.has("connect")],
     ["Implementation", onboardingComplete],
   ] as const;
 
@@ -215,7 +215,7 @@ export default async function ImplementationPage() {
                   Open Business Overview
                 </Link>
                 <Link
-                  href="/dashboard/settings/connections"
+                  href="/dashboard/settings/connected-services"
                   className="rounded-full border border-slate-700 px-5 py-2.5 text-sm font-medium text-slate-200 hover:border-slate-500"
                 >
                   Connect services

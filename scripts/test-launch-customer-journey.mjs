@@ -12,6 +12,7 @@ const checkoutPending = read("src/components/onboarding/OnboardingCheckoutPendin
 const publicRoutes = read("src/lib/public-routes.ts");
 const platformShellLoader = read("src/components/PlatformShellLoader.tsx");
 const businessSetup = read("src/app/(shell)/dashboard/business-setup/page.tsx");
+const implementation = read("src/app/(shell)/implementation/page.tsx");
 
 test("public signup stays outside the authenticated platform shell", () => {
   assert.match(signupLayout, /DigitalGateLogo/);
@@ -105,4 +106,11 @@ test("Start Your Business provides accessible recovery and continuation paths", 
   assert.match(businessSetup, /href="\/support"/);
   assert.match(businessSetup, /href="\/dashboard\/business"/);
   assert.match(businessSetup, /min-h-11/);
+});
+
+test("implementation handoff uses the canonical integration hub without overstating connection completion", () => {
+  assert.match(implementation, /href="\/dashboard\/settings\/connected-services"/);
+  assert.match(implementation, /Connection setup reviewed/);
+  assert.doesNotMatch(implementation, /href="\/dashboard\/settings\/connections"/);
+  assert.doesNotMatch(implementation, /\["Connections",\s*completed\.has\("connect"\)\]/);
 });
