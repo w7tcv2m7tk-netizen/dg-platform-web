@@ -6,7 +6,7 @@ import { APPS, LAYERS, appBySlug, appsInLayer, hrefFor } from "./catalog.mjs";
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const OUT = join(ROOT, "html");
 
-const FOUNDING = "https://digitalgate.com.au/founding-customers/";
+const TRIAL = "https://app.digitalgate.com.au/onboarding";
 const CONTACT = "https://digitalgate.com.au/contact/#platform-consultation";
 const PRICING = "https://digitalgate.com.au/pricing/";
 const HUB = "/apps/";
@@ -223,8 +223,8 @@ function flowHtml(flow) {
 function ctas(app) {
   const primary =
     app.depth === "soon" || app.badge === "Early Access" || app.badge === "Coming / Founding"
-      ? { href: FOUNDING, label: "Register interest →" }
-      : { href: FOUNDING, label: "Become a Founding Customer →" };
+      ? { href: TRIAL, label: "Start free 14-day trial →" }
+      : { href: TRIAL, label: "Start free 14-day trial →" };
   return `<div class="ctas">
       <a class="btn btn-primary" href="${primary.href}">${esc(primary.label)}</a>
       <a class="btn btn-secondary" href="${CONTACT}">Book a Platform Consultation</a>
@@ -273,7 +273,7 @@ function pricingSection(app, isSoon) {
     (app.included
       ? "Included with the platform subscription on Starter, Growth and Scale — see Pricing."
       : isSoon
-        ? "Not available for purchase yet. Register interest via the Founding Customer Programme."
+        ? "Not available for purchase yet. Start the standard free trial or contact DigitalGate if this capability is important to your rollout."
         : "Licensed separately unless your agreement says otherwise. See Apps & pricing.");
   return `<section class="alt">
     <div class="wrap">
@@ -319,7 +319,7 @@ function appPage(app) {
     : "";
 
   const templatesBody = Array.isArray(app.templates) && app.templates.length
-    ? `<p class="section-body">Activate the sub-industry App that matches your business. One Industry App subscription ($99/mo) includes one primary sub-industry. Extra sub-industry Apps are +$29/mo.</p>
+    ? `<p class="section-body">Activate the sub-industry App that matches your business. One Industry App subscription ($149/mo) includes one primary sub-industry. Extra sub-industry Apps are +$29/mo.</p>
       <div class="templates-list">${app.templates.map((t) =>
         `<a href="${esc(t.href || "#")}"><span class="t-name">${esc(t.name)}</span><span class="t-status">${esc(t.status || "")}</span></a>`
       ).join("")}</div>`
@@ -443,8 +443,8 @@ function appPage(app) {
       <h2>${isSoon ? "Register interest" : "Ready to run this on DigitalGate?"}</h2>
       <p>${
         isSoon
-          ? "We are not building a catalogue of vapourware pages. If this App matters to your business, tell us — Founding 10 is the live commercial path."
-          : "Founding 10 is the live offer. The platform is the operating foundation. Apps extend it."
+          ? "We are not building a catalogue of vapourware pages. If this App matters to your business, start with DigitalGate and tell us what you need."
+          : "The platform is the operating foundation. Apps extend it as your business needs them."
       }</p>
       ${ctas(app)}
     </div>
@@ -496,7 +496,7 @@ function hubPage() {
       <p class="lead">DigitalGate is the platform. Apps extend it. No App is included in the platform subscription unless we say so on Pricing. Core is the operating foundation. Infrastructure, Industry and Growth specialise, power and grow the same business.</p>
       <p class="status">Fully developed pages exist for Apps we can demonstrate and sell now. Everything else uses a status template — architecture without theatre.</p>
       <div class="ctas">
-        <a class="btn btn-primary" href="${FOUNDING}">Become a Founding Customer →</a>
+        <a class="btn btn-primary" href="${TRIAL}">Start free 14-day trial →</a>
         <a class="btn btn-secondary" href="${PRICING}#growth">Growth Suite &amp; pricing</a>
       </div>
       <div class="model">
@@ -519,9 +519,9 @@ function hubPage() {
   <section class="alt cta-band">
     <div class="wrap">
       <h2>Start with the platform. Add Apps as you grow.</h2>
-      <p>Starter $99 · Growth $249 · Scale $499. Growth Suite $399 and Industry Apps $99 are add-ons — they do not include Core. One primary sub-industry is included with each Industry App.</p>
+      <p>Starter $99 · Growth $249 · Scale $499. Growth Suite $399 and Industry Apps $149 are add-ons — they do not include Core. One primary sub-industry is included with each Industry App.</p>
       <div class="ctas">
-        <a class="btn btn-primary" href="${FOUNDING}">Founding Customer Programme →</a>
+        <a class="btn btn-primary" href="${TRIAL}">Start free 14-day trial →</a>
         <a class="btn btn-secondary" href="${CONTACT}">Platform Consultation</a>
       </div>
     </div>
