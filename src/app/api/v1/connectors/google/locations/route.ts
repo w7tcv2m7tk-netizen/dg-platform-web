@@ -6,7 +6,7 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +45,12 @@ export async function GET(req: Request) {
 export async function PUT(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
 
   const body = await req.json().catch(() => ({})) as { locationNames?: unknown };
   if (!Array.isArray(body.locationNames) || body.locationNames.some((value) => typeof value !== "string")) {
