@@ -20,6 +20,12 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["undici", "imapflow"],
   async redirects() {
     return [
+      {
+        source: "/onboarding",
+        has: [{ type: "host", value: "digitalgate.com.au" }],
+        destination: "https://app.digitalgate.com.au/signup/account",
+        permanent: true,
+      },
       { source: "/partner", destination: "/acquisition", permanent: false },
       { source: "/partner/dashboard", destination: "/acquisition", permanent: false },
       { source: "/partner/delivery", destination: "/delivery", permanent: false },
