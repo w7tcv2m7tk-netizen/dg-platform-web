@@ -38,7 +38,7 @@ export default async function BusinessHealthPage() {
             Benchmarks →
           </Link>
           <Link href="/dashboard/advisor" className="text-sky-400 hover:underline">
-            AI Advisor →
+            Ask Aida →
           </Link>
           <Link href="/dashboard" className="text-sky-400 hover:underline">
             Overview →
