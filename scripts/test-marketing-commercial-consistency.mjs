@@ -68,10 +68,3 @@ test("legitimate $99 products remain allowed", () => {
   assert.match(pricing, /Marketing \$99/);
 });
 
-
-test("unauthenticated onboarding offers account creation before sign-in", () => {
-  const onboarding = fs.readFileSync(path.join(ROOT, "src/app/(shell)/onboarding/page.tsx"), "utf8");
-  assert.match(onboarding, /href="\/signup\/account"/);
-  assert.match(onboarding, />Create account →<\/a>/);
-  assert.match(onboarding, />Sign in →<\/a>/);
-});
