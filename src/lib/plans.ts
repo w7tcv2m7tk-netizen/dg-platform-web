@@ -5,6 +5,37 @@ export const INDUSTRY_INTEGRATION_MIN_TIER: PlatformTier = "business";
 export const MULTI_BUSINESS_MIN_TIER: PlatformTier = "business";
 export const SCALE_MAX_BUSINESSES = 5;
 
+export const PLATFORM_TIER_LIMITS: Record<
+  PlatformTier,
+  { maxUsers: number | null; maxActiveBusinesses: number | null }
+> = {
+  starter: { maxUsers: 1, maxActiveBusinesses: 1 },
+  professional: { maxUsers: 5, maxActiveBusinesses: 1 },
+  business: { maxUsers: null, maxActiveBusinesses: SCALE_MAX_BUSINESSES },
+  enterprise: { maxUsers: null, maxActiveBusinesses: null },
+};
+
+export function maxUsersForTier(tier: PlatformTier): number | null {
+  return PLATFORM_TIER_LIMITS[tier].maxUsers;
+}
+
+export function maxActiveBusinessesForTier(tier: PlatformTier): number | null {
+  return PLATFORM_TIER_LIMITS[tier].maxActiveBusinesses;
+}
+
+export function canAddUserAtCount(tier: PlatformTier, currentUsers: number): boolean {
+  const limit = maxUsersForTier(tier);
+  return limit == null || currentUsers < limit;
+}
+
+export function canAddBusinessAtCount(
+  tier: PlatformTier,
+  currentActiveBusinesses: number,
+): boolean {
+  const limit = maxActiveBusinessesForTier(tier);
+  return limit == null || currentActiveBusinesses < limit;
+}
+
 export function canUseIndustryIntegrations(tier: PlatformTier | null | undefined): boolean {
   return tier === "business" || tier === "enterprise";
 }
