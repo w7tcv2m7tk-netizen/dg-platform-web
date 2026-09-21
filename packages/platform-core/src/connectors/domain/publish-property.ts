@@ -6,6 +6,7 @@
 import type { Prisma } from "@dg/database";
 
 import { writeAuditLog } from "../../audit";
+import { checkOrgIndustryIntegrationEntitlement } from "../../billing/industry-integration-entitlement";
 import { domainCredentialsConfigured, ensureValidOrgDomainAccessToken } from "./auth";
 import {
   buildDomainResidentialListingBody,
