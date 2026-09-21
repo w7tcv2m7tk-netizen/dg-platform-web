@@ -48,39 +48,72 @@ async function CommandOverviewPage({ initialOrgId }: { initialOrgId?: string }) 
 
   return (
     <>
-      <header className="dg-page-header relative overflow-hidden">
+      <header className="dg-page-header relative overflow-hidden border-b border-violet-500/15">
         <div
-          className="pointer-events-none absolute inset-0 opacity-80"
+          className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(ellipse 80% 60% at 10% 0%, rgba(124, 58, 237, 0.18), transparent 55%), radial-gradient(ellipse 65% 50% at 90% 0%, rgba(14, 165, 233, 0.12), transparent 58%), linear-gradient(180deg, rgba(2,6,23,0.2), transparent)",
+              "radial-gradient(circle at 82% 22%, rgba(139,92,246,.24), transparent 28%), radial-gradient(circle at 18% 8%, rgba(14,165,233,.16), transparent 34%), linear-gradient(135deg, rgba(2,6,23,.2), rgba(15,23,42,.78))",
           }}
         />
-        <div className="relative">
-          <Link
-            href="/dashboard"
-            className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
-          >
-            ← Business workspace
-          </Link>
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1.5">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500/20 text-[10px] font-bold tracking-wide text-violet-200">
-              AI
-            </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-200">
-              Aida · Operator
-            </span>
+        <div className="relative grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="py-2">
+            <Link
+              href="/dashboard"
+              className="inline-flex min-h-11 items-center text-sm text-sky-300 transition hover:text-white"
+            >
+              ← Business workspace
+            </Link>
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1.5 backdrop-blur">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,.8)]" />
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-100">
+                DigitalGate · Live command
+              </span>
+            </div>
+            <h1 className="mt-5 max-w-3xl text-4xl font-bold tracking-[-0.035em] text-white sm:text-5xl">
+              Command Centre
+            </h1>
+            <p className="mt-3 max-w-2xl text-lg font-medium text-sky-100">
+              One view of the DigitalGate platform.
+            </p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+              {data?.briefing ??
+                "See customers, revenue, delivery, growth and platform health together — with Aida watching the signals and surfacing what matters next."}
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a
+                href="#command-advisor"
+                className="inline-flex min-h-11 items-center rounded-xl bg-violet-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-violet-950/30 transition hover:bg-violet-400"
+              >
+                Ask Aida
+              </a>
+              <a
+                href="#command-attention"
+                className="inline-flex min-h-11 items-center rounded-xl border border-slate-600/80 bg-slate-950/40 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-sky-400/50 hover:text-white"
+              >
+                Review priorities
+              </a>
+              <Link
+                href="/command/platform-health"
+                className="inline-flex min-h-11 items-center rounded-xl border border-slate-700/80 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-slate-500 hover:text-white"
+              >
+                Platform health →
+              </Link>
+            </div>
           </div>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Command Centre
-          </h1>
-          <p className="mt-1 text-sm font-medium text-sky-200/90">
-            DigitalGate Platform Operations
-          </p>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
-            {data?.briefing ??
-              "DigitalGate Platform Operations — run DigitalGate, not customer industry ops."}
-          </p>
+
+          <div className="relative hidden self-end lg:block">
+            <div className="absolute inset-x-6 bottom-4 h-24 rounded-full bg-violet-500/20 blur-3xl" />
+            <img
+              src="/aida/aida-thinking.webp"
+              alt="Aida, DigitalGate intelligence"
+              className="relative ml-auto max-h-[330px] w-full object-contain object-bottom drop-shadow-[0_22px_40px_rgba(0,0,0,.4)]"
+            />
+            <div className="absolute bottom-5 right-0 rounded-xl border border-white/10 bg-slate-950/75 px-3 py-2 shadow-xl backdrop-blur">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-300">Aida</p>
+              <p className="mt-0.5 text-xs text-slate-300">Platform intelligence</p>
+            </div>
+          </div>
         </div>
       </header>
 
