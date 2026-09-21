@@ -5,7 +5,7 @@
 DigitalGate revenue is not subscriptions alone. Architecture must support multiple streams via Feature Registry + App licensing.
 
 **App hierarchy (canonical):** [APP-HIERARCHY.md](./APP-HIERARCHY.md) — Core → Infrastructure → Industry → Specialisation → Template → Growth → Intelligence.  
-**Industry packaging:** [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md) — Industry App **$99/mo** · **1 Industry Template included** · **+$29/mo** each additional Template. Industry App = commercial boundary; Templates = expansion layer.
+**Industry packaging:** [INDUSTRY-PLATFORM.md](./INDUSTRY-PLATFORM.md) — Industry App **$149/mo** · **1 Industry Template included** · **+$29/mo** each additional Template. Industry App = commercial boundary; Templates = expansion layer.
 
 ---
 
@@ -21,7 +21,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 
 **Public pricing lock:** Starter **$99/mo** · Growth **$249/mo** · Scale **$499/mo** + **Apps additional**. Industry and Growth Apps are **not** included in platform tier pricing. Avoid wording such as “1 Industry App included” or “Unlimited Industry Apps.”
 
-**Founding cohorts (GTM):** Only **Founding 10** is commercially active. Arc: Founding 10 → 100 → 1,000 → Standard. Initial-config discount for 24 months (not permanent). Exact % in offer/agreement — not the public site. Canon: [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md).
+**Founding cohorts (GTM):** Founding 10 is the only founding cohort. It is invitation-only and layered on top of published pricing; there is no standard customer or standard customer programme. Customer 11 onward follows the standard self-serve trial and onboarding journey. Canon: [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md).
 
 ---
 
@@ -30,7 +30,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 | Stream | Model | Phase |
 |--------|-------|-------|
 | **Platform subscription** | Monthly/annual tier (**Starter $99 · Growth $249 · Scale $499 · Enterprise Custom** — GTM lock; older drafts may say Pro/Business/Agency) | 1.5 |
-| **Industry Apps** | Industry App $99/mo — 1 Template included; additional Templates +$29/mo. Templates are not separate Industry SKUs. | 1.5 |
+| **Industry Apps** | Industry App $149/mo — 1 Template included; additional Templates +$29/mo. Templates are not separate Industry SKUs. | 1.5 |
 | **Growth Apps** | AI Visibility $99, SEO $99, Analytics $49, Social $79, AI Comms $99 | 1.5 |
 | **Infrastructure** | Connect/manage digital infra — priced progressively as commercially ready | 1.5–2.0 |
 | **AI usage tiers** | Included tokens + overage | 1.5 |
