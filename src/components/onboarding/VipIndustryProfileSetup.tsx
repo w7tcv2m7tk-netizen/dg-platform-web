@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { INDUSTRY_TAXONOMY, type Gen2OnboardingProgress } from "@dg/platform-core";
+import { getIndustry, INDUSTRY_TAXONOMY, type Gen2OnboardingProgress } from "@dg/platform-core";
 
 export function VipIndustryProfileSetup({
   initial,
@@ -21,7 +21,13 @@ export function VipIndustryProfileSetup({
 
   const relevantGroups = useMemo(() => {
     const enabled = new Set(initial.industryApps ?? []);
-    const matches = INDUSTRY_TAXONOMY.filter((group) => group.appIds.some((appId) => enabled.has(appId)));
+    const matches = INDUSTRY_TAXONOMY.filter((group) => {
+      const canonicalIndustryId = getIndustry(group.id)?.id ?? group.id;
+      const parentSelected = Array.from(enabled).some(
+        (id) => (getIndustry(id)?.id ?? id) === canonicalIndustryId,
+      );
+      return parentSelected || group.appIds.some((appId) => enabled.has(appId));
+    });
     if (matches.length) return matches;
     if (recommendedTemplate) {
       const group = INDUSTRY_TAXONOMY.find((item) => item.subIndustries.some((sub) => sub.id === recommendedTemplate));
@@ -30,15 +36,12 @@ export function VipIndustryProfileSetup({
     return INDUSTRY_TAXONOMY;
   }, [initial.industryApps, recommendedTemplate]);
 
-  function select(id: string, appId: string) {
+  function select(id: string, industryId: string) {
     setSelected((current) => {
-      // One primary operating profile per underlying Industry App for launch.
-      // Additional industries can still coexist because they map to different appIds.
-      const siblings = new Set(
-        INDUSTRY_TAXONOMY.flatMap((group) => group.subIndustries)
-          .filter((sub) => sub.appId === appId)
-          .map((sub) => sub.id),
-      );
+      // Onboarding chooses one included primary sub-industry for each purchased
+      // parent Industry App. Additional sub-industry Apps are activated later.
+      const group = INDUSTRY_TAXONOMY.find((item) => item.id === industryId);
+      const siblings = new Set(group?.subIndustries.map((sub) => sub.id) ?? []);
       return [...current.filter((item) => !siblings.has(item)), id];
     });
   }
@@ -85,7 +88,7 @@ export function VipIndustryProfileSetup({
                   <button
                     key={sub.id}
                     type="button"
-                    onClick={() => select(sub.id, sub.appId)}
+                    onClick={() => select(sub.id, group.id)}
                     className={`rounded-xl border p-4 text-left transition ${
                       on
                         ? "border-sky-400/50 bg-sky-500/10"
