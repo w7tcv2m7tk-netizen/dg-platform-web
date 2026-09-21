@@ -26,7 +26,7 @@ export const LAYERS = [
     verb: "specialise",
     tagline: "vertical workflows",
     intro:
-      "Industry Apps are specialist operating capability (+$149/mo). One primary sub-industry App is included; extra sub-industry Apps +$29/mo each. Property, Services and Hospitality & Accommodation are Available. Finance, Creator & Media and later verticals are Coming Soon. New business types become sub-industry Apps — never a second $149 parent charge.",
+      "Industry Apps are specialist operating capability (+$99/mo). One primary sub-industry App is included; extra sub-industry Apps +$29/mo each. Property, Services and Hospitality & Accommodation are Available. Finance, Creator & Media and later verticals are Coming Soon. New business types become sub-industry Apps — never a second $99 parent charge.",
   },
   {
     id: "growth",
@@ -389,12 +389,12 @@ export const APPS = [
     depth: "full",
     badge: "Available",
     kind: "industry-app",
-    commercialStatus: "AVAILABLE · +$149/mo · one primary sub-industry included",
+    commercialStatus: "AVAILABLE · +$99/mo · one primary sub-industry included",
     status:
       "Property Industry App — one connected property operating platform. Activate a primary sub-industry for how you sell, manage or develop.",
     headline: "One Property Industry App. Specialise with sub-industry Apps.",
     subhead:
-      "You buy Property once (+$149/mo). Real Estate, Property Management, Commercial, Development and Buyers Agency are sub-industry Apps — not a second $149 charge.",
+      "You buy Property once ($99/mo). Real Estate, Property Management, Commercial, Development and Buyers Agency are sub-industry Apps — not a second $99 charge.",
     what: "Property transactions, ownership and development workflows on DigitalGate Core. Short-stay hospitality lives under Hospitality & Accommodation — not here.",
     connects: "CRM, Opportunities, Documents, Commerce, Growth Apps and the Digital Twin™ share the same property context.",
     who: "Agencies, PMs, commercial operators and developers who want one property OS — starting with Real Estate as the founding Template.",
@@ -407,7 +407,7 @@ export const APPS = [
       { name: "Valuation / Property Advisory", status: "Future", href: "/apps/industry/property/" },
     ],
     pricing:
-      "Property Industry +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Platform subscription required.",
+      "Property Industry +$99/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Platform subscription required.",
     related: ["real-estate", "crm", "opportunities"],
   }),
   app({
@@ -417,12 +417,12 @@ export const APPS = [
     depth: "full",
     badge: "Available",
     kind: "industry-app",
-    commercialStatus: "AVAILABLE · +$149/mo · one primary sub-industry included",
+    commercialStatus: "AVAILABLE · +$99/mo · one primary sub-industry included",
     status:
       "Hospitality & Accommodation Industry App — stays, venues and hospitality groups. Accommodation belongs here, not under Property.",
     headline: "Stays and hospitality on the same operating system.",
     subhead:
-      "One Industry App (+$149/mo). Short-Stay Accommodation, Hotels, F&B and Venues are sub-industry Apps — not a second $149 charge.",
+      "One Industry App ($99/mo). Short-Stay Accommodation, Hotels, F&B and Venues are sub-industry Apps — not a second $99 charge.",
     what: "Bookings, guests, availability, housekeeping and hospitality operations on Core Contacts and Calendar.",
     connects: "Guests are Contacts. Stays create work. Reviews, Website and Growth Apps see the same business.",
     who: "Short-stay operators (including Currumbin Valley Hideaway) — Short-Stay Accommodation Template in early access.",
@@ -434,7 +434,7 @@ export const APPS = [
       { name: "Hospitality Groups", status: "Future", href: "/apps/industry/hospitality-accommodation/" },
     ],
     pricing:
-      "Hospitality & Accommodation +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Platform subscription required.",
+      "Hospitality & Accommodation +$99/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Platform subscription required.",
     related: ["accommodation", "crm", "reputation"],
   }),
 
@@ -453,7 +453,7 @@ export const APPS = [
       "Flagship sub-industry under the Property Industry App. Live on Roe Realty and available to selected Founding Customers.",
     headline: "Turn your sales pipeline into an operating system.",
     subhead:
-      "Vendors, buyers, appraisals and listings are the Real Estate sub-industry — not a second $149 Industry charge. Buy Property, activate Real Estate.",
+      "Vendors, buyers, appraisals and listings are the Real Estate sub-industry — not a second $99 Industry charge. Buy Property, activate Real Estate.",
     what: "Residential sales workflow: vendors, buyers, appraisals, listings and settlements on shared Core Contacts and Opportunities.",
     connects:
       "Every listing, lead and appraisal writes Core objects. Growth Apps then see the same pipeline.",
@@ -514,7 +514,7 @@ export const APPS = [
       ],
     },
     pricing:
-      "Included with Property Industry (+$149/mo) as your primary sub-industry · extra sub-industry Apps +$29/mo. Platform subscription required.",
+      "Included with Property Industry ($99/mo) as your primary sub-industry · extra sub-industry Apps +$29/mo. Platform subscription required.",
     keywords: [
       "real estate CRM",
       "property industry app",
@@ -544,7 +544,7 @@ export const APPS = [
       "Guests are Contacts. Stays create operational work. Reviews and Growth Apps see the same business.",
     who: "Founding hospitality operators (including Currumbin Valley Hideaway).",
     pricing:
-      "Included with Hospitality & Accommodation Industry (+$149/mo) as the primary sub-industry · extra sub-industry Apps +$29/mo.",
+      "Included with Hospitality & Accommodation Industry ($99/mo) as the primary sub-industry · extra sub-industry Apps +$29/mo.",
     highlight: ["Connect", "Centralise", "Act", "Learn", "Grow"],
     flow: [
       "Enquiry",
@@ -570,12 +570,12 @@ export const APPS = [
     depth: "full",
     badge: "Available",
     kind: "industry-app",
-    commercialStatus: "AVAILABLE · +$149/mo · one primary sub-industry included",
+    commercialStatus: "AVAILABLE · +$99/mo · one primary sub-industry included",
     status:
       "Services Industry App — jobs, quotes and scheduling. Sub-industry Apps customise trades (never a separate Electrician or Plumber Industry charge).",
     headline: "One Services App. Sub-industries for how you work.",
     subhead:
-      "+$149/mo Industry · Electrical, Plumbing, Cleaning, Construction and more — not dozens of top-level $149 Apps.",
+      "+$99/mo Industry · Electrical, Plumbing, Cleaning, Construction and more — not dozens of top-level $99 Apps.",
     what: "Jobs, scheduling and quotes for field and service businesses on Core CRM and Commerce.",
     connects: "Contacts, Tasks, Calendar, Commerce. Templates specialise terminology and workflow.",
     who: "Trades and service operators ready for a connected operating platform.",
@@ -585,7 +585,7 @@ export const APPS = [
       { name: "Cleaning · Maintenance · Field", status: "Soon", href: "/apps/industry/services/" },
       { name: "Construction · Facilities", status: "Coming Soon", href: "/apps/industry/services/" },
     ],
-    pricing: "Services Industry +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each.",
+    pricing: "Services Industry +$99/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each.",
     related: ["crm", "commerce", "calendar"],
   }),
   app({
@@ -645,7 +645,7 @@ export const APPS = [
     kind: "industry-app",
     status: "Coming Soon — Mortgage & Finance Broking, Lending and related sub-industry Apps. Not an “Accounting App”.",
     headline: "Money relationships on one Industry App.",
-    subhead: "Finance is $149/mo with one primary sub-industry included. Broking, lending and advisory are extra sub-industry Apps — not a second Industry charge.",
+    subhead: "Finance is $99/mo with one primary sub-industry included. Broking, lending and advisory are extra sub-industry Apps — not a second Industry charge.",
     what: "Finance Industry App with sub-industry Apps for Broking, Lending, Accounting, Planning, Insurance and Advisory.",
     connects: "Contacts, Opportunities, Documents and Communications.",
     templates: [
@@ -653,7 +653,7 @@ export const APPS = [
       { name: "Finance / Mortgage Broking", status: "Coming Soon", href: "/apps/industry/finance/" },
       { name: "Financial Planning · Insurance", status: "Coming Soon", href: "/apps/industry/finance/" },
     ],
-    pricing: "Finance Industry +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each.",
+    pricing: "Finance Industry +$99/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each.",
     who: "Accountants and finance professionals registering interest.",
     related: ["crm", "opportunities", "prospecting"],
   }),
@@ -690,7 +690,7 @@ export const APPS = [
       { name: "Creators · Personal Brands", status: "Coming Soon", href: "/apps/industry/creator/" },
       { name: "Music · Media · Production", status: "Coming Soon", href: "/apps/industry/creator/" },
     ],
-    pricing: "Creator & Media +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each.",
+    pricing: "Creator & Media +$99/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each.",
     who: "Creators and media businesses registering founding interest.",
     related: ["crm", "commerce", "social"],
   }),
