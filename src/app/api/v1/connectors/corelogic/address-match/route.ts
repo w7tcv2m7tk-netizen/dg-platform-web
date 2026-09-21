@@ -1,6 +1,8 @@
 import { matchCoreLogicAddress } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
+import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
+
 import {
   authenticatePlatformOrConnector,
   isNextResponse,
