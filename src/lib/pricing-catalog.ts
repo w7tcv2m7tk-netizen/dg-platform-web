@@ -90,7 +90,7 @@ export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
     icon: "🏢",
     price: "$499",
     period: "/month",
-    users: "Unlimited Users",
+    users: "Up to 20 Users",
     outcome: "For teams running their entire operation.",
     features: [
       "Everything in Growth",
