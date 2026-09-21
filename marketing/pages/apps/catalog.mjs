@@ -26,7 +26,7 @@ export const LAYERS = [
     verb: "specialise",
     tagline: "vertical workflows",
     intro:
-      "Industry Apps are specialist operating capability (+$149/mo). One primary sub-industry App is included; extra sub-industry Apps +$29/mo each. Property, Services and Hospitality & Accommodation are Available. Finance, Creator & Media and later verticals are Coming Soon. New business types become sub-industry Apps — never a second $149 parent charge.",
+      "Industry Apps are specialist operating capability (+$149/mo). One primary sub-industry App is included; extra sub-industry Apps +$29/mo each. Property, Services and Hospitality & Accommodation are Available. Finance, Creator & Media and later verticals are Coming Soon. New business types become sub-industry Apps — never a second $149 parent charge. Specialist Industry integrations and API access require Scale or Enterprise plus the relevant Industry App — Scale does not include every Industry App.",
   },
   {
     id: "growth",
@@ -407,7 +407,7 @@ export const APPS = [
       { name: "Valuation / Property Advisory", status: "Future", href: "/apps/industry/property/" },
     ],
     pricing:
-      "Property Industry +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Platform subscription required.",
+      "Property Industry +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Platform subscription required. Specialist Industry integrations and API access require Scale or Enterprise plus this Industry App.",
     related: ["real-estate", "crm", "opportunities"],
   }),
   app({
@@ -434,7 +434,7 @@ export const APPS = [
       { name: "Hospitality Groups", status: "Future", href: "/apps/industry/hospitality-accommodation/" },
     ],
     pricing:
-      "Hospitality & Accommodation +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Platform subscription required.",
+      "Hospitality & Accommodation +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Platform subscription required. Specialist Industry integrations and API access require Scale or Enterprise plus this Industry App.",
     related: ["accommodation", "crm", "reputation"],
   }),
 
@@ -514,7 +514,7 @@ export const APPS = [
       ],
     },
     pricing:
-      "Included with Property Industry (+$149/mo) as your primary sub-industry · extra sub-industry Apps +$29/mo. Platform subscription required.",
+      "Included with Property Industry (+$149/mo) as your primary sub-industry · extra sub-industry Apps +$29/mo. Platform subscription required. Specialist Industry integrations (for example property portals) require Scale or Enterprise plus the Property Industry App.",
     keywords: [
       "real estate CRM",
       "property industry app",
@@ -544,7 +544,7 @@ export const APPS = [
       "Guests are Contacts. Stays create operational work. Reviews and Growth Apps see the same business.",
     who: "Founding hospitality operators (including Currumbin Valley Hideaway).",
     pricing:
-      "Included with Hospitality & Accommodation Industry (+$149/mo) as the primary sub-industry · extra sub-industry Apps +$29/mo.",
+      "Included with Hospitality & Accommodation Industry (+$149/mo) as the primary sub-industry · extra sub-industry Apps +$29/mo. Specialist Industry integrations (for example PMS or channel systems) require Scale or Enterprise plus the Hospitality & Accommodation Industry App.",
     highlight: ["Connect", "Centralise", "Act", "Learn", "Grow"],
     flow: [
       "Enquiry",
@@ -585,7 +585,7 @@ export const APPS = [
       { name: "Cleaning · Maintenance · Field", status: "Soon", href: "/apps/industry/services/" },
       { name: "Construction · Facilities", status: "Coming Soon", href: "/apps/industry/services/" },
     ],
-    pricing: "Services Industry +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each.",
+    pricing: "Services Industry +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Specialist Industry integrations and API access require Scale or Enterprise plus this Industry App.",
     related: ["crm", "commerce", "calendar"],
   }),
   app({
@@ -653,7 +653,7 @@ export const APPS = [
       { name: "Finance / Mortgage Broking", status: "Coming Soon", href: "/apps/industry/finance/" },
       { name: "Financial Planning · Insurance", status: "Coming Soon", href: "/apps/industry/finance/" },
     ],
-    pricing: "Finance Industry +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each.",
+    pricing: "Finance Industry +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Specialist Industry integrations (for example Lend) require Scale or Enterprise plus this Industry App.",
     who: "Accountants and finance professionals registering interest.",
     related: ["crm", "opportunities", "prospecting"],
   }),
@@ -690,7 +690,7 @@ export const APPS = [
       { name: "Creators · Personal Brands", status: "Coming Soon", href: "/apps/industry/creator/" },
       { name: "Music · Media · Production", status: "Coming Soon", href: "/apps/industry/creator/" },
     ],
-    pricing: "Creator & Media +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each.",
+    pricing: "Creator & Media +$149/mo · one primary sub-industry included · extra sub-industry Apps +$29/mo each. Specialist Industry integrations and API access require Scale or Enterprise plus this Industry App.",
     who: "Creators and media businesses registering founding interest.",
     related: ["crm", "commerce", "social"],
   }),
