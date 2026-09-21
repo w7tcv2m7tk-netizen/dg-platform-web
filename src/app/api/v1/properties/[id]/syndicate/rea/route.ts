@@ -7,6 +7,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
