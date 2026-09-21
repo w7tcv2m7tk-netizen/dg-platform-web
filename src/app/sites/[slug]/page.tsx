@@ -221,14 +221,14 @@ export default async function PublicSiteHomePage({
           className="wb-root wb-html-page wb-full-bleed wb-product-funnel"
           style={
             {
-              ["--wb-primary"]: theme.primaryColor || "#3B82F6",
-              ["--wb-accent"]: theme.accentColor || "#10B981",
-              ["--wb-bg"]: theme.backgroundColor || "#0A0E17",
+              ["--wb-primary"]: theme.primaryColor || "#7c3aed",
+              ["--wb-accent"]: theme.accentColor || "#3b82f6",
+              ["--wb-bg"]: theme.backgroundColor || "#0A0A12",
               minHeight: "100dvh",
               width: "100%",
               margin: 0,
               padding: 0,
-              background: "#0A0E17",
+              background: "#0A0A12",
             } as CSSProperties
           }
         >

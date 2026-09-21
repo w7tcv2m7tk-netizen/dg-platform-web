@@ -76,7 +76,7 @@ function scoreColor(n: number) {
 }
 
 const FUNNEL_CSS = `
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Sora:wght@600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @keyframes dgBaIn {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
@@ -104,7 +104,7 @@ const FUNNEL_CSS = `
 }
 @keyframes dgBaGridPan {
   0% { background-position: 0 0; }
-  100% { background-position: 56px 56px; }
+  100% { background-position: 48px 48px; }
 }
 @keyframes dgBaNetworkPulse {
   0%, 100% { opacity: 0.38; }
@@ -130,17 +130,41 @@ const FUNNEL_CSS = `
 .dg-ba-funnel {
   --hx: 0;
   --hy: 0;
-  --dg-blue: #3B82F6;
-  --dg-ink: #e8eef8;
+  --bg-main: #0A0A12;
+  --bg-surface: #0F0F1A;
+  --bg-elevated: #13131F;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --dg-purple: #7c3aed;
+  --dg-purple-light: #a78bfa;
+  --dg-purple-lighter: #c4b5fd;
+  --dg-blue: #3b82f6;
+  --dg-cyan: #22d3ee;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-mid: rgba(255, 255, 255, 0.1);
+  --card-bg: rgba(255, 255, 255, 0.025);
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --dg-ink: var(--text-primary);
+  --dg-mute: var(--text-secondary);
+  --dg-violet: var(--dg-purple);
+  --dg-violet-soft: var(--dg-purple-light);
+  --dg-bg: var(--bg-main);
+  --dg-panel: linear-gradient(165deg, rgba(20, 20, 35, 0.95) 0%, rgba(15, 15, 26, 0.92) 100%);
   position: relative;
   width: 100%;
   min-height: 100dvh;
   overflow: clip;
   isolation: isolate;
-  color: var(--dg-ink);
-  font-family: "Instrument Sans", system-ui, sans-serif;
-  background: #03050A !important;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg-main) !important;
 }
+.dg-ba-funnel *,
+.dg-ba-funnel *::before,
+.dg-ba-funnel *::after { box-sizing: border-box; }
 .dg-ba-funnel__atmosphere {
   position: absolute;
   inset: 0;
@@ -152,11 +176,10 @@ const FUNNEL_CSS = `
   position: absolute;
   inset: -8%;
   background:
-    radial-gradient(ellipse 70% 55% at 50% -5%, rgba(59,130,246,0.28), transparent 58%),
-    radial-gradient(ellipse 45% 40% at 12% 70%, rgba(14,165,233,0.12), transparent 55%),
-    radial-gradient(ellipse 50% 45% at 88% 55%, rgba(45,212,191,0.14), transparent 55%),
-    radial-gradient(ellipse 60% 50% at 50% 100%, rgba(37,99,235,0.1), transparent 50%),
-    linear-gradient(180deg, #05070D 0%, #03050A 55%, #070B14 100%);
+    radial-gradient(ellipse at 50% 40%, rgba(124, 58, 237, 0.18), transparent 55%),
+    radial-gradient(circle at 8% 12%, rgba(124, 58, 237, 0.28), transparent 65%),
+    radial-gradient(circle at 94% 88%, rgba(59, 130, 246, 0.2), transparent 65%),
+    var(--bg-main);
   transform: translate3d(calc(var(--hx) * 12px), calc(var(--hy) * 8px), 0);
   will-change: transform;
 }
@@ -165,11 +188,11 @@ const FUNNEL_CSS = `
   inset: -20%;
   background: conic-gradient(from 210deg at 50% 40%,
     transparent 0deg,
-    rgba(59,130,246,0.07) 55deg,
+    rgba(124,58,237,0.10) 55deg,
     transparent 110deg,
-    rgba(45,212,191,0.06) 180deg,
+    rgba(34,211,238,0.06) 180deg,
     transparent 240deg,
-    rgba(96,165,250,0.08) 300deg,
+    rgba(167,139,250,0.10) 300deg,
     transparent 360deg);
   filter: blur(40px);
   opacity: 0.85;
@@ -186,21 +209,22 @@ const FUNNEL_CSS = `
 }
 .dg-ba-funnel__orb-a {
   --px: 22px; --py: 14px;
-  width: min(52vw, 560px); height: min(52vw, 560px);
-  top: 4%; left: 50%; margin-left: calc(min(52vw, 560px) / -2);
-  background: radial-gradient(circle, rgba(59,130,246,0.35) 0%, rgba(14,165,233,0.12) 40%, transparent 70%);
+  width: min(42vw, 520px); height: min(42vw, 520px);
+  top: 8%; left: -6%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.28) 0%, transparent 65%);
 }
 .dg-ba-funnel__orb-b {
   --px: -16px; --py: 10px;
-  width: min(38vw, 420px); height: min(38vw, 420px);
-  bottom: 8%; right: -6%;
-  background: radial-gradient(circle, rgba(45,212,191,0.22) 0%, transparent 68%);
+  width: min(48vw, 600px); height: min(48vw, 600px);
+  bottom: 4%; right: -8%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 65%);
 }
 .dg-ba-funnel__orb-c {
   --px: 10px; --py: -12px;
-  width: min(28vw, 300px); height: min(28vw, 300px);
-  top: 35%; left: -4%;
-  background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
+  width: 180px; height: 180px;
+  top: 22%; left: 12%;
+  background: #7c3aed;
+  opacity: 0.28;
 }
 .dg-ba-funnel__network {
   position: absolute;
@@ -211,23 +235,23 @@ const FUNNEL_CSS = `
   transform: translate3d(calc(var(--hx) * 6px), calc(var(--hy) * 4px), 0) scale(1.02);
   will-change: transform;
 }
-.dg-ba-funnel__network .n-line { stroke: rgba(147,197,253,0.28); stroke-width: 1; fill: none; }
-.dg-ba-funnel__network .n-line-soft { stroke: rgba(45,212,191,0.18); stroke-width: 1; fill: none; }
-.dg-ba-funnel__network .n-node { fill: rgba(191,219,254,0.75); }
+.dg-ba-funnel__network .n-line { stroke: rgba(167,139,250,0.32); stroke-width: 1; fill: none; }
+.dg-ba-funnel__network .n-line-soft { stroke: rgba(59,130,246,0.20); stroke-width: 1; fill: none; }
+.dg-ba-funnel__network .n-node { fill: rgba(196,181,253,0.8); }
 .dg-ba-funnel__network .n-node-core {
-  fill: #60A5FA;
-  filter: drop-shadow(0 0 6px rgba(59,130,246,0.55));
+  fill: #A78BFA;
+  filter: drop-shadow(0 0 6px rgba(124,58,237,0.55));
 }
 .dg-ba-funnel__grid {
   position: absolute;
   inset: 0;
-  opacity: 0.05;
+  opacity: 1;
   background-image:
-    linear-gradient(rgba(255,255,255,0.55) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.55) 1px, transparent 1px);
-  background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, #000 15%, transparent 78%);
-  -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 42%, #000 15%, transparent 78%);
+    linear-gradient(rgba(124, 58, 237, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124, 58, 237, 0.055) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0.9), transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0.9), transparent 70%);
 }
 .dg-ba-funnel__horizon {
   position: absolute;
@@ -236,7 +260,7 @@ const FUNNEL_CSS = `
   width: min(90vw, 920px);
   height: 2px;
   transform: translateX(-50%);
-  background: linear-gradient(90deg, transparent, rgba(96,165,250,0.35), rgba(45,212,191,0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(167,139,250,0.45), rgba(59,130,246,0.28), transparent);
   filter: blur(0.5px);
   opacity: 0.7;
 }
@@ -244,8 +268,8 @@ const FUNNEL_CSS = `
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 55% 50% at 50% 42%, transparent 30%, rgba(3,5,10,0.5) 100%),
-    linear-gradient(180deg, rgba(3,5,10,0.28) 0%, transparent 22%, transparent 72%, rgba(3,5,10,0.7) 100%);
+    radial-gradient(ellipse 55% 50% at 50% 42%, transparent 30%, rgba(10,10,18,0.55) 100%),
+    linear-gradient(180deg, rgba(10,10,18,0.2) 0%, transparent 22%, transparent 72%, rgba(10,10,18,0.72) 100%);
 }
 @media (prefers-reduced-motion: no-preference) {
   .dg-ba-funnel__mesh { animation: dgBaMeshDrift 16s ease-in-out infinite; }
@@ -295,10 +319,10 @@ const FUNNEL_CSS = `
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  color: #93c5fd;
+  color: var(--dg-violet-soft);
   text-decoration: none;
   font-size: 0.84rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -314,34 +338,47 @@ const FUNNEL_CSS = `
   width: 1.55rem;
   height: 1.55rem;
   border-radius: 0.4rem;
-  background: linear-gradient(145deg, #60A5FA, #2563EB);
-  box-shadow: 0 0 0 1px rgba(147,197,253,0.35);
+  background: linear-gradient(145deg, #A78BFA, #7C3AED);
+  box-shadow: 0 0 0 1px rgba(167,139,250,0.35);
 }
 .dg-ba-funnel__copy { animation: dgBaIn 0.55s ease both; }
 .dg-ba-funnel__eyebrow {
+  display: inline-flex;
+  align-items: center;
   margin: 1.35rem 0 0.85rem;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  padding: 8px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 5px;
   text-transform: uppercase;
-  color: #60A5FA;
+  color: var(--dg-purple-light);
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.28);
+  border-radius: 999px;
+  box-shadow: 0 0 30px rgba(124, 58, 237, 0.15);
 }
 .dg-ba-funnel h1 {
   margin: 0 0 1rem;
-  font-family: Sora, system-ui, sans-serif;
-  font-size: clamp(2rem, 4.6vw, 3.1rem);
-  line-height: 1.12;
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-size: clamp(2.1rem, 5vw, 3.4rem);
+  line-height: 1.08;
+  font-weight: 800;
   letter-spacing: -0.03em;
-  color: #fff;
+  color: var(--text-primary);
   text-wrap: balance;
+}
+.dg-ba-funnel__gradient {
+  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 40%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .dg-ba-funnel__lede {
   margin: 0 0 1.5rem;
   max-width: 34rem;
-  font-size: clamp(1.02rem, 1.5vw, 1.12rem);
-  line-height: 1.55;
-  color: #9fb0c7;
+  font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+  line-height: 1.7;
+  color: var(--text-secondary);
 }
 .dg-ba-funnel__pillars {
   display: grid;
@@ -356,7 +393,7 @@ const FUNNEL_CSS = `
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: #d5deea;
+  color: #E2E8F0;
   font-size: 0.92rem;
   font-weight: 600;
 }
@@ -365,18 +402,31 @@ const FUNNEL_CSS = `
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: #60A5FA;
+  color: var(--dg-violet-soft);
   width: 1.6rem;
 }
 .dg-ba-funnel__panel {
   animation: dgBaIn 0.65s ease 0.08s both;
-  background: rgba(10, 16, 28, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 1.25rem;
+  background: var(--dg-panel);
+  border: 1px solid rgba(124, 58, 237, 0.55);
+  border-radius: 20px;
   padding: clamp(1.35rem, 3vw, 1.85rem);
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 30px 80px rgba(124, 58, 237, 0.2);
   backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
 }
+.dg-ba-funnel__panel::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -30%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.18), transparent 65%);
+  pointer-events: none;
+}
+.dg-ba-funnel__panel > * { position: relative; z-index: 1; }
 .dg-ba-funnel__steps {
   display: flex;
   gap: 0.45rem;
@@ -388,19 +438,22 @@ const FUNNEL_CSS = `
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.1);
 }
-.dg-ba-funnel__step.is-on { background: #3B82F6; }
+.dg-ba-funnel__step.is-on { background: linear-gradient(90deg, #7C3AED, #3B82F6); }
 .dg-ba-funnel__panel h2 {
   margin: 0 0 0.4rem;
-  font-family: Sora, system-ui, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(1.35rem, 2.4vw, 1.6rem);
-  color: #fff;
-  font-weight: 700;
+  color: #F8FAFC;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 .dg-ba-funnel__sub {
   margin: 0 0 1.2rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 0.95rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
 }
 .dg-ba-funnel label {
   display: block;
@@ -408,7 +461,9 @@ const FUNNEL_CSS = `
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: #94a3b8;
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
 }
 .dg-ba-funnel input,
 .dg-ba-funnel select {
@@ -416,19 +471,21 @@ const FUNNEL_CSS = `
   box-sizing: border-box;
   margin-bottom: 0.9rem;
   padding: 0.9rem 1rem;
-  border-radius: 0.65rem;
-  border: 1px solid #334155;
-  background: #0b1220;
-  color: #e2e8f0;
+  border-radius: 12px;
+  border: 1px solid var(--border-mid);
+  background: var(--bg-surface);
+  color: var(--text-primary);
   font: inherit;
   font-size: 1rem;
   outline: none;
+  position: relative;
+  z-index: 1;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .dg-ba-funnel input:focus,
 .dg-ba-funnel select:focus {
-  border-color: #60A5FA;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  border-color: var(--dg-purple);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.25);
 }
 .dg-ba-funnel button[type="submit"],
 .dg-ba-funnel button.dg-ba-primary,
@@ -437,37 +494,51 @@ const FUNNEL_CSS = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  padding: 0.95rem 1.1rem;
+  gap: 8px;
+  padding: 15px 32px;
   border: none;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, #60A5FA, #3B82F6 55%, #2563EB);
+  border-radius: 50px;
+  background: linear-gradient(105deg, #7c3aed, #3b82f6);
   color: #fff;
   font: inherit;
-  font-size: 0.98rem;
+  font-size: 15px;
   font-weight: 700;
+  letter-spacing: 0.01em;
   cursor: pointer;
   text-decoration: none;
-  transition: transform 0.18s ease, filter 0.18s ease;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .dg-ba-funnel button[type="submit"]:hover,
 .dg-ba-funnel button.dg-ba-primary:hover,
 .dg-ba-funnel a.dg-ba-primary:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(124, 58, 237, 0.55);
+}
+.dg-ba-funnel button[type="submit"]:focus-visible,
+.dg-ba-funnel button.dg-ba-primary:focus-visible,
+.dg-ba-funnel a.dg-ba-primary:focus-visible {
+  outline: 2px solid #A78BFA;
+  outline-offset: 3px;
 }
 .dg-ba-funnel button:disabled { cursor: wait; opacity: 0.85; }
 .dg-ba-funnel__note {
   margin: 0.85rem 0 0;
   text-align: center;
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--text-muted);
+  position: relative;
+  z-index: 1;
 }
 .dg-ba-funnel__status {
   margin: 0.9rem 0 0;
   font-size: 0.9rem;
   min-height: 1.25rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
 }
 .dg-ba-funnel__status.is-error { color: #fca5a5; }
 .dg-ba-funnel__status.is-ok { color: #86efac; }
@@ -475,7 +546,7 @@ const FUNNEL_CSS = `
   margin: 0.85rem 0 0;
   height: 3px;
   border-radius: 99px;
-  background: linear-gradient(90deg, transparent, #60A5FA, transparent);
+  background: linear-gradient(90deg, transparent, #A78BFA, #3B82F6, transparent);
   background-size: 200% 100%;
   animation: dgBaScan 1.1s linear infinite;
 }
@@ -511,10 +582,10 @@ const FUNNEL_CSS = `
   inset: 0;
   display: grid;
   place-items: center;
-  font-family: Sora, system-ui, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 2.1rem;
   font-weight: 800;
-  color: #fff;
+  color: #F8FAFC;
 }
 .dg-ba-funnel__score-num span {
   font-size: 0.85rem;
@@ -557,20 +628,48 @@ const FUNNEL_CSS = `
   line-height: 1.5;
 }
 .dg-ba-funnel__opps li { margin-bottom: 0.45rem; }
+.dg-ba-funnel__kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dg-violet-soft);
+  text-align: center;
+}
+.dg-ba-funnel__opps-title {
+  margin: 0 0 0.55rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #F8FAFC;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.dg-ba-funnel__done-score {
+  margin: 0 0 0.65rem;
+  font-size: 2.4rem;
+  font-weight: 800;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}
+.dg-ba-funnel__done-score span {
+  font-size: 1rem;
+  color: #94A3B8;
+}
 .dg-ba-funnel__meta {
   margin: 0 0 1rem;
   padding: 0.7rem 0.85rem;
-  border-radius: 0.65rem;
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  color: #bfdbfe;
+  border-radius: 14px;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.28);
+  color: #DDD6FE;
   font-size: 0.9rem;
 }
 .dg-ba-funnel__meta button {
   margin-left: 0.55rem;
   border: none;
   background: transparent;
-  color: #93c5fd;
+  color: var(--dg-violet-soft);
   text-decoration: underline;
   cursor: pointer;
   font: inherit;
@@ -859,29 +958,30 @@ export function BusinessAuditCapture({
     width: "100%",
     boxSizing: "border-box",
     padding: "0.75rem 0.85rem",
-    borderRadius: "0.5rem",
-    border: "1px solid #334155",
+    borderRadius: "12px",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
     marginBottom: "0.85rem",
     fontSize: "1rem",
-    background: "#0f172a",
-    color: "#e2e8f0",
+    background: "#0F0F1A",
+    color: "#ffffff",
   };
   const labelStyle: CSSProperties = {
     display: "block",
     fontSize: "0.8rem",
     fontWeight: 600,
     marginBottom: "0.35rem",
-    color: "#94a3b8",
+    color: "#9ca3af",
   };
   const btnStyle: CSSProperties = {
     width: "100%",
-    padding: "0.85rem 1rem",
-    borderRadius: "0.75rem",
+    padding: "15px 32px",
+    borderRadius: "50px",
     border: "none",
-    background: "#3B82F6",
+    background: "linear-gradient(105deg, #7c3aed, #3b82f6)",
     color: "#fff",
-    fontWeight: 600,
-    fontSize: "0.95rem",
+    fontWeight: 700,
+    fontSize: "15px",
+    boxShadow: "0 4px 20px rgba(124, 58, 237, 0.35)",
     cursor: busy ? "wait" : "pointer",
   };
 
@@ -891,20 +991,22 @@ export function BusinessAuditCapture({
         id="business-audit-form"
         className="dg-business-audit-capture"
         style={{
-          background: "#0A0E17",
-          color: "#e2e8f0",
+          background: "#0A0A12",
+          color: "#ffffff",
           padding: "3.5rem clamp(1rem, 3vw, 2.5rem)",
-          fontFamily: "system-ui, sans-serif",
+          fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
         }}
       >
         <div
           style={{
             maxWidth: "34rem",
             margin: "0 auto",
-            background: "rgba(15, 23, 42, 0.9)",
-            borderRadius: "1rem",
+            background:
+              "linear-gradient(165deg, rgba(20, 20, 35, 0.95) 0%, rgba(15, 15, 26, 0.92) 100%)",
+            borderRadius: "20px",
             padding: "1.85rem 1.5rem",
-            border: "1px solid rgba(148, 163, 184, 0.2)",
+            border: "1px solid rgba(124, 58, 237, 0.55)",
+            boxShadow: "0 30px 80px rgba(124, 58, 237, 0.2)",
           }}
         >
           {step === "website" ? (
@@ -916,7 +1018,7 @@ export function BusinessAuditCapture({
                   fontWeight: 700,
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: "#60A5FA",
+                  color: "#a78bfa",
                 }}
               >
                 Free Business Audit
@@ -950,7 +1052,7 @@ export function BusinessAuditCapture({
           ) : null}
           {step === "preview" && pillars ? (
             <>
-              <p style={{ margin: "0 0 0.75rem", color: "#60A5FA", fontWeight: 700 }}>
+              <p style={{ margin: "0 0 0.75rem", color: "#a78bfa", fontWeight: 700 }}>
                 Score {overallScore ?? "—"}/100
               </p>
               {PILLAR_LABELS.map(({ key, label }) => (
@@ -1117,7 +1219,10 @@ export function BusinessAuditCapture({
               />
             </a>
             <p className="dg-ba-funnel__eyebrow">Free Business Audit</p>
-            <h1>See how your business performs across the digital world</h1>
+            <h1>
+              See how your business performs{" "}
+              <span className="dg-ba-funnel__gradient">across the digital world</span>
+            </h1>
             <p className="dg-ba-funnel__lede">
               Get an instant snapshot of your website, search presence, AI
               visibility and digital foundations — then discover where you may
@@ -1173,17 +1278,7 @@ export function BusinessAuditCapture({
 
             {step === "preview" ? (
               <>
-                <p
-                  style={{
-                    margin: "0 0 0.35rem",
-                    fontSize: "0.72rem",
-                    fontWeight: 800,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "#60A5FA",
-                    textAlign: "center",
-                  }}
-                >
+                <p className="dg-ba-funnel__kicker">
                   DigitalGate Business Health Score™
                 </p>
                 <div className="dg-ba-funnel__score">
@@ -1250,14 +1345,7 @@ export function BusinessAuditCapture({
                     ))}
                   </div>
                 ) : null}
-                <h3
-                  style={{
-                    margin: "0 0 0.55rem",
-                    fontSize: "1.05rem",
-                    color: "#fff",
-                    fontFamily: "Sora, system-ui, sans-serif",
-                  }}
-                >
+                <h3 className="dg-ba-funnel__opps-title">
                   The opportunities we&apos;d prioritise
                 </h3>
                 <ol className="dg-ba-funnel__opps">
@@ -1387,30 +1475,16 @@ export function BusinessAuditCapture({
 
             {step === "done" ? (
               <div className="dg-ba-funnel__done">
-                <p
-                  style={{
-                    margin: "0 0 0.45rem",
-                    fontSize: "0.72rem",
-                    fontWeight: 800,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "#60A5FA",
-                  }}
-                >
+                <p className="dg-ba-funnel__kicker">
                   DigitalGate Business Health Score™
                 </p>
                 {overallScore != null ? (
                   <p
-                    style={{
-                      margin: "0 0 0.65rem",
-                      fontSize: "2.4rem",
-                      fontWeight: 800,
-                      fontFamily: "Sora, system-ui, sans-serif",
-                      color: scoreColor(overallScore),
-                    }}
+                    className="dg-ba-funnel__done-score"
+                    style={{ color: scoreColor(overallScore) }}
                   >
                     {overallScore}
-                    <span style={{ fontSize: "1rem", color: "#94a3b8" }}>/100</span>
+                    <span>/100</span>
                   </p>
                 ) : null}
                 <h2>You&apos;re all set</h2>

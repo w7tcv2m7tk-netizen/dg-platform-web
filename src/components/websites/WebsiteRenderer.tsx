@@ -1472,7 +1472,7 @@ export function WebsitePageRenderer({
               : resolvedFunnelTemplate === "hideaway_circle" ||
                   pageSlug === "hideaway-circle"
                 ? "#0c1612"
-                : "#0A0E17"
+                : "#0A0A12"
             : isWantd
               ? "#F7F5F1"
               : lightSurface
@@ -1493,7 +1493,7 @@ export function WebsitePageRenderer({
                     : resolvedFunnelTemplate === "hideaway_circle" ||
                         pageSlug === "hideaway-circle"
                       ? "#0c1612"
-                      : "#0A0E17",
+                      : "#0A0A12",
               }
             : {}),
         } as React.CSSProperties
