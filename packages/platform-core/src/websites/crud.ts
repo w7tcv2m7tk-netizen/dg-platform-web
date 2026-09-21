@@ -193,11 +193,16 @@ export async function getWebsiteForPublicRender(
       });
 
   if (pageSlug && pages.length === 0) {
-    const leaf = pageSlug.split("/").filter(Boolean).pop();
+    // Nested Studio slugs such as apps/core and apps/core/crm are canonical.
+    // Never collapse them to a leaf slug (core/crm).
+    const isNestedStudioSlug =
+      pageSlug.includes("/") && !pageSlug.startsWith("accommodation/");
     const stripped = pageSlug.replace(/^accommodation\//, "");
-    const alts = [leaf, stripped].filter(
-      (value): value is string => Boolean(value) && value !== pageSlug,
-    );
+    const alts = isNestedStudioSlug
+      ? []
+      : [stripped].filter(
+          (value): value is string => Boolean(value) && value !== pageSlug,
+        );
     if (alts.length > 0) {
       pages = await prisma.websitePage.findMany({
         where: { websiteId: site.id, slug: { in: alts } },
@@ -234,11 +239,9 @@ export async function getWebsiteForPublicRender(
 
   const match =
     allPages.find((p) => p.slug === pageSlug) ||
-    allPages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, "")) ||
-    allPages.find((p) => {
-      const leaf = pageSlug.split("/").filter(Boolean).pop();
-      return Boolean(leaf && p.slug === leaf);
-    }) ||
+    (pageSlug.startsWith("accommodation/")
+      ? allPages.find((p) => p.slug === pageSlug.replace(/^accommodation\//, ""))
+      : undefined) ||
     null;
 
   return { ...full, pages: match ? [match] : allPages };
