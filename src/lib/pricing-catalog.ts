@@ -96,7 +96,7 @@ export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
       "Everything in Growth",
       "Advanced AI & automation",
       "Industry integrations & API access",
-      "Multiple businesses under one subscription account",
+      "Up to 5 businesses under one subscription account",
       "Multiple pipelines",
       "Advanced permissions & BI",
     ],
