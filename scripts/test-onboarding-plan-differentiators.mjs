@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const onboarding = fs.readFileSync("src/components/onboarding/AdaptiveOnboardingJourney.tsx", "utf8");
 const pricing = fs.readFileSync("src/lib/pricing-catalog.ts", "utf8");
+const plans = fs.readFileSync("src/lib/plans.ts", "utf8");
 
 assert.match(onboarding, /PLATFORM_TIER_CATALOG/);
 assert.match(onboarding, /canonical\?\.users/);
@@ -28,6 +29,12 @@ assert.match(
   pricing,
   /key:\s*"business"[\s\S]*Up to 5 active businesses under one subscription account/,
   "Scale must retain the 5-business entitlement",
+);
+
+assert.doesNotMatch(
+  plans,
+  /extra_users|Extra Users|\+\$29\/user/,
+  "Canonical tier caps must not be bypassed by a legacy extra-user add-on",
 );
 
 console.log("Onboarding canonical plan differentiator regression checks passed");
