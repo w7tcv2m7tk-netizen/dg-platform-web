@@ -319,7 +319,7 @@ function appPage(app) {
     : "";
 
   const templatesBody = Array.isArray(app.templates) && app.templates.length
-    ? `<p class="section-body">Activate the sub-industry App that matches your business. One Industry App subscription ($99/mo) includes one primary sub-industry. Extra sub-industry Apps are +$29/mo.</p>
+    ? `<p class="section-body">Activate the sub-industry App that matches your business. One Industry App subscription ($149/mo) includes one primary sub-industry. Extra sub-industry Apps are +$29/mo.</p>
       <div class="templates-list">${app.templates.map((t) =>
         `<a href="${esc(t.href || "#")}"><span class="t-name">${esc(t.name)}</span><span class="t-status">${esc(t.status || "")}</span></a>`
       ).join("")}</div>`
@@ -519,7 +519,7 @@ function hubPage() {
   <section class="alt cta-band">
     <div class="wrap">
       <h2>Start with the platform. Add Apps as you grow.</h2>
-      <p>Starter $99 · Growth $249 · Scale $499. Growth Suite $399 and Industry Apps $99 are add-ons — they do not include Core. One primary sub-industry is included with each Industry App.</p>
+      <p>Starter $99 · Growth $249 · Scale $499. Growth Suite $399 and Industry Apps $149 are add-ons — they do not include Core. One primary sub-industry is included with each Industry App.</p>
       <div class="ctas">
         <a class="btn btn-primary" href="${TRIAL}">Start free 14-day trial →</a>
         <a class="btn btn-secondary" href="${CONTACT}">Platform Consultation</a>
