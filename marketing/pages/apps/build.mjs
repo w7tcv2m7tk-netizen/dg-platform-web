@@ -275,11 +275,15 @@ function pricingSection(app, isSoon) {
       : isSoon
         ? "Not available for purchase yet. Register interest via the Founding Customer Programme."
         : "Licensed separately unless your agreement says otherwise. See Apps & pricing.");
+  const industryNote =
+    app.layer === "industry"
+      ? " Specialist Industry integrations and API access require Scale or Enterprise plus the relevant Industry App. Scale does not include every Industry App."
+      : "";
   return `<section class="alt">
     <div class="wrap">
       <p class="sub">Pricing</p>
       <h2 class="section-title">Commercial model</h2>
-      <div class="pricing-box">${esc(text)} · <a href="${PRICING}#growth">Growth Suite &amp; pricing →</a></div>
+      <div class="pricing-box">${esc(text)}${esc(industryNote)} · <a href="${PRICING}#growth">Growth Suite &amp; pricing →</a></div>
       <p class="section-note">${esc(app.commercial)}</p>
     </div>
   </section>`;
@@ -519,7 +523,7 @@ function hubPage() {
   <section class="alt cta-band">
     <div class="wrap">
       <h2>Start with the platform. Add Apps as you grow.</h2>
-      <p>Starter $99 · Growth $249 · Scale $499. Growth Suite $399 and Industry Apps $149 are add-ons — they do not include Core. One primary sub-industry is included with each Industry App.</p>
+      <p>Starter $99 (1 user · 1 business) · Growth $249 (up to 5 users · 1 business) · Scale $499 (unlimited users · up to 5 active businesses). Growth Suite $399 and Industry Apps $149 are add-ons — they do not include Core and do not grant Scale entitlements. Specialist Industry integrations require Scale or Enterprise plus the relevant Industry App.</p>
       <div class="ctas">
         <a class="btn btn-primary" href="${FOUNDING}">Founding Customer Programme →</a>
         <a class="btn btn-secondary" href="${CONTACT}">Platform Consultation</a>
@@ -538,19 +542,6 @@ function hubPage() {
 
 function layerPage(layer) {
   const all = appsInLayer(layer.id);
-  const coreCommercial = layer.id === "core"
-    ? `<div style="margin-top:2rem;">
-        <p class="sub">Core Platform plans</p>
-        <h2 style="font-size:1.35rem;margin-bottom:0.5rem;">One operating foundation. More capacity as you grow.</h2>
-        <div class="grid-3" style="margin-top:1rem;">
-          <div class="card"><h3>Starter · $99/mo</h3><p>1 user · 1 business</p></div>
-          <div class="card"><h3>Growth · $249/mo</h3><p>Up to 5 users · 1 business</p></div>
-          <div class="card"><h3>Scale · $499/mo</h3><p>Unlimited users · up to 5 active businesses · specialist Industry integrations &amp; API access.</p></div>
-        </div>
-        <p class="section-note">Each Scale business remains a separate secure DigitalGate organisation. Specialist Industry integrations require the relevant Industry App. More than 5 active businesses or custom organisation requirements move to Enterprise.</p>
-        <div class="ctas"><a class="btn btn-secondary" href="${PRICING}">Compare Core Platform plans</a></div>
-      </div>`
-    : "";
   const isIndustry = layer.id === "industry";
   const apps = isIndustry ? industryAppsOnly(all) : all;
   const templates = isIndustry ? templatesOnly(all) : [];
@@ -558,7 +549,7 @@ function layerPage(layer) {
     ? `<div style="margin-top:2.5rem;">
         <p class="sub">Sub-industry Apps</p>
         <h2 style="font-size:1.35rem;margin-bottom:0.5rem;">Specialisations under Industry Apps</h2>
-        <p style="color:#94A3B8;margin-bottom:1.25rem;max-width:40rem;">Sub-industry Apps are not a second $149 charge. Buy the Industry App, then activate the sub-industry that matches your business. One primary sub-industry is included.</p>
+        <p style="color:#94A3B8;margin-bottom:1.25rem;max-width:40rem;">Sub-industry Apps are not a second $149 charge. Buy the Industry App, then activate the sub-industry that matches your business. One primary sub-industry is included. Specialist Industry integrations and API access require Scale or Enterprise plus this Industry App.</p>
         <div class="app-grid">${templates.map(tile).join("")}</div>
       </div>`
     : "";
@@ -576,7 +567,6 @@ function layerPage(layer) {
     <div class="wrap">
       ${isIndustry ? `<p class="sub" style="margin-bottom:1rem;">Industry Apps</p>` : ""}
       <div class="app-grid">${apps.map(tile).join("")}</div>
-      ${coreCommercial}
       ${templatesBlock}
       <p style="margin-top:1.5rem;"><a href="${HUB}" class="btn btn-secondary">← All Apps</a></p>
     </div>
