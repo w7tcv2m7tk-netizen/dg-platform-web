@@ -67,4 +67,3 @@ test("legitimate $99 products remain allowed", () => {
   assert.match(pricing, /Advertising \$99/);
   assert.match(pricing, /Marketing \$99/);
 });
-
