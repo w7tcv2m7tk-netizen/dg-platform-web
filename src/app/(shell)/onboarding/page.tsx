@@ -7,6 +7,7 @@ import {
 } from "@dg/platform-core";
 
 import { AdaptiveOnboardingJourney } from "@/components/onboarding/AdaptiveOnboardingJourney";
+import { OnboardingCheckoutPending } from "@/components/onboarding/OnboardingCheckoutPending";
 import { PlatformOperatorSetup } from "@/components/onboarding/PlatformOperatorSetup";
 import { VipOnboardingExperience } from "@/components/onboarding/VipOnboardingExperience";
 import { getPlatformPageContext } from "@/lib/org-apps";
@@ -55,7 +56,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   );
   const checkoutPending = requestedCheckoutSuccess && !checkoutConfirmed;
   const checkoutStatus = checkoutConfirmed ? "success" as const : params.checkout === "cancelled" ? "cancelled" as const : null;
-  if (checkoutPending) return <VipOnboardingExperience businessName={session.organisationName}><div className="mx-auto max-w-2xl rounded-3xl border border-violet-300/15 bg-white/[0.035] p-8 text-center"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Confirming your subscription</p><h1 className="mt-2 text-2xl font-bold text-white">Aida is preparing your setup</h1><p className="mt-3 text-sm leading-6 text-slate-300">DigitalGate is waiting for the verified billing update before continuing.</p><a href="/onboarding?checkout=success" className="mt-5 inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 py-2.5 text-sm font-medium text-white">Check confirmation</a></div></VipOnboardingExperience>;
+  if (checkoutPending) return <VipOnboardingExperience businessName={session.organisationName}><OnboardingCheckoutPending /></VipOnboardingExperience>;
 
   const initialProgress = progress ?? emptyGen2Progress(founding);
   const reviewMode = params.review === "1" || params.review === "true";
