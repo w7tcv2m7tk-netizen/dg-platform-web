@@ -12,7 +12,6 @@ import {
   FOUNDING_STAGES,
   FOUNDING_WAITING_ON_LABEL,
   describeFoundingProgress,
-  foundingAgreementUrl,
   foundingPersonalInviteUrl,
   foundingSetupUrl,
   isFoundingInvitationStage,
@@ -56,7 +55,6 @@ export function FoundingStageActions({
   const [message, setMessage] = useState("");
   const personal = entryType === "personal_invitation" || isFoundingInvitationStage(current);
   const inviteUrl = inviteToken ? foundingPersonalInviteUrl(inviteToken) : null;
-  const agreementUrl = inviteToken ? foundingAgreementUrl(inviteToken) : null;
   const withdrawn = invitationStatus === "withdrawn";
   const waitingOn = FOUNDING_STAGE_WAITING_ON[current];
   const stageIndex = FOUNDING_STAGES.indexOf(current);
@@ -94,13 +92,6 @@ export function FoundingStageActions({
           ? "Invitation email resent — ask the prospect to check their inbox."
           : "Invitation email sent.",
       );
-    } else if (action === "send_agreement") {
-      setStatus("success");
-      setMessage(
-        agreementSent
-          ? "Agreement email resent — follow them up to confirm the terms."
-          : "Agreement email sent — waiting on them to confirm the terms.",
-      );
     } else {
       setStatus("success");
       setMessage("Saved.");
@@ -120,7 +111,8 @@ export function FoundingStageActions({
 
   return (
     <div className="dg-card space-y-3 lg:col-span-2">
-      <h2 className="font-semibold text-white">Founding 10 pipeline</h2>
+      <h2 className="font-semibold text-white">Founding 10 journey</h2>
+      <p className="text-sm text-slate-400">Invitation → terms → onboarding → 14-day trial → platform. Agreement emails and manual signatures are no longer required.</p>
       <p
         className={`text-sm font-medium ${
           waitingOn === "customer" ? "text-amber-200" : "text-sky-300"
@@ -169,93 +161,6 @@ export function FoundingStageActions({
       </ol>
       {personal && !withdrawn ? (
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className="rounded-lg bg-sky-600 px-3 py-1.5 text-sm font-medium text-white"
-            onClick={() =>
-              void run(invitationStatus === "sent" || invitationStatus === "accepted"
-                ? "resend_invitation"
-                : "send_invitation")
-            }
-            disabled={status === "saving"}
-          >
-            {invitationStatus === "sent" || invitationStatus === "accepted"
-              ? "Resend invitation"
-              : "Send invitation"}
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200"
-            onClick={() => void copyLink()}
-            disabled={!inviteUrl}
-          >
-            Copy invitation link
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200"
-            onClick={() => void run("mark_invitation_accepted")}
-            disabled={status === "saving"}
-          >
-            Mark accepted
-          </button>
-          <button
-            type="button"
-            className="rounded-lg border border-amber-700 px-3 py-1.5 text-sm text-amber-200"
-            onClick={() => void run("withdraw_invitation")}
-            disabled={status === "saving"}
-          >
-            Withdraw invitation
-          </button>
-        </div>
-      ) : null}
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white"
-          onClick={() => void run("accept")}
-          disabled={status === "saving" || withdrawn}
-        >
-          Accept &amp; send welcome
-        </button>
-        <button
-          type="button"
-          className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200"
-          onClick={() => void run("send_agreement")}
-          disabled={status === "saving"}
-        >
-          {agreementSent ? "Resend agreement" : "Send agreement"}
-        </button>
-        {agreementUrl ? (
-          <button
-            type="button"
-            className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200"
-            onClick={() => {
-              void navigator.clipboard.writeText(agreementUrl).then(
-                () => setMessage("Agreement link copied — send it to them directly."),
-                () => setMessage(agreementUrl),
-              );
-            }}
-          >
-            Copy agreement link
-          </button>
-        ) : null}
-        <button
-          type="button"
-          className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200"
-          onClick={() => void run("mark_signed")}
-          disabled={status === "saving"}
-        >
-          Mark signed + invite onboarding
-        </button>
-        <button
-          type="button"
-          className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm text-slate-200"
-          onClick={() => void run("invite_onboarding")}
-          disabled={status === "saving"}
-        >
-          Invite onboarding
-        </button>
         {(current === "accepted" ||
           current === "agreement_signed" ||
           current === "onboarding_invited" ||
@@ -267,17 +172,6 @@ export function FoundingStageActions({
             Start Onboarding
           </a>
         )}
-        <select
-          className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-sm text-slate-200"
-          value={current}
-          onChange={(e) => void run("advance", e.target.value as FoundingStage)}
-        >
-          {FOUNDING_STAGES.map((id) => (
-            <option key={id} value={id}>
-              Move to: {FOUNDING_STAGE_LABELS[id]}
-            </option>
-          ))}
-        </select>
       </div>
       {inviteUrl ? (
         <p className="text-xs text-slate-500">
