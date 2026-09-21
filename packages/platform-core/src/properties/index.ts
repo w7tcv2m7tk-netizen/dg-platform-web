@@ -714,8 +714,11 @@ export async function matchPropertyWithCotality(
       cotalityPropertyId: string | number | null;
       message?: string;
     }
-  | { ok: false; reason: "not_found" | "not_configured" | "upstream_error"; message: string }
+  | { ok: false; reason: "not_found" | "not_configured" | "upstream_error" | "industry_integration_plan_required" | "industry_app_required"; message: string }
 > {
+  const entitlement = await checkOrgIndustryIntegrationEntitlement(organisationId, ["property", "real-estate"]);
+  if (!entitlement.ok) return { ok: false, reason: entitlement.reason, message: entitlement.message };
+
   const { prisma } = await import("@dg/database");
 
   if (!coreLogicCredentialsConfigured()) {
@@ -1095,10 +1098,15 @@ export async function pullCotalityPropertyDetails(
         | "not_found"
         | "not_configured"
         | "not_matched"
-        | "upstream_error";
+        | "upstream_error"
+        | "industry_integration_plan_required"
+        | "industry_app_required";
       message: string;
     }
 > {
+  const entitlement = await checkOrgIndustryIntegrationEntitlement(organisationId, ["property", "real-estate"]);
+  if (!entitlement.ok) return { ok: false, reason: entitlement.reason, message: entitlement.message };
+
   const { prisma } = await import("@dg/database");
 
   if (!coreLogicCredentialsConfigured()) {
