@@ -122,14 +122,6 @@ export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
 /** Mirrors pricing page — Extend your platform */
 export const PLATFORM_ADDON_CATALOG: PlatformAddonCatalogItem[] = [
   {
-    key: "extra_users",
-    label: "Extra Users",
-    icon: "👥",
-    price: "+$29/user",
-    description: "Additional team seats beyond your plan limit",
-    pricingHref: "https://digitalgate.com.au/pricing#addons",
-  },
-  {
     key: "white_label",
     label: "White Label",
     icon: "🏷️",
