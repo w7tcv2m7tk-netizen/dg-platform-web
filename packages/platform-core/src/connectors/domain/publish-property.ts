@@ -52,7 +52,9 @@ export type PublishPropertyToDomainResult =
         | "not_connected"
         | "not_found"
         | "validation"
-        | "upstream_error";
+        | "upstream_error"
+        | "industry_integration_plan_required"
+        | "industry_app_required";
       message: string;
       securityReason?: string | null;
       placement?: DomainPlacementRef;
@@ -129,6 +131,9 @@ async function resolvePublishContact(
 export async function publishPropertyToDomain(
   input: PublishPropertyToDomainInput,
 ): Promise<PublishPropertyToDomainResult> {
+  const entitlement = await checkOrgIndustryIntegrationEntitlement(input.organisationId, ["property", "real-estate"]);
+  if (!entitlement.ok) return { ok: false, reason: entitlement.reason, message: entitlement.message };
+
   if (!domainCredentialsConfigured()) {
     return {
       ok: false,
