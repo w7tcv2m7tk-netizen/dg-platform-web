@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
   const { prisma } = await import("@dg/database");
   const subscription = await prisma.platformSubscription.findUnique({
-    where: { organisationId: auth.organisationId },
+    where: { organisationId: auth.session.organisationId },
     select: { planTier: true },
   });
   const tier = subscription?.planTier as PlatformTier | null;
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     );
   }
   const industryApp = await prisma.appInstallation.findFirst({
-    where: { organisationId: auth.organisationId, appId: { in: ["property", "real-estate"] }, enabled: true },
+    where: { organisationId: auth.session.organisationId, appId: { in: ["property", "real-estate"] }, enabled: true },
     select: { id: true },
   });
   if (!industryApp) {
