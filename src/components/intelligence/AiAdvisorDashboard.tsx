@@ -203,7 +203,7 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
         setAskStatus("error");
         setLiveAnswer({
           question: trimmed,
-          answer: json.error?.message || "Advisor could not answer right now. Try again.",
+          answer: json.error?.message || "Aida could not answer right now. Try again.",
           source: "error",
           recommendations: data.topRecommendations.slice(0, 3),
         });
@@ -251,7 +251,7 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
     <div className="space-y-8">
       {!data.scoresLive ? (
         <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-sm text-blue-200/90">
-          Advisor deepens as DigitalGate activity and relevant connected-service signals build.{" "}
+          Aida deepens as DigitalGate activity and relevant connected-service signals build.{" "}
           <Link href="/dashboard/settings/connected-services" className="underline hover:text-white">
             Connected Services →
           </Link>
@@ -275,12 +275,12 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
         ) : null}
       </div>
 
-      {/* Ask your Advisor */}
+      {/* Ask Aida */}
       <section className="relative overflow-hidden rounded-2xl border border-violet-500/25 bg-gradient-to-br from-violet-500/10 via-slate-950/50 to-slate-950/40 px-6 py-6 sm:min-h-[340px] sm:pr-[300px]">
         <img src="/aida/aida-welcome.webp" alt="" aria-hidden className="pointer-events-none absolute bottom-0 right-3 hidden h-[330px] w-auto select-none object-contain object-bottom sm:block" />
         <div className="relative z-10">
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-300/90">
-          Ask your Advisor
+          Ask Aida
         </p>
         <h2 className="mt-2 text-lg font-semibold text-white">What would you like help with?</h2>
 
@@ -326,7 +326,7 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
             disabled={askStatus === "asking" || pending}
             className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-60"
           >
-            {askStatus === "asking" ? "Thinking…" : "Ask Advisor →"}
+            {askStatus === "asking" ? "Thinking…" : "Ask Aida →"}
           </button>
           <p className="text-xs text-slate-500">
             Context:{" "}
@@ -378,7 +378,7 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
             </p>
             <p className="mt-2 text-sm leading-relaxed text-slate-200">{activeAnswer.summary}</p>
             <p className="mt-3 text-xs text-slate-500">
-              Pre-built briefing — type a question and click Ask Advisor for a live answer.
+              Pre-built briefing — type a question and click Ask Aida for a live answer.
             </p>
           </div>
         ) : null}
@@ -393,13 +393,13 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
               Recommended Actions
             </p>
             <h2 className="mt-2 text-lg font-semibold text-white">
-              What DigitalGate thinks you should do next
+              What Aida recommends you do next
             </h2>
             <p className="mt-1 text-sm text-slate-400">
               Prioritisation from Twin, Brain, Health and available signals — execute in Command Centre.
             </p>
           </div>
-          <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
+          <Link href="/command" className="text-sm text-sky-400 hover:underline">
             Open Command Centre →
           </Link>
         </div>
@@ -415,18 +415,18 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
       <section className="rounded-xl border border-slate-800/80 bg-slate-950/20 px-5 py-4 text-sm text-slate-400">
         <p className="font-medium text-slate-300">How this fits together</p>
         <p className="mt-2">
-          <span className="text-slate-200">AI Advisor</span> reasons ·{" "}
+          <span className="text-slate-200">Aida</span> reasons ·{" "}
           <span className="text-slate-200">Recommended Actions</span> prioritise ·{" "}
           <span className="text-slate-200">Command Centre</span> executes.
         </p>
       </section>
 
-      <IntelligenceFlow active="AI Advisor" />
+      <IntelligenceFlow active="Aida" />
       <IntelligenceHierarchy active="advisor" />
 
       <div className="flex flex-wrap gap-4 text-sm">
         <Link
-          href="/dashboard"
+          href="/command"
           className="rounded-full bg-sky-600 px-4 py-2 font-semibold text-white hover:bg-sky-500"
         >
           Open Command Centre →
