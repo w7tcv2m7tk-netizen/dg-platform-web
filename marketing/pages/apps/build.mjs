@@ -319,7 +319,7 @@ function appPage(app) {
     : "";
 
   const templatesBody = Array.isArray(app.templates) && app.templates.length
-    ? `<p class="section-body">Activate the sub-industry App that matches your business. One Industry App subscription ($149/mo) includes one primary sub-industry. Extra sub-industry Apps are +$29/mo.</p>
+    ? `<p class="section-body">Activate the sub-industry App that matches your business. One Industry App subscription ($99/mo) includes one primary sub-industry. Extra sub-industry Apps are +$29/mo.</p>
       <div class="templates-list">${app.templates.map((t) =>
         `<a href="${esc(t.href || "#")}"><span class="t-name">${esc(t.name)}</span><span class="t-status">${esc(t.status || "")}</span></a>`
       ).join("")}</div>`
@@ -519,7 +519,7 @@ function hubPage() {
   <section class="alt cta-band">
     <div class="wrap">
       <h2>Start with the platform. Add Apps as you grow.</h2>
-      <p>Starter $99 · Growth $249 · Scale $499. Growth Suite $399 and Industry Apps $149 are add-ons — they do not include Core. One primary sub-industry is included with each Industry App.</p>
+      <p>Starter $99 · Growth $249 · Scale $499. Growth Suite $399 and Industry Apps $99 are add-ons — they do not include Core. One primary sub-industry is included with each Industry App.</p>
       <div class="ctas">
         <a class="btn btn-primary" href="${FOUNDING}">Founding Customer Programme →</a>
         <a class="btn btn-secondary" href="${CONTACT}">Platform Consultation</a>
@@ -558,7 +558,7 @@ function layerPage(layer) {
     ? `<div style="margin-top:2.5rem;">
         <p class="sub">Sub-industry Apps</p>
         <h2 style="font-size:1.35rem;margin-bottom:0.5rem;">Specialisations under Industry Apps</h2>
-        <p style="color:#94A3B8;margin-bottom:1.25rem;max-width:40rem;">Sub-industry Apps are not a second $149 charge. Buy the Industry App, then activate the sub-industry that matches your business. One primary sub-industry is included.</p>
+        <p style="color:#94A3B8;margin-bottom:1.25rem;max-width:40rem;">Sub-industry Apps are not a second $99 charge. Buy the Industry App, then activate the sub-industry that matches your business. One primary sub-industry is included.</p>
         <div class="app-grid">${templates.map(tile).join("")}</div>
       </div>`
     : "";
