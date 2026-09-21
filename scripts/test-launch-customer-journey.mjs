@@ -13,6 +13,8 @@ const publicRoutes = read("src/lib/public-routes.ts");
 const platformShellLoader = read("src/components/PlatformShellLoader.tsx");
 const businessSetup = read("src/app/(shell)/dashboard/business-setup/page.tsx");
 const implementation = read("src/app/(shell)/implementation/page.tsx");
+const dashboard = read("src/app/(shell)/dashboard/page.tsx");
+const onboardingBanner = read("src/components/onboarding/Gen2OnboardingChecklistBanner.tsx");
 
 test("public signup stays outside the authenticated platform shell", () => {
   assert.match(signupLayout, /DigitalGateLogo/);
@@ -121,4 +123,19 @@ test("onboarding completion is described as a platform hand-off, not delivery im
   assert.match(journey, /Platform hand-off complete/);
   assert.match(implementation, /Onboarding hand-off/);
   assert.doesNotMatch(implementation, /\["Implementation",\s*onboardingComplete\]/);
+});
+
+test("first-login Aida handover is available to every signed-in Gen 2 customer", () => {
+  assert.match(
+    dashboard,
+    /platformSession \? <Gen2OnboardingChecklistBanner organisationId=\{platformSession\.organisationId\} organisationName=\{platformSession\.organisationName\}/,
+  );
+  const renderCount = (dashboard.match(/<Gen2OnboardingChecklistBanner/g) ?? []).length;
+  assert.equal(renderCount, 1, "the onboarding/handover banner should be rendered once, outside founding-only branching");
+  assert.match(
+    onboardingBanner,
+    /organisationName=\{organisationName\}/,
+    "Aida handover must use the real organisation name",
+  );
+  assert.doesNotMatch(onboardingBanner, /organisationName="your business"/);
 });

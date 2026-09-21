@@ -304,6 +304,7 @@ export default async function DashboardPage() {
       ) : null}
 
       <main className={platformSession && !foundingCustomerMode ? "dg-page-main pt-4 md:pt-6" : "dg-page-main"}>
+        {platformSession ? <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} organisationName={platformSession.organisationName} /> : null}
         {!platformSession ? (
           <div className="dg-card mb-6 border-sky-500/30">
             <h2 className="font-semibold text-white">Your business workspace is ready when you are</h2>
@@ -319,7 +320,6 @@ export default async function DashboardPage() {
           </div>
         ) : foundingCustomerMode ? (
           <>
-            <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} />
             <FoundingOperatorHome
               overview={overview}
               enabledAppIds={enabledAppIds}

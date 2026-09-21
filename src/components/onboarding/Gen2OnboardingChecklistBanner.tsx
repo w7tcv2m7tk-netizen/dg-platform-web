@@ -23,7 +23,7 @@ function firstActions(primaryIndustry?: string) {
 }
 
 /** Persistent getting-started checklist until onboarding is complete, then a one-time Aida handover. */
-export async function Gen2OnboardingChecklistBanner({ organisationId }: { organisationId: string }) {
+export async function Gen2OnboardingChecklistBanner({ organisationId, organisationName }: { organisationId: string; organisationName: string }) {
   const progress = await getGen2OnboardingProgress(organisationId);
 
   if (progress.completedAt) {
@@ -34,7 +34,7 @@ export async function Gen2OnboardingChecklistBanner({ organisationId }: { organi
     ];
     return (
       <FirstLoginAidaHandover
-        organisationName="your business"
+        organisationName={organisationName}
         industryLabel={progress.operatingProfile?.primaryIndustry?.replaceAll("-", " ")}
         configuredAreas={[...new Set(configuredAreas)]}
         actions={firstActions(progress.operatingProfile?.primaryIndustry)}
