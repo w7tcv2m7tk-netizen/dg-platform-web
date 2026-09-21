@@ -1,7 +1,7 @@
 import { getOrgGoogleAnalyticsSettings, saveOrgGoogleAnalyticsSettings } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,12 @@ export async function GET(req: Request) {
 async function save(req: Request, body: { property?: unknown; propertyLabel?: unknown; searchConsoleSite?: unknown }) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const denied = requirePermission(session, {
+    module: "settings",
+    action: "manage",
+    scope: "organisation",
+  });
+  if (denied) return denied;
   const clean = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
   const current = await getOrgGoogleAnalyticsSettings(session.organisationId);
   const property = body.property === undefined ? current.property : clean(body.property);
