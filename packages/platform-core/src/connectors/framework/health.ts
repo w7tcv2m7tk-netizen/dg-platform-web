@@ -235,12 +235,47 @@ function statusFromBlob(
     connectorId === "google-gmail" ||
     connectorId === "microsoft-365" ||
     connectorId === "microsoft-ads" ||
-    connectorId === "meta" ||
     connectorId === "tiktok-ads" ||
-    connectorId === "linkedin" ||
     connectorId === "domain"
   ) {
     return oauthOrgStatusFromBlob(blob);
+  }
+
+  if (connectorId === "meta") {
+    const base = oauthOrgStatusFromBlob(blob);
+    if (base.status !== "connected") return base;
+    const pages = Array.isArray(blob.pages) ? blob.pages : [];
+    const selectedPageIds = Array.isArray(blob.selectedPageIds)
+      ? blob.selectedPageIds.filter((value): value is string => typeof value === "string")
+      : [];
+    if (pages.length > 0 && selectedPageIds.length === 0) {
+      return {
+        ...base,
+        status: "degraded",
+        lastError:
+          "Meta is authorised, but no Facebook Page has been assigned to this organisation yet.",
+      };
+    }
+    return base;
+  }
+
+  if (connectorId === "linkedin") {
+    const base = oauthOrgStatusFromBlob(blob);
+    if (base.status !== "connected") return base;
+    const organisations = Array.isArray(blob.organizations) ? blob.organizations : [];
+    const selectedOrganizationUrn =
+      typeof blob.selectedOrganizationUrn === "string"
+        ? blob.selectedOrganizationUrn.trim()
+        : "";
+    if (organisations.length > 0 && !selectedOrganizationUrn) {
+      return {
+        ...base,
+        status: "degraded",
+        lastError:
+          "LinkedIn is authorised, but no company Page has been assigned to this organisation yet.",
+      };
+    }
+    return base;
   }
 
   if (connectorId === "apple-icloud") {
