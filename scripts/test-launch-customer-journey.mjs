@@ -77,7 +77,7 @@ test("new-account onboarding can reach its own signed-out handoff", () => {
   assert.doesNotMatch(publicRoutes, /["']\/onboarding\(\.\*\)["']/);
   assert.match(onboarding, /if \(!session\)/);
   assert.match(onboarding, /redirect_url/);
-  assert.match(onboarding, /Sign in to continue/);
+  assert.match(onboarding, /Sign in to start your 14-day free trial/);\n  assert.match(onboarding, /Start free trial/);
 });
 
 test("signed-out onboarding recovery does not render authenticated app chrome", () => {
