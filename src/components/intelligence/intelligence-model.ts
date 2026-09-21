@@ -52,16 +52,16 @@ export const INTELLIGENCE_ANALYSIS: IntelligenceSurface[] = [
 export const INTELLIGENCE_ACTION: IntelligenceSurface[] = [
   {
     id: "advisor",
-    label: "AI Advisor",
+    label: "Aida",
     question: "What should the business do?",
-    detail: "Reasoned recommendations based on Twin + Brain + live signals.",
+    detail: "Aida reasons across the Digital Twin, Business Brain and live business signals.",
     href: "/dashboard/advisor",
   },
   {
     id: "actions",
     label: "Recommended Actions",
     question: "What matters most right now?",
-    detail: "Prioritised next steps from Advisor reasoning.",
+    detail: "Prioritised next steps from Aida reasoning.",
     href: "/dashboard/advisor",
   },
   {
@@ -69,7 +69,7 @@ export const INTELLIGENCE_ACTION: IntelligenceSurface[] = [
     label: "Command Centre",
     question: "What needs to happen next?",
     detail: "Prioritised actions and execution.",
-    href: "/dashboard",
+    href: "/command",
   },
 ];
 
@@ -104,7 +104,7 @@ export const INTELLIGENCE_ACTIVE_LABEL: Record<IntelligenceHierarchyActive, stri
   health: "Business Health",
   benchmarks: "Benchmarks",
   insights: "Insights",
-  advisor: "AI Advisor",
+  advisor: "Aida",
   reports: "Reports",
   command: "Command Centre",
 };
