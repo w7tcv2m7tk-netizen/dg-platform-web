@@ -558,7 +558,7 @@ function layerPage(layer) {
     ? `<div style="margin-top:2.5rem;">
         <p class="sub">Sub-industry Apps</p>
         <h2 style="font-size:1.35rem;margin-bottom:0.5rem;">Specialisations under Industry Apps</h2>
-        <p style="color:#94A3B8;margin-bottom:1.25rem;max-width:40rem;">Sub-industry Apps are not a second $99 charge. Buy the Industry App, then activate the sub-industry that matches your business. One primary sub-industry is included.</p>
+        <p style="color:#94A3B8;margin-bottom:1.25rem;max-width:40rem;">Sub-industry Apps are not a second $149 charge. Buy the Industry App, then activate the sub-industry that matches your business. One primary sub-industry is included.</p>
         <div class="app-grid">${templates.map(tile).join("")}</div>
       </div>`
     : "";
