@@ -7,7 +7,7 @@
 **Cohorts:** [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md)  
 **Code:** `INDUSTRY_COMMERCIAL_LOCK` · `industryCheckoutLines()` in `packages/platform-core/src/industry/platform.ts`
 
-This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI (`/pricing`, Founding application) must match this lock. Live invoices and CRM deals belong in Commerce / CRM, not here.
+This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI (`/pricing`, standard signup/onboarding, and private Founding 10 acceptance) must match this lock. Live invoices and CRM deals belong in Commerce / CRM, not here.
 
 ## Public lock
 
@@ -129,7 +129,7 @@ Founding programme benefits (access / influence) **do not** automatically includ
 - **Try DigitalGate free for 14 days** (see `BILLING_COMMERCIAL_CONFIG.trialDays`; may become 21 or 28).
 - **Annual billing** ≈ **10 months** of monthly pricing (save ~2 months) — see `BILLING_COMMERCIAL_CONFIG.annualMonthsEquivalent`.
 - **Founding referral commission** remains separate: Founding 10 **20%** on qualifying fees actually received for the first 12 months per referred customer. Standard customer referral programmes, where offered, are separate and are not additional Founding cohorts.
-- Exact programme terms in the offer/agreement — not a second public price list.
+- Exact programme terms are accepted in-product for the private Founding 10 invitation — not a second public price list or mandatory separate agreement.
 - Customer cohort status and Acquisition Partner commission are **separate**. Commission is a % of **qualifying collected** Platform + App (+ Template) fees — not list price.
 
 ## Acquisition Partner packaging (not customer pricing)
