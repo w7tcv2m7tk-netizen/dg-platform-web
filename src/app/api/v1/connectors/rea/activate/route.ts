@@ -2,7 +2,7 @@ import { activateOrgReaAgency, bootConnectorEngine } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
-import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
+import { checkSpecialistIndustryIntegrationEntitlement } from "@/lib/industry-integration-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -23,40 +23,13 @@ export async function POST(req: Request) {
   });
   if (denied) return denied;
 
-  const { prisma } = await import("@dg/database");
-  const subscription = await prisma.platformSubscription.findUnique({
-    where: { organisationId: session.organisationId },
-    select: { planTier: true },
-  });
-  const tier = subscription?.planTier as PlatformTier | null;
-  if (!canUseIndustryIntegrations(tier)) {
+  const entitlement = await checkSpecialistIndustryIntegrationEntitlement(
+    session.organisationId,
+    "property",
+  );
+  if (!entitlement.ok) {
     return NextResponse.json(
-      {
-        error: {
-          code: "industry_integration_plan_required",
-          message: "Specialist Industry integrations require the Scale or Enterprise Core Platform plan.",
-        },
-      },
-      { status: 403 },
-    );
-  }
-
-  const industryApp = await prisma.appInstallation.findFirst({
-    where: {
-      organisationId: session.organisationId,
-      appId: { in: ["property", "real-estate"] },
-      enabled: true,
-    },
-    select: { id: true },
-  });
-  if (!industryApp) {
-    return NextResponse.json(
-      {
-        error: {
-          code: "industry_app_required",
-          message: "The relevant Property / Real Estate Industry App must be active before connecting REA.",
-        },
-      },
+      { error: { code: entitlement.code, message: entitlement.message } },
       { status: 403 },
     );
   }
