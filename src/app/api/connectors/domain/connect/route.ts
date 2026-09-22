@@ -14,7 +14,7 @@ import {
   writeEntitlementResponse,
 } from "@/lib/write-entitlement";
 import { fetchPortalMe } from "@/lib/dg-api";
-import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
+import { specialistIndustryEntitlementBlock } from "@/lib/specialist-industry-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -74,12 +74,8 @@ export async function GET() {
   const writeBlock = await tenantWriteEntitlementBlock(session);
   if (writeBlock) return writeEntitlementResponse(writeBlock);
 
-  const { prisma } = await import("@dg/database");
-  const subscription = await prisma.platformSubscription.findUnique({ where: { organisationId: session.organisationId }, select: { planTier: true } });
-  const tier = subscription?.planTier as PlatformTier | null;
-  if (!canUseIndustryIntegrations(tier)) return NextResponse.json({ error: { code: "industry_integration_plan_required", message: "Specialist Industry integrations require the Scale or Enterprise Core Platform plan." } }, { status: 403 });
-  const industryApp = await prisma.appInstallation.findFirst({ where: { organisationId: session.organisationId, appId: { in: ["property", "real-estate"] }, enabled: true }, select: { id: true } });
-  if (!industryApp) return NextResponse.json({ error: { code: "industry_app_required", message: "The relevant Property / Real Estate Industry App must be active before using Domain." } }, { status: 403 });
+  const entitlementBlock = await specialistIndustryEntitlementBlock(session.organisationId, "property");
+  if (entitlementBlock) return entitlementBlock;
 
   const state = randomBytes(24).toString("hex");
   const nonce = randomBytes(24).toString("hex");
