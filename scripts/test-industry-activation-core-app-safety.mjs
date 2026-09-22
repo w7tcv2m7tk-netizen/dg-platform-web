@@ -1,0 +1,13 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const apps=fs.readFileSync("src/app/api/v1/org/apps/route.ts","utf8");
+const orgApps=fs.readFileSync("packages/platform-core/src/apps/org-apps.ts","utf8");
+const coreMatch=orgApps.match(/FOUNDING_MODE_CORE_APP_IDS = \[([^\]]+)\]/);
+assert.ok(coreMatch,"core app catalogue must remain explicit");
+const core=[...coreMatch[1].matchAll(/"([^"]+)"/g)].map(m=>m[1]);
+const knownIndustry=[...apps.matchAll(/industryIdForAppOrTemplate\((?:appId|key)\)/g)];
+assert.ok(knownIndustry.length>=2,"industry purchase guard must map both purchases and requested app ids");
+assert.match(orgApps,/const ids = new Set<string>\(\s*TIER_BASE_APPS\[selection\.platformTier\]/s,"plan selection must begin with canonical core apps");
+assert.match(apps,/const industryId = industryIdForAppOrTemplate\(appId\);\s*return industryId != null && !purchasedIndustries\.has\(industryId\);/s,"only IDs recognised as Industry must require an Industry purchase");
+for(const id of core) assert.ok(id.length>0);
+console.log("industry activation core-app safety: ok ("+core.length+" canonical core apps)");
