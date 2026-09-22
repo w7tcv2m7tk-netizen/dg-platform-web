@@ -17,9 +17,20 @@ assert.match(
 );
 assert.match(
   pricing,
-  /key:\s*"business"[\s\S]*users:\s*"Unlimited Users"/,
+  /key:\s*"business"[\s\S]*users:\s*"Up to 20 Users"/,
   "Scale must retain the 20-user cap in canonical pricing",
 );
+assert.match(
+  plans,
+  /export const SCALE_MAX_USERS = 20;/,
+  "Scale canonical entitlement must remain capped at 20 users",
+);
+assert.match(
+  plans,
+  /business:\s*\{\s*maxUsers:\s*SCALE_MAX_USERS,\s*maxActiveBusinesses:\s*SCALE_MAX_BUSINESSES\s*\}/,
+  "Scale plan limits must enforce the canonical 20-user and 5-business caps",
+);
+
 assert.match(
   pricing,
   /key:\s*"business"[\s\S]*Industry integrations & API access/,
