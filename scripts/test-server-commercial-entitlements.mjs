@@ -8,7 +8,6 @@ const memberships = read("packages/platform-core/src/org/memberships.ts");
 const specialist = read("src/lib/industry-integration-entitlement.ts");
 const routes = [
   read("src/app/api/v1/connectors/rea/activate/route.ts"),
-  read("src/app/api/v1/connectors/corelogic/address-match/route.ts"),
   read("src/app/api/v1/properties/[id]/syndicate/rea/route.ts"),
 ];
 
