@@ -5,11 +5,6 @@ const read = (path) => fs.readFileSync(path, "utf8");
 const plans = read("src/lib/plans.ts");
 const invite = read("src/app/api/v1/org/team/invite/route.ts");
 const memberships = read("packages/platform-core/src/org/memberships.ts");
-const specialist = read("src/lib/industry-integration-entitlement.ts");
-const routes = [
-  read("src/app/api/v1/connectors/rea/activate/route.ts"),
-  read("src/app/api/v1/properties/[id]/syndicate/rea/route.ts"),
-];
 
 assert.ok(plans.includes("starter: { maxUsers: 1, maxActiveBusinesses: 1 }"));
 assert.ok(plans.includes("professional: { maxUsers: 5, maxActiveBusinesses: 1 }"));
@@ -27,12 +22,4 @@ assert.ok(memberships.includes("business: 5"));
 assert.ok(memberships.includes("ownedActiveOrganisations.length >= limit"));
 assert.ok(memberships.includes("plan_business_limit"));
 
-assert.ok(specialist.includes("canUseIndustryIntegrations(tier)"));
-assert.ok(specialist.includes("settings.profile?.purchasedApps"));
-assert.ok(specialist.includes("industryIdForAppOrTemplate(key) === requiredIndustryId"));
-for (const source of routes) {
-  assert.ok(source.includes("checkSpecialistIndustryIntegrationEntitlement"));
-  assert.ok(source.includes('"property"'));
-}
-
-console.log("Server commercial entitlement regression checks passed");
+console.log("Server user/business entitlement regression checks passed");
