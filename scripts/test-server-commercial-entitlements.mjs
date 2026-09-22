@@ -1,35 +1,39 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
 
-const plans = fs.readFileSync("src/lib/plans.ts", "utf8");
-const invite = fs.readFileSync("src/app/api/v1/org/team/invite/route.ts", "utf8");
-const memberships = fs.readFileSync("packages/platform-core/src/org/memberships.ts", "utf8");
-const specialist = fs.readFileSync("src/lib/industry-integration-entitlement.ts", "utf8");
-const reaActivate = fs.readFileSync("src/app/api/v1/connectors/rea/activate/route.ts", "utf8");
-const corelogic = fs.readFileSync("src/app/api/v1/connectors/corelogic/address-match/route.ts", "utf8");
-const reaPublish = fs.readFileSync("src/app/api/v1/properties/[id]/syndicate/rea/route.ts", "utf8");
+const read = (path) => fs.readFileSync(path, "utf8");
+const plans = read("src/lib/plans.ts");
+const invite = read("src/app/api/v1/org/team/invite/route.ts");
+const memberships = read("packages/platform-core/src/org/memberships.ts");
+const specialist = read("src/lib/industry-integration-entitlement.ts");
+const routes = [
+  read("src/app/api/v1/connectors/rea/activate/route.ts"),
+  read("src/app/api/v1/connectors/corelogic/address-match/route.ts"),
+  read("src/app/api/v1/properties/[id]/syndicate/rea/route.ts"),
+];
 
-assert.match(plans, /starter:\s*\{[^}]*maxUsers:\s*1,[^}]*maxActiveBusinesses:\s*1/s);
-assert.match(plans, /professional:\s*\{[^}]*maxUsers:\s*5,[^}]*maxActiveBusinesses:\s*1/s);
-assert.match(plans, /export const SCALE_MAX_USERS = 20;/);
-assert.match(plans, /export const SCALE_MAX_BUSINESSES = 5;/);
+assert.ok(plans.includes("starter: { maxUsers: 1, maxActiveBusinesses: 1 }"));
+assert.ok(plans.includes("professional: { maxUsers: 5, maxActiveBusinesses: 1 }"));
+assert.ok(plans.includes("export const SCALE_MAX_USERS = 20;"));
+assert.ok(plans.includes("export const SCALE_MAX_BUSINESSES = 5;"));
+assert.ok(plans.includes("business: { maxUsers: SCALE_MAX_USERS, maxActiveBusinesses: SCALE_MAX_BUSINESSES }"));
 
-assert.match(invite, /status:\s*\{\s*in:\s*\["active",\s*"invited"\]\s*\}/);
-assert.match(invite, /occupiedSeats\s*>=\s*maxUsers/);
-assert.match(invite, /code:\s*"plan_user_limit"/);
+assert.ok(invite.includes('status: { in: ["active", "invited"] }'));
+assert.ok(invite.includes("occupiedSeats >= maxUsers"));
+assert.ok(invite.includes('code: "plan_user_limit"'));
 
-assert.match(memberships, /starter:\s*1/);
-assert.match(memberships, /professional:\s*1/);
-assert.match(memberships, /business:\s*5/);
-assert.match(memberships, /ownedActiveOrganisations\.length\s*>=\s*limit/);
-assert.match(memberships, /plan_business_limit/);
+assert.ok(memberships.includes("starter: 1"));
+assert.ok(memberships.includes("professional: 1"));
+assert.ok(memberships.includes("business: 5"));
+assert.ok(memberships.includes("ownedActiveOrganisations.length >= limit"));
+assert.ok(memberships.includes("plan_business_limit"));
 
-assert.match(specialist, /canUseIndustryIntegrations\(tier\)/);
-assert.match(specialist, /settings\.profile\?\.purchasedApps/);
-assert.match(specialist, /industryIdForAppOrTemplate\(key\)\s*===\s*requiredIndustryId/);
-for (const source of [reaActivate, corelogic, reaPublish]) {
-  assert.match(source, /checkSpecialistIndustryIntegrationEntitlement/);
-  assert.match(source, /"property"/);
+assert.ok(specialist.includes("canUseIndustryIntegrations(tier)"));
+assert.ok(specialist.includes("settings.profile?.purchasedApps"));
+assert.ok(specialist.includes("industryIdForAppOrTemplate(key) === requiredIndustryId"));
+for (const source of routes) {
+  assert.ok(source.includes("checkSpecialistIndustryIntegrationEntitlement"));
+  assert.ok(source.includes('"property"'));
 }
 
 console.log("Server commercial entitlement regression checks passed");
