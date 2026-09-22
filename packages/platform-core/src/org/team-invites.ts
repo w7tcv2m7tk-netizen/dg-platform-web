@@ -119,22 +119,7 @@ export async function activateTeamInviteSeat(input: {
     };
   }
 
-  const created = await prisma.membership.create({
-    data: {
-      organisationId: input.organisationId,
-      clerkUserId: input.clerkUserId,
-      role: input.role,
-      status: "active",
-      email,
-      displayName,
-    },
-  });
-  return {
-    organisationId: input.organisationId,
-    membershipId: created.id,
-    slug: await loadOrgSlug(input.organisationId),
-    role: created.role,
-  };
+  // Invitation metadata alone must never mint a seat. A legitimate team invite\r\n  // already has an invited membership reserved by the invite route, and that\r\n  // reservation is counted against the canonical plan seat limit.\r\n  return null;
 }
 
 /** Store a pending seat until they accept and sign in. */
