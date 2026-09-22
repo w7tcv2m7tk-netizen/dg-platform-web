@@ -9,8 +9,8 @@ const reaActivate = fs.readFileSync("src/app/api/v1/connectors/rea/activate/rout
 const corelogic = fs.readFileSync("src/app/api/v1/connectors/corelogic/address-match/route.ts", "utf8");
 const reaPublish = fs.readFileSync("src/app/api/v1/properties/[id]/syndicate/rea/route.ts", "utf8");
 
-assert.match(plans, /starter:\s*\{\s*maxUsers:\s*1,\s*maxActiveBusinesses:\s*1/);
-assert.match(plans, /professional:\s*\{\s*maxUsers:\s*5,\s*maxActiveBusinesses:\s*1/);
+assert.match(plans, /starter:\s*\{[^}]*maxUsers:\s*1,[^}]*maxActiveBusinesses:\s*1/s);
+assert.match(plans, /professional:\s*\{[^}]*maxUsers:\s*5,[^}]*maxActiveBusinesses:\s*1/s);
 assert.match(plans, /export const SCALE_MAX_USERS = 20;/);
 assert.match(plans, /export const SCALE_MAX_BUSINESSES = 5;/);
 
