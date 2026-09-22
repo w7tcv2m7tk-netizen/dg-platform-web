@@ -250,6 +250,29 @@ export async function PATCH(req: Request) {
   });
 
   const settings = (org?.settings as OrgSettings | null) ?? {};
+
+  // Customer activation configures an Industry App; it must not create the
+  // commercial entitlement. Purchase truth is provisioned by Stripe.
+  if (action === "activate" && !staffOrOperator) {
+    const purchased = resolveIndustryEntitlements({
+      purchasedApps: settings.profile?.purchasedApps ?? [],
+    });
+    const purchasedIndustry = purchased.industries.find(
+      (item) => item.industryId === template.industryId,
+    );
+    if (!purchasedIndustry?.entitled) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "industry_app_purchase_required",
+            message: `Purchase the ${template.industryId} Industry App before activating this template.`,
+          },
+        },
+        { status: 403 },
+      );
+    }
+  }
+
   let enabled = resolveEnabledAppIds(settings);
   const currentIndustry = industrySettingsForOrg(settings);
   const industryPatch = buildTemplateActivationPatch(
