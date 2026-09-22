@@ -11,6 +11,7 @@ import {
   hasPlatformAuthority,
   normalisePaidAppKeys,
   paidAppKeyForAppId,
+  industryIdForAppOrTemplate,
   readOrgIndustrySettings,
   resolveEnabledAppIds,
 } from "@dg/platform-core";
@@ -28,6 +29,7 @@ type OrgSettings = {
   };
   profile?: {
     purchasedPremium?: unknown;
+    purchasedApps?: unknown;
   };
   industry?: Record<string, unknown>;
   services?: {
@@ -193,6 +195,26 @@ function unpaidPaidApps(
   return appIds.filter((appId) => !paidAppActivationAllowed(appId, settings, staffOrOperator));
 }
 
+function unpaidIndustryApps(
+  appIds: string[],
+  settings: OrgSettings,
+  staffOrOperator: boolean,
+): string[] {
+  if (staffOrOperator) return [];
+  const purchased = Array.isArray(settings.profile?.purchasedApps)
+    ? settings.profile.purchasedApps.filter((key): key is string => typeof key === "string")
+    : [];
+  const purchasedIndustries = new Set(
+    purchased
+      .map((key) => industryIdForAppOrTemplate(key))
+      .filter((id): id is string => Boolean(id)),
+  );
+  return appIds.filter((appId) => {
+    const industryId = industryIdForAppOrTemplate(appId);
+    return industryId != null && !purchasedIndustries.has(industryId);
+  });
+}
+
 function requireAppSettingsManage(
   session: Parameters<typeof requirePermission>[0],
 ): ReturnType<typeof requirePermission> {
@@ -306,6 +328,18 @@ export async function PATCH(req: Request) {
     if (denied) return denied;
     const requested = appIdsFromPlanSelection(body.plan);
     const unpaid = unpaidPaidApps(requested, settings, staffOrOperator);
+    const unpaidIndustry = unpaidIndustryApps(requested, settings, staffOrOperator);
+    if (unpaidIndustry.length) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "industry_app_purchase_required",
+            message: `Purchase the relevant Industry App before activation: ${unpaidIndustry.join(", ")}`,
+          },
+        },
+        { status: 403 },
+      );
+    }
     if (unpaid.length) {
       return NextResponse.json(
         {
@@ -323,6 +357,17 @@ export async function PATCH(req: Request) {
     if (denied) return denied;
     const set = new Set(enabled);
     const turningOn = body.enabled === true || (body.enabled !== false && !set.has(body.appId));
+    if (turningOn && unpaidIndustryApps([body.appId], settings, staffOrOperator).length) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "industry_app_purchase_required",
+            message: `Purchase the relevant Industry App before activating: ${body.appId}`,
+          },
+        },
+        { status: 403 },
+      );
+    }
     if (turningOn && !paidAppActivationAllowed(body.appId, settings, staffOrOperator)) {
       return NextResponse.json(
         {
@@ -344,6 +389,18 @@ export async function PATCH(req: Request) {
     if (denied) return denied;
     const requested = body.enabled.filter((id: unknown) => typeof id === "string") as string[];
     const unpaid = unpaidPaidApps(requested, settings, staffOrOperator);
+    const unpaidIndustry = unpaidIndustryApps(requested, settings, staffOrOperator);
+    if (unpaidIndustry.length) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "industry_app_purchase_required",
+            message: `Purchase the relevant Industry App before activation: ${unpaidIndustry.join(", ")}`,
+          },
+        },
+        { status: 403 },
+      );
+    }
     if (unpaid.length) {
       return NextResponse.json(
         {
