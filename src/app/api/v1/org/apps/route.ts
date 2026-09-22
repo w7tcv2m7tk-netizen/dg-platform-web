@@ -29,7 +29,7 @@ type OrgSettings = {
   };
   profile?: {
     purchasedPremium?: unknown;
-    purchasedApps?: unknown;
+    purchasedApps?: string[];
   };
   industry?: Record<string, unknown>;
   services?: {
