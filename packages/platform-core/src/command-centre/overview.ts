@@ -324,7 +324,22 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       },
     }),
     prisma.organisation.count({ where: { billingCustomerId: { not: null } } }),
-    prisma.platformSubscription.findMany({\n      where: {\n        platformExempt: false,\n        status: { in: ["TRIALING", "ACTIVE", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED", "CANCEL_AT_PERIOD_END"] },\n      },\n      select: { planTier: true, status: true },\n    }),
+    prisma.platformSubscription.findMany({
+      where: {
+        platformExempt: false,
+        status: {
+          in: [
+            "TRIALING",
+            "ACTIVE",
+            "PAYMENT_FAILED",
+            "PAST_DUE",
+            "RESTRICTED",
+            "CANCEL_AT_PERIOD_END",
+          ],
+        },
+      },
+      select: { planTier: true, status: true },
+    }),
     prisma.platformReferral.count(),
     prisma.platformReferral.groupBy({
       by: ["status"],
