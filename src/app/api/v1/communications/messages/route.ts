@@ -1,4 +1,5 @@
 import {
+  assertEntitlement,
   communicationsHealthCheck,
   getCompany,
   getContact,
@@ -84,6 +85,14 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const outboundGate = await assertEntitlement(session.organisationId, "outbound");
+  if (!outboundGate.ok) {
+    return NextResponse.json(
+      { error: { code: outboundGate.code, message: outboundGate.message } },
+      { status: 403 },
+    );
+  }
   const blocked = await rejectDemoLiveAction(session);
   if (blocked) return blocked;
 
