@@ -250,7 +250,15 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   };
 
   if (org?.billingCustomerId) {
-    sessionParams.customer = org.billingCustomerId;
+    try {
+      const customer = await stripe.customers.retrieve(org.billingCustomerId);
+      if (!customer.deleted) sessionParams.customer = customer.id;
+      else sessionParams.customer_email = input.email;
+    } catch {
+      // A stale customer id can survive a Stripe account/mode migration.
+      // Do not strand onboarding: let Checkout create a fresh customer.
+      sessionParams.customer_email = input.email;
+    }
   } else {
     sessionParams.customer_email = input.email;
   }
