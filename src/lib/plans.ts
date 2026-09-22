@@ -4,7 +4,6 @@ export type PlatformTier = "starter" | "professional" | "business" | "enterprise
 export const INDUSTRY_INTEGRATION_MIN_TIER: PlatformTier = "business";
 export const MULTI_BUSINESS_MIN_TIER: PlatformTier = "business";
 export const SCALE_MAX_BUSINESSES = 5;
-export const SCALE_MAX_USERS = 20;
 
 export const PLATFORM_TIER_LIMITS: Record<
   PlatformTier,
@@ -12,7 +11,7 @@ export const PLATFORM_TIER_LIMITS: Record<
 > = {
   starter: { maxUsers: 1, maxActiveBusinesses: 1 },
   professional: { maxUsers: 5, maxActiveBusinesses: 1 },
-  business: { maxUsers: SCALE_MAX_USERS, maxActiveBusinesses: SCALE_MAX_BUSINESSES },
+  business: { maxUsers: null, maxActiveBusinesses: SCALE_MAX_BUSINESSES },
   enterprise: { maxUsers: null, maxActiveBusinesses: null },
 };
 
