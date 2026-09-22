@@ -31,6 +31,12 @@ assert.match(
   "Scale must retain the 5-business entitlement",
 );
 
+assert.match(
+  plans,
+  /business:\s*\{\s*maxUsers:\s*null,\s*maxActiveBusinesses:\s*SCALE_MAX_BUSINESSES\s*\}/,
+  "Scale must retain unlimited users while remaining capped at 5 businesses",
+);
+
 assert.doesNotMatch(
   plans,
   /extra_users|Extra Users|\+\$29\/user/,
