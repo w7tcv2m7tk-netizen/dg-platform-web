@@ -1,4 +1,5 @@
-import { LlmChatError, runAiVisibilityModelObservations } from "@dg/platform-core";
+import {
+  assertEntitlement, LlmChatError, runAiVisibilityModelObservations } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
@@ -6,6 +7,14 @@ import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/pl
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const aiGate = await assertEntitlement(session.organisationId, "useAi");
+  if (!aiGate.ok) {
+    return NextResponse.json(
+      { error: { code: aiGate.code, message: aiGate.message } },
+      { status: 403 },
+    );
+  }
 
   const denied = requirePermission(session, {
     module: "growth",

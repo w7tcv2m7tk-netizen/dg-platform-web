@@ -1,4 +1,5 @@
 import {
+  assertEntitlement,
   organisationHasWebsitesBuilder,
   suggestComponentProps,
 } from "@dg/platform-core";
@@ -13,6 +14,14 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function POST(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const aiGate = await assertEntitlement(session.organisationId, "useAi");
+  if (!aiGate.ok) {
+    return NextResponse.json(
+      { error: { code: aiGate.code, message: aiGate.message } },
+      { status: 403 },
+    );
+  }
   if (!canAccessWebsiteStudio(session, "view")) {
     return NextResponse.json(
       { error: { code: "forbidden", message: "Insufficient permissions for websites.view" } },
