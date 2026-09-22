@@ -1,7 +1,7 @@
 import { matchCoreLogicAddress } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
-import { checkSpecialistIndustryIntegrationEntitlement } from "@/lib/industry-integration-entitlement";
+import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
 
 import {
   authenticatePlatformOrConnector,
@@ -32,13 +32,25 @@ export async function POST(req: Request) {
   }
   const organisationId = auth.session.organisationId;
 
-  const entitlement = await checkSpecialistIndustryIntegrationEntitlement(
-    organisationId,
-    "property",
-  );
-  if (!entitlement.ok) {
+  const { prisma } = await import("@dg/database");
+  const subscription = await prisma.platformSubscription.findUnique({
+    where: { organisationId: organisationId },
+    select: { planTier: true },
+  });
+  const tier = subscription?.planTier as PlatformTier | null;
+  if (!canUseIndustryIntegrations(tier)) {
     return NextResponse.json(
-      { error: { code: entitlement.code, message: entitlement.message } },
+      { error: { code: "industry_integration_plan_required", message: "Specialist Industry integrations require the Scale or Enterprise Core Platform plan." } },
+      { status: 403 },
+    );
+  }
+  const industryApp = await prisma.appInstallation.findFirst({
+    where: { organisationId: organisationId, appId: { in: ["property", "real-estate"] }, enabled: true },
+    select: { id: true },
+  });
+  if (!industryApp) {
+    return NextResponse.json(
+      { error: { code: "industry_app_required", message: "The relevant Property / Real Estate Industry App must be active before using Cotality/CoreLogic." } },
       { status: 403 },
     );
   }
