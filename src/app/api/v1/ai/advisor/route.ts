@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import {
+  assertEntitlement, NextResponse } from "next/server";
 import {
   askBusinessAdvisor,
   buildAdvisorBriefing,
@@ -72,6 +73,14 @@ function buildSeoAuditEvidence(audit: SeoAuditSnapshot | null): string | undefin
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const aiGate = await assertEntitlement(session.organisationId, "useAi");
+  if (!aiGate.ok) {
+    return NextResponse.json(
+      { error: { code: aiGate.code, message: aiGate.message } },
+      { status: 403 },
+    );
+  }
 
   let body: { question?: string; contextLabel?: string };
   try {
