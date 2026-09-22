@@ -25,7 +25,7 @@ assert.match(memberships, /ownedActiveOrganisations\.length\s*>=\s*limit/);
 assert.match(memberships, /plan_business_limit/);
 
 assert.match(specialist, /canUseIndustryIntegrations\(tier\)/);
-assert.match(specialist, /profile\?\.purchasedApps/);
+assert.match(specialist, /settings\.profile\?\.purchasedApps/);
 assert.match(specialist, /industryIdForAppOrTemplate\(key\)\s*===\s*requiredIndustryId/);
 for (const source of [reaActivate, corelogic, reaPublish]) {
   assert.match(source, /checkSpecialistIndustryIntegrationEntitlement/);
