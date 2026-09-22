@@ -1,4 +1,5 @@
-import { publishCommunicationAgent } from "@dg/platform-core";
+import {
+  assertEntitlement, publishCommunicationAgent } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import {
@@ -13,6 +14,14 @@ type Ctx = { params: Promise<{ id: string }> };
 export async function POST(req: Request, ctx: Ctx) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+
+  const outboundGate = await assertEntitlement(session.organisationId, "outbound");
+  if (!outboundGate.ok) {
+    return NextResponse.json(
+      { error: { code: outboundGate.code, message: outboundGate.message } },
+      { status: 403 },
+    );
+  }
   const denied = requireFeature(session, "comms.agents.configure");
   if (denied) return denied;
   const blocked = await rejectDemoLiveAction(session);
