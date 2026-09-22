@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  assertEntitlement,
   askBusinessAdvisor,
   buildAdvisorBriefing,
   buildBusinessBenchmarks,
