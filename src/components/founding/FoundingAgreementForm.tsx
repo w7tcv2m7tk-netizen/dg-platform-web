@@ -69,9 +69,7 @@ export function FoundingAgreementForm({
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
         />
-        {commercialOffer
-          ? `I confirm the Founding 10 terms and the ${commercialOffer.label} commercial offer shown above, including any one-off fee shown, and agree to start my DigitalGate setup and 14-day free trial.`
-          : "I confirm the Founding 10 commercial terms (standard published Platform + Apps pricing, Founding programme benefits, Founding Acquisition Partner referral terms where invited, and programme participation) and agree to start my DigitalGate setup and 14-day free trial."}
+        I confirm the Founding 10 programme terms and agree to start my DigitalGate setup. Platform and App pricing remains the standard published pricing unless I have separately accepted a DigitalGate custom pricing offer.
       </label>
       {message ? <p className="text-sm text-amber-300">{message}</p> : null}
       <button
