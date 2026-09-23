@@ -6,20 +6,27 @@ const overview = fs.readFileSync(
   "utf8",
 );
 
+// DigitalGate SaaS revenue is cross-tenant by design and must come from the
+// canonical PlatformSubscription ledger, never a customer's Commerce records.
 assert.match(
   overview,
-  /commerceSubscription\.count\(\{[\s\S]*?organisationId:\s*operatorOrganisationId[\s\S]*?status:\s*"active"/,
-  "Command active subscriptions must be scoped to the DigitalGate operator organisation",
+  /platformSubscription\.findMany\(\{[\s\S]*?platformExempt:\s*false[\s\S]*?planTier:\s*true[\s\S]*?status:\s*true/,
+  "Command SaaS revenue must use non-exempt canonical PlatformSubscription records",
+);
+assert.doesNotMatch(
+  overview,
+  /commerceSubscription\.(?:count|aggregate)\(/,
+  "Command SaaS subscription metrics must not use customer Commerce subscriptions",
+);
+assert.doesNotMatch(
+  overview,
+  /commerceInvoice\.aggregate\(/,
+  "Command SaaS revenue must not use customer Commerce invoices",
 );
 assert.match(
   overview,
-  /commerceSubscription\.aggregate\(\{[\s\S]*?organisationId:\s*operatorOrganisationId[\s\S]*?interval:\s*"month"/,
-  "Command MRR must be scoped to the DigitalGate operator organisation",
-);
-assert.match(
-  overview,
-  /commerceInvoice\.aggregate\(\{[\s\S]*?organisationId:\s*operatorOrganisationId[\s\S]*?status:\s*"paid"[\s\S]*?paidAt:\s*\{\s*gte:\s*monthStart/,
-  "Command invoiced MTD must be scoped to the DigitalGate operator organisation",
+  /starter:\s*9900,\s*professional:\s*24900,\s*business:\s*49900/,
+  "Command base MRR must use canonical platform tier prices",
 );
 
-console.log("Command revenue tenant-scope regression checks passed");
+console.log("Command revenue canonical-subscription regression checks passed");

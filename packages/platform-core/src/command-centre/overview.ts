@@ -289,9 +289,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     openTasksDue,
     overdueLeadResponses,
     orgsWithBilling,
-    activeSubscriptions,
-    subscriptionMrr,
-    invoicePaidMtd,
+    platformSubscriptions,
     referralTotals,
     referralByStatus,
     referralCreditsMtd,
@@ -326,31 +324,13 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       },
     }),
     prisma.organisation.count({ where: { billingCustomerId: { not: null } } }),
-    operatorOrganisationId
-      ? prisma.commerceSubscription.count({
-          where: { organisationId: operatorOrganisationId, status: "active" },
-        })
-      : Promise.resolve(0),
-    operatorOrganisationId
-      ? prisma.commerceSubscription.aggregate({
-          where: {
-            organisationId: operatorOrganisationId,
-            status: "active",
-            interval: "month",
-          },
-          _sum: { amountCents: true },
-        })
-      : Promise.resolve({ _sum: { amountCents: null } }),
-    operatorOrganisationId
-      ? prisma.commerceInvoice.aggregate({
-          where: {
-            organisationId: operatorOrganisationId,
-            status: "paid",
-            paidAt: { gte: monthStart },
-          },
-          _sum: { totalCents: true },
-        })
-      : Promise.resolve({ _sum: { totalCents: null } }),
+    prisma.platformSubscription.findMany({
+      where: {
+        platformExempt: false,
+        status: { in: ["TRIALING", "ACTIVE", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED", "CANCEL_AT_PERIOD_END"] },
+      },
+      select: { planTier: true, status: true },
+    }),
     prisma.platformReferral.count(),
     prisma.platformReferral.groupBy({
       by: ["status"],
@@ -443,7 +423,15 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
 
   const stripe = getStripeSetupStatus();
 
-  const estimatedMrrCents = subscriptionMrr._sum.amountCents ?? 0;
+  const recurringTierCents: Record<string, number> = { starter: 9900, professional: 24900, business: 49900 };
+  const activePlatformSubscriptions = platformSubscriptions.filter((sub) =>
+    ["ACTIVE", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED", "CANCEL_AT_PERIOD_END"].includes(sub.status),
+  );
+  // Base platform MRR only. Paid Industry/Growth/support add-ons remain Stripe-authoritative.
+  const estimatedMrrCents = activePlatformSubscriptions.reduce(
+    (sum, sub) => sum + (sub.planTier ? recurringTierCents[sub.planTier] ?? 0 : 0),
+    0,
+  );
 
   const pulse: CommandPlatformPulse = {
     organisations,
@@ -607,14 +595,14 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       orgs: connectors,
     },
     billing: {
-      activeSubscriptions,
+      activeSubscriptions: activePlatformSubscriptions.length,
       estimatedMrrCents,
-      invoicePaidMtdCents: invoicePaidMtd._sum.totalCents ?? 0,
+      invoicePaidMtdCents: 0,
       orgsWithBillingCustomer: orgsWithBilling,
       stripeOk: stripe.ok,
       stripeMode: stripe.mode,
       estimatedMrrLabel: formatAud(estimatedMrrCents),
-      invoicePaidMtdLabel: formatAud(invoicePaidMtd._sum.totalCents ?? 0),
+      invoicePaidMtdLabel: "Stripe authoritative",
     },
     referEarn,
     growth,
