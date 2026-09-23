@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Inter } from "next/font/google";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 import {
   AUTH_AFTER_SIGN_IN_URL,
@@ -24,13 +23,6 @@ import "./onboarding-live-corrections.css";
 
 /** Only set when CLERK_PROXY_URL is present (Dashboard proxy validated). */
 const proxyUrl = clerkProxyUrl();
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-  preload: true,
-});
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -87,7 +79,7 @@ export default function RootLayout({
         "reset-password": AUTH_SIGN_IN_URL,
       }}
     >
-      <html lang="en" className={`${inter.variable} h-full`} suppressHydrationWarning>
+      <html lang="en" className="h-full" suppressHydrationWarning>
         <body className="min-h-full bg-slate-950 font-sans text-slate-100 antialiased">
           <Script
             id="dg-theme-boot"
