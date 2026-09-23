@@ -207,7 +207,7 @@ export const FOUNDING_PERSONAL_INVITE_BENEFITS = [
   "Direct access to me as the founder",
   "Input into product and roadmap priorities",
   "Preferential Professional Services terms where applicable",
-  "Standard published Platform + Apps pricing unless a written negotiated offer is attached",
+  "Standard published Platform + Apps pricing; custom pricing is a separate offer available to any customer and only applies when explicitly accepted",
   "Selected members may be invited into the DigitalGate Founding Acquisition Partner Programme (not automatic)",
 ];
 
@@ -223,7 +223,7 @@ export type FoundingOpportunityMeta = {
   founding_invited_by?: string;
   founding_invited_by_name?: string;
   business_name?: string;
-  /** Negotiated terms attached by a platform operator before agreement signature. */
+  /** Legacy field: custom pricing is now independent of Founding 10 and is not implied by programme status. */
   commercial_offer?: NegotiatedCommercialOffer;
   acceptance_email_sent_at?: string;
   agreement_email_sent_at?: string;
