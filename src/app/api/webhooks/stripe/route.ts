@@ -326,6 +326,14 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
 }
 
 export async function POST(req: Request) {
+  if (!process.env.STRIPE_SECRET_KEY?.trim() || !process.env.STRIPE_WEBHOOK_SECRET?.trim()) {
+    console.error("[stripe webhook] Stripe webhook secrets are not configured");
+    return NextResponse.json(
+      { error: { code: "stripe_webhook_not_configured", message: "Stripe webhook is not configured." } },
+      { status: 503, headers: { "Retry-After": "60" } },
+    );
+  }
+
   const rawBody = await req.text();
   const headers = Object.fromEntries(req.headers.entries());
 
