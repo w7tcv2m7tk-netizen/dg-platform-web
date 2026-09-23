@@ -23,6 +23,7 @@ export function FoundingStageActions({
   source,
   invitationStatus,
   invitationSentAt,
+  customerOrganisationId,
 }: {
   opportunityId: string;
   stage: string;
@@ -31,6 +32,7 @@ export function FoundingStageActions({
   source?: FoundingSource | null;
   invitationStatus?: FoundingInvitationStatus | null;
   invitationSentAt?: string | null;
+  customerOrganisationId?: string | null;
   agreementEmailSentAt?: string | null;
   agreementSignedAt?: string | null;
   onboardingInviteSentAt?: string | null;
@@ -121,6 +123,15 @@ export function FoundingStageActions({
         <p className="text-xs text-slate-500">
           Customer setup is customer-only. Copy the setup link above and send it to the customer to complete their terms and onboarding.
         </p>
+      ) : null}
+
+      {customerOrganisationId ? (
+        <div className="rounded-lg border border-violet-400/20 bg-violet-500/[0.06] p-3">
+          <p className="text-xs text-slate-400">Inspect this customer’s saved onboarding safely. Customer View is read-only: terms, billing, uploads and onboarding changes remain customer-owned.</p>
+          <a href={`/onboarding?operatorOrg=${encodeURIComponent(customerOrganisationId)}`} className="mt-2 inline-flex rounded-lg bg-violet-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-violet-500">
+            View as customer →
+          </a>
+        </div>
       ) : null}
 
       <FoundingCommercialOfferEditor opportunityId={opportunityId} />
