@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ConnectedServicesCatalog } from "@/components/settings/ConnectedServicesCatalog";
 import { ConnectedServicesHealthOverview } from "@/components/settings/ConnectedServicesHealthOverview";
 import { GoogleBusinessProfileLocationSelector } from "@/components/settings/GoogleBusinessProfileLocationSelector";
+import { LinkedInConnectorPanel } from "@/components/settings/LinkedInConnectorPanel";
+import { MetaConnectorPanel } from "@/components/settings/MetaConnectorPanel";
 import { YouTubeConnectorPanel } from "@/components/settings/YouTubeConnectorPanel";
 import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
@@ -10,9 +12,9 @@ import { getPlatformPageContext } from "@/lib/platform-page-context";
 export default async function ConnectedServicesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ google?: string; message?: string }>;
+  searchParams: Promise<{ google?: string; linkedin?: string; meta?: string; message?: string }>;
 }) {
-  const { google: googleFlash, message: flashMessage } = await searchParams;
+  const { google: googleFlash, linkedin: linkedinFlash, meta: metaFlash, message: flashMessage } = await searchParams;
   const { session } = await getPlatformPageContext();
 
   if (!session?.organisationId) {
@@ -84,6 +86,8 @@ export default async function ConnectedServicesPage({
         </div>
 
         <GoogleBusinessProfileLocationSelector />
+        <MetaConnectorPanel flash={metaFlash === "connected" ? "connected" : metaFlash === "attention" ? "attention" : metaFlash === "error" ? "error" : null} flashMessage={metaFlash ? flashMessage ?? null : null} />
+        <LinkedInConnectorPanel flash={linkedinFlash === "connected" ? "connected" : linkedinFlash === "attention" ? "attention" : linkedinFlash === "error" ? "error" : null} flashMessage={linkedinFlash ? flashMessage ?? null : null} />
         <YouTubeConnectorPanel />
         <ConnectedServicesCatalog />
 
