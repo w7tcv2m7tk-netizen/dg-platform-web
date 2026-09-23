@@ -22,6 +22,7 @@ import { CrmDeleteButton } from "@/components/crm/CrmDeleteButton";
 import { OpportunityStageForm } from "@/components/crm/OpportunityStageForm";
 import { OpportunityStatusForm } from "@/components/crm/OpportunityStatusForm";
 import { FoundingStageActions } from "@/components/founding/FoundingStageActions";
+import { CustomCommercialOfferEditor } from "@/components/founding/FoundingCommercialOfferEditor";
 import { InviteToFounding10Form } from "@/components/founding/InviteToFounding10Form";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
@@ -225,6 +226,10 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               defaultEmail={contact.email ?? undefined}
               defaultPhone={contact.phone ?? undefined}
             />
+          ) : null}
+
+          {staff && canWrite ? (
+            <CustomCommercialOfferEditor opportunityId={opportunity.id} />
           ) : null}
 
           {canReadLeads && lead ? (
