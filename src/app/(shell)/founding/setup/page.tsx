@@ -1,4 +1,5 @@
-import { redirect } from "next/navigation";
+import {
+  canAccessCommandCentre, redirect } from "next/navigation";
 import { claimFoundingInvite, getFoundingOnboarding } from "@dg/platform-core";
 
 import { getPlatformPageContext } from "@/lib/org-apps";
@@ -16,6 +17,16 @@ export default async function FoundingSetupPage({
       ? `/founding/setup?invite=${encodeURIComponent(invite)}`
       : "/founding/setup";
     redirect(`/login?redirect_url=${encodeURIComponent(next)}`);
+  }
+
+  const operator = canAccessCommandCentre({
+    organisationId: session.organisationId,
+    organisationName: session.organisationName,
+    organisationSlug: session.organisationSlug,
+    role: session.role,
+  });
+  if (operator && invite) {
+    redirect("/apps/crm/opportunities");
   }
 
   if (invite) {
