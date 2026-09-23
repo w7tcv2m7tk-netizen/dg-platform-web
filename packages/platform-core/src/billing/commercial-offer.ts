@@ -258,8 +258,17 @@ export async function createNegotiatedCommercialCheckoutSession(input: {
       ...(offer.trialDays > 0 ? { trial_period_days: offer.trialDays } : {}),
     },
   };
-  if (org.billingCustomerId) sessionParams.customer = org.billingCustomerId;
-  else sessionParams.customer_email = input.email;
+  if (org.billingCustomerId) {
+    try {
+      const customer = await stripe.customers.retrieve(org.billingCustomerId);
+      if (!customer.deleted) sessionParams.customer = customer.id;
+      else sessionParams.customer_email = input.email;
+    } catch {
+      sessionParams.customer_email = input.email;
+    }
+  } else {
+    sessionParams.customer_email = input.email;
+  }
 
   const session = await stripe.checkout.sessions.create(sessionParams);
   return { url: session.url, sessionId: session.id, offer };
