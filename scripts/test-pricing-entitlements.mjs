@@ -43,3 +43,20 @@ assert.equal(canUseIndustryIntegrations("business"), true);
 assert.equal(canUseIndustryIntegrations("enterprise"), true);
 
 console.log("pricing entitlement regression checks passed");
+
+
+// Billing exemption authority is part of the canonical subscription contract.
+const billingStatusSource = (await import("node:fs")).readFileSync(
+  "packages/platform-core/src/billing/org-billing-status.ts",
+  "utf8",
+);
+assert.match(
+  billingStatusSource,
+  /const platformExempt = platformSub\s*\? platformSub\.platformExempt === true\s*:\s*!expectsPlatformBilling \|\| billing\.platformExempt === true;/,
+  "an existing PlatformSubscription must be authoritative for platform exemption",
+);
+assert.match(
+  billingStatusSource,
+  /kind: resolveKind\(\{\s*expectsPlatformBilling: platformSub \? !platformExempt : expectsPlatformBilling,/,
+  "billing kind must follow canonical PlatformSubscription exemption when one exists",
+);
