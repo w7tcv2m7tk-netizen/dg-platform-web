@@ -424,10 +424,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
 
   const stripe = getStripeSetupStatus();
 
-  const { GEN2_PLATFORM_PLANS } = await import("../onboarding/gen2-journey");
-  const recurringTierCents: Record<string, number> = Object.fromEntries(
-    GEN2_PLATFORM_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
-  );
+  const recurringTierCents: Record<string, number> = { starter: 9900, professional: 24900, business: 49900 };
   const activePlatformSubscriptions = platformSubscriptions.filter((sub) =>
     ["ACTIVE", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED", "CANCEL_AT_PERIOD_END"].includes(sub.status),
   );
