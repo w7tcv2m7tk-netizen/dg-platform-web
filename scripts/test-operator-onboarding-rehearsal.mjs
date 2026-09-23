@@ -36,3 +36,9 @@ assert.doesNotMatch(
 );
 
 console.log("Operator onboarding rehearsal regression checks passed");
+
+const journey = fs.readFileSync("src/components/onboarding/AdaptiveOnboardingJourney.tsx", "utf8");
+assert.match(journey, /min-h-\[calc\(100dvh-7rem\)\]/, "Onboarding should use the mobile viewport efficiently");
+assert.match(journey, /fixed inset-x-0 bottom-0 z-40/, "Mobile onboarding navigation should remain pinned to the bottom");
+assert.match(journey, /safe-area-inset-bottom/, "Mobile onboarding navigation should respect the device safe area");
+assert.match(journey, /sm:static/, "Desktop onboarding navigation should remain in normal document flow");
