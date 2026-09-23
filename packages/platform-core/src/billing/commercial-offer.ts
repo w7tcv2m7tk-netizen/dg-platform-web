@@ -3,7 +3,7 @@ import Stripe from "stripe";
 
 import type { BillingCadence, Gen2PlatformTier } from "../onboarding/gen2-journey";
 
-export type NegotiatedCommercialOffer = {
+export type CustomCommercialOffer = {
   version: 1;
   id: string;
   label: string;
@@ -53,7 +53,7 @@ function appBaseUrl() {
   ).replace(/\/$/, "");
 }
 
-export function parseNegotiatedCommercialOffer(value: unknown): NegotiatedCommercialOffer | null {
+export function parseCustomCommercialOffer(value: unknown): CustomCommercialOffer | null {
   if (!value || typeof value !== "object") return null;
   const raw = value as Record<string, unknown>;
   const id = asString(raw.id, 100);
@@ -123,15 +123,15 @@ export function parseNegotiatedCommercialOffer(value: unknown): NegotiatedCommer
   };
 }
 
-export function commercialOfferFromSettings(settings: unknown): NegotiatedCommercialOffer | null {
+export function commercialOfferFromSettings(settings: unknown): CustomCommercialOffer | null {
   if (!settings || typeof settings !== "object") return null;
   const billing = (settings as OrganisationSettings).billing;
-  return parseNegotiatedCommercialOffer(billing?.commercialOffer);
+  return parseCustomCommercialOffer(billing?.commercialOffer);
 }
 
 export async function getOrganisationCommercialOffer(
   organisationId: string,
-): Promise<NegotiatedCommercialOffer | null> {
+): Promise<CustomCommercialOffer | null> {
   if (!process.env.DATABASE_URL) return null;
   const { prisma } = await import("@dg/database");
   const org = await prisma.organisation.findUnique({
@@ -143,10 +143,10 @@ export async function getOrganisationCommercialOffer(
 
 export async function setOrganisationCommercialOffer(input: {
   organisationId: string;
-  offer: NegotiatedCommercialOffer;
-}): Promise<NegotiatedCommercialOffer> {
-  const offer = parseNegotiatedCommercialOffer(input.offer);
-  if (!offer) throw new Error("Invalid negotiated commercial offer");
+  offer: CustomCommercialOffer;
+}): Promise<CustomCommercialOffer> {
+  const offer = parseCustomCommercialOffer(input.offer);
+  if (!offer) throw new Error("Invalid custom commercial offer");
   const { prisma } = await import("@dg/database");
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
@@ -169,16 +169,16 @@ export async function setOrganisationCommercialOffer(input: {
   return offer;
 }
 
-export async function createNegotiatedCommercialCheckoutSession(input: {
+export async function createCustomCommercialCheckoutSession(input: {
   organisationId: string;
   email: string;
   businessName?: string;
-  offer: NegotiatedCommercialOffer;
+  offer: CustomCommercialOffer;
   successPath?: string;
   cancelPath?: string;
 }) {
-  const offer = parseNegotiatedCommercialOffer(input.offer);
-  if (!offer) throw new Error("Invalid negotiated commercial offer");
+  const offer = parseCustomCommercialOffer(input.offer);
+  if (!offer) throw new Error("Invalid custom commercial offer");
   const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
   if (!secretKey) throw new Error("Stripe billing is not available");
   const stripe = new Stripe(secretKey);
@@ -272,4 +272,107 @@ export async function createNegotiatedCommercialCheckoutSession(input: {
 
   const session = await stripe.checkout.sessions.create(sessionParams);
   return { url: session.url, sessionId: session.id, offer };
+}
+
+
+/** Backwards-compatible aliases for records created before custom pricing was separated from Founding 10. */
+export type NegotiatedCommercialOffer = CustomCommercialOffer;
+export const parseNegotiatedCommercialOffer = parseCustomCommercialOffer;
+export const createNegotiatedCommercialCheckoutSession = createCustomCommercialCheckoutSession;
+
+type OpportunityCustomOfferMeta = {
+  commercial_offer?: unknown;
+  custom_offer_token?: string;
+  [key: string]: unknown;
+};
+
+function opportunityOfferMeta(value: unknown): OpportunityCustomOfferMeta {
+  return value && typeof value === "object" ? (value as OpportunityCustomOfferMeta) : {};
+}
+
+export async function getOpportunityCustomOffer(input: {
+  organisationId: string;
+  opportunityId: string;
+}): Promise<{ offer: CustomCommercialOffer | null; token: string | null } | null> {
+  const { prisma } = await import("@dg/database");
+  const row = await prisma.opportunity.findFirst({
+    where: { id: input.opportunityId, organisationId: input.organisationId },
+    select: { metadata: true },
+  });
+  if (!row) return null;
+  const meta = opportunityOfferMeta(row.metadata);
+  return {
+    offer: parseCustomCommercialOffer(meta.commercial_offer),
+    token: asString(meta.custom_offer_token, 100) ?? null,
+  };
+}
+
+export async function setOpportunityCustomOffer(input: {
+  organisationId: string;
+  opportunityId: string;
+  actorId?: string;
+  offer: CustomCommercialOffer;
+}): Promise<{ offer: CustomCommercialOffer; token: string }> {
+  const offer = parseCustomCommercialOffer(input.offer);
+  if (!offer) throw new Error("Invalid custom commercial offer");
+  const { prisma } = await import("@dg/database");
+  const row = await prisma.opportunity.findFirst({
+    where: { id: input.opportunityId, organisationId: input.organisationId },
+    select: { id: true, metadata: true },
+  });
+  if (!row) throw new Error("Opportunity not found");
+  const meta = opportunityOfferMeta(row.metadata);
+  const token = asString(meta.custom_offer_token, 100) ?? crypto.randomUUID().replace(/-/g, "");
+  await prisma.opportunity.update({
+    where: { id: row.id },
+    data: {
+      metadata: {
+        ...meta,
+        commercial_offer: offer,
+        custom_offer_token: token,
+      } as Prisma.InputJsonValue,
+    },
+  });
+  return { offer, token };
+}
+
+export async function findOpportunityCustomOfferByToken(token: string): Promise<{
+  opportunityId: string;
+  pipelineOrganisationId: string;
+  offer: CustomCommercialOffer;
+} | null> {
+  const clean = token.trim();
+  if (!clean || !process.env.DATABASE_URL) return null;
+  const { prisma } = await import("@dg/database");
+  let row = null;
+  try {
+    row = await prisma.opportunity.findFirst({
+      where: { metadata: { path: ["custom_offer_token"], equals: clean } },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true, organisationId: true, metadata: true },
+    });
+  } catch {
+    const rows = await prisma.opportunity.findMany({
+      orderBy: { updatedAt: "desc" },
+      take: 500,
+      select: { id: true, organisationId: true, metadata: true },
+    });
+    row = rows.find((candidate) => opportunityOfferMeta(candidate.metadata).custom_offer_token === clean) ?? null;
+  }
+  if (!row) return null;
+  const offer = parseCustomCommercialOffer(opportunityOfferMeta(row.metadata).commercial_offer);
+  if (!offer) return null;
+  return { opportunityId: row.id, pipelineOrganisationId: row.organisationId, offer };
+}
+
+export async function claimOpportunityCustomOffer(input: {
+  customerOrganisationId: string;
+  token: string;
+}): Promise<CustomCommercialOffer | null> {
+  const found = await findOpportunityCustomOfferByToken(input.token);
+  if (!found) return null;
+  return setOrganisationCommercialOffer({
+    organisationId: input.customerOrganisationId,
+    offer: found.offer,
+  });
 }

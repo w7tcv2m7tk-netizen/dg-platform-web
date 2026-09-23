@@ -13,7 +13,6 @@ import {
   type FoundingInvitationStatus,
   type FoundingSource,
 } from "@dg/platform-core";
-import { FoundingCommercialOfferEditor } from "./FoundingCommercialOfferEditor";
 
 export function FoundingStageActions({
   opportunityId,
@@ -133,8 +132,6 @@ export function FoundingStageActions({
           </a>
         </div>
       ) : null}
-
-      <FoundingCommercialOfferEditor opportunityId={opportunityId} />
       {message ? <p className={`text-sm ${status === "error" ? "text-amber-300" : "text-emerald-300"}`} role="status">{message}</p> : null}
     </div>
   );

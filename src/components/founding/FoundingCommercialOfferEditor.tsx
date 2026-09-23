@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { NegotiatedCommercialOffer } from "@dg/platform-core";
+import type { CustomCommercialOffer } from "@dg/platform-core";
 
 type AppOption = {
   id: string;
@@ -109,12 +109,12 @@ function AppCheckboxGroup({
   );
 }
 
-export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId: string }) {
+export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: string }) {
   const [visible, setVisible] = useState(false);
   const [locked, setLocked] = useState(false);
-  const [offer, setOffer] = useState<NegotiatedCommercialOffer | null>(null);
+  const [offer, setOffer] = useState<CustomCommercialOffer | null>(null);
   const [appOptions, setAppOptions] = useState<AppOptions>({ industry: [], growth: [] });
-  const [label, setLabel] = useState("Founding 10 negotiated plan");
+  const [label, setLabel] = useState("Custom DigitalGate plan");
   const [amount, setAmount] = useState("");
   const [oneOffAmount, setOneOffAmount] = useState("");
   const [oneOffLabel, setOneOffLabel] = useState("Implementation & setup");
@@ -128,11 +128,12 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<"loading" | "idle" | "saving" | "saved" | "error">("loading");
   const [message, setMessage] = useState("");
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     void (async () => {
-      const res = await fetch(`/api/v1/founding/commercial-offer?opportunityId=${encodeURIComponent(opportunityId)}`);
+      const res = await fetch(`/api/v1/billing/custom-offer?opportunityId=${encodeURIComponent(opportunityId)}`);
       if (cancelled) return;
       if (res.status === 401 || res.status === 403) {
         setVisible(false);
@@ -143,14 +144,15 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
       if (!res.ok) {
         setVisible(true);
         setStatus("error");
-        setMessage(json.error?.message || "Could not load commercial offer.");
+        setMessage(json.error?.message || "Could not load custom pricing offer.");
         return;
       }
-      const next = (json.data?.offer ?? null) as NegotiatedCommercialOffer | null;
+      const next = (json.data?.offer ?? null) as CustomCommercialOffer | null;
       const nextAppOptions = json.data?.appOptions as AppOptions | undefined;
       setVisible(true);
       setLocked(Boolean(json.data?.locked));
       setOffer(next);
+      setShareUrl(typeof json.data?.shareUrl === "string" ? json.data.shareUrl : null);
       if (nextAppOptions) setAppOptions(nextAppOptions);
       if (next) {
         setLabel(next.label);
@@ -179,7 +181,7 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
   async function save() {
     setStatus("saving");
     setMessage("");
-    const res = await fetch("/api/v1/founding/commercial-offer", {
+    const res = await fetch("/api/v1/billing/custom-offer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -201,13 +203,14 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
       setStatus("error");
-      setMessage(json.error?.message || "Could not save commercial offer.");
+      setMessage(json.error?.message || "Could not save custom pricing offer.");
       if (res.status === 409) setLocked(true);
       return;
     }
     setOffer(json.data.offer);
+    setShareUrl(typeof json.data?.shareUrl === "string" ? json.data.shareUrl : null);
     setStatus("saved");
-    setMessage("Commercial offer saved. The customer agreement will use these exact terms.");
+    setMessage("Custom pricing offer saved. Copy the private link and send it to the customer.");
   }
 
   if (!visible) return null;
@@ -216,9 +219,9 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
     <section className="mt-5 space-y-4 border-t border-slate-800 pt-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="font-semibold text-white">Commercial offer</h3>
+          <h3 className="font-semibold text-white">Custom pricing offer</h3>
           <p className="mt-1 text-xs text-slate-400">
-            Set negotiated recurring and one-off terms before the customer signs. These terms are copied to their organisation and snapshotted at signature.
+            Build a bespoke offer for any prospect or customer. This is independent of Founding 10 status and only applies when the customer accepts the private offer link.
           </p>
         </div>
         {offer ? (
@@ -230,11 +233,6 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
       </div>
 
       {status === "loading" ? <p className="text-sm text-slate-500">Loading offer…</p> : null}
-      {locked ? (
-        <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-          Commercial terms are locked because the agreement has already been signed.
-        </p>
-      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-slate-500 sm:col-span-2">Offer name<input value={label} onChange={(e) => setLabel(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
@@ -253,8 +251,9 @@ export function FoundingCommercialOfferEditor({ opportunityId }: { opportunityId
 
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" disabled={locked || status === "saving" || !label.trim() || amountCents <= 0 || oneOffAmountCents < 0 || (oneOffAmountCents > 0 && !oneOffLabel.trim())} onClick={() => void save()} className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50">
-          {status === "saving" ? "Saving…" : offer ? "Update commercial offer" : "Save commercial offer"}
+          {status === "saving" ? "Saving…" : offer ? "Update custom pricing offer" : "Save custom pricing offer"}
         </button>
+        {shareUrl ? <button type="button" onClick={() => void navigator.clipboard.writeText(shareUrl).then(() => setMessage("Custom pricing link copied."))} className="rounded-lg border border-violet-500/40 px-4 py-2 text-sm font-semibold text-violet-200 hover:border-violet-400">Copy customer link</button> : null}
         {message ? <p className={`text-sm ${status === "error" ? "text-amber-300" : "text-emerald-300"}`}>{message}</p> : null}
       </div>
     </section>
