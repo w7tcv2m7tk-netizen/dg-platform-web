@@ -1910,8 +1910,8 @@
       'website-launch':        'https://buy.stripe.com/8x24gy4g74CA0wQ39pb7y03',
       'website-growth':        'https://buy.stripe.com/8x2aEWbIz9WU5Ra8tJb7y04',
       'website-authority':     'https://buy.stripe.com/14AfZgfYPedabbu7pFb7y05',
-      hero_trial: 'https://digitalgate.com.au/founding-customers/',
-      cta_trial: 'https://digitalgate.com.au/founding-customers/',
+      hero_trial: 'https://app.digitalgate.com.au/signup/account',
+      cta_trial: 'https://app.digitalgate.com.au/signup/account',
     };
 
     document.querySelectorAll('[data-dg-plan]').forEach(function(card) {
@@ -1919,7 +1919,7 @@
       var url = STRIPE_PAYMENT_LINKS[key];
       var btn = card.querySelector('.btn-primary');
       if (!btn || !url || url === 'REPLACE_ME') return;
-      // Founding-phase CTAs stay on /founding-customers/ — do not overwrite with Stripe
+      // Invitation-only Founding links remain separate; public trial CTAs use the standard signup journey.
       var label = (btn.textContent || '').toLowerCase();
       if (label.indexOf('founding') !== -1) return;
       btn.href = url;
@@ -1942,7 +1942,7 @@
 
     var heroCta = document.querySelector('.hero-cta');
     if (heroCta && STRIPE_PAYMENT_LINKS.hero_trial) heroCta.href = STRIPE_PAYMENT_LINKS.hero_trial;
-    // Founding CTAs stay on /founding-customers/ — do not overwrite with trial link
+    // Public hero CTA remains on the standard 14-day trial journey.
   </script>
 
   <!-- ============================================================ -->
