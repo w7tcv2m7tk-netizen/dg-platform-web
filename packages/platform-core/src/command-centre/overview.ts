@@ -423,7 +423,6 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
 
   const stripe = getStripeSetupStatus();
 
-  // Keep Command Centre base MRR aligned with the canonical platform pricing catalogue.
   const recurringTierCents: Record<string, number> = { starter: 9900, professional: 24900, business: 49900 };
   const activePlatformSubscriptions = platformSubscriptions.filter((sub) =>
     ["ACTIVE", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED", "CANCEL_AT_PERIOD_END"].includes(sub.status),
