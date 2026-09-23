@@ -4,7 +4,7 @@ import type { PlatformCommercialStatus } from "./subscription-types";
 
 export type OrgBillingSettings = {
   platformExempt?: boolean;
-  /** Founding Customer programme seat — preferential pricing / access, not “beta”. */
+  /** Founding Customer programme status — pricing-neutral unless a separate Custom Pricing offer is accepted. */
   foundingCustomer?: boolean;
   programme?: string;
   /** Stripe subscription.status (or cancelled) when known — never invent MRR. */
@@ -220,7 +220,7 @@ export function billingStatusHeadline(status: OrganisationBillingStatus): string
     case "platform_exempt":
       return "Platform billing does not apply";
     case "founding_trial":
-      return "Founding Customer — trial";
+      return "Founding Customer — standard pricing";
     case "trial":
       return status.hasStripeCustomer ? "Trial (Stripe linked)" : "Trial";
     case "subscribed":
@@ -249,7 +249,7 @@ export function billingStatusDetail(status: OrganisationBillingStatus): string {
     case "platform_exempt":
       return "This organisation is marked platform-exempt (for example marketplace / Wantd). Missing a Stripe customer is expected — we do not create a fake one.";
     case "founding_trial":
-      return "You’re on the Founding Customer programme (preferential pricing toward Starter / Pro / Business — not a beta seat). Subscribe when ready, or open the Customer Portal once Stripe is linked.";
+      return "You’re on the Founding Customer programme. Founding status does not change subscription pricing; standard published pricing applies unless this organisation separately accepts a DigitalGate Custom Pricing offer.";
     case "trial":
       return status.hasStripeCustomer
         ? "Your organisation is on a card-required trial with a Stripe customer on file. Manage invoices and payment method in the Customer Portal."
