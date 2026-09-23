@@ -8,6 +8,7 @@ import {
   BILLING_COMMERCIAL_CONFIG,
 } from "./subscription-types";
 import { industryCheckoutLines } from "../industry/platform";
+import { GEN2_PLATFORM_PLANS, GEN2_SUPPORT_PLANS } from "../onboarding/gen2-journey";
 import { applyBrandPresetToProfile } from "../org/brand-presets";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 import {
@@ -17,11 +18,9 @@ import {
   type PaidAppKey,
 } from "./paid-apps";
 
-const TIER_AMOUNTS_CENTS: Record<string, number> = {
-  starter: 9900,
-  professional: 24900,
-  business: 49900,
-};
+const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
+  GEN2_PLATFORM_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
+);
 
 export type PlatformBillingCadence = "monthly" | "annual";
 
@@ -196,12 +195,10 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   }
 
   const supportPlan = input.supportPlan ?? "standard";
-  const supportOption =
-    supportPlan === "priority"
-      ? { monthlyCents: 19900, label: "DigitalGate Priority Support" }
-      : supportPlan === "success_partner"
-        ? { monthlyCents: 49900, label: "DigitalGate Success Partner" }
-        : null;
+  const canonicalSupportPlan = GEN2_SUPPORT_PLANS.find((plan) => plan.id === supportPlan);
+  const supportOption = canonicalSupportPlan?.monthlyCents
+    ? { monthlyCents: canonicalSupportPlan.monthlyCents, label: `DigitalGate ${canonicalSupportPlan.name}` }
+    : null;
   if (supportOption) {
     const supportAmount = annual ? annualPriceFromMonthlyCents(supportOption.monthlyCents) : supportOption.monthlyCents;
     lineItems.push({
