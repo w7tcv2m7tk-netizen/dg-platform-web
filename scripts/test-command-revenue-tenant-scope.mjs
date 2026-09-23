@@ -23,10 +23,27 @@ assert.doesNotMatch(
   /commerceInvoice\.aggregate\(/,
   "Command SaaS revenue must not use customer Commerce invoices",
 );
+const commercialCatalogue = fs.readFileSync(
+  "packages/platform-core/src/billing/commercial-catalogue.ts",
+  "utf8",
+);
 assert.match(
   overview,
+  /commercial-catalogue/,
+  "Command base MRR must consume the canonical commercial catalogue",
+);
+assert.match(
+  overview,
+  /PLATFORM_COMMERCIAL_PLANS\.map\(\(plan\) => \[plan\.id, plan\.monthlyCents\]\)/,
+  "Command base MRR must derive tier prices from the canonical commercial catalogue",
+);
+assert.match(commercialCatalogue, /id: "starter"[\s\S]*?monthlyCents: 9900/);
+assert.match(commercialCatalogue, /id: "professional"[\s\S]*?monthlyCents: 24900/);
+assert.match(commercialCatalogue, /id: "business"[\s\S]*?monthlyCents: 49900/);
+assert.doesNotMatch(
+  overview,
   /starter:\s*9900,\s*professional:\s*24900,\s*business:\s*49900/,
-  "Command base MRR must use canonical platform tier prices",
+  "Command Centre must not duplicate canonical tier prices",
 );
 
 console.log("Command revenue canonical-subscription regression checks passed");

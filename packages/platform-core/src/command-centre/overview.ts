@@ -423,7 +423,10 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
 
   const stripe = getStripeSetupStatus();
 
-  const recurringTierCents: Record<string, number> = { starter: 9900, professional: 24900, business: 49900 };
+  const { PLATFORM_COMMERCIAL_PLANS } = await import("../billing/commercial-catalogue");
+  const recurringTierCents: Record<string, number> = Object.fromEntries(
+    PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
+  );
   const activePlatformSubscriptions = platformSubscriptions.filter((sub) =>
     ["ACTIVE", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED", "CANCEL_AT_PERIOD_END"].includes(sub.status),
   );

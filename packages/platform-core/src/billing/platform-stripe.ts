@@ -8,7 +8,7 @@ import {
   BILLING_COMMERCIAL_CONFIG,
 } from "./subscription-types";
 import { industryCheckoutLines } from "../industry/platform";
-import { GEN2_PLATFORM_PLANS, GEN2_SUPPORT_PLANS } from "../onboarding/gen2-journey";
+import { PLATFORM_COMMERCIAL_PLANS, SUPPORT_COMMERCIAL_PLANS } from "./commercial-catalogue";
 import { applyBrandPresetToProfile } from "../org/brand-presets";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 import {
@@ -19,7 +19,7 @@ import {
 } from "./paid-apps";
 
 const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
-  GEN2_PLATFORM_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
+  PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
 );
 
 export type PlatformBillingCadence = "monthly" | "annual";
@@ -195,7 +195,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   }
 
   const supportPlan = input.supportPlan ?? "standard";
-  const canonicalSupportPlan = GEN2_SUPPORT_PLANS.find((plan) => plan.id === supportPlan);
+  const canonicalSupportPlan = SUPPORT_COMMERCIAL_PLANS.find((plan) => plan.id === supportPlan);
   const supportOption = canonicalSupportPlan?.monthlyCents
     ? { monthlyCents: canonicalSupportPlan.monthlyCents, label: `DigitalGate ${canonicalSupportPlan.name}` }
     : null;
