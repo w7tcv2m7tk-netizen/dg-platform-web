@@ -14,6 +14,6 @@ assert.match(pages["marketing/pages/pricing-page.html"], /cta_trial:\s*\x27https
 assert.doesNotMatch(pages["marketing/pages/pricing-page.html"], /hero_trial:\s*\x27https:\/\/digitalgate\.com\.au\/founding-customers\//);
 assert.doesNotMatch(pages["marketing/pages/pricing-page.html"], /cta_trial:\s*\x27https:\/\/digitalgate\.com\.au\/founding-customers\//);
 const appsBuild = fs.readFileSync("marketing/pages/apps/build.mjs", "utf8");
-assert.doesNotMatch(appsBuild, /Scale[^\\n]*Unlimited users/i);
-assert.match(appsBuild, /Scale · \\$499\\/mo<\\/h3><p>Up to 20 users/);
+assert.doesNotMatch(appsBuild, /Scale[^\n]*Unlimited users/i);
+assert.match(appsBuild, /Scale · \\$499\/mo<\/h3><p>Up to 20 users/);
 console.log("marketing trial conversion journey: ok");
