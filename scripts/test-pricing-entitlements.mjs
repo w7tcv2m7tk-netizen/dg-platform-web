@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {
-  SCALE_MAX_BUSINESSES,
+  SCALE_MAX_BUSINESSES,\n  SCALE_MAX_USERS,
   canAddBusinessAtCount,
   canAddUserAtCount,
   canUseIndustryIntegrations,
@@ -9,10 +9,10 @@ import {
   maxUsersForTier,
 } from "../src/lib/plans.ts";
 
-assert.equal(SCALE_MAX_BUSINESSES, 5);
+assert.equal(SCALE_MAX_BUSINESSES, 5);\nassert.equal(SCALE_MAX_USERS, 20);
 assert.equal(maxUsersForTier("starter"), 1);
 assert.equal(maxUsersForTier("professional"), 5);
-assert.equal(maxUsersForTier("business"), null);
+assert.equal(maxUsersForTier("business"), 20);\nassert.equal(maxUsersForTier("enterprise"), null);
 assert.equal(maxActiveBusinessesForTier("starter"), 1);
 assert.equal(maxActiveBusinessesForTier("professional"), 1);
 assert.equal(maxActiveBusinessesForTier("business"), 5);
@@ -20,7 +20,7 @@ assert.equal(maxActiveBusinessesForTier("enterprise"), null);
 
 assert.equal(canAddUserAtCount("professional", 4), true);
 assert.equal(canAddUserAtCount("professional", 5), false);
-assert.equal(canAddUserAtCount("business", 500), true);
+assert.equal(canAddUserAtCount("business", 19), true);\nassert.equal(canAddUserAtCount("business", 20), false);\nassert.equal(canAddUserAtCount("enterprise", 500), true);
 
 assert.equal(canAddBusinessAtCount("professional", 0), true);
 assert.equal(canAddBusinessAtCount("professional", 1), false);
