@@ -15,5 +15,5 @@ assert.doesNotMatch(pages["marketing/pages/pricing-page.html"], /hero_trial:\s*\
 assert.doesNotMatch(pages["marketing/pages/pricing-page.html"], /cta_trial:\s*\x27https:\/\/digitalgate\.com\.au\/founding-customers\//);
 const appsBuild = fs.readFileSync("marketing/pages/apps/build.mjs", "utf8");
 assert.ok(!appsBuild.includes("Scale · $499/mo</h3><p>Unlimited users"), "Scale marketing must not claim unlimited users");
-assert.match(appsBuild, /Scale · \\$499\/mo<\/h3><p>Up to 20 users/);
+assert.ok(appsBuild.includes("Scale · $499/mo</h3><p>Up to 20 users"), "Scale marketing must state the 20-user cap");
 console.log("marketing trial conversion journey: ok");
