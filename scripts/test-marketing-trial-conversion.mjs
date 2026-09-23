@@ -13,6 +13,8 @@ assert.match(pages["marketing/pages/pricing-page.html"], /hero_trial:\s*\x27http
 assert.match(pages["marketing/pages/pricing-page.html"], /cta_trial:\s*\x27https:\/\/app\.digitalgate\.com\.au\/signup\/account\x27/);
 assert.doesNotMatch(pages["marketing/pages/pricing-page.html"], /hero_trial:\s*\x27https:\/\/digitalgate\.com\.au\/founding-customers\//);
 assert.doesNotMatch(pages["marketing/pages/pricing-page.html"], /cta_trial:\s*\x27https:\/\/digitalgate\.com\.au\/founding-customers\//);
+assert.ok(!pages["marketing/pages/pricing-page.html"].includes("Unlimited Users"), "pricing page must not claim unlimited Scale users");
+assert.ok(pages["marketing/pages/pricing-page.html"].includes("Up to 20 Users"), "pricing page must state the Scale 20-user cap");
 const appsBuild = fs.readFileSync("marketing/pages/apps/build.mjs", "utf8");
 assert.ok(!appsBuild.includes("Scale · $499/mo</h3><p>Unlimited users"), "Scale marketing must not claim unlimited users");
 assert.ok(appsBuild.includes("Scale · $499/mo</h3><p>Up to 20 users"), "Scale marketing must state the 20-user cap");
