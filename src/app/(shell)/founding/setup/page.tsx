@@ -1,6 +1,5 @@
-import {
-  canAccessCommandCentre, redirect } from "next/navigation";
-import { claimFoundingInvite, getFoundingOnboarding } from "@dg/platform-core";
+import { redirect } from "next/navigation";
+import { canAccessCommandCentre, claimFoundingInvite, getFoundingOnboarding } from "@dg/platform-core";
 
 import { getPlatformPageContext } from "@/lib/org-apps";
 
