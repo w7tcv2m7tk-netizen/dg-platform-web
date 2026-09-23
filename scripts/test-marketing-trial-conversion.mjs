@@ -15,6 +15,11 @@ assert.doesNotMatch(pages["marketing/pages/pricing-page.html"], /hero_trial:\s*\
 assert.doesNotMatch(pages["marketing/pages/pricing-page.html"], /cta_trial:\s*\x27https:\/\/digitalgate\.com\.au\/founding-customers\//);
 assert.ok(!pages["marketing/pages/pricing-page.html"].includes("Unlimited Users"), "pricing page must not claim unlimited Scale users");
 assert.ok(pages["marketing/pages/pricing-page.html"].includes("Up to 20 Users"), "pricing page must state the Scale 20-user cap");
+const foundingPage = fs.readFileSync("marketing/pages/founding-customers-page.html", "utf8");
+const foundingTerms = fs.readFileSync("marketing/pages/founding-customer-terms.html", "utf8");
+assert.match(foundingPage, /Custom Pricing is available to any customer and is independent of Founding 10 status/);
+assert.match(foundingTerms, /Custom Pricing is a general commercial capability available to any customer and is independent of Founding 10 status/);
+assert.doesNotMatch(pages["marketing/pages/pricing-page.html"], /Founding offer/i);
 const appsBuild = fs.readFileSync("marketing/pages/apps/build.mjs", "utf8");
 assert.ok(!appsBuild.includes("Scale · $499/mo</h3><p>Unlimited users"), "Scale marketing must not claim unlimited users");
 assert.ok(appsBuild.includes("Scale · $499/mo</h3><p>Up to 20 users"), "Scale marketing must state the 20-user cap");
