@@ -62,7 +62,7 @@ export default async function FoundingAgreementPage({
   }
 
   if (invite) {
-    const claimed = await claimFoundingInvite({
+    await claimFoundingInvite({
       customerOrganisationId: session.organisationId,
       inviteToken: invite,
     });
