@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import {
   canAccessCommandCentre,
   formatWantBudget,
+  findFoundingCustomerOrganisationId,
   getContact,
   getLead,
   getOpportunity,
@@ -74,6 +75,9 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
       : null;
   const invitationSentAt =
     typeof meta.founding_invitation_sent_at === "string" ? meta.founding_invitation_sent_at : null;
+  const customerOrganisationId = founding && process.env.DATABASE_URL
+    ? await findFoundingCustomerOrganisationId(opportunity.id)
+    : null;
   const staff = canAccessCommandCentre({
     organisationId: session.organisationId,
     organisationName: session.organisationName,
@@ -212,6 +216,7 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               source={foundingSource}
               invitationStatus={invitationStatus}
               invitationSentAt={invitationSentAt}
+              customerOrganisationId={customerOrganisationId}
             />
           ) : staff && canWrite && canReadContacts && contact && opportunity.contactId ? (
             <InviteToFounding10Form

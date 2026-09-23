@@ -184,6 +184,22 @@ export async function getFoundingOnboarding(
   return parseFoundingOnboarding(settings.foundingOnboarding);
 }
 
+export async function findFoundingCustomerOrganisationId(
+  opportunityId: string,
+): Promise<string | null> {
+  if (!process.env.DATABASE_URL || !opportunityId.trim()) return null;
+  const { prisma } = await import("@dg/database");
+  const organisations = await prisma.organisation.findMany({
+    select: { id: true, settings: true },
+  });
+  for (const organisation of organisations) {
+    const settings = ((organisation.settings as OrgSettings | null) ?? {}) as OrgSettings;
+    const founding = parseFoundingOnboarding(settings.foundingOnboarding);
+    if (founding?.opportunityId === opportunityId) return organisation.id;
+  }
+  return null;
+}
+
 export async function saveFoundingOnboarding(
   organisationId: string,
   patch: {
