@@ -2,12 +2,10 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import {
   canAccessCommandCentre,
-  applyFoundingCommercialOfferToCustomer,
   claimFoundingInvite,
   createOrganisationForUser,
   getFoundingOnboarding,
   getOrganisationBusinessProfile,
-  getOrganisationCommercialOffer,
   getPublicFoundingInvitation,
 } from "@dg/platform-core";
 
@@ -68,20 +66,12 @@ export default async function FoundingAgreementPage({
       customerOrganisationId: session.organisationId,
       inviteToken: invite,
     });
-    if (claimed?.opportunity) {
-      await applyFoundingCommercialOfferToCustomer({
-        customerOrganisationId: session.organisationId,
-        opportunityMetadata: claimed.opportunity.metadata,
-      });
-    }
   }
 
-  const [record, profile, currentOffer] = await Promise.all([
+  const [record, profile] = await Promise.all([
     getFoundingOnboarding(session.organisationId),
     getOrganisationBusinessProfile(session.organisationId),
-    getOrganisationCommercialOffer(session.organisationId),
   ]);
-  const commercialOffer = record?.commercialOfferSnapshot ?? currentOffer;
 
   return (
     <>
@@ -103,7 +93,6 @@ export default async function FoundingAgreementPage({
               session.organisationName
             }
             alreadySigned={Boolean(record?.agreementSignedAt)}
-            commercialOffer={commercialOffer}
           />
         </Suspense>
       </main>
