@@ -3,24 +3,13 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import type { NegotiatedCommercialOffer } from "@dg/platform-core";
-
-function money(cents: number) {
-  return new Intl.NumberFormat("en-AU", {
-    style: "currency",
-    currency: "AUD",
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
-}
 
 export function FoundingAgreementForm({
   businessName,
   alreadySigned,
-  commercialOffer,
 }: {
   businessName: string;
   alreadySigned: boolean;
-  commercialOffer?: NegotiatedCommercialOffer | null;
 }) {
   const router = useRouter();
   const search = useSearchParams();
@@ -53,19 +42,6 @@ export function FoundingAgreementForm({
     return (
       <div className="dg-card max-w-2xl">
         <p className="text-emerald-300">Founding 10 terms accepted.</p>
-        {commercialOffer ? (
-          <div className="mt-2 space-y-1 text-sm text-slate-300">
-            <p>
-              {commercialOffer.label} · {money(commercialOffer.amountCents)}/
-              {commercialOffer.cadence === "annual" ? "year" : "month"}
-            </p>
-            {commercialOffer.oneOffAmountCents ? (
-              <p>
-                {commercialOffer.oneOffLabel ?? "Implementation & setup"} · {money(commercialOffer.oneOffAmountCents)} one-off
-              </p>
-            ) : null}
-          </div>
-        ) : null}
         <Link href="/onboarding" className="mt-3 inline-block text-sky-400 hover:underline">
           Continue to onboarding →
         </Link>
@@ -78,34 +54,6 @@ export function FoundingAgreementForm({
       <p className="text-sm text-slate-400">
         Confirm the Founding 10 terms for {businessName || "your business"}, then continue directly into setup. The full legal terms are available on the Founding Customer Terms page.
       </p>
-      {commercialOffer ? (
-        <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300">
-            Your agreed DigitalGate plan
-          </p>
-          <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="font-semibold text-white">{commercialOffer.label}</p>
-              <p className="mt-1 text-sm text-slate-400">
-                {commercialOffer.seats ? `Up to ${commercialOffer.seats} users · ` : ""}
-                {commercialOffer.trialDays > 0
-                  ? `${commercialOffer.trialDays}-day trial`
-                  : "Billing starts on activation"}
-              </p>
-            </div>
-            <p className="text-xl font-semibold text-white">
-              {money(commercialOffer.amountCents)}/
-              {commercialOffer.cadence === "annual" ? "year" : "month"}
-            </p>
-          </div>
-          {commercialOffer.oneOffAmountCents ? (
-            <div className="mt-4 flex flex-wrap justify-between gap-3 border-t border-emerald-500/20 pt-3 text-sm">
-              <span className="text-slate-300">{commercialOffer.oneOffLabel ?? "Implementation & setup"}</span>
-              <span className="font-semibold text-white">{money(commercialOffer.oneOffAmountCents)} one-off</span>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
       <a
         href="https://digitalgate.com.au/founding-customer-terms/"
         className="text-sm text-sky-400 hover:underline"
