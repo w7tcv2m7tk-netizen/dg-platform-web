@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import {
+  canAccessCommandCentre,
   applyFoundingCommercialOfferToCustomer,
   claimFoundingInvite,
   createOrganisationForUser,
@@ -50,6 +51,16 @@ export default async function FoundingAgreementPage({
     }
 
     redirect(`/login?redirect_url=${encodeURIComponent(returnTo)}`);
+  }
+
+  const operator = canAccessCommandCentre({
+    organisationId: session.organisationId,
+    organisationName: session.organisationName,
+    organisationSlug: session.organisationSlug,
+    role: session.role,
+  });
+  if (operator && invite) {
+    redirect("/apps/crm/opportunities");
   }
 
   if (invite) {
