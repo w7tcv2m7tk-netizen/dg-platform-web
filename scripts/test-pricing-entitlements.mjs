@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import assert from "node:assert/strict";
 import {
   SCALE_MAX_BUSINESSES,
@@ -43,3 +44,34 @@ assert.equal(canUseIndustryIntegrations("business"), true);
 assert.equal(canUseIndustryIntegrations("enterprise"), true);
 
 console.log("pricing entitlement regression checks passed");
+
+const commercialCatalogue = fs.readFileSync(
+  "packages/platform-core/src/billing/commercial-catalogue.ts",
+  "utf8",
+);
+const stripeBilling = fs.readFileSync(
+  "packages/platform-core/src/billing/platform-stripe.ts",
+  "utf8",
+);
+const commandOverview = fs.readFileSync(
+  "packages/platform-core/src/command-centre/overview.ts",
+  "utf8",
+);
+
+assert.match(commercialCatalogue, /id: "starter"[\s\S]*?monthlyCents: 9900/);
+assert.match(commercialCatalogue, /id: "professional"[\s\S]*?monthlyCents: 24900/);
+assert.match(commercialCatalogue, /id: "business"[\s\S]*?monthlyCents: 49900/);
+assert.match(commercialCatalogue, /id: "standard"[\s\S]*?monthlyCents: 0/);
+assert.match(commercialCatalogue, /id: "priority"[\s\S]*?monthlyCents: 19900/);
+assert.match(commercialCatalogue, /id: "success_partner"[\s\S]*?monthlyCents: 49900/);
+assert.match(commercialCatalogue, /id: "enterprise_success"[\s\S]*?monthlyCents: null/);
+assert.match(stripeBilling, /PLATFORM_COMMERCIAL_PLANS/);
+assert.match(stripeBilling, /SUPPORT_COMMERCIAL_PLANS/);
+assert.match(commandOverview, /commercial-catalogue/);
+assert.doesNotMatch(
+  commandOverview,
+  /starter:\s*9900,\s*professional:\s*24900,\s*business:\s*49900/,
+  "Command Centre must not duplicate canonical tier prices",
+);
+
+console.log("canonical commercial catalogue regression checks passed");
