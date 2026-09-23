@@ -178,7 +178,12 @@ export async function getOrganisationBillingStatus(
   const foundingCustomer = platformSub
     ? platformSub.foundingCustomer === true
     : isFoundingCustomer(billing);
-  // PlatformSubscription is authoritative once present. Legacy org settings /\n  // slug heuristics are only pre-subscription fallbacks and must not make a\n  // real canonical subscription exempt (or bill an explicitly exempt one).\n  const platformExempt = platformSub\n    ? platformSub.platformExempt === true\n    : !expectsPlatformBilling || billing.platformExempt === true;
+  // PlatformSubscription is authoritative once present. Legacy org settings /
+  // slug heuristics are only pre-subscription fallbacks and must not make a
+  // real canonical subscription exempt (or bill an explicitly exempt one).
+  const platformExempt = platformSub
+    ? platformSub.platformExempt === true
+    : !expectsPlatformBilling || billing.platformExempt === true;
 
   return {
     organisationId: org.id,
