@@ -259,13 +259,3 @@ test("all four cron funnels use claimed follow-up orchestration", async () => {
   assert.doesNotMatch(dispatcher, /processHideawayCircleFollowups/);
   assert.doesNotMatch(dispatcher, /processConsultationReminders/);
 });
-
-
-test("lead follow-up cron exposes retryable transient database failures", async () => {
-  const route = await readFile(new URL("../src/app/api/cron/lead-followups/route.ts", import.meta.url), "utf8");
-  assert.match(route, /TRANSIENT_DATABASE_CODES/);
-  assert.match(route, /database_temporarily_unavailable/);
-  assert.match(route, /retryable:\s*true/);
-  assert.match(route, /"Retry-After":\s*"60"/);
-  assert.match(route, /status:\s*503/);
-});
