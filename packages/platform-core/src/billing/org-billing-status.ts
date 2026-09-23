@@ -191,7 +191,7 @@ export async function getOrganisationBillingStatus(
     organisationSlug: org.slug,
     status: org.status,
     hasStripeCustomer,
-    expectsPlatformBilling: platformSub ? !platformExempt : expectsPlatformBilling,
+    expectsPlatformBilling,
     platformExempt,
     foundingCustomer,
     platformTier: platformSub?.planTier ?? profile.platformTier,
