@@ -30,8 +30,29 @@ export async function GET(req: Request) {
     );
   }
 
-  const result = await processDueFollowupEmails({ limit: 50 });
-  return NextResponse.json({ data: result });
+  try {
+    const result = await processDueFollowupEmails({ limit: 50 });
+    return NextResponse.json({ data: result });
+  } catch (error) {
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? String((error as { code?: unknown }).code ?? "")
+        : "";
+    if (code === "P1001" || code === "P1002" || code === "P1017") {
+      console.warn("[lead-followups cron] database temporarily unavailable:", code);
+      return NextResponse.json(
+        {
+          error: {
+            code: "database_temporarily_unavailable",
+            message: "Database is temporarily unavailable.",
+            retryable: true,
+          },
+        },
+        { status: 503, headers: { "Retry-After": "60" } },
+      );
+    }
+    throw error;
+  }
 }
 
 export async function POST(req: Request) {
