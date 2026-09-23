@@ -118,9 +118,9 @@ export function FoundingStageActions({
       ) : null}
 
       {setupUrl ? (
-        <a href={setupUrl} className="inline-flex rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500">
-          Open customer setup →
-        </a>
+        <p className="text-xs text-slate-500">
+          Customer setup is customer-only. Copy the setup link above and send it to the customer to complete their terms and onboarding.
+        </p>
       ) : null}
 
       <FoundingCommercialOfferEditor opportunityId={opportunityId} />
