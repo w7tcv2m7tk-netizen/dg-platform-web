@@ -31,7 +31,7 @@ import { listAllCommissions, listAllReferrals, listPartners } from "../partners/
 import { getDeliveryDashboardMetrics } from "../delivery/metrics";
 import { listDeliveryProjects } from "../delivery/projects";
 import type { OrgWordPressConnectorSettings } from "../connectors/wordpress/org-connector";
-import { GEN2_PLATFORM_PLANS } from "../onboarding/gen2-journey";
+
 
 function startOfToday() {
   const d = new Date();
@@ -424,6 +424,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
 
   const stripe = getStripeSetupStatus();
 
+  const { GEN2_PLATFORM_PLANS } = await import("../onboarding/gen2-journey");
   const recurringTierCents: Record<string, number> = Object.fromEntries(
     GEN2_PLATFORM_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
   );
