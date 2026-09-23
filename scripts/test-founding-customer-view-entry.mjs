@@ -1,0 +1,3 @@
+import fs from "node:fs";import assert from "node:assert/strict";
+const page=fs.readFileSync("src/app/(shell)/apps/crm/opportunities/[id]/page.tsx","utf8");const actions=fs.readFileSync("src/components/founding/FoundingStageActions.tsx","utf8");const onboarding=fs.readFileSync("packages/platform-core/src/founding/onboarding.ts","utf8");
+assert.match(page,/findFoundingCustomerOrganisationId\(opportunity\.id\)/);assert.match(page,/customerOrganisationId=\{customerOrganisationId\}/);assert.match(actions,/View as customer/);assert.match(actions,/\/onboarding\?operatorOrg=/);assert.match(onboarding,/founding\?\.opportunityId === opportunityId/);console.log("founding customer view entry: ok");
