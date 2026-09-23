@@ -1,8 +1,7 @@
 import {
-  createNegotiatedCommercialCheckoutSession,
+  createCustomCommercialCheckoutSession,
   createOrganisationGoal,
   createPlatformCheckoutSession,
-  getFoundingOnboarding,
   getGen2OnboardingProgress,
   getOrganisationBillingStatus,
   getOrganisationBusinessProfile,
@@ -46,8 +45,8 @@ function resolveOrganisationId(req: Request, session: PlatformSession) {
 type AllowedClientProgress = Partial<Pick<Gen2OnboardingProgress, "platformTier" | "supportPlan" | "billingCadence" | "industryApps" | "industryTemplates" | "premiumApps" | "checklist" | "vipSetup">>;
 
 async function effectiveCommercialOffer(organisationId: string) {
-  const [programmeRecord, current] = await Promise.all([getFoundingOnboarding(organisationId), getOrganisationCommercialOffer(organisationId)]);
-  return programmeRecord?.commercialOfferSnapshot ?? current;
+  // Founding 10 status never changes pricing. Only a separately accepted custom pricing offer may override the public catalogue.
+  return getOrganisationCommercialOffer(organisationId);
 }
 function cleanShortString(value: unknown, max = 160) { return typeof value === "string" ? value.trim().slice(0, max) : undefined; }
 function savedBrandPalette(value: unknown): [string, string] | null {
@@ -214,7 +213,7 @@ export async function POST(req: Request) {
     const targetProfile = operatorPreview ? await getOrganisationBusinessProfile(resolvedOrganisationId) : null;
     const checkoutEmail = operatorPreview ? (targetProfile?.businessEmail || targetProfile?.contactEmail || session.email) : session.email;
     const checkoutBusinessName = operatorPreview ? (targetProfile?.businessName || targetProfile?.tradingName || "Customer") : session.organisationName;
-    const checkout = offer ? await createNegotiatedCommercialCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, businessName: checkoutBusinessName, offer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
+    const checkout = offer ? await createCustomCommercialCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, businessName: checkoutBusinessName, offer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
       : await createPlatformCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, platformTier, industryApps, premiumApps, supportPlan, businessName: checkoutBusinessName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
     if (!operatorPreview) await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
     return NextResponse.json({ data: checkout });
