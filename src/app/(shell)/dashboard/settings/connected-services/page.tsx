@@ -6,6 +6,8 @@ import { GoogleAdsConnectorPanel } from "@/components/settings/GoogleAdsConnecto
 import { GoogleBusinessProfileLocationSelector } from "@/components/settings/GoogleBusinessProfileLocationSelector";
 import { LinkedInConnectorPanel } from "@/components/settings/LinkedInConnectorPanel";
 import { MetaConnectorPanel } from "@/components/settings/MetaConnectorPanel";
+import { MicrosoftAdsConnectorPanel } from "@/components/settings/MicrosoftAdsConnectorPanel";
+import { TikTokAdsConnectorPanel } from "@/components/settings/TikTokAdsConnectorPanel";
 import { YouTubeConnectorPanel } from "@/components/settings/YouTubeConnectorPanel";
 import { ResolutionAction } from "@/components/ui/ResolutionAction";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
@@ -88,6 +90,8 @@ export default async function ConnectedServicesPage({
 
         <GoogleBusinessProfileLocationSelector />
         <GoogleAdsConnectorPanel />
+        <MicrosoftAdsConnectorPanel />
+        <TikTokAdsConnectorPanel />
         <MetaConnectorPanel flash={metaFlash === "connected" ? "connected" : metaFlash === "attention" ? "attention" : metaFlash === "error" ? "error" : null} flashMessage={metaFlash ? flashMessage ?? null : null} />
         <LinkedInConnectorPanel flash={linkedinFlash === "connected" ? "connected" : linkedinFlash === "attention" ? "attention" : linkedinFlash === "error" ? "error" : null} flashMessage={linkedinFlash ? flashMessage ?? null : null} />
         <YouTubeConnectorPanel />
