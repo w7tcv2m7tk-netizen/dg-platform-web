@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ConnectedServicesCatalog } from "@/components/settings/ConnectedServicesCatalog";
 import { ConnectedServicesHealthOverview } from "@/components/settings/ConnectedServicesHealthOverview";
+import { GoogleAdsConnectorPanel } from "@/components/settings/GoogleAdsConnectorPanel";
 import { GoogleBusinessProfileLocationSelector } from "@/components/settings/GoogleBusinessProfileLocationSelector";
 import { LinkedInConnectorPanel } from "@/components/settings/LinkedInConnectorPanel";
 import { MetaConnectorPanel } from "@/components/settings/MetaConnectorPanel";
@@ -86,6 +87,7 @@ export default async function ConnectedServicesPage({
         </div>
 
         <GoogleBusinessProfileLocationSelector />
+        <GoogleAdsConnectorPanel />
         <MetaConnectorPanel flash={metaFlash === "connected" ? "connected" : metaFlash === "attention" ? "attention" : metaFlash === "error" ? "error" : null} flashMessage={metaFlash ? flashMessage ?? null : null} />
         <LinkedInConnectorPanel flash={linkedinFlash === "connected" ? "connected" : linkedinFlash === "attention" ? "attention" : linkedinFlash === "error" ? "error" : null} flashMessage={linkedinFlash ? flashMessage ?? null : null} />
         <YouTubeConnectorPanel />

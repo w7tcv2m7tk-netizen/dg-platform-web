@@ -29,10 +29,12 @@ export async function GET(req: Request) {
   const writeBlock = await tenantWriteEntitlementBlock(session);
   if (writeBlock) return writeEntitlementResponse(writeBlock);
 
-  const returnTo = gbpOAuthReturnPath(new URL(req.url).searchParams.get("returnTo"));
-  const analyticsMode = returnTo === "/apps/analytics/connectors/google";
-  const adsMode = returnTo === "/apps/advertising";
-  const youtubeMode = returnTo === "/apps/social/accounts";
+  const requestUrl = new URL(req.url);
+  const returnTo = gbpOAuthReturnPath(requestUrl.searchParams.get("returnTo"));
+  const requestedMode = requestUrl.searchParams.get("mode");
+  const analyticsMode = requestedMode === "analytics" || returnTo === "/apps/analytics/connectors/google";
+  const adsMode = requestedMode === "ads" || returnTo === "/apps/advertising";
+  const youtubeMode = requestedMode === "youtube" || returnTo === "/apps/social/accounts";
   let state: string;
   try {
     state = createGoogleOAuthState(session.organisationId, { returnTo, mode: analyticsMode ? "analytics" : adsMode ? "ads" : youtubeMode ? "youtube" : "gbp" });
