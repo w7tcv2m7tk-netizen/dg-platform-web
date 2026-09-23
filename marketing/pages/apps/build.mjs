@@ -542,7 +542,7 @@ function layerPage(layer) {
         <div class="grid-3" style="margin-top:1rem;">
           <div class="card"><h3>Starter · $99/mo</h3><p>1 user · 1 business</p></div>
           <div class="card"><h3>Growth · $249/mo</h3><p>Up to 5 users · 1 business</p></div>
-          <div class="card"><h3>Scale · $499/mo</h3><p>Unlimited users · up to 5 active businesses · specialist Industry integrations &amp; API access.</p></div>
+          <div class="card"><h3>Scale · $499/mo</h3><p>Up to 20 users · up to 5 active businesses · specialist Industry integrations &amp; API access.</p></div>
         </div>
         <p class="section-note">Each Scale business remains a separate secure DigitalGate organisation. Specialist Industry integrations require the relevant Industry App. More than 5 active businesses or custom organisation requirements move to Enterprise.</p>
         <div class="ctas"><a class="btn btn-secondary" href="${PRICING}">Compare Core Platform plans</a></div>
