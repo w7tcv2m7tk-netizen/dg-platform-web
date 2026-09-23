@@ -202,10 +202,10 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const platformTier = offer?.platformTier ?? (body.platformTier as string | undefined) ?? progress.platformTier ?? "professional";
   const billingCadence = offer?.cadence ?? (body.billingCadence === "annual" || progress.billingCadence === "annual" ? ("annual" as const) : ("monthly" as const));
-  const industryApps = offer?.industryApps ?? body.industryApps ?? progress.industryApps; const premiumApps = offer?.premiumApps ?? body.premiumApps ?? progress.premiumApps; const supportPlan = offer?.supportPlan ?? progress.supportPlan ?? "standard";
+  const industryApps = offer?.industryApps ?? body.industryApps ?? progress.industryApps; const premiumApps = offer?.premiumApps ?? body.premiumApps ?? progress.premiumApps; const requestedSupportPlan = typeof body.supportPlan === "string" ? body.supportPlan : undefined; const supportPlan = offer?.supportPlan ?? requestedSupportPlan ?? progress.supportPlan ?? "standard";
   if (billing?.kind === "platform_exempt") {
     await saveGen2OnboardingProgress(resolvedOrganisationId, {
-      platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps,
+      platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan,
       subscriptionActivatedAt: new Date().toISOString(), markStepComplete: "stripe",
     });
     return NextResponse.json({ data: { exempt: true, url: "/onboarding?checkout=success" } });
@@ -216,7 +216,7 @@ export async function POST(req: Request) {
     const checkoutBusinessName = operatorPreview ? (targetProfile?.businessName || targetProfile?.tradingName || "Customer") : session.organisationName;
     const checkout = offer ? await createNegotiatedCommercialCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, businessName: checkoutBusinessName, offer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
       : await createPlatformCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, platformTier, industryApps, premiumApps, supportPlan, businessName: checkoutBusinessName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
-    if (!operatorPreview) await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
+    if (!operatorPreview) await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
     return NextResponse.json({ data: checkout });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown checkout error";
