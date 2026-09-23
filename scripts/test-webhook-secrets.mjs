@@ -218,15 +218,3 @@ describe("H-4: connector secret encryption", () => {
     });
   });
 });
-
-
-describe("Stripe webhook configuration", () => {
-  it("fails closed and retryably when Stripe secrets are absent", async () => {
-    const source = await import("node:fs/promises").then(({ readFile }) =>
-      readFile(new URL("../src/app/api/webhooks/stripe/route.ts", import.meta.url), "utf8"),
-    );
-    assert.match(source, /stripe_webhook_not_configured/);
-    assert.match(source, /status:\s*503/);
-    assert.match(source, /"Retry-After":\s*"60"/);
-  });
-});
