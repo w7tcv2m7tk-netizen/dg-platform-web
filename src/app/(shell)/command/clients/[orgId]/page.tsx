@@ -5,9 +5,11 @@ import {
   clientScoreTierEmoji,
   formatClientObservedSignal,
   getOperatorClientIntelligence,
+  getOperatorCustomerControlSnapshot,
 } from "@dg/platform-core";
 
 import { CustomerAppsSubscriptionPanel } from "@/components/command/CustomerAppsSubscriptionPanel";
+import { CustomerControlPanel } from "@/components/command/CustomerControlPanel";
 import { CompleteCustomerSetupButton } from "@/components/command/CompleteCustomerSetupButton";
 import { CustomerSetupProgressPanel } from "@/components/command/CustomerSetupProgressPanel";
 import { ProvisionAccBetaButton } from "@/components/command/ProvisionAccBetaButton";
@@ -22,7 +24,12 @@ type Ctx = { params: Promise<{ orgId: string }> };
 export default async function CommandClientDetailPage({ params }: Ctx) {
   const operator = await requirePlatformOperatorContext();
   const { orgId } = await params;
-  const intel = process.env.DATABASE_URL ? await getOperatorClientIntelligence(operator) : null;
+  const [intel, customerControl] = process.env.DATABASE_URL
+    ? await Promise.all([
+        getOperatorClientIntelligence(operator),
+        getOperatorCustomerControlSnapshot(orgId),
+      ])
+    : [null, null];
   const client = intel?.clients.find((c) => c.organisationId === orgId);
 
   if (!intel) return <><header className="dg-page-header"><Link href="/command/clients" className="text-sm text-sky-400 hover:underline">← Portfolio</Link><h1 className="mt-2 text-2xl font-bold text-white">Client detail</h1></header><main className="dg-page-main"><div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-4 text-sm text-amber-100">Database not configured — client detail unavailable.</div></main></>;
@@ -36,6 +43,13 @@ export default async function CommandClientDetailPage({ params }: Ctx) {
       <p className="mt-1 text-sm text-slate-400">{client.organisationSlug}{client.industry ? ` · ${client.industry}` : ""} · rank #{client.rank}</p>
     </header>
     <main className="dg-page-main space-y-8">
+      {customerControl ? (
+        <CustomerControlPanel
+          organisationId={client.organisationId}
+          organisationName={client.organisationName}
+          snapshot={customerControl}
+        />
+      ) : null}
       <CustomerSetupProgressPanel organisationId={client.organisationId} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-4 py-4"><p className="text-xs uppercase tracking-wide text-slate-500">Success Score™</p><div className="mt-2"><ScoreCell score={client.successScore} /></div>{client.scoreProvisional ? <p className="mt-2 text-[11px] text-slate-500">Provisional · {client.dataCoverage} data — not invented gaps</p> : null}</div>
