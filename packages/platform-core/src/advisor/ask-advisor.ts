@@ -244,13 +244,16 @@ export async function askBusinessAdvisor(
     "1) Direct answer (2–4 sentences)",
     "2) Why it matters (1–2 sentences)",
     "3) What to do next (up to 3 numbered actions, referencing the evidence recommendations when relevant)",
+    "",
+    "Authoritative current business evidence:",
+    authoritativeEvidence,
   ].join("\n");
 
   const user = [
     input.contextLabel ? `Ask about: ${input.contextLabel}` : "Ask about: Entire Business",
     `Question: ${question}`,
     "",
-    "Advisor interpretation and recommendations (derived from the authoritative evidence above):",
+    "Business Brain briefing and recommendations (interpretation; use only when supported by the authoritative evidence and approved organisational context):",
     `${evidence}${contextualEvidenceBlock(input)}`,
   ].join("\n");
 
