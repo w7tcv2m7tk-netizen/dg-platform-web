@@ -16,7 +16,7 @@ export function PartnerAdminActions({
   const [message, setMessage] = useState("");
   const router = useRouter();
 
-  async function action(act: "approve" | "suspend") {
+  async function action(act: "approve" | "suspend" | "withdraw") {
     setStatus("saving");
     setMessage("");
     await fetch(`/api/v1/admin/partners/${partnerId}/${act}`, { method: "POST" });
@@ -54,7 +54,21 @@ export function PartnerAdminActions({
               : "Send invitation"}
           </button>
         ) : null}
-        {currentStatus === "pending" && (
+         {currentStatus === "pending" && invitationStatus !== "withdrawn" ? (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm("Cancel this pending partner invitation? The existing invite link will stop working.")) {
+                void action("withdraw");
+              }
+            }}
+            disabled={status === "saving"}
+            className="rounded-full border border-rose-500/40 px-4 py-2 text-sm font-medium text-rose-300 hover:border-rose-400 hover:text-rose-200 disabled:opacity-60"
+          >
+            Cancel invitation
+          </button>
+        ) : null}
+       {currentStatus === "pending" && (
           <button
             type="button"
             onClick={() => void action("approve")}
