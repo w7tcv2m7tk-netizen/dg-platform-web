@@ -43,8 +43,37 @@ export async function Gen2OnboardingChecklistBanner({ organisationId, organisati
   }
 
   const stats = gen2ChecklistStats(progress);
-  const workspaceConfigured = (["business_identity", "business_profile", "operating_profile", "goals", "plan", "apps", "platform_preparation"] as const).every((step) => progress.completedSteps.includes(step));
-  if (workspaceConfigured) return null;
+  const workspaceConfigured = (["business_identity", "business_profile", "operating_profile", "goals", "plan", "apps", "support", "platform_preparation"] as const).every((step) => progress.completedSteps.includes(step));
+  const subscriptionActivated = progress.completedSteps.includes("stripe") || Boolean(progress.subscriptionActivatedAt);
+
+  if (workspaceConfigured && !subscriptionActivated) {
+    return (
+      <div className="mb-6 rounded-2xl border border-violet-400/25 bg-violet-500/[0.08] px-4 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">Setup saved · activation remaining</p>
+            <p className="mt-1 text-sm text-slate-200">Your DigitalGate setup is ready. Complete secure payment setup to start your trial and activate the workspace.</p>
+            <p className="mt-1 text-xs text-slate-500">You won’t need to repeat the onboarding steps you’ve already completed.</p>
+          </div>
+          <Link href="/onboarding" className="inline-flex min-h-10 items-center rounded-full bg-violet-600 px-4 text-sm font-medium text-white hover:bg-violet-500">Continue to activation →</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (subscriptionActivated && !progress.completedAt) {
+    return (
+      <div className="mb-6 rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.06] px-4 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">Subscription confirmed</p>
+            <p className="mt-1 text-sm text-slate-200">Finish the final hand-off so Aida can open your configured workspace.</p>
+          </div>
+          <Link href="/onboarding?checkout=success" className="inline-flex min-h-10 items-center rounded-full bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-500">Finish setup →</Link>
+        </div>
+      </div>
+    );
+  }
 
   if (stats.done === 0 && progress.currentStep === "welcome") {
     return (
