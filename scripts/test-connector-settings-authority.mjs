@@ -32,4 +32,15 @@ for (const file of [
   assert.match(src, /tenantWriteEntitlementBlock\(/, `${file} must enforce tenant write entitlement`);
 }
 
+for (const file of [
+  "src/app/api/v1/connectors/domain/disconnect/route.ts",
+  "src/app/api/v1/connectors/rea/activate/route.ts",
+  "src/app/api/v1/connectors/rea/disconnect/route.ts",
+  "src/app/api/v1/connectors/wordpress/route.ts",
+]) {
+  const src = fs.readFileSync(file, "utf8");
+  assert.match(src, /requirePermission\(/, `${file} must require settings:manage`);
+  assert.match(src, /tenantWriteEntitlementBlock\(/, `${file} must enforce tenant write entitlement`);
+}
+
 console.log("Connector settings authority regression checks passed");

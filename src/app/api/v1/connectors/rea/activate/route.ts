@@ -2,6 +2,7 @@ import { activateOrgReaAgency, bootConnectorEngine } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
+import { tenantWriteEntitlementBlock, writeEntitlementResponse } from "@/lib/write-entitlement";
 import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +23,8 @@ export async function POST(req: Request) {
     scope: "organisation",
   });
   if (denied) return denied;
+  const writeBlock = await tenantWriteEntitlementBlock(session);
+  if (writeBlock) return writeEntitlementResponse(writeBlock);
 
   const { prisma } = await import("@dg/database");
   const subscription = await prisma.platformSubscription.findUnique({

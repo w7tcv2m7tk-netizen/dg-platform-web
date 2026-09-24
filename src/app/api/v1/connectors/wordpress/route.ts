@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 
 import { probeWordPressConnector } from "@/lib/dg-api";
 import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
+import { tenantWriteEntitlementBlock, writeEntitlementResponse } from "@/lib/write-entitlement";
 
 function requireMigrationManager(session: Parameters<typeof requirePermission>[0]) {
   return requirePermission(session, { module: "settings", action: "manage", scope: "organisation" });
@@ -42,6 +43,9 @@ export async function PATCH(req: Request) {
   if (isNextResponse(session)) return session;
   const denied = requireMigrationManager(session);
   if (denied) return denied;
+
+  const writeBlock = await tenantWriteEntitlementBlock(session);
+  if (writeBlock) return writeEntitlementResponse(writeBlock);
 
   const body = await req.json().catch(() => ({}));
   const preset = body.preset as keyof typeof WP_CONNECTOR_PRESETS | undefined;
