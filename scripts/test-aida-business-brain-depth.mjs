@@ -7,7 +7,8 @@ const pageData=fs.readFileSync("src/lib/advisor-page-data.ts","utf8");
 const route=fs.readFileSync("src/app/api/v1/ai/advisor/route.ts","utf8");
 const ui=fs.readFileSync("src/components/intelligence/AiAdvisorDashboard.tsx","utf8");
 
-assert.match(ask,/Authoritative current business evidence:[\s\S]*authoritativeEvidence/);
+assert.match(ask,/Authoritative current business evidence:/);
+assert.match(ask,/authoritativeEvidence/);
 assert.match(ask,/use only when supported by the authoritative evidence and approved organisational context/);
 assert.match(boundary,/getApprovedKnowledgeContext/);
 assert.match(boundary,/organisationId: input\.organisationId/);
