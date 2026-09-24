@@ -18,7 +18,7 @@ import {
 } from "./success-score";
 import type { OrgWordPressConnectorSettings } from "../connectors/wordpress/org-connector";
 import { isPlatformOperatorOrganisation } from "./access";
-import { isCanonicalDemoOrganisation } from "../demo/types";
+import { isCanonicalDemoOrganisation, isLegacyDemoOrganisation } from "../demo/types";
 
 type OrgSettings = {
   connectors?: { wordpress?: OrgWordPressConnectorSettings };
@@ -278,12 +278,17 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       organisationSlug: org.slug,
       organisationName: org.name,
     });
-    const isDemoOrg = isCanonicalDemoOrganisation({
-      name: org.name,
-      slug: org.slug,
-      status: org.status,
-      settings: org.settings,
-    });
+    const isDemoOrg =
+      isCanonicalDemoOrganisation({
+        name: org.name,
+        slug: org.slug,
+        status: org.status,
+        settings: org.settings,
+      }) ||
+      isLegacyDemoOrganisation({
+        name: org.name,
+        slug: org.slug,
+      });
     return !isInternalOrg && !isDemoOrg;
   });
 
