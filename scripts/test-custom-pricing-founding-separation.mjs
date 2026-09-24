@@ -19,6 +19,10 @@ assert.match(foundingOfferApi, /retired_endpoint/, "legacy Founding pricing endp
 assert.match(customOfferApi, /setOpportunityCustomOffer/, "general CRM custom offer API must persist bespoke pricing");
 assert.match(publicOfferApi, /claimOpportunityCustomOffer/, "customer must explicitly claim a custom offer");
 assert.match(customOfferPage, /Accept offer & continue/, "private customer link must expose explicit acceptance");
+assert.match(customOfferApi, /industryTemplates: stringList\(body\?\.industryTemplates\)/, "operator custom offers must persist selected Industry Templates");
+assert.match(publicOfferApi, /industryTemplates: offer\.industryTemplates/, "private offer payload must expose selected Industry Templates");
+assert.match(customOfferPage, /Industry Templates/, "customer offer must disclose selected Industry Templates");
+assert.match(onboarding, /industryTemplates: offer\.industryTemplates/, "accepted custom offer must lock Industry Templates into onboarding");
 assert.match(types, /Founding Customer status — limited places, not discounted access/, "Founding status must remain a programme benefit, not a discount");
 assert.match(types, /custom pricing is a separate offer available to any customer/, "Founding benefits must describe custom pricing as independent");
 assert.match(terms, /20% direct referral commission for the first 12 months/, "Founding referral benefit must remain documented");
