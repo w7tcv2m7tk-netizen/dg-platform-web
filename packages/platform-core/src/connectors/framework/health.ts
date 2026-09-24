@@ -227,7 +227,27 @@ function statusFromBlob(
   }
 
   if (connectorId === "google-ads" || connectorId === "youtube") {
-    return capabilityStatusFromSharedGoogleBlob(blob, connectorId);
+    const base = capabilityStatusFromSharedGoogleBlob(blob, connectorId);
+    if (base.status !== "connected") return base;
+    const selected =
+      connectorId === "google-ads"
+        ? Array.isArray(blob.selectedGoogleAdsCustomerIds)
+          ? blob.selectedGoogleAdsCustomerIds
+          : []
+        : Array.isArray(blob.selectedYouTubeChannelIds)
+          ? blob.selectedYouTubeChannelIds
+          : [];
+    if (selected.length === 0) {
+      return {
+        ...base,
+        status: "degraded",
+        lastError:
+          connectorId === "google-ads"
+            ? "Google Ads is authorised, but no ad account has been assigned to this organisation yet."
+            : "YouTube is authorised, but no channel has been assigned to this organisation yet.",
+      };
+    }
+    return base;
   }
 
   if (
@@ -239,6 +259,30 @@ function statusFromBlob(
     connectorId === "domain"
   ) {
     return oauthOrgStatusFromBlob(blob);
+  }
+
+  if (connectorId === "microsoft-ads" || connectorId === "tiktok-ads") {
+    const base = oauthOrgStatusFromBlob(blob);
+    if (base.status !== "connected") return base;
+    const selected =
+      connectorId === "microsoft-ads"
+        ? Array.isArray(blob.selectedAccountIds)
+          ? blob.selectedAccountIds
+          : []
+        : Array.isArray(blob.selectedAdvertiserIds)
+          ? blob.selectedAdvertiserIds
+          : [];
+    if (selected.length === 0) {
+      return {
+        ...base,
+        status: "degraded",
+        lastError:
+          connectorId === "microsoft-ads"
+            ? "Microsoft Advertising is authorised, but no ad account has been assigned to this organisation yet."
+            : "TikTok Ads is authorised, but no advertiser has been assigned to this organisation yet.",
+      };
+    }
+    return base;
   }
 
   if (connectorId === "meta") {
