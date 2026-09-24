@@ -74,13 +74,13 @@ export async function grantDemoAccess(input: {
   clerkUserId: string;
   email?: string;
   displayName?: string;
-  access: "customer" | "partner";
+  access: "customer" | "partner" | "staff";
 }): Promise<{ organisationId: string }> {
   const { organisationId } = await ensureDemoOrganisation();
   await resetDemoOrganisationIfEmpty(organisationId);
 
   const { prisma } = await import("@dg/database");
-  const role = input.access === "partner" ? "demo:partner" : "demo:customer";
+  const role = input.access === "staff" ? "dg:staff" : input.access === "partner" ? "demo:partner" : "demo:customer";
   const existing = await prisma.membership.findUnique({
     where: {
       organisationId_clerkUserId: {
@@ -90,7 +90,7 @@ export async function grantDemoAccess(input: {
     },
   });
   if (existing) {
-    if (existing.role !== "dg:staff" && existing.role !== role) {
+    if (existing.role !== role) {
       await prisma.membership.update({
         where: { id: existing.id },
         data: { role },
