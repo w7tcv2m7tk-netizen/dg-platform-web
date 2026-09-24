@@ -341,13 +341,16 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   },
 };
 
-function businessNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
+function businessNavItem(foundingCustomerMode: boolean, platformOperator = false): AppNavTreeItem {
+  const overviewHref = platformOperator ? "/dashboard?view=business" : "/dashboard";
   const identityRoutes: AppRoute[] = [
     {
-      path: "/dashboard",
+      path: overviewHref,
       label: "Overview",
+      ...(platformOperator ? { matchAlso: ["/dashboard"] } : {}),
       // Twin / Brain / Benchmarks / legacy Intelligence hub — supporting layers, not tabs.
       matchAlso: [
+        ...(platformOperator ? ["/dashboard"] : []),
         "/dashboard/twin",
         "/dashboard/brain",
         "/dashboard/benchmarks",
@@ -383,7 +386,7 @@ function businessNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
     tier: "core",
     enabled: true,
     routes: [...identityRoutes, ...intelligenceRoutes],
-    primaryHref: "/dashboard",
+    primaryHref: overviewHref,
   };
 }
 
@@ -1070,7 +1073,7 @@ export function getCategorizedPlatformNavigation(
     .map((a) => toTreeItem(a, enabledIds));
 
   const coreApps = [
-    businessNavItem(foundingCustomerMode),
+    businessNavItem(foundingCustomerMode, options?.showCommandCentre === true),
     ...sortByOrder(
       enabledApps.filter((a) => CORE_APP_IDS.has(a.id)),
       CORE_APP_ORDER,
