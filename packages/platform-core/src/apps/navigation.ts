@@ -347,7 +347,6 @@ function businessNavItem(foundingCustomerMode: boolean, platformOperator = false
     {
       path: overviewHref,
       label: "Overview",
-      ...(platformOperator ? { matchAlso: ["/dashboard"] } : {}),
       // Twin / Brain / Benchmarks / legacy Intelligence hub — supporting layers, not tabs.
       matchAlso: [
         ...(platformOperator ? ["/dashboard"] : []),
