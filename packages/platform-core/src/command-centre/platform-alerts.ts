@@ -250,24 +250,8 @@ function buildAlertsFromOpsHome(
     });
   }
 
-  const connectorSummary = buildConnectorHealth(home.connectors.orgs);
-  // Stale WordPress connectors are legacy detach residue — notice only, not Attention.
-  if (connectorSummary.attention > 0) {
-    notices.push({
-      id: "connectors-legacy-wp",
-      severity: "notice",
-      title: `${connectorSummary.attention} legacy WordPress connector${connectorSummary.attention === 1 ? "" : "s"} idle`,
-      message:
-        "Gen 2 is the system of record. Legacy bridges remain configured during detachment.",
-      detectedAt: now,
-      impact: "No customer ops impact unless an org still relies on a WP mirror you have not retired.",
-      recommendedAction:
-        "Leave idle unless a specific org still needs WP sync; otherwise disconnect the connector in Settings.",
-      href: "/command/clients",
-      actions: actionsForLegacyConnectors(),
-      category: "connectors",
-    });
-  }
+  // Legacy WordPress connector state is retained in diagnostics only.
+  // Idle legacy bridges are not platform notices in the Gen 2 system-of-record model.
 
   if (home.organisationHealth.needsAttentionCount > 0) {
     attention.push({
