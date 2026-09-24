@@ -8,6 +8,7 @@ import {
   gatherOverviewLiveMetrics,
   generateBusinessIntelligence,
   getAiQualityMetrics,
+  getApprovedKnowledgeContext,
   getBusinessContext,
   getOrganisationBusinessProfile,
   getOrganisationGoals,
@@ -27,7 +28,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
 
   const userDisplayName = user?.firstName ?? name ?? "there";
   const enabledAppIds = await getOrgEnabledAppIds();
-  const [profile, metrics, connectors, setupStatus, healthHistory, reviewsBundle, goals, aiQuality] =
+  const [profile, metrics, connectors, setupStatus, healthHistory, reviewsBundle, goals, aiQuality, approvedKnowledge] =
     await Promise.all([
       getOrganisationBusinessProfile(session.organisationId),
       gatherOverviewLiveMetrics(session.organisationId),
@@ -37,6 +38,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
       loadReviewsSessionAndFeed(),
       getOrganisationGoals(session.organisationId),
       getAiQualityMetrics({ organisationId: session.organisationId, windowDays: 30 }),
+      getApprovedKnowledgeContext({ organisationId: session.organisationId, limit: 1 }).catch(() => ({ items: [], promptContext: "" })),
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
@@ -70,6 +72,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     context,
     setup: setupStatus,
     connectorCount: context.twin.connectedSystems.length,
+    hasApprovedKnowledge: approvedKnowledge.items.length > 0,
   });
 
   const health = buildBusinessHealth({
