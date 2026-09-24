@@ -161,6 +161,15 @@ function countMap(rows: CountRow[]): Map<string, number> {
   return new Map(rows.map((r) => [r.organisationId, r._count.id]));
 }
 
+async function safeAggregateRows<T>(label: string, query: Promise<T[]>): Promise<T[]> {
+  try {
+    return await query;
+  } catch (error) {
+    console.warn("[client-intelligence] " + label + " aggregate unavailable", error);
+    return [];
+  }
+}
+
 /** Load cross-tenant client intelligence with Success Score™. */
 export async function getClientIntelligence(): Promise<ClientIntelligenceBundle> {
   const { prisma } = await import("@dg/database");
@@ -207,50 +216,50 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
         },
       },
     }),
-    prisma.lead.groupBy({
+    safeAggregateRows("leads-this-month", prisma.lead.groupBy({
       by: ["organisationId"],
       where: { createdAt: { gte: monthStart } },
       _count: { id: true },
-    }),
-    prisma.opportunity.groupBy({
+    })),
+    safeAggregateRows("open-opportunities", prisma.opportunity.groupBy({
       by: ["organisationId"],
       where: { status: "open" },
       _count: { id: true },
-    }),
-    prisma.lead.groupBy({
+    })),
+    safeAggregateRows("overdue-lead-responses", prisma.lead.groupBy({
       by: ["organisationId"],
       where: {
         responseDueAt: { lt: now },
         firstResponseAt: null,
       },
       _count: { id: true },
-    }),
-    prisma.activity.groupBy({
+    })),
+    safeAggregateRows("activities-this-month", prisma.activity.groupBy({
       by: ["organisationId"],
       where: { createdAt: { gte: monthStart } },
       _count: { id: true },
-    }),
-    prisma.property.groupBy({
+    })),
+    safeAggregateRows("listed-properties", prisma.property.groupBy({
       by: ["organisationId"],
       where: { status: "listed" },
       _count: { id: true },
-    }),
-    prisma.stayBooking.groupBy({
+    })),
+    safeAggregateRows("active-stay-bookings", prisma.stayBooking.groupBy({
       by: ["organisationId"],
       where: { status: { in: ["confirmed", "airbnb", "bookingcom", "pending"] } },
       _count: { id: true },
-    }),
-    prisma.commerceSubscription.groupBy({
+    })),
+    safeAggregateRows("active-subscriptions", prisma.commerceSubscription.groupBy({
       by: ["organisationId"],
       where: { status: "active" },
       _count: { id: true },
       _sum: { amountCents: true },
-    }),
-    prisma.commerceInvoice.groupBy({
+    })),
+    safeAggregateRows("paid-invoices-month-to-date", prisma.commerceInvoice.groupBy({
       by: ["organisationId"],
       where: { status: "paid", paidAt: { gte: monthStart } },
       _sum: { totalCents: true },
-    }),
+    })),
   ]);
 
   const leadsMonthMap = countMap(leadsThisMonth as CountRow[]);
