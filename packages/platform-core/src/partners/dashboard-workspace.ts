@@ -168,8 +168,12 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
   }
 
   const monthStart = centsMonthStart();
-  const resellerPartners = partners.filter((p) => RESELLER_TYPES.has(p.partnerType) && p.status !== "inactive");
-  const deliveryPartners = partners.filter((p) => p.partnerType === "IMPLEMENTATION_PARTNER" && p.status !== "inactive");
+  // Withdrawn/cancelled invitations are historical records, not current partners.
+  // Keep them out of operational partner lists and counts.
+  const isCurrentPartner = (p: (typeof partners)[number]) =>
+    p.status !== "inactive" && p.invitationStatus !== "withdrawn";
+  const resellerPartners = partners.filter((p) => RESELLER_TYPES.has(p.partnerType) && isCurrentPartner(p));
+  const deliveryPartners = partners.filter((p) => p.partnerType === "IMPLEMENTATION_PARTNER" && isCurrentPartner(p));
 
   const activeResellers = resellerPartners.filter((p) => p.status === "active").length;
   const pendingApplications = resellerPartners.filter((p) => p.status === "pending").length;
