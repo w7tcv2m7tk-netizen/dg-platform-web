@@ -244,6 +244,9 @@ export async function askBusinessAdvisor(
     "1) Direct answer (2–4 sentences)",
     "2) Why it matters (1–2 sentences)",
     "3) What to do next (up to 3 numbered actions, referencing the evidence recommendations when relevant)",
+    "",
+    "Authoritative current business evidence:",
+    authoritativeEvidence,
   ].join("\n");
 
   const user = [
