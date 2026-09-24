@@ -9,6 +9,7 @@ import { getOrganisationBillingStatus, billingStatusHeadline } from "../billing/
 import { getOrganisationCommercialOffer } from "../billing/commercial-offer";
 import { normalisePaidAppKeys, PAID_APP_LABELS } from "../billing/paid-apps";
 import { getTemplate, industryIdForAppOrTemplate, INDUSTRY_PLATFORMS } from "../industry";
+import { listConnectorCatalogForOrg } from "../connectors/framework/health";
 
 type ChecklistItem = (typeof GEN2_CHECKLIST_ITEMS)[number];
 
@@ -73,6 +74,12 @@ export type OperatorCustomerControlSnapshot = {
       crmOpportunityHref: string | null;
     };
   };
+  connections: {
+    connected: number;
+    attention: number;
+    notConnected: number;
+    attentionItems: Array<{ id: string; label: string; reason: string | null }>;
+  };
   billing: null | {
     kind: string;
     headline: string;
@@ -89,10 +96,11 @@ export type OperatorCustomerControlSnapshot = {
 export async function getOperatorCustomerControlSnapshot(
   organisationId: string,
 ): Promise<OperatorCustomerControlSnapshot> {
-  const [progress, billing, offer] = await Promise.all([
+  const [progress, billing, offer, connectorCatalog] = await Promise.all([
     getGen2OnboardingProgress(organisationId),
     getOrganisationBillingStatus(organisationId),
     getOrganisationCommercialOffer(organisationId),
+    listConnectorCatalogForOrg(organisationId),
   ]);
 
   const completed = new Set(progress.completedSteps);
@@ -114,6 +122,13 @@ export async function getOperatorCustomerControlSnapshot(
   const industryApps = offer?.industryApps ?? progress.industryApps ?? [];
   const industryTemplates = offer?.industryTemplates ?? progress.industryTemplates ?? [];
   const premiumApps = offer?.premiumApps ?? progress.premiumApps ?? [];
+
+  const organisationConnections = connectorCatalog.filter((item) => item.connectionScope === "organisation");
+  const connectedConnections = organisationConnections.filter((item) => item.organisation.status === "connected");
+  const attentionConnections = organisationConnections.filter((item) =>
+    ["degraded", "error", "pending_auth"].includes(item.organisation.status),
+  );
+  const notConnectedConnections = organisationConnections.filter((item) => item.organisation.status === "disconnected");
 
   const alerts: string[] = [];
   if (billing?.expectsPlatformBilling && completed.has("stripe") && !billing.hasStripeCustomer) {
@@ -184,6 +199,16 @@ export async function getOperatorCustomerControlSnapshot(
             crmOpportunityHref: opportunityId ? `/apps/crm/opportunities/${opportunityId}` : null,
           }
         : null,
+    },
+    connections: {
+      connected: connectedConnections.length,
+      attention: attentionConnections.length,
+      notConnected: notConnectedConnections.length,
+      attentionItems: attentionConnections.slice(0, 6).map((item) => ({
+        id: item.manifest.id,
+        label: item.manifest.name,
+        reason: item.organisation.lastError ?? null,
+      })),
     },
     billing: billing
       ? {

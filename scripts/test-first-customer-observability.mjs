@@ -1,0 +1,16 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const helper=fs.readFileSync("packages/platform-core/src/command-centre/operator-customer-control.ts","utf8");
+const panel=fs.readFileSync("src/components/command/CustomerControlPanel.tsx","utf8");
+assert.match(helper,/listConnectorCatalogForOrg/);
+assert.match(helper,/connectedConnections/);
+assert.match(helper,/attentionConnections/);
+assert.match(helper,/notConnectedConnections/);
+assert.match(helper,/attentionItems/);
+assert.match(panel,/Connected Services/);
+assert.match(panel,/healthy/);
+assert.match(panel,/attention/);
+assert.match(panel,/not connected/);
+assert.match(panel,/first days after activation/);
+assert.match(panel,/No connected service currently needs operator attention/);
+console.log("first-customer observability checks passed");
