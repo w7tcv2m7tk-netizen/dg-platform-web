@@ -11,7 +11,7 @@ assert.match(page, /Connect what matters first/);
 assert.match(page, /Build a stronger Business Brain/);
 assert.match(page, /Choose the right business resources/);
 assert.match(page, /Aida uses authorised evidence/);
-assert.match(health, /connections? need attention before Aida can rely on them|need attention before Aida can rely on them/);
+assert.match(health, /need attention before Aida can rely on them/);
 assert.match(health, /recommended service/);
 assert.match(health, /active connections are healthy/);
 assert.match(catalog, /Recommended for this organisation/);
