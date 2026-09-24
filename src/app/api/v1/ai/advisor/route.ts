@@ -11,6 +11,7 @@ import {
   gatherOverviewLiveMetrics,
   generateBusinessIntelligence,
   getBusinessContext,
+  getApprovedKnowledgeContext,
   getOrganisationBusinessProfile,
   getOrganisationGoals,
   getPlatformSetupStatus,
@@ -105,7 +106,7 @@ export async function POST(req: Request) {
 
   const userDisplayName = session.name?.split(" ")[0] || session.email || "there";
   const enabledAppIds = await getOrgEnabledAppIds();
-  const [profile, metrics, connectors, setupStatus, healthHistory, reviewsBundle, goals] =
+  const [profile, metrics, connectors, setupStatus, healthHistory, reviewsBundle, goals, approvedKnowledge] =
     await Promise.all([
       getOrganisationBusinessProfile(session.organisationId),
       gatherOverviewLiveMetrics(session.organisationId),
