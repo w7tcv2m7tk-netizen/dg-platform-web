@@ -49,8 +49,9 @@ Log on every write:
 ## Data protection
 
 - TLS everywhere (Vercel, Clerk, Cloudflare)  
-- Encrypt sensitive connector credentials at rest (Phase 2)  
-- PII minimisation in logs  
+- Encrypt sensitive connector credentials at rest with AES-256-GCM; production writes fail closed if `DG_SETTINGS_ENCRYPTION_KEY` is unavailable  
+- PII minimisation in logs
+- Plaintext connector secret storage is permitted only behind the explicit local-development escape hatch `DG_ALLOW_PLAINTEXT_SECRETS`; never enable it in preview or production  
 
 ---
 
