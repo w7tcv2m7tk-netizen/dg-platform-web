@@ -43,4 +43,22 @@ for (const file of [
   assert.match(src, /tenantWriteEntitlementBlock\(/, `${file} must enforce tenant write entitlement`);
 }
 
+for (const file of [
+  "src/app/api/v1/connectors/apple-icloud/connect/route.ts",
+  "src/app/api/v1/connectors/apple-icloud/disconnect/route.ts",
+  "src/app/api/v1/connectors/apple-icloud/sync/route.ts",
+  "src/app/api/v1/connectors/google-gmail/disconnect/route.ts",
+  "src/app/api/v1/connectors/google-gmail/sync/route.ts",
+  "src/app/api/v1/connectors/google/disconnect/route.ts",
+  "src/app/api/v1/connectors/google/sync/route.ts",
+  "src/app/api/v1/connectors/linkedin/disconnect/route.ts",
+  "src/app/api/v1/connectors/meta/disconnect/route.ts",
+  "src/app/api/v1/connectors/microsoft-365/disconnect/route.ts",
+  "src/app/api/v1/connectors/microsoft-365/sync/route.ts",
+]) {
+  const src = fs.readFileSync(file, "utf8");
+  assert.match(src, /requirePermission\(/, `${file} must require settings:manage`);
+  assert.match(src, /tenantWriteEntitlementBlock\(/, `${file} must enforce tenant write entitlement`);
+}
+
 console.log("Connector settings authority regression checks passed");
