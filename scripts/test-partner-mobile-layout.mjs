@@ -1,0 +1,11 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const source=fs.readFileSync("src/components/partners/PartnerProgrammeDashboard.tsx","utf8");
+assert.match(source,/sm:hidden/);
+assert.match(source,/hidden w-full text-sm sm:table/);
+assert.match(source,/truncate font-medium text-white/);
+assert.match(source,/rounded-full border border-slate-700/);
+assert.match(source,/grid grid-cols-2/);
+assert.match(source,/>Type<\/dt>/);
+assert.match(source,/>Joined<\/dt>/);
+console.log("partner mobile table checks passed");
