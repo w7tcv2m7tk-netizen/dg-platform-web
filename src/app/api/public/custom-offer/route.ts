@@ -36,6 +36,12 @@ export async function GET(req: Request) {
   if (!token) return NextResponse.json({ error: { code: "validation_error", message: "token is required" } }, { status: 422 });
   const found = await findOpportunityCustomOfferByToken(token);
   if (!found) return NextResponse.json({ error: { code: "not_found", message: "Custom pricing offer not found" } }, { status: 404 });
+  if (found.claimedByOrganisationId) {
+    return NextResponse.json(
+      { error: { code: "offer_already_claimed", message: "This custom pricing offer has already been accepted." } },
+      { status: 410 },
+    );
+  }
   const { offer } = found;
   return NextResponse.json({
     data: {
