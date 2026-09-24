@@ -46,6 +46,19 @@ export default async function ConnectedServicesPage({
         </p>
       </header>
       <main className="dg-page-main max-w-4xl space-y-6">
+        <section className="rounded-2xl border border-sky-500/20 bg-sky-500/[0.05] px-5 py-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-300">Connect what matters first</p>
+          <h2 className="mt-1 text-lg font-semibold text-white">Build a stronger Business Brain from the systems you already use</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+            Start with the services that hold your customer, marketing and communications signals. DigitalGate will recommend connections for this organisation and keep optional integrations out of the way until they are useful.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-300">
+            <span className="rounded-full border border-slate-700 bg-slate-950/40 px-3 py-1.5">1 · Connect a service</span>
+            <span className="rounded-full border border-slate-700 bg-slate-950/40 px-3 py-1.5">2 · Choose the right business resources</span>
+            <span className="rounded-full border border-slate-700 bg-slate-950/40 px-3 py-1.5">3 · Aida uses authorised evidence</span>
+          </div>
+        </section>
+
         <ConnectedServicesHealthOverview />
 
         <section className="grid gap-3 sm:grid-cols-3">

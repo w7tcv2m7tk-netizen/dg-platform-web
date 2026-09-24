@@ -97,6 +97,13 @@ export function ConnectedServicesHealthOverview() {
     const initial = { connected: 0, attention: 0, not_connected: 0, available: 0 };
     return (connections ?? []).reduce((acc, connection) => { acc[connection.state] += 1; return acc; }, initial);
   }, [connections]);
+  const attentionMessage = counts.attention > 0
+    ? `${counts.attention} connection${counts.attention === 1 ? "" : "s"} need attention before Aida can rely on them.`
+    : counts.not_connected > 0
+      ? `${counts.not_connected} recommended service${counts.not_connected === 1 ? "" : "s"} can still be connected.`
+      : counts.connected > 0
+        ? "Your active connections are healthy."
+        : "No external services are required to start using DigitalGate.";
 
   if (!connections) return <section className="rounded-2xl border border-slate-800 bg-slate-950/40 p-5"><p className="text-sm text-slate-400">Checking connection health…</p></section>;
 
@@ -110,6 +117,7 @@ export function ConnectedServicesHealthOverview() {
         </div>
         <p className="text-sm text-slate-400">{connections.length} services shown</p>
       </div>
+      <p className={`mt-4 rounded-xl border px-4 py-3 text-sm ${counts.attention > 0 ? "border-amber-500/20 bg-amber-500/[0.05] text-amber-200" : "border-slate-800 bg-slate-900/40 text-slate-300"}`}>{attentionMessage}</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {(["connected", "attention", "not_connected", "available"] as const).map((state) => (
           <div key={state} className="rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3">
