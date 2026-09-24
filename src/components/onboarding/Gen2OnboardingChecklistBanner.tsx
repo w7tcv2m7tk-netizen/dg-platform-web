@@ -1,25 +1,46 @@
 import Link from "next/link";
 import {
   GEN2_CHECKLIST_ITEMS,
+  GROWTH_APP_CATALOGUE,
   gen2ChecklistStats,
   getGen2OnboardingProgress,
+  getOrganisationGoals,
+  listIndustries,
+  metricHref,
 } from "@dg/platform-core";
 import { FirstLoginAidaHandover } from "@/components/onboarding/FirstLoginAidaHandover";
 
-function firstActions(primaryIndustry?: string) {
-  const common = [
-    { label: "Ask Aida", href: "/dashboard/advisor", detail: "Get an immediate recommendation from your Business Brain." },
-    { label: "Review your Apps", href: "/dashboard/apps", detail: "See the workspace Aida configured and add another industry if needed." },
-  ];
+function industryName(primaryIndustry?: string) {
+  if (!primaryIndustry) return null;
+  const alias = primaryIndustry === "accommodation-hospitality" ? "hospitality-accommodation" : primaryIndustry;
+  return listIndustries().find((industry) => industry.id === alias)?.name ?? primaryIndustry.replaceAll("-", " ");
+}
+
+function growthName(id: string) {
+  return GROWTH_APP_CATALOGUE.find((app) => app.appId === id)?.label?.replace("DigitalGate ", "") ?? id.replaceAll("-", " ");
+}
+
+function industryStart(primaryIndustry?: string) {
   const industry: Record<string, { label: string; href: string; detail: string }> = {
-    property: { label: "Open your pipeline", href: "/apps/crm/opportunities", detail: "Start with leads, opportunities and the property workflows prepared for you." },
+    property: { label: "Open your pipeline", href: "/apps/crm/opportunities", detail: "Review the leads and opportunities Aida will help you move forward." },
     finance: { label: "Open your pipeline", href: "/apps/crm/opportunities", detail: "Review prospects and move the next finance opportunity forward." },
     services: { label: "Open CRM", href: "/apps/crm", detail: "Start with customers, enquiries and follow-up." },
     "accommodation-hospitality": { label: "Review growth", href: "/apps/marketing", detail: "Start with demand, direct enquiries and guest growth activity." },
     automotive: { label: "Open opportunities", href: "/apps/crm/opportunities", detail: "Review active enquiries and the next sales opportunities." },
     "creator-media": { label: "Review growth", href: "/apps/marketing", detail: "Start with audience, campaigns and growth opportunities." },
   };
-  return [industry[primaryIndustry ?? ""] ?? { label: "Open CRM", href: "/apps/crm", detail: "Start with the customer and opportunity workspace." }, ...common];
+  return industry[primaryIndustry ?? ""] ?? { label: "Open CRM", href: "/apps/crm", detail: "Start with the customer and opportunity workspace." };
+}
+
+function firstActions(primaryIndustry: string | undefined, goal?: { title: string; metric: Parameters<typeof metricHref>[0] }) {
+  const first = goal
+    ? { label: "Move your top goal", href: metricHref(goal.metric), detail: goal.title }
+    : industryStart(primaryIndustry);
+  return [
+    first,
+    { label: "Ask Aida", href: "/dashboard/advisor", detail: "Ask what deserves your attention first using your Business Brain and live business signals." },
+    { label: "Review Business Brain", href: "/dashboard/brain", detail: "See the business context Aida is using for recommendations and decisions." },
+  ];
 }
 
 /** Persistent getting-started checklist until onboarding is complete, then a one-time Aida handover. */
@@ -28,16 +49,26 @@ export async function Gen2OnboardingChecklistBanner({ organisationId, organisati
 
   if (progress.completedAt) {
     if (progress.vipSetup?.firstLoginHandoverCompletedAt) return null;
+    const goals = await getOrganisationGoals(organisationId);
+    const topGoal = goals.find((goal) => goal.status === "active");
     const configuredAreas = [
       ...(progress.operatingProfile?.recommendedDashboard ?? []).slice(0, 3),
-      ...(progress.operatingProfile?.recommendedGrowthApps ?? []).slice(0, 3).map((id) => id.replaceAll("-", " ")),
+      ...(progress.operatingProfile?.recommendedGrowthApps ?? []).slice(0, 3).map(growthName),
+    ];
+    const priorities = [
+      ...(progress.vipSetup?.aiAdvicePriorities ?? []),
+      ...(topGoal ? [topGoal.title] : []),
     ];
     return (
       <FirstLoginAidaHandover
         organisationName={organisationName}
-        industryLabel={progress.operatingProfile?.primaryIndustry?.replaceAll("-", " ")}
+        industryLabel={industryName(progress.operatingProfile?.primaryIndustry)}
         configuredAreas={[...new Set(configuredAreas)]}
-        actions={firstActions(progress.operatingProfile?.primaryIndustry)}
+        priorities={[...new Set(priorities)].slice(0, 4)}
+        actions={firstActions(
+          progress.operatingProfile?.primaryIndustry,
+          topGoal ? { title: topGoal.title, metric: topGoal.metric } : undefined,
+        )}
       />
     );
   }
