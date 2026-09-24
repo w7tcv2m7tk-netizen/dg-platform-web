@@ -13,6 +13,7 @@ export type CustomCommercialOffer = {
   cadence: BillingCadence;
   platformTier: Gen2PlatformTier;
   industryApps: string[];
+  industryTemplates: string[];
   premiumApps: string[];
   supportPlan?: "standard" | "priority" | "success_partner" | "enterprise_success";
   seats?: number;
@@ -110,6 +111,7 @@ export function parseCustomCommercialOffer(value: unknown): CustomCommercialOffe
     cadence,
     platformTier,
     industryApps: asStringArray(raw.industryApps),
+    industryTemplates: asStringArray(raw.industryTemplates),
     premiumApps: asStringArray(raw.premiumApps),
     supportPlan,
     seats,
@@ -198,6 +200,7 @@ export async function createCustomCommercialCheckoutSession(input: {
     dg_platform_tier: offer.platformTier,
     dg_billing_cadence: offer.cadence,
     dg_industry_apps: offer.industryApps.join(","),
+    dg_industry_templates: offer.industryTemplates.join(","),
     dg_premium_apps: offer.premiumApps.join(","),
     dg_support_plan: offer.supportPlan ?? "standard",
     dg_commercial_offer_id: offer.id,
