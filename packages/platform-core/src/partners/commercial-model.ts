@@ -16,9 +16,9 @@
 export const BPS = {
   /** Founding Customer direct referral — Founding 10 cohort */
   FOUNDING_10_REFERRAL: 2000,
-  /** Founding Customer direct referral — Founding 100 cohort */
+  /** @deprecated Historical Founding 100 records only — not an active programme */
   FOUNDING_100_REFERRAL: 1500,
-  /** Founding Customer direct referral — Founding 1,000+ cohort */
+  /** @deprecated Historical Founding 1,000+ records only — not an active programme */
   FOUNDING_1000_REFERRAL: 1000,
   /** Standard / advocate direct referral after founding cohorts */
   STANDARD_REFERRAL: 1000,
@@ -231,12 +231,11 @@ export const COMMERCIAL_MODEL_SUMMARY = {
     programme: COMMERCIAL_PROGRAMMES.foundingCustomerReferral,
     tiers: [
       { cohort: "Founding 10", rateBps: BPS.FOUNDING_10_REFERRAL, rateLabel: "20%" },
-      { cohort: "Founding 100", rateBps: BPS.FOUNDING_100_REFERRAL, rateLabel: "15%" },
-      { cohort: "Founding 1,000+", rateBps: BPS.FOUNDING_1000_REFERRAL, rateLabel: "10%" },
+      { cohort: "Standard direct referral", rateBps: BPS.STANDARD_REFERRAL, rateLabel: "10%" },
     ],
     earnsFrom: "Qualifying Platform + App subscription revenue actually collected",
     periodMonths: COMMISSION_PERIOD_MONTHS,
-    note: "Direct customer referral — not Acquisition Partner economics. Rate is fixed by referrer cohort membership. Commission is calculated when DigitalGate receives qualifying revenue.",
+    note: "Founding 10 is the only active Founding customer referral tier. Standard direct referrals use the normal advocate rate. Historical Founding 100 / 1,000 source values remain readable for legacy records only.",
   },
   reseller: {
     programme: COMMERCIAL_PROGRAMMES.acquisitionPartner,
