@@ -39,8 +39,9 @@ export function AppContextNav() {
     // still groups supporting intelligence under Overview, so expose Brain here
     // explicitly and stop Overview from swallowing /dashboard/brain routes.
     if (active.itemId === "business") {
+      const routePath = (value: string) => value.split("?")[0] ?? value;
       const withoutHiddenBrain = active.routes.map((route) =>
-        route.path === "/dashboard"
+        routePath(route.path) === "/dashboard"
           ? {
               ...route,
               matchAlso: route.matchAlso?.filter(
@@ -50,11 +51,11 @@ export function AppContextNav() {
           : route,
       );
       const hasBrain = withoutHiddenBrain.some(
-        (route) => route.path === "/dashboard/brain",
+        (route) => routePath(route.path) === "/dashboard/brain",
       );
       if (!hasBrain) {
         const overviewIndex = withoutHiddenBrain.findIndex(
-          (route) => route.path === "/dashboard",
+          (route) => routePath(route.path) === "/dashboard",
         );
         const insertAt = overviewIndex >= 0 ? overviewIndex + 1 : 0;
         return [
