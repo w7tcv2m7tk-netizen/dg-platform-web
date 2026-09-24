@@ -15,7 +15,8 @@ assert.match(journey, /templates\.map\(id=><span/);
 
 assert.match(state, /getOrganisationCommercialOffer/);
 assert.match(state, /lockedTemplates\?: string\[\]/);
-assert.match(state, /new Map<string, string>\(\)\.values/);
+assert.match(state, /validTemplates\.reduce/);
+assert.match(state, /new Map<string, string>\(\)/);
 assert.match(state, /industryTemplates: offer\.industryTemplates/);
 
 assert.match(route, /onePrimaryTemplatePerIndustry/);
