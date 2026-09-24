@@ -260,7 +260,7 @@ export const FOUNDING_RESELLER_INVITE_LINE =
 export const QUALIFYING_COMMISSION_FEES = {
   includes: [
     "Recurring DigitalGate Platform subscription fees actually received",
-    "Recurring DigitalGate Industry App subscription fees actually received ($99/mo)",
+    "Recurring DigitalGate Industry App subscription fees actually received ($149/mo)",
     "Recurring additional Industry Template fees actually received (+$29/mo each)",
     "Other recurring DigitalGate App subscription fees actually received (Growth Apps, etc.)",
     "Qualifying recurring subscription upgrades during the original 12-month commission period",
@@ -367,14 +367,9 @@ export const FOUNDING_CUSTOMER_REFERRAL_PROGRAMME = {
       summary: FOUNDING_COHORT_REFERRAL.founding_10.summary,
     },
     {
-      cohort: FOUNDING_COHORT_REFERRAL.founding_100.label,
-      rateLabel: FOUNDING_COHORT_REFERRAL.founding_100.referralRateLabel,
-      summary: FOUNDING_COHORT_REFERRAL.founding_100.summary,
-    },
-    {
-      cohort: FOUNDING_COHORT_REFERRAL.founding_1000.label,
-      rateLabel: FOUNDING_COHORT_REFERRAL.founding_1000.referralRateLabel,
-      summary: FOUNDING_COHORT_REFERRAL.founding_1000.summary,
+      cohort: "Standard direct referral",
+      rateLabel: bpsToPercentLabel(BPS.STANDARD_REFERRAL),
+      summary: "Standard direct customer referral outside the Founding 10 programme.",
     },
   ],
   note: "Direct customer referral — separate from the 25% Acquisition Partner programme.",

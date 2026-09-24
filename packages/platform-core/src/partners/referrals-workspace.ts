@@ -43,11 +43,10 @@ export const REFERRAL_ATTRIBUTION_RULES = [
     ],
   },
   {
-    title: "Founding Customer Referrer",
+    title: "Direct Referrer",
     bullets: [
-      `Founding 10: ${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)}`,
-      `Founding 100: ${bpsToPercentLabel(BPS.FOUNDING_100_REFERRAL)}`,
-      `Founding 1,000+: ${bpsToPercentLabel(BPS.FOUNDING_1000_REFERRAL)}`,
+      `Founding 10 direct referral: ${bpsToPercentLabel(BPS.FOUNDING_10_REFERRAL)}`,
+      `Standard direct referral: ${bpsToPercentLabel(BPS.STANDARD_REFERRAL)}`,
       `First ${COMMISSION_PERIOD_MONTHS} months`,
       "Separate from Acquisition Partner status",
     ],
@@ -137,9 +136,10 @@ function acquisitionTypeLabel(
 ): string {
   switch (source) {
     case "founding_10_referral":
+      return "Founding 10 Referrer";
     case "founding_100_referral":
     case "founding_1000_referral":
-      return "Founding Customer Referrer";
+      return "Legacy Founding Referrer";
     case "channel_manager_direct":
       return "Acquisition Channel Manager";
     case "direct":
