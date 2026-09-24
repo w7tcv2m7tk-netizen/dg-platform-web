@@ -30,4 +30,4 @@ assert.match(banner, /Continue to activation/);
 assert.match(banner, /Subscription confirmed/);
 assert.match(banner, /Finish setup/);
 
-console.log("onboarding primary business-type checks passed");
+console.log("onboarding business-type, offer-lock and resume checks passed");
