@@ -1,0 +1,17 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const source=fs.readFileSync("src/components/partners/PartnerProgrammeDashboard.tsx","utf8");
+const acquisition=fs.readFileSync("src/components/partners/ResellersProgrammeSurface.tsx","utf8");
+const workspace=fs.readFileSync("packages/platform-core/src/partners/dashboard-workspace.ts","utf8");
+assert.match(source,/sm:hidden/);
+assert.match(source,/hidden w-full text-sm sm:table/);
+assert.match(source,/truncate font-medium text-white/);
+assert.match(source,/rounded-full border border-slate-700/);
+assert.match(source,/grid grid-cols-2/);
+assert.match(source,/>Type<\/dt>/);
+assert.match(source,/>Joined<\/dt>/);
+assert.match(acquisition,/sm:hidden/);
+assert.match(acquisition,/hidden w-full text-sm sm:table/);
+assert.match(workspace,/invitationStatus !== "withdrawn"/);
+assert.match(workspace,/Withdrawn\/cancelled invitations are historical records/);
+console.log("partner mobile table and cancelled invitation checks passed");

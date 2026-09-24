@@ -582,42 +582,80 @@ function PartnerTable({
       {rows.length === 0 ? (
         <p className="px-4 py-8 text-center text-sm text-slate-500">{empty}</p>
       ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-700/60 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-              <th className="px-4 py-3">Partner</th>
-              <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Joined</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-700/40">
+        <>
+          <div className="divide-y divide-slate-700/40 sm:hidden">
             {rows.map((p) => (
-              <tr key={p.id} className="hover:bg-slate-800/40">
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/command/partners/${p.id}`}
-                    className="font-medium text-white hover:text-sky-300"
-                  >
-                    {p.name}
-                  </Link>
-                  {p.email ? <p className="text-xs text-slate-500">{p.email}</p> : null}
-                </td>
-                <td className="px-4 py-3 text-slate-300">{p.partnerTypeLabel}</td>
-                <td className="px-4 py-3 capitalize text-slate-300">{p.status}</td>
-                <td className="px-4 py-3 text-slate-400">
-                  {p.joinedAt ? new Date(p.joinedAt).toLocaleDateString("en-AU") : "—"}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  {p.status === "pending" ? (
+              <article key={p.id} className="px-4 py-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <Link
+                      href={`/command/partners/${p.id}`}
+                      className="block truncate font-medium text-white hover:text-sky-300"
+                    >
+                      {p.name}
+                    </Link>
+                    {p.email ? (
+                      <p className="mt-0.5 truncate text-xs text-slate-500">{p.email}</p>
+                    ) : null}
+                  </div>
+                  <span className="shrink-0 rounded-full border border-slate-700 bg-slate-900/70 px-2.5 py-1 text-[11px] font-medium capitalize text-slate-300">
+                    {p.status}
+                  </span>
+                </div>
+                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-800 pt-3">
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase tracking-wider text-slate-600">Type</dt>
+                    <dd className="mt-1 text-xs leading-5 text-slate-300">{p.partnerTypeLabel}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-[10px] font-medium uppercase tracking-wider text-slate-600">Joined</dt>
+                    <dd className="mt-1 text-xs text-slate-400">
+                      {p.joinedAt ? new Date(p.joinedAt).toLocaleDateString("en-AU") : "—"}
+                    </dd>
+                  </div>
+                </dl>
+                {p.status === "pending" ? (
+                  <div className="mt-3">
                     <PartnerInvitationCancelButton partnerId={p.id} partnerName={p.name} />
-                  ) : null}
-                </td>
-              </tr>
+                  </div>
+                ) : null}
+              </article>
             ))}
-          </tbody>
-        </table>
+          </div>
+          <table className="hidden w-full text-sm sm:table">
+            <thead>
+              <tr className="border-b border-slate-700/60 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                <th className="px-4 py-3">Partner</th>
+                <th className="px-4 py-3">Type</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Joined</th>
+                <th className="px-4 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-700/40">
+              {rows.map((p) => (
+                <tr key={p.id} className="hover:bg-slate-800/40">
+                  <td className="px-4 py-3">
+                    <Link href={`/command/partners/${p.id}`} className="font-medium text-white hover:text-sky-300">
+                      {p.name}
+                    </Link>
+                    {p.email ? <p className="text-xs text-slate-500">{p.email}</p> : null}
+                  </td>
+                  <td className="px-4 py-3 text-slate-300">{p.partnerTypeLabel}</td>
+                  <td className="px-4 py-3 capitalize text-slate-300">{p.status}</td>
+                  <td className="px-4 py-3 text-slate-400">
+                    {p.joinedAt ? new Date(p.joinedAt).toLocaleDateString("en-AU") : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {p.status === "pending" ? (
+                      <PartnerInvitationCancelButton partnerId={p.id} partnerName={p.name} />
+                    ) : null}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
     </section>
   );
