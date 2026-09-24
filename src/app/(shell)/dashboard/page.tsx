@@ -157,11 +157,20 @@ function buildDigitalPerformanceSignals(input: {
   ];
 }
 
-export default async function DashboardPage() {
-  // /dashboard is the customer home. Platform operators default to the
-  // DigitalGate-wide Command Centre, including Clerk post-sign-in redirects.
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ view?: string | string[] }>;
+}) {
+  // /dashboard remains the generic post-sign-in landing route. Platform
+  // operators default to Command Centre, but an explicit Business Overview
+  // navigation must still render DigitalGate's own tenant overview.
   const operator = await getPlatformOperatorContext();
-  if (operator) redirect("/command");
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const requestedView = Array.isArray(resolvedSearchParams.view)
+    ? resolvedSearchParams.view[0]
+    : resolvedSearchParams.view;
+  if (operator && requestedView !== "business") redirect("/command");
 
   const { user, name, portal, session: platformSession } = await getPlatformPageContext();
   const enabledAppIds = await getOrgEnabledAppIdsCached();
