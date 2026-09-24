@@ -75,9 +75,9 @@ export function IndustryBusinessTypeManager() {
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-lg font-semibold text-white">Industry & sub-industry Apps</h3>
+        <h3 className="text-lg font-semibold text-white">Industry Apps & sub-industry Apps</h3>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">
-          Each Industry is a parent app. Activate the sub-industry apps this organisation actually operates — each selected sub-industry gets its own navigation entry and tailored workspace, while unselected siblings stay hidden.
+          Each Industry App is a parent platform. Choose the exact sub-industry Apps this organisation operates; each selected child gets its own tailored workspace while unselected siblings stay hidden.
         </p>
       </div>
 
@@ -94,9 +94,18 @@ export function IndustryBusinessTypeManager() {
           const entitlement = entitlementByIndustry.get(industry.id);
           return (
             <div key={industry.id} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
-              <div className="flex items-center gap-2">
-                <span className="text-xl" aria-hidden>{iconByIndustry.get(industry.id) ?? "🧩"}</span>
-                <h3 className="font-semibold text-white">{industry.name}</h3>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl" aria-hidden>{iconByIndustry.get(industry.id) ?? "🧩"}</span>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-violet-300">Industry App</p>
+                    <h3 className="font-semibold text-white">{industry.name}</h3>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-white">$149/month</p>
+                  <p className="text-[11px] text-slate-500">1 sub-industry included · +$29/month each additional</p>
+                </div>
               </div>
               <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {industry.templates.map((template) => {
@@ -106,6 +115,7 @@ export function IndustryBusinessTypeManager() {
                   return (
                     <div key={template.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
                       <div className="min-w-0">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Sub-industry App</p>
                         <p className="truncate text-sm font-medium text-slate-100">{template.name}</p>
                         <p className={`mt-0.5 text-[11px] ${active ? "text-emerald-400" : "text-slate-500"}`}>
                           {active ? "Active" : available ? "Available" : "Coming soon"}

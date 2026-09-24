@@ -1,4 +1,5 @@
 import { getDefaultEnabledAppIds } from "../apps/org-apps";
+import { isLegacyDemoOrganisation } from "../demo/types";
 import { isPlatformOperatorOrganisationId } from "../access/platform-authority";
 import { ORG_BRAND_PRESETS } from "./brand-presets";
 import { seedWordPressConnectorForTemplate } from "../connectors/wordpress/org-connector";
@@ -116,7 +117,15 @@ export async function listUserOrganisations(
     orderBy: { createdAt: "asc" },
   });
 
-  return sortPlatformOperatorFirst(memberships).map((m) => ({
+  return sortPlatformOperatorFirst(
+    memberships.filter(
+      (m) =>
+        !isLegacyDemoOrganisation({
+          name: m.organisation.name,
+          slug: m.organisation.slug,
+        }),
+    ),
+  ).map((m) => ({
     organisationId: m.organisationId,
     organisationName: m.organisation.name,
     organisationSlug: m.organisation.slug,
@@ -145,7 +154,15 @@ export async function resolveUserMembership(
       },
       include: { organisation: true },
     });
-    if (active) return active;
+    if (
+      active &&
+      !isLegacyDemoOrganisation({
+        name: active.organisation.name,
+        slug: active.organisation.slug,
+      })
+    ) {
+      return active;
+    }
   }
 
   const memberships = await prisma.membership.findMany({
@@ -158,7 +175,15 @@ export async function resolveUserMembership(
     orderBy: { createdAt: "asc" },
   });
 
-  return sortPlatformOperatorFirst(memberships)[0] ?? null;
+  const visibleMemberships = memberships.filter(
+    (m) =>
+      !isLegacyDemoOrganisation({
+        name: m.organisation.name,
+        slug: m.organisation.slug,
+      }),
+  );
+
+  return sortPlatformOperatorFirst(visibleMemberships)[0] ?? null;
 }
 
 export interface CreateOrganisationInput {

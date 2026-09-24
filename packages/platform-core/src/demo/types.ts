@@ -2,6 +2,29 @@ export const DEMO_ORG_SLUG = "harbour-and-co-demo";
 export const DEMO_ORG_NAME = "Harbour & Co (Demo)";
 export const DEMO_SEED_VERSION = 1;
 
+const LEGACY_DEMO_NAME_RE = /^DigitalGate Demo Business(?:\b|\s|$)/i;
+const LEGACY_DEMO_SLUG_RE = /^digitalgate-demo(?:-|$)/i;
+
+export function isCanonicalDemoOrganisation(input: {
+  name?: string | null;
+  slug?: string | null;
+  status?: string | null;
+  settings?: unknown;
+}): boolean {
+  if (input.slug === DEMO_ORG_SLUG) return true;
+  if (input.status === "demo") return true;
+  return Boolean(parseDemoSettings(input.settings)?.enabled);
+}
+
+export function isLegacyDemoOrganisation(input: {
+  name?: string | null;
+  slug?: string | null;
+}): boolean {
+  const name = input.name?.trim() ?? "";
+  const slug = input.slug?.trim() ?? "";
+  return LEGACY_DEMO_NAME_RE.test(name) || LEGACY_DEMO_SLUG_RE.test(slug);
+}
+
 export type DemoAccess = "customer" | "partner" | "staff";
 
 export type DemoOrgSettings = {
