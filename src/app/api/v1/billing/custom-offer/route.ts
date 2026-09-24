@@ -78,7 +78,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     data: {
       offer: current.offer,
-      shareUrl: shareUrl(req, current.token),
+      shareUrl: current.claimedByOrganisationId ? null : shareUrl(req, current.token),
       appOptions: appOptions(),
       locked: Boolean(current.claimedByOrganisationId),
       claimedAt: current.claimedAt,
