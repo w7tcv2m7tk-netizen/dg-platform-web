@@ -38,7 +38,7 @@ Scale's five-business allowance is for businesses **owned, operated, or legitima
 
 Each business remains a distinct tenant with its own organisation-scoped data, permissions, connectors, CRM, Digital Twin, evidence, Aida context, Industry Apps and integration credentials. Data and credentials must never be pooled or automatically shared between businesses. The five businesses may operate in different industries.
 
-Scale's unlimited-user entitlement applies at the subscription/account level. A person may be authorised for one or more of the customer's businesses without consuming duplicate user seats; organisation-level permissions still determine which businesses and data that person may access.
+Scale supports up to 20 users at the subscription/account level. A person may be authorised for one or more of the customer's businesses without consuming duplicate user seats; organisation-level permissions still determine which businesses and data that person may access.
 
 Specialist Industry API access is available only for Industry Apps / Templates to which the relevant business is entitled. Scale unlocks the right to use eligible specialist integrations; it does not include every Industry App or third-party service. Provider availability, third-party fees, rate limits and terms may still apply.
 
