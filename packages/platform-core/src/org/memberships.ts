@@ -107,7 +107,7 @@ export async function listUserOrganisations(
 
   const { prisma } = await import("@dg/database");
 
-  const memberships = await prisma.membership.findMany({
+  let memberships = await prisma.membership.findMany({
     where: {
       clerkUserId,
       status: "active",
@@ -116,6 +116,26 @@ export async function listUserOrganisations(
     include: { organisation: true },
     orderBy: { createdAt: "asc" },
   });
+
+  const isPlatformOperator = memberships.some((membership) =>
+    isPlatformOperatorOrganisationId(membership.organisationId),
+  );
+
+  // Platform operators always receive staff membership in the canonical demo tenant.
+  // Legacy DigitalGate demo organisations remain excluded.
+  if (isPlatformOperator) {
+    const { grantDemoAccess } = await import("../demo/seed");
+    await grantDemoAccess({ clerkUserId, access: "staff" });
+    memberships = await prisma.membership.findMany({
+      where: {
+        clerkUserId,
+        status: "active",
+        organisation: { status: { not: "archived" } },
+      },
+      include: { organisation: true },
+      orderBy: { createdAt: "asc" },
+    });
+  }
 
   return sortPlatformOperatorFirst(
     memberships.filter(

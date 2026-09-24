@@ -168,8 +168,8 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
   }
 
   const monthStart = centsMonthStart();
-  const resellerPartners = partners.filter((p) => RESELLER_TYPES.has(p.partnerType));
-  const deliveryPartners = partners.filter((p) => p.partnerType === "IMPLEMENTATION_PARTNER");
+  const resellerPartners = partners.filter((p) => RESELLER_TYPES.has(p.partnerType) && p.status !== "inactive");
+  const deliveryPartners = partners.filter((p) => p.partnerType === "IMPLEMENTATION_PARTNER" && p.status !== "inactive");
 
   const activeResellers = resellerPartners.filter((p) => p.status === "active").length;
   const pendingApplications = resellerPartners.filter((p) => p.status === "pending").length;

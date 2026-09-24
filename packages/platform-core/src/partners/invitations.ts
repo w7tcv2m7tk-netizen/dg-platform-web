@@ -198,10 +198,23 @@ export async function acceptFoundingResellerInvitationByToken(token: string): Pr
   return { ok: true, portalUrl };
 }
 
-export async function withdrawFoundingResellerInvitation(partnerId: string): Promise<SerializedPartner> {
+export async function withdrawPartnerInvitation(partnerId: string): Promise<SerializedPartner> {
+  const partner = await getPartnerById(partnerId);
+  if (!partner) throw new Error("Partner invitation not found");
+  if (partner.status !== "pending") {
+    throw new Error("Only pending partner invitations can be cancelled.");
+  }
+  if (partner.invitationStatus === "accepted") {
+    throw new Error("Accepted partner invitations cannot be cancelled.");
+  }
   return updatePartner(partnerId, {
     status: "inactive",
   });
+}
+
+/** @deprecated Use withdrawPartnerInvitation. */
+export async function withdrawFoundingResellerInvitation(partnerId: string): Promise<SerializedPartner> {
+  return withdrawPartnerInvitation(partnerId);
 }
 
 // ─── Delivery Partner invitations ─────────────────────────────────────────────

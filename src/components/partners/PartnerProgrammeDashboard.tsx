@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PartnerDashboardWorkspace } from "@dg/platform-core";
+import { PartnerInvitationCancelButton } from "@/components/partner/PartnerInvitationCancelButton";
 import {
   PARTNER_COMMERCIAL_ENGINE,
   PARTNER_OS_NAME,
@@ -588,6 +589,7 @@ function PartnerTable({
               <th className="px-4 py-3">Type</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Joined</th>
+              <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/40">
@@ -606,6 +608,11 @@ function PartnerTable({
                 <td className="px-4 py-3 capitalize text-slate-300">{p.status}</td>
                 <td className="px-4 py-3 text-slate-400">
                   {p.joinedAt ? new Date(p.joinedAt).toLocaleDateString("en-AU") : "—"}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {p.status === "pending" ? (
+                    <PartnerInvitationCancelButton partnerId={p.id} partnerName={p.name} />
+                  ) : null}
                 </td>
               </tr>
             ))}
