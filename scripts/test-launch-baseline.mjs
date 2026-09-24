@@ -24,10 +24,12 @@ assert.match(dunning, /platformExempt:\s*false/);
 assert.doesNotMatch(dunning, /foundingCustomer:\s*false/);
 
 const onboarding = read("src/app/(shell)/onboarding/page.tsx");
-assert.match(onboarding, /Gen2OnboardingJourney/);
+assert.match(onboarding, /AdaptiveOnboardingJourney/);
+assert.match(onboarding, /14-day free trial/);
 
 const stripeWebhook = read("src/app/api/webhooks/stripe/route.ts");
-assert.match(stripeWebhook, /STRIPE_WEBHOOK_SECRET/);
+assert.match(stripeWebhook, /requirePaymentConnector/);
+assert.match(stripeWebhook, /provisionFromPlatformCheckout/);
 
 const connected = read("src/app/(shell)/dashboard/settings/connected-services/page.tsx");
 for (const panel of ["GoogleBusinessProfileLocationSelector", "GoogleAdsConnectorPanel", "MicrosoftAdsConnectorPanel", "TikTokAdsConnectorPanel", "MetaConnectorPanel", "LinkedInConnectorPanel", "YouTubeConnectorPanel"]) {
