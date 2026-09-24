@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import {
-  GEN2_SUPPORT_PLANS,
   GROWTH_APP_CATALOGUE,
   getOpportunityCustomOffer,
   isTemplateActivatable,
