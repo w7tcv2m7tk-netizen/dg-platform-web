@@ -361,11 +361,11 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
             </p>
             <p className="mt-3 text-xs text-slate-500">
               {liveAnswer.source === "llm"
-                ? "Live AI response"
+                ? "Grounded in Business Brain, approved knowledge and current available evidence."
                 : liveAnswer.source === "no_llm"
-                  ? "Using the latest Business Brain briefing while live AI is unavailable."
+                  ? "Using the latest Business Brain briefing and governed business context while live AI is unavailable."
                   : liveAnswer.source === "llm_error"
-                    ? "Live AI was unavailable, so DigitalGate used the latest Business Brain briefing."
+                    ? "Live AI was unavailable, so DigitalGate used the latest Business Brain briefing and governed business context."
                     : liveAnswer.source === "error"
                       ? "Request failed"
                       : "Business Brain briefing"}
