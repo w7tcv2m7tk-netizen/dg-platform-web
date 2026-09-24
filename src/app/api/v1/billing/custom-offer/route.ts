@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import {
-  GROWTH_APP_CATALOGUE,
+  getAppsByTier,
   getOpportunityCustomOffer,
   isTemplateActivatable,
   listIndustries,
@@ -17,48 +17,20 @@ function stringList(value: unknown): string[] {
 }
 
 function appOptions() {
-  const industries = listIndustries().filter((industry) =>
-    ["AVAILABLE", "EARLY_ACCESS", "FOUNDING"].includes(industry.status),
-  );
-  const industry = industries.map((item) => ({
-    id: item.id,
-    label: `${item.name} Industry App`,
-    description: item.description,
-  }));
-  const templates = industries.flatMap((item) =>
-    item.templates
+  const tiers = getAppsByTier();
+  const options = (apps: typeof tiers.business) =>
+    apps.filter((app) => app.enabled && (app.manifest.visibility ?? "customer") === "customer")
+      .map((app) => ({ id: app.manifest.id, label: app.manifest.name, description: app.manifest.description }));
+  const templates = listIndustries().flatMap((industry) =>
+    industry.templates
       .filter((template) => isTemplateActivatable(template.status))
       .map((template) => ({
         id: template.id,
-        parentId: item.id,
-        label: template.name,
+        label: `${industry.name} — ${template.name}`,
         description: template.description,
       })),
   );
-  const growth = GROWTH_APP_CATALOGUE.map((app) => ({
-    id: app.appId,
-    label: app.label.replace("DigitalGate ", ""),
-  }));
-  return { industry, templates, growth };
-}
-
-function validatedSelections(body: Record<string, unknown>) {
-  const options = appOptions();
-  const industryIds = new Set(options.industry.map((item) => item.id));
-  const selectedIndustries = stringList(body.industryApps).filter((id) => industryIds.has(id));
-  const selectedIndustrySet = new Set(selectedIndustries);
-  const templateParent = new Map(options.templates.map((item) => [item.id, item.parentId] as const));
-  const selectedTemplates = stringList(body.industryTemplates).filter((id) => {
-    const parentId = templateParent.get(id);
-    return Boolean(parentId && selectedIndustrySet.has(parentId));
-  });
-  const growthIds = new Set(options.growth.map((item) => item.id));
-  const selectedGrowth = stringList(body.premiumApps).filter((id) => growthIds.has(id));
-  return {
-    industryApps: [...new Set(selectedIndustries)],
-    industryTemplates: [...new Set(selectedTemplates)],
-    premiumApps: [...new Set(selectedGrowth)],
-  };
+  return { industry: options(tiers.business), templates, growth: options(tiers.growth) };
 }
 
 function shareUrl(req: Request, token: string | null) {
@@ -74,15 +46,7 @@ export async function GET(req: Request) {
   if (!opportunityId) return NextResponse.json({ error: { code: "validation_error", message: "opportunityId is required" } }, { status: 422 });
   const current = await getOpportunityCustomOffer({ organisationId: auth.session.organisationId, opportunityId });
   if (!current) return NextResponse.json({ error: { code: "not_found", message: "Opportunity not found" } }, { status: 404 });
-  return NextResponse.json({
-    data: {
-      offer: current.offer,
-      shareUrl: current.claimedByOrganisationId ? null : shareUrl(req, current.token),
-      appOptions: appOptions(),
-      locked: Boolean(current.claimedByOrganisationId),
-      claimedAt: current.claimedAt,
-    },
-  });
+  return NextResponse.json({ data: { offer: current.offer, shareUrl: shareUrl(req, current.token), appOptions: appOptions() } });
 }
 
 export async function POST(req: Request) {
@@ -104,13 +68,6 @@ export async function POST(req: Request) {
   }
   const existing = await getOpportunityCustomOffer({ organisationId: auth.session.organisationId, opportunityId });
   if (!existing) return NextResponse.json({ error: { code: "not_found", message: "Opportunity not found" } }, { status: 404 });
-  if (existing.claimedByOrganisationId) {
-    return NextResponse.json(
-      { error: { code: "offer_locked", message: "This offer has already been accepted and is locked." } },
-      { status: 409 },
-    );
-  }
-  const selections = validatedSelections(body ?? {});
   const offer: CustomCommercialOffer = {
     version: 1,
     id: existing.offer?.id ?? `custom-${opportunityId}`,
@@ -120,9 +77,9 @@ export async function POST(req: Request) {
     amountCents,
     cadence,
     platformTier,
-    industryApps: selections.industryApps,
-    industryTemplates: selections.industryTemplates,
-    premiumApps: selections.premiumApps,
+    industryApps: stringList(body?.industryApps),
+    industryTemplates: stringList(body?.industryTemplates),
+    premiumApps: stringList(body?.premiumApps),
     supportPlan,
     seats: Math.min(seats, 10000),
     trialDays,
