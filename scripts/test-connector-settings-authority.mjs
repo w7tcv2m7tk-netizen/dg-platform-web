@@ -61,4 +61,13 @@ for (const file of [
   assert.match(src, /tenantWriteEntitlementBlock\(/, `${file} must enforce tenant write entitlement`);
 }
 
+for (const file of [
+  "src/app/api/v1/connectors/google/analytics/config/route.ts",
+  "src/app/api/v1/connectors/google/locations/route.ts",
+]) {
+  const src = fs.readFileSync(file, "utf8");
+  assert.match(src, /requirePermission\(/, `${file} must require settings:manage`);
+  assert.match(src, /tenantWriteEntitlementBlock\(/, `${file} must enforce tenant write entitlement`);
+}
+
 console.log("Connector settings authority regression checks passed");

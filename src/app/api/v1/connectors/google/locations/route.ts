@@ -7,6 +7,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
+import { tenantWriteEntitlementBlock, writeEntitlementResponse } from "@/lib/write-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,8 @@ export async function PUT(req: Request) {
     scope: "organisation",
   });
   if (denied) return denied;
+  const writeBlock = await tenantWriteEntitlementBlock(session);
+  if (writeBlock) return writeEntitlementResponse(writeBlock);
 
   const body = await req.json().catch(() => ({})) as { locationNames?: unknown };
   if (!Array.isArray(body.locationNames) || body.locationNames.some((value) => typeof value !== "string")) {

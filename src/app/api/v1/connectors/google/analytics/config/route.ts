@@ -2,6 +2,7 @@ import { getOrgGoogleAnalyticsSettings, saveOrgGoogleAnalyticsSettings } from "@
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
+import { tenantWriteEntitlementBlock, writeEntitlementResponse } from "@/lib/write-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,8 @@ async function save(req: Request, body: { property?: unknown; propertyLabel?: un
     scope: "organisation",
   });
   if (denied) return denied;
+  const writeBlock = await tenantWriteEntitlementBlock(session);
+  if (writeBlock) return writeEntitlementResponse(writeBlock);
   const clean = (value: unknown) => typeof value === "string" && value.trim() ? value.trim() : undefined;
   const current = await getOrgGoogleAnalyticsSettings(session.organisationId);
   const property = body.property === undefined ? current.property : clean(body.property);
