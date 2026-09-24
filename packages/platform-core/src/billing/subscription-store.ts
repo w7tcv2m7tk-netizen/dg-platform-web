@@ -270,7 +270,6 @@ export async function listSubscriptionsNeedingDunning(limit = 200) {
   const rows = await prisma.platformSubscription.findMany({
     where: {
       platformExempt: false,
-      foundingCustomer: false,
       paymentFailedAt: { not: null },
       status: {
         in: ["PAYMENT_FAILED", "PAST_DUE", "RESTRICTED", "SUSPENDED"],
