@@ -115,6 +115,7 @@ export async function POST(req: Request) {
       loadHealthHistory(session.organisationId),
       loadReviewsSessionAndFeed(),
       getOrganisationGoals(session.organisationId),
+      getApprovedKnowledgeContext({ organisationId: session.organisationId, limit: 1 }).catch(() => ({ items: [], promptContext: "" })),
     ]);
 
   const reputation = computeReputationScore(reviewsBundle.feed);
@@ -148,6 +149,7 @@ export async function POST(req: Request) {
     context: businessContext,
     setup: setupStatus,
     connectorCount: businessContext.twin.connectedSystems.length,
+    hasApprovedKnowledge: approvedKnowledge.items.length > 0,
   });
 
   const health = buildBusinessHealth({
