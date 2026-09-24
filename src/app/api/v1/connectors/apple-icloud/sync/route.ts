@@ -2,6 +2,7 @@ import { syncOrgAppleIcloudMailbox } from "@dg/platform-core/connectors/apple-ic
 import { NextResponse } from "next/server";
 
 import {
+import { tenantWriteEntitlementBlock, writeEntitlementResponse } from "@/lib/write-entitlement";
   isNextResponse,
   requirePermission,
   requirePlatformAuth,
@@ -20,6 +21,8 @@ export async function POST(req: Request) {
     scope: "organisation",
   });
   if (denied) return denied;
+  const writeBlock = await tenantWriteEntitlementBlock(session);
+  if (writeBlock) return writeEntitlementResponse(writeBlock);
 
   const result = await syncOrgAppleIcloudMailbox(session.organisationId);
   if (!result.ok) {
