@@ -9,6 +9,7 @@ type Offer = {
   cadence: "monthly" | "annual";
   platformTier: "starter" | "professional" | "business";
   industryApps: string[];
+  industryTemplates: string[];
   premiumApps: string[];
   supportPlan: string;
   seats?: number;
@@ -80,6 +81,7 @@ export default function CustomOfferPage() {
             <div><dt className="text-slate-500">Support</dt><dd className="capitalize text-white">{offer.supportPlan.replace(/_/g, " ")}</dd></div>
             {offer.seats ? <div><dt className="text-slate-500">Users</dt><dd className="text-white">{offer.seats}</dd></div> : null}
             {offer.industryApps.length ? <div className="sm:col-span-2"><dt className="text-slate-500">Industry Apps</dt><dd className="text-white">{offer.industryApps.join(", ")}</dd></div> : null}
+            {offer.industryTemplates.length ? <div className="sm:col-span-2"><dt className="text-slate-500">Industry Templates</dt><dd className="text-white">{offer.industryTemplates.join(", ")}</dd></div> : null}
             {offer.oneOffAmountCents ? <div className="sm:col-span-2"><dt className="text-slate-500">{offer.oneOffLabel || "One-off setup"}</dt><dd className="text-white">{money(offer.oneOffAmountCents)}</dd></div> : null}
           </dl>
           {offer.notes ? <p className="mt-5 whitespace-pre-wrap text-sm text-slate-300">{offer.notes}</p> : null}

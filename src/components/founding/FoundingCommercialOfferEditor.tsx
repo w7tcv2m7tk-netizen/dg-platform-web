@@ -11,6 +11,7 @@ type AppOption = {
 
 type AppOptions = {
   industry: AppOption[];
+  templates: AppOption[];
   growth: AppOption[];
 };
 
@@ -113,7 +114,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
   const [visible, setVisible] = useState(false);
   const [locked, setLocked] = useState(false);
   const [offer, setOffer] = useState<CustomCommercialOffer | null>(null);
-  const [appOptions, setAppOptions] = useState<AppOptions>({ industry: [], growth: [] });
+  const [appOptions, setAppOptions] = useState<AppOptions>({ industry: [], templates: [], growth: [] });
   const [label, setLabel] = useState("Custom DigitalGate plan");
   const [amount, setAmount] = useState("");
   const [oneOffAmount, setOneOffAmount] = useState("");
@@ -124,6 +125,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
   const [seats, setSeats] = useState("5");
   const [trialDays, setTrialDays] = useState("0");
   const [industryApps, setIndustryApps] = useState<string[]>([]);
+  const [industryTemplates, setIndustryTemplates] = useState<string[]>([]);
   const [premiumApps, setPremiumApps] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<"loading" | "idle" | "saving" | "saved" | "error">("loading");
@@ -165,6 +167,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
         setSeats(String(next.seats ?? 1));
         setTrialDays(String(next.trialDays));
         setIndustryApps(next.industryApps);
+        setIndustryTemplates(next.industryTemplates ?? []);
         setPremiumApps(next.premiumApps);
         setNotes(next.notes ?? "");
       }
@@ -196,6 +199,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
         seats: Number(seats),
         trialDays: Number(trialDays),
         industryApps,
+        industryTemplates,
         premiumApps,
         notes,
       }),
@@ -245,6 +249,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
         <label className="text-xs text-slate-500">Included seats<input type="number" min="1" value={seats} onChange={(e) => setSeats(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
         <label className="text-xs text-slate-500">Trial days<input type="number" min="0" max="90" value={trialDays} onChange={(e) => setTrialDays(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
         <AppCheckboxGroup legend="Industry Apps" options={appOptions.industry} selected={industryApps} onChange={setIndustryApps} disabled={locked} />
+        <AppCheckboxGroup legend="Industry Templates" options={appOptions.templates} selected={industryTemplates} onChange={setIndustryTemplates} disabled={locked} />
         <AppCheckboxGroup legend="Growth Apps" options={appOptions.growth} selected={premiumApps} onChange={setPremiumApps} disabled={locked} />
         <label className="text-xs text-slate-500 sm:col-span-2">Commercial notes<textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
       </div>
