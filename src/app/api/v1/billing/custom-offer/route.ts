@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import {
   getAppsByTier,
   getOpportunityCustomOffer,
+  isTemplateActivatable,
+  listIndustries,
   setOpportunityCustomOffer,
   type CustomCommercialOffer,
 } from "@dg/platform-core";
@@ -19,7 +21,16 @@ function appOptions() {
   const options = (apps: typeof tiers.business) =>
     apps.filter((app) => app.enabled && (app.manifest.visibility ?? "customer") === "customer")
       .map((app) => ({ id: app.manifest.id, label: app.manifest.name, description: app.manifest.description }));
-  return { industry: options(tiers.business), growth: options(tiers.growth) };
+  const templates = listIndustries().flatMap((industry) =>
+    industry.templates
+      .filter((template) => isTemplateActivatable(template.status))
+      .map((template) => ({
+        id: template.id,
+        label: `${industry.name} — ${template.name}`,
+        description: template.description,
+      })),
+  );
+  return { industry: options(tiers.business), templates, growth: options(tiers.growth) };
 }
 
 function shareUrl(req: Request, token: string | null) {
@@ -67,6 +78,7 @@ export async function POST(req: Request) {
     cadence,
     platformTier,
     industryApps: stringList(body?.industryApps),
+    industryTemplates: stringList(body?.industryTemplates),
     premiumApps: stringList(body?.premiumApps),
     supportPlan,
     seats: Math.min(seats, 10000),
