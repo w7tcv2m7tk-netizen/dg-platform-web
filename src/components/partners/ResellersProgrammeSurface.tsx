@@ -245,45 +245,52 @@ function PulseTile({ label, value }: { label: string; value: string }) {
 
 function AcquisitionPartnerTable({ rows }: { rows: PartnerDashboardRow[] }) {
   return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="border-b border-slate-700/60 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-          <th className="px-4 py-3">Partner</th>
-          <th className="px-4 py-3">Type</th>
-          <th className="px-4 py-3">Status</th>
-          <th className="px-4 py-3">Joined</th>
-          <th className="px-4 py-3" />
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-slate-700/40">
+    <>
+      <div className="divide-y divide-slate-700/40 sm:hidden">
         {rows.map((p) => (
-          <tr key={p.id} className="hover:bg-slate-800/40">
-            <td className="px-4 py-3">
-              <p className="font-medium text-white">{p.name}</p>
-              {p.email ? <p className="text-xs text-slate-500">{p.email}</p> : null}
-            </td>
-            <td className="px-4 py-3 text-slate-300">{p.partnerTypeLabel}</td>
-            <td className="px-4 py-3">
-              <span
-                className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_COLOR[p.status] ?? "bg-slate-700 text-slate-400"}`}
-              >
+          <article key={p.id} className="px-4 py-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Link href={`/command/partners/${p.id}`} className="block truncate font-medium text-white hover:text-sky-300">
+                  {p.name}
+                </Link>
+                {p.email ? <p className="mt-0.5 truncate text-xs text-slate-500">{p.email}</p> : null}
+              </div>
+              <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium capitalize ${STATUS_COLOR[p.status] ?? "bg-slate-700 text-slate-400"}`}>
                 {p.status}
               </span>
-            </td>
-            <td className="px-4 py-3 text-slate-400">
-              {p.joinedAt ? new Date(p.joinedAt).toLocaleDateString("en-AU") : "—"}
-            </td>
-            <td className="px-4 py-3 text-right">
-              <Link
-                href={`/command/partners/${p.id}`}
-                className="text-xs text-sky-400 hover:underline"
-              >
-                View →
-              </Link>
-            </td>
-          </tr>
+            </div>
+            <dl className="mt-3 grid grid-cols-2 gap-x-4 border-t border-slate-800 pt-3">
+              <div>
+                <dt className="text-[10px] font-medium uppercase tracking-wider text-slate-600">Type</dt>
+                <dd className="mt-1 text-xs leading-5 text-slate-300">{p.partnerTypeLabel}</dd>
+              </div>
+              <div>
+                <dt className="text-[10px] font-medium uppercase tracking-wider text-slate-600">Joined</dt>
+                <dd className="mt-1 text-xs text-slate-400">{p.joinedAt ? new Date(p.joinedAt).toLocaleDateString("en-AU") : "—"}</dd>
+              </div>
+            </dl>
+          </article>
         ))}
-      </tbody>
-    </table>
+      </div>
+      <table className="hidden w-full text-sm sm:table">
+        <thead>
+          <tr className="border-b border-slate-700/60 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+            <th className="px-4 py-3">Partner</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Joined</th><th className="px-4 py-3" />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-700/40">
+          {rows.map((p) => (
+            <tr key={p.id} className="hover:bg-slate-800/40">
+              <td className="px-4 py-3"><p className="font-medium text-white">{p.name}</p>{p.email ? <p className="text-xs text-slate-500">{p.email}</p> : null}</td>
+              <td className="px-4 py-3 text-slate-300">{p.partnerTypeLabel}</td>
+              <td className="px-4 py-3"><span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_COLOR[p.status] ?? "bg-slate-700 text-slate-400"}`}>{p.status}</span></td>
+              <td className="px-4 py-3 text-slate-400">{p.joinedAt ? new Date(p.joinedAt).toLocaleDateString("en-AU") : "—"}</td>
+              <td className="px-4 py-3 text-right"><Link href={`/command/partners/${p.id}`} className="text-xs text-sky-400 hover:underline">View →</Link></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </>
   );
 }
