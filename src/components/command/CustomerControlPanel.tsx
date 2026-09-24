@@ -116,6 +116,32 @@ export function CustomerControlPanel({
         </div>
       </div>
 
+      <section className="mt-4 rounded-xl border border-slate-800 bg-slate-950/35 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Connected Services</p>
+            <p className="mt-1 text-sm text-slate-300">Customer connection health at a glance — useful during the first days after activation.</p>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="rounded-full border border-emerald-500/25 px-2.5 py-1 text-emerald-300">{snapshot.connections.connected} healthy</span>
+            <span className="rounded-full border border-amber-500/25 px-2.5 py-1 text-amber-300">{snapshot.connections.attention} attention</span>
+            <span className="rounded-full border border-slate-700 px-2.5 py-1 text-slate-400">{snapshot.connections.notConnected} not connected</span>
+          </div>
+        </div>
+        {snapshot.connections.attentionItems.length ? (
+          <ul className="mt-3 space-y-2 text-sm">
+            {snapshot.connections.attentionItems.map((item) => (
+              <li key={item.id} className="rounded-lg border border-amber-500/15 bg-amber-500/[0.04] px-3 py-2">
+                <span className="font-medium text-amber-200">{item.label}</span>
+                {item.reason ? <span className="ml-2 text-slate-400">{item.reason}</span> : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-3 text-sm text-emerald-300">No connected service currently needs operator attention.</p>
+        )}
+      </section>
+
       {snapshot.alerts.length ? (
         <div className="mt-4 rounded-xl border border-rose-500/25 bg-rose-500/[0.07] p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-rose-300">Operator attention</p>
