@@ -250,7 +250,7 @@ export async function askBusinessAdvisor(
     input.contextLabel ? `Ask about: ${input.contextLabel}` : "Ask about: Entire Business",
     `Question: ${question}`,
     "",
-    "Advisor interpretation and recommendations (derived from the authoritative evidence above):",
+    "Business Brain briefing and recommendations (interpretation; use only when supported by the authoritative evidence and approved organisational context):",
     `${evidence}${contextualEvidenceBlock(input)}`,
   ].join("\n");
 
