@@ -177,7 +177,7 @@ export async function PATCH(req: Request) {
     locale: requestedVipSetup?.locale ?? existingProgress.vipSetup?.locale ?? "en-AU", currency: requestedVipSetup?.currency ?? existingProgress.vipSetup?.currency ?? "AUD",
   } : requestedVipSetup;
   const allowedProgress: AllowedClientProgress = { platformTier: clientProgress.platformTier, supportPlan: clientProgress.supportPlan, billingCadence: clientProgress.billingCadence, industryApps: clientProgress.industryApps, industryTemplates: clientProgress.industryTemplates, premiumApps: clientProgress.premiumApps, checklist: clientProgress.checklist, vipSetup: requiredVipSetup };
-  const lockedProgress: AllowedClientProgress = offer ? { ...allowedProgress, platformTier: offer.platformTier, billingCadence: offer.cadence, industryApps: offer.industryApps, premiumApps: offer.premiumApps, ...(offer.supportPlan ? { supportPlan: offer.supportPlan } : {}) } : allowedProgress;
+  const lockedProgress: AllowedClientProgress = offer ? { ...allowedProgress, platformTier: offer.platformTier, billingCadence: offer.cadence, industryApps: offer.industryApps, industryTemplates: offer.industryTemplates, premiumApps: offer.premiumApps, ...(offer.supportPlan ? { supportPlan: offer.supportPlan } : {}) } : allowedProgress;
   const progress = await saveGen2OnboardingProgress(resolvedOrganisationId, { ...lockedProgress, ...(markStepComplete === "stripe" ? { subscriptionActivatedAt: new Date().toISOString() } : {}), markStepComplete });
   return NextResponse.json({ data: { progress } });
 }
