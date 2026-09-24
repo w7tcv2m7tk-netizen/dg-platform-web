@@ -21,6 +21,7 @@ export async function GET(req: Request) {
         cadence: offer.cadence,
         platformTier: offer.platformTier,
         industryApps: offer.industryApps,
+        industryTemplates: offer.industryTemplates,
         premiumApps: offer.premiumApps,
         supportPlan: offer.supportPlan ?? "standard",
         seats: offer.seats,
