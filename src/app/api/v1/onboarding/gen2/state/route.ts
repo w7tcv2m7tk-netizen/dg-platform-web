@@ -1,5 +1,6 @@
 import {
   getGen2OnboardingProgress,
+  getOrganisationCommercialOffer,
   assertPlatformOperator,
   INDUSTRY_TAXONOMY,
   isGen2OnboardingStep,
@@ -24,7 +25,7 @@ function strings(value: unknown, max = 24, maxLength = 100) {
     : [];
 }
 
-function sanitiseOperatingProfile(raw: unknown, current: Gen2OperatingProfile = {}): Gen2OperatingProfile {
+function sanitiseOperatingProfile(raw: unknown, current: Gen2OperatingProfile = {}, lockedTemplates?: string[]): Gen2OperatingProfile {
   if (!raw || typeof raw !== "object") return current;
   const value = raw as Record<string, unknown>;
   const primaryIndustry = typeof value.primaryIndustry === "string" && ALLOWED_INDUSTRIES.has(value.primaryIndustry) ? value.primaryIndustry : current.primaryIndustry;
@@ -32,11 +33,24 @@ function sanitiseOperatingProfile(raw: unknown, current: Gen2OperatingProfile = 
     ? (current.secondaryIndustries ?? []).filter((id) => ALLOWED_INDUSTRIES.has(id) && id !== primaryIndustry)
     : strings(value.secondaryIndustries).filter((id) => ALLOWED_INDUSTRIES.has(id) && id !== primaryIndustry);
   const selectedIndustries = new Set([primaryIndustry, ...secondaryIndustries].filter((id): id is string => Boolean(id)));
-  const requestedTemplates = value.templates === undefined ? (current.templates ?? []) : strings(value.templates);
-  const templates = requestedTemplates.filter((template) => {
+  const requestedTemplates = lockedTemplates?.length
+    ? lockedTemplates
+    : value.templates === undefined
+      ? (current.templates ?? [])
+      : strings(value.templates);
+  const validTemplates = requestedTemplates.filter((template) => {
     const industry = TEMPLATE_TO_INDUSTRY.get(template);
     return Boolean(industry && selectedIndustries.has(industry));
   });
+  const templates = lockedTemplates?.length
+    ? Array.from(new Set(validTemplates))
+    : Array.from(
+        validTemplates.reduce((byIndustry, template) => {
+          const industry = TEMPLATE_TO_INDUSTRY.get(template);
+          if (industry && !byIndustry.has(industry)) byIndustry.set(industry, template);
+          return byIndustry;
+        }, new Map<string, string>()).values(),
+      );
   const requestedPrimaryTemplate = typeof value.primaryTemplate === "string" ? value.primaryTemplate.slice(0, 100) : current.primaryTemplate;
   const primaryTemplate = requestedPrimaryTemplate && templates.includes(requestedPrimaryTemplate) && TEMPLATE_TO_INDUSTRY.get(requestedPrimaryTemplate) === primaryIndustry
     ? requestedPrimaryTemplate
@@ -99,7 +113,10 @@ export async function PATCH(req: Request) {
   if (blocked) return blocked;
 
   const body = await req.json().catch(() => ({})) as Record<string, unknown>;
-  const current = await getGen2OnboardingProgress(targetOrganisationId);
+  const [current, offer] = await Promise.all([
+    getGen2OnboardingProgress(targetOrganisationId),
+    getOrganisationCommercialOffer(targetOrganisationId),
+  ]);
   const vipSetup = sanitiseVipSetup(body.vipSetup, current.vipSetup!);
   const onboardingCompleted = Boolean(current.vipSetup?.completedAt || vipSetup.completedAt);
   const journeyPosition = onboardingCompleted
@@ -112,11 +129,23 @@ export async function PATCH(req: Request) {
         ? { currentStep: body.currentStep }
         : {}),
     journeyPosition,
-    operatingProfile: sanitiseOperatingProfile(body.operatingProfile, current.operatingProfile),
+    operatingProfile: sanitiseOperatingProfile(
+      body.operatingProfile,
+      current.operatingProfile,
+      offer?.industryTemplates,
+    ),
     vipSetup,
-    ...(body.industryTemplates !== undefined ? { industryTemplates: strings(body.industryTemplates) } : {}),
-    ...(body.industryApps !== undefined ? { industryApps: strings(body.industryApps) } : {}),
-    ...(body.premiumApps !== undefined ? { premiumApps: strings(body.premiumApps) } : {}),
+    ...(offer
+      ? {
+          industryTemplates: offer.industryTemplates,
+          industryApps: offer.industryApps,
+          premiumApps: offer.premiumApps,
+        }
+      : {
+          ...(body.industryTemplates !== undefined ? { industryTemplates: sanitiseOperatingProfile({ templates: strings(body.industryTemplates), primaryIndustry: current.operatingProfile?.primaryIndustry, secondaryIndustries: current.operatingProfile?.secondaryIndustries }, current.operatingProfile).templates ?? [] } : {}),
+          ...(body.industryApps !== undefined ? { industryApps: strings(body.industryApps) } : {}),
+          ...(body.premiumApps !== undefined ? { premiumApps: strings(body.premiumApps) } : {}),
+        }),
   };
   const progress = await saveGen2OnboardingProgress(targetOrganisationId, patch);
   return NextResponse.json({ data: { progress } });
