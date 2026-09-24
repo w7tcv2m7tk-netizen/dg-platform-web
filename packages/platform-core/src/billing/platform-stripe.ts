@@ -381,6 +381,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
 
   const platformTier = metadata.dg_platform_tier ?? "professional";
   const industryApps = metadataList(metadata.dg_industry_apps);
+  const industryTemplates = metadataList(metadata.dg_industry_templates);
   const requestedPremiumApps = normalisePaidAppKeys(metadataList(metadata.dg_premium_apps));
   const stripeSubscriptionId =
     typeof session.subscription === "string"
@@ -423,7 +424,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
 
   const selection: PlanSelectionInput = {
     platformTier,
-    industryApps,
+    industryApps: [...new Set([...industryApps, ...industryTemplates])],
     premiumApps,
   };
   const enabled = appIdsFromPlanSelection(selection);
@@ -471,6 +472,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
           ...profile,
           platformTier,
           purchasedApps: industryApps,
+          purchasedIndustryTemplates: industryTemplates,
           purchasedPremium: premiumApps,
           purchaseLabel: TIER_LABELS[platformTier] ?? platformTier,
           syncedAt: new Date().toISOString(),
@@ -482,6 +484,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
           planPreview: {
             platformTier,
             industryApps,
+            industryTemplates,
             premiumApps,
             appliedAt: new Date().toISOString(),
             source: "stripe_checkout",
