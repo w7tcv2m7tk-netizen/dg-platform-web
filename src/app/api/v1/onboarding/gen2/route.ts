@@ -15,6 +15,7 @@ import {
   type PlatformSession,
   isGen2OnboardingStep,
   assertPlatformOperator,
+  INDUSTRY_TAXONOMY,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -96,6 +97,22 @@ function safeVipSetup(raw: unknown): Gen2VipSetup | undefined {
     aiReportingPriorities: Array.isArray(source.aiReportingPriorities) ? source.aiReportingPriorities.filter((v): v is string => typeof v === "string").map(v => v.slice(0, 120)).slice(0, 12) : [],
   };
 }
+const TEMPLATE_PARENT = new Map(
+  INDUSTRY_TAXONOMY.flatMap((group) =>
+    group.subIndustries.map((subIndustry) => [subIndustry.id, group.id] as const),
+  ),
+);
+
+function onePrimaryTemplatePerIndustry(values: string[]): string[] {
+  const byIndustry = new Map<string, string>();
+  for (const id of values) {
+    const parent = TEMPLATE_PARENT.get(id);
+    if (!parent || byIndustry.has(parent)) continue;
+    byIndustry.set(parent, id);
+  }
+  return [...byIndustry.values()];
+}
+
 function safeClientProgress(raw: unknown): AllowedClientProgress {
   if (!raw || typeof raw !== "object") return {};
   const source = raw as Record<string, unknown>; const safe: AllowedClientProgress = {};
@@ -103,7 +120,11 @@ function safeClientProgress(raw: unknown): AllowedClientProgress {
   if (["standard", "priority", "success_partner", "enterprise_success"].includes(String(source.supportPlan))) safe.supportPlan = source.supportPlan as Gen2OnboardingProgress["supportPlan"];
   if (source.billingCadence === "monthly" || source.billingCadence === "annual") safe.billingCadence = source.billingCadence;
   if (Array.isArray(source.industryApps)) safe.industryApps = source.industryApps.filter((v): v is string => typeof v === "string" && v.length <= 80).slice(0, 20);
-  if (Array.isArray(source.industryTemplates)) safe.industryTemplates = source.industryTemplates.filter((v): v is string => typeof v === "string" && v.length <= 80).slice(0, 30);
+  if (Array.isArray(source.industryTemplates)) {
+    safe.industryTemplates = onePrimaryTemplatePerIndustry(
+      source.industryTemplates.filter((v): v is string => typeof v === "string" && v.length <= 80).slice(0, 30),
+    );
+  }
   if (Array.isArray(source.premiumApps)) safe.premiumApps = source.premiumApps.filter((v): v is string => typeof v === "string" && v.length <= 80).slice(0, 20);
   const vipSetup = safeVipSetup(source.vipSetup); if (vipSetup) safe.vipSetup = vipSetup;
   if (source.checklist && typeof source.checklist === "object") {
