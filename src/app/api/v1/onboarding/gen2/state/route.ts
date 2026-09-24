@@ -32,7 +32,13 @@ function sanitiseOperatingProfile(raw: unknown, current: Gen2OperatingProfile = 
   const secondaryIndustries = value.secondaryIndustries === undefined
     ? (current.secondaryIndustries ?? []).filter((id) => ALLOWED_INDUSTRIES.has(id) && id !== primaryIndustry)
     : strings(value.secondaryIndustries).filter((id) => ALLOWED_INDUSTRIES.has(id) && id !== primaryIndustry);
-  const selectedIndustries = new Set([primaryIndustry, ...secondaryIndustries].filter((id): id is string => Boolean(id)));
+  const selectedIndustries = new Set(
+    [
+      primaryIndustry,
+      ...secondaryIndustries,
+      ...((lockedTemplates ?? []).map((template) => TEMPLATE_TO_INDUSTRY.get(template))),
+    ].filter((id): id is string => Boolean(id)),
+  );
   const requestedTemplates = lockedTemplates?.length
     ? lockedTemplates
     : value.templates === undefined
