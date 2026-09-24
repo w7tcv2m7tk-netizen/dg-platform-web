@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -29,16 +30,26 @@ export function OnboardingCheckoutPending() {
       <h1 className="mt-2 text-2xl font-bold text-white">Aida is preparing your setup</h1>
       <p className="mt-3 text-sm leading-6 text-slate-300">
         {exhausted
-          ? "Stripe is taking longer than expected to confirm your subscription. You can check again now without restarting onboarding."
-          : "DigitalGate is confirming your subscription automatically. This page will update as soon as Stripe confirms it."}
+          ? "Stripe is taking longer than expected to confirm your subscription. Your DigitalGate setup is saved — there is no need to restart onboarding or submit payment again."
+          : "DigitalGate is confirming your subscription automatically. Your setup is already saved and this page will update as soon as Stripe confirms it."}
       </p>
-      <button
-        type="button"
-        onClick={() => router.refresh()}
-        className="mt-5 inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 py-2.5 text-sm font-medium text-white"
-      >
-        Check confirmation
-      </button>
+      <div className="mt-5 flex flex-wrap justify-center gap-2">
+        <button
+          type="button"
+          onClick={() => router.refresh()}
+          className="inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 py-2.5 text-sm font-medium text-white"
+        >
+          Check confirmation
+        </button>
+        {exhausted ? (
+          <Link
+            href="/support"
+            className="inline-flex min-h-11 items-center rounded-full border border-white/15 px-5 py-2.5 text-sm font-medium text-white/75 hover:border-white/30"
+          >
+            Get help
+          </Link>
+        ) : null}
+      </div>
       {!exhausted ? (
         <p className="mt-3 text-xs text-white/35">
           Automatic check {Math.min(checks + 1, MAX_AUTO_CHECKS)} of {MAX_AUTO_CHECKS}
