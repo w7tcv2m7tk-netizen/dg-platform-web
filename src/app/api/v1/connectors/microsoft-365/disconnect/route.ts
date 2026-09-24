@@ -2,11 +2,11 @@ import { clearOrgMicrosoft365ConnectorTokens } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import {
-import { tenantWriteEntitlementBlock, writeEntitlementResponse } from "@/lib/write-entitlement";
   isNextResponse,
   requirePermission,
   requirePlatformAuth,
 } from "@/lib/platform-api";
+import { tenantWriteEntitlementBlock, writeEntitlementResponse } from "@/lib/write-entitlement";
 
 export const dynamic = "force-dynamic";
 
