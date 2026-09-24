@@ -89,7 +89,7 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
         </p>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
           Acquisition Partners bring customers in. Delivery Partners implement and onboard them.
-          Founding 10 / 100 / 1,000+ are customer referral cohorts — not partner divisions.
+          Founding 10 is a customer programme, not a partner division. Standard direct referrals and partner referrals are tracked separately.
         </p>
         <p className="mt-2 max-w-2xl text-xs text-slate-500">{PARTNER_COMMERCIAL_ENGINE}</p>
       </header>
