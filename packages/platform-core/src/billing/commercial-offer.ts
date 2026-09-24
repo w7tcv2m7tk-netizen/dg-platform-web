@@ -286,6 +286,8 @@ export const createNegotiatedCommercialCheckoutSession = createCustomCommercialC
 type OpportunityCustomOfferMeta = {
   commercial_offer?: unknown;
   custom_offer_token?: string;
+  custom_offer_claimed_by_org_id?: string;
+  custom_offer_claimed_at?: string;
   [key: string]: unknown;
 };
 
@@ -296,7 +298,12 @@ function opportunityOfferMeta(value: unknown): OpportunityCustomOfferMeta {
 export async function getOpportunityCustomOffer(input: {
   organisationId: string;
   opportunityId: string;
-}): Promise<{ offer: CustomCommercialOffer | null; token: string | null } | null> {
+}): Promise<{
+  offer: CustomCommercialOffer | null;
+  token: string | null;
+  claimedByOrganisationId: string | null;
+  claimedAt: string | null;
+} | null> {
   const { prisma } = await import("@dg/database");
   const row = await prisma.opportunity.findFirst({
     where: { id: input.opportunityId, organisationId: input.organisationId },
@@ -307,6 +314,8 @@ export async function getOpportunityCustomOffer(input: {
   return {
     offer: parseCustomCommercialOffer(meta.commercial_offer),
     token: asString(meta.custom_offer_token, 100) ?? null,
+    claimedByOrganisationId: asString(meta.custom_offer_claimed_by_org_id, 100) ?? null,
+    claimedAt: asString(meta.custom_offer_claimed_at, 64) ?? null,
   };
 }
 
@@ -325,6 +334,9 @@ export async function setOpportunityCustomOffer(input: {
   });
   if (!row) throw new Error("Opportunity not found");
   const meta = opportunityOfferMeta(row.metadata);
+  if (asString(meta.custom_offer_claimed_by_org_id, 100)) {
+    throw new Error("Accepted custom pricing offers are locked and cannot be changed.");
+  }
   const token = asString(meta.custom_offer_token, 100) ?? crypto.randomUUID().replace(/-/g, "");
   await prisma.opportunity.update({
     where: { id: row.id },
@@ -343,6 +355,8 @@ export async function findOpportunityCustomOfferByToken(token: string): Promise<
   opportunityId: string;
   pipelineOrganisationId: string;
   offer: CustomCommercialOffer;
+  claimedByOrganisationId: string | null;
+  claimedAt: string | null;
 } | null> {
   const clean = token.trim();
   if (!clean || !process.env.DATABASE_URL) return null;
@@ -363,9 +377,16 @@ export async function findOpportunityCustomOfferByToken(token: string): Promise<
     row = rows.find((candidate) => opportunityOfferMeta(candidate.metadata).custom_offer_token === clean) ?? null;
   }
   if (!row) return null;
-  const offer = parseCustomCommercialOffer(opportunityOfferMeta(row.metadata).commercial_offer);
+  const meta = opportunityOfferMeta(row.metadata);
+  const offer = parseCustomCommercialOffer(meta.commercial_offer);
   if (!offer) return null;
-  return { opportunityId: row.id, pipelineOrganisationId: row.organisationId, offer };
+  return {
+    opportunityId: row.id,
+    pipelineOrganisationId: row.organisationId,
+    offer,
+    claimedByOrganisationId: asString(meta.custom_offer_claimed_by_org_id, 100) ?? null,
+    claimedAt: asString(meta.custom_offer_claimed_at, 64) ?? null,
+  };
 }
 
 export async function claimOpportunityCustomOffer(input: {
@@ -374,8 +395,74 @@ export async function claimOpportunityCustomOffer(input: {
 }): Promise<CustomCommercialOffer | null> {
   const found = await findOpportunityCustomOfferByToken(input.token);
   if (!found) return null;
-  return setOrganisationCommercialOffer({
-    organisationId: input.customerOrganisationId,
-    offer: found.offer,
+  if (
+    found.claimedByOrganisationId &&
+    found.claimedByOrganisationId !== input.customerOrganisationId
+  ) {
+    throw new Error("This custom pricing offer has already been accepted.");
+  }
+  if (found.claimedByOrganisationId === input.customerOrganisationId) {
+    await setOrganisationCommercialOffer({
+      organisationId: input.customerOrganisationId,
+      offer: found.offer,
+    });
+    return found.offer;
+  }
+
+  const { prisma } = await import("@dg/database");
+  const now = new Date().toISOString();
+
+  return prisma.$transaction(async (tx) => {
+    const row = await tx.opportunity.findUnique({
+      where: { id: found.opportunityId },
+      select: { metadata: true, updatedAt: true },
+    });
+    if (!row) return null;
+
+    const meta = opportunityOfferMeta(row.metadata);
+    if (asString(meta.custom_offer_token, 100) !== input.token.trim()) return null;
+    const claimedBy = asString(meta.custom_offer_claimed_by_org_id, 100);
+    if (claimedBy && claimedBy !== input.customerOrganisationId) {
+      throw new Error("This custom pricing offer has already been accepted.");
+    }
+
+    const offer = parseCustomCommercialOffer(meta.commercial_offer);
+    if (!offer) return null;
+
+    if (!claimedBy) {
+      const claim = await tx.opportunity.updateMany({
+        where: { id: found.opportunityId, updatedAt: row.updatedAt },
+        data: {
+          metadata: {
+            ...meta,
+            custom_offer_claimed_by_org_id: input.customerOrganisationId,
+            custom_offer_claimed_at: now,
+          } as Prisma.InputJsonValue,
+        },
+      });
+      if (claim.count !== 1) {
+        throw new Error("This custom pricing offer is being accepted elsewhere. Please refresh and try again.");
+      }
+    }
+
+    const customer = await tx.organisation.findUnique({
+      where: { id: input.customerOrganisationId },
+      select: { settings: true },
+    });
+    if (!customer) throw new Error("Organisation not found");
+    const settings = ((customer.settings as OrganisationSettings | null) ?? {}) as OrganisationSettings;
+    await tx.organisation.update({
+      where: { id: input.customerOrganisationId },
+      data: {
+        settings: {
+          ...settings,
+          billing: {
+            ...(settings.billing ?? {}),
+            commercialOffer: offer,
+          },
+        } as unknown as Prisma.InputJsonValue,
+      },
+    });
+    return offer;
   });
 }

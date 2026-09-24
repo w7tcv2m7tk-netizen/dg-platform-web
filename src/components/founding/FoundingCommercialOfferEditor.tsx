@@ -7,6 +7,7 @@ type AppOption = {
   id: string;
   label: string;
   description?: string;
+  parentId?: string;
 };
 
 type AppOptions = {
@@ -123,7 +124,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
   const [platformTier, setPlatformTier] = useState<"starter" | "professional" | "business">("professional");
   const [supportPlan, setSupportPlan] = useState<"standard" | "priority" | "success_partner" | "enterprise_success">("standard");
   const [seats, setSeats] = useState("5");
-  const [trialDays, setTrialDays] = useState("0");
+  const [trialDays, setTrialDays] = useState("14");
   const [industryApps, setIndustryApps] = useState<string[]>([]);
   const [industryTemplates, setIndustryTemplates] = useState<string[]>([]);
   const [premiumApps, setPremiumApps] = useState<string[]>([]);
@@ -131,6 +132,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
   const [status, setStatus] = useState<"loading" | "idle" | "saving" | "saved" | "error">("loading");
   const [message, setMessage] = useState("");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [claimedAt, setClaimedAt] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -153,6 +155,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
       const nextAppOptions = json.data?.appOptions as AppOptions | undefined;
       setVisible(true);
       setLocked(Boolean(json.data?.locked));
+      setClaimedAt(typeof json.data?.claimedAt === "string" ? json.data.claimedAt : null);
       setOffer(next);
       setShareUrl(typeof json.data?.shareUrl === "string" ? json.data.shareUrl : null);
       if (nextAppOptions) setAppOptions(nextAppOptions);
@@ -180,6 +183,25 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
 
   const amountCents = useMemo(() => Math.round(Number(amount || 0) * 100), [amount]);
   const oneOffAmountCents = useMemo(() => Math.round(Number(oneOffAmount || 0) * 100), [oneOffAmount]);
+  const templateParent = useMemo(
+    () => new Map(appOptions.templates.map((option) => [option.id, option.parentId] as const)),
+    [appOptions.templates],
+  );
+  const visibleTemplates = useMemo(
+    () => appOptions.templates.filter((option) => !option.parentId || industryApps.includes(option.parentId)),
+    [appOptions.templates, industryApps],
+  );
+
+  function setParentIndustries(next: string[]) {
+    setIndustryApps(next);
+    const allowed = new Set(next);
+    setIndustryTemplates((current) =>
+      current.filter((id) => {
+        const parentId = templateParent.get(id);
+        return !parentId || allowed.has(parentId);
+      }),
+    );
+  }
 
   async function save() {
     setStatus("saving");
@@ -214,7 +236,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
     setOffer(json.data.offer);
     setShareUrl(typeof json.data?.shareUrl === "string" ? json.data.shareUrl : null);
     setStatus("saved");
-    setMessage("Custom pricing offer saved. Copy the private link and send it to the customer.");
+    setMessage("Custom pricing offer saved. Review it, then send the private link to the customer.");
   }
 
   if (!visible) return null;
@@ -225,18 +247,25 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
         <div>
           <h3 className="font-semibold text-white">Custom pricing offer</h3>
           <p className="mt-1 text-xs text-slate-400">
-            Build a bespoke offer for any prospect or customer. This is independent of Founding 10 status and only applies when the customer accepts the private offer link.
+            Build a bespoke commercial package for any prospect or customer. The package becomes authoritative only when the customer accepts the private link.
           </p>
         </div>
         {offer ? (
-          <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-200">
-            {money(offer.amountCents)}/{offer.cadence === "annual" ? "yr" : "mo"}
-            {offer.oneOffAmountCents ? ` + ${money(offer.oneOffAmountCents)} once` : ""}
+          <span className={`rounded-full border px-2.5 py-1 text-xs ${locked ? "border-violet-500/30 bg-violet-500/10 text-violet-200" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"}`}>
+            {locked ? "Accepted · locked" : `${money(offer.amountCents)}/${offer.cadence === "annual" ? "yr" : "mo"}${offer.oneOffAmountCents ? ` + ${money(offer.oneOffAmountCents)} once` : ""}`}
           </span>
         ) : null}
       </div>
 
       {status === "loading" ? <p className="text-sm text-slate-500">Loading offer…</p> : null}
+      {locked ? (
+        <div className="rounded-xl border border-violet-500/20 bg-violet-500/[0.06] px-4 py-3 text-sm text-violet-100">
+          <p className="font-semibold">Customer accepted this offer.</p>
+          <p className="mt-1 text-xs text-violet-100/60">
+            Commercial terms are now locked to protect the accepted customer agreement{claimedAt ? ` · accepted ${new Date(claimedAt).toLocaleString("en-AU")}` : ""}.
+          </p>
+        </div>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="text-xs text-slate-500 sm:col-span-2">Offer name<input value={label} onChange={(e) => setLabel(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
@@ -248,8 +277,8 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
         <label className="text-xs text-slate-500">Support plan<select value={supportPlan} onChange={(e) => setSupportPlan(e.target.value as typeof supportPlan)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60"><option value="standard">Standard — included</option><option value="priority">Priority — $199/mo</option><option value="success_partner">Success Partner — $499/mo</option><option value="enterprise_success">Enterprise Success — custom</option></select></label>
         <label className="text-xs text-slate-500">Included seats<input type="number" min="1" value={seats} onChange={(e) => setSeats(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
         <label className="text-xs text-slate-500">Trial days<input type="number" min="0" max="90" value={trialDays} onChange={(e) => setTrialDays(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
-        <AppCheckboxGroup legend="Industry Apps" options={appOptions.industry} selected={industryApps} onChange={setIndustryApps} disabled={locked} />
-        <AppCheckboxGroup legend="Industry Templates" options={appOptions.templates} selected={industryTemplates} onChange={setIndustryTemplates} disabled={locked} />
+        <AppCheckboxGroup legend="Industry Apps" options={appOptions.industry} selected={industryApps} onChange={setParentIndustries} disabled={locked} />
+        <AppCheckboxGroup legend="Business types" options={visibleTemplates} selected={industryTemplates} onChange={setIndustryTemplates} disabled={locked} />
         <AppCheckboxGroup legend="Growth Apps" options={appOptions.growth} selected={premiumApps} onChange={setPremiumApps} disabled={locked} />
         <label className="text-xs text-slate-500 sm:col-span-2">Commercial notes<textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} disabled={locked} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-60" /></label>
       </div>
@@ -258,7 +287,7 @@ export function CustomCommercialOfferEditor({ opportunityId }: { opportunityId: 
         <button type="button" disabled={locked || status === "saving" || !label.trim() || amountCents <= 0 || oneOffAmountCents < 0 || (oneOffAmountCents > 0 && !oneOffLabel.trim())} onClick={() => void save()} className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50">
           {status === "saving" ? "Saving…" : offer ? "Update custom pricing offer" : "Save custom pricing offer"}
         </button>
-        {shareUrl ? <button type="button" onClick={() => void navigator.clipboard.writeText(shareUrl).then(() => setMessage("Custom pricing link copied."))} className="rounded-lg border border-violet-500/40 px-4 py-2 text-sm font-semibold text-violet-200 hover:border-violet-400">Copy customer link</button> : null}
+        {shareUrl && !locked ? <button type="button" onClick={() => void navigator.clipboard.writeText(shareUrl).then(() => setMessage("Private customer offer link copied."))} className="rounded-lg border border-violet-500/40 px-4 py-2 text-sm font-semibold text-violet-200 hover:border-violet-400">Copy private offer link</button> : null}
         {message ? <p className={`text-sm ${status === "error" ? "text-amber-300" : "text-emerald-300"}`}>{message}</p> : null}
       </div>
     </section>
