@@ -334,6 +334,9 @@ export async function setOpportunityCustomOffer(input: {
   });
   if (!row) throw new Error("Opportunity not found");
   const meta = opportunityOfferMeta(row.metadata);
+  if (asString(meta.custom_offer_claimed_by_org_id, 100)) {
+    throw new Error("Accepted custom pricing offers are locked and cannot be changed.");
+  }
   const token = asString(meta.custom_offer_token, 100) ?? crypto.randomUUID().replace(/-/g, "");
   await prisma.opportunity.update({
     where: { id: row.id },
