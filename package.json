@@ -79,6 +79,7 @@
     "test:onboarding-support-step": "node scripts/test-onboarding-support-step.mjs",
     "test:onboarding-checkout-verification": "node scripts/test-onboarding-checkout-verification.mjs",
     "test:aida-business-overview": "node --test scripts/test-aida-business-overview.mjs",
+    "test:aida-business-brain-depth": "node scripts/test-aida-business-brain-depth.mjs",
     "test:first-day-aida-experience": "node scripts/test-first-day-aida-experience.mjs",
     "test:connected-services-customer-experience": "node scripts/test-connected-services-customer-experience.mjs",
     "test:services-finance-depth": "node scripts/test-services-finance-depth.mjs",
