@@ -30,12 +30,31 @@ export default async function FinanceOverviewPage() {
   const borrowerIds = new Set(
     items.map((a) => a.contactId).filter((id): id is string => Boolean(id)),
   );
+  const activeValueCents = open.reduce((sum, application) => sum + (application.loanAmountCents ?? 0), 0);
+  const activeValue = formatMoneyFromCents(activeValueCents, money);
+  const needsBorrower = open.filter((application) => !application.contactId).length;
+  const needsLender = open.filter((application) => !application.lenderName).length;
+  const needsAmount = open.filter((application) => application.loanAmountCents == null).length;
+  const nextActionCount = needsBorrower + needsLender + needsAmount;
 
   return (
     <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
         {session.organisationName} · Broker loan pipeline on Core CRM contacts
       </p>
+
+      <section className="rounded-2xl border border-blue-500/20 bg-blue-500/[0.05] p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-300">Finance workspace</p>
+        <h1 className="mt-1 text-xl font-semibold text-white">Move applications with the customer context attached</h1>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+          Borrowers stay linked to Core CRM while application stage, lender and loan value remain finance-specific. Use the pipeline for movement and Applications for record detail.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href="/apps/finance/pipeline" className="inline-flex min-h-11 items-center rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500">Open pipeline →</Link>
+          <Link href="/apps/finance/applications" className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-600">Manage applications</Link>
+          <Link href="/apps/finance/clients" className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-600">View CRM clients</Link>
+        </div>
+      </section>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="dg-card">
@@ -55,6 +74,21 @@ export default async function FinanceOverviewPage() {
           <p className="mt-1 text-2xl font-semibold text-white">{contacts.meta.total}</p>
         </div>
       </div>
+
+      <section className="dg-card">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-slate-500">Active pipeline value</p>
+            <p className="mt-1 text-2xl font-semibold text-white">{activeValue ?? "—"}</p>
+            <p className="mt-1 text-xs text-slate-500">Known loan value across open applications.</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Records needing context</p>
+            <p className="mt-1 text-2xl font-semibold text-white">{nextActionCount}</p>
+            <p className="mt-1 text-xs text-slate-500">{needsBorrower} borrower · {needsLender} lender · {needsAmount} amount</p>
+          </div>
+        </div>
+      </section>
 
       <section className="dg-card">
         <div className="flex flex-wrap items-center justify-between gap-2">

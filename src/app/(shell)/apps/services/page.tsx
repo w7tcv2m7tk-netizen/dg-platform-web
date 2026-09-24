@@ -84,6 +84,22 @@ export default async function ServicesOverviewPage({
         </p>
       ) : null}
 
+      <section className="rounded-2xl border border-sky-500/20 bg-sky-500/[0.05] p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-300">Today in Services</p>
+        <h2 className="mt-1 text-lg font-semibold text-white">Keep work moving from customer to schedule to completion</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
+          Prioritise unassigned work, then confirm the next seven days. Customer records stay in CRM and commercial records stay in Commerce, so the job remains operational rather than becoming another silo.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href={servicesHref("/apps/services/jobs", overview.templateKey, { assignee: "unassigned", status: "open" })} className="inline-flex min-h-11 items-center rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500">
+            Review {overview.counts.unassignedOpen} unassigned →
+          </Link>
+          <Link href={servicesHref("/apps/services/scheduling", overview.templateKey)} className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-slate-600">
+            Open schedule
+          </Link>
+        </div>
+      </section>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <Link href={servicesHref("/apps/services/jobs", overview.templateKey, { status: "open" })} className="rounded-xl border border-slate-700 bg-slate-950/40 px-5 py-4 hover:border-slate-500">
           <p className="text-xs uppercase tracking-wide text-slate-500">Open {jobWord}s</p>
