@@ -100,3 +100,17 @@ assert.match(rollout, /Starter\*\* · \*\*Growth\*\* · \*\*Scale\*\* · \*\*Ent
 assert.doesNotMatch(rollout, /Founding 10 → Founding 100|Founding 100 \/ 1,000|24-month founding window|Preferred founding terms/);
 
 console.log("commercial documentation lock regression checks passed");
+
+const pricingCatalog = fs.readFileSync(
+  "src/lib/pricing-catalog.ts",
+  "utf8",
+);
+const publicPricing = fs.readFileSync(
+  "marketing/pages/pricing-page.html",
+  "utf8",
+);
+assert.match(pricingCatalog, /key: "enterprise"[\s\S]*?users: "Custom user limits"/);
+assert.match(publicPricing, /Enterprise<\/div>[\s\S]{0,600}<div class="plan-users">Custom user limits<\/div>/);
+assert.doesNotMatch(pricingCatalog, /key: "enterprise"[\s\S]*?users: "Unlimited Users"/);
+
+console.log("enterprise pricing copy consistency checks passed");
