@@ -42,7 +42,7 @@ export default function SupportHelpIndexPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Knowledge Base</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Search practical guidance for setting up DigitalGate, using your apps and resolving common questions.
+          Practical guidance for setting up DigitalGate, using your apps and resolving common questions. Search by topic or workflow.
         </p>
       </header>
       <main className="dg-page-main space-y-7">
