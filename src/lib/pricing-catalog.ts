@@ -108,7 +108,7 @@ export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
     icon: "🏛️",
     price: "Custom",
     period: "",
-    users: "Unlimited Users",
+    users: "Custom user limits",
     outcome: "For organisations needing complete customisation.",
     features: [
       "Everything in Scale",
