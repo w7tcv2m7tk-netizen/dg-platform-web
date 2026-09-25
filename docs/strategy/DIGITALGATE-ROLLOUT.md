@@ -17,7 +17,7 @@
 |-----|---------------------------|---------------|
 | Phase 1 audience / founder content | **DigitalGate Founding 10** (early access, not beta) — public: **Founding Customer Programme** | After ~10–20 active (Gate 3) |
 
-**Longer GTM arc (design only — not active):** Founding 10 → Founding 100 → Founding 1,000 → Standard DigitalGate. Earlier adoption = greater **initial** commercial advantage (24-month founding window on initial Platform + Apps). **Only Founding 10 is active now.** Canon: [FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md).
+**Founding model:** Founding 10 is the only founding customer cohort. Customer 11 onward is a standard DigitalGate customer using published plans and the normal self-service trial/onboarding journey. Founding status is programme status, not a separate pricing tier. Canon: [FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md).
 
 Sell a **specific customer outcome** (esp. RE): Website → AI Vis → SEO → Leads → CRM → Automation → Appointments → Opportunities.  
 Readiness: [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md) — six reds are **dogfood/verification** blockers (MVPs shipped); Gate 2 opens after Gate 1 P0/P1 punch list. **Prove internally → sell founding programme.** No new major product area.
@@ -91,15 +91,15 @@ See also: [RE-BETA-LAUNCH.md](../RE-BETA-LAUNCH.md) · [ROADMAP.md](../ROADMAP.m
 
 ## Phase 2 — DigitalGate Founding 10
 
-**Next milestone:** **DigitalGate Founding 10** (indicative mix **3–5 RE + 2–5 other**) under Gate 2 ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)). Public SaaS / Founding 100 / 1,000 / Standard are later — not this milestone. Sell as **early access to operate**, not “beta testers.” Cohort progression: [FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md).
+**Next milestone:** **DigitalGate Founding 10** (indicative mix **3–5 RE + 2–5 other**) under Gate 2 ([COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md)). Sell as **early access to operate**, not “beta testers.” There is no later Founding 100 or Founding 1,000 cohort; customer 11 onward follows the standard DigitalGate journey. Canon: [FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md).
 
 | Principle | Detail |
 |-----------|--------|
 | Framing | Founding 10 — limited AU businesses shaping the OS with Ben (**not** a free trial / unpaid QA) |
-| Value | Preferred founding terms on **initial** Platform + Apps for **24 months**; later additions at published pricing ([FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md)) |
+| Value | Founding 10 benefits are exclusivity, early access, priority onboarding, founder relationship and roadmap influence. Published Platform + App pricing remains authoritative unless a separate explicit custom offer exists ([FOUNDING-COHORTS.md](./FOUNDING-COHORTS.md)) |
 | Quality bar | Real businesses (start AU RE); active use of the outcome workflow, not logo collection |
 | Outreach | Founder LinkedIn → outreach → free audit → strategy → Founding 10 → onboard → case study → referral; Command prospecting as sales machine |
-| Exit into | Then-current standard pricing after founding window (status/recognition retained) + Gate 3 readiness |
+| Exit into | Gate 3 readiness and the standard self-service customer journey for customer 11 onward; Founding 10 status remains programme/cohort status |
 | Engineering bar | Launch statement in Commercially Ready v1 — Ben not holding it together; REA partner verified (integration in progress); Domain Production is enhancement, not prerequisite |
 
 Commercial detail lives in [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md); readiness gates + dogfood journey in [COMMERCIALLY-READY-V1.md](../foundations/COMMERCIALLY-READY-V1.md). **Do not claim Gate 2 cleared.**
@@ -176,11 +176,11 @@ No fabricated benchmarks.
 
 | Platform | Industry |
 |----------|----------|
-| **Starter** · **Pro** · **Business** | **Industry Apps** (RE, Accommodation, Services, …) as add-ons |
+| **Starter** · **Growth** · **Scale** · **Enterprise** | **Industry Apps** (Property, Hospitality & Accommodation, Services, Finance, …) as add-ons |
 
 Narrative: **Start with the platform, add as you grow.** Generous core — don’t nickel-and-dime the OS.
 
-Align packaging with [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md) (Feature Registry). Naming note: GTM uses **Business**; older commercial drafts may say Agency — converge copy to **Business** when pricing surfaces are next touched. **Do not** redesign the live pricing page as part of this doc lock.
+Align packaging with [COMMERCIAL-MODEL.md](../foundations/COMMERCIAL-MODEL.md) and [PRICING-AND-PACKAGING.md](../commercial/PRICING-AND-PACKAGING.md). Canonical tier names are **Starter / Growth / Scale / Enterprise**. **Do not** redesign the live pricing page as part of this doc lock.
 
 ---
 

@@ -157,7 +157,7 @@ export const INDUSTRY_LAYER_STACK = [
   {
     id: "growth",
     label: "Growth",
-    body: "Prospecting, AI Visibility, SEO, Reputation, Social, Analytics, AI Communications",
+    body: "Advertising, Marketing, Prospecting, AI Visibility, SEO, Automation, Analytics, Social, Reputation",
   },
   {
     id: "intelligence",

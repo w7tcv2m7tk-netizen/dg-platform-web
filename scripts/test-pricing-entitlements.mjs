@@ -75,3 +75,67 @@ assert.doesNotMatch(
 );
 
 console.log("canonical commercial catalogue regression checks passed");
+
+
+const commercialModel = fs.readFileSync(
+  "docs/foundations/COMMERCIAL-MODEL.md",
+  "utf8",
+);
+const rollout = fs.readFileSync(
+  "docs/strategy/DIGITALGATE-ROLLOUT.md",
+  "utf8",
+);
+const pricingLock = fs.readFileSync(
+  "docs/commercial/PRICING-AND-PACKAGING.md",
+  "utf8",
+);
+
+assert.match(pricingLock, /Starter \*\*\$99\/mo\*\* · Growth \*\*\$249\/mo\*\* · Scale \*\*\$499\/mo\*\*/);
+assert.match(pricingLock, /Scale supports up to 20 users/);
+assert.match(pricingLock, /up to 5 businesses total/);
+assert.match(commercialModel, /scale=20, enterprise=custom/);
+assert.match(commercialModel, /Up to 20 users, up to 5 active businesses/);
+assert.doesNotMatch(commercialModel, /Scale \| \+ Unlimited users/);
+assert.match(rollout, /Starter\*\* · \*\*Growth\*\* · \*\*Scale\*\* · \*\*Enterprise/);
+assert.doesNotMatch(rollout, /Founding 10 → Founding 100|Founding 100 \/ 1,000|24-month founding window|Preferred founding terms/);
+
+console.log("commercial documentation lock regression checks passed");
+
+const pricingCatalog = fs.readFileSync(
+  "src/lib/pricing-catalog.ts",
+  "utf8",
+);
+const publicPricing = fs.readFileSync(
+  "marketing/pages/pricing-page.html",
+  "utf8",
+);
+assert.match(pricingCatalog, /key: "enterprise"[\s\S]*?users: "Custom user limits"/);
+assert.match(publicPricing, /Enterprise<\/div>[\s\S]{0,600}<div class="plan-users">Custom user limits<\/div>/);
+assert.doesNotMatch(pricingCatalog, /key: "enterprise"[\s\S]*?users: "Unlimited Users"/);
+
+console.log("enterprise pricing copy consistency checks passed");
+
+const paidApps = fs.readFileSync(
+  "packages/platform-core/src/billing/paid-apps.ts",
+  "utf8",
+);
+const appHierarchy = fs.readFileSync(
+  "docs/foundations/APP-HIERARCHY.md",
+  "utf8",
+);
+const industryPlatform = fs.readFileSync(
+  "packages/platform-core/src/industry/platform.ts",
+  "utf8",
+);
+
+for (const id of ["advertising", "marketing", "prospecting", "ai-visibility", "seo", "automation", "analytics", "social", "reviews"]) {
+  assert.ok(paidApps.includes(`appId: "${id}"`), `missing canonical Growth App ${id}`);
+}
+assert.match(pricingLock, /Advertising \| \*\*\$99\/mo\*\*/);
+assert.match(pricingLock, /Marketing \| \*\*\$99\/mo\*\*/);
+assert.match(appHierarchy, /Advertising · Marketing · Prospecting & Opportunity Engine · AI Visibility · SEO · Automation · Analytics · Social · Reviews & Reputation/);
+assert.match(industryPlatform, /Advertising, Marketing, Prospecting, AI Visibility, SEO, Automation, Analytics, Social, Reputation/);
+assert.doesNotMatch(industryPlatform, /Prospecting, AI Visibility, SEO, Reputation, Social, Analytics, AI Communications/);
+assert.match(appHierarchy, /Property Industry App \$149 with one primary Template included/);
+
+console.log("Growth and Industry hierarchy consistency checks passed");

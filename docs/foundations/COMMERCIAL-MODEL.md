@@ -31,7 +31,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 |--------|-------|-------|
 | **Platform subscription** | Monthly/annual tier (**Starter $99 · Growth $249 · Scale $499 · Enterprise Custom** — GTM lock; older drafts may say Pro/Business/Agency) | 1.5 |
 | **Industry Apps** | Industry App $149/mo — 1 Template included; additional Templates +$29/mo. Templates are not separate Industry SKUs. | 1.5 |
-| **Growth Apps** | AI Visibility $99, SEO $99, Analytics $49, Social $79, AI Comms $99 | 1.5 |
+| **Growth Apps** | Advertising $99, Marketing $99, Prospecting & Opportunity Engine $99, AI Visibility $99, SEO $99, Automation $49, Analytics $49, Social $79, Reputation Free. Advanced AI Communications $99 is a Core Communications add-on, not a Growth App. | 1.5 |
 | **Infrastructure** | Connect/manage digital infra — priced progressively as commercially ready | 1.5–2.0 |
 | **AI usage tiers** | Included tokens + overage | 1.5 |
 | **Managed / Professional Services** | Implementation, migration, training, **Website Build (From $1,997 one-time public)**, custom — optional; one-off, not subscription | Now |
@@ -56,7 +56,7 @@ Plan {
   includedFeatures[] // Feature Registry IDs
   includedApps[]     // App IDs
   aiTokenAllowance
-  seatLimit?         // starter=1, growth=5, scale/enterprise=unlimited
+  seatLimit?         // starter=1, growth=5, scale=20, enterprise=custom
   trialDays
 }
 ```
@@ -75,7 +75,7 @@ Billing grants **features**, not Apps directly:
 |------|----------|
 | Starter | Platform Core essentials, CRM & Dashboard, AI Assistant, Digital Twin snapshot, Standard support |
 | Growth | + Automation & workflows, website integration, advanced AI, reporting, email/SMS, Growth-tier platform capabilities (**Apps still add-ons**) |
-| Scale | + Unlimited users, multiple pipelines, advanced automation/AI, API, advanced reporting/permissions/BI (**Apps still add-ons**) |
+| Scale | + Up to 20 users, up to 5 active businesses under one subscription account, multiple pipelines, advanced automation/AI, specialist Industry API access, advanced reporting/permissions/BI (**Apps still add-ons**) |
 | Enterprise | Custom feature set + integrations + SLA + dedicated support |
 
 Platform tiers grant **platform features**, not free Industry/Growth App seats. Apps attach via add-on licensing.
@@ -143,7 +143,7 @@ Command Centre Revenue Intelligence module.
 
 ## Related
 
-- [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md) — Founding 10 / 100 / 1,000 commercial architecture  
+- [FOUNDING-COHORTS.md](../strategy/FOUNDING-COHORTS.md) — Founding 10 canonical cohort model; customer 11 onward is standard DigitalGate  
 - [APP-HIERARCHY.md](./APP-HIERARCHY.md) — canonical Core → Infrastructure → Industry → Growth  
 - [DIGITALGATE-ROLLOUT.md](../strategy/DIGITALGATE-ROLLOUT.md) — GTM packaging  
 - [APP-MARKETPLACE.md](./APP-MARKETPLACE.md) — App install licensing  
