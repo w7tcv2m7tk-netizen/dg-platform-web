@@ -70,7 +70,7 @@ GROWTH — Grow your business
   (AI Communications is **not** customer sidebar — Assist lives under Core Communications → Write with AI / Calls)
 
 PLATFORM — Manage DigitalGate for this organisation
-  Apps · Marketplace · Network · Settings (+ Support Centre trailing for customers)
+  Apps · Marketplace · Network · Settings (+ Support trailing for customers)
 
   Apps — what is installed / enabled (Installed Apps · App Catalogue · Beta Programmes)
   Marketplace — what can be discovered / added (Industry · Growth · Integrations · Services · Partners)
