@@ -75,3 +75,28 @@ assert.doesNotMatch(
 );
 
 console.log("canonical commercial catalogue regression checks passed");
+
+
+const commercialModel = fs.readFileSync(
+  "docs/foundations/COMMERCIAL-MODEL.md",
+  "utf8",
+);
+const rollout = fs.readFileSync(
+  "docs/strategy/DIGITALGATE-ROLLOUT.md",
+  "utf8",
+);
+const pricingLock = fs.readFileSync(
+  "docs/commercial/PRICING-AND-PACKAGING.md",
+  "utf8",
+);
+
+assert.match(pricingLock, /Starter \*\*\$99\/mo\*\* · Growth \*\*\$249\/mo\*\* · Scale \*\*\$499\/mo\*\*/);
+assert.match(pricingLock, /Scale supports up to 20 users/);
+assert.match(pricingLock, /up to 5 businesses total/);
+assert.match(commercialModel, /scale=20, enterprise=custom/);
+assert.match(commercialModel, /Up to 20 users, up to 5 active businesses/);
+assert.doesNotMatch(commercialModel, /Scale \| \+ Unlimited users/);
+assert.match(rollout, /Starter\*\* · \*\*Growth\*\* · \*\*Scale\*\* · \*\*Enterprise/);
+assert.doesNotMatch(rollout, /Founding 10 → Founding 100|Founding 100 \/ 1,000|24-month founding window|Preferred founding terms/);
+
+console.log("commercial documentation lock regression checks passed");
