@@ -17,7 +17,7 @@ type CatalogRow = {
   };
 };
 
-const CATEGORY_ORDER = ["property", "business", "ops", "commerce", "marketing"] as const;
+const CATEGORY_ORDER = ["property", "finance", "business", "ops", "commerce", "marketing"] as const;
 
 function orgStatusLabel(item: CatalogRow): string {
   if (item.connectionScope === "platform") {
