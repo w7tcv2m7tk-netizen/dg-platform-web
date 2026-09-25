@@ -9,3 +9,4 @@ export * from "./wordpress";
 export * from "./corelogic";
 export * from "./abr";
 export * from "./asic";
+export * from "./lend";
