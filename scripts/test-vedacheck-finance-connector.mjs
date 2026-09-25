@@ -1,0 +1,15 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const manifest=fs.readFileSync("packages/platform-core/src/connectors/framework/types.ts","utf8");
+const connector=fs.readFileSync("packages/platform-core/src/connectors/vedacheck/index.ts","utf8");
+const panel=fs.readFileSync("src/components/finance/VedacheckConnectorPanel.tsx","utf8");
+assert.match(manifest,/id:"vedacheck"/);
+assert.match(manifest,/industryTemplateIds:\["mortgage_broking"\]/);
+assert.match(manifest,/credit\.check\.request/);
+assert.match(manifest,/credit\.report\.read/);
+assert.match(connector,/VEDACHECK_CONNECTOR_ID/);
+assert.match(connector,/vedacheck:\$\{externalId\.trim\(\)\}/);
+assert.doesNotMatch(connector,/baseUrl|clientSecret|apiSecret|\/api\//);
+assert.match(panel,/Vedacheck integration — Scale/);
+assert.match(panel,/Sensitive report data stays within governed Finance workflows/);
+console.log("Vedacheck finance connector contract passed");
