@@ -38,7 +38,7 @@ export default function SupportHelpIndexPage() {
     <>
       <header className="dg-page-header">
         <Link href="/support" className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">
-          ← Support Centre
+          ← Support
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Knowledge Base</h1>
         <p className="mt-1 max-w-2xl text-sm text-slate-400">
@@ -107,7 +107,7 @@ export default function SupportHelpIndexPage() {
         <section className="dg-card max-w-2xl border-slate-700/80">
           <h2 className="font-semibold text-white">Still need help?</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Ask Aida in the <Link href="/support#assist" className="text-sky-400 hover:underline">Support Centre</Link> or email{" "}
+            Ask Aida in <Link href="/support#assist" className="text-sky-400 hover:underline">Support</Link> or email{" "}
             <a href={SUPPORT_MAILTO} className="text-sky-400 hover:underline">{SUPPORT_EMAIL}</a>.
           </p>
         </section>

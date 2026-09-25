@@ -44,7 +44,7 @@ export default async function SupportPage() {
         >
           ← Dashboard
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Support Centre</h1>
+        <h1 className="mt-2 text-2xl font-bold text-white">Support</h1>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">
           Get an answer quickly, find step-by-step guidance, or continue with the DigitalGate team.
         </p>

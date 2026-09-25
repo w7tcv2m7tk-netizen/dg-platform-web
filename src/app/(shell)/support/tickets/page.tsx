@@ -80,11 +80,11 @@ export default async function SupportTicketsPage({
     <>
       <header className="dg-page-header">
         <OperatorCategoryHeader
-          eyebrow="Support"
-          title="Support Conversations"
-          question="Operator inbox across customer organisations — every thread is permanently owned by its originating org."
+          eyebrow="DigitalGate Support Centre"
+          title="Customer Support Conversations"
+          question="Identify, filter and manage support enquiries across every customer business. Every thread remains owned by its originating organisation."
           backHref="/support"
-          backLabel="Support centre"
+          backLabel="Support Centre"
         />
       </header>
       <main className="dg-page-main space-y-6">
@@ -92,7 +92,7 @@ export default async function SupportTicketsPage({
           <OperatorMetricStrip
             metrics={[
               {
-                label: status === "all" ? "Conversations" : `${status} conversations`,
+                label: status === "all" ? "Customer enquiries" : `${status} enquiries`,
                 value: conversations.length,
                 tone: "sky",
               },
@@ -118,13 +118,13 @@ export default async function SupportTicketsPage({
             </select>
           </label>
           <label className="text-xs text-slate-400">
-            Organisation
+            Customer business
             <select
               name="org"
               defaultValue={organisationId ?? ""}
               className="mt-1 block min-w-[14rem] rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-white"
             >
-              <option value="">All organisations</option>
+              <option value="">All customer businesses</option>
               {orgOptions.map((o) => (
                 <option key={o.id} value={o.id}>
                   {o.name}
@@ -138,7 +138,7 @@ export default async function SupportTicketsPage({
             <input
               name="q"
               defaultValue={q ?? ""}
-              placeholder="Org, contact, message…"
+              placeholder="Business, contact, message…"
               className="mt-1 block min-w-[14rem] rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-white"
             />
           </label>
@@ -161,18 +161,17 @@ export default async function SupportTicketsPage({
         </form>
 
         <p className="text-xs text-slate-500">
-          Customer chat is tenant-isolated by organisation. This list is DigitalGate operator-only —
-          never infer org from the active operator tenant.
+          DigitalGate operator view. Each enquiry is explicitly tied to its customer business and contact; customer accounts can only access their own organisation support thread.
         </p>
 
         {conversations === null ? null : conversations.length === 0 ? (
-          <p className="text-sm text-slate-500">No matching support conversations.</p>
+          <p className="text-sm text-slate-500">No matching customer support enquiries.</p>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-slate-700/80">
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Organisation</th>
+                  <th className="px-4 py-3 font-medium">Customer business</th>
                   <th className="px-4 py-3 font-medium">Contact</th>
                   <th className="px-4 py-3 font-medium">Last message</th>
                   <th className="px-4 py-3 font-medium">Status</th>
@@ -230,11 +229,7 @@ export default async function SupportTicketsPage({
           </div>
         )}
         <p className="text-sm text-slate-500">
-          Customer chat:{" "}
-          <Link href="/support" className="text-sky-400 hover:underline">
-            Support centre
-          </Link>
-          {" · "}
+          Support Centre:{" "}
           <Link href="/support/escalations" className="text-sky-400 hover:underline">
             Escalations
           </Link>

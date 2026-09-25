@@ -46,7 +46,7 @@ export const CUSTOMER_SIDE_PANEL_SECTIONS = [
       "Network — customers: Overview · Referrals · Refer & Earn · Connections",
       "Network — DigitalGate staff: Overview · Organisations · Partners · Resellers · Referrals · Commissions · Ecosystem · Programme Settings",
       "Settings",
-      "Support Centre (trailing)",
+      "Support (trailing)",
     ],
   },
 ] as const;
