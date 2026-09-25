@@ -569,7 +569,7 @@ function getPlatformAdminSection(options?: {
         {
           kind: "shell",
           href: "/support",
-          label: "Support Centre",
+          label: "Support",
           icon: getSidebarIcon("advisor"),
         },
       ];
