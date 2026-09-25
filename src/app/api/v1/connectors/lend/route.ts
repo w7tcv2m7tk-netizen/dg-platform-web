@@ -2,6 +2,7 @@ import { createLendClient, getOrgConnectorSettings, saveOrgConnectorSettings } f
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
+import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
 import { specialistIndustryEntitlementBlock } from "@/lib/specialist-industry-entitlement";
 
 export const dynamic = "force-dynamic";
@@ -34,10 +35,13 @@ async function authorise(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const session = await authorise(req);
+  const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  const settings = (await getOrgConnectorSettings(session.organisationId, "lend")) as LendSettings | null;
-  return NextResponse.json({ data: publicState(settings) });
+  const { prisma } = await import("@dg/database");
+  const subscription = await prisma.platformSubscription.findUnique({ where: { organisationId: session.organisationId }, select: { planTier: true } });
+  const eligible = canUseIndustryIntegrations(subscription?.planTier as PlatformTier | null);
+  const settings = eligible ? (await getOrgConnectorSettings(session.organisationId, "lend")) as LendSettings | null : null;
+  return NextResponse.json({ data: { ...publicState(settings), eligible, requiredPlan: eligible ? null : "Scale" } });
 }
 
 export async function POST(req: Request) {
