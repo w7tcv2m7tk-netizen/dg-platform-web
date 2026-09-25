@@ -36,7 +36,7 @@ Four customer pillars. Staff get an additional DigitalGate operator layer. Do no
 
 ```
 DIGITALGATE · Platform Operator (staff only)
-  Command Centre · Partners · Delivery · Customer Intelligence · Platform Intelligence · Commercial · Product · Support
+  Command Centre · Partners · Delivery · Customer Intelligence · Platform Intelligence · Commercial · Product · Support Centre
   Platform Docs (trailing — how DigitalGate works; not customer Business Knowledge)
 
   Command Centre: Priorities · AI Advisor · Alerts
@@ -70,7 +70,7 @@ GROWTH — Grow your business
   (AI Communications is **not** customer sidebar — Assist lives under Core Communications → Write with AI / Calls)
 
 PLATFORM — Manage DigitalGate for this organisation
-  Apps · Marketplace · Network · Settings (+ Support trailing for customers)
+  Apps · Marketplace · Network · Settings (+ Support Centre trailing for customers)
 
   Apps — what is installed / enabled (Installed Apps · App Catalogue · Beta Programmes)
   Marketplace — what can be discovered / added (Industry · Growth · Integrations · Services · Partners)
