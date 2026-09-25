@@ -40,11 +40,11 @@ export default async function SupportEscalationsPage() {
     <>
       <header className="dg-page-header">
         <OperatorCategoryHeader
-          eyebrow="Support"
+          eyebrow="DigitalGate Support Centre"
           title="Escalations"
           question="Customer support escalations — Assist paused and needs a human. Not Customer Intelligence or Platform Intelligence."
           backHref="/support"
-          backLabel="Support centre"
+          backLabel="Support Centre"
         />
       </header>
       <main className="dg-page-main space-y-6">
