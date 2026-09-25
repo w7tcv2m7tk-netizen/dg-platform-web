@@ -114,3 +114,28 @@ assert.match(publicPricing, /Enterprise<\/div>[\s\S]{0,600}<div class="plan-user
 assert.doesNotMatch(pricingCatalog, /key: "enterprise"[\s\S]*?users: "Unlimited Users"/);
 
 console.log("enterprise pricing copy consistency checks passed");
+
+const paidApps = fs.readFileSync(
+  "packages/platform-core/src/billing/paid-apps.ts",
+  "utf8",
+);
+const appHierarchy = fs.readFileSync(
+  "docs/foundations/APP-HIERARCHY.md",
+  "utf8",
+);
+const industryPlatform = fs.readFileSync(
+  "packages/platform-core/src/industry/platform.ts",
+  "utf8",
+);
+
+for (const id of ["advertising", "marketing", "prospecting", "ai-visibility", "seo", "automation", "analytics", "social", "reviews"]) {
+  assert.ok(paidApps.includes(`appId: "${id}"`), `missing canonical Growth App ${id}`);
+}
+assert.match(pricingLock, /Advertising \| \*\*\$99\/mo\*\*/);
+assert.match(pricingLock, /Marketing \| \*\*\$99\/mo\*\*/);
+assert.match(appHierarchy, /Advertising · Marketing · Prospecting & Opportunity Engine · AI Visibility · SEO · Automation · Analytics · Social · Reviews & Reputation/);
+assert.match(industryPlatform, /Advertising, Marketing, Prospecting, AI Visibility, SEO, Automation, Analytics, Social, Reputation/);
+assert.doesNotMatch(industryPlatform, /Prospecting, AI Visibility, SEO, Reputation, Social, Analytics, AI Communications/);
+assert.match(appHierarchy, /Property Industry App \$149 with one primary Template included/);
+
+console.log("Growth and Industry hierarchy consistency checks passed");
