@@ -103,9 +103,9 @@ Commercial honesty: not every Industry or Template is fully developed. Real Esta
 
 ## 4. GROWTH — visibility / acquisition / conversion
 
-AI Visibility · SEO Engine · Analytics · Social Management · Reviews · Prospecting / Opportunity Engine (where appropriate)
+Advertising · Marketing · Prospecting & Opportunity Engine · AI Visibility · SEO · Automation · Analytics · Social · Reviews & Reputation
 
-**Advanced AI Communications / AI Voice Agents** are a **Core Communications add-on** (`voice_ai`) — not a Growth App. Legacy routes may deep-link under `/apps/ai-communications/*`; do **not** list AI Communications as a Growth App. Assist = Write with AI inside Core Communications.
+**Advanced AI Communications / AI Voice Agents** are a **Core Communications add-on** (`voice_ai`) — not a Growth App. Legacy routes may deep-link under `/apps/ai-communications/*`; do **not** list AI Communications as a Growth App. The cross-platform Automation engine remains a platform capability, while the customer-facing **Automation Growth App** packages advanced workflow capability and is part of the Growth Suite. Assist = Write with AI inside Core Communications.
 
 ## 5. INTELLIGENCE — understand the business
 
@@ -138,12 +138,12 @@ Do **not** package these as purchasable “Apps” in the public hierarchy. They
 | Intelligent operating platform; apps are capabilities | App marketplace / “SaaS bundle of tools” |
 | Core → Infrastructure → Industry → Growth → Intelligence | Industry before Infrastructure |
 | Industry App → Template | 17 separate Industry Apps as equal products |
-| Property $99 with specialised templates | “All Property apps for $99” / five independent Property SKUs |
+| Property Industry App $149 with one primary Template included | “All Property apps for $99” / five independent Property SKUs |
 | Finance (Accounting first); Professional (Legal / Surveying templates) | “Accounting App” / “Legal App” / “Surveying App” as whole verticals |
 | Accommodation under Hospitality & Accommodation | Accommodation under Property |
 | Infrastructure powers digital presence | Domains/hosting as a separate product category from the OS |
 | Real Estate first commercial proof under Property | Equal build effort across every Template |
-| Growth Apps for visibility & conversion | Automation as a Growth App (Automation is platform capability) |
+| Growth Apps for visibility, acquisition & conversion | AI Communications as a Growth App; it belongs under Core Communications |
 
 ---
 
