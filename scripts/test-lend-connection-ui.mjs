@@ -8,6 +8,8 @@ assert.match(route,/getOrgConnectorSettings\(session\.organisationId, "lend"\)/)
 assert.match(route,/saveOrgConnectorSettings\(session\.organisationId, "lend"/);
 assert.doesNotMatch(route,/apiSecret.*NextResponse\.json/s);
 assert.match(panel,/Sandbox/);
-assert.match(panel,/Mortgage & finance broking connector/);\nassert.match(panel,/Lend integration — Scale/);\nassert.match(panel,/Upgrade to Scale/);
+assert.match(panel,/Mortgage & finance broking connector/);
+assert.match(panel,/Lend integration — Scale/);
+assert.match(panel,/Upgrade to Scale/);
 assert.match(manifest,/industryTemplateIds:\["mortgage_broking"\]/);
 console.log("Lend connection UI and entitlement contract passed");
