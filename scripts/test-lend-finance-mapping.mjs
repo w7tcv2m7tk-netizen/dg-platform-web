@@ -1,0 +1,14 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const mapping=fs.readFileSync("packages/platform-core/src/connectors/lend/mapping.ts","utf8");
+assert.match(mapping,/source: "lend"/);
+assert.match(mapping,/connector: "lend"/);
+assert.match(mapping,/externalId/);
+assert.match(mapping,/lendExternalRef/);
+assert.match(mapping,/conditional_approval: "conditional"/);
+assert.match(mapping,/unconditional_approval: "unconditional"/);
+assert.match(mapping,/settled: "settled"/);
+assert.match(mapping,/declined: "declined"/);
+assert.match(mapping,/Unknown provider statuses remain enquiry/);
+assert.match(mapping,/Math\.round\(snapshot\.amount \* 100\)/);
+console.log("Lend finance mapping contract passed");
