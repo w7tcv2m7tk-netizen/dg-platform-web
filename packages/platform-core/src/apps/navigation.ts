@@ -569,7 +569,7 @@ function getPlatformAdminSection(options?: {
         {
           kind: "shell",
           href: "/support",
-          label: "Support",
+          label: "Support Centre",
           icon: getSidebarIcon("advisor"),
         },
       ];
@@ -689,9 +689,9 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/product/releases", label: "Releases" },
         { path: "/command/product/feedback", label: "Feedback" },
       ]),
-      operatorApp("dg-support", "Support", "advisor", "/support", [
-        { path: "/support", label: "Support centre" },
-        { path: "/support/tickets", label: "Tickets" },
+      operatorApp("dg-support", "Support Centre", "advisor", "/support", [
+        { path: "/support", label: "Overview" },
+        { path: "/support/tickets", label: "Conversations" },
         { path: "/support/escalations", label: "Escalations" },
         { path: "/support/help", label: "Knowledge base" },
       ]),
