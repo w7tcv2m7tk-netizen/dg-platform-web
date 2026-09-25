@@ -41,6 +41,7 @@ export * from "./connectors/corelogic";
 export * from "./connectors/abr";
 export * from "./connectors/asic";
 export * from "./connectors/lend";
+export * from "./connectors/illion-bankstatements";
 export * from "./contacts";
 export * from "./companies";
 export * from "./leads";
