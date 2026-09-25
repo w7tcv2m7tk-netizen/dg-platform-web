@@ -31,7 +31,7 @@ DigitalGate revenue is not subscriptions alone. Architecture must support multip
 |--------|-------|-------|
 | **Platform subscription** | Monthly/annual tier (**Starter $99 · Growth $249 · Scale $499 · Enterprise Custom** — GTM lock; older drafts may say Pro/Business/Agency) | 1.5 |
 | **Industry Apps** | Industry App $149/mo — 1 Template included; additional Templates +$29/mo. Templates are not separate Industry SKUs. | 1.5 |
-| **Growth Apps** | Prospecting & Opportunity Engine $99, AI Visibility $99, SEO $99, Automation $49, Analytics $49, Social $79, Reputation Free. Advanced AI Communications $99 is a Core Communications add-on, not a Growth App. | 1.5 |
+| **Growth Apps** | Advertising $99, Marketing $99, Prospecting & Opportunity Engine $99, AI Visibility $99, SEO $99, Automation $49, Analytics $49, Social $79, Reputation Free. Advanced AI Communications $99 is a Core Communications add-on, not a Growth App. | 1.5 |
 | **Infrastructure** | Connect/manage digital infra — priced progressively as commercially ready | 1.5–2.0 |
 | **AI usage tiers** | Included tokens + overage | 1.5 |
 | **Managed / Professional Services** | Implementation, migration, training, **Website Build (From $1,997 one-time public)**, custom — optional; one-off, not subscription | Now |
