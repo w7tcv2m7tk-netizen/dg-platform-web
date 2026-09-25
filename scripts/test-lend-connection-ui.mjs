@@ -1,0 +1,13 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const route=fs.readFileSync("src/app/api/v1/connectors/lend/route.ts","utf8");
+const panel=fs.readFileSync("src/components/finance/LendConnectorPanel.tsx","utf8");
+const manifest=fs.readFileSync("packages/platform-core/src/connectors/framework/types.ts","utf8");
+assert.match(route,/specialistIndustryEntitlementBlock\(session\.organisationId, "finance"\)/);
+assert.match(route,/getOrgConnectorSettings\(session\.organisationId, "lend"\)/);
+assert.match(route,/saveOrgConnectorSettings\(session\.organisationId, "lend"/);
+assert.doesNotMatch(route,/apiSecret.*NextResponse\.json/s);
+assert.match(panel,/Sandbox/);
+assert.match(panel,/Mortgage & finance broking connector/);
+assert.match(manifest,/industryTemplateIds:\["mortgage_broking"\]/);
+console.log("Lend connection UI and entitlement contract passed");
