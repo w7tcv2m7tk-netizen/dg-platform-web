@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { LendConnectorPanel } from "@/components/finance/LendConnectorPanel";
 import { IllionBankStatementsPanel } from "@/components/finance/IllionBankStatementsPanel";
+import { EquifaxConnectorPanel } from "@/components/finance/EquifaxConnectorPanel";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function FinanceIntegrationsPage() {
@@ -16,6 +17,7 @@ export default async function FinanceIntegrationsPage() {
       </div>
       <LendConnectorPanel />
       <IllionBankStatementsPanel />
+      <EquifaxConnectorPanel />
     </main>
   );
 }
