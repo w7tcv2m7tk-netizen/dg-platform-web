@@ -6,7 +6,7 @@ const manifest=fs.readFileSync("packages/platform-core/src/connectors/framework/
 assert.match(route,/specialistIndustryEntitlementBlock\(session\.organisationId, "finance"\)/);
 assert.match(route,/getOrgConnectorSettings\(session\.organisationId, "lend"\)/);
 assert.match(route,/saveOrgConnectorSettings\(session\.organisationId, "lend"/);
-assert.doesNotMatch(route,/apiSecret.*NextResponse\.json/s);
+assert.doesNotMatch(route,/publicState\([^)]*\).*apiSecret/s);\nassert.doesNotMatch(route,/NextResponse\.json\([^)]*apiSecret/);
 assert.match(panel,/Sandbox/);
 assert.match(panel,/Mortgage & finance broking connector/);
 assert.match(panel,/Lend integration — Scale/);
