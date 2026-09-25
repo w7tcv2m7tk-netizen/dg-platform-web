@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { LendConnectorPanel } from "@/components/finance/LendConnectorPanel";
+import { IllionBankStatementsPanel } from "@/components/finance/IllionBankStatementsPanel";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 export default async function FinanceIntegrationsPage() {
@@ -14,6 +15,7 @@ export default async function FinanceIntegrationsPage() {
         <p className="mt-1 max-w-3xl text-sm text-slate-400">Specialist connections are scoped to this Industry Template and require Scale or Enterprise specialist Industry API access.</p>
       </div>
       <LendConnectorPanel />
+      <IllionBankStatementsPanel />
     </main>
   );
 }
