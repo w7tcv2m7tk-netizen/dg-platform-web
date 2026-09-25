@@ -1,0 +1,17 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const manifest=fs.readFileSync("packages/platform-core/src/connectors/framework/types.ts","utf8");
+const connector=fs.readFileSync("packages/platform-core/src/connectors/equifax/index.ts","utf8");
+const panel=fs.readFileSync("src/components/finance/EquifaxConnectorPanel.tsx","utf8");
+assert.match(manifest,/id:"equifax-au"/);
+assert.match(manifest,/auth:"oauth"/);
+assert.match(manifest,/industryTemplateIds:\["mortgage_broking"\]/);
+assert.match(manifest,/credit\.report\.request/);
+assert.match(manifest,/identity\.verify/);
+assert.match(connector,/sandbox: "https:\/\/api\.sandbox\.equifax\.com\.au"/);
+assert.match(connector,/test: "https:\/\/api\.uat\.equifax\.com\.au"/);
+assert.match(connector,/live: "https:\/\/api\.equifax\.com\.au"/);
+assert.match(connector,/equifax-au:\$\{externalId\.trim\(\)\}/);
+assert.match(panel,/Equifax integration — Scale/);
+assert.match(panel,/Sensitive credit data remains scoped to the Finance workflow/);
+console.log("Equifax Australia finance connector contract passed");
