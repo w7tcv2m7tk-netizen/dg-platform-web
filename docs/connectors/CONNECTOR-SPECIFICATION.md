@@ -26,6 +26,14 @@ Every connector must cover: identity, auth, sync modes, object mapping, health, 
 | **Google GBP** | OAuth + accounts/locations sync · **reviews limited** when My Business API denies · **use existing allowlisted project** `742705345842` (do not apply for another) — [GOOGLE-GBP.md](./GOOGLE-GBP.md) |
 | **Cotality (CoreLogic)** | **Sandbox by default** (`api-sbox`) · Address Match + Property Details — [COTALITY-CORELOGIC.md](./COTALITY-CORELOGIC.md) |
 
+## Finance specialist connectors
+
+| Connector | Industry scope | Status | Notes |
+|-----------|----------------|--------|-------|
+| **Lend BrokerAPI** | Finance → **Mortgage / finance broking** template | **Foundation / planned** | Connector Layer owns auth/transport; template controls relevance/exposure. BrokerAPI supports sandbox/live credentials and lead/config APIs. Start with sandbox and bounded mapping into CRM + FinanceApplication; no automatic production writes. |
+
+**Lend mapping direction:** Lend lead/applicant → CRM Contact/Lead; finance deal context → FinanceApplication metadata/stage mapping; documents remain governed Document references. DigitalGate remains the Business Brain/orchestration layer and does not replace Lend's specialist broker workflow. Specialist API access remains subject to DigitalGate commercial entitlement.
+
 ## Explicitly parked (this programme)
 
 | Connector | Status |

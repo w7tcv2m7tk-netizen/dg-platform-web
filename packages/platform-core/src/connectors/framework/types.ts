@@ -4,7 +4,7 @@
  * Industry apps consume adapters; they do not own auth/sync infrastructure.
  */
 
-export type ConnectorCategory = "property" | "business" | "marketing" | "commerce" | "ops";
+export type ConnectorCategory = "property" | "finance" | "business" | "marketing" | "commerce" | "ops";
 export type ConnectorAuthKind = "oauth" | "api_key" | "webhook" | "mixed";
 export type ConnectorConnectionStatus = "connected" | "degraded" | "error" | "disconnected" | "pending_auth";
 
@@ -24,6 +24,8 @@ export type ConnectorManifest = {
   oauthScopes?: string[];
   countries?: string[];
   appIds?: string[];
+  /** Optional Industry Template keys that determine where a specialist connector is relevant/exposed. */
+  industryTemplateIds?: string[];
   priorityTier?: number;
   dg15Rank?: number;
 };
@@ -76,6 +78,7 @@ export const PLANNED_CONNECTOR_MANIFESTS: ConnectorManifest[] = [
   { id:"microsoft-ads", name:"Microsoft Advertising", category:"marketing", auth:"oauth", maturity:"native", syncObjects:["Campaign"], capabilities:["ads.read","insights.read"], appIds:["advertising"], priorityTier:3 },
   { id:"tiktok-ads", name:"TikTok Ads", category:"marketing", auth:"oauth", maturity:"native", syncObjects:["Campaign"], capabilities:["ads.read","insights.read"], appIds:["advertising"], priorityTier:3 },
   { id:"linkedin", name:"LinkedIn", category:"marketing", auth:"oauth", maturity:"native", syncObjects:["Activity","Organisation"], capabilities:["profile.read"], appIds:["social"], oauthScopes:["openid","profile","email","r_organization_admin"], priorityTier:1 },
+  { id:"lend", name:"Lend", category:"finance", auth:"api_key", maturity:"planned", syncObjects:["Contact","Lead","FinanceApplication","Document"], capabilities:["lead.submit","lead.read","lead.status.read","attachment.submit","config.read"], countries:["AU"], appIds:["finance"], industryTemplateIds:["mortgage_broking"], priorityTier:2 },
   { id:"xero", name:"Xero", category:"commerce", auth:"oauth", maturity:"planned", syncObjects:["Invoice","Contact"], capabilities:["payment.checkout"], priorityTier:6, dg15Rank:13 },
   { id:"shopify", name:"Shopify", category:"commerce", auth:"oauth", maturity:"planned", syncObjects:["Product","Order","Contact"], capabilities:["listing.publish"], priorityTier:7 },
   { id:"dreamscape", name:"Dreamscape (Infrastructure reseller)", category:"ops", auth:"api_key", maturity:"native", syncObjects:["Organisation"], capabilities:["domain.register","hosting.provision","mailbox.provision"], countries:["AU"], appIds:["infrastructure"], priorityTier:1, dg15Rank:5 },
