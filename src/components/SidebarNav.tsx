@@ -137,18 +137,18 @@ const DIGITALGATE_OPERATOR_ORDER = [
   "command-centre",
   "dg-customer-intelligence",
   "dg-partners",
-  "dg-support",
   "dg-delivery",
   "dg-commercial",
   "dg-product",
   "dg-platform-intelligence",
+  "dg-support",
 ] as const;
 
 const DIGITALGATE_OPERATOR_NAMES: Record<string, string> = {
   "command-centre": "Command Centre",
   "dg-customer-intelligence": "Customers",
   "dg-partners": "Partners",
-  "dg-support": "Support",
+  "dg-support": "Support Centre",
   "dg-delivery": "Delivery",
   "dg-commercial": "Commercial",
   "dg-product": "Platform",
