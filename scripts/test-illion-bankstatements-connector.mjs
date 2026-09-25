@@ -1,0 +1,12 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const manifest=fs.readFileSync("packages/platform-core/src/connectors/framework/types.ts","utf8");
+const connector=fs.readFileSync("packages/platform-core/src/connectors/illion-bankstatements/index.ts","utf8");
+assert.match(manifest,/id:"illion-bankstatements"/);
+assert.match(manifest,/industryTemplateIds:\["mortgage_broking"\]/);
+assert.match(manifest,/statement\.request/);
+assert.match(manifest,/transaction\.read/);
+assert.match(connector,/ILLION_BANKSTATEMENTS_CONNECTOR_ID/);
+assert.match(connector,/illion-bankstatements:\$\{documentId\.trim\(\)\}/);
+assert.doesNotMatch(connector,/password|internet banking credential/i);
+console.log("illion BankStatements connector contract passed");
