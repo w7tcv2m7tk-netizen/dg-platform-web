@@ -13,12 +13,14 @@ export const financeApp: AppManifest = {
     { path: "/apps/finance/pipeline", label: "Pipeline" },
     { path: "/apps/finance/applications", label: "Applications" },
     { path: "/apps/finance/clients", label: "Clients" },
+    { path: "/apps/finance/integrations", label: "Integrations" },
   ],
   navigation: [
     { href: "/apps/finance", label: "Overview", icon: "▣" },
     { href: "/apps/finance/pipeline", label: "Pipeline", icon: "▣" },
     { href: "/apps/finance/applications", label: "Applications", icon: "▣" },
     { href: "/apps/finance/clients", label: "Clients", icon: "▣" },
+    { href: "/apps/finance/integrations", label: "Integrations", icon: "▣" },
   ],
   permissions: [
     { id: "finance.view", label: "View finance pipeline" },
