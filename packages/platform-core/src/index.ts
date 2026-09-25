@@ -42,6 +42,7 @@ export * from "./connectors/abr";
 export * from "./connectors/asic";
 export * from "./connectors/lend";
 export * from "./connectors/illion-bankstatements";
+export * from "./connectors/equifax";
 export * from "./contacts";
 export * from "./companies";
 export * from "./leads";
