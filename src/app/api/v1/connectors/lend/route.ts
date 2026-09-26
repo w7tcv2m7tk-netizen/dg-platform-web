@@ -1,4 +1,4 @@
-import { createLendClient, decryptConnectorSecret, encryptConnectorSecret, getOrgConnectorSettings, isEncryptedConnectorSecret, saveOrgConnectorSettings } from "@dg/platform-core";
+import { createLendClient, encryptConnectorSecret, getOrgConnectorSettings, saveOrgConnectorSettings } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
