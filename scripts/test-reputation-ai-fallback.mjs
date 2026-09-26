@@ -1,0 +1,15 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const core=fs.readFileSync("packages/platform-core/src/reviews/index.ts","utf8");
+const panel=fs.readFileSync("src/components/reviews/ReviewThemesPanel.tsx","utf8");
+assert.doesNotMatch(core,/Stub keyword extraction/);
+assert.doesNotMatch(core,/OPENAI_API_KEY \/ ANTHROPIC_API_KEY/);
+assert.doesNotMatch(core,/function stubThemes/);
+assert.match(core,/source: "llm" \| "unavailable"/);
+assert.match(core,/AI theme analysis is temporarily unavailable/);
+assert.doesNotMatch(panel,/Source: \{result\.source\}/);
+assert.doesNotMatch(panel,/result\.provider/);
+assert.doesNotMatch(panel,/result\.model/);
+assert.match(panel,/DigitalGate AI analysis/);
+assert.match(panel,/Try analysis again/);
+console.log("Reputation AI fallback regression passed");
