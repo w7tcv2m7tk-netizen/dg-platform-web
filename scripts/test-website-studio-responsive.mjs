@@ -48,7 +48,9 @@ test("authenticated mobile shell covers the visual viewport without a purple hom
   );
   const underlayStart = css.indexOf(".dg-shell-underlay {");
   assert.ok(underlayStart >= 0);
-  const backgroundStart = css.indexOf("background-color: #07101d", underlayStart);\n  const nextRuleEnd = css.indexOf("\n}", underlayStart);\n  assert.ok(backgroundStart > underlayStart && (nextRuleEnd < 0 || backgroundStart < nextRuleEnd));
+  const backgroundStart = css.indexOf("background-color: #07101d", underlayStart);
+  const nextRuleEnd = css.indexOf("\n}", underlayStart);
+  assert.ok(backgroundStart > underlayStart && (nextRuleEnd < 0 || backgroundStart < nextRuleEnd));
 
   assert.doesNotMatch(brand, /at 0% 100%/);
   assert.match(brand, /linear-gradient\(to top, #07101d/);
