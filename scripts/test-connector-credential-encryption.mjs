@@ -1,0 +1,25 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+import { pathToFileURL } from "node:url";
+const route=fs.readFileSync("src/app/api/v1/connectors/lend/route.ts","utf8");
+const secrets=fs.readFileSync("packages/platform-core/src/connectors/framework/secrets.ts","utf8");
+assert.match(secrets,/aes-256-gcm/);
+assert.match(secrets,/CONNECTOR_CREDENTIALS_ENCRYPTION_KEY/);
+assert.match(secrets,/randomBytes\(12\)/);
+assert.match(secrets,/getAuthTag/);
+assert.match(secrets,/setAuthTag/);
+assert.match(route,/apiKeyEncrypted: encryptConnectorSecret\(apiKey\)/);
+assert.match(route,/apiSecretEncrypted: encryptConnectorSecret\(apiSecret\)/);
+assert.doesNotMatch(route,/const settings:[\s\S]{0,250}\n\s*apiKey,\n\s*apiSecret,/);
+assert.match(route,/configured: Boolean\(settings\?\.apiKeyEncrypted && settings\?\.apiSecretEncrypted\)/);
+console.log("connector credential encryption regression passed");
+
+process.env.CONNECTOR_CREDENTIALS_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString("base64");
+const secretModule = await import(pathToFileURL("packages/platform-core/src/connectors/framework/secrets.ts").href);
+const sample = "lend-secret-never-persist-plaintext";
+const encrypted = secretModule.encryptConnectorSecret(sample);
+assert.notEqual(encrypted, sample);
+assert.equal(secretModule.isEncryptedConnectorSecret(encrypted), true);
+assert.equal(secretModule.decryptConnectorSecret(encrypted), sample);
+assert.equal(encrypted.includes(sample), false);
+console.log("connector credential encryption round-trip passed");

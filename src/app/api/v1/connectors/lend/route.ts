@@ -1,4 +1,4 @@
-import { createLendClient, getOrgConnectorSettings, saveOrgConnectorSettings } from "@dg/platform-core";
+import { createLendClient, encryptConnectorSecret, getOrgConnectorSettings, saveOrgConnectorSettings } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
@@ -8,8 +8,8 @@ import { specialistIndustryEntitlementBlock } from "@/lib/specialist-industry-en
 export const dynamic = "force-dynamic";
 
 type LendSettings = {
-  apiKey?: string;
-  apiSecret?: string;
+  apiKeyEncrypted?: string;
+  apiSecretEncrypted?: string;
   environment?: "sandbox" | "live";
   status?: "connected" | "error" | "disconnected";
   lastVerifiedAt?: string;
@@ -18,7 +18,7 @@ type LendSettings = {
 
 function publicState(settings: LendSettings | null) {
   return {
-    configured: Boolean(settings?.apiKey && settings?.apiSecret),
+    configured: Boolean(settings?.apiKeyEncrypted && settings?.apiSecretEncrypted),
     environment: settings?.environment ?? "sandbox",
     status: settings?.status ?? "disconnected",
     lastVerifiedAt: settings?.lastVerifiedAt ?? null,
@@ -63,8 +63,8 @@ export async function POST(req: Request) {
   try {
     await client.getPurposes();
     const settings: LendSettings = {
-      apiKey,
-      apiSecret,
+      apiKeyEncrypted: encryptConnectorSecret(apiKey),
+      apiSecretEncrypted: encryptConnectorSecret(apiSecret),
       environment,
       status: "connected",
       lastVerifiedAt: new Date().toISOString(),
