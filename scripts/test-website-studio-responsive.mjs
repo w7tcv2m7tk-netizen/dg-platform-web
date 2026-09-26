@@ -46,7 +46,7 @@ test("authenticated mobile shell covers the visual viewport without a purple hom
     css,
     /\.dg-shell-viewport \{[^}]*\binset:\s*0\b/s,
   );
-  assert.match(css, /\.dg-shell-underlay\s*\{[^}]*background-color:\s*#07101d/s);
+  assert.match(css, /\\.dg-shell-underlay\\s*\\{[^}]*background-color:\\s*#07101d/s);
 
   assert.doesNotMatch(brand, /at 0% 100%/);
   assert.match(brand, /linear-gradient\(to top, #07101d/);
