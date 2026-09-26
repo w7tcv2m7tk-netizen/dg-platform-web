@@ -1,0 +1,13 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const route=fs.readFileSync("src/app/api/v1/connectors/lend/route.ts","utf8");
+const secrets=fs.readFileSync("packages/platform-core/src/connectors/framework/secrets.ts","utf8");
+assert.match(secrets,/aes-256-gcm/);
+assert.match(secrets,/CONNECTOR_CREDENTIALS_ENCRYPTION_KEY/);
+assert.match(secrets,/randomBytes\(12\)/);
+assert.match(secrets,/getAuthTag/);
+assert.match(route,/apiKeyEncrypted: encryptConnectorSecret\(apiKey\)/);
+assert.match(route,/apiSecretEncrypted: encryptConnectorSecret\(apiSecret\)/);
+assert.doesNotMatch(route,/const settings:[\s\S]{0,250}\n\s*apiKey,\n\s*apiSecret,/);
+assert.match(route,/configured: Boolean\(settings\?\.apiKeyEncrypted && settings\?\.apiSecretEncrypted\)/);
+console.log("connector credential encryption regression passed");
