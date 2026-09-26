@@ -56,7 +56,7 @@ export type PlatformDiscoveryResult =
       priorities: string[];
       recommendation: Record<string, unknown>;
       audit_report_url: string;
-      redirect_url: string;
+      redirect_url: string;\n      trial_url: string;\n      guided_setup: true;
     }
   | { ok: false; code: string; message: string };
 
@@ -260,7 +260,7 @@ function buildSummaryText(
   recommendation: ReturnType<typeof recommendPlan>,
 ): string {
   return [
-    `Discovery — ${data.business_name}`,
+    `Guided Setup — ${data.business_name}`,
     `Maturity: ${maturity.grade} (${maturity.score}/100)`,
     `Recommended: ${recommendation.platform_tier_label}`,
     data.goals_message ? `Goals: ${data.goals_message}` : "",
@@ -288,7 +288,7 @@ export async function submitPublicPlatformDiscovery(
       priorities: [],
       recommendation: {},
       audit_report_url: "",
-      redirect_url: "/discover/?discovery_sent=1",
+      redirect_url: "/discover/?discovery_sent=1",\n      trial_url: "https://app.digitalgate.com.au/signup/account?from=guided-setup",\n      guided_setup: true,
     };
   }
 
@@ -339,13 +339,13 @@ export async function submitPublicPlatformDiscovery(
   const lead = await createLead({
     organisationId,
     source: "discovery",
-    title: `AI Platform Discovery — ${data.business_name}`,
+    title: `DigitalGate Guided Setup — ${data.business_name}`,
     description: buildSummaryText(data, maturity, recommendation),
     contactId,
     status: "new",
     metadata: {
-      lead_type: "discovery",
-      capture_path: "gen2_platform_discovery",
+      lead_type: "guided_setup",
+      capture_path: "gen2_guided_setup",
       maturity_score: maturity.score,
       maturity_grade: maturity.grade,
       recommendation,
@@ -400,7 +400,7 @@ export async function submitPublicPlatformDiscovery(
   if (data.industry) kvRows.push({ label: "Industry", value: data.industry });
 
   const bodyBlocks: EmailBodyBlock[] = [
-    { type: "kicker", text: "AI Platform Discovery" },
+    { type: "kicker", text: "DigitalGate Guided Setup" },
     { type: "heading", text: data.business_name },
     { type: "kv", rows: kvRows },
   ];
@@ -413,10 +413,10 @@ export async function submitPublicPlatformDiscovery(
       organisationId,
       channel: "email",
       to: adminTo,
-      subject: `AI Platform Discovery — ${data.business_name}`,
+      subject: `DigitalGate Guided Setup — ${data.business_name}`,
       body: buildSummaryText(data, maturity, recommendation),
       bodyHtml: composeEmailBody(bodyBlocks),
-      metadata: { purpose: "platform_discovery_admin", lead_id: lead.id },
+      metadata: { purpose: "guided_setup_admin", lead_id: lead.id },
     });
   } catch (err) {
     console.warn("[public-platform-discovery] admin notify failed", err);
