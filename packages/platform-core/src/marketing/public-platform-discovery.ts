@@ -438,5 +438,7 @@ export async function submitPublicPlatformDiscovery(
     recommendation,
     audit_report_url: maturity.audit?.report_url ?? "",
     redirect_url: "/discover/?discovery_sent=1",
+    trial_url: "https://app.digitalgate.com.au/signup/account?from=guided-setup",
+    guided_setup: true,
   };
 }
