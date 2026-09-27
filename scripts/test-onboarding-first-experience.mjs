@@ -17,3 +17,4 @@ assert.match(journey, /mx-auto h-52 w-auto object-contain/, "Aida welcome artwor
 assert.match(journey, /\$\{card\} text-center/, "welcome content remains centred");
 
 console.log("onboarding first-experience regression checks passed");
+
