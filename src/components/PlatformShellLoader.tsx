@@ -121,8 +121,8 @@ export async function PlatformShellLoader({
       showFloatingChat={showFloatingChat && !isDemo}
       showCommandCentre={showCommandCentreNav}
       isPlatformOperator={isPlatformOperator}
-      showPartnerPortal={showPartnerPortal}
-      showResellerAdmin={showResellerAdmin}
+      showPartnerPortal={showPartnerPortal && !isDemo}
+      showResellerAdmin={showResellerAdmin && !isDemo}
       partnerType={partnerType}
       membershipRole={session.role}
       permissionGrants={session.permissionGrants}
