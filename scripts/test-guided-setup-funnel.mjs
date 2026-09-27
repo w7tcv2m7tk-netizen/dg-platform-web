@@ -1,0 +1,17 @@
+import { readFileSync } from "node:fs";
+import assert from "node:assert/strict";
+const read=p=>readFileSync(p,"utf8");
+const page=read("marketing/pages/discovery-form.html");
+const core=read("packages/platform-core/src/marketing/public-platform-discovery.ts");
+const header=read("marketing/pages/header.html");
+const home=read("marketing/pages/homepage.html");
+const pricing=read("marketing/pages/pricing-page.html");
+const footer=read("marketing/pages/footer.html");
+assert.match(page,/Find the right DigitalGate setup/);
+assert.match(page,/api\/public\/discovery/);
+assert.match(page,/Start free 14-day trial/);
+assert.match(page,/Book a working session/);
+assert.match(core,/lead_type: "guided_setup"/);
+assert.match(core,/trial_url/);
+for(const [name,src] of Object.entries({header,home,pricing,footer})) assert.match(src,/Find my DigitalGate setup/i,name+" must surface Guided Setup");
+console.log("Guided Setup funnel regression: OK");

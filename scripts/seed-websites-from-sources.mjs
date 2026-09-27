@@ -258,7 +258,7 @@ const DG_PAGES = [
   { file: "contact-page.html", title: "Contact", slug: "contact", intent: "contact", sortOrder: 3 },
   { file: "founding-customers-page.html", title: "Founding Customer Programme", slug: "founding-customers", intent: "custom", sortOrder: 4 },
   { file: "founding-customer-terms.html", title: "Founding Customer Terms & Conditions", slug: "founding-customer-terms", intent: "custom", sortOrder: 5 },
-  { file: "discovery-form.html", title: "AI Platform Discovery", slug: "discover", intent: "custom", sortOrder: 6 },
+  { file: "discovery-form.html", title: "Find My DigitalGate Setup", slug: "discover", intent: "custom", sortOrder: 6 },
   { file: "strategy-session-page.html", title: "Platform Consultation", slug: "strategy-session", intent: "custom", sortOrder: 7 },
   { file: "onboarding-form.html", title: "Client Onboarding", slug: "onboarding", intent: "custom", sortOrder: 8 },
   { file: "insights-page.html", title: "Insights", slug: "insights", intent: "custom", sortOrder: 9 },

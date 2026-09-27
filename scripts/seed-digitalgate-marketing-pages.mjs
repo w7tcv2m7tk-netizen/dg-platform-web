@@ -48,7 +48,7 @@ const PAGES = [
   { file: "founding-customer-terms.html", title: "Founding Customer Terms & Conditions", slug: "founding-customer-terms", intent: "custom", sortOrder: 3 },
   { file: "about-page.html", title: "About", slug: "about", intent: "about", sortOrder: 4 },
   { file: "contact-page.html", title: "Contact", slug: "contact", intent: "contact", sortOrder: 5 },
-  { file: "discovery-form.html", title: "AI Platform Discovery", slug: "discover", intent: "custom", sortOrder: 6 },
+  { file: "discovery-form.html", title: "Find My DigitalGate Setup", slug: "discover", intent: "custom", sortOrder: 6 },
   { file: "strategy-session-page.html", title: "Platform Consultation", slug: "strategy-session", intent: "custom", sortOrder: 7 },
   { file: "insights-page.html", title: "Insights", slug: "insights", intent: "custom", sortOrder: 8 },
   { file: "digital-business-card.html", title: "Digital Business Card", slug: "card", intent: "custom", sortOrder: 8 },
