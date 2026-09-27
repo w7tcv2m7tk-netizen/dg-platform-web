@@ -37,9 +37,9 @@ function firstActions(primaryIndustry: string | undefined, goal?: { title: strin
     ? { label: "Move your top goal", href: metricHref(goal.metric), detail: goal.title }
     : industryStart(primaryIndustry);
   return [
+    { label: "Connect your business", href: "/dashboard/settings/connected-services?setup=guided", detail: "Connect the systems you already use. I’ll prioritise the services relevant to your business type and plan." },
     first,
     { label: "Ask Aida", href: "/dashboard/advisor", detail: "Ask what deserves your attention first using your Business Brain and live business signals." },
-    { label: "Review Business Brain", href: "/dashboard/brain", detail: "See the business context Aida is using for recommendations and decisions." },
   ];
 }
 
