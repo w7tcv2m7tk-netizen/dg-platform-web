@@ -9,7 +9,7 @@ assert.match(banner, /metricHref/);
 assert.match(banner, /Move your top goal/);
 assert.match(banner, /Connect your business/);
 assert.match(banner, /href: "\/dashboard\/advisor"/);
-assert.match(banner, /connected-services\?setup=guided/);
+assert.match(banner, /href: "\/dashboard\/connect"/);
 assert.match(banner, /GROWTH_APP_CATALOGUE/);
 assert.match(banner, /function industryName/);
 assert.match(banner, /priorities=\{\[\.\.\.new Set\(priorities\)\]\.slice\(0, 4\)\}/);
