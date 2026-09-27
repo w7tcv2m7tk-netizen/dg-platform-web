@@ -4,9 +4,10 @@ import assert from "node:assert/strict";
 const dashboard = fs.readFileSync("src/app/(shell)/dashboard/page.tsx", "utf8");
 const navigation = fs.readFileSync("packages/platform-core/src/apps/navigation.ts", "utf8");
 
-assert.match(dashboard, /requestedView !== "business"/, "operator dashboard should only redirect when explicit Business Overview was not requested");
-assert.match(dashboard, /redirect\("\/command"\)/, "Command Centre must remain the operator default");
-assert.match(navigation, /\/dashboard\?view=business/, "operator Business Overview must have an explicit accessible URL");
-assert.match(navigation, /businessNavItem\(foundingCustomerMode, options\?\.showCommandCentre === true\)/, "operator navigation must use the explicit Business Overview route");
+assert.doesNotMatch(dashboard, /redirect\("\/command"\)/, "tenant dashboard must not silently redirect an operator-capable customer session to Command Centre");
+assert.doesNotMatch(dashboard, /getPlatformOperatorContext/, "Business Summary landing must be tenant-context driven, not operator-context driven");
+assert.match(dashboard, /BusinessOverviewDashboard/, "dashboard must continue to render Business Overview");
+assert.match(navigation, /businessNavItem\(foundingCustomerMode, options\?\.showCommandCentre === true\)/, "operator navigation must keep Business Overview accessible");
+assert.match(navigation, /Command Centre/, "Command Centre must remain explicitly accessible to authorised operators");
 
 console.log("operator Business Overview access checks passed");
