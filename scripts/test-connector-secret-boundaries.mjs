@@ -1,0 +1,12 @@
+import fs from "node:fs";
+import assert from "node:assert/strict";
+const route=fs.readFileSync("src/app/api/v1/connectors/lend/route.ts","utf8");
+const panel=fs.readFileSync("src/components/finance/LendConnectorPanel.tsx","utf8");
+assert.match(route,/clearOrgConnectorSettings\(session\.organisationId, "lend"\)/);
+assert.match(route,/export async function DELETE/);
+assert.match(route,/publicState\(null\)/);
+assert.doesNotMatch(route,/return NextResponse\.json\([^\n]*(apiKeyEncrypted|apiSecretEncrypted)/);
+assert.match(panel,/Replace credentials/);
+assert.match(panel,/Disconnect/);
+assert.match(panel,/Stored connector credentials have been removed/);
+console.log("connector secret boundaries regression passed");
