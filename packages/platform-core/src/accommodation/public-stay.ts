@@ -604,8 +604,9 @@ export async function createPublicStayCheckout(input: {
     };
   }
 
-  // Keep CRM enquiry trail alongside paid bookings.
-  await captureWebsiteFormSubmission({
+  // Keep the CRM trail, but treat a stay booking as tenant accommodation
+  // activity — never as a DigitalGate marketing enquiry.
+  const captured = await captureWebsiteFormSubmission({
     siteSlug: input.siteSlug,
     name: guestName,
     email,
@@ -616,15 +617,40 @@ export async function createPublicStayCheckout(input: {
       `Dates: ${input.checkin} → ${input.checkout}`,
       `Guests: ${input.guests ?? 1}`,
       quote.discountType
-        ? `Discount: ${quote.discountType} ${quote.discountPercent}% (−$${quote.discountAmount.toFixed(2)})`
+        ? `Discount: ${quote.discountType} ${quote.discountPercent}% (−${quote.discountAmount.toFixed(2)})`
         : null,
-      `Total: $${quote.total.toFixed(2)}`,
+      `Total: ${quote.total.toFixed(2)}`,
       input.message?.trim() || null,
     ]
       .filter(Boolean)
       .join("\n"),
     pageSlug: unit.slug,
   }).catch(() => null);
+
+  // A checkout is operationally important even before payment is reconciled.
+  // Notify the CVH host inbox as well as recording the booking in Neon.
+  try {
+    await sendStayEnquiryHostNotification({
+      organisationId: site.organisationId,
+      leadId: captured?.ok ? captured.leadId : undefined,
+      unitTitle: unit.title,
+      unitSlug: unit.slug,
+      guestName,
+      guestEmail: email,
+      guestPhone: input.phone,
+      checkin: input.checkin,
+      checkout: input.checkout,
+      guests: input.guests,
+      message: [
+        `Booking reference: ${ref}`,
+        `Payment method: ${input.method === "payid" ? "PayID" : "Card"}`,
+        `Total: ${quote.total.toFixed(2)}`,
+        input.message?.trim() || null,
+      ].filter(Boolean).join("\n"),
+    });
+  } catch (err) {
+    console.info("[public-stay] host booking notify failed", err);
+  }
 
   if (input.method === "payid") {
     return {
