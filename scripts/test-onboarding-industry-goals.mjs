@@ -8,3 +8,4 @@ assert.match(journey,/Based on your operating profile/);
 assert.match(journey,/recommendations, workflows and dashboard/);
 assert.doesNotMatch(journey,/\{GEN2_GOAL_OPTIONS\.map\(/,"raw global goal list must not drive the Goals screen");
 console.log("industry-aware onboarding goal checks passed");
+
