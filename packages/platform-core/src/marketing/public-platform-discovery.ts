@@ -56,7 +56,9 @@ export type PlatformDiscoveryResult =
       priorities: string[];
       recommendation: Record<string, unknown>;
       audit_report_url: string;
-      redirect_url: string;\n      trial_url: string;\n      guided_setup: true;
+      redirect_url: string;
+      trial_url: string;
+      guided_setup: true;
     }
   | { ok: false; code: string; message: string };
 
@@ -266,7 +268,8 @@ function buildSummaryText(
     data.goals_message ? `Goals: ${data.goals_message}` : "",
   ]
     .filter(Boolean)
-    .join("\n");
+    .join("
+");
 }
 
 export async function submitPublicPlatformDiscovery(
@@ -288,7 +291,9 @@ export async function submitPublicPlatformDiscovery(
       priorities: [],
       recommendation: {},
       audit_report_url: "",
-      redirect_url: "/discover/?discovery_sent=1",\n      trial_url: "https://app.digitalgate.com.au/signup/account?from=guided-setup",\n      guided_setup: true,
+      redirect_url: "/discover/?discovery_sent=1",
+      trial_url: "https://app.digitalgate.com.au/signup/account?from=guided-setup",
+      guided_setup: true,
     };
   }
 
