@@ -22,7 +22,7 @@ import {
 
 type Stage = "welcome" | "business" | "operating" | "goals" | "plan" | "apps" | "support" | "preparation" | "review";
 type OperatingSubstep = "industry" | "business_type" | "profile";
-type PreparationSubstep = "brand";
+type PreparationSubstep = "brand" | "website" | "data" | "connections" | "ai_reporting" | "workspace" | "review";
 type Profile = { businessName:string; tradingName:string; abn:string; websiteUrl:string; phone:string; email:string; primaryContactName:string; description:string; services:string; targetCustomers:string; differentiators:string; challenges:string; logoUrl:string; iconUrl:string };
 type CommercialOffer = { amountCents?:number; cadence?:BillingCadence; platformTier?:"starter"|"professional"|"business"; industryApps?:string[]; industryTemplates?:string[]; premiumApps?:string[]; supportPlan?:"standard"|"priority"|"success_partner"|"enterprise_success"; trialDays?:number };
 type AbrNameMatch = { abn:string; name:string; nameType?:string; stateCode?:string; postcode?:string; abnStatus?:string; score?:string };
