@@ -268,8 +268,7 @@ function buildSummaryText(
     data.goals_message ? `Goals: ${data.goals_message}` : "",
   ]
     .filter(Boolean)
-    .join("
-");
+    .join("\\n");
 }
 
 export async function submitPublicPlatformDiscovery(
