@@ -7,15 +7,15 @@ const handover = fs.readFileSync("src/components/onboarding/FirstLoginAidaHandov
 assert.match(banner, /getOrganisationGoals/);
 assert.match(banner, /metricHref/);
 assert.match(banner, /Move your top goal/);
-assert.match(banner, /Review Business Brain/);
+assert.match(banner, /Connect your business/);
 assert.match(banner, /href: "\/dashboard\/advisor"/);
-assert.match(banner, /href: "\/dashboard\/brain"/);
+assert.match(banner, /connected-services\\?setup=guided/);
 assert.match(banner, /GROWTH_APP_CATALOGUE/);
 assert.match(banner, /function industryName/);
 assert.match(banner, /priorities=\{\[\.\.\.new Set\(priorities\)\]\.slice\(0, 4\)\}/);
 
-assert.match(handover, /Aida · Your first day/);
-assert.match(handover, /first three moves I’d make/);
+assert.match(handover, /Aida · Your workspace is ready/);
+assert.match(handover, /Now let’s get your business connected/);
 assert.match(handover, /What I’ll keep an eye on/);
 assert.match(handover, /Configured for you/);
 assert.match(handover, /Move \{index \+ 1\}/);
