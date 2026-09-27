@@ -12,7 +12,7 @@ export function hasProgressiveRevealApps(enabledIds: string[]): boolean { const 
 export function getDefaultEnabledAppIds(): string[] { return FOUNDING_MODE_CORE_APP_IDS.filter((id) => Boolean(platformApps.get(id)?.enabled)); }
 
 export type OrgAppsSettings = { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string; }; };
-const PREMIUM_APP_MAP: Record<string, string[]> = { prospecting_pro: ["prospecting"], ai_visibility_pro: ["ai-visibility"], seo_pro: ["seo"], automation_pro: ["automation"], analytics_pro: ["analytics"], social_pro: ["social"], voice_ai: ["ai-communications"] };
+const PREMIUM_APP_MAP: Record<string, string[]> = { advertising_pro: ["advertising"], marketing_pro: ["marketing"], prospecting_pro: ["prospecting"], ai_visibility_pro: ["ai-visibility"], seo_pro: ["seo"], automation_pro: ["automation"], analytics_pro: ["analytics"], social_pro: ["social"], growth_suite: [...GROWTH_APP_IDS_FOR_MODE], voice_ai: ["ai-communications"] };
 const TIER_BASE_APPS: Record<string, string[]> = { starter: [...FOUNDING_MODE_CORE_APP_IDS], professional: [...FOUNDING_MODE_CORE_APP_IDS], business: [...FOUNDING_MODE_CORE_APP_IDS], enterprise: [...FOUNDING_MODE_CORE_APP_IDS] };
 export type PlanSelectionInput = { platformTier: string; industryApps: string[]; premiumApps: string[] };
 
