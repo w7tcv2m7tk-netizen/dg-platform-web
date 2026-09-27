@@ -156,7 +156,10 @@ function buildDigitalPerformanceSignals(input: {
 }
 
 export default async function DashboardPage() {
-  // /dashboard is the canonical post-sign-in Business Summary for every tenant.\n  // Command Centre is entered explicitly by authorised platform operators.\n\n  const { user, name, portal, session: platformSession } = await getPlatformPageContext();
+  // /dashboard is the canonical post-sign-in Business Summary for every tenant.
+  // Command Centre is entered explicitly by authorised platform operators.
+
+  const { user, name, portal, session: platformSession } = await getPlatformPageContext();
   const enabledAppIds = await getOrgEnabledAppIdsCached();
 
   let liveMetrics = null;
