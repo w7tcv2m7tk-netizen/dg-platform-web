@@ -59,12 +59,12 @@ export function FirstLoginAidaHandover({
           className="pointer-events-none absolute bottom-0 right-7 hidden h-[245px] w-auto select-none object-contain object-bottom lg:block"
         />
         <div className="relative z-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Aida · Your first day</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Aida · Your workspace is ready</p>
           <h2 className="mt-2 max-w-2xl text-2xl font-semibold tracking-tight text-white">
-            {organisationName} is ready. Here are the first three moves I’d make.
+            {organisationName} is ready. Now let’s get your business connected.
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/55">
-            {industryLabel ? `I’ve configured DigitalGate around your ${industryLabel} operating profile.` : "I’ve configured DigitalGate around your operating profile."} Your Business Brain, goals and selected apps now shape what I surface first.
+            {industryLabel ? `I’ve configured DigitalGate around your ${industryLabel} operating profile.` : "I’ve configured DigitalGate around your operating profile."} Your Business Brain, goals and selected apps already shape the workspace. Next I’ll help you connect the systems you use, starting with the ones most relevant to your business.
           </p>
           {priorities.length ? (
             <div className="mt-5 rounded-2xl border border-violet-300/10 bg-violet-500/[0.05] p-4">
