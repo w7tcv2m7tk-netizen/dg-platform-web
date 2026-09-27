@@ -1,0 +1,14 @@
+import fs from "node:fs";import assert from "node:assert/strict";
+const journey=fs.readFileSync("src/components/onboarding/AdaptiveOnboardingJourney.tsx","utf8");
+const banner=fs.readFileSync("src/components/onboarding/Gen2OnboardingChecklistBanner.tsx","utf8");
+const handover=fs.readFileSync("src/components/onboarding/FirstLoginAidaHandover.tsx","utf8");
+const catalog=fs.readFileSync("src/components/settings/ConnectedServicesCatalog.tsx","utf8");
+assert.match(journey,/const PREPARATION: PreparationSubstep\[\] = \["brand"\]/,"pre-activation preparation must be brand only");
+assert.match(journey,/label:"Brand", step:"platform_preparation"/);
+assert.match(journey,/After activation, Aida will guide you through the connections relevant to your business/);
+assert.match(banner,/connected-services\?setup=guided/);
+assert.match(handover,/Now let’s get your business connected/);
+assert.match(catalog,/searchParams\.get\("setup"\)==="guided"/);
+assert.match(catalog,/mortgage_broking/);
+assert.match(catalog,/Specialist Industry API connections require Scale or Enterprise/);
+console.log("two-phase customer setup checks passed");
