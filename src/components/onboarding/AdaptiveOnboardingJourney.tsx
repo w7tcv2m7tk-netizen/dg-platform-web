@@ -62,7 +62,7 @@ const INDUSTRY_GOAL_LABELS: Record<string,Record<string,string>> = {
   "creator-media": { manage_jobs:"Manage campaigns & projects", manage_property:"Manage partnerships & clients", manage_bookings:"Manage bookings & collaborations" },
 };
 function onboardingGoalOptions(industry:string):OnboardingGoalOption[]{
- const catalogue=GEN2_GOAL_OPTIONS as OnboardingGoalOption[];
+ const catalogue: readonly OnboardingGoalOption[] = GEN2_GOAL_OPTIONS;
  const byId=new Map(catalogue.map(goal=>[goal.id,goal]));
  const universal=UNIVERSAL_GOAL_IDS.map(id=>byId.get(id)).filter((goal):goal is OnboardingGoalOption=>Boolean(goal));
  const tailored=Object.entries(INDUSTRY_GOAL_LABELS[industry]??{}).map(([id,label])=>({id,label}));
