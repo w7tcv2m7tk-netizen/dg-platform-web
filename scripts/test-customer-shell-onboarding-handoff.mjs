@@ -1,0 +1,13 @@
+import fs from "node:fs";import assert from "node:assert/strict";
+const shell=fs.readFileSync("src/components/PlatformShellLoader.tsx","utf8");
+const apps=fs.readFileSync("packages/platform-core/src/apps/org-apps.ts","utf8");
+const banner=fs.readFileSync("src/components/onboarding/Gen2OnboardingChecklistBanner.tsx","utf8");
+assert.match(shell,/showPartnerPortal=\{showPartnerPortal && !isDemo\}/);
+assert.match(shell,/showResellerAdmin=\{showResellerAdmin && !isDemo\}/);
+assert.match(apps,/advertising_pro: \["advertising"\]/);
+assert.match(apps,/marketing_pro: \["marketing"\]/);
+assert.match(apps,/growth_suite: \[\.\.\.GROWTH_APP_IDS_FOR_MODE\]/);
+assert.match(banner,/if \(progress\.completedAt\)/);
+assert.match(banner,/Connect your business/);
+assert.match(banner,/workspaceConfigured && !subscriptionActivated/);
+console.log("customer shell onboarding handoff checks passed");
