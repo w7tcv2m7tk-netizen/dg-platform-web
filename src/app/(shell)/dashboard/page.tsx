@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   buildBusinessOverview,
   buildLiveTwinWithScores,
@@ -24,7 +23,6 @@ import {
 } from "@/components/overview/DigitalPerformanceStrip";
 import { Gen2OnboardingChecklistBanner } from "@/components/onboarding/Gen2OnboardingChecklistBanner";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
-import { getPlatformOperatorContext } from "@/lib/platform-operator";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
 
 const AUDIT_FRESH_MS = 30 * 24 * 60 * 60 * 1000;
@@ -157,20 +155,9 @@ function buildDigitalPerformanceSignals(input: {
   ];
 }
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ view?: string | string[] }>;
-}) {
-  // /dashboard remains the generic post-sign-in landing route. Platform
-  // operators default to Command Centre, but an explicit Business Overview
-  // navigation must still render DigitalGate's own tenant overview.
-  const operator = await getPlatformOperatorContext();
-  const resolvedSearchParams = searchParams ? await searchParams : {};
-  const requestedView = Array.isArray(resolvedSearchParams.view)
-    ? resolvedSearchParams.view[0]
-    : resolvedSearchParams.view;
-  if (operator && requestedView !== "business") redirect("/command");
+export default async function DashboardPage() {
+  // /dashboard is the canonical post-sign-in Business Summary for every tenant.
+  // Command Centre is entered explicitly by authorised platform operators.
 
   const { user, name, portal, session: platformSession } = await getPlatformPageContext();
   const enabledAppIds = await getOrgEnabledAppIdsCached();
