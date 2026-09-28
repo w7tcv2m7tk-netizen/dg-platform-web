@@ -73,6 +73,7 @@ export type PartnerDashboardRow = {
   email: string | null;
   partnerTypeLabel: string;
   partnerType: PartnerType;
+  deliveryRole: "lead" | "member" | null;
   status: string;
   joinedAt: string | null;
 };
@@ -255,8 +256,12 @@ export async function buildPartnerDashboardWorkspace(): Promise<PartnerDashboard
     id: p.id,
     name: p.displayName ?? p.businessName ?? "—",
     email: p.email,
-    partnerTypeLabel: p.partnerTypeLabel,
+    partnerTypeLabel:
+      p.partnerType === "IMPLEMENTATION_PARTNER" && p.deliveryRole === "lead"
+        ? "Delivery Manager"
+        : p.partnerTypeLabel,
     partnerType: p.partnerType,
+    deliveryRole: p.deliveryRole,
     status: p.status,
     joinedAt: p.joinedAt,
   });
