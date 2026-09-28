@@ -12,6 +12,7 @@ const home = read("src/components/command/CommandOpsHome.tsx");
 const advisor = read("src/components/command/AiAdvisorPanel.tsx");
 const presentation = read("packages/platform-core/src/command-centre/presentation.ts");
 const overview = read("packages/platform-core/src/command-centre/overview.ts");
+const clientIntelligence = read("packages/platform-core/src/command-centre/client-intelligence.ts");
 
 test("Command Centre remains the canonical operator cockpit on /command", () => {
   assert.match(page, /requirePlatformOperatorContext/);
@@ -51,7 +52,7 @@ test("Command cockpit uses the seven-layer operator IA", () => {
   }
 });
 
-test("Command cockpit keeps live operator capabilities and does not invent trials", () => {
+test("Command cockpit keeps live operator capabilities and scopes commercial CRM to DigitalGate", () => {
   assert.match(home, /SalesWeekNowBanner/);
   assert.match(home, /AiAdvisorPanel/);
   assert.match(home, /billing\.estimatedMrrLabel/);
@@ -61,6 +62,17 @@ test("Command cockpit keeps live operator capabilities and does not invent trial
   assert.match(advisor, /\/api\/v1\/command\/advisor/);
   assert.doesNotMatch(home, /Math\.random|faker|dummyMrr|mockClients/);
   assert.doesNotMatch(overview, /estimatedMrrCents:\s*[1-9]/);
+  assert.match(overview, /organisationId: operatorOrganisationId, status: "open"/);
+  assert.match(overview, /organisationId: operatorOrganisationId, createdAt:/);
+  assert.match(overview, /c\.organisationId !== operatorOrganisationId/);
+  assert.match(overview, /c\.status !== "demo"/);
+  assert.match(overview, /c\.organisationSlug !== "digitalgate-demo-business"/);
+  assert.match(presentation, /stalled onboarding/);
+  assert.doesNotMatch(home, /Founding customers may not yet be on paid platform subscriptions/);
+  assert.doesNotMatch(home, /Founding pipeline managed manually/);
+  assert.match(clientIntelligence, /where: \{ platformExempt: true \}/);
+  assert.match(clientIntelligence, /exemptOrganisationIds\.has\(org\.id\)/);
+  assert.doesNotMatch(clientIntelligence, /Customer health is acceptable, but an adoption signal requires review/);
 });
 
 test("Command cockpit presentation is derived from live ops-home fields", () => {

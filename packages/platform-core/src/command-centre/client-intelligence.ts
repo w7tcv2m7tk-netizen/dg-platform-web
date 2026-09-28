@@ -141,18 +141,6 @@ function evaluateIntervention(
     reasons.push("Very low activity and no current opportunities");
   }
 
-  const scoreTierHealthy =
-    result.scoreBand === "excellent" || result.scoreBand === "healthy";
-  const adoptionReview =
-    scoreTierHealthy &&
-    breakdown.crm < 72 &&
-    !highActivityNoCommercial &&
-    !stalledCommercial;
-  if (adoptionReview) {
-    reasons.push(
-      "Customer health is acceptable, but an adoption signal requires review",
-    );
-  }
 
   return { required: reasons.length > 0, reasons };
 }
@@ -186,6 +174,7 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     activeStays,
     activeSubs,
     invoicePaidMtd,
+    exemptPlatformSubscriptions,
   ] = await Promise.all([
     prisma.organisation.findMany({
       orderBy: { updatedAt: "desc" },
@@ -260,6 +249,10 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       where: { status: "paid", paidAt: { gte: monthStart } },
       _sum: { totalCents: true },
     })),
+    prisma.platformSubscription.findMany({
+      where: { platformExempt: true },
+      select: { organisationId: true },
+    }),
   ]);
 
   const leadsMonthMap = countMap(leadsThisMonth as CountRow[]);
@@ -281,6 +274,10 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     ]),
   );
 
+  const exemptOrganisationIds = new Set(
+    exemptPlatformSubscriptions.map((subscription) => subscription.organisationId),
+  );
+
   const customerOrgRows = orgRows.filter((org) => {
     const isInternalOrg = isPlatformOperatorOrganisation({
       organisationId: org.id,
@@ -298,7 +295,8 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
         name: org.name,
         slug: org.slug,
       });
-    return !isInternalOrg && !isDemoOrg;
+    const isBillingExemptInternalBusiness = exemptOrganisationIds.has(org.id);
+    return !isInternalOrg && !isDemoOrg && !isBillingExemptInternalBusiness;
   });
 
   const scored = customerOrgRows.map((org) => {
