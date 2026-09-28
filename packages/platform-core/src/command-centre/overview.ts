@@ -187,12 +187,6 @@ const PLATFORM_OPERATIONS: CommandPlatformOperationsGroup[] = [
         description: "Acquisition pipeline — discover, score, pursue, convert",
       },
       {
-        id: "founding",
-        label: "Founding 10",
-        href: "/command/founding",
-        description: "Founding customer pipeline",
-      },
-      {
         id: "sales-week",
         label: "Sales Week",
         href: "/command/sales-week",
@@ -286,6 +280,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     leads,
     leadsThisWeek,
     opportunities,
+    opportunityValue,
     openTasksDue,
     overdueLeadResponses,
     orgsWithBilling,
@@ -308,6 +303,10 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     prisma.lead.count(),
     prisma.lead.count({ where: { createdAt: { gte: weekStart } } }),
     prisma.opportunity.count({ where: { status: "open" } }),
+    prisma.opportunity.findMany({
+      where: { status: "open" },
+      select: { valueCents: true, probability: true },
+    }),
     operatorOrganisationId
       ? prisma.task.count({
           where: {
@@ -436,6 +435,19 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     0,
   );
 
+  const activeTrials = platformSubscriptions.filter((sub) => sub.status === "TRIALING").length;
+  const onboardingSubscriptions = platformSubscriptions.filter((sub) =>
+    ["TRIALING", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED"].includes(sub.status),
+  ).length;
+  const stalledOnboarding = platformSubscriptions.filter((sub) =>
+    ["PAYMENT_FAILED", "PAST_DUE", "RESTRICTED"].includes(sub.status),
+  ).length;
+  const openPipelineValueCents = opportunityValue.reduce((sum, item) => sum + (item.valueCents ?? 0), 0);
+  const weightedPipelineValueCents = opportunityValue.reduce(
+    (sum, item) => sum + Math.round((item.valueCents ?? 0) * ((item.probability ?? 0) / 100)),
+    0,
+  );
+
   const pulse: CommandPlatformPulse = {
     organisations,
     users,
@@ -451,6 +463,11 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     openTasksDue,
     overdueLeadResponses,
     estimatedMrrCents,
+    activeTrials,
+    onboardingSubscriptions,
+    stalledOnboarding,
+    openPipelineValueCents,
+    weightedPipelineValueCents,
   };
 
   const referralStatusMap = Object.fromEntries(
