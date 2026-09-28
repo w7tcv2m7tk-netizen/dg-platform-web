@@ -66,19 +66,7 @@ async function CommandOverviewPage({ initialOrgId }: { initialOrgId?: string }) 
         />
         <div className="relative grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_220px]">
           <div className="py-1">
-            <Link
-              href="/dashboard"
-              className="inline-flex min-h-11 items-center text-sm text-violet-200 transition hover:text-white"
-            >
-              ← Business workspace
-            </Link>
-            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-500/10 px-3 py-1.5 backdrop-blur">
-              <span className={`h-2 w-2 rounded-full ${statusDot}`} />
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-100">
-                DigitalGate · {cockpit?.statusLabel ?? "Live aggregates unavailable"}
-              </span>
-            </div>
-            <h1 className="mt-5 max-w-3xl text-4xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
+            <h1 className="max-w-3xl text-4xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
               Command Centre
             </h1>
             <p className="mt-3 max-w-2xl text-lg font-medium text-violet-100/90">
