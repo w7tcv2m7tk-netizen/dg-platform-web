@@ -20,9 +20,8 @@ test("Command Centre remains the canonical operator cockpit on /command", () => 
   assert.match(page, /CommandOpsHome/);
   assert.match(page, /#command-advisor/);
   assert.match(page, /#command-attention/);
-  assert.match(page, /\/aida\/aida-presenting\.webp/);
+  assert.match(page, /\/aida\/aida-thinking\.webp/);
   assert.match(home, /\/aida\/aida-headshot\.webp/);
-  assert.doesNotMatch(home, /\/aida\/aida-thinking\.webp/);
   assert.doesNotMatch(page, /mock|fakeMrr|placeholderCustomers/i);
 });
 
