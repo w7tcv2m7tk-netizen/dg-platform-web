@@ -17,6 +17,7 @@ assert.match(memberships, /isPlatformOperatorOrganisationId/);
 
 assert.match(invitations, /withdrawPartnerInvitation/);
 assert.match(invitations, /Only pending partner invitations can be cancelled/);
+assert.doesNotMatch(invitations, /Accepted partner invitations cannot be cancelled/);
 assert.match(route, /withdrawPartnerInvitation/);
 assert.match(table, /PartnerInvitationCancelButton/);
 assert.match(cancelButton, /Cancel invitation/);

@@ -19,8 +19,13 @@ export function PartnerAdminActions({
   async function action(act: "approve" | "suspend" | "withdraw") {
     setStatus("saving");
     setMessage("");
-    await fetch(`/api/v1/admin/partners/${partnerId}/${act}`, { method: "POST" });
+    const res = await fetch(`/api/v1/admin/partners/${partnerId}/${act}`, { method: "POST" });
+    const json = await res.json().catch(() => ({}));
     setStatus("idle");
+    if (!res.ok) {
+      setMessage(json.error?.message || `Could not ${act} partner`);
+      return;
+    }
     router.refresh();
   }
 
@@ -58,7 +63,7 @@ export function PartnerAdminActions({
           <button
             type="button"
             onClick={() => {
-              if (window.confirm("Cancel this pending partner invitation? The existing invite link will stop working.")) {
+              if (window.confirm("Cancel this pending partner? Their invitation and pending partner access will stop working.")) {
                 void action("withdraw");
               }
             }}
