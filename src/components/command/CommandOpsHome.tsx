@@ -141,8 +141,8 @@ export function CommandOpsHome({
         : "bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,.8)]";
 
   return (
-    <div className="space-y-16">
-      <section id="command-executive-pulse" className="relative">
+    <div className="space-y-6">
+      <section id="command-executive-pulse" className="relative rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div
           className="pointer-events-none absolute -inset-x-4 -top-6 h-56 opacity-80"
           style={{
@@ -150,7 +150,7 @@ export function CommandOpsHome({
               "radial-gradient(ellipse at 12% 20%, rgba(124,58,237,.16), transparent 42%), radial-gradient(ellipse at 78% 0%, rgba(59,130,246,.12), transparent 38%)",
           }}
         />
-        <div className="relative">
+        <div className="relative rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
           <LayerEyebrow index="01" label="Executive Pulse" />
           <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -191,7 +191,7 @@ export function CommandOpsHome({
         </div>
       </section>
 
-      <section id="command-advisor" className="relative">
+      <section id="command-advisor" className="relative rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div
           className="pointer-events-none absolute inset-x-0 -top-8 h-40"
           style={{
@@ -199,7 +199,7 @@ export function CommandOpsHome({
               "radial-gradient(ellipse at 88% 30%, rgba(167,139,250,.14), transparent 46%)",
           }}
         />
-        <div className="relative">
+        <div className="relative rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
           <LayerEyebrow index="02" label="Aida Intelligence" />
           <div className="mt-4 grid items-start gap-10 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
             <div>
@@ -267,7 +267,7 @@ export function CommandOpsHome({
         </div>
       </section>
 
-      <section id="command-priorities">
+      <section id="command-priorities" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <LayerEyebrow index="03" label="Priorities & Alerts" />
         <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
           What needs your attention
@@ -348,7 +348,7 @@ export function CommandOpsHome({
         ) : null}
       </section>
 
-      <section id="command-customers">
+      <section id="command-customers" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <LayerEyebrow index="04" label="Customers & Growth" />
@@ -457,7 +457,7 @@ export function CommandOpsHome({
         </div>
       </section>
 
-      <section id="command-commercial">
+      <section id="command-commercial" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <LayerEyebrow index="05" label="Revenue / Commercial" />
@@ -523,7 +523,7 @@ export function CommandOpsHome({
         {revenueNote ? <p className="mt-5 text-xs text-slate-500">{revenueNote}</p> : null}
       </section>
 
-      <section id="command-platform">
+      <section id="command-platform" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <LayerEyebrow index="06" label="Platform & Delivery Health" />
@@ -622,7 +622,7 @@ export function CommandOpsHome({
         </div>
       </section>
 
-      <section id="command-activity">
+      <section id="command-activity" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <LayerEyebrow index="07" label="Recent Activity" />
