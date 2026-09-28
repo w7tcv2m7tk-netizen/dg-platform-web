@@ -141,8 +141,8 @@ export function CommandOpsHome({
         : "bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,.8)]";
 
   return (
-    <div className="space-y-6">
-      <section id="command-executive-pulse" className="relative rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
+    <div className="grid gap-6 xl:grid-cols-12">
+      <section id="command-executive-pulse" className="relative xl:col-span-7 rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div
           className="pointer-events-none absolute -inset-x-4 -top-6 h-56 opacity-80"
           style={{
@@ -167,7 +167,7 @@ export function CommandOpsHome({
             <p className="text-xs text-slate-500">{cockpit.generatedLabel}</p>
           </div>
 
-          <div className="mt-8 grid gap-8 border-t border-white/5 pt-8 sm:grid-cols-2 xl:grid-cols-6">
+          <div className="mt-8 grid gap-8 border-t border-white/5 pt-8 sm:grid-cols-2 2xl:grid-cols-3">
             {cockpit.pulseMetrics.map((metric) => (
               <Link
                 key={metric.id}
@@ -191,7 +191,7 @@ export function CommandOpsHome({
         </div>
       </section>
 
-      <section id="command-advisor" className="relative rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
+      <section id="command-advisor" className="relative xl:col-span-5 rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div
           className="pointer-events-none absolute inset-x-0 -top-8 h-40"
           style={{
@@ -201,11 +201,11 @@ export function CommandOpsHome({
         />
         <div className="relative rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
           <LayerEyebrow index="02" label="Aida Intelligence" />
-          <div className="mt-4 grid items-start gap-10 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+          <div className="mt-4 grid items-start gap-8">
             <div>
               <div className="flex items-start gap-5">
                 <img
-                  src="/aida/aida-thinking.webp"
+                  src="/aida/aida-headshot.webp"
                   alt="Aida, DigitalGate intelligence"
                   className="hidden h-28 w-28 shrink-0 object-contain object-bottom drop-shadow-[0_16px_30px_rgba(124,58,237,.28)] sm:block"
                 />
@@ -267,7 +267,7 @@ export function CommandOpsHome({
         </div>
       </section>
 
-      <section id="command-priorities" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
+      <section id="command-priorities" className="order-6 xl:col-span-7 rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <LayerEyebrow index="03" label="Priorities & Alerts" />
         <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
           What needs your attention
@@ -348,7 +348,7 @@ export function CommandOpsHome({
         ) : null}
       </section>
 
-      <section id="command-customers" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
+      <section id="command-customers" className="order-3 xl:col-span-4 rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <LayerEyebrow index="04" label="Customers & Growth" />
@@ -398,7 +398,7 @@ export function CommandOpsHome({
           </ul>
         )}
 
-        <div className="mt-10 grid gap-8 border-t border-white/5 pt-8 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-10 grid gap-8 border-t border-white/5 pt-8 sm:grid-cols-2">
           <Link href={growthEngine.href} className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Prospecting</p>
             <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
@@ -457,7 +457,7 @@ export function CommandOpsHome({
         </div>
       </section>
 
-      <section id="command-commercial" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
+      <section id="command-commercial" className="order-4 xl:col-span-4 rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <LayerEyebrow index="05" label="Revenue / Commercial" />
@@ -476,7 +476,7 @@ export function CommandOpsHome({
           </Link>
         </div>
 
-        <div className="mt-8 grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-8 sm:grid-cols-2">
           <Link href="/command/revenue" className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">MRR</p>
             <p className="mt-2 text-3xl font-semibold tracking-tight text-white group-hover:text-violet-200">
@@ -523,7 +523,7 @@ export function CommandOpsHome({
         {revenueNote ? <p className="mt-5 text-xs text-slate-500">{revenueNote}</p> : null}
       </section>
 
-      <section id="command-platform" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
+      <section id="command-platform" className="order-5 xl:col-span-4 rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <LayerEyebrow index="06" label="Platform & Delivery Health" />
@@ -553,7 +553,7 @@ export function CommandOpsHome({
           </Link>
         ) : null}
 
-        <div className="mt-8 grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-8 sm:grid-cols-2">
           <Link href="/command/delivery" className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Delivery</p>
             <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
@@ -622,7 +622,7 @@ export function CommandOpsHome({
         </div>
       </section>
 
-      <section id="command-activity" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
+      <section id="command-activity" className="order-7 xl:col-span-5 rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <LayerEyebrow index="07" label="Recent Activity" />

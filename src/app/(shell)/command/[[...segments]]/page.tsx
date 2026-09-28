@@ -94,9 +94,9 @@ async function CommandOverviewPage({ initialOrgId }: { initialOrgId?: string }) 
           <div className="relative hidden self-end lg:block">
             <div className="absolute inset-x-4 bottom-3 h-16 rounded-full bg-violet-500/25 blur-3xl" />
             <img
-              src="/aida/aida-thinking.webp"
+              src="/aida/aida-presenting.webp"
               alt="Aida, DigitalGate intelligence"
-              className="relative ml-auto max-h-[200px] w-full object-contain object-bottom drop-shadow-[0_18px_32px_rgba(0,0,0,.45)]"
+              className="relative ml-auto max-h-[220px] w-full object-contain object-bottom drop-shadow-[0_18px_32px_rgba(0,0,0,.45)]"
             />
           </div>
         </div>
