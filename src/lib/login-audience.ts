@@ -18,7 +18,7 @@ const COPY: Record<LoginAudience, Omit<LoginAudienceCopy, "audience">> = {
     title: "Client login",
     subtitle:
       "Sign in with your email and password to open DigitalGate — CRM, industry apps, websites, and more.",
-    defaultRedirect: "/dashboard",
+    defaultRedirect: "/post-login",
   },
   acquisition: {
     title: "Acquisition Partner login",
