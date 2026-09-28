@@ -190,7 +190,7 @@ const PLATFORM_OPERATIONS: CommandPlatformOperationsGroup[] = [
         id: "sales-week",
         label: "Sales Week",
         href: "/command/sales-week",
-        description: "90-day founding sprint operating rhythm",
+        description: "DigitalGate sales operating rhythm",
       },
     ],
   },
@@ -214,7 +214,7 @@ const PLATFORM_OPERATIONS: CommandPlatformOperationsGroup[] = [
         id: "resellers",
         label: "Partners / Referrals",
         href: "/command/partners",
-        description: "Founding acquisition partners, referrals and commissions",
+        description: "Acquisition partners, referrals and commissions",
       },
     ],
   },
@@ -300,13 +300,13 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
   ] = await Promise.all([
     prisma.organisation.count(),
     prisma.membership.count({ where: { status: "active" } }),
-    prisma.lead.count(),
-    prisma.lead.count({ where: { createdAt: { gte: weekStart } } }),
-    prisma.opportunity.count({ where: { status: "open" } }),
-    prisma.opportunity.findMany({
-      where: { status: "open" },
+    operatorOrganisationId ? prisma.lead.count({ where: { organisationId: operatorOrganisationId } }) : Promise.resolve(0),
+    operatorOrganisationId ? prisma.lead.count({ where: { organisationId: operatorOrganisationId, createdAt: { gte: weekStart } } }) : Promise.resolve(0),
+    operatorOrganisationId ? prisma.opportunity.count({ where: { organisationId: operatorOrganisationId, status: "open" } }) : Promise.resolve(0),
+    operatorOrganisationId ? prisma.opportunity.findMany({
+      where: { organisationId: operatorOrganisationId, status: "open" },
       select: { valueCents: true, probability: true },
-    }),
+    }) : Promise.resolve([]),
     operatorOrganisationId
       ? prisma.task.count({
           where: {
@@ -316,12 +316,13 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
           },
         })
       : Promise.resolve(0),
-    prisma.lead.count({
+    operatorOrganisationId ? prisma.lead.count({
       where: {
+        organisationId: operatorOrganisationId,
         responseDueAt: { lt: now },
         firstResponseAt: null,
       },
-    }),
+    }) : Promise.resolve(0),
     prisma.organisation.count({ where: { billingCustomerId: { not: null } } }),
     prisma.platformSubscription.findMany({
       where: {
