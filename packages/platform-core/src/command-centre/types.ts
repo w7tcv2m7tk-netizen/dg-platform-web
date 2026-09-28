@@ -31,6 +31,11 @@ export interface CommandPlatformPulse {
   openTasksDue: number;
   overdueLeadResponses: number;
   estimatedMrrCents: number;
+  activeTrials: number;
+  onboardingSubscriptions: number;
+  stalledOnboarding: number;
+  openPipelineValueCents: number;
+  weightedPipelineValueCents: number;
   /** @deprecated Tenant industry metrics — kept for internal queries only, not shown in owner UI */
   properties?: number;
   listedProperties?: number;
