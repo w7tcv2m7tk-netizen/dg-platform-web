@@ -60,15 +60,12 @@ test("Command cockpit keeps live operator capabilities and does not invent trial
   assert.match(home, /Ask Aida/);
   assert.match(home, /buildCommandCockpitPresentation/);
   assert.match(advisor, /\/api\/v1\/command\/advisor/);
-  assert.match(presentation, /Dedicated trial count is not in this view/);
   assert.doesNotMatch(home, /Math\.random|faker|dummyMrr|mockClients/);
   assert.doesNotMatch(overview, /estimatedMrrCents:\s*[1-9]/);
 });
 
 test("Command cockpit presentation is derived from live ops-home fields", () => {
   assert.match(presentation, /buildCommandCockpitPresentation/);
-  assert.match(presentation, /Dedicated trial count is not in this view/);
-  assert.match(presentation, /Does not invent trials/);
 });
 
 test("primary Command cockpit actions keep the native touch-target floor", () => {
@@ -93,6 +90,11 @@ function fixture(overrides = {}) {
       openTasksDue: 0,
       overdueLeadResponses: 2,
       estimatedMrrCents: 0,
+      activeTrials: 0,
+      onboardingSubscriptions: 0,
+      stalledOnboarding: 0,
+      openPipelineValueCents: 0,
+      weightedPipelineValueCents: 0,
     },
     today: [],
     organisationHealth: {
@@ -178,9 +180,9 @@ test("cockpit presentation never fabricates trial or health numbers", async () =
   assert.equal(cockpit.status, "critical");
   assert.match(cockpit.statusDetail, /urgent/);
   const trials = cockpit.pulseMetrics.find((metric) => metric.id === "trials");
-  assert.equal(trials.available, false);
-  assert.equal(trials.value, "—");
-  assert.match(trials.detail, /not in this view/i);
+  assert.equal(trials.available, true);
+  assert.equal(trials.value, "0");
+  assert.match(trials.detail, /onboarding account/);
   const health = cockpit.pulseMetrics.find((metric) => metric.id === "health");
   assert.equal(health.available, false);
   assert.equal(health.value, "Insufficient data");
@@ -218,6 +220,11 @@ test("quiet cockpit recedes to a steady status from live empty queues", async ()
         openTasksDue: 0,
         overdueLeadResponses: 0,
         estimatedMrrCents: 0,
+        activeTrials: 0,
+        onboardingSubscriptions: 0,
+        stalledOnboarding: 0,
+        openPipelineValueCents: 0,
+        weightedPipelineValueCents: 0,
       },
       growthEngine: {
         prospects: 0,
