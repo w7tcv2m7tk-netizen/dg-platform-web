@@ -46,14 +46,6 @@ async function CommandOverviewPage({ initialOrgId }: { initialOrgId?: string }) 
       needsAttention: client.needsAttention,
     })) ?? [];
   const cockpit = data ? buildCommandCockpitPresentation(data) : null;
-  const statusDot = !cockpit
-    ? "bg-amber-400 shadow-[0_0_16px_rgba(251,191,36,.7)]"
-    : cockpit.status === "critical"
-      ? "bg-rose-400 shadow-[0_0_16px_rgba(251,113,133,.85)]"
-      : cockpit.status === "attention"
-        ? "bg-amber-400 shadow-[0_0_16px_rgba(251,191,36,.7)]"
-        : "bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,.8)]";
-
   return (
     <>
       <header className="dg-page-header relative overflow-hidden border-b border-violet-500/15">
