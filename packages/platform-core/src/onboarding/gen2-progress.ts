@@ -1,10 +1,11 @@
 import type { Gen2OnboardingProgress, Gen2OnboardingStep } from "./gen2-journey";
 import { emptyGen2Progress, GEN2_ONBOARDING_STEPS, isGen2OnboardingStep, nextGen2Step } from "./gen2-journey";
 import { appIdsFromPlanSelection } from "../apps/org-apps";
+import { normalisePaidAppKeys, paidAppIdsFromKeys } from "../billing/paid-apps";
 import { getTemplate, isTemplateActivatable } from "../industry/catalogue";
 import { buildTemplateActivationPatch, readOrgIndustrySettings, type OrgIndustrySettings } from "../industry/entitlements";
 
-type OrgSettings = { gen2Onboarding?: Gen2OnboardingProgress; foundingOnboarding?: unknown; apps?: { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string } }; industry?: OrgIndustrySettings; services?: { templateKey?: string; activeTemplateKeys?: string[]; primaryTemplateKey?: string; appliedAt?: string; [key: string]: unknown }; [key: string]: unknown };
+type OrgSettings = { gen2Onboarding?: Gen2OnboardingProgress; foundingOnboarding?: unknown; apps?: { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string } }; profile?: { purchasedPremium?: unknown }; industry?: OrgIndustrySettings; services?: { templateKey?: string; activeTemplateKeys?: string[]; primaryTemplateKey?: string; appliedAt?: string; [key: string]: unknown }; [key: string]: unknown };
 const SERVICE_SUBINDUSTRY_TO_TEMPLATE: Record<string, string> = { electrical: "electrician", plumbing: "plumber", cleaning: "cleaner", maintenance: "maintenance", "building-construction": "builder", landscaping: "landscaper", hvac: "hvac", "pest-control": "pest_control", painting: "painter", handyman: "handyman", solar: "solar", "pool-service": "pool_service", "general-services": "general" };
 
 function parseProgress(raw: unknown, founding: boolean): Gen2OnboardingProgress {
@@ -81,8 +82,15 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
   nextProgress.industryApps = industryApps; nextProgress.industryTemplates = industryTemplates;
 
   const hasAppSelectionPatch = Array.isArray(cleanPatch.industryApps) || Array.isArray(cleanPatch.industryTemplates) || Array.isArray(cleanPatch.premiumApps) || Boolean(cleanPatch.platformTier) || Boolean(cleanPatch.operatingProfile);
-  const selectedAppIds = hasAppSelectionPatch ? appIdsFromPlanSelection({ platformTier: nextProgress.platformTier ?? "professional", industryApps: Array.from(new Set([...industryApps, ...industryTemplates])), premiumApps: nextProgress.premiumApps ?? [] }) : undefined;
-  const nextApps = hasAppSelectionPatch ? { ...(settings.apps ?? {}), enabled: selectedAppIds, planPreview: { ...(settings.apps?.planPreview ?? {}), platformTier: nextProgress.platformTier, industryApps, industryTemplates, premiumApps: nextProgress.premiumApps ?? [], appliedAt: now, source: "onboarding-operating-profile" } } : settings.apps;
+  const purchasedPremium = normalisePaidAppKeys(settings.profile?.purchasedPremium);
+  const canonicalPremiumApps = Array.from(new Set([...(nextProgress.premiumApps ?? []), ...purchasedPremium]));
+  const selectedAppIds = hasAppSelectionPatch
+    ? Array.from(new Set([
+        ...appIdsFromPlanSelection({ platformTier: nextProgress.platformTier ?? "professional", industryApps: Array.from(new Set([...industryApps, ...industryTemplates])), premiumApps: canonicalPremiumApps }),
+        ...paidAppIdsFromKeys(purchasedPremium),
+      ]))
+    : undefined;
+  const nextApps = hasAppSelectionPatch ? { ...(settings.apps ?? {}), enabled: selectedAppIds, planPreview: { ...(settings.apps?.planPreview ?? {}), platformTier: nextProgress.platformTier, industryApps, industryTemplates, premiumApps: canonicalPremiumApps, appliedAt: now, source: "onboarding-operating-profile" } } : settings.apps;
 
   const shouldSyncCanonicalIndustry = Boolean(cleanPatch.operatingProfile) || Array.isArray(cleanPatch.industryTemplates);
   let nextIndustry = settings.industry;
