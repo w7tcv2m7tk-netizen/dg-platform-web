@@ -63,6 +63,9 @@ test("Command cockpit keeps live operator capabilities and scopes commercial CRM
   assert.doesNotMatch(overview, /estimatedMrrCents:\s*[1-9]/);
   assert.match(overview, /organisationId: operatorOrganisationId, status: "open"/);
   assert.match(overview, /organisationId: operatorOrganisationId, createdAt:/);
+  assert.match(overview, /c\.organisationId !== operatorOrganisationId/);
+  assert.match(overview, /c\.status !== "demo"/);
+  assert.match(overview, /c\.organisationSlug !== "digitalgate-demo-business"/);
   assert.match(presentation, /stalled onboarding/);
   assert.doesNotMatch(home, /Founding customers may not yet be on paid platform subscriptions/);
   assert.doesNotMatch(home, /Founding pipeline managed manually/);
