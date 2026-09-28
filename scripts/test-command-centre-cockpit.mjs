@@ -70,7 +70,8 @@ test("Command cockpit keeps live operator capabilities and scopes commercial CRM
   assert.match(presentation, /stalled onboarding/);
   assert.doesNotMatch(home, /Founding customers may not yet be on paid platform subscriptions/);
   assert.doesNotMatch(home, /Founding pipeline managed manually/);
-  assert.match(clientIntelligence, /platformSubscription\?\.platformExempt === true/);
+  assert.match(clientIntelligence, /where: \{ platformExempt: true \}/);
+  assert.match(clientIntelligence, /exemptOrganisationIds\.has\(org\.id\)/);
   assert.doesNotMatch(clientIntelligence, /Customer health is acceptable, but an adoption signal requires review/);
 });
 
