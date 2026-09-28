@@ -204,9 +204,6 @@ export async function withdrawPartnerInvitation(partnerId: string): Promise<Seri
   if (partner.status !== "pending") {
     throw new Error("Only pending partner invitations can be cancelled.");
   }
-  if (partner.invitationStatus === "accepted") {
-    throw new Error("Accepted partner invitations cannot be cancelled.");
-  }
   return updatePartner(partnerId, {
     status: "inactive",
   });
