@@ -51,7 +51,7 @@ test("Command cockpit uses the seven-layer operator IA", () => {
   }
 });
 
-test("Command cockpit keeps live operator capabilities and does not invent trials", () => {
+test("Command cockpit keeps live operator capabilities and scopes commercial CRM to DigitalGate", () => {
   assert.match(home, /SalesWeekNowBanner/);
   assert.match(home, /AiAdvisorPanel/);
   assert.match(home, /billing\.estimatedMrrLabel/);
@@ -61,6 +61,11 @@ test("Command cockpit keeps live operator capabilities and does not invent trial
   assert.match(advisor, /\/api\/v1\/command\/advisor/);
   assert.doesNotMatch(home, /Math\.random|faker|dummyMrr|mockClients/);
   assert.doesNotMatch(overview, /estimatedMrrCents:\s*[1-9]/);
+  assert.match(overview, /organisationId: operatorOrganisationId, status: "open"/);
+  assert.match(overview, /organisationId: operatorOrganisationId, createdAt:/);
+  assert.match(presentation, /stalled onboarding/);
+  assert.doesNotMatch(home, /Founding customers may not yet be on paid platform subscriptions/);
+  assert.doesNotMatch(home, /Founding pipeline managed manually/);
 });
 
 test("Command cockpit presentation is derived from live ops-home fields", () => {
