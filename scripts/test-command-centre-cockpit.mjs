@@ -12,6 +12,7 @@ const home = read("src/components/command/CommandOpsHome.tsx");
 const advisor = read("src/components/command/AiAdvisorPanel.tsx");
 const presentation = read("packages/platform-core/src/command-centre/presentation.ts");
 const overview = read("packages/platform-core/src/command-centre/overview.ts");
+const clientIntelligence = read("packages/platform-core/src/command-centre/client-intelligence.ts");
 
 test("Command Centre remains the canonical operator cockpit on /command", () => {
   assert.match(page, /requirePlatformOperatorContext/);
@@ -69,6 +70,8 @@ test("Command cockpit keeps live operator capabilities and scopes commercial CRM
   assert.match(presentation, /stalled onboarding/);
   assert.doesNotMatch(home, /Founding customers may not yet be on paid platform subscriptions/);
   assert.doesNotMatch(home, /Founding pipeline managed manually/);
+  assert.match(clientIntelligence, /platformSubscription\?\.platformExempt === true/);
+  assert.doesNotMatch(clientIntelligence, /Customer health is acceptable, but an adoption signal requires review/);
 });
 
 test("Command cockpit presentation is derived from live ops-home fields", () => {
