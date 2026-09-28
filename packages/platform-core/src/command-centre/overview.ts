@@ -285,6 +285,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     overdueLeadResponses,
     orgsWithBilling,
     platformSubscriptions,
+    preCheckoutOnboarding,
     referralTotals,
     referralByStatus,
     referralCreditsMtd,
@@ -330,6 +331,13 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
         status: { in: ["TRIALING", "ACTIVE", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED", "CANCEL_AT_PERIOD_END"] },
       },
       select: { planTier: true, status: true },
+    }),
+    prisma.organisation.findMany({
+      where: {
+        status: "trial",
+        NOT: { settings: { equals: {} } },
+      },
+      select: { id: true, settings: true },
     }),
     prisma.platformReferral.count(),
     prisma.platformReferral.groupBy({
@@ -443,7 +451,11 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
   );
 
   const activeTrials = platformSubscriptions.filter((sub) => sub.status === "TRIALING").length;
-  const onboardingSubscriptions = platformSubscriptions.filter((sub) =>
+  const preCheckoutOnboardingCount = preCheckoutOnboarding.filter((org) => {
+    const settings = org.settings as { gen2Onboarding?: { startedAt?: string; completedAt?: string | null } } | null;
+    return Boolean(settings?.gen2Onboarding?.startedAt);
+  }).length;
+  const onboardingSubscriptions = preCheckoutOnboardingCount + platformSubscriptions.filter((sub) =>
     ["TRIALING", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED"].includes(sub.status),
   ).length;
   const stalledOnboarding = platformSubscriptions.filter((sub) =>
