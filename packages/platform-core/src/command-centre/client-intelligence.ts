@@ -141,18 +141,6 @@ function evaluateIntervention(
     reasons.push("Very low activity and no current opportunities");
   }
 
-  const scoreTierHealthy =
-    result.scoreBand === "excellent" || result.scoreBand === "healthy";
-  const adoptionReview =
-    scoreTierHealthy &&
-    breakdown.crm < 72 &&
-    !highActivityNoCommercial &&
-    !stalledCommercial;
-  if (adoptionReview) {
-    reasons.push(
-      "Customer health is acceptable, but an adoption signal requires review",
-    );
-  }
 
   return { required: reasons.length > 0, reasons };
 }
