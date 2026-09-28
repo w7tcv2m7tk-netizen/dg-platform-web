@@ -22,6 +22,8 @@ type GrowthSummaryCard = {
 };
 
 const GROWTH_APP_ORDER = [
+  "marketing",
+  "advertising",
   "seo",
   "ai-visibility",
   "reviews",
@@ -63,6 +65,28 @@ function actionLabel(card: GrowthSummaryCard) {
 }
 
 function fallbackGrowthCard(appId: string): GrowthSummaryCard | null {
+  if (appId === "marketing") {
+    return {
+      id: "marketing",
+      appId,
+      label: "Marketing",
+      value: "Awaiting campaign data",
+      detail: "Marketing remains visible whenever the Growth App is active; connected campaign and funnel evidence will populate this summary.",
+      href: "/apps/marketing",
+      state: "unavailable",
+    };
+  }
+  if (appId === "advertising") {
+    return {
+      id: "advertising",
+      appId,
+      label: "Advertising",
+      value: "Awaiting advertising data",
+      detail: "Advertising remains visible whenever the Growth App is active; authorised paid-media evidence will populate this summary.",
+      href: "/apps/advertising",
+      state: "unavailable",
+    };
+  }
   if (appId === "reviews") {
     return {
       id: "reviews",
