@@ -13,7 +13,7 @@ type Recommendation = { label:string; detail:string; kind:"finance"|"standard"; 
 
 const SPECIALIST: Record<string,Recommendation> = {
   "mortgage-broking": { label:"Specialist finance connections", detail:"Start with Lend, then review the specialist finance providers prepared for Mortgage & Finance Broking. Access depends on your DigitalGate plan and provider approval.", kind:"finance", priorities:["Lend","illion BankStatements","Equifax","Vedacheck"] },
-  "real-estate-agency": { label:"Real estate connections", detail:"Start with the systems that support listings, enquiries, advertising and customer relationships.", kind:"standard", priorities:["Google Business Profile","Google Ads","Meta","LinkedIn"] },
+  "real-estate-agency": { label:"Real estate connections", detail:"Start with the specialist property platforms that support property data, listings, enquiries and syndication, then connect your marketing channels.", kind:"standard", priorities:["Cotality (CoreLogic)","realestate.com.au","Domain","Google Business Profile","Google Ads","Meta","LinkedIn"] },
   "short-stay": { label:"Accommodation connections", detail:"Start with the services that support reputation, guest acquisition, communications and marketing.", kind:"standard", priorities:["Google Business Profile","Google Ads","Meta","YouTube"] },
   "musicians": { label:"Music & audience connections", detail:"Start with the marketing, audience, social and content services you already use.", kind:"standard", priorities:["Meta","YouTube","TikTok Ads","LinkedIn"] },
 };
