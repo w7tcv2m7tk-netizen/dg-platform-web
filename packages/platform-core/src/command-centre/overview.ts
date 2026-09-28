@@ -385,6 +385,12 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
       },
     }),
     prisma.activity.findMany({
+      where: {
+        organisation: {
+          status: { not: "demo" },
+          slug: { not: "harbour-and-co-demo" },
+        },
+      },
       orderBy: { createdAt: "desc" },
       take: 8,
       select: {
