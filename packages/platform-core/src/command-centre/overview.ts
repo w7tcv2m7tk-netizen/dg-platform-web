@@ -298,7 +298,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     deliveryProjects,
     partnerPulse,
   ] = await Promise.all([
-    prisma.organisation.count(),
+    prisma.organisation.count({ where: { id: { not: operatorOrganisationId ?? undefined }, status: { not: "demo" }, slug: { not: "digitalgate-demo-business" } } }),
     prisma.membership.count({ where: { status: "active" } }),
     operatorOrganisationId ? prisma.lead.count({ where: { organisationId: operatorOrganisationId } }) : Promise.resolve(0),
     operatorOrganisationId ? prisma.lead.count({ where: { organisationId: operatorOrganisationId, createdAt: { gte: weekStart } } }) : Promise.resolve(0),
@@ -508,7 +508,13 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
     return Number.isFinite(ts) && Date.now() - ts < 7 * 24 * 60 * 60 * 1000;
   }).length;
 
-  const clients: CommandClientRow[] = intelligence.clients.map((c) => ({
+  const customerClients = intelligence.clients.filter((c) =>
+    c.organisationId !== operatorOrganisationId &&
+    c.status !== "demo" &&
+    c.organisationSlug !== "digitalgate-demo-business",
+  );
+
+  const clients: CommandClientRow[] = customerClients.map((c) => ({
     organisationId: c.organisationId,
     organisationName: c.organisationName,
     organisationSlug: c.organisationSlug,
