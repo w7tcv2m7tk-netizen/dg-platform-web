@@ -174,6 +174,7 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     activeStays,
     activeSubs,
     invoicePaidMtd,
+    exemptPlatformSubscriptions,
   ] = await Promise.all([
     prisma.organisation.findMany({
       orderBy: { updatedAt: "desc" },
@@ -248,6 +249,10 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       where: { status: "paid", paidAt: { gte: monthStart } },
       _sum: { totalCents: true },
     })),
+    prisma.platformSubscription.findMany({
+      where: { platformExempt: true },
+      select: { organisationId: true },
+    }),
   ]);
 
   const leadsMonthMap = countMap(leadsThisMonth as CountRow[]);
@@ -269,6 +274,10 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     ]),
   );
 
+  const exemptOrganisationIds = new Set(
+    exemptPlatformSubscriptions.map((subscription) => subscription.organisationId),
+  );
+
   const customerOrgRows = orgRows.filter((org) => {
     const isInternalOrg = isPlatformOperatorOrganisation({
       organisationId: org.id,
@@ -286,7 +295,7 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
         name: org.name,
         slug: org.slug,
       });
-    const isBillingExemptInternalBusiness = org.platformSubscription?.platformExempt === true;
+    const isBillingExemptInternalBusiness = exemptOrganisationIds.has(org.id);
     return !isInternalOrg && !isDemoOrg && !isBillingExemptInternalBusiness;
   });
 
