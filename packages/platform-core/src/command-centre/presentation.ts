@@ -444,7 +444,7 @@ export function buildCommandCockpitPresentation(
       id: "customers",
       label: "Customers",
       value: String(data.pulse.organisations),
-      detail: `${plural(data.pulse.users, "active member")} · ${plural(
+      detail: `${plural(data.pulse.organisations, "customer organisation")} · ${plural(
         data.organisationHealth.needsAttentionCount,
         "needs attention",
         "need attention",
@@ -464,20 +464,17 @@ export function buildCommandCockpitPresentation(
       id: "pipeline",
       label: "Leads / pipeline",
       value: String(data.pulse.openOpportunities),
-      detail: `${plural(data.pulse.leadsThisWeek, "new lead")} this week · ${plural(
-        data.pulse.leads,
-        "lead",
-      )} total`,
+      detail: `${plural(data.pulse.leadsThisWeek, "new lead")} this week · ${formatAud(data.pulse.openPipelineValueCents)} open value`,
       href: "/command/opportunities",
       available: true,
     },
     {
       id: "trials",
       label: "Trials / onboarding",
-      value: "—",
-      detail: "Dedicated trial count is not in this view",
+      value: String(data.pulse.activeTrials),
+      detail: `${plural(data.pulse.onboardingSubscriptions, "onboarding account")} · ${plural(data.pulse.stalledOnboarding, "stalled")}`,
       href: "/command/clients",
-      available: false,
+      available: true,
     },
     {
       id: "health",
@@ -568,7 +565,7 @@ export function buildCommandCockpitPresentation(
   if (data.pulse.openOpportunities > 0) {
     opportunities.push({
       id: "open-opps",
-      text: `${plural(data.pulse.openOpportunities, "open opportunity")} in the platform pipeline`,
+      text: `${plural(data.pulse.openOpportunities, "open opportunity")} · ${formatAud(data.pulse.openPipelineValueCents)} open pipeline value`,
       href: "/command/opportunities",
     });
   }
