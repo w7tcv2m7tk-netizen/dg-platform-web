@@ -122,7 +122,7 @@ export function CommandOpsHome({
     growthEngine.activePipeline === 0;
   const revenueNote =
     billing.estimatedMrrCents === 0 && pulse.organisations > 0
-      ? "Founding customers may not yet be on paid platform subscriptions."
+      ? "No paid platform subscriptions are currently active."
       : null;
   const exceptionAlerts = (deliveryAlerts ?? []).filter(
     (alert) => alert.severity === "critical" || alert.severity === "warning",
@@ -406,7 +406,7 @@ export function CommandOpsHome({
             </p>
             <p className="mt-2 text-xs leading-5 text-slate-500">
               {foundingPhaseQuiet
-                ? "Founding pipeline managed manually"
+                ? "Acquisition pipeline managed manually"
                 : `${growthEngine.engagementsThisWeek} engagements this week`}
             </p>
           </Link>
