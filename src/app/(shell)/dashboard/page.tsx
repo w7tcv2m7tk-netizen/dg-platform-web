@@ -24,6 +24,7 @@ import {
 import { Gen2OnboardingChecklistBanner } from "@/components/onboarding/Gen2OnboardingChecklistBanner";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
+import { getPlatformOperatorContext } from "@/lib/platform-operator";
 
 const AUDIT_FRESH_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -160,7 +161,10 @@ export default async function DashboardPage() {
   // Command Centre is entered explicitly by authorised platform operators.
 
   const { user, name, portal, session: platformSession } = await getPlatformPageContext();
-  const enabledAppIds = await getOrgEnabledAppIdsCached();
+  const [enabledAppIds, operator] = await Promise.all([
+    getOrgEnabledAppIdsCached(),
+    getPlatformOperatorContext(),
+  ]);
 
   let liveMetrics = null;
   let activities = null;
@@ -295,7 +299,7 @@ export default async function DashboardPage() {
       ) : null}
 
       <main className={platformSession ? "dg-page-main pt-4 md:pt-6" : "dg-page-main"}>
-        {platformSession ? <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} organisationName={platformSession.organisationName} /> : null}
+        {platformSession && !operator ? <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} organisationName={platformSession.organisationName} /> : null}
         {!platformSession ? (
           <div className="dg-card mb-6 border-sky-500/30">
             <h2 className="font-semibold text-white">Your business workspace is ready when you are</h2>
