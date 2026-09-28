@@ -129,7 +129,7 @@ test("onboarding completion is described as a platform hand-off, not delivery im
 test("first-login Aida handover is available to every signed-in Gen 2 customer", () => {
   assert.match(
     dashboard,
-    /platformSession \? <Gen2OnboardingChecklistBanner organisationId=\{platformSession\.organisationId\} organisationName=\{platformSession\.organisationName\}/,
+    /platformSession && !operator \? <Gen2OnboardingChecklistBanner organisationId=\{platformSession\.organisationId\} organisationName=\{platformSession\.organisationName\}/,
   );
   const renderCount = (dashboard.match(/<Gen2OnboardingChecklistBanner/g) ?? []).length;
   assert.equal(renderCount, 1, "the onboarding/handover banner should be rendered once, outside founding-only branching");

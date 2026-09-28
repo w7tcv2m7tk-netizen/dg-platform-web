@@ -10,6 +10,7 @@ import {
   isTemplateActivatable,
   hasPlatformAuthority,
   normalisePaidAppKeys,
+  paidAppIdsFromKeys,
   paidAppKeyForAppId,
   industryIdForAppOrTemplate,
   readOrgIndustrySettings,
@@ -184,7 +185,8 @@ function paidAppActivationAllowed(
   if (staffOrOperator) return true;
   const paidKey = paidAppKeyForAppId(appId);
   if (!paidKey) return true;
-  return normalisePaidAppKeys(settings.profile?.purchasedPremium).includes(paidKey);
+  const purchasedKeys = normalisePaidAppKeys(settings.profile?.purchasedPremium);
+  return purchasedKeys.includes(paidKey) || paidAppIdsFromKeys(purchasedKeys).includes(appId);
 }
 
 function unpaidPaidApps(
