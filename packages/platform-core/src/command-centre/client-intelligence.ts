@@ -298,7 +298,8 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
         name: org.name,
         slug: org.slug,
       });
-    return !isInternalOrg && !isDemoOrg;
+    const isBillingExemptInternalBusiness = org.platformSubscription?.platformExempt === true;
+    return !isInternalOrg && !isDemoOrg && !isBillingExemptInternalBusiness;
   });
 
   const scored = customerOrgRows.map((org) => {
