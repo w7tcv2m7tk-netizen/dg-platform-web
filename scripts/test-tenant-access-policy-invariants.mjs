@@ -14,5 +14,6 @@ for (const id of ["advertising","marketing","prospecting","ai-visibility","seo",
   assert.ok(overview.includes(`"${id}"`), `Overview missing ${id}`);
 }
 assert.match(nav,/platformNetworkNavItem\(showCommandCentre\)/);
-assert.match(nav,/if \(showCommandCentre\) items\.push\(platformCommandCentreNavItem\(\)\)/);
+assert.match(nav,/const commandCentre = getCommandCentreNavItem\(\)/);
+assert.match(nav,/label: options\?\.showCommandCentre[\s\S]*PLATFORM_CONFIG_NAV_SECTION_LABEL/);
 console.log("tenant access policy invariants passed");
