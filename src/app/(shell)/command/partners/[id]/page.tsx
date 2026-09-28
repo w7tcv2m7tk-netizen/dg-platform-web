@@ -42,6 +42,15 @@ export default async function AdminPartnerDetailPage({
 
   if (!partner) notFound();
 
+  const isDeliveryPartner = partner.partnerType === "IMPLEMENTATION_PARTNER";
+  const partnerDisplayLabel =
+    isDeliveryPartner && partner.deliveryRole === "lead" ? "Delivery Manager" : partner.partnerTypeLabel;
+  const commercialSummary = isDeliveryPartner
+    ? partner.serviceCommissionPercent != null
+      ? `${partner.serviceCommissionPercent}% qualifying service revenue`
+      : "Service revenue only"
+    : `${partner.commissionPercent}% × ${partner.commissionDurationMonths} months`;
+
   return (
     <>
       <header className="dg-page-header">
@@ -54,8 +63,7 @@ export default async function AdminPartnerDetailPage({
               {partner.displayName ?? "Partner"}
             </h1>
             <p className="mt-1 text-sm text-slate-400">
-              {partner.partnerTypeLabel} &middot; {partner.commissionPercent}% ×{" "}
-              {partner.commissionDurationMonths} months
+              {partnerDisplayLabel} &middot; {commercialSummary}
             </p>
           </div>
           <PartnerAdminActions
@@ -79,8 +87,8 @@ export default async function AdminPartnerDetailPage({
                 ["Referral URL", partner.referralUrl],
                 ["Status", partner.status],
                 ["Invitation", partner.invitationStatus ?? "—"],
-                ["Tier", partner.partnerTypeLabel],
-                ["Commission", `${partner.commissionPercent}% for ${partner.commissionDurationMonths} months`],
+                ["Tier", partnerDisplayLabel],
+                ["Commission", isDeliveryPartner ? commercialSummary : `${partner.commissionPercent}% for ${partner.commissionDurationMonths} months`],
                 ["Cohort", partner.cohort ?? "—"],
                 ["Joined", partner.joinedAt ? new Date(partner.joinedAt).toLocaleDateString("en-AU") : "Pending"],
               ].map(([label, value]) => (
