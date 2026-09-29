@@ -29,6 +29,50 @@ DigitalGate → Vercel → AI Service → Model Router → OpenAI / Anthropic / 
 
 ---
 
+## Future capability — hybrid local + cloud inference
+
+**Status:** Retained future architecture option — **not authorised for current production implementation**.
+
+DigitalGate should preserve the option for the Model Router to choose between **frontier cloud models** and **approved local/on-premise models**. The Business Brain remains the governed context layer regardless of where inference runs.
+
+```
+DigitalGate Business Brain + governed context
+                ↓
+           Model Router
+        ↙                 ↘
+Local / edge model      Frontier cloud model
+repetitive, bounded     hardest reasoning,
+low-risk workloads      complex generation
+        ↘                 ↙
+      Tools · Audit · Usage · Learning
+```
+
+### Why retain this
+
+Increasingly capable high-memory local AI hardware makes local inference practical for selected workloads. For DigitalGate this could become a **margin, privacy and resilience capability**, rather than a reason to move the production AI stack onto desktop hardware prematurely.
+
+Potential benefits:
+
+- reduce metered token cost for high-volume, repetitive inference;
+- keep selected sensitive business data local or within a controlled customer environment;
+- provide a lower-cost lane for classification, extraction, tagging, summarisation and other bounded work;
+- reserve frontier models for tasks where reasoning quality materially matters;
+- support future private/edge deployment options without changing the Business Brain or tool-governance model.
+
+### Future routing policy
+
+A later Model Router may score each task against **required intelligence, privacy/data locality, risk, cost, latency/availability and measured model fitness**. The target is task routing by intelligence + privacy + risk + cost, not sending every request to the largest frontier model.
+
+Good local candidates are bounded, measurable tasks such as classification, extraction, normalisation, tagging, deduplication, lightweight summarisation and low-risk background processing. Frontier models remain the default for difficult reasoning, ambiguous recommendations, high-value generation and tasks that fail local quality thresholds.
+
+### Guardrails and validation trigger
+
+Local inference remains another provider lane behind the existing **DigitalGate AI Service / Model Router**; Apps still never call models directly. Business Brain, Digital Twin, permissions, Tool Registry, audit and human-approval rules remain authoritative. “Local” must not automatically be treated as private: runtime telemetry, storage and networking still require verification.
+
+Do **not** build a Mac cluster as current production infrastructure. Revisit when production usage can identify repeatable workloads and measure tokens, cost, latency, quality and privacy requirements by task. Any proof of concept should compare an approved local model with the current cloud route on the same evaluation set, while keeping the hardware implementation replaceable.
+
+---
+
 ## Product stack (not “AI integration”)
 
 | Capability | Role |

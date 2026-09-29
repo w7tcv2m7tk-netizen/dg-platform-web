@@ -532,6 +532,14 @@ export const PLATFORM_DOCS_CATALOG: readonly PlatformDocEntry[] = [
     relativePath: "connectors/GOOGLE-GBP.md",
   },
   {
+    slug: "ai-architecture",
+    title: "AI Architecture",
+    summary:
+      "Provider-agnostic AI Service and Model Router — includes retained future hybrid local + cloud inference routing by intelligence, privacy, risk and cost.",
+    group: "ai",
+    relativePath: "ai/AI-ARCHITECTURE.md",
+  },
+  {
     slug: "platform-intelligence",
     title: "Platform Intelligence",
     summary: "Docs SSOT → live truth → tools; Phase 0/1 knowledge layer (not full AI yet).",
