@@ -268,7 +268,7 @@ test("customer activation is the primary onboarding pulse", () => {
 });
 
 test("secondary command metrics stay compact on mobile", () => {
-  assert.match(commandHome, /grid grid-cols-2 gap-x-5 gap-y-6/);
-  assert.match(commandHome, /text-base font-semibold leading-tight/);
-  assert.match(commandHome, /sm:text-xl/);
+  assert.match(home, /grid grid-cols-2 gap-x-5 gap-y-6/);
+  assert.match(home, /text-base font-semibold leading-tight/);
+  assert.match(home, /sm:text-xl/);
 });
