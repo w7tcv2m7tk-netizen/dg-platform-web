@@ -69,6 +69,7 @@ export function WebsiteStudioClient({
   const [cssDraft, setCssDraft] = useState(initialChrome?.customCss ?? "");
   const [savingChrome, setSavingChrome] = useState(false);
   const [aiMarkupBusy, setAiMarkupBusy] = useState<string | null>(null);
+  const [copiedMarkup, setCopiedMarkup] = useState<string | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(
     null,
   );
@@ -353,6 +354,19 @@ export function WebsiteStudioClient({
       setStatus(json.error?.message || `Could not save ${label}`);
     }
     setSavingChrome(false);
+  }
+
+  async function copyMarkup(label: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedMarkup(label);
+      setStatus(`${label} copied to clipboard`);
+      window.setTimeout(() => {
+        setCopiedMarkup((current) => (current === label ? null : current));
+      }, 1600);
+    } catch {
+      setStatus(`Could not copy ${label.toLowerCase()}`);
+    }
   }
 
   async function resetFooterToDefault() {
@@ -898,6 +912,15 @@ export function WebsiteStudioClient({
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
+                  disabled={busy || savingChrome || !headerDraft}
+                  onClick={() => void copyMarkup("Header HTML", headerDraft)}
+                  title="Copy header HTML to clipboard"
+                  className="rounded border border-emerald-500/60 px-2 py-1 text-[11px] text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-50"
+                >
+                  {copiedMarkup === "Header HTML" ? "Copied" : "Copy"}
+                </button>
+                <button
+                  type="button"
                   disabled={busy || savingChrome || aiMarkupBusy !== null}
                   onClick={() => void runChromeAi("header", headerDraft, setHeaderDraft)}
                   title="Let AI improve the header — review, then save"
@@ -1021,6 +1044,15 @@ export function WebsiteStudioClient({
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
+                  disabled={busy || savingChrome || !footerDraft}
+                  onClick={() => void copyMarkup("Footer HTML", footerDraft)}
+                  title="Copy footer HTML to clipboard"
+                  className="rounded border border-emerald-500/60 px-2 py-1 text-[11px] text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-50"
+                >
+                  {copiedMarkup === "Footer HTML" ? "Copied" : "Copy"}
+                </button>
+                <button
+                  type="button"
                   disabled={busy || savingChrome || aiMarkupBusy !== null}
                   onClick={() => void runChromeAi("footer", footerDraft, setFooterDraft)}
                   title="Let AI improve the footer — review, then save"
@@ -1082,6 +1114,15 @@ export function WebsiteStudioClient({
                 </span>
               </h2>
               <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={busy || savingChrome || !cssDraft}
+                  onClick={() => void copyMarkup("Site CSS", cssDraft)}
+                  title="Copy site CSS to clipboard"
+                  className="rounded border border-emerald-500/60 px-2 py-1 text-[11px] text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-50"
+                >
+                  {copiedMarkup === "Site CSS" ? "Copied" : "Copy"}
+                </button>
                 <button
                   type="button"
                   disabled={busy || savingChrome || aiMarkupBusy !== null}
@@ -1184,7 +1225,18 @@ function PageHtmlEditor({
   const [draft, setDraft] = useState(html);
   const [saving, setSaving] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
   const len = draft.trim().length;
+
+  async function copyPageHtml() {
+    try {
+      await navigator.clipboard.writeText(draft);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      setCopied(false);
+    }
+  }
 
   async function runAi() {
     setAiBusy(true);
@@ -1215,6 +1267,15 @@ function PageHtmlEditor({
           </span>
         </span>
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            disabled={disabled || saving || !draft}
+            onClick={() => void copyPageHtml()}
+            title="Copy page HTML to clipboard"
+            className="rounded border border-emerald-500/60 px-2 py-1 text-[11px] text-emerald-200 hover:bg-emerald-500/10 disabled:opacity-50"
+          >
+            {copied ? "Copied" : "Copy"}
+          </button>
           <button
             type="button"
             disabled={disabled || saving || aiBusy}
