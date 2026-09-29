@@ -1,4 +1,4 @@
-import { createLendClient, encryptConnectorSecret, getOrgConnectorSettings, saveOrgConnectorSettings } from "@dg/platform-core";
+import { clearOrgConnectorSettings, createLendClient, encryptConnectorSecret, getOrgConnectorSettings, saveOrgConnectorSettings } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
@@ -74,4 +74,14 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: { code: "lend_connection_failed", message: "Lend credentials could not be verified. Check the credentials and environment." } }, { status: 400 });
   }
+}
+
+
+export async function DELETE(req: Request) {
+  const session = await authorise(req);
+  if (isNextResponse(session)) return session;
+  await clearOrgConnectorSettings(session.organisationId, "lend");
+  return NextResponse.json({
+    data: publicState(null),
+  });
 }
