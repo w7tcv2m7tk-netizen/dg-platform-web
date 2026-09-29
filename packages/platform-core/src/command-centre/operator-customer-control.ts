@@ -48,7 +48,7 @@ function planLabel(id: string | undefined | null) {
 }
 
 export type OperatorCustomerControlSnapshot = {
-  lifecycle: "not_started" | "onboarding" | "checkout_ready" | "trial" | "active" | "attention";
+  lifecycle: "not_started" | "onboarding" | "awaiting_subscription" | "trial" | "active" | "attention";
   lifecycleLabel: string;
   onboarding: {
     percentComplete: number;
@@ -147,20 +147,25 @@ export async function getOperatorCustomerControlSnapshot(
     alerts.push("Onboarding is marked complete while required activation items remain incomplete.");
   }
 
+  const stripeBackedTrial = Boolean(
+    billing?.hasStripeCustomer &&
+    billing?.subscriptionStatus?.toLowerCase() === "trialing"
+  );
+
   let lifecycle: OperatorCustomerControlSnapshot["lifecycle"] = "not_started";
   let lifecycleLabel = "Not started";
   if (alerts.length > 0) {
     lifecycle = "attention";
     lifecycleLabel = "Needs attention";
-  } else if (billing?.kind === "trial" || billing?.kind === "founding_trial") {
+  } else if (stripeBackedTrial) {
     lifecycle = "trial";
-    lifecycleLabel = "Trial";
+    lifecycleLabel = "On trial";
   } else if (billing && ["subscribed", "active"].includes(billing.kind)) {
     lifecycle = "active";
     lifecycleLabel = "Active";
   } else if (progress.currentStep === "stripe" || progress.currentStep === "order_summary") {
-    lifecycle = "checkout_ready";
-    lifecycleLabel = "Ready for checkout";
+    lifecycle = "awaiting_subscription";
+    lifecycleLabel = "Awaiting subscription";
   } else if (progress.completedSteps.length > 0) {
     lifecycle = "onboarding";
     lifecycleLabel = "Onboarding";

@@ -31,7 +31,7 @@ function normaliseStringList(value: unknown): string[] {
     : [];
 }
 
-function buildResponse(org: { id: string; name: string; slug: string; settings: unknown }) {
+function buildResponse(org: { id: string; name: string; slug: string; settings: unknown }, platformSubscription?: { status: string; stripeStatus: string | null; stripeSubscriptionId: string | null } | null) {
   const settings = (org.settings as OrgSettings | null) ?? {};
   const enabled = resolveEnabledAppIds(settings);
   const core = new Set<string>(FOUNDING_MODE_CORE_APP_IDS);
@@ -47,6 +47,12 @@ function buildResponse(org: { id: string; name: string; slug: string; settings: 
     required: core.has(manifest.id),
   }));
 
+  const stripeStatus = platformSubscription?.stripeStatus?.toLowerCase() ?? null;
+  const commerciallyActivated = Boolean(
+    platformSubscription?.stripeSubscriptionId &&
+    (stripeStatus === "trialing" || stripeStatus === "active")
+  );
+
   return {
     organisation: { id: org.id, name: org.name, slug: org.slug },
     subscription: {
@@ -56,6 +62,8 @@ function buildResponse(org: { id: string; name: string; slug: string; settings: 
       purchasedApps: normaliseStringList(settings.profile?.purchasedApps),
       purchasedPremium: normaliseStringList(settings.profile?.purchasedPremium),
       appliedAt: plan?.appliedAt ?? null,
+      commerciallyActivated,
+      commercialStatus: commerciallyActivated ? (stripeStatus === "trialing" ? "On trial" : "Active") : "Awaiting subscription",
     },
     apps,
   };
@@ -74,6 +82,10 @@ export async function GET(
     where: { id: orgId },
     select: { id: true, name: true, slug: true, settings: true },
   });
+  const platformSubscription = await prisma.platformSubscription.findUnique({
+    where: { organisationId: orgId },
+    select: { status: true, stripeStatus: true, stripeSubscriptionId: true },
+  });
 
   if (!org) {
     return NextResponse.json(
@@ -82,7 +94,7 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({ data: buildResponse(org) });
+  return NextResponse.json({ data: buildResponse(org, platformSubscription) });
 }
 
 export async function PATCH(
