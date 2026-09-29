@@ -31,6 +31,7 @@ const lifecycleClass: Record<OperatorCustomerControlSnapshot["lifecycle"], strin
   not_started: "border-slate-600 bg-slate-800/60 text-slate-200",
   onboarding: "border-sky-500/30 bg-sky-500/10 text-sky-200",
   checkout_ready: "border-violet-500/30 bg-violet-500/10 text-violet-200",
+  awaiting_subscription: "border-amber-500/30 bg-amber-500/10 text-amber-200",
   trial: "border-amber-500/30 bg-amber-500/10 text-amber-200",
   active: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
   attention: "border-rose-500/30 bg-rose-500/10 text-rose-200",
@@ -77,7 +78,11 @@ export function CustomerControlPanel({
           <p className="text-[11px] uppercase tracking-wide text-slate-500">Billing</p>
           <p className="mt-1 font-semibold text-white">{billing?.headline ?? "No billing snapshot"}</p>
           <p className="text-xs text-slate-400">
-            {billing?.trialEnd ? `Trial ends ${date(billing.trialEnd)}` : billing?.commercialStatus ?? billing?.subscriptionStatus ?? "Pre-checkout"}
+            {snapshot.lifecycle === "awaiting_subscription"
+              ? "Pre-checkout"
+              : billing?.trialEnd && snapshot.lifecycle === "trial"
+                ? `Trial ends ${date(billing.trialEnd)}`
+                : billing?.commercialStatus ?? billing?.subscriptionStatus ?? "Pre-checkout"}
           </p>
         </div>
         <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
