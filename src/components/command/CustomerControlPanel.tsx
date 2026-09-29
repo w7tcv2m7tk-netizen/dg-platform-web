@@ -30,7 +30,6 @@ function chips(items: Array<{ id: string; label: string }>, empty: string) {
 const lifecycleClass: Record<OperatorCustomerControlSnapshot["lifecycle"], string> = {
   not_started: "border-slate-600 bg-slate-800/60 text-slate-200",
   onboarding: "border-sky-500/30 bg-sky-500/10 text-sky-200",
-  checkout_ready: "border-violet-500/30 bg-violet-500/10 text-violet-200",
   awaiting_subscription: "border-amber-500/30 bg-amber-500/10 text-amber-200",
   trial: "border-amber-500/30 bg-amber-500/10 text-amber-200",
   active: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
