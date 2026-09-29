@@ -73,6 +73,11 @@ export type EnrichedCommandClient = CommandClientRow & {
   isInternalOrg: boolean;
   /** Verified signals warranting operator intervention — not score tier alone */
   interventionReasons: string[];
+  /** Commercial lifecycle is sourced from the platform/Stripe subscription, never inferred from org status. */
+  lifecycleStatus: "setup_incomplete" | "awaiting_subscription" | "trialing" | "active" | "past_due" | "cancelled";
+  lifecycleSince: string;
+  lifecycleAgeDays: number;
+  trialDaysRemaining: number | null;
 };
 
 export type ClientIntelligenceBundle = {
@@ -175,6 +180,7 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     activeSubs,
     invoicePaidMtd,
     exemptPlatformSubscriptions,
+    platformSubscriptions,
   ] = await Promise.all([
     prisma.organisation.findMany({
       orderBy: { updatedAt: "desc" },
@@ -253,6 +259,20 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       where: { platformExempt: true },
       select: { organisationId: true },
     }),
+    prisma.platformSubscription.findMany({
+      select: {
+        organisationId: true,
+        status: true,
+        stripeStatus: true,
+        stripeSubscriptionId: true,
+        trialStart: true,
+        trialEnd: true,
+        currentPeriodStart: true,
+        cancelledAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    }),
   ]);
 
   const leadsMonthMap = countMap(leadsThisMonth as CountRow[]);
@@ -276,6 +296,10 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
 
   const exemptOrganisationIds = new Set(
     exemptPlatformSubscriptions.map((subscription) => subscription.organisationId),
+  );
+
+  const platformSubscriptionMap = new Map(
+    platformSubscriptions.map((subscription) => [subscription.organisationId, subscription]),
   );
 
   const customerOrgRows = orgRows.filter((org) => {
@@ -338,6 +362,39 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
     };
 
     const result = computeSuccessScore(scoreInput);
+    const platformSubscription = platformSubscriptionMap.get(org.id);
+    const canonicalStatus = platformSubscription?.status?.toUpperCase();
+    const stripeStatus = platformSubscription?.stripeStatus?.toLowerCase();
+    const hasStripeSubscription = Boolean(platformSubscription?.stripeSubscriptionId);
+    let lifecycleStatus: EnrichedCommandClient["lifecycleStatus"] = "setup_incomplete";
+    let lifecycleSince = org.createdAt;
+    let trialDaysRemaining: number | null = null;
+
+    if (!platformSubscription) {
+      lifecycleStatus = "setup_incomplete";
+    } else if (!hasStripeSubscription) {
+      lifecycleStatus = "awaiting_subscription";
+      lifecycleSince = platformSubscription.createdAt;
+    } else if (stripeStatus === "trialing" && canonicalStatus === "TRIALING") {
+      lifecycleStatus = "trialing";
+      lifecycleSince = platformSubscription.trialStart ?? platformSubscription.createdAt;
+      trialDaysRemaining = platformSubscription.trialEnd
+        ? Math.max(0, Math.ceil((platformSubscription.trialEnd.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)))
+        : null;
+    } else if (stripeStatus === "active" || canonicalStatus === "ACTIVE") {
+      lifecycleStatus = "active";
+      lifecycleSince = platformSubscription.currentPeriodStart ?? platformSubscription.updatedAt;
+    } else if (["PAST_DUE", "PAYMENT_FAILED", "RESTRICTED", "SUSPENDED"].includes(canonicalStatus ?? "") || stripeStatus === "past_due") {
+      lifecycleStatus = "past_due";
+      lifecycleSince = platformSubscription.updatedAt;
+    } else if (canonicalStatus === "CANCELLED" || stripeStatus === "canceled") {
+      lifecycleStatus = "cancelled";
+      lifecycleSince = platformSubscription.cancelledAt ?? platformSubscription.updatedAt;
+    } else {
+      lifecycleStatus = "awaiting_subscription";
+      lifecycleSince = platformSubscription.createdAt;
+    }
+    const lifecycleAgeDays = Math.max(0, Math.floor((now.getTime() - lifecycleSince.getTime()) / (24 * 60 * 60 * 1000)));
     // Observed problems only — do not invent "no leads yet" / empty CRM gaps.
     // WP is optional legacy; RE/Acc Gen 2 SoT no longer requires a live WP connector.
     const attentionReasons = [...result.concerns];
@@ -392,6 +449,10 @@ export async function getClientIntelligence(): Promise<ClientIntelligenceBundle>
       invoicePaidMtdCents: scoreInput.invoicePaidMtdCents,
       daysSinceUpdate: scoreInput.daysSinceUpdate,
       isInternalOrg: internalOrg,
+      lifecycleStatus,
+      lifecycleSince: lifecycleSince.toISOString(),
+      lifecycleAgeDays,
+      trialDaysRemaining,
     };
     return row;
   });
