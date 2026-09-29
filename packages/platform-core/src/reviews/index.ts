@@ -165,7 +165,7 @@ export async function draftReviewReply(input: {
       : `Hi ${author}, thank you for your kind words. We're glad you enjoyed your stay with ${name}, and we hope to welcome you again soon.`;
 
   if (!llmConfigured()) {
-    return { draft: stub, source: "stub" };
+    return { draft: "", source: "unavailable" };
   }
 
   try {
@@ -197,7 +197,7 @@ export async function draftReviewReply(input: {
     const draft = result.text.replace(/^["']|["']$/g, "").trim() || stub;
     return { draft, source: "llm", provider: result.provider, model: result.model };
   } catch {
-    return { draft: stub, source: "stub" };
+    return { draft: "", source: "unavailable" };
   }
 }
 
@@ -211,7 +211,7 @@ export type ReviewTheme = {
 export type ReviewThemesResult = {
   themes: ReviewTheme[];
   summary: string;
-  source: "llm" | "stub";
+  source: "llm" | "unavailable";
   provider?: string;
   model?: string;
 };
@@ -227,12 +227,12 @@ function unavailableThemes(reviews: ReviewFeedItem[]): ReviewThemesResult {
   };
 }
 
-/** AI theme extraction — LLM when keyed, keyword stub otherwise. */
+/** AI theme extraction — LLM when configured; otherwise report analysis as unavailable. */
 export async function extractReviewThemes(
   reviews: ReviewFeedItem[],
 ): Promise<ReviewThemesResult> {
-  const stub = stubThemes(reviews);
-  if (!llmConfigured() || reviews.length === 0) return stub;
+  const unavailable = unavailableThemes(reviews);
+  if (!llmConfigured() || reviews.length === 0) return unavailable;
 
   const sample = reviews
     .slice(0, 25)
@@ -288,7 +288,7 @@ export async function extractReviewThemes(
       model: result.model,
     };
   } catch {
-    return stub;
+    return unavailable;
   }
 }
 
