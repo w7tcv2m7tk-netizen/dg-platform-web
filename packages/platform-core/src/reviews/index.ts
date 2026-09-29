@@ -155,7 +155,7 @@ export function computeReputationScore(reviews: ReviewFeedItem[]): ReputationSco
 export async function draftReviewReply(input: {
   review: ReviewFeedItem;
   businessName?: string | null;
-}): Promise<{ draft: string; source: "llm" | "stub"; provider?: string; model?: string }> {
+}): Promise<{ draft: string; source: "llm" | "unavailable"; provider?: string; model?: string }> {
   const name = input.businessName?.trim() || "our team";
   const author = input.review.authorName?.trim() || "there";
   const rating = input.review.rating;
@@ -165,7 +165,7 @@ export async function draftReviewReply(input: {
       : `Hi ${author}, thank you for your kind words. We're glad you enjoyed your stay with ${name}, and we hope to welcome you again soon.`;
 
   if (!llmConfigured()) {
-    return { draft: stub, source: "stub" };
+    return { draft: "", source: "unavailable" };
   }
 
   try {
@@ -197,7 +197,7 @@ export async function draftReviewReply(input: {
     const draft = result.text.replace(/^["']|["']$/g, "").trim() || stub;
     return { draft, source: "llm", provider: result.provider, model: result.model };
   } catch {
-    return { draft: stub, source: "stub" };
+    return { draft: "", source: "unavailable" };
   }
 }
 
@@ -211,93 +211,28 @@ export type ReviewTheme = {
 export type ReviewThemesResult = {
   themes: ReviewTheme[];
   summary: string;
-  source: "llm" | "stub";
+  source: "llm" | "unavailable";
   provider?: string;
   model?: string;
 };
 
-function stubThemes(reviews: ReviewFeedItem[]): ReviewThemesResult {
-  const texts = reviews
-    .map((r) => [r.title, r.content].filter(Boolean).join(" ").toLowerCase())
-    .filter(Boolean);
-
-  const buckets: Array<{
-    theme: string;
-    sentiment: ReviewTheme["sentiment"];
-    keywords: string[];
-  }> = [
-    {
-      theme: "Communication",
-      sentiment: "positive",
-      keywords: ["communicat", "respond", "helpful", "friendly", "host"],
-    },
-    {
-      theme: "Cleanliness",
-      sentiment: "positive",
-      keywords: ["clean", "tidy", "spotless", "hygien"],
-    },
-    {
-      theme: "Delays / timing",
-      sentiment: "negative",
-      keywords: ["delay", "late", "wait", "slow", "cancel"],
-    },
-    {
-      theme: "Value for money",
-      sentiment: "mixed",
-      keywords: ["value", "price", "expensive", "worth", "cheap"],
-    },
-    {
-      theme: "Location",
-      sentiment: "positive",
-      keywords: ["location", "nearby", "walk", "close to", "convenient"],
-    },
-  ];
-
-  const total = texts.length || 1;
-  const themes: ReviewTheme[] = buckets
-    .map((b) => {
-      const hits = texts.filter((t) => b.keywords.some((k) => t.includes(k)));
-      return {
-        theme: b.theme,
-        sentiment: b.sentiment,
-        mentionShare: Math.round((hits.length / total) * 100),
-        evidence: hits.slice(0, 2).map((t) => t.slice(0, 120)),
-      };
-    })
-    .filter((t) => t.mentionShare > 0)
-    .sort((a, b) => b.mentionShare - a.mentionShare)
-    .slice(0, 5);
-
-  if (!themes.length) {
-    return {
-      themes: [
-        {
-          theme: "Insufficient text",
-          sentiment: "neutral",
-          mentionShare: 0,
-          evidence: [],
-        },
-      ],
-      summary:
-        "Not enough review text to extract themes. Connect a feed or import reviews, then re-run.",
-      source: "stub",
-    };
-  }
-
-  const top = themes[0]!;
+function unavailableThemes(reviews: ReviewFeedItem[]): ReviewThemesResult {
+  const hasText = reviews.some((r) => Boolean(r.title?.trim() || r.content?.trim()));
   return {
-    themes,
-    summary: `Top theme: ${top.theme} (~${top.mentionShare}% of recent reviews). Stub keyword extraction — enable OPENAI_API_KEY / ANTHROPIC_API_KEY for LLM themes.`,
-    source: "stub",
+    themes: [],
+    summary: hasText
+      ? "AI theme analysis is temporarily unavailable. Your reviews and Reputation Score™ are unaffected."
+      : "AI theme analysis will appear when review text is available.",
+    source: "unavailable",
   };
 }
 
-/** AI theme extraction — LLM when keyed, keyword stub otherwise. */
+/** AI theme extraction — LLM when configured; otherwise report analysis as unavailable. */
 export async function extractReviewThemes(
   reviews: ReviewFeedItem[],
 ): Promise<ReviewThemesResult> {
-  const stub = stubThemes(reviews);
-  if (!llmConfigured() || reviews.length === 0) return stub;
+  const unavailable = unavailableThemes(reviews);
+  if (!llmConfigured() || reviews.length === 0) return unavailable;
 
   const sample = reviews
     .slice(0, 25)
@@ -334,7 +269,7 @@ export async function extractReviewThemes(
       themes?: ReviewTheme[];
     };
 
-    if (!parsed.themes?.length) return stub;
+    if (!parsed.themes?.length) return unavailable;
 
     return {
       themes: parsed.themes.slice(0, 5).map((t) => ({
@@ -347,13 +282,13 @@ export async function extractReviewThemes(
           ? t.evidence.map(String).slice(0, 3)
           : [],
       })),
-      summary: parsed.summary?.trim() || stub.summary,
+      summary: parsed.summary?.trim() || unavailable.summary,
       source: "llm",
       provider: result.provider,
       model: result.model,
     };
   } catch {
-    return stub;
+    return unavailable;
   }
 }
 

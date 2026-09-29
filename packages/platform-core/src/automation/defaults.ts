@@ -1,4 +1,5 @@
 import { createActivity } from "../activities";
+import { renderCvhBookingRequestAck } from "../accommodation/stay-enquiry-emails";
 import { ensureContactForLeadFields } from "../contacts";
 import { platformEvents } from "../events";
 import type { PlatformEvent } from "../events/types";
@@ -214,6 +215,11 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
         orgSlug: org?.slug,
         orgName: org?.name,
       });
+    const useCvhBookingAck =
+      !useFounding10Ack &&
+      orgBrandKey === "cvh" &&
+      /^Stay booking \(/i.test(lead.description?.trim() || "");
+
     console.info("[automation] lead ack template", {
       useFounding10Ack,
       useDgContactAck,
@@ -224,6 +230,8 @@ async function handleVendorEnquiryIntake(event: PlatformEvent) {
 
     const ack = useFounding10Ack
       ? founding10AckFromLeadMetadata(greetingName, metadata)
+      : useCvhBookingAck
+      ? renderCvhBookingRequestAck({ firstName: greetingName })
       : useDgContactAck
       ? renderDgContactEnquiryAck({
           firstName: greetingName,

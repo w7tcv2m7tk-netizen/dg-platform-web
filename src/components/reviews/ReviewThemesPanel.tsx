@@ -12,9 +12,7 @@ type ReviewTheme = {
 type ThemesResult = {
   themes: ReviewTheme[];
   summary: string;
-  source: string;
-  provider?: string;
-  model?: string;
+  source: "llm" | "unavailable";
 };
 
 type FeedItem = {
@@ -58,9 +56,7 @@ export function ReviewThemesPanel({
         <div>
           <h2 className="font-semibold text-white">AI theme intelligence</h2>
           <p className="mt-1 text-xs text-slate-500">
-            Source: {result.source}
-            {result.provider ? ` · ${result.provider}` : ""}
-            {result.model ? ` / ${result.model}` : ""}
+            DigitalGate AI analysis
           </p>
         </div>
         <button
@@ -69,11 +65,11 @@ export function ReviewThemesPanel({
           disabled={pending || reviews.length === 0}
           className="min-h-11 rounded-lg border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:border-slate-600 disabled:opacity-50"
         >
-          {pending ? "Extracting…" : "Re-run themes"}
+          {pending ? "Analysing…" : result.source === "llm" ? "Refresh analysis" : "Try analysis again"}
         </button>
       </div>
       <p className="mt-3 text-sm text-slate-300">{result.summary}</p>
-      <ul className="mt-4 space-y-3">
+      {result.source === "unavailable" ? null : <ul className="mt-4 space-y-3">
         {result.themes.map((theme) => (
           <li key={theme.theme} className="rounded-lg border border-slate-800 px-3 py-2">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -89,7 +85,7 @@ export function ReviewThemesPanel({
             ) : null}
           </li>
         ))}
-      </ul>
+      </ul>}
     </div>
   );
 }

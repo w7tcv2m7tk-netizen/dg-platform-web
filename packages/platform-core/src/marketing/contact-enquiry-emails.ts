@@ -91,6 +91,15 @@ export function isDigitalGateGeneralEnquiry(input: {
   const name = (input.orgName || "").trim().toLowerCase();
   const title = (input.leadTitle || "").trim();
 
+  // Generic lead types are shared across tenant websites. Require DigitalGate
+  // identity before selecting DigitalGate-specific acknowledgement copy.
+  const isDigitalGateOrg =
+    siteSlug === "digitalgate" ||
+    brand === "digitalgate" ||
+    slug.includes("digitalgate") ||
+    name.includes("digitalgate");
+  if (!isDigitalGateOrg) return false;
+
   if (
     leadType === "contact" ||
     leadType === "enquiry" ||
@@ -99,11 +108,8 @@ export function isDigitalGateGeneralEnquiry(input: {
     return true;
   }
   if (capturePath === "gen2_dg_enquiry" || capturePath === "website_builder_form") {
-    return siteSlug === "digitalgate" || brand === "digitalgate" || slug.includes("digitalgate");
+    return true;
   }
-  if (siteSlug === "digitalgate") return true;
-  if (brand === "digitalgate") return true;
-  if (slug.includes("digitalgate") || name.includes("digitalgate")) return true;
   if (/^(contact enquiry|website enquiry)\b/i.test(title)) return true;
   return false;
 }

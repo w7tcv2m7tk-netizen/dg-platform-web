@@ -14,6 +14,18 @@ const STATUS_OPTIONS = [
   "cancelled",
 ];
 
+function shortBookingRef(row: WpAccBookingRow): string {
+  const full = row.ref ?? row.platform_id ?? (typeof row.id === "number" ? String(row.id) : "");
+  if (!full) return "—";
+  if (row.ref && row.ref.length <= 22) return row.ref;
+  if (row.ref) return `${row.ref.slice(0, 10)}…${row.ref.slice(-6)}`;
+  return full.length > 14 ? `${full.slice(0, 8)}…${full.slice(-4)}` : full;
+}
+
+function fullBookingRef(row: WpAccBookingRow): string {
+  return row.ref ?? row.platform_id ?? (typeof row.id === "number" ? String(row.id) : "");
+}
+
 function rowKey(row: WpAccBookingRow): string {
   const wpId = typeof row.id === "number" && row.id > 0 ? row.id : 0;
   return row.platform_id || (wpId > 0 ? `wp-${wpId}` : `tmp-${row.ref ?? "row"}`);
@@ -180,11 +192,10 @@ export function AccommodationBookingsTable({
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-800 dg-table-scroll">
-          <table className="w-full min-w-[1100px] text-left text-sm">
+          <table className="w-full min-w-[920px] table-fixed text-left text-sm">
             <thead className="border-b border-slate-800 bg-slate-900/60 text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-4 py-3">Ref</th>
-                <th className="px-4 py-3">Guest</th>
+                <th className="w-[11%] px-3 py-3">Ref</th>\n                <th className="w-[22%] px-3 py-3">Guest</th>
                 <th className="px-4 py-3">Unit</th>
                 <th className="px-4 py-3">Check-in</th>
                 <th className="px-4 py-3">Check-out</th>
@@ -202,13 +213,13 @@ export function AccommodationBookingsTable({
                 const isCancelled = (b.status ?? "").toLowerCase() === "cancelled";
                 return (
                   <tr key={key} className="hover:bg-slate-900/40 align-top">
-                    <td className="px-4 py-3 font-mono text-xs text-slate-400">
-                      {b.ref ??
-                        (typeof b.id === "number" && b.id > 0
-                          ? b.id
-                          : b.platform_id?.slice(0, 8))}
+                    <td
+                      className="px-3 py-3 font-mono text-xs text-slate-400"
+                      title={fullBookingRef(b)}
+                    >
+                      <span className="block truncate">{shortBookingRef(b)}</span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3">
                       {editing ? (
                         <div className="space-y-1">
                           <input
