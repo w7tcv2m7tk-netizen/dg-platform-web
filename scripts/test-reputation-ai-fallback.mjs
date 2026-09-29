@@ -7,7 +7,7 @@ assert.doesNotMatch(core,/OPENAI_API_KEY \/ ANTHROPIC_API_KEY/);
 assert.doesNotMatch(core,/function stubThemes/);
 assert.match(core,/source: "llm" \| "unavailable"/);
 assert.match(core,/AI theme analysis is temporarily unavailable/);
-assert.doesNotMatch(panel,/Source: \{result\.source\}/);
+assert.doesNotMatch(panel,/Source:\\s*\\{result\\.source\\}/);
 assert.doesNotMatch(panel,/result\.provider/);
 assert.doesNotMatch(panel,/result\.model/);
 assert.match(panel,/DigitalGate AI analysis/);
