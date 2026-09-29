@@ -184,7 +184,7 @@ export function CommandOpsHome({
                 >
                   {metric.value}
                 </p>
-                <p className="mt-2 text-xs leading-5 text-slate-500">{metric.detail}</p>
+                <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">{metric.detail}</p>
               </Link>
             ))}
           </div>
@@ -398,13 +398,13 @@ export function CommandOpsHome({
           </ul>
         )}
 
-        <div className="mt-10 grid gap-8 border-t border-white/5 pt-8 sm:grid-cols-2">
+        <div className="mt-8 grid grid-cols-2 gap-x-5 gap-y-6 border-t border-white/5 pt-6 sm:mt-10 sm:gap-8 sm:pt-8">
           <Link href={growthEngine.href} className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Prospecting</p>
-            <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
+            <p className="mt-1.5 text-base font-semibold leading-tight text-white group-hover:text-violet-200 sm:mt-2 sm:text-xl">
               {growthEngine.prospects} active prospects
             </p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
+            <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">
               {foundingPhaseQuiet
                 ? "Acquisition pipeline managed manually"
                 : `${growthEngine.engagementsThisWeek} engagements this week`}
@@ -412,20 +412,20 @@ export function CommandOpsHome({
           </Link>
           <Link href="/command/partners" className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Partners</p>
-            <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
+            <p className="mt-1.5 text-base font-semibold leading-tight text-white group-hover:text-violet-200 sm:mt-2 sm:text-xl">
               {partnerPulse.foundingResellers} active · {partnerPulse.referredCustomers} referred
             </p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
+            <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">
               {partnerPulse.onboardingCount} partner onboarding · {partnerPulse.activeProspects}{" "}
               prospects
             </p>
           </Link>
           <Link href="/command/growth-engine" className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Growth pipeline</p>
-            <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
+            <p className="mt-1.5 text-base font-semibold leading-tight text-white group-hover:text-violet-200 sm:mt-2 sm:text-xl">
               {growthEngine.activePipeline} in pipeline
             </p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
+            <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">
               {growthEngine.topPriorityLabel
                 ? `Next · ${growthEngine.topPriorityLabel}`
                 : "No ranked prospect in this snapshot"}
@@ -437,10 +437,10 @@ export function CommandOpsHome({
             </p>
             {prospectingToday ? (
               <>
-                <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
+                <p className="mt-1.5 text-base font-semibold leading-tight text-white group-hover:text-violet-200 sm:mt-2 sm:text-xl">
                   {prospectingToday.stillRequireAction} still require action
                 </p>
-                <p className="mt-2 text-xs leading-5 text-slate-500">
+                <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">
                   {prospectingToday.recommendedCount} recommended · {prospectingToday.contactedToday}{" "}
                   contacted · {prospectingToday.meetingsBooked} meetings
                 </p>
@@ -448,7 +448,7 @@ export function CommandOpsHome({
             ) : (
               <>
                 <p className="mt-2 text-xl font-semibold text-slate-500">—</p>
-                <p className="mt-2 text-xs leading-5 text-slate-500">
+                <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">
                   Daily briefing is not in this snapshot
                 </p>
               </>
@@ -556,10 +556,10 @@ export function CommandOpsHome({
         <div className="mt-8 grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
           <Link href="/command/delivery" className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Delivery</p>
-            <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
+            <p className="mt-1.5 text-base font-semibold leading-tight text-white group-hover:text-violet-200 sm:mt-2 sm:text-xl">
               {delivery.activeImplementations} active
             </p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
+            <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">
               {delivery.activeImplementations === 0
                 ? "No implementations in flight"
                 : `${delivery.awaitingCustomerInfo} awaiting info · ${delivery.readyForGoLive} ready for go-live`}
@@ -567,10 +567,10 @@ export function CommandOpsHome({
           </Link>
           <Link href="/command/platform-health" className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Connectors</p>
-            <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
+            <p className="mt-1.5 text-base font-semibold leading-tight text-white group-hover:text-violet-200 sm:mt-2 sm:text-xl">
               {connectors.wordpressConfiguredCount} configured
             </p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
+            <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">
               {connectors.wordpressSyncedRecently} synced recently · Stripe{" "}
               {connectors.stripeMode}
               {connectors.stripeOk ? "" : " · needs setup"}
@@ -578,10 +578,10 @@ export function CommandOpsHome({
           </Link>
           <Link href="/command/delivery" className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Training / QA</p>
-            <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
+            <p className="mt-1.5 text-base font-semibold leading-tight text-white group-hover:text-violet-200 sm:mt-2 sm:text-xl">
               {delivery.inTraining} training · {delivery.inQa} QA
             </p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
+            <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">
               {delivery.readyForGoLive} ready for go-live
             </p>
           </Link>
@@ -589,10 +589,10 @@ export function CommandOpsHome({
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
               Partner delivery
             </p>
-            <p className="mt-2 text-xl font-semibold text-white group-hover:text-violet-200">
+            <p className="mt-1.5 text-base font-semibold leading-tight text-white group-hover:text-violet-200 sm:mt-2 sm:text-xl">
               {partnerPulse.onboardingCount} onboarding
             </p>
-            <p className="mt-2 text-xs leading-5 text-slate-500">
+            <p className="mt-1.5 text-[11px] leading-4 text-slate-500 sm:mt-2 sm:text-xs sm:leading-5">
               Partner-referred onboarding — not a platform trial count
             </p>
           </Link>
