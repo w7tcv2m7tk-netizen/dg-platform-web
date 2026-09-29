@@ -151,6 +151,37 @@ export function adminStayEnquiryNotifyBody(input: {
   };
 }
 
+export function renderCvhBookingRequestAck(input: { firstName: string }): { subject: string; body: string; bodyHtml: string; footerNote: string } {
+  const first = input.firstName?.trim() || "there";
+  const subject = "We've received your booking request — Currumbin Valley Hideaway";
+  const body = [
+    `Hi ${first},`,
+    "",
+    "Thanks for booking directly with Currumbin Valley Hideaway.",
+    "",
+    "We've received your booking request. If you selected PayID, your booking remains pending until payment is received and confirmed. Card bookings are confirmed once payment completes.",
+    "",
+    "We'll be in touch if we need anything else. Once your stay is confirmed, you'll receive your booking confirmation and guest stay information.",
+    "",
+    "Currumbin Valley Hideaway",
+    "stay@currumbinvalleyhideaway.com.au",
+  ].join("\n");
+  return {
+    subject,
+    body,
+    bodyHtml: composeEmailBody([
+      { type: "kicker", text: "Booking request received" },
+      { type: "heading", text: "Thanks for booking directly", level: 2 },
+      { type: "paragraph", text: `Hi ${first},` },
+      { type: "paragraph", text: "We've received your booking request for Currumbin Valley Hideaway." },
+      { type: "highlight", text: "If you selected PayID, your booking remains pending until payment is received and confirmed. Card bookings are confirmed once payment completes." },
+      { type: "paragraph", text: "Once your stay is confirmed, you'll receive your booking confirmation and guest stay information." },
+      { type: "signoff", lines: ["Currumbin Valley Hideaway", "stay@currumbinvalleyhideaway.com.au"] },
+    ], { accentColor: ACCENT }),
+    footerNote: "You're receiving this because you submitted a direct booking request to Currumbin Valley Hideaway.",
+  };
+}
+
 export async function sendStayEnquiryHostNotification(
   input: StayEnquiryHostNotifyInput,
 ): Promise<{ sent: number; recipients: string[] }> {
