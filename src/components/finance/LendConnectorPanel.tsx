@@ -22,6 +22,20 @@ export function LendConnectorPanel() {
     });
   }, []);
 
+  async function disconnect() {
+    setBusy(true);
+    setMessage(null);
+    const res = await fetch("/api/v1/connectors/lend", { method: "DELETE" });
+    const json = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setState(json.data);
+      setMessage("Lend disconnected. Stored connector credentials have been removed.");
+    } else {
+      setMessage(json.error?.message ?? "Could not disconnect Lend.");
+    }
+    setBusy(false);
+  }
+
   async function connect() {
     setBusy(true);
     setMessage(null);
@@ -74,7 +88,8 @@ export function LendConnectorPanel() {
         </select>
       </label>
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" disabled={busy || !apiKey || !apiSecret || state?.eligible === false} onClick={connect} className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{busy ? "Verifying…" : "Verify & connect"}</button>
+        <button type="button" disabled={busy || !apiKey || !apiSecret || state?.eligible === false} onClick={connect} className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">{busy ? "Verifying…" : state?.configured ? "Replace credentials" : "Verify & connect"}</button>
+        {state?.configured ? <button type="button" disabled={busy} onClick={disconnect} className="rounded-full border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 disabled:opacity-50">Disconnect</button> : null}
         <span className="text-xs text-slate-500">Use sandbox first. Credentials are never returned to the browser after saving.</span>
       </div>
       {message ? <p className="text-sm text-slate-300">{message}</p> : null}
