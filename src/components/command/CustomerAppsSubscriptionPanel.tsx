@@ -21,6 +21,8 @@ type CustomerAppsData = {
     purchasedApps: string[];
     purchasedPremium: string[];
     appliedAt: string | null;
+    commerciallyActivated: boolean;
+    commercialStatus: string;
   };
   apps: AppRow[];
 };
@@ -117,7 +119,7 @@ export function CustomerAppsSubscriptionPanel({ organisationId }: { organisation
       <div>
         <h2 className="text-lg font-semibold text-white">Apps & subscription</h2>
         <p className="mt-1 text-xs text-slate-500">
-          DigitalGate operator view of the customer plan, purchased additions and currently enabled apps.
+          DigitalGate operator view of the customer’s selected package, commercial activation and currently enabled apps.
         </p>
       </div>
 
@@ -129,17 +131,18 @@ export function CustomerAppsSubscriptionPanel({ organisationId }: { organisation
 
       {data ? (
         <>
+          <div className="flex items-center gap-2 text-xs"><span className={`rounded-full border px-2.5 py-1 font-semibold ${data.subscription.commerciallyActivated ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300" : "border-amber-500/30 bg-amber-500/10 text-amber-300"}`}>{data.subscription.commercialStatus}</span>{!data.subscription.commerciallyActivated ? <span className="text-slate-500">Selections below are pre-checkout and are not yet purchased entitlements.</span> : null}</div>
           <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 text-sm">
             <div className="rounded-lg border border-slate-800 px-3 py-3">
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Platform plan</dt>
+              <dt className="text-xs uppercase tracking-wide text-slate-500">{data.subscription.commerciallyActivated ? "Platform plan" : "Platform plan selected"}</dt>
               <dd className="mt-1 font-medium text-white">{titleCase(data.subscription.platformTier)}</dd>
             </div>
             <div className="rounded-lg border border-slate-800 px-3 py-3">
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Industry apps</dt>
+              <dt className="text-xs uppercase tracking-wide text-slate-500">{data.subscription.commerciallyActivated ? "Industry apps" : "Industry apps selected"}</dt>
               <dd className="mt-1"><ListValue values={[...new Set([...data.subscription.industryApps, ...data.subscription.purchasedApps])]} /></dd>
             </div>
             <div className="rounded-lg border border-slate-800 px-3 py-3">
-              <dt className="text-xs uppercase tracking-wide text-slate-500">Growth / premium</dt>
+              <dt className="text-xs uppercase tracking-wide text-slate-500">{data.subscription.commerciallyActivated ? "Growth / premium" : "Growth / premium selected"}</dt>
               <dd className="mt-1"><ListValue values={[...new Set([...data.subscription.premiumApps, ...data.subscription.purchasedPremium])]} /></dd>
             </div>
             <div className="rounded-lg border border-slate-800 px-3 py-3">
@@ -195,7 +198,7 @@ export function CustomerAppsSubscriptionPanel({ organisationId }: { organisation
           </div>
 
           <p className="text-xs text-slate-500">
-            Core platform apps are included and cannot be switched off here. Industry and Growth apps can be manually enabled or disabled by DigitalGate without changing the recorded commercial subscription.
+            Core platform apps are included and cannot be switched off here. Before checkout, Industry and Growth selections are planned configuration only. After Stripe activates the subscription, purchased entitlements become authoritative.
           </p>
         </>
       ) : null}
