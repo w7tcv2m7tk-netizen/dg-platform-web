@@ -371,7 +371,7 @@ export function CommandOpsHome({
         </div>
 
         {needsAttentionClients.length === 0 ? (
-          <p className="mt-6 text-sm text-slate-500">All tracked organisations look stable.</p>
+          <p className="mt-6 text-sm text-slate-500">No customer organisations currently require intervention based on available signals.</p>
         ) : (
           <ul className="mt-6 divide-y divide-white/5">
             {needsAttentionClients.map((client) => {

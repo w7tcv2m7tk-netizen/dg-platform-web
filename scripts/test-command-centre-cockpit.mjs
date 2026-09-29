@@ -68,6 +68,11 @@ test("Command cockpit keeps live operator capabilities and scopes commercial CRM
   assert.match(overview, /c\.status !== "demo"/);
   assert.match(overview, /c\.organisationSlug !== "digitalgate-demo-business"/);
   assert.match(presentation, /stalled onboarding/);
+  assert.match(presentation, /open opportunities/);
+  assert.match(presentation, /Customer health coverage/);
+  assert.match(overview, /preCheckoutOnboardingCount/);
+  assert.match(overview, /slug: \{ not: "harbour-and-co-demo" \}/);
+  assert.match(home, /No customer organisations currently require intervention based on available signals/);
   assert.doesNotMatch(home, /Founding customers may not yet be on paid platform subscriptions/);
   assert.doesNotMatch(home, /Founding pipeline managed manually/);
   assert.match(clientIntelligence, /where: \{ platformExempt: true \}/);

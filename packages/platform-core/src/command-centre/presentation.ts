@@ -482,7 +482,7 @@ export function buildCommandCockpitPresentation(
     },
     {
       id: "health",
-      label: "Platform health",
+      label: "Customer health coverage",
       value: data.organisationHealth.averageHealthLabel,
       detail: `${data.organisationHealth.organisationsWithSufficientData}/${data.organisationHealth.totalOrganisations} organisations with sufficient data`,
       href: "/command/platform-health",
@@ -569,7 +569,7 @@ export function buildCommandCockpitPresentation(
   if (data.pulse.openOpportunities > 0) {
     opportunities.push({
       id: "open-opps",
-      text: `${plural(data.pulse.openOpportunities, "open opportunity")} · ${formatAud(data.pulse.openPipelineValueCents)} open pipeline value`,
+      text: `${plural(data.pulse.openOpportunities, "open opportunity", "open opportunities")} · ${formatAud(data.pulse.openPipelineValueCents)} open pipeline value`,
       href: "/command/opportunities",
     });
   }
