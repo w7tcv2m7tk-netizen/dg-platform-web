@@ -257,3 +257,9 @@ test("quiet cockpit recedes to a steady status from live empty queues", async ()
   assert.equal(cockpit.criticalAlertCount, 0);
   assert.match(cockpit.needsAttention[0].text, /Nothing requires/);
 });
+
+assert.match(presentationSource, /label: "Customer activation"/);
+assert.match(presentationSource, /value: String\(data\.pulse\.onboardingSubscriptions\)/);
+assert.match(presentationSource, /"awaiting activation account"/);
+assert.match(presentationSource, /"active trial"/);
+assert.doesNotMatch(presentationSource, /label: "Trials \/ onboarding"/);
