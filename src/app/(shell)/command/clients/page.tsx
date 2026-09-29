@@ -3,6 +3,8 @@ import {
   clientScoreTierDisplay,
   clientScoreTierEmoji,
   formatClientObservedSignal,
+  clientLifecycleLabel,
+  clientLifecycleAgeLabel,
   getOperatorClientIntelligence,
 } from "@dg/platform-core";
 
@@ -99,6 +101,12 @@ export default async function CustomerPortfolioPage() {
                         </span>
                       </th>
                       <th className="px-4 py-3 font-medium">
+                        <span className="block">Status</span>
+                        <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-slate-600">
+                          Commercial lifecycle
+                        </span>
+                      </th>
+                      <th className="px-4 py-3 font-medium">
                         <span className="block">Signal</span>
                         <span className="mt-0.5 block text-[10px] font-normal normal-case tracking-normal text-slate-600">
                           What DigitalGate has observed
@@ -132,6 +140,22 @@ export default async function CustomerPortfolioPage() {
                             tier={clientScoreTierDisplay(client)}
                             emoji={clientScoreTierEmoji(client)}
                           />
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${
+                            client.lifecycleStatus === "active"
+                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                              : client.lifecycleStatus === "trialing"
+                                ? "border-sky-500/30 bg-sky-500/10 text-sky-300"
+                                : client.lifecycleStatus === "past_due"
+                                  ? "border-red-500/30 bg-red-500/10 text-red-300"
+                                  : client.lifecycleStatus === "cancelled"
+                                    ? "border-slate-600 bg-slate-800/60 text-slate-400"
+                                    : "border-amber-500/30 bg-amber-500/10 text-amber-300"
+                          }`}>
+                            {clientLifecycleLabel(client)}
+                          </span>
+                          <p className="mt-1 text-xs text-slate-500">{clientLifecycleAgeLabel(client)}</p>
                         </td>
                         <td className="max-w-md px-4 py-3 text-slate-400">
                           {formatClientObservedSignal(client)}
