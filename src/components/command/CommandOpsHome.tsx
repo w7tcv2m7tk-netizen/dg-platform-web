@@ -351,7 +351,7 @@ export function CommandOpsHome({
       <section id="command-customers" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <LayerEyebrow index="04" label="Customers & Growth" />
+            <LayerEyebrow index="04" label="Customers & Acquisition" />
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
               {organisationHealth.needsAttentionCount} organisation
               {organisationHealth.needsAttentionCount === 1 ? "" : "s"} requiring attention
@@ -526,7 +526,7 @@ export function CommandOpsHome({
       <section id="command-platform" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <LayerEyebrow index="06" label="Platform & Delivery Health" />
+            <LayerEyebrow index="06" label="Platform, Partners & Delivery" />
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
               {delivery.blocked > 0
                 ? `${delivery.blocked} delivery blocked`
@@ -622,10 +622,28 @@ export function CommandOpsHome({
         </div>
       </section>
 
+      <section id="command-platform-progress" className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/45 shadow-[0_18px_50px_rgba(0,0,0,.18)]">
+        <div className="px-6 pt-6 sm:px-8 sm:pt-8">
+          <LayerEyebrow index="07" label="Platform Progress" />
+          <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight text-white">Development progress</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">
+                Evidence-based progress from the maintained DigitalGate roadmap — not an estimated percentage.
+              </p>
+            </div>
+            <Link href="/command/product/roadmap" className="inline-flex min-h-11 items-center text-sm text-violet-200 hover:text-white">
+              View Platform roadmap →
+            </Link>
+          </div>
+        </div>
+        <div className="mt-4"><PlatformRoadmapBar /></div>
+      </section>
+
       <section id="command-activity" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <LayerEyebrow index="07" label="Recent Activity" />
+            <LayerEyebrow index="08" label="Recent Activity" />
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
               Live events across the platform
             </h2>
