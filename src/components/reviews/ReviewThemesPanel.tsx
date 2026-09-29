@@ -85,7 +85,7 @@ export function ReviewThemesPanel({
             ) : null}
           </li>
         ))}
-      </ul>
+      </ul>}
     </div>
   );
 }
