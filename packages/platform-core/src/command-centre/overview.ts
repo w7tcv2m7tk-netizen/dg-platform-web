@@ -330,7 +330,7 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
         platformExempt: false,
         status: { in: ["TRIALING", "ACTIVE", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED", "CANCEL_AT_PERIOD_END"] },
       },
-      select: { planTier: true, status: true },
+      select: { organisationId: true, planTier: true, status: true },
     }),
     prisma.organisation.findMany({
       where: {
@@ -451,13 +451,21 @@ export async function getCommandCentreOpsHome(): Promise<CommandCentreOpsHome> {
   );
 
   const activeTrials = platformSubscriptions.filter((sub) => sub.status === "TRIALING").length;
+  const onboardingSubscriptionStatuses = new Set(["TRIALING", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED"]);
+  const onboardingSubscriptionOrganisationIds = new Set(
+    platformSubscriptions
+      .filter((sub) => onboardingSubscriptionStatuses.has(sub.status))
+      .map((sub) => sub.organisationId),
+  );
   const preCheckoutOnboardingCount = preCheckoutOnboarding.filter((org) => {
     const settings = org.settings as { gen2Onboarding?: { startedAt?: string; completedAt?: string | null } } | null;
-    return Boolean(settings?.gen2Onboarding?.startedAt);
+    return Boolean(
+      settings?.gen2Onboarding?.startedAt &&
+      !onboardingSubscriptionOrganisationIds.has(org.id),
+    );
   }).length;
-  const onboardingSubscriptions = preCheckoutOnboardingCount + platformSubscriptions.filter((sub) =>
-    ["TRIALING", "PAYMENT_FAILED", "PAST_DUE", "RESTRICTED"].includes(sub.status),
-  ).length;
+  const onboardingSubscriptions =
+    preCheckoutOnboardingCount + onboardingSubscriptionOrganisationIds.size;
   const stalledOnboarding = platformSubscriptions.filter((sub) =>
     ["PAYMENT_FAILED", "PAST_DUE", "RESTRICTED"].includes(sub.status),
   ).length;
