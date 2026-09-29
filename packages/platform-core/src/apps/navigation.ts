@@ -668,22 +668,20 @@ function getDigitalGateOperatorSection(): NavIaSection {
           },
         ],
       ),
-      operatorApp("dg-platform-intelligence", "Platform Intelligence", "advisor", "/command/platform-intelligence/overview", [
-        { path: "/command/platform-intelligence/overview", label: "Overview" },
-        { path: "/command/platform-intelligence/health", label: "Platform health" },
-        { path: "/command/platform-intelligence/connectors", label: "Connector health" },
-        { path: "/command/platform-intelligence/automation", label: "Automation health" },
-        { path: "/command/platform-intelligence/ai-usage", label: "AI usage" },
-        { path: "/command/platform-intelligence/activity", label: "System activity" },
-        { path: "/command/platform-intelligence/service-status", label: "Service status" },
-        { path: "/command/platform-intelligence/diagnostics", label: "Diagnostics" },
-      ]),
       operatorApp("dg-commercial", "Commercial", "commerce", "/command/revenue", [
         { path: "/command/revenue", label: "Revenue / MRR" },
         { path: "/command/commercial/subscriptions", label: "Subscriptions" },
       ]),
-      operatorApp("dg-product", "Product", "flags", "/command/product/overview", [
+      operatorApp("dg-product", "Platform", "flags", "/command/product/overview", [
         { path: "/command/product/overview", label: "Overview" },
+        { path: "/command/platform-intelligence/overview", label: "Platform Intelligence" },
+        { path: "/command/platform-intelligence/health", label: "Platform health" },
+        { path: "/command/platform-intelligence/connectors", label: "Connector health" },
+        { path: "/command/platform-intelligence/activity", label: "System activity" },
+        { path: "/command/platform-intelligence/service-status", label: "Service status" },
+        { path: "/command/platform-intelligence/diagnostics", label: "Diagnostics" },
+        { path: "/command/intelligence", label: "Ask Platform Intelligence" },
+        { path: "/command/docs", label: "Platform Docs", matchAlso: ["/command/docs/"] },
         { path: "/command/flags", label: "Feature flags" },
         { path: "/command/product/roadmap", label: "Roadmap" },
         { path: "/command/product/releases", label: "Releases" },
@@ -696,15 +694,7 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/support/help", label: "Knowledge base" },
       ]),
     ],
-    trailingLinks: [
-      {
-        kind: "shell",
-        href: "/command/docs",
-        label: "Platform Docs",
-        icon: getSidebarIcon("reports"),
-        routes: [{ path: "/command/docs", label: "Platform Docs" }],
-      },
-    ],
+    trailingLinks: [],
   };
 }
 
