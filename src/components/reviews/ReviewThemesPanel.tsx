@@ -13,8 +13,6 @@ type ThemesResult = {
   themes: ReviewTheme[];
   summary: string;
   source: "llm" | "unavailable";
-  provider?: string;
-  model?: string;
 };
 
 type FeedItem = {
@@ -58,9 +56,7 @@ export function ReviewThemesPanel({
         <div>
           <h2 className="font-semibold text-white">AI theme intelligence</h2>
           <p className="mt-1 text-xs text-slate-500">
-            Source: {result.source}
-            {result.provider ? ` · ${result.provider}` : ""}
-            {result.model ? ` / ${result.model}` : ""}
+            DigitalGate AI analysis
           </p>
         </div>
         <button
