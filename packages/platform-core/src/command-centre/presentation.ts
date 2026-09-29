@@ -172,13 +172,29 @@ export function formatClientExpansionSignal(client: EnrichedCommandClient): stri
   return `No open opps · ${appCount} ${appsLabel}`;
 }
 
-/** Observed operational signals — separate from score tier classification. */
-export function formatClientObservedSignal(client: EnrichedCommandClient): string {
-  if (client.scoreProvisional) {
-    const parts = ["Partial data · score still maturing"];
-    if (client.status === "trial") parts.push("On trial");
-    return parts.join(" · ");
+export function clientLifecycleLabel(client: EnrichedCommandClient): string {
+  switch (client.lifecycleStatus) {
+    case "setup_incomplete": return "Setup incomplete";
+    case "awaiting_subscription": return "Awaiting subscription";
+    case "trialing": return "On trial";
+    case "active": return "Active";
+    case "past_due": return "Past due";
+    case "cancelled": return "Cancelled";
   }
+}
+
+export function clientLifecycleAgeLabel(client: EnrichedCommandClient): string {
+  if (client.lifecycleStatus === "trialing" && client.trialDaysRemaining != null) {
+    const day = Math.max(1, client.lifecycleAgeDays + 1);
+    return `Day ${day} · ${client.trialDaysRemaining} day${client.trialDaysRemaining === 1 ? "" : "s"} remaining`;
+  }
+  const days = client.lifecycleAgeDays;
+  return `${days} day${days === 1 ? "" : "s"}`;
+}
+
+/** Observed operational signals — lifecycle is rendered separately from health signals. */
+export function formatClientObservedSignal(client: EnrichedCommandClient): string {
+  if (client.scoreProvisional) return "Partial data · score still maturing";
 
   const parts: string[] = [];
   const scoreTierHealthy =
@@ -194,9 +210,7 @@ export function formatClientObservedSignal(client: EnrichedCommandClient): strin
   ) {
     if (client.scoreBreakdown.crm >= 80) parts.push("Strong CRM activity");
     if (client.leadsThisMonth > 0) {
-      parts.push(
-        `${client.leadsThisMonth} lead${client.leadsThisMonth === 1 ? "" : "s"} this month`,
-      );
+      parts.push(`${client.leadsThisMonth} lead${client.leadsThisMonth === 1 ? "" : "s"} this month`);
     }
   } else if (
     scoreTierHealthy &&
@@ -204,22 +218,12 @@ export function formatClientObservedSignal(client: EnrichedCommandClient): strin
     client.activitiesThisMonth < 5
   ) {
     parts.push("🟠 Review CRM adoption");
-    if (client.leadsThisMonth > 0) {
-      parts.push(
-        `${client.leadsThisMonth} lead${client.leadsThisMonth === 1 ? "" : "s"} this month`,
-      );
-    }
   } else if (client.leadsThisMonth === 0 && client.activitiesThisMonth === 0) {
     parts.push("Limited activity");
-    if (client.status === "trial") parts.push("On trial · limited CRM activity");
   } else if (client.highlights.length > 0) {
     parts.push(
       client.highlights
-        .filter(
-          (h) =>
-            !h.toLowerCase().includes("provisional") &&
-            !h.toLowerCase().includes("partial data"),
-        )
+        .filter((h) => !h.toLowerCase().includes("provisional") && !h.toLowerCase().includes("partial data"))
         .slice(0, 2)
         .join(" · "),
     );
