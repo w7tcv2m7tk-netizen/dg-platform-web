@@ -135,12 +135,11 @@ function IaSectionBlock({
 
 const DIGITALGATE_OPERATOR_ORDER = [
   "command-centre",
+  "dg-commercial",
   "dg-customer-intelligence",
+  "dg-product",
   "dg-partners",
   "dg-delivery",
-  "dg-commercial",
-  "dg-product",
-  "dg-platform-intelligence",
   "dg-support",
 ] as const;
 
@@ -152,7 +151,6 @@ const DIGITALGATE_OPERATOR_NAMES: Record<string, string> = {
   "dg-delivery": "Delivery",
   "dg-commercial": "Commercial",
   "dg-product": "Platform",
-  "dg-platform-intelligence": "Intelligence",
 };
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -162,6 +160,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const location = query ? `${pathname}?${query}` : pathname;
   const { nav } = useEnabledApps();
   const [ccBadge, setCcBadge] = useState<number | null>(null);
+  const [supportBadge, setSupportBadge] = useState<number | null>(null);
   const ia = nav.ia;
 
   useEffect(() => {
@@ -185,6 +184,32 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     };
   }, [nav.commandCentre]);
 
+  useEffect(() => {
+    if (!nav.commandCentre) {
+      setSupportBadge(null);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/v1/support/tickets?status=open")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { data?: unknown[]; tickets?: unknown[]; count?: number } | null) => {
+        if (cancelled || !data) return;
+        const count =
+          typeof data.count === "number"
+            ? data.count
+            : Array.isArray(data.data)
+              ? data.data.length
+              : Array.isArray(data.tickets)
+                ? data.tickets.length
+                : 0;
+        setSupportBadge(count);
+      })
+      .catch(() => setSupportBadge(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [nav.commandCentre]);
+
   const intelligenceAppsForRender = ia.intelligence.apps.map((app) => ({
     ...app,
     badge: undefined,
@@ -201,7 +226,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         app.id === "command-centre"
           ? [{ path: "/command", label: "Command Centre", exact: true }]
           : app.routes,
-      badge: app.id === "command-centre" ? (ccBadge ?? undefined) : undefined,
+      badge: app.id === "command-centre" ? (ccBadge ?? undefined) : app.id === "dg-support" ? (supportBadge ?? undefined) : undefined,
       badgeHref: app.id === "command-centre" && ccBadge && ccBadge > 0 ? "/command/platform-health" : undefined,
       badgeLabel:
         app.id === "command-centre" && ccBadge && ccBadge > 0
