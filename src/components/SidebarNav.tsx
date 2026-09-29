@@ -160,6 +160,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const location = query ? `${pathname}?${query}` : pathname;
   const { nav } = useEnabledApps();
   const [ccBadge, setCcBadge] = useState<number | null>(null);
+  const [supportBadge, setSupportBadge] = useState<number | null>(null);
 
   const ia = nav.ia;
 
@@ -184,6 +185,25 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     };
   }, [nav.commandCentre]);
 
+  useEffect(() => {
+    if (!nav.commandCentre) {
+      setSupportBadge(null);
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/v1/command/support/count")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((payload: { data?: { count?: number } } | null) => {
+        if (!cancelled) setSupportBadge(payload?.data?.count ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setSupportBadge(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [nav.commandCentre]);
+
   const intelligenceAppsForRender = ia.intelligence.apps.map((app) => ({
     ...app,
     badge: undefined,
@@ -200,7 +220,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
         app.id === "command-centre"
           ? [{ path: "/command", label: "Command Centre", exact: true }]
           : app.routes,
-      badge: app.id === "command-centre" ? (ccBadge ?? undefined) : undefined,
+      badge: app.id === "command-centre" ? (ccBadge ?? undefined) : app.id === "dg-support" ? (supportBadge ?? undefined) : undefined,
       badgeHref: app.id === "command-centre" && ccBadge && ccBadge > 0 ? "/command/platform-health" : undefined,
       badgeLabel:
         app.id === "command-centre" && ccBadge && ccBadge > 0
