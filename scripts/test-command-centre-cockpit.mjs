@@ -26,7 +26,7 @@ test("Command Centre remains the canonical operator cockpit on /command", () => 
   assert.doesNotMatch(page, /mock|fakeMrr|placeholderCustomers/i);
 });
 
-test("Command cockpit uses the seven-layer operator IA", () => {
+test("Command cockpit uses the operator summary IA", () => {
   for (const id of [
     "command-executive-pulse",
     "command-advisor",
@@ -35,6 +35,7 @@ test("Command cockpit uses the seven-layer operator IA", () => {
     "command-customers",
     "command-commercial",
     "command-platform",
+    "command-platform-progress",
     "command-activity",
   ]) {
     assert.match(home, new RegExp(`id="${id}"`));
@@ -43,9 +44,10 @@ test("Command cockpit uses the seven-layer operator IA", () => {
     "Executive Pulse",
     "Aida Intelligence",
     "Priorities & Alerts",
-    "Customers & Growth",
+    "Customers & Acquisition",
     "Revenue / Commercial",
-    "Platform & Delivery Health",
+    "Platform, Partners & Delivery",
+    "Platform Progress",
     "Recent Activity",
   ]) {
     assert.match(home, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
