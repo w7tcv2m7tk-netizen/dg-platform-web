@@ -195,10 +195,11 @@ test("cockpit presentation never fabricates trial or health numbers", async () =
   const cockpit = buildCommandCockpitPresentation(fixture());
   assert.equal(cockpit.status, "critical");
   assert.match(cockpit.statusDetail, /urgent/);
-  const trials = cockpit.pulseMetrics.find((metric) => metric.id === "trials");
-  assert.equal(trials.available, true);
-  assert.equal(trials.value, "0");
-  assert.match(trials.detail, /onboarding account/);
+  const activation = cockpit.pulseMetrics.find((metric) => metric.id === "activation");
+  assert.equal(activation.available, true);
+  assert.equal(activation.value, "0");
+  assert.match(activation.detail, /awaiting activation account/);
+  assert.match(activation.detail, /active trial/);
   const health = cockpit.pulseMetrics.find((metric) => metric.id === "health");
   assert.equal(health.available, false);
   assert.equal(health.value, "Insufficient data");
@@ -258,8 +259,10 @@ test("quiet cockpit recedes to a steady status from live empty queues", async ()
   assert.match(cockpit.needsAttention[0].text, /Nothing requires/);
 });
 
-assert.match(presentationSource, /label: "Customer activation"/);
-assert.match(presentationSource, /value: String\(data\.pulse\.onboardingSubscriptions\)/);
-assert.match(presentationSource, /"awaiting activation account"/);
-assert.match(presentationSource, /"active trial"/);
-assert.doesNotMatch(presentationSource, /label: "Trials \/ onboarding"/);
+test("customer activation is the primary onboarding pulse", () => {
+  assert.match(presentation, /label: "Customer activation"/);
+  assert.match(presentation, /value: String\(data\.pulse\.onboardingSubscriptions\)/);
+  assert.match(presentation, /"awaiting activation account"/);
+  assert.match(presentation, /"active trial"/);
+  assert.doesNotMatch(presentation, /label: "Trials \/ onboarding"/);
+});
