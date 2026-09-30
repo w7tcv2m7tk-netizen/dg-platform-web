@@ -1,13 +1,13 @@
 import type { AppManifest } from "../manifest";
 
 /**
- * Prospecting & Opportunity Engine — Growth App ($99/mo).
+ * Prospecting — Growth App within the DigitalGate Growth suite.
  *
  * Growth App surface = Business (B2B) Discovery + evidence, pipeline and reporting.
  * Consumer / property modes (Vendor, Buyer, …) use Industry App front ends
  * on the same underlying engine — see PROSPECTING-ENGINE.md.
  *
- * Do not bill Prospecting / Discovery / Opportunity Engine as separate SKUs.
+ * Prospecting, Discovery and opportunity evidence are one capability, not separate products.
  *
  * @see docs/foundations/PROSPECTING-ENGINE.md
  * @see docs/foundations/BUSINESS-DISCOVERY.md
@@ -15,21 +15,19 @@ import type { AppManifest } from "../manifest";
  */
 export const prospectingApp: AppManifest = {
   id: "prospecting",
-  name: "Prospecting & Opportunity Engine",
+  name: "Prospecting",
   description:
-    "Discover businesses, collect real opportunity evidence, rank prospects, manage pipeline, activate into CRM, and share prospect reports — one $99/mo Growth App.",
+    "Discover, qualify and convert the right businesses with a guided next-best-action workflow.",
   tier: "growth",
   version: "0.1.0",
   icon: "◎",
   routes: [
     { path: "/apps/prospecting", label: "Overview" },
     { path: "/apps/prospecting/today", label: "Today" },
-    { path: "/apps/prospecting/discovery", label: "Business Discovery" },
-    { path: "/apps/prospecting/scores", label: "Opportunities" },
+    { path: "/apps/prospecting/discovery", label: "Discover" },
     { path: "/apps/prospecting/prospects", label: "Prospects" },
     { path: "/apps/prospecting/pipeline", label: "Pipeline" },
-    { path: "/apps/prospecting/reports", label: "Reports" },
-    { path: "/apps/prospecting/activity", label: "Follow-up" },
+    { path: "/apps/prospecting/activity", label: "Activity" },
   ],
   navigation: [
     {

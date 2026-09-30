@@ -144,7 +144,7 @@ export async function ProspectingPipelineSurface({
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-white">Prospect Pipeline</h1>
         <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Manage businesses from initial discovery through qualification and conversion into CRM.
+          Track prospects from discovery through qualification, contact, consultation and conversion.
         </p>
         {!canWrite ? (
           <p className="mt-2 text-xs text-slate-500">Read-only access — pipeline changes are disabled.</p>
@@ -246,8 +246,7 @@ export async function ProspectingPipelineSurface({
                     : "No prospects are in this pipeline yet."}
                 </p>
                 <p className="mx-auto mt-2 max-w-lg text-sm text-slate-500">
-                  DigitalGate keeps prospects separate from your CRM until they&apos;re qualified and
-                  converted.
+                  Start with Discovery, then work each prospect according to its next recommended action.
                 </p>
                 {canWrite ? (
                   <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -403,7 +402,7 @@ export async function ProspectingPipelineSurface({
               id="how-pipeline-works"
               className="rounded-xl border border-slate-800 bg-slate-950/30 px-5 py-5"
             >
-              <h2 className="text-sm font-semibold text-white">How the Prospect Pipeline works</h2>
+              <h2 className="text-sm font-semibold text-white">How the prospect journey works</h2>
               <ol className="mt-3 space-y-2 text-sm text-slate-400">
                 <li>
                   <span className="text-slate-200">Discovery</span> — Find businesses.
@@ -415,17 +414,17 @@ export async function ProspectingPipelineSurface({
                   <span className="text-slate-200">Opportunity Score™</span> — Determine which ones matter.
                 </li>
                 <li>
-                  <span className="text-slate-200">CRM</span> — Convert qualified prospects into relationships.
+                  <span className="text-slate-200">Consultation</span> — Turn interest into a concrete next step.
                 </li>
                 <li>
-                  <span className="text-slate-200">Opportunity</span> — Manage the commercial opportunity.
+                  <span className="text-slate-200">Trial</span> — Progress qualified prospects into the product journey.
                 </li>
                 <li>
-                  <span className="text-slate-200">Automation</span> — Follow up and progress it.
+                  <span className="text-slate-200">Customer</span> — Convert the relationship into CRM with its full history intact.
                 </li>
               </ol>
               <p className="mt-3 text-xs text-slate-500">
-                Prospect ≠ CRM Company. The pipeline keeps scraped and researched businesses out of CRM until you convert.
+                Research, scoring, contact history and next actions stay attached to the prospect throughout the journey.
               </p>
             </section>
           </>

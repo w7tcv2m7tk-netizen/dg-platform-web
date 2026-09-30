@@ -124,8 +124,8 @@ export async function ProspectingDiscoverySurface({
     {
       id: "daily",
       label: "Daily Recommended",
-      href: hubHref,
-      body: "AI-selected businesses worth investigating today.",
+      href: "/apps/prospecting/today",
+      body: "Start with the businesses DigitalGate recommends you work today.",
       group: "discover",
     },
     {
@@ -189,63 +189,23 @@ export async function ProspectingDiscoverySurface({
   return (
     <>
       <header className="dg-page-header">
-        {variant === "command" ? (
-          <Link href={hubHref} className="text-sm text-sky-400 hover:underline">
-            ← Growth Engine™
-          </Link>
-        ) : (
-          <Link href="/apps/prospecting" className="text-sm text-sky-400 hover:underline">
-            ← Growth Engine™
-          </Link>
-        )}
-        <h1 className="mt-2 text-2xl font-bold text-white">Business Discovery</h1>
+        <h1 className="text-2xl font-bold text-white">Discover</h1>
         <p className="mt-2 max-w-2xl text-base text-slate-200">
-          Find businesses that could become your next customers.
+          Find businesses worth pursuing, then let DigitalGate research, qualify and rank them.
         </p>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Discover, research and qualify businesses before they enter your CRM. DigitalGate
-          combines location, industry, business data and digital signals to build a ranked prospect
-          book.
-        </p>
-        <p className="mt-2 text-xs text-slate-500">
-          Residential vendors live in Real Estate → Vendor Prospecting — not this prospect book.
-        </p>
-        <p className="mt-2 text-xs">
+        <div className="mt-3 text-xs">
           {showArchived ? (
-            <Link href={filterHref(false)} className="text-sky-400 hover:underline">
-              ← Hide archived
-            </Link>
+            <Link href={filterHref(false)} className="text-sky-400 hover:underline">← Hide archived</Link>
           ) : (
-            <Link
-              href={filterHref(true)}
-              className="text-slate-500 hover:text-sky-400 hover:underline"
-            >
-              Show archived
-            </Link>
+            <Link href={filterHref(true)} className="text-slate-500 hover:text-sky-400 hover:underline">Show archived</Link>
           )}
-        </p>
+        </div>
       </header>
 
       <main className="dg-page-main space-y-8">
-        {/* Lifecycle architecture */}
-        <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
-          <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
-            Prospect ≠ CRM Company
-          </p>
-          <p className="mt-2 text-sm text-slate-300">
-            A <span className="text-white">prospect</span> is a potential business. A{" "}
-            <span className="text-white">CRM Company</span> is a qualified relationship. Discovery
-            builds your prospect book — CRM stays clean until you convert.
-          </p>
-          <p className="mt-3 text-xs text-slate-500">
-            Discovery → Prospect → Qualified → Convert → CRM Company + Contact + Opportunity →
-            Pipeline → Customer
-          </p>
-        </section>
-
-        {/* Discover modes */}
+        {/* Discovery modes drive the live search below. */}
         <section>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">Discover</p>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-400">How do you want to find prospects?</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {discoverCards.map((card) => {
               const active = card.id === "daily" ? false : mode === card.id;
@@ -267,76 +227,27 @@ export async function ProspectingDiscoverySurface({
           </div>
         </section>
 
-        {/* Ranked modes */}
-        <section>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-violet-400">Ranked</p>
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            {rankedCards.map((card) => {
-              const active = mode === card.id;
-              return (
-                <Link
-                  key={card.id}
-                  href={card.href}
-                  className={`rounded-xl border px-4 py-4 transition ${
-                    active
-                      ? "border-violet-500/50 bg-violet-500/10"
-                      : "border-slate-700/80 bg-slate-950/50 hover:border-violet-500/40"
-                  }`}
-                >
-                  <p className="font-medium text-white">{card.label}</p>
-                  <p className="mt-1.5 text-sm text-slate-400">{card.body}</p>
-                </Link>
-              );
-            })}
+        <section className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-4">
+          <p className="text-sm font-medium text-white">
+            {mode === "location" ? "Location search" :
+             mode === "industry" ? "Industry search" :
+             mode === "problem" ? "Problem-led search" :
+             mode === "ai" ? "AI visibility search" :
+             "Business search"}
+          </p>
+          <p className="mt-1 text-sm text-slate-400">
+            Set the criteria below. Results can then be researched, audited and qualified into your prospect book.
+          </p>
+          <div className="mt-4">
+            <BusinessDiscoverySearch initialProviders={providers} {...searchDefaults} />
           </div>
-          <p className="mt-3 text-sm text-slate-500">
-            See how Opportunity Score™ and{" "}
-            <Link href={scoresHref} className="text-sky-400 hover:underline">
-              Why this prospect?
-            </Link>{" "}
-            explain ranked opportunities.
-          </p>
         </section>
-
-        {/* Future: AI Discovery */}
-        <section className="rounded-xl border border-dashed border-sky-500/30 bg-sky-500/5 px-5 py-5">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
-            ✦ AI Discovery · Coming soon
-          </p>
-          <h2 className="mt-2 text-lg font-semibold text-white">
-            Tell DigitalGate who you&apos;re looking for
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
-            “Find boutique real estate agencies on the southern Gold Coast with 5–20 staff, strong
-            Google reviews but weak AI visibility.”
-          </p>
-          <p className="mt-3 text-xs text-slate-500">
-            Natural language → search criteria → enrich → score. Use Location, Industry or AI
-            Visibility cards above for now.
-          </p>
-        </section>
-
-        {mode === "hot" ? (
-          <p className="text-sm text-amber-200/90">
-            Hot prospects need buying-signal sources — not wired yet. Use Daily Recommended or
-            Location / Industry discovery.
-          </p>
-        ) : null}
-        {mode === "problem" || mode === "ai" || mode === "highvalue" ? (
-          <p className="text-sm text-slate-500">
-            Filtering your prospect book ({mode}). Provider search below stays available for new
-            discovery.
-          </p>
-        ) : null}
-
-        <BusinessDiscoverySearch initialProviders={providers} {...searchDefaults} />
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div id="add-prospect" className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
             <h2 className="font-semibold text-white">Add prospect</h2>
             <p className="mt-1 text-sm text-slate-400">
-              Creates a pipeline record automatically —{" "}
-              <span className="text-slate-200">no CRM Company until you convert</span>.
+              Add a business directly when you already know who you want to pursue.
             </p>
             <div className="mt-4">
               <CreateProspectForm pipelineHref={pipelineHref} />
@@ -347,7 +258,7 @@ export async function ProspectingDiscoverySurface({
             <div>
               <h2 className="font-semibold text-white">Prospect book</h2>
               <p className="mt-1 text-sm text-slate-500">
-                Research and scoring live here — not in CRM.
+                Businesses you are researching and actively working.
               </p>
             </div>
             <form className="grid gap-3 sm:grid-cols-3" method="get">
@@ -405,8 +316,7 @@ export async function ProspectingDiscoverySurface({
                         a prospect.
                       </p>
                       <p className="text-slate-500">
-                        Qualified prospects can later be converted into CRM Companies and
-                        Opportunities.
+                        Research promising businesses, qualify the opportunity and move the best ones into your sales workflow.
                       </p>
                     </div>
                   )

@@ -14,11 +14,11 @@ export default async function ProspectingActivityPage() {
     return (
       <>
         <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Follow-up</h1>
+          <h1 className="text-2xl font-bold text-white">Activity</h1>
         </header>
         <main className="dg-page-main">
           <p className="text-sm text-amber-200">
-            Follow-up activity is temporarily unavailable. Try again shortly.
+            Prospecting activity is temporarily unavailable. Try again shortly.
           </p>
         </main>
       </>
@@ -33,11 +33,11 @@ export default async function ProspectingActivityPage() {
     return (
       <>
         <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Follow-up</h1>
+          <h1 className="text-2xl font-bold text-white">Activity</h1>
         </header>
         <main className="dg-page-main">
           <p className="text-sm text-amber-200">
-            Follow-up activity could not be loaded right now. Try again shortly.
+            Prospecting activity could not be loaded right now. Try again shortly.
           </p>
         </main>
       </>
