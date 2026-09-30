@@ -422,14 +422,8 @@ function platformAppsNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
     icon: getSidebarIcon("apps"),
     tier: "internal",
     enabled: true,
-    primaryHref: "/dashboard/apps",
-    routes: foundingCustomerMode
-      ? [{ path: "/dashboard/apps", label: "Installed Apps" }]
-      : [
-          { path: "/dashboard/apps", label: "Installed Apps" },
-          { path: "/dashboard/apps/catalogue", label: "App Catalogue" },
-          { path: "/dashboard/apps/beta", label: "Beta Programmes" },
-        ],
+    primaryHref: "/dashboard/apps/catalogue",
+    routes: [{ path: "/dashboard/apps/catalogue", label: "App Catalogue", matchAlso: ["/dashboard/apps", "/dashboard/apps/beta"] }],
   };
 }
 
