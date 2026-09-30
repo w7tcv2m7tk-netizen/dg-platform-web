@@ -11,7 +11,7 @@ import {
 
 import { AiAdvisorPanel } from "@/components/command/AiAdvisorPanel";
 import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
-import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
+import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar"; // operator roadmap progress
 
 type AdvisorOrg = {
   organisationId: string;
