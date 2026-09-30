@@ -268,3 +268,10 @@ test("customer activation is the primary onboarding pulse", () => {
   assert.match(presentation, /"active trial"/);
   assert.doesNotMatch(presentation, /label: "Trials \/ onboarding"/);
 });
+
+
+test("secondary command metrics stay compact on mobile", () => {
+  assert.match(home, /grid grid-cols-2 gap-x-5 gap-y-6/);
+  assert.match(home, /text-base font-semibold leading-tight/);
+  assert.match(home, /sm:text-xl/);
+});

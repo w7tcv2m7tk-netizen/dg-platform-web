@@ -29,6 +29,7 @@ export const CERTIFIED_ROADMAP_STATUS: Record<string, RoadmapStatus> = {
   "command.clients": "done",
   "command.clients.detail": "done",
   "command.revenue": "done",
+  "platform.roadmap": "done",
 };
 
 const DESCRIPTION_OVERRIDES: Record<string, string> = {
@@ -60,8 +61,15 @@ const DESCRIPTION_OVERRIDES: Record<string, string> = {
     "Website Studio/publication is native Gen 2; WordPress is optional migration/connector context only.",
 };
 
+const RETIRED_ROADMAP_IDS = new Set([
+  "founding.pipeline",
+  "founding.invitation",
+  "founding.onboarding",
+  "founding.implementation",
+]);
+
 export function reconcileRoadmapItems(items: RoadmapItem[]): RoadmapItem[] {
-  return items.map((item) => ({
+  return items.filter((item) => !RETIRED_ROADMAP_IDS.has(item.id)).map((item) => ({
     ...item,
     status: CERTIFIED_ROADMAP_STATUS[item.id] ?? item.status,
     description: DESCRIPTION_OVERRIDES[item.id] ?? item.description,
