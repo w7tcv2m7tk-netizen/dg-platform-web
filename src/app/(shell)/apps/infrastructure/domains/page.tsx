@@ -32,13 +32,13 @@ export default async function Page() {
         {canWrite ? (
           <DomainsConsole />
         ) : domains.length === 0 ? (
-          <div className="max-w-2xl rounded-lg border border-dashed border-slate-700 bg-slate-950/40 p-6">
+          <div className="rounded-lg border border-dashed border-slate-700 bg-slate-950/40 p-6">
             <p className="text-sm text-slate-300">
               No domains are connected to this business yet.
             </p>
           </div>
         ) : (
-          <div className="max-w-3xl space-y-3">
+          <div className="space-y-3">
             <p className="text-sm text-slate-400">
               You have read-only access to domain status. Domain and DNS changes require additional access.
             </p>
