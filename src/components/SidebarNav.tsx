@@ -138,8 +138,8 @@ const DIGITALGATE_OPERATOR_ORDER = [
   "dg-commercial",
   "dg-customer-intelligence",
   "dg-product",
-  "dg-partners",
   "dg-delivery",
+  "dg-partners",
   "dg-support",
 ] as const;
 
