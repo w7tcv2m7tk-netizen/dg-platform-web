@@ -26,7 +26,7 @@ export default async function InfrastructureBackupPage() {
           Backup status for this organisation and its Design Studio websites.
         </p>
       </header>
-      <main className="dg-page-main max-w-3xl space-y-6">
+      <main className="dg-page-main space-y-6">
         <ul className="space-y-3">
           {overview.layers.map((layer) => (
             <li
