@@ -14,8 +14,8 @@ for (const id of order) {
 }
 assert.doesNotMatch(sidebar, /"dg-platform-intelligence": "Intelligence"/);
 assert.match(nav, /"dg-product", "Platform"/);
-assert.match(nav, /path: "\/command\/docs", label: "Platform Docs"/);
-assert.match(nav, /path: "\/command\/intelligence", label: "Ask Platform Intelligence"/);
+assert.match(nav, /path: "\/command\/docs", label: "Docs"/);
+assert.match(nav, /path: "\/command\/intelligence", label: "Ask Intelligence"/);
 assert.match(nav, /trailingLinks: \[\]/);
 assert.match(sidebar, /\/api\/v1\/command\/support\/count/);
 assert.match(home, /Platform Progress/);
