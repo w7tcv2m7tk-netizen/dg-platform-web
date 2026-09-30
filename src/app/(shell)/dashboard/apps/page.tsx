@@ -29,27 +29,11 @@ export default async function AppsPage() {
   return (
     <>
       <header className="dg-page-header">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Your Apps</h1>
-            <p className="text-sm text-slate-400">
-              A focused workspace for this business. DigitalGate keeps unrelated industries hidden by default so the platform feels purpose-built for the way you operate.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <a
-              href="/dashboard/apps/catalogue"
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-blue-500 hover:bg-slate-900 hover:text-white"
-            >
-              Explore apps
-            </a>
-            <a
-              href="/dashboard/settings/billing"
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:border-slate-600 hover:bg-slate-900 hover:text-white"
-            >
-              Billing & invoices
-            </a>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Your Apps</h1>
+          <p className="text-sm text-slate-400">
+            A focused workspace for this business. DigitalGate keeps unrelated industries hidden by default so the platform feels purpose-built for the way you operate.
+          </p>
         </div>
       </header>
 
