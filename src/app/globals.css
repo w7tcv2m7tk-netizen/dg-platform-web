@@ -89,7 +89,10 @@ html[data-theme="light"] .dg-input::placeholder {
 }
 
 html[data-theme="light"] .dg-page-header {
-  background: #ffffff;
+  background:
+    radial-gradient(circle at 82% 0%, color-mix(in srgb, var(--org-primary, #7c3aed) 8%, transparent) 0%, transparent 44%),
+    linear-gradient(105deg, rgba(124,58,237,.035), transparent 55%),
+    #ffffff;
   border-color: #e4e8f0;
 }
 
@@ -383,9 +386,27 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
 
 @layer components {
   .dg-page-header {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     border-bottom: 1px solid var(--org-border-subtle, rgb(30 41 59));
-    background: color-mix(in srgb, var(--org-bg-elevated, rgb(2 6 23)) 55%, transparent);
+    background:
+      radial-gradient(circle at 82% 0%, color-mix(in srgb, var(--org-primary, #7c3aed) 14%, transparent) 0%, transparent 42%),
+      linear-gradient(105deg, color-mix(in srgb, #7c3aed 7%, transparent), transparent 52%),
+      color-mix(in srgb, var(--org-bg-elevated, rgb(2 6 23)) 62%, transparent);
     padding: 1rem;
+  }
+
+  .dg-page-header > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .dg-page-title {
+    font-size: clamp(1.875rem, 2.6vw, 2.5rem);
+    line-height: 1.1;
+    font-weight: 650;
+    letter-spacing: -0.025em;
   }
 
   @media (max-width: 767px) {
