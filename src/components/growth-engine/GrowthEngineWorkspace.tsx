@@ -134,79 +134,36 @@ export function GrowthEngineWorkspace({
 
         {showBetaStatus ? <GrowthEngineBetaStatus /> : null}
 
-        {/* Daily Briefing — intelligence heart */}
-        <section className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-5 py-6 space-y-5">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
-              Daily Briefing
-            </p>
-            <h2 className="mt-2 text-xl font-semibold text-white sm:text-2xl">
-              {briefing?.greeting ?? "Good morning."}
-            </h2>
-            <p className="mt-2 text-sm text-slate-200">
-              Here&apos;s who DigitalGate thinks you should speak to today.
-            </p>
-            {briefing && briefing.recommendedCount > 0 ? (
-              <p className="mt-1 text-sm text-slate-400">{briefing.subhead}</p>
-            ) : null}
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricTile label="Recommended" value={briefing?.recommendedCount ?? 0} />
-            <MetricTile label="Contacted today" value={briefing?.contactedToday ?? 0} />
-            <MetricTile label="Conversations" value={briefing?.conversations ?? 0} />
-            <MetricTile label="Meetings booked" value={briefing?.meetingsBooked ?? 0} />
-          </div>
-
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div className="rounded-lg border border-slate-700/80 bg-slate-950/50 px-3 py-2">
-              <p className="text-[10px] uppercase tracking-wide text-slate-500">Action queue</p>
-              <p className="mt-0.5 font-semibold text-white">
-                {briefing?.stillRequireAction ?? 0} due
-              </p>
-            </div>
-            {briefing?.proposalPipelineCents != null ? (
-              <div className="rounded-lg border border-slate-700/80 bg-slate-950/50 px-3 py-2">
-                <p className="text-[10px] uppercase tracking-wide text-slate-500">
-                  Pipeline value
-                </p>
-                <p className="mt-0.5 font-semibold text-white">
-                  {formatAudCents(briefing.proposalPipelineCents)}
-                </p>
+        {variant === "command" ? (
+          <>
+            {/* Daily Briefing remains an operator-only GTM view. Prospecting Today is the canonical daily tenant workflow. */}
+            <section className="rounded-xl border border-sky-500/25 bg-sky-500/5 px-5 py-6 space-y-5">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">Daily Briefing</p>
+                <h2 className="mt-2 text-xl font-semibold text-white sm:text-2xl">{briefing?.greeting ?? "Good morning."}</h2>
+                <p className="mt-2 text-sm text-slate-200">Here&apos;s who DigitalGate thinks you should speak to today.</p>
+                {briefing && briefing.recommendedCount > 0 ? <p className="mt-1 text-sm text-slate-400">{briefing.subhead}</p> : null}
               </div>
-            ) : null}
-          </div>
-
-          {spotlight.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-600/80 bg-slate-950/40 px-5 py-6">
-              <p className="font-medium text-white">No active prospects to recommend yet</p>
-              <p className="mt-2 max-w-xl text-sm text-slate-400">
-                Discover businesses, run an audit, and DigitalGate will rank who deserves your
-                attention today — by Opportunity Score™, not a cold call list.
-              </p>
-              <Link
-                href={discoveryHref}
-                className="mt-4 inline-flex rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
-              >
-                Open Discovery
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {spotlight.map((row, index) => (
-                <RecommendationCard
-                  key={row.prospectId}
-                  row={row}
-                  index={index}
-                  pipelineHref={pipelineHref}
-                  auditsHref={auditsHref}
-                  reportsHref={reportsHref}
-                  enableActions={enableActions}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <MetricTile label="Recommended" value={briefing?.recommendedCount ?? 0} />
+                <MetricTile label="Contacted today" value={briefing?.contactedToday ?? 0} />
+                <MetricTile label="Conversations" value={briefing?.conversations ?? 0} />
+                <MetricTile label="Meetings booked" value={briefing?.meetingsBooked ?? 0} />
+              </div>
+              {spotlight.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-600/80 bg-slate-950/40 px-5 py-6">
+                  <p className="font-medium text-white">No active prospects to recommend yet</p>
+                  <p className="mt-2 max-w-xl text-sm text-slate-400">Discover businesses, run an audit, and DigitalGate will rank who deserves your attention today — by Opportunity Score™, not a cold call list.</p>
+                  <Link href={discoveryHref} className="mt-4 inline-flex rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500">Open Discovery</Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {spotlight.map((row, index) => <RecommendationCard key={row.prospectId} row={row} index={index} pipelineHref={pipelineHref} auditsHref={auditsHref} reportsHref={reportsHref} enableActions={enableActions} />)}
+                </div>
+              )}
+            </section>
+          </>
+        ) : null}
 
         {/* Growth Pipeline snapshot */}
         <section className="rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5">
