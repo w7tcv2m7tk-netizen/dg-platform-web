@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
@@ -8,30 +7,18 @@ export function DeliveryCommandPage({
   description,
   children,
   navActive: _navActive,
-  eyebrow = "Delivery",
-  backHref = "/command/delivery",
-  backLabel = "Delivery",
   headerActions,
 }: {
   title: string;
   description?: ReactNode;
   children: ReactNode;
   navActive: DeliveryNavId;
-  eyebrow?: string;
-  backHref?: string;
-  backLabel?: string;
   headerActions?: ReactNode;
 }) {
   return (
     <>
       <header className="dg-page-header">
-        <Link href={backHref} className="text-sm text-sky-400 hover:underline">
-          ← {backLabel}
-        </Link>
-        <p className="mt-2 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-400/90">
-          {eyebrow}
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-white">{title}</h1>
+        <h1 className="text-2xl font-bold text-white">{title}</h1>
         {description ? (
           <div className="mt-1 max-w-2xl text-sm text-slate-400">{description}</div>
         ) : null}

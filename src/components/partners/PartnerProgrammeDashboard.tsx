@@ -3,7 +3,6 @@ import type { PartnerDashboardWorkspace } from "@dg/platform-core";
 import { PartnerInvitationCancelButton } from "@/components/partner/PartnerInvitationCancelButton";
 import {
   PARTNER_COMMERCIAL_ENGINE,
-  PARTNER_OS_NAME,
   PARTNER_OS_OWNERSHIP,
 } from "@dg/platform-core";
 
@@ -77,13 +76,7 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command" className="text-sm text-sky-400 hover:underline">
-          ← Command Centre
-        </Link>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
-          Partners · {PARTNER_OS_NAME}
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Partner Network</h1>
+        <h1 className="text-2xl font-bold text-white sm:text-3xl">Partner Network</h1>
         <p className="mt-3 max-w-2xl text-base text-slate-200">
           Operating layer for Acquisition Partners, Delivery Partners, ecosystem relationships,
           referrals and commissions.

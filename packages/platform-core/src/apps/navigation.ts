@@ -259,6 +259,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
         label: "Overview",
         matchAlso: ["/command/growth-engine"],
       },
+      { path: "/apps/prospecting/today", label: "Today", matchAlso: ["/command/sales-week"] },
       { path: "/apps/prospecting/discovery", label: "Business Discovery" },
       {
         path: "/apps/prospecting/scores",

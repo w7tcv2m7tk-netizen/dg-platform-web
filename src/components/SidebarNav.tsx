@@ -54,7 +54,7 @@ function FlatAppLinks({
               <SidebarIcon glyph={item.icon} />
               <span className="truncate">{item.name}</span>
               {hasBadge && !item.badgeHref ? (
-                <span className="ml-auto rounded-md bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-amber-200">
+                <span className="ml-auto inline-flex min-w-6 items-center justify-center rounded-full border border-amber-400/35 bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-amber-100">
                   {item.badge! > 99 ? "99+" : item.badge}
                 </span>
               ) : null}
@@ -208,18 +208,20 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/v1/communications/attention/count")
+    const refresh = () => fetch("/api/v1/communications/attention/count", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((payload: { data?: { count?: number } } | null) => {
         if (!cancelled) setCommunicationsBadge(payload?.data?.count ?? null);
       })
       .catch(() => { if (!cancelled) setCommunicationsBadge(null); });
-    return () => { cancelled = true; };
+    refresh();
+    window.addEventListener("dg:communications-attention-changed", refresh);
+    return () => { cancelled = true; window.removeEventListener("dg:communications-attention-changed", refresh); };
   }, [pathname]);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/v1/crm/attention/count")
+    fetch("/api/v1/crm/attention/count", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((payload: { data?: { count?: number } } | null) => {
         if (!cancelled) setCrmBadge(payload?.data?.count ?? null);

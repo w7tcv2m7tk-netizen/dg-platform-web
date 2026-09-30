@@ -103,36 +103,11 @@ export function AppContextNav() {
   }
 
   const showSubnav = routes.length > 1;
-  const showRouteCrumb = Boolean(pageTitle) && pageTitle !== active.itemName;
 
   return (
-    <div className="dg-context-nav shrink-0 border-b border-[var(--org-border-subtle,rgb(30_41_59))] bg-[color-mix(in_srgb,var(--org-bg-elevated,rgb(2_6_23))_55%,transparent)] px-4 py-3 sm:px-6 md:px-8">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
-          <span className="font-semibold uppercase tracking-wider">{active.sectionLabel}</span>
-          <span aria-hidden className="text-slate-600">/</span>
-          <span className="truncate text-slate-300">{active.itemName}</span>
-          {showRouteCrumb ? (
-            <>
-              <span aria-hidden className="text-slate-600">/</span>
-              <span className="truncate text-slate-400">{pageTitle}</span>
-            </>
-          ) : null}
-        </div>
-
-        <div className="min-w-0">
-          <p className="text-lg font-semibold tracking-tight text-white">{pageTitle}</p>
-          {showSubnav ? (
-            <div className="mt-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <AppHorizontalSubnav
-                routes={routes}
-                ariaLabel={`${active.itemName} sections`}
-                maxVisible={active.itemId === "dg-partners" ? 7 : undefined}
-              />
-            </div>
-          ) : null}
-        </div>
+    <div className="dg-context-nav shrink-0 border-b border-[var(--org-border-subtle,rgb(30_41_59))] bg-[color-mix(in_srgb,var(--org-bg-elevated,rgb(2_6_23))_55%,transparent)] px-4 py-2.5 sm:px-6 md:px-8">
+      <div className="mx-auto w-full max-w-[1600px]">
+        {showSubnav ? <div className="overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><AppHorizontalSubnav routes={routes} ariaLabel={`${active.itemName} sections`} maxVisible={active.itemId === "dg-partners" ? 7 : undefined} /></div> : null}
       </div>
     </div>
-  );
-}
+  );}
