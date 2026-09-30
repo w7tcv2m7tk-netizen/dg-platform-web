@@ -5,7 +5,7 @@ const nav = fs.readFileSync("packages/platform-core/src/apps/navigation.ts", "ut
 const sidebar = fs.readFileSync("src/components/SidebarNav.tsx", "utf8");
 const home = fs.readFileSync("src/components/command/CommandOpsHome.tsx", "utf8");
 
-const order = ["command-centre", "dg-commercial", "dg-customer-intelligence", "dg-product", "dg-partners", "dg-delivery", "dg-support"];
+const order = ["command-centre", "dg-commercial", "dg-customer-intelligence", "dg-product", "dg-delivery", "dg-partners", "dg-support"];
 let cursor = -1;
 for (const id of order) {
   const next = sidebar.indexOf(`"${id}"`, cursor + 1);
@@ -14,8 +14,8 @@ for (const id of order) {
 }
 assert.doesNotMatch(sidebar, /"dg-platform-intelligence": "Intelligence"/);
 assert.match(nav, /"dg-product", "Platform"/);
-assert.match(nav, /path: "\/command\/docs", label: "Platform Docs"/);
-assert.match(nav, /path: "\/command\/intelligence", label: "Ask Platform Intelligence"/);
+assert.match(nav, /path: "\/command\/docs", label: "Docs"/);
+assert.match(nav, /path: "\/command\/intelligence", label: "Ask Intelligence"/);
 assert.match(nav, /trailingLinks: \[\]/);
 assert.match(sidebar, /\/api\/v1\/command\/support\/count/);
 assert.match(home, /Platform Progress/);
