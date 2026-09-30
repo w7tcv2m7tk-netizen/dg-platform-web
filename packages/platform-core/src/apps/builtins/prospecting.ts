@@ -23,6 +23,7 @@ export const prospectingApp: AppManifest = {
   icon: "◎",
   routes: [
     { path: "/apps/prospecting", label: "Overview" },
+    { path: "/apps/prospecting/today", label: "Today" },
     { path: "/apps/prospecting/discovery", label: "Business Discovery" },
     { path: "/apps/prospecting/scores", label: "Opportunities" },
     { path: "/apps/prospecting/prospects", label: "Prospects" },

@@ -44,6 +44,23 @@ Customer-facing stages (map onto Growth Engine internals):
 
 Each stage surfaces count, avg Opportunity Score™, action CTA, and (when available) per-card Why / Next action / last activity. Framework ships even at zero prospects — do not leave a bare empty page.
 
+### Mobile-first Next Best Action workflow (locked)
+
+Prospecting must be operable end-to-end from a phone. The primary operating loop is:
+
+`Discover → Research → Qualify → Score → Opportunity → Call Brief → Contact → Log Outcome → Personalised Follow-up → Next Action → Consultation → Trial → Customer`
+
+The operator should never have to reconstruct this sequence manually. **Prospecting Today** ranks the next prospect, explains why, prepares the call, provides a one-tap phone action, captures the outcome in seconds, prepares the follow-up, and records the next action against the same universal prospect identity.
+
+Mobile UX rules:
+- one prominent **next best action** at a time;
+- tap-to-call where a phone number exists;
+- call brief limited to the evidence and opening approach needed immediately;
+- outcome logging uses fast presets plus an optional short note;
+- follow-up date can be scheduled while logging the call;
+- all call/follow-up history stays attached through CRM conversion;
+- no duplicate shadow CRM inside Prospecting.
+
 ### Activity workspace (locked)
 
 **Page job:** Calls, messages, notes, tasks and follow-ups across the prospect pipeline — not a bare chronological dump.
