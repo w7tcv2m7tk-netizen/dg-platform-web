@@ -10,7 +10,6 @@ import {
 } from "@dg/platform-core";
 
 import { AiAdvisorPanel } from "@/components/command/AiAdvisorPanel";
-import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
 import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar"; // operator roadmap progress
 
 type AdvisorOrg = {
@@ -110,7 +109,6 @@ export function CommandOpsHome({
     growthEngine,
     referEarn,
     prospectingToday,
-    platformOperations,
     deliveryAlerts,
     today,
   } = data;
@@ -276,10 +274,6 @@ export function CommandOpsHome({
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
           Ranked actions for DigitalGate staff — not customer industry operations.
         </p>
-
-        <div className="mt-6">
-          <SalesWeekNowBanner prompt={salesPrompt} compact />
-        </div>
 
         {today.length > 0 ? (
           <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-300">
@@ -498,7 +492,7 @@ export function CommandOpsHome({
                 : "No ranked prospect in this snapshot"}
             </p>
           </Link>
-          <Link href="/apps/prospecting" className="group">
+          <Link href="/apps/prospecting/today" className="group">
             <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
               Prospecting today
             </p>
@@ -599,28 +593,6 @@ export function CommandOpsHome({
           </Link>
         </div>
 
-        <div className="mt-10 space-y-6 border-t border-white/5 pt-8">
-          {platformOperations.map((group) => (
-            <div key={group.id}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600">
-                {group.label}
-              </p>
-              <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
-                {group.links.map((link) => (
-                  <li key={link.id}>
-                    <Link
-                      href={link.href}
-                      className="text-sm text-slate-400 transition hover:text-white"
-                      title={link.description}
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
       </section>
 
       <section id="command-platform-progress" className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/45 shadow-[0_18px_50px_rgba(0,0,0,.18)]">

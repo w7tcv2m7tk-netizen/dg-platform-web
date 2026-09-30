@@ -101,7 +101,7 @@ export function CommunicationsInboxWorkspace({
     setClearingAttention(true);
     try {
       const response = await fetch("/api/v1/communications/attention/clear", { method: "POST" });
-      if (response.ok) router.refresh();
+      if (response.ok) { window.dispatchEvent(new Event("dg:communications-attention-changed")); router.refresh(); }
     } finally {
       setClearingAttention(false);
     }
