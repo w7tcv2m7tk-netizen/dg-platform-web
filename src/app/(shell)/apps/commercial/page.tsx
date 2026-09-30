@@ -3,6 +3,7 @@ import { getCommercialOverviewCounts } from "@dg/platform-core";
 
 import { canManageCommercial } from "@/lib/commercial-page-access";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
 
 export default async function CommercialOverviewPage() {
   const { session } = await getPlatformPageContext();
@@ -21,7 +22,9 @@ export default async function CommercialOverviewPage() {
   ]);
 
   return (
-    <main className="dg-page-main space-y-6">
+    <>
+      <IndustryAppTitle title="Commercial Property" description="Commercial properties, leases and tenant relationships connected to Core CRM." />
+      <main className="dg-page-main space-y-6">
       <div>
         <p className="text-sm text-slate-400">
           {session.organisationName} · Commercial assets &amp; tenancies (not residential RE sales or PM)
@@ -55,6 +58,7 @@ export default async function CommercialOverviewPage() {
           {canManage ? "Open properties →" : "View properties →"}
         </Link>
       </p>
-    </main>
+      </main>
+    </>
   );
 }
