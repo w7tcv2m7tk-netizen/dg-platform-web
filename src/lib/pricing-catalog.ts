@@ -53,21 +53,6 @@ export type PlatformCapabilityCatalogItem = {
 /** Mirrors digitalgate.com.au/pricing — Platform section */
 export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
   {
-    key: "starter",
-    label: "Starter",
-    icon: "🚀",
-    price: "$99",
-    period: "/month",
-    users: "1 User",
-    outcome: "For businesses replacing spreadsheets.",
-    features: [
-      "Platform Core",
-      "CRM & Dashboard",
-      "AI Assistant",
-      "Digital Twin snapshot",
-    ],
-  },
-  {
     key: "professional",
     label: "Growth",
     icon: "📈",
@@ -76,7 +61,9 @@ export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
     users: "5 Users",
     outcome: "For businesses ready to automate growth.",
     features: [
-      "Everything in Starter",
+      "Platform Core",
+      "CRM & Dashboard",
+      "AI Assistant",
       "Automation & workflows",
       "Email + SMS",
       "Websites",
