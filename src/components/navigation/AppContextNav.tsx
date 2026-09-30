@@ -38,7 +38,7 @@ export function AppContextNav() {
     // Business Brain is a first-class Business surface. The canonical navigation
     // still groups supporting intelligence under Overview, so expose Brain here
     // explicitly and stop Overview from swallowing /dashboard/brain routes.
-    if (active.itemId === "business" && !pathname.startsWith("/dashboard/apps") && !pathname.startsWith("/dashboard/settings")) {
+    if (active.itemId === "business" && (pathname === "/dashboard" || pathname.startsWith("/dashboard/business") || pathname.startsWith("/dashboard/brain") || pathname.startsWith("/dashboard/goals") || pathname.startsWith("/dashboard/team") || pathname.startsWith("/dashboard/health") || pathname.startsWith("/dashboard/insights") || pathname.startsWith("/dashboard/advisor") || pathname.startsWith("/dashboard/reports"))) {
       const routePath = (value: string) => value.split("?")[0] ?? value;
       const withoutHiddenBrain = active.routes.map((route) =>
         routePath(route.path) === "/dashboard"

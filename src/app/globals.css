@@ -105,6 +105,13 @@ html[data-theme="light"] .dg-branded-shell main {
   background: transparent;
 }
 
+/* Deliberate light shell: pale canvas, white chrome and quiet surface separation. */
+html[data-theme="light"] .dg-branded-shell { background: #f4f6fa; }
+html[data-theme="light"] .dg-context-nav { background: rgba(255,255,255,.96); border-color: #e4e8f0; }
+html[data-theme="light"] .dg-page-main { background: #f4f6fa; }
+html[data-theme="light"] .dg-card { border-color: #dfe4ec; box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 10px 30px rgba(15,23,42,.035); }
+html[data-theme="light"] .dg-growth-header { border-bottom-color: color-mix(in srgb,currentColor 14%,#e4e8f0); }
+
 /* Headings / emphasis that used text-white on dark chrome */
 html[data-theme="light"] .text-white {
   color: #0f172a;
