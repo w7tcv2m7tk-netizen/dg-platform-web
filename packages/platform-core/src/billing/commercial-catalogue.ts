@@ -2,7 +2,6 @@ export type CommercialPlatformTier = "starter" | "professional" | "business";
 export type CommercialSupportPlan = "standard" | "priority" | "success_partner" | "enterprise_success";
 
 export const PLATFORM_COMMERCIAL_PLANS: Array<{ id: CommercialPlatformTier; name: string; monthlyCents: number; blurb: string }> = [
-  { id: "starter", name: "Starter", monthlyCents: 9900, blurb: "Core CRM, communications, documents and website foundation." },
   { id: "professional", name: "Growth", monthlyCents: 24900, blurb: "Full Business Operating Platform for growing teams." },
   { id: "business", name: "Scale", monthlyCents: 49900, blurb: "Scale operations with higher capacity and priority support." },
 ];
