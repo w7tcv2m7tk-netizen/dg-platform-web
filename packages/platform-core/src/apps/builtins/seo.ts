@@ -6,12 +6,12 @@ export const seoApp: AppManifest = {
   description: "Live HTML presence probes + Studio on-page checks — shared with AI Visibility",
   tier: "growth",
   version: "1.1.0",
-  icon: "🔍",
+  icon: "⌕",
   routes: [
     { path: "/apps/seo", label: "Overview" },
     { path: "/apps/seo/audit", label: "Page audit" },
   ],
-  navigation: [{ href: "/apps/seo", label: "SEO", icon: "⎔" }],
+  navigation: [{ href: "/apps/seo", label: "SEO", icon: "⌕" }],
   permissions: [{ id: "seo.view_audit", label: "View SEO audits" }],
   features: [
     "seo.audit.read",

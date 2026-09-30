@@ -1,3 +1,4 @@
+import { GrowthAppHeader } from "@/components/growth/GrowthAppHeader";
 import Link from "next/link";
 import { fetchOrgLinkedInSocialEvidence, fetchOrgYouTubeContentEvidence, fetchOrgYouTubeAnalyticsEvidence, getOrganisationBusinessProfile } from "@dg/platform-core";
 
@@ -24,15 +25,7 @@ export default async function SocialOverviewPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/dashboard" className="text-sm text-sky-400 hover:underline">
-          ← Overview
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Social</h1>
-        <p className="text-sm text-slate-400">
-          Connected social evidence, profile links and local drafts
-        </p>
-      </header>
+      <GrowthAppHeader appId="social" description="Connected social evidence, content workflows and account management." />
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
           <p className="font-medium text-amber-200">Publishing is not enabled yet</p>

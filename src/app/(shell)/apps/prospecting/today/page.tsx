@@ -1,3 +1,4 @@
+import { GrowthAppHeader } from "@/components/growth/GrowthAppHeader";
 import { notFound } from "next/navigation";
 import { getDailyOpportunityBriefing, listGrowthProspects } from "@dg/platform-core";
 
@@ -13,7 +14,7 @@ export default async function ProspectingTodayPage() {
   if (!process.env.DATABASE_URL) {
     return (
       <>
-        <header className="dg-page-header"><h1 className="text-2xl font-bold text-white">Prospecting Today</h1></header>
+        <GrowthAppHeader appId="prospecting" description="Your prioritised next-best-action workflow for today." />
         <main className="dg-page-main"><p className="text-sm text-amber-200">Prospecting is temporarily unavailable.</p></main>
       </>
     );
@@ -36,13 +37,7 @@ export default async function ProspectingTodayPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-400">Next best action</p>
-        <h1 className="mt-2 text-2xl font-bold text-white">Prospecting Today</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          One mobile workflow from qualified prospect to conversation, follow-up and customer.
-        </p>
-      </header>
+      <GrowthAppHeader appId="prospecting" description="Your prioritised next-best-action workflow for today." />
       <main className="dg-page-main space-y-5">
         <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <Metric label="Recommended" value={briefing.recommendedCount} />

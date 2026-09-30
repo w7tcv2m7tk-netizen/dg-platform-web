@@ -6,9 +6,9 @@ export const advertisingApp: AppManifest = {
   description: "Paid media performance, campaigns, attribution and optimisation across advertising channels",
   tier: "growth",
   version: "0.1.0",
-  icon: "◎",
+  icon: "◫",
   routes: [{ path: "/apps/advertising", label: "Overview" }],
-  navigation: [{ href: "/apps/advertising", label: "Advertising", icon: "◎" }],
+  navigation: [{ href: "/apps/advertising", label: "Advertising", icon: "◫" }],
   permissions: [
     { id: "advertising.view", label: "View advertising" },
     { id: "advertising.manage", label: "Manage advertising" },

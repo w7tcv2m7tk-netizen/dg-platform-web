@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  getDailyOpportunityBriefing,
-  getGrowthEngineSummary,
-} from "@dg/platform-core";
+import { getGrowthEngineSummary } from "@dg/platform-core";
 
 import { TENANT_CAPABILITY_GROUPS } from "@/components/growth-engine/GrowthEngineCapabilityGrid";
 import { GrowthEngineWorkspace } from "@/components/growth-engine/GrowthEngineWorkspace";
@@ -21,28 +18,15 @@ export default async function ProspectingOverviewPage() {
 
   const db = Boolean(process.env.DATABASE_URL);
   let summary: Awaited<ReturnType<typeof getGrowthEngineSummary>> | null = null;
-  let briefing: Awaited<ReturnType<typeof getDailyOpportunityBriefing>> | null = null;
   let loadError: string | null = null;
 
   if (db) {
-    const [summaryResult, briefingResult] = await Promise.allSettled([
-      getGrowthEngineSummary(session.organisationId),
-      getDailyOpportunityBriefing({
-        organisationId: session.organisationId,
-        limit: 20,
-      }),
-    ]);
+    const summaryResult = await Promise.resolve(getGrowthEngineSummary(session.organisationId)).then(value => ({ status: "fulfilled" as const, value })).catch(reason => ({ status: "rejected" as const, reason }));
 
     if (summaryResult.status === "fulfilled") {
       summary = summaryResult.value;
     } else {
       console.error("[prospecting] summary failed", summaryResult.reason);
-      loadError = "Some prospecting signals could not be loaded right now.";
-    }
-    if (briefingResult.status === "fulfilled") {
-      briefing = briefingResult.value;
-    } else {
-      console.error("[prospecting] briefing failed", briefingResult.reason);
       loadError = "Some prospecting signals could not be loaded right now.";
     }
   } else {
@@ -77,7 +61,6 @@ export default async function ProspectingOverviewPage() {
       ) : null}
       <GrowthEngineWorkspace
         variant="sales"
-        briefing={briefing}
         summary={summary}
         capabilityGroups={TENANT_CAPABILITY_GROUPS}
         pipelineHref="/apps/prospecting/pipeline"

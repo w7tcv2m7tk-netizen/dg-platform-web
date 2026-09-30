@@ -1,3 +1,4 @@
+import { GrowthAppHeader } from "@/components/growth/GrowthAppHeader";
 import Link from "next/link";
 import { getPlatformPageContext } from "@/lib/org-apps";
 import { fetchOrgGoogleAdsEvidence, fetchOrgMetaAdsEvidence, fetchOrgMicrosoftAdsEvidence, fetchOrgTikTokAdsEvidence } from "@dg/platform-core";
@@ -11,11 +12,7 @@ export default async function AdvertisingPage() {
     ? await Promise.all([fetchOrgMetaAdsEvidence(ctx.session.organisationId), fetchOrgGoogleAdsEvidence(ctx.session.organisationId), fetchOrgMicrosoftAdsEvidence(ctx.session.organisationId), fetchOrgTikTokAdsEvidence(ctx.session.organisationId)])
     : [{ ok: false as const, message: "No active organisation session" }, { ok: false as const, message: "No active organisation session" }, { ok: false as const, message: "No active organisation session" }, { ok: false as const, message: "No active organisation session" }];
   return <>
-    <header className="dg-page-header">
-      <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">Growth App</p>
-      <h1 className="mt-1 text-2xl font-bold text-white">Advertising</h1>
-      <p className="mt-1 max-w-3xl text-sm text-slate-400">Understand paid media spend, campaign performance, leads and revenue across connected advertising channels.</p>
-    </header>
+    <GrowthAppHeader appId="advertising" description="Understand paid media spend, campaign performance, leads and revenue across connected advertising channels." />
     <main className="dg-page-main space-y-6">
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[

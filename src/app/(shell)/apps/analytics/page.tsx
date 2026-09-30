@@ -1,3 +1,4 @@
+import { GrowthAppHeader } from "@/components/growth/GrowthAppHeader";
 import Link from "next/link";
 
 import { AnalyticsEvidenceGrid } from "@/components/analytics/AnalyticsEvidenceGrid";
@@ -13,9 +14,7 @@ export default async function AnalyticsOverviewPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <AnalyticsPageIntro organisationName={bundle.organisationName} active="/apps/analytics" />
-      </header>
+      <GrowthAppHeader appId="analytics" description="Understand performance across customers, revenue, pipeline, marketing and connected systems." />
       <main className="dg-page-main space-y-6">
         <AnalyticsPhilosophyNote />
 

@@ -130,17 +130,7 @@ const INDUSTRY_APP_ORDER = [
  * CRM Opportunities remains the canonical deal object; Core Opportunities App is
  * operating-intelligence rankings (not a second pipeline).
  */
-const GROW_APP_ORDER = [
-  "marketing",
-  "advertising",
-  "prospecting",
-  "ai-visibility",
-  "seo",
-  "automation",
-  "analytics",
-  "social",
-  "reviews",
-] as const;
+const GROW_APP_ORDER = ["marketing","advertising","prospecting","ai-visibility","seo","social","reviews","automation","analytics"] as const;
 
 /** Hidden from sidebar IA — opportunities live in CRM; advanced comms nests under Core Communications */
 const SIDEBAR_HIDDEN_APP_IDS = new Set([

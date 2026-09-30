@@ -1,3 +1,4 @@
+import { GrowthAppHeader } from "@/components/growth/GrowthAppHeader";
 import Link from "next/link";
 import {
   buildLiveTwinWithScores,
@@ -150,13 +151,7 @@ export default async function SeoOverviewPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">SEO</h1>
-        <p className="text-sm text-slate-400">
-          {platformSession?.organisationName ?? "DigitalGate"} · on-page and technical SEO from
-          live HTML probes (+ Studio checks when available)
-        </p>
-      </header>
+      <GrowthAppHeader appId="seo" description="On-page and technical SEO from live website evidence and connected DigitalGate signals." />
       <main className="dg-page-main space-y-6">
         {loadError ? (
           <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
