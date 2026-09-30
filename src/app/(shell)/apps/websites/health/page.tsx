@@ -138,7 +138,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
               ) : null}
             </div>
           ) : (
-            <ul className="space-y-6 max-w-4xl">
+            <ul className="space-y-6">
               {sites.map((site) => {
                 const linked = domains.filter((d) => d.websiteId === site.id);
                 const domain = resolvePrimaryLinkedDomain(site, linked);
