@@ -1,3 +1,4 @@
+import { GrowthAppHeader } from "@/components/growth/GrowthAppHeader";
 import {
   buildLiveTwinWithScores,
   computeReputationScore,
@@ -284,12 +285,7 @@ export default async function AiVisibilityPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">AI Visibility</h1>
-        <p className="text-sm text-slate-400">
-          {firstName}&apos;s AI discoverability, readiness and future answer-engine share of voice
-        </p>
-      </header>
+      <GrowthAppHeader appId="ai-visibility" description="See how ready your business is to be discovered, understood and recommended by AI answer engines." />
       <main className="dg-page-main space-y-6">
         {loadError ? (
           <p className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">

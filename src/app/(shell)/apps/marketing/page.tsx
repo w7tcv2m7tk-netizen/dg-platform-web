@@ -1,3 +1,4 @@
+import { GrowthAppHeader } from "@/components/growth/GrowthAppHeader";
 import Link from "next/link";
 
 import { getPlatformPageContext } from "@/lib/org-apps";
@@ -14,11 +15,7 @@ export default async function MarketingPage() {
   await getPlatformPageContext();
   return (
     <>
-      <header className="dg-page-header">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">Growth App</p>
-        <h1 className="mt-1 text-2xl font-bold text-white">Marketing</h1>
-        <p className="mt-1 max-w-3xl text-sm text-slate-400">Your growth command workspace for campaigns, audiences, lead generation, attribution and optimisation.</p>
-      </header>
+      <GrowthAppHeader appId="marketing" description="Your growth command workspace for campaigns, audiences, lead generation, attribution and optimisation." />
       <main className="dg-page-main space-y-6">
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {[["Campaigns", "Plan and coordinate campaigns across your growth channels."], ["Audiences", "Turn CRM and Business Brain context into useful customer segments."], ["Funnels", "See how attention becomes enquiries, opportunities and customers."], ["Attribution", "Connect growth activity to leads, pipeline and revenue."]].map(([title, copy]) => <div key={title} className="dg-card"><h2 className="font-semibold text-white">{title}</h2><p className="mt-2 text-sm text-slate-400">{copy}</p></div>)}

@@ -197,75 +197,14 @@ export { INDUSTRY_PUBLIC_GROUPS };
 
 /** Mirrors pricing page — Growth Apps (optional; same order as public pricing) */
 export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
-  {
-    appId: "advertising",
-    label: "Advertising",
-    icon: "◎",
-    price: "+$99/mo",
-    badge: "Growth App",
-    status: "live",
-    description: "Paid media accounts, campaign performance, leads, attribution and optimisation — $99 standalone or included in Growth Suite $399 (add-on to Core)",
-  },
-  {
-    appId: "prospecting",
-    premiumKey: "prospecting_pro",
-    label: "Prospecting & Opportunity Engine",
-    icon: "◎",
-    price: "+$99/mo",
-    description:
-      "Find businesses → discovery → opportunity score → pipeline → CRM — optional Growth App billed separately",
-    status: "live",
-  },
-  {
-    appId: "ai-visibility",
-    premiumKey: "ai_visibility_pro",
-    label: "AI Visibility",
-    icon: "🤖",
-    price: "+$99/mo",
-    description: "AI search visibility scoring & monitoring",
-  },
-  {
-    appId: "seo",
-    premiumKey: "seo_pro",
-    label: "SEO",
-    icon: "🔍",
-    price: "+$99/mo",
-    description: "Deep audits, rankings & technical optimisation",
-  },
-  {
-    appId: "automation",
-    premiumKey: "automation_pro",
-    label: "Automation",
-    icon: "⚡",
-    price: "+$49/mo",
-    description: "Multi-step workflows, triggers & webhooks",
-  },
-  {
-    appId: "analytics",
-    premiumKey: "analytics_pro",
-    label: "Analytics",
-    icon: "📊",
-    price: "+$49/mo",
-    description: "KPI snapshots, trends & custom reporting",
-  },
-  {
-    appId: "social",
-    premiumKey: "social_pro",
-    label: "Social",
-    icon: "📱",
-    price: "+$79/mo",
-    description: "Publish to LinkedIn, Facebook, Instagram, X & Pinterest",
-  },
-  {
-    appId: "reviews",
-    label: "Reputation",
-    icon: "★",
-    price: "Free",
-    badge: "Free",
-    status: "live",
-    description:
-      "Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists — no Growth App charge",
-  },
+{appId:"advertising",label:"Advertising",icon:"◫",price:"+$99/mo",badge:"Growth App",status:"live",description:"Paid media accounts, campaign performance, leads, attribution and optimisation — $99 standalone or included in Growth Suite $399 (add-on to Core)"},
+{appId:"prospecting",premiumKey:"prospecting_pro",label:"Prospecting & Opportunity Engine",icon:"◎",price:"+$99/mo",description:"Find businesses → discovery → opportunity score → pipeline → CRM — optional Growth App billed separately",status:"live"},
+{appId:"ai-visibility",premiumKey:"ai_visibility_pro",label:"AI Visibility",icon:"✦",price:"+$99/mo",description:"AI search visibility scoring & monitoring"},
+{appId:"seo",premiumKey:"seo_pro",label:"SEO",icon:"⌕",price:"+$99/mo",description:"Deep audits, rankings & technical optimisation"},
+{appId:"social",premiumKey:"social_pro",label:"Social",icon:"⊙",price:"+$79/mo",description:"Connected social evidence, content workflows and publishing as network access becomes available"},
+{appId:"reviews",label:"Reputation",icon:"★",price:"Free",badge:"Free",status:"live",description:"Unified review inbox, connector sources, timeline requests & Reputation Score™ when real data exists — no Growth App charge"},
+{appId:"automation",premiumKey:"automation_pro",label:"Automation",icon:"⚡",price:"+$49/mo",description:"Multi-step workflows, triggers & webhooks"},
+{appId:"analytics",premiumKey:"analytics_pro",label:"Analytics",icon:"▥",price:"+$49/mo",description:"KPI snapshots, trends & custom reporting"},
 ];
 
 /**

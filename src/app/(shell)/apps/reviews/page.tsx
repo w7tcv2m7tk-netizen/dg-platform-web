@@ -1,3 +1,4 @@
+import { GrowthAppHeader } from "@/components/growth/GrowthAppHeader";
 import Link from "next/link";
 import { computeReputationScore, extractReviewThemes } from "@dg/platform-core";
 
@@ -13,12 +14,7 @@ export default async function ReputationOverviewPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Reputation</h1>
-        <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · monitor customer reviews, understand recurring themes and track reputation from connected sources
-        </p>
-      </header>
+      <GrowthAppHeader appId="reviews" description="Monitor customer reviews, recurring themes and reputation across connected sources." />
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="dg-card">

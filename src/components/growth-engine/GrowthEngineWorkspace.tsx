@@ -1,3 +1,4 @@
+import { GrowthAppHeader } from "@/components/growth/GrowthAppHeader";
 import Link from "next/link";
 import type { DailyOpportunityBriefing, DailyOpportunityRow } from "@dg/platform-core";
 
@@ -86,30 +87,7 @@ export function GrowthEngineWorkspace({
 
   return (
     <>
-      <header className="dg-page-header">
-        {variant === "sales" ? (
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-400">
-            Prospecting & Opportunity Engine™
-          </p>
-        ) : (
-          <Link href="/command" className="text-sm text-sky-400 hover:underline">
-            ← Command Centre
-          </Link>
-        )}
-        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
-          {variant === "sales" ? "Prospecting" : "Growth Engine™"}
-        </h1>
-        <p className="mt-1 text-sm font-medium tracking-wide text-sky-400/90">
-          Discover → Audit → Opportunity → Prospect → Convert
-        </p>
-        <p className="mt-3 max-w-2xl text-base text-slate-200">
-          One acquisition operating system — who to pursue, why, what stage, what next.
-        </p>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Discovery finds businesses. Audits and scoring qualify them. Pipeline, follow-up and
-          proposals convert them. Activity stays on the prospect and carries into CRM on convert.
-        </p>
-      </header>
+      <GrowthAppHeader appId="prospecting"><p className="text-sm font-medium text-fuchsia-200">Discover → Audit → Opportunity → Prospect → Convert</p></GrowthAppHeader>
 
       <main className="dg-page-main space-y-8">
         <section className="rounded-xl border border-slate-700/80 bg-gradient-to-br from-slate-950/80 to-slate-900/40 px-5 py-5">
@@ -199,7 +177,7 @@ export function GrowthEngineWorkspace({
         </section>
 
         {/* Full daily recommended list */}
-        {spotlight.length > 0 ? (
+        {variant === "command" && spotlight.length > 0 ? (
           <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
             <div className="flex flex-wrap items-end justify-between gap-2">
               <div>

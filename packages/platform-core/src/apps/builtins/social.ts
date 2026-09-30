@@ -7,14 +7,14 @@ export const socialApp: AppManifest = {
     "Connect organisation-scoped social accounts, use authorised social evidence, and create local drafts while direct network publishing remains disabled",
   tier: "growth",
   version: "0.1.0",
-  icon: "◎",
+  icon: "⊙",
   routes: [
     { path: "/apps/social", label: "Overview" },
     { path: "/apps/social/compose", label: "Drafts" },
     { path: "/apps/social/calendar", label: "Draft timeline" },
     { path: "/apps/social/accounts", label: "Connected accounts" },
   ],
-  navigation: [{ href: "/apps/social", label: "Social", icon: "◎" }],
+  navigation: [{ href: "/apps/social", label: "Social", icon: "⊙" }],
   permissions: [
     { id: "social.view", label: "View social workspace" },
     { id: "social.publish", label: "Create social drafts" },

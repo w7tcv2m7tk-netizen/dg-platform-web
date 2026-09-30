@@ -7,9 +7,9 @@ export const marketingApp: AppManifest = {
   description: "Campaigns, audiences, funnels, lead generation, attribution and optimisation",
   tier: "growth",
   version: "0.1.0",
-  icon: "◉",
+  icon: "◆",
   routes: [{ path: "/apps/marketing", label: "Overview" }],
-  navigation: [{ href: "/apps/marketing", label: "Marketing", icon: "◉" }],
+  navigation: [{ href: "/apps/marketing", label: "Marketing", icon: "◆" }],
   permissions: [
     { id: "marketing.view", label: "View marketing" },
     { id: "marketing.manage", label: "Manage campaigns" },

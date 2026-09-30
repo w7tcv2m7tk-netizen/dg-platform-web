@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
+import { generateAiAssist, getBusinessContext } from "@dg/platform-core";
 
 interface RouteParams { params: Promise<{ id: string }> }
 
@@ -91,7 +92,30 @@ export async function POST(req: Request, { params }: RouteParams) {
       outcome,
       nextStage,
       nextAction,
-      followUpDraft: followUpDraft({ name: prospect.contactName, business: prospect.businessName, notes, outcome }),
+      followUpDraft: await (async () => {
+        const fallback = followUpDraft({ name: prospect.contactName, business: prospect.businessName, notes, outcome });
+        try {
+          const context = await getBusinessContext({ organisationId: session.organisationId, organisationName: session.organisationName || "Your business" });
+          const ai = await generateAiAssist({
+            context,
+            action: "lead_follow_up",
+            entity: {
+              kind: "lead",
+              id: prospect.id,
+              title: prospect.businessName,
+              stage: nextStage,
+              contactName: prospect.contactName,
+              contactEmail: prospect.contactEmail,
+              contactPhone: prospect.contactPhone,
+              notes: [notes ? `Call outcome: ${outcome}. ${notes}` : `Call outcome: ${outcome}.`, `Next action: ${nextAction}`],
+            },
+          });
+          return ai.output || fallback;
+        } catch (error) {
+          console.warn("[prospecting] Aida follow-up failed; using deterministic draft", error);
+          return fallback;
+        }
+      })(),
     },
   });
 }
