@@ -177,6 +177,7 @@ export default async function SupportTicketsPage({
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Updated</th>
                   <th className="px-4 py-3 font-medium">Flags</th>
+                  <th className="px-4 py-3 font-medium">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
@@ -221,6 +222,19 @@ export default async function SupportTicketsPage({
                     </td>
                     <td className="px-4 py-3 align-top text-slate-400">
                       {c.aiPaused ? <span className="text-amber-300">AI paused</span> : "—"}
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <form action="/api/v1/command/support/status" method="post">
+                        <input type="hidden" name="conversationId" value={c.id} />
+                        <input type="hidden" name="status" value={c.status === "resolved" ? "open" : "resolved"} />
+                        <input type="hidden" name="returnTo" value={`/support/tickets?status=${status}`} />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-sky-500/60 hover:text-sky-300"
+                        >
+                          {c.status === "resolved" ? "Reopen" : "Resolve"}
+                        </button>
+                      </form>
                     </td>
                   </tr>
                 ))}
