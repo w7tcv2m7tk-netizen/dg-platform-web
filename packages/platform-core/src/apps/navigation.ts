@@ -427,67 +427,6 @@ function platformAppsNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
   };
 }
 
-/** Customer Network — operate their relationships, not DigitalGate’s ecosystem machinery. */
-function customerNetworkNavItem(): AppNavTreeItem {
-  return {
-    kind: "app",
-    id: "platform-network",
-    name: "Network",
-    icon: getSidebarIcon("network"),
-    tier: "internal",
-    enabled: true,
-    primaryHref: "/dashboard/network",
-    routes: [
-      { path: "/dashboard/network", label: "Overview" },
-      { path: "/dashboard/network/referrals", label: "Referrals" },
-      {
-        path: "/dashboard/network/refer-earn",
-        label: "Refer & Earn",
-        matchAlso: ["/dashboard/settings/referrals"],
-      },
-      {
-        path: "/dashboard/network/connections",
-        label: "Connections",
-        matchAlso: ["/dashboard/network/partners"],
-      },
-    ],
-  };
-}
-
-/**
- * Staff Network (Platform pillar) — commercial network *transactions*.
- * Partners (DIGITALGATE) = people & organisations; Network = referrals, commissions, payouts.
- * Do not duplicate partner relationship management here.
- */
-function staffNetworkNavItem(): AppNavTreeItem {
-  return {
-    kind: "app",
-    id: "platform-network",
-    name: "Network",
-    icon: getSidebarIcon("network"),
-    tier: "internal",
-    enabled: true,
-    primaryHref: "/dashboard/network",
-    routes: [
-      { path: "/dashboard/network", label: "Overview" },
-      {
-        path: "/dashboard/network/refer-earn",
-        label: "Refer & Earn",
-        matchAlso: ["/dashboard/settings/referrals"],
-      },
-      {
-        path: "/dashboard/network/connections",
-        label: "Connections",
-        matchAlso: ["/dashboard/network/partners"],
-      },
-    ],
-  };
-}
-
-function platformNetworkNavItem(showCommandCentre: boolean): AppNavTreeItem {
-  return showCommandCentre ? staffNetworkNavItem() : customerNetworkNavItem();
-}
-
 function platformSettingsNavItem(): AppNavTreeItem {
   return {
     kind: "app",
@@ -501,7 +440,7 @@ function platformSettingsNavItem(): AppNavTreeItem {
   };
 }
 
-/** PLATFORM — Apps · Marketplace · Network · Settings (ecosystem admin, not product features). */
+/** PLATFORM — Apps · Settings (customer configuration, not product features). */
 function getPlatformAdminSection(options?: {
   showCommandCentre?: boolean;
   foundingCustomerMode?: boolean;
@@ -513,7 +452,6 @@ function getPlatformAdminSection(options?: {
     ? [platformAppsNavItem(true)]
     : [
         platformAppsNavItem(false),
-        platformNetworkNavItem(showCommandCentre),
         platformSettingsNavItem(),
       ];
 
