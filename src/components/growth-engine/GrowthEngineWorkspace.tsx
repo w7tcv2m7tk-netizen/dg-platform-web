@@ -25,7 +25,7 @@ export type GrowthEngineSummaryLite = {
 export type GrowthEngineWorkspaceProps = {
   /** Sales (tenant product) or Command Centre (DigitalGate GTM). */
   variant: "sales" | "command";
-  briefing: DailyOpportunityBriefing | null;
+  briefing?: DailyOpportunityBriefing | null;
   summary: GrowthEngineSummaryLite | null;
   /** Show collapsible beta honesty block (Command / operator). */
   showBetaStatus?: boolean;
