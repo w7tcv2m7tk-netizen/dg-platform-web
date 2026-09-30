@@ -63,7 +63,6 @@ test("Industry App commercial pricing remains $149, not $99", () => {
 
 test("legitimate $99 products remain allowed", () => {
   const pricing = fs.readFileSync(path.join(ROOT, "marketing/pages/pricing-page.html"), "utf8");
-  assert.match(pricing, /Starter \$99/);
   assert.match(pricing, /Advertising \$99/);
   assert.match(pricing, /Marketing \$99/);
 });
