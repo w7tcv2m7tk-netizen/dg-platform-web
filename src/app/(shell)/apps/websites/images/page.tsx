@@ -63,7 +63,7 @@ export default async function ImagesLibraryPage() {
             </p>
           </>
         ) : (
-          <div className="max-w-2xl space-y-4">
+          <div className="space-y-4">
             <p className="text-sm text-slate-500">
               You have read-only access to this image library.
             </p>
