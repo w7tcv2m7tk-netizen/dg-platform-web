@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useTransition } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 import type {
   ConversationSummary,
   InboxFolderId,
@@ -53,6 +53,7 @@ export function CommunicationsInboxWorkspace({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
+  const [clearingAttention, setClearingAttention] = useState(false);
 
   const selected = useMemo(
     () => conversations.find((c) => c.key === selectedKey) ?? null,
@@ -96,9 +97,28 @@ export function CommunicationsInboxWorkspace({
   );
 
   const emptyAll = conversations.length === 0 && folder === "all" && !q;
+  const clearAttention = useCallback(async () => {
+    setClearingAttention(true);
+    try {
+      const response = await fetch("/api/v1/communications/attention/clear", { method: "POST" });
+      if (response.ok) router.refresh();
+    } finally {
+      setClearingAttention(false);
+    }
+  }, [router]);
+
 
   return (
-    <div
+    <div className="space-y-3">
+      {(folderCounts.needs_reply ?? 0) > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-violet-500/25 bg-violet-500/5 px-4 py-3">
+          <p className="text-sm text-slate-300"><span className="font-semibold text-violet-200">{folderCounts.needs_reply}</span> conversation{folderCounts.needs_reply === 1 ? "" : "s"} need attention.</p>
+          <button type="button" onClick={clearAttention} disabled={clearingAttention} className="rounded-lg border border-violet-400/30 px-3 py-1.5 text-xs font-medium text-violet-200 hover:bg-violet-500/10 disabled:opacity-50">
+            {clearingAttention ? "Clearing…" : "Mark all as read"}
+          </button>
+        </div>
+      ) : null}
+      <div
       className={`flex min-h-[min(70vh,720px)] flex-1 flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950/40 ${
         pending ? "opacity-90" : ""
       }`}
@@ -168,6 +188,7 @@ export function CommunicationsInboxWorkspace({
           </aside>
         </div>
       )}
+      </div>
     </div>
   );
 }
