@@ -27,7 +27,7 @@ export default async function InfrastructureCloudflarePage() {
           Platform edge operations · CDN · WAF · cache management
         </p>
       </header>
-      <main className="dg-page-main max-w-2xl">
+      <main className="dg-page-main">
         <CloudflareConsole initialOverview={overview} />
       </main>
     </>
