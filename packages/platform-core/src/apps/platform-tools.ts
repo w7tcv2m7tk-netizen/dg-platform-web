@@ -16,11 +16,8 @@ export interface PlatformToolGroup {
  */
 export const SETTINGS_NAV_ROUTES: AppRoute[] = [
   { path: "/dashboard/settings", label: "Overview" },
-  {
-    path: "/dashboard/settings/connected-services",
-    label: "Connected Services",
-  },
   { path: "/dashboard/settings/billing", label: "Billing" },
+  { path: "/dashboard/settings/connected-services", label: "Connected Services" },
   { path: "/dashboard/settings/referrals", label: "Referral Programme" },
 ];
 
