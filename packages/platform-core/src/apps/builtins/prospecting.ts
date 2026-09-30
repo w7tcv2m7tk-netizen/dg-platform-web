@@ -1,13 +1,13 @@
 import type { AppManifest } from "../manifest";
 
 /**
- * Prospecting & Opportunity Engine — Growth App ($99/mo).
+ * Prospecting — Growth App within the DigitalGate Growth suite.
  *
  * Growth App surface = Business (B2B) Discovery + evidence, pipeline and reporting.
  * Consumer / property modes (Vendor, Buyer, …) use Industry App front ends
  * on the same underlying engine — see PROSPECTING-ENGINE.md.
  *
- * Do not bill Prospecting / Discovery / Opportunity Engine as separate SKUs.
+ * Prospecting, Discovery and opportunity evidence are one capability, not separate products.
  *
  * @see docs/foundations/PROSPECTING-ENGINE.md
  * @see docs/foundations/BUSINESS-DISCOVERY.md
