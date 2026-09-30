@@ -23,7 +23,7 @@ export default async function EmailInfrastructurePage() {
           <h1 className="text-2xl font-bold text-white">Email</h1>
           <p className="text-sm text-slate-400">Sending-domain and email authentication status.</p>
         </header>
-        <main className="dg-page-main max-w-2xl space-y-4">
+        <main className="dg-page-main space-y-4">
           <section className="rounded-lg border border-slate-800 bg-slate-950/60 p-5">
             <h2 className="text-lg font-semibold text-white">Email status</h2>
             <p className="mt-2 text-sm text-slate-400">
@@ -56,7 +56,7 @@ export default async function EmailInfrastructurePage() {
         <h1 className="text-2xl font-bold text-white">Email</h1>
         <p className="text-sm text-slate-400">Manage sending domains and email authentication.</p>
       </header>
-      <main className="dg-page-main max-w-2xl">
+      <main className="dg-page-main">
         <EmailInfrastructureConsole initialOverview={overview} />
       </main>
     </>
