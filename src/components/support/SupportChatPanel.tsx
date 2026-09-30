@@ -152,7 +152,7 @@ export function SupportChatPanel({
   }
 
   const shellClass = embedded
-    ? "flex h-[min(520px,70vh)] flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-900/50"
+    ? "flex h-[min(460px,62vh)] flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50"
     : "flex h-full flex-col overflow-hidden";
 
   return (
