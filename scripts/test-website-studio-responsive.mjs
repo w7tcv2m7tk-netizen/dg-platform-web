@@ -46,11 +46,12 @@ test("authenticated mobile shell covers the visual viewport without a purple hom
     css,
     /\.dg-shell-viewport \{[^}]*\binset:\s*0\b/s,
   );
-  // Light mode has its own underlay override, so assert the dark base rule
-  // directly without depending on which matching selector appears first.
-  assert.match(
-    css,
-    /\\.dg-shell-underlay\\s*\\{[^}]*background-color:\\s*#07101d[^}]*\\}/s,
+  // Light mode has its own underlay override. Locate the exact dark base
+  // declaration as source text instead of relying on a regex over the full CSS.
+  const darkUnderlayRule = ".dg-shell-underlay {\\n  background-color: #07101d;\\n}";
+  assert.ok(
+    css.includes(darkUnderlayRule),
+    "base shell underlay must retain the dark chrome fallback",
   );
 
   assert.doesNotMatch(brand, /at 0% 100%/);
