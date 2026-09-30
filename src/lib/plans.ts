@@ -78,12 +78,6 @@ export const PLATFORM_TIERS: {
   tagline: string;
 }[] = [
   {
-    key: "starter",
-    label: "Starter",
-    price: "$99/mo",
-    tagline: "For businesses replacing spreadsheets",
-  },
-  {
     key: "professional",
     label: "Growth",
     price: "$249/mo",
@@ -272,7 +266,7 @@ export function recommendPlanFromDiscovery(input: DiscoveryInput): SignupSelecti
 
   const team = input.teamSize ?? "";
   if (team === "Just me" || team === "1") {
-    platformTier = "starter";
+    platformTier = "professional";
   } else if (team === "26–50" || team === "50+" || team === "11–25") {
     platformTier = "business";
   }
