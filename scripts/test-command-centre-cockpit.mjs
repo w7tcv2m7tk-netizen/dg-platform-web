@@ -44,9 +44,9 @@ test("Command cockpit uses the operator summary IA", () => {
     "Executive Pulse",
     "Aida Intelligence",
     "Priorities & Alerts",
-    "Customers & Acquisition",
     "Revenue / Commercial",
-    "Platform, Partners & Delivery",
+    "Customers & Acquisition",
+    "Platform, Delivery & Partners",
     "Platform Progress",
     "Recent Activity",
   ]) {

@@ -81,7 +81,7 @@ function BriefingList({
 
 /**
  * DigitalGate operator cockpit — Act first, then understand the fleet.
- * Layers: Executive Pulse → Aida → Priorities → Customers → Commercial → Platform → Activity.
+ * Layers: Executive Pulse → Aida → Priorities → Commercial → Customers → Platform / Delivery / Partners → Activity.
  */
 export function CommandOpsHome({
   data,
@@ -349,10 +349,76 @@ export function CommandOpsHome({
         ) : null}
       </section>
 
+      <section id="command-commercial" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <LayerEyebrow index="04" label="Revenue / Commercial" />
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+              {billing.estimatedMrrLabel} recurring
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              Live Commerce subscriptions and paid invoices — not inferred Growth Engine revenue.
+            </p>
+          </div>
+          <Link
+            href="/command/revenue"
+            className="inline-flex min-h-11 items-center text-sm text-violet-200 hover:text-white"
+          >
+            Open Revenue →
+          </Link>
+        </div>
+
+        <div className="mt-8 grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
+          <Link href="/command/revenue" className="group">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">MRR</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-white group-hover:text-violet-200">
+              {billing.estimatedMrrLabel}
+            </p>
+            <p className="mt-2 text-xs text-slate-500">
+              {billing.activeSubscriptions} active subscriptions
+            </p>
+          </Link>
+          <Link href="/command/revenue" className="group">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Invoiced MTD</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-white group-hover:text-violet-200">
+              {billing.invoicePaidMtdLabel}
+            </p>
+            <p className="mt-2 text-xs text-slate-500">Paid invoices this month</p>
+          </Link>
+          <Link href="/command/referrals" className="group">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Refer & Earn</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight text-white group-hover:text-violet-200">
+              {referEarn.paid}
+            </p>
+            <p className="mt-2 text-xs text-slate-500">
+              {referEarn.totalReferrals} referrals · {referEarn.signedUp} signed up
+            </p>
+          </Link>
+          <Link
+            href={billing.stripeOk ? "/command/revenue" : "/dashboard/settings/billing"}
+            className="group"
+          >
+            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Stripe</p>
+            <p
+              className={`mt-2 text-3xl font-semibold tracking-tight group-hover:text-violet-200 ${
+                billing.stripeOk ? "text-white" : "text-amber-200"
+              }`}
+            >
+              {billing.stripeMode}
+            </p>
+            <p className="mt-2 text-xs text-slate-500">
+              {billing.orgsWithBillingCustomer} orgs with billing customer
+              {billing.stripeOk ? "" : " · needs setup"}
+            </p>
+          </Link>
+        </div>
+        {revenueNote ? <p className="mt-5 text-xs text-slate-500">{revenueNote}</p> : null}
+      </section>
+
       <section id="command-customers" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <LayerEyebrow index="04" label="Customers & Acquisition" />
+            <LayerEyebrow index="05" label="Customers & Acquisition" />
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
               {organisationHealth.needsAttentionCount} organisation
               {organisationHealth.needsAttentionCount === 1 ? "" : "s"} requiring attention
@@ -458,76 +524,10 @@ export function CommandOpsHome({
         </div>
       </section>
 
-      <section id="command-commercial" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <LayerEyebrow index="05" label="Revenue / Commercial" />
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
-              {billing.estimatedMrrLabel} recurring
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">
-              Live Commerce subscriptions and paid invoices — not inferred Growth Engine revenue.
-            </p>
-          </div>
-          <Link
-            href="/command/revenue"
-            className="inline-flex min-h-11 items-center text-sm text-violet-200 hover:text-white"
-          >
-            Open Revenue →
-          </Link>
-        </div>
-
-        <div className="mt-8 grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
-          <Link href="/command/revenue" className="group">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">MRR</p>
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-white group-hover:text-violet-200">
-              {billing.estimatedMrrLabel}
-            </p>
-            <p className="mt-2 text-xs text-slate-500">
-              {billing.activeSubscriptions} active subscriptions
-            </p>
-          </Link>
-          <Link href="/command/revenue" className="group">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Invoiced MTD</p>
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-white group-hover:text-violet-200">
-              {billing.invoicePaidMtdLabel}
-            </p>
-            <p className="mt-2 text-xs text-slate-500">Paid invoices this month</p>
-          </Link>
-          <Link href="/command/referrals" className="group">
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Refer & Earn</p>
-            <p className="mt-2 text-3xl font-semibold tracking-tight text-white group-hover:text-violet-200">
-              {referEarn.paid}
-            </p>
-            <p className="mt-2 text-xs text-slate-500">
-              {referEarn.totalReferrals} referrals · {referEarn.signedUp} signed up
-            </p>
-          </Link>
-          <Link
-            href={billing.stripeOk ? "/command/revenue" : "/dashboard/settings/billing"}
-            className="group"
-          >
-            <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">Stripe</p>
-            <p
-              className={`mt-2 text-3xl font-semibold tracking-tight group-hover:text-violet-200 ${
-                billing.stripeOk ? "text-white" : "text-amber-200"
-              }`}
-            >
-              {billing.stripeMode}
-            </p>
-            <p className="mt-2 text-xs text-slate-500">
-              {billing.orgsWithBillingCustomer} orgs with billing customer
-              {billing.stripeOk ? "" : " · needs setup"}
-            </p>
-          </Link>
-        </div>
-        {revenueNote ? <p className="mt-5 text-xs text-slate-500">{revenueNote}</p> : null}
-      </section>
-
       <section id="command-platform" className="rounded-2xl border border-white/10 bg-slate-950/45 p-6 shadow-[0_18px_50px_rgba(0,0,0,.18)] sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <LayerEyebrow index="06" label="Platform, Partners & Delivery" />
+            <LayerEyebrow index="06" label="Platform, Delivery & Partners" />
             <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white">
               {delivery.blocked > 0
                 ? `${delivery.blocked} delivery blocked`
