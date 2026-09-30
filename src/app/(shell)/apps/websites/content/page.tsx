@@ -55,7 +55,7 @@ export default async function ContentOverviewPage() {
             ) : null}
           </div>
         ) : (
-          <ul className="space-y-5 max-w-3xl">
+          <ul className="space-y-5">
             {sites.map((site) => {
               const pages = site.pages ?? [];
               const blockCount = pages.reduce(
