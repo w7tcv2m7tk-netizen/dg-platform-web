@@ -302,8 +302,8 @@ export default async function DashboardPage() {
         {platformSession ? (
           <header className="mb-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">DigitalGate</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Command Centre</h1>
-            <p className="mt-2 max-w-3xl text-sm text-slate-400 sm:text-base">Your business intelligence, priorities and performance in one place.</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Business Overview</h1>
+            <p className="mt-2 max-w-3xl text-sm text-slate-400 sm:text-base">Your business health, priorities and performance in one place.</p>
           </header>
         ) : null}
         {platformSession && !operator ? <Gen2OnboardingChecklistBanner organisationId={platformSession.organisationId} organisationName={platformSession.organisationName} /> : null}
