@@ -2,6 +2,8 @@ export type CommercialPlatformTier = "starter" | "professional" | "business";
 export type CommercialSupportPlan = "standard" | "priority" | "success_partner" | "enterprise_success";
 
 export const PLATFORM_COMMERCIAL_PLANS: Array<{ id: CommercialPlatformTier; name: string; monthlyCents: number; blurb: string }> = [
+  // Legacy compatibility only — retained for existing subscription resolution; not sold in current UI.
+  { id: "starter", name: "Starter (Legacy)", monthlyCents: 9900, blurb: "Legacy plan retained for existing subscriptions." },
   { id: "professional", name: "Growth", monthlyCents: 24900, blurb: "Full Business Operating Platform for growing teams." },
   { id: "business", name: "Scale", monthlyCents: 49900, blurb: "Scale operations with higher capacity and priority support." },
 ];
