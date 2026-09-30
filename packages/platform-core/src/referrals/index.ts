@@ -44,8 +44,8 @@ export {
 } from "./stripe-connect";
 
 export const REFERRAL_COOKIE = "dg_ref";
-/** Canonical Platform Refer & Earn surface — lives under Network, not Settings. */
-export const REFER_AND_EARN_HREF = "/dashboard/network/refer-earn";
+/** Canonical customer Referral Programme surface — lives under Settings. */
+export const REFER_AND_EARN_HREF = "/dashboard/settings/referrals";
 export const REFERRAL_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 days
 export const CUSTOMER_COMMISSION_BPS = BPS.FOUNDING_10_REFERRAL;
 export const PARTNER_COMMISSION_BPS = BPS.RESELLER;
