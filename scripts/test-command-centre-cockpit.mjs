@@ -55,7 +55,8 @@ test("Command cockpit uses the operator summary IA", () => {
 });
 
 test("Command cockpit keeps live operator capabilities and scopes commercial CRM to DigitalGate", () => {
-  assert.doesNotMatch(home, /SalesWeekNowBanner/);\n  assert.match(home, /href="\\/apps\\/prospecting\\/today"/);
+  assert.doesNotMatch(home, /SalesWeekNowBanner/);
+  assert.match(home, /href="\\/apps\\/prospecting\\/today"/);
   assert.match(home, /AiAdvisorPanel/);
   assert.match(home, /billing\.estimatedMrrLabel/);
   assert.match(home, /pulse\.organisations/);
