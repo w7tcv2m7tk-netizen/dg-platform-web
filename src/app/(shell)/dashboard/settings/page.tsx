@@ -18,7 +18,7 @@ export default async function PlatformSettingsPage() {
       <header className="dg-page-header">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
         <p className="text-sm text-slate-400">
-          Connected services, billing, API and audit log
+          Connected services, billing, referrals and account preferences
         </p>
       </header>
       <main className="dg-page-main space-y-6">
@@ -121,11 +121,8 @@ export default async function PlatformSettingsPage() {
           <div className="dg-card lg:col-span-2">
             <h2 className="font-semibold text-white">More settings</h2>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3 text-sm">
-              <Link href="/dashboard/settings/api" className="text-blue-400 hover:underline">
-                API &amp; integration keys →
-              </Link>
-              <Link href="/dashboard/settings/audit" className="text-blue-400 hover:underline">
-                Audit log →
+              <Link href="/dashboard/settings/referrals" className="text-blue-400 hover:underline">
+                Referral Programme →
               </Link>
               <Link href="/support" className="text-blue-400 hover:underline">
                 Help &amp; support →

@@ -30,27 +30,27 @@ html[data-theme="light"] body {
 }
 
 html[data-theme="light"] .dg-branded-shell {
-  --org-bg-base: #f1f5f9;
+  --org-bg-base: #f5f7fb;
   --org-bg-elevated: #ffffff;
   --org-bg-surface: #ffffff;
-  --org-bg-surface-hover: #f1f5f9;
+  --org-bg-surface-hover: #f3f5fa;
   --org-bg-inset: #f8fafc;
-  --org-border: #cbd5e1;
-  --org-border-subtle: #e2e8f0;
-  --org-text-muted: #64748b;
-  --org-shell-gradient: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  --org-border: #d5dbe7;
+  --org-border-subtle: #e4e8f0;
+  --org-text-muted: #667085;
+  --org-shell-gradient: linear-gradient(180deg, #f7f8fb 0%, #f1f4f8 100%);
   background: var(--org-shell-gradient);
   color: #0f172a;
 }
 
 html[data-theme="light"] .dg-branded-sidebar {
-  background: #ffffff;
-  border-color: #e2e8f0;
+  background: #fbfcfe;
+  border-color: #e4e8f0;
 }
 
 html[data-theme="light"] .dg-branded-header {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.96);
+  border-color: #e4e8f0;
 }
 
 html[data-theme="light"] .dg-branded-overlay {
@@ -89,8 +89,20 @@ html[data-theme="light"] .dg-input::placeholder {
 }
 
 html[data-theme="light"] .dg-page-header {
-  background: rgba(255, 255, 255, 0.88);
-  border-color: #e2e8f0;
+  background: #ffffff;
+  border-color: #e4e8f0;
+}
+
+html[data-theme="light"] .dg-growth-header {
+  background: color-mix(in srgb, currentColor 4%, #ffffff);
+}
+
+html[data-theme="light"] .dg-shell-underlay {
+  background-color: #f5f7fb;
+}
+
+html[data-theme="light"] .dg-branded-shell main {
+  background: transparent;
 }
 
 /* Headings / emphasis that used text-white on dark chrome */
