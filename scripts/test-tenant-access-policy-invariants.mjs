@@ -16,5 +16,5 @@ for (const id of ["advertising","marketing","prospecting","ai-visibility","seo",
 assert.match(nav,/function getDigitalGateOperatorSection\(\)/);
 assert.match(nav,/getCommandCentreNavItem\(\)/);
 assert.match(nav,/showCommandCentre\?: boolean/);
-assert.match(nav,/platformNetworkNavItem\(showCommandCentre\)/);
+assert.doesNotMatch(nav,/platformNetworkNavItem\(showCommandCentre\)/);
 console.log("tenant access policy invariants passed");
