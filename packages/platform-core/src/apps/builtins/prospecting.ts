@@ -15,21 +15,19 @@ import type { AppManifest } from "../manifest";
  */
 export const prospectingApp: AppManifest = {
   id: "prospecting",
-  name: "Prospecting & Opportunity Engine",
+  name: "Prospecting",
   description:
-    "Discover businesses, collect real opportunity evidence, rank prospects, manage pipeline, activate into CRM, and share prospect reports — one $99/mo Growth App.",
+    "Discover, qualify and convert the right businesses with a guided next-best-action workflow.",
   tier: "growth",
   version: "0.1.0",
   icon: "◎",
   routes: [
     { path: "/apps/prospecting", label: "Overview" },
     { path: "/apps/prospecting/today", label: "Today" },
-    { path: "/apps/prospecting/discovery", label: "Business Discovery" },
-    { path: "/apps/prospecting/scores", label: "Opportunities" },
+    { path: "/apps/prospecting/discovery", label: "Discover" },
     { path: "/apps/prospecting/prospects", label: "Prospects" },
     { path: "/apps/prospecting/pipeline", label: "Pipeline" },
-    { path: "/apps/prospecting/reports", label: "Reports" },
-    { path: "/apps/prospecting/activity", label: "Follow-up" },
+    { path: "/apps/prospecting/activity", label: "Activity" },
   ],
   navigation: [
     {
