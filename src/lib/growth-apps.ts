@@ -8,6 +8,6 @@ export const GROWTH_APP_IDENTITY: Record<GrowthAppId,{name:string;icon:string;ac
  seo:{name:"SEO",icon:"⌕",accent:"sky",description:"Improve organic search visibility, technical health and on-page performance."},
  social:{name:"Social",icon:"⊙",accent:"pink",description:"Build and manage your connected social presence and content."},
  reviews:{name:"Reputation",icon:"★",accent:"rose",description:"Monitor reviews, strengthen trust and turn feedback into growth."},
- automation:{name:"Automation",icon:"⚡",accent:"emerald",description:"Scale repeatable growth workflows, triggers and follow-up."},
+ automation:{name:"Automation",icon:"ϟ",accent:"emerald",description:"Scale repeatable growth workflows, triggers and follow-up."},
  analytics:{name:"Analytics",icon:"▥",accent:"indigo",description:"Measure performance, attribution and the signals that drive better decisions."}
 };

@@ -35,7 +35,7 @@ const SIDEBAR_ICONS: Record<string, string> = {
   seo: "⌕",
   "ai-visibility": "✦",
   "ai-communications": "◎",
-  automation: "⚡",
+  automation: "ϟ",
   analytics: "▥",
   social: "⊙",
   marketing: "◆",

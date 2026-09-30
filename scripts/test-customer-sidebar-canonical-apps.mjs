@@ -4,7 +4,7 @@ const nav=fs.readFileSync("packages/platform-core/src/apps/navigation.ts","utf8"
 assert.match(nav,/const GROW_APP_ORDER = \[[\s\S]*"marketing"[\s\S]*"advertising"[\s\S]*"prospecting"[\s\S]*"ai-visibility"[\s\S]*"seo"[\s\S]*"social"[\s\S]*"reviews"[\s\S]*"automation"[\s\S]*"analytics"/);
 assert.doesNotMatch(nav,/SIDEBAR_HIDDEN_APP_IDS = new Set\(\[\s*"marketing"/);
 assert.match(nav,/platformAppsNavItem\(false\)/);
-assert.match(nav,/platformMarketplaceNavItem\(\)/);
-assert.match(nav,/platformNetworkNavItem\(showCommandCentre\)/);
+assert.doesNotMatch(nav,/platformMarketplaceNavItem\(\)/);
+assert.doesNotMatch(nav,/platformNetworkNavItem\(showCommandCentre\)/);
 assert.match(nav,/platformSettingsNavItem\(\)/);
 console.log("customer sidebar canonical app checks passed");
