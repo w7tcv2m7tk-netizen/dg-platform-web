@@ -18,7 +18,7 @@ assert.match(sidebar, /"dg-support": "Support Centre"/);
 
 assert.match(supportPage, /<h1[^>]*>Support<\/h1>/);
 assert.doesNotMatch(supportPage, /<h1[^>]*>Support Centre<\/h1>/);
-assert.match(supportPage, />How can we help\?</);
+assert.match(supportPage, /DigitalGate Support/);
 assert.match(supportPage, />Ask Aida</);
 assert.match(supportPage, />Knowledge Base</);
 assert.match(supportPage, />Get help from our team</);
