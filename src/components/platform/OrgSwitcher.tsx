@@ -43,8 +43,11 @@ export function OrgSwitcher({
       setError(json.error?.message ?? "Could not switch organisation");
       return;
     }
-    // Hard navigate so brand theme, favicon, apps, and page data all remount for the new org.
-    window.location.assign("/dashboard");
+    // DigitalGate is the operator organisation: return operators to Command Centre.
+    // Customer businesses continue to land on their normal business dashboard.
+    const isDigitalGateOperator =
+      target?.organisationName?.trim().toLowerCase() === "digitalgate";
+    window.location.assign(isDigitalGateOperator ? "/command" : "/dashboard");
   }
 
   async function createOrg(e: React.FormEvent) {
@@ -111,13 +114,13 @@ export function OrgSwitcher({
                   disabled={pending}
                   className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-800/80 disabled:opacity-50 ${
                     org.organisationId === activeOrganisationId
-                      ? "bg-blue-500/10 text-blue-200"
+                      ? "bg-violet-500/10 text-violet-200"
                       : "text-slate-200"
                   }`}
                 >
                   <span className="truncate">{org.organisationName}</span>
                   {org.organisationId === activeOrganisationId ? (
-                    <span className="text-xs text-blue-400">Active</span>
+                    <span className="text-xs text-violet-400">Active</span>
                   ) : null}
                 </button>
               </li>
@@ -139,7 +142,7 @@ export function OrgSwitcher({
               <button
                 type="submit"
                 disabled={creating || pending || !newName.trim()}
-                className="w-full rounded-lg bg-blue-600 py-1.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+                className="w-full rounded-lg bg-violet-600 py-1.5 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
               >
                 {creating ? "Creating…" : "Create & switch"}
               </button>
@@ -163,7 +166,7 @@ export function OrgSwitcher({
                   {pendingLabel ? `Loading ${pendingLabel}…` : "Loading…"}
                 </p>
                 <div className="mx-auto mt-4 h-1 w-32 overflow-hidden rounded-full bg-slate-800">
-                  <div className="h-full w-1/2 animate-pulse rounded-full bg-sky-500" />
+                  <div className="h-full w-1/2 animate-pulse rounded-full bg-violet-500" />
                 </div>
               </div>
             </div>,
