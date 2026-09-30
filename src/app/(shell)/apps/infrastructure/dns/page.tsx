@@ -27,7 +27,7 @@ export default async function DnsInfrastructurePage() {
         {canWrite ? (
           <DnsConsole />
         ) : (
-          <section className="max-w-3xl space-y-4">
+          <section className="space-y-4">
             <div className="rounded-lg border border-slate-700 bg-slate-900/40 p-5">
               <h2 className="text-base font-semibold text-white">DNS status</h2>
               <p className="mt-1 text-sm text-slate-400">
