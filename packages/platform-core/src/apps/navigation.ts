@@ -427,36 +427,6 @@ function platformAppsNavItem(foundingCustomerMode: boolean): AppNavTreeItem {
   };
 }
 
-function platformMarketplaceNavItem(): AppNavTreeItem {
-  return {
-    kind: "app",
-    id: "platform-marketplace",
-    name: "Marketplace",
-    icon: getSidebarIcon("marketplace"),
-    tier: "internal",
-    enabled: true,
-    primaryHref: "/dashboard/marketplace",
-    routes: [
-      { path: "/dashboard/marketplace", label: "Explore" },
-      {
-        path: "/dashboard/marketplace/apps",
-        label: "Apps",
-        matchAlso: ["/dashboard/marketplace?category=apps", "/dashboard/marketplace?category=software"],
-      },
-      {
-        path: "/dashboard/marketplace/integrations",
-        label: "Integrations",
-        matchAlso: ["/dashboard/marketplace?category=integrations"],
-      },
-      {
-        path: "/dashboard/marketplace/partner-services",
-        label: "Partners",
-        matchAlso: ["/dashboard/marketplace?category=partners"],
-      },
-    ],
-  };
-}
-
 /** Customer Network — operate their relationships, not DigitalGate’s ecosystem machinery. */
 function customerNetworkNavItem(): AppNavTreeItem {
   return {
@@ -543,7 +513,6 @@ function getPlatformAdminSection(options?: {
     ? [platformAppsNavItem(true)]
     : [
         platformAppsNavItem(false),
-        platformMarketplaceNavItem(),
         platformNetworkNavItem(showCommandCentre),
         platformSettingsNavItem(),
       ];
