@@ -46,11 +46,14 @@ test("authenticated mobile shell covers the visual viewport without a purple hom
     css,
     /\.dg-shell-viewport \{[^}]*\binset:\s*0\b/s,
   );
-  const underlayStart = css.indexOf(".dg-shell-underlay {");
-  assert.ok(underlayStart >= 0);
-  const backgroundStart = css.indexOf("background-color: #07101d", underlayStart);
-  const nextRuleEnd = css.indexOf("\n}", underlayStart);
-  assert.ok(backgroundStart > underlayStart && (nextRuleEnd < 0 || backgroundStart < nextRuleEnd));
+  // Match the base underlay rule itself. Light-mode now has a deliberate override
+  // earlier in the stylesheet, so indexOf() can no longer safely identify the base rule.
+  const underlayRules = [...css.matchAll(/(?:^|\\n)\\.dg-shell-underlay \\{([^}]*)\\}/g)];
+  assert.ok(underlayRules.length >= 1);
+  assert.ok(
+    underlayRules.some((match) => /background-color:\\s*#07101d/.test(match[1])),
+    "base shell underlay must retain the dark chrome fallback",
+  );
 
   assert.doesNotMatch(brand, /at 0% 100%/);
   assert.match(brand, /linear-gradient\(to top, #07101d/);
