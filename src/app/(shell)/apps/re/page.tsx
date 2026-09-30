@@ -2,6 +2,7 @@ import { getReDashboardStats } from "@dg/platform-core";
 
 import { ReDashboard } from "@/components/re/ReDashboard";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
 
 export default async function RealEstateOverviewPage() {
   const { session } = await getPlatformPageContext();
@@ -17,11 +18,14 @@ export default async function RealEstateOverviewPage() {
   const stats = await getReDashboardStats(session.organisationId);
 
   return (
-    <main className="dg-page-main space-y-6">
+    <>
+      <IndustryAppTitle title="Real Estate" description="Prospecting, appraisals, vendors, buyers and property pipelines for real estate teams." />
+      <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
         {session.organisationName} · Vendor & buyer pipelines · Platform Core / Neon · Beta
       </p>
       <ReDashboard stats={stats} />
-    </main>
+      </main>
+    </>
   );
 }
