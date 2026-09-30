@@ -19,7 +19,7 @@ export default async function InfrastructureSslPage() {
           hosting. This is the inventory, not a certificate shop.
         </p>
       </header>
-      <main className="dg-page-main max-w-3xl space-y-6">
+      <main className="dg-page-main space-y-6">
         <p className="text-sm text-slate-400">
           {active} of {domains.length} inventoried domain{domains.length === 1 ? "" : "s"}{" "}
           marked SSL active.
