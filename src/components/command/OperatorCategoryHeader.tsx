@@ -15,10 +15,10 @@ export function OperatorCategoryHeader({
 }) {
   return (
     <header className="space-y-2">
-      <Link href={backHref} className="text-sm text-sky-400 hover:underline">
+      <Link href={backHref} className="text-sm text-violet-400 hover:underline">
         ← {backLabel}
       </Link>
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-400/90">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-400/90">
         {eyebrow}
       </p>
       <h1 className="text-2xl font-bold text-white">{title}</h1>

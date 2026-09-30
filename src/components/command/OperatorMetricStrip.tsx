@@ -1,12 +1,13 @@
 export type OperatorMetric = {
   label: string;
   value: string | number;
-  tone?: "default" | "sky" | "amber" | "emerald";
+  tone?: "default" | "sky" | "violet" | "amber" | "emerald";
 };
 
 const VALUE_TONE: Record<NonNullable<OperatorMetric["tone"]>, string> = {
   default: "text-white",
-  sky: "text-sky-300",
+  sky: "text-violet-300",
+  violet: "text-violet-300",
   amber: "text-amber-300",
   emerald: "text-emerald-300",
 };
