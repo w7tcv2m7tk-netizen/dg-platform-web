@@ -5,11 +5,16 @@ import {
   HELP_CATEGORY_LABELS,
   HELP_CATEGORY_ORDER,
   listHelpArticlesByCategory,
+  canAccessCommandCentre,
+  listOpenSupportConversations,
 } from "@dg/platform-core";
 
 import { SupportActions } from "@/components/SupportActions";
 import { SupportChatPanel } from "@/components/support/SupportChatPanel";
 import { SUPPORT_EMAIL } from "@/lib/support";
+import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
+import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
+import { getPlatformPageContext } from "@/lib/platform-page-context";
 
 const QUICK_ARTICLE_SLUGS = [
   "signup-and-organisation",
@@ -19,6 +24,131 @@ const QUICK_ARTICLE_SLUGS = [
 ];
 
 export default async function SupportPage() {
+  const { session } = await getPlatformPageContext();
+  const operator = Boolean(
+    session &&
+      canAccessCommandCentre({
+        organisationId: session.organisationId,
+        organisationName: session.organisationName,
+        organisationSlug: session.organisationSlug,
+        role: session.role,
+      }),
+  );
+
+  if (operator) {
+    const db = Boolean(process.env.DATABASE_URL);
+    const [openConversations, escalations] = db
+      ? await Promise.all([
+          listOpenSupportConversations({ limit: 100, status: "open" }),
+          listOpenSupportConversations({ limit: 50, status: "open", aiPausedOnly: true }),
+        ])
+      : [null, null];
+    const recent = openConversations?.slice(0, 6) ?? [];
+    const urgent = escalations?.slice(0, 5) ?? [];
+
+    return (
+      <>
+        <header className="dg-page-header">
+          <OperatorCategoryHeader
+            eyebrow="DigitalGate Support Centre"
+            title="Support Overview"
+            question="See active customer conversations, human escalations and support knowledge in one operational view."
+            backHref="/command"
+            backLabel="Command Centre"
+          />
+        </header>
+        <main className="dg-page-main space-y-8">
+          {openConversations !== null && escalations !== null ? (
+            <OperatorMetricStrip
+              metrics={[
+                { label: "Open conversations", value: openConversations.length, tone: "sky" },
+                { label: "Needs human", value: escalations.length, tone: escalations.length ? "amber" : "default" },
+                { label: "AI active", value: Math.max(0, openConversations.length - escalations.length), tone: "default" },
+                { label: "Knowledge articles", value: HELP_ARTICLES.length, tone: "default" },
+              ]}
+            />
+          ) : (
+            <p className="text-sm text-slate-500">Support metrics unavailable without a database connection.</p>
+          )}
+
+          <div className="grid gap-6 xl:grid-cols-2">
+            <section className="rounded-2xl border border-slate-700/80 bg-slate-950/45 p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Conversations</p>
+                  <h2 className="mt-2 text-xl font-semibold text-white">Active customer support</h2>
+                  <p className="mt-1 text-sm text-slate-400">Most recently active open conversations across customer businesses.</p>
+                </div>
+                <Link href="/support/tickets" className="shrink-0 text-sm font-medium text-sky-300 hover:text-sky-200">View all →</Link>
+              </div>
+              {openConversations === null ? null : recent.length === 0 ? (
+                <p className="mt-5 text-sm text-slate-500">No open customer support conversations.</p>
+              ) : (
+                <ul className="mt-5 divide-y divide-slate-800">
+                  {recent.map((conversation) => (
+                    <li key={conversation.id} className="py-4 first:pt-0 last:pb-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <Link href={`/command/clients/${conversation.organisationId}`} className="font-medium text-white hover:text-sky-300">
+                            {conversation.organisationName ?? conversation.organisationId}
+                          </Link>
+                          <p className="mt-1 line-clamp-2 text-sm text-slate-400">{conversation.lastMessagePreview ?? "No message preview available."}</p>
+                          <p className="mt-1 text-xs text-slate-500">{conversation.contactName ?? conversation.contactEmail ?? "Customer contact"} · {conversation.messageCount} messages</p>
+                        </div>
+                        {conversation.aiPaused ? <span className="shrink-0 text-xs font-medium text-amber-300">Needs human</span> : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-slate-700/80 bg-slate-950/45 p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">Escalations</p>
+                  <h2 className="mt-2 text-xl font-semibold text-white">Needs human attention</h2>
+                  <p className="mt-1 text-sm text-slate-400">Open conversations where Aida has paused and handed the thread to the DigitalGate team.</p>
+                </div>
+                <Link href="/support/escalations" className="shrink-0 text-sm font-medium text-sky-300 hover:text-sky-200">View all →</Link>
+              </div>
+              {escalations === null ? null : urgent.length === 0 ? (
+                <p className="mt-5 text-sm text-emerald-300/80">No conversations currently need human attention.</p>
+              ) : (
+                <ul className="mt-5 divide-y divide-slate-800">
+                  {urgent.map((conversation) => (
+                    <li key={conversation.id} className="py-4 first:pt-0 last:pb-0">
+                      <Link href={`/command/clients/${conversation.organisationId}`} className="font-medium text-white hover:text-sky-300">
+                        {conversation.organisationName ?? conversation.organisationId}
+                      </Link>
+                      <p className="mt-1 line-clamp-2 text-sm text-slate-400">{conversation.lastMessagePreview ?? "Conversation requires human follow-up."}</p>
+                      <p className="mt-1 text-xs text-slate-500">{conversation.contactName ?? conversation.contactEmail ?? "Customer contact"}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+
+          <section className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(280px,0.65fr)]">
+            <div className="dg-card">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Support intelligence</p>
+              <h2 className="mt-2 text-lg font-semibold text-white">Ask Aida across support</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">Use Aida for platform guidance and support context. Customer conversations and human escalations remain visible above so operational work is not hidden behind the assistant.</p>
+              <Link href="/command/intelligence" className="mt-4 inline-flex text-sm font-medium text-violet-300 hover:text-violet-200">Ask Intelligence →</Link>
+            </div>
+            <div className="dg-card">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Knowledge</p>
+              <h2 className="mt-2 text-lg font-semibold text-white">Knowledge Base</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-400">{HELP_ARTICLES.length} published help articles support customer self-service and Aida guidance.</p>
+              <Link href="/support/help" className="mt-4 inline-flex text-sm font-medium text-sky-300 hover:text-sky-200">Open Knowledge Base →</Link>
+            </div>
+          </section>
+        </main>
+      </>
+    );
+  }
+
   const user = await currentUser();
   const userName =
     user?.firstName ??
