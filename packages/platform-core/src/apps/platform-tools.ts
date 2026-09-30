@@ -21,8 +21,7 @@ export const SETTINGS_NAV_ROUTES: AppRoute[] = [
     label: "Connected Services",
   },
   { path: "/dashboard/settings/billing", label: "Billing" },
-  { path: "/dashboard/settings/api", label: "API" },
-  { path: "/dashboard/settings/audit", label: "Audit Log" },
+  { path: "/dashboard/settings/referrals", label: "Referral Programme" },
 ];
 
 /** @deprecated Tools section merged into Settings — kept for type compatibility. */
