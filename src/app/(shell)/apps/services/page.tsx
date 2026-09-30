@@ -18,6 +18,7 @@ function servicesHref(
 import { canConfigureServices, canManageServices } from "@/lib/services-page-access";
 import { formatDateTime, SERVICES_DEFAULT_TZ } from "@/lib/services-dates";
 import { getServicesWorkspaceProfile } from "@/lib/services-workspace-profiles";
+import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
 
 export default async function ServicesOverviewPage({
   searchParams,
@@ -51,29 +52,14 @@ export default async function ServicesOverviewPage({
   });
 
   return (
-    <main className="dg-page-main space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-sky-300">
-            {session.organisationName}
-          </p>
-          <h1 className="mt-1 text-2xl font-bold text-white">{profile.title}</h1>
-          <p className="mt-1 max-w-3xl text-sm text-slate-400">{profile.description}</p>
-          {!canWriteJobs ? (
-            <p className="mt-1 text-xs text-slate-500">
-              Read-only access. Organisation-wide edit access is required to create, assign or update {jobWord}s.
-            </p>
-          ) : null}
+    <>
+      <IndustryAppTitle title={profile.title} description={profile.description} eyebrow={profile.eyebrow} />
+      <main className="dg-page-main space-y-6">
+      {canConfigure ? (
+        <div className="flex justify-end">
+          <Link href="/dashboard/apps/catalogue#industry-apps" className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-sky-500 hover:text-white">+ Add service App</Link>
         </div>
-        {canConfigure ? (
-          <Link
-            href="/dashboard/apps/catalogue#industry-apps"
-            className="inline-flex min-h-11 items-center rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:border-sky-500 hover:text-white"
-          >
-            + Add service App
-          </Link>
-        ) : null}
-      </div>
+      ) : null}
 
       {showStaffLaunchLink ? (
         <p className="text-xs text-slate-500">
@@ -217,6 +203,7 @@ export default async function ServicesOverviewPage({
           </ul>
         )}
       </section>
-    </main>
+      </main>
+    </>
   );
 }
