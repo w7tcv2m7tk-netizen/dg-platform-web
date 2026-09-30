@@ -8,6 +8,7 @@ import {
   type BusinessAppScaffoldId,
 } from "@/lib/business-app-scaffolds";
 import { getPlatformPageContext } from "@/lib/org-apps";
+import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
 
 export async function BusinessAppScaffoldPage({
   appId,
@@ -33,7 +34,9 @@ export async function BusinessAppScaffoldPage({
     });
 
   return (
-    <main className="dg-page-main space-y-6">
+    <>
+      {isOverview ? <IndustryAppTitle title={app.name} description={app.tagline} /> : null}
+      <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
         {platformSession?.organisationName ?? "DigitalGate"} · {route.summary}
       </p>
@@ -113,6 +116,7 @@ export async function BusinessAppScaffoldPage({
           </section>
         </>
       ) : null}
-    </main>
+      </main>
+    </>
   );
 }
