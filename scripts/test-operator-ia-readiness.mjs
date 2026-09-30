@@ -21,6 +21,6 @@ assert.match(sidebar, /\/api\/v1\/command\/support\/count/);
 assert.match(home, /Platform Progress/);
 assert.match(home, /PlatformRoadmapBar/);
 assert.match(home, /Customers & Acquisition/);
-assert.match(home, /Platform, Partners & Delivery/);
+assert.match(home, /Platform, Delivery & Partners/);
 
 console.log("Operator IA readiness regression passed");
