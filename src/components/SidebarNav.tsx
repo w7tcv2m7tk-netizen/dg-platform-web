@@ -161,6 +161,8 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const { nav } = useEnabledApps();
   const [ccBadge, setCcBadge] = useState<number | null>(null);
   const [supportBadge, setSupportBadge] = useState<number | null>(null);
+  const [communicationsBadge, setCommunicationsBadge] = useState<number | null>(null);
+  const [crmBadge, setCrmBadge] = useState<number | null>(null);
 
   const ia = nav.ia;
 
@@ -203,6 +205,28 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       cancelled = true;
     };
   }, [nav.commandCentre]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/communications/attention/count")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((payload: { data?: { count?: number } } | null) => {
+        if (!cancelled) setCommunicationsBadge(payload?.data?.count ?? null);
+      })
+      .catch(() => { if (!cancelled) setCommunicationsBadge(null); });
+    return () => { cancelled = true; };
+  }, [pathname]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/v1/crm/attention/count")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((payload: { data?: { count?: number } } | null) => {
+        if (!cancelled) setCrmBadge(payload?.data?.count ?? null);
+      })
+      .catch(() => { if (!cancelled) setCrmBadge(null); });
+    return () => { cancelled = true; };
+  }, [pathname]);
 
   const intelligenceAppsForRender = ia.intelligence.apps.map((app) => ({
     ...app,
@@ -265,7 +289,17 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const coreInfrastructureApps = ia.core.apps.filter((app) => app.id === "infrastructure");
   const coreSection: NavIaSection = {
     ...ia.core,
-    apps: ia.core.apps.filter((app) => app.id !== "infrastructure"),
+    apps: ia.core.apps
+      .filter((app) => app.id !== "infrastructure")
+      .map((app) => ({
+        ...app,
+        badge:
+          app.id === "communications"
+            ? (communicationsBadge ?? undefined)
+            : app.id === "crm"
+              ? (crmBadge ?? undefined)
+              : app.badge,
+      })),
   };
   const industrySection = ia.industry;
 
