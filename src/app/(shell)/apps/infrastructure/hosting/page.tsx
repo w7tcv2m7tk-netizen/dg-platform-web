@@ -39,7 +39,7 @@ export default async function HostingStatusPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-6">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Published sites" value={String(published.length)} />
           <Stat label="Linked domains" value={String(linkedDomains.length)} />
           <Stat label="DNS configured" value={String(dnsReady.length)} />
@@ -47,7 +47,7 @@ export default async function HostingStatusPage() {
         </div>
 
         {dnsNeedsAttention.length || sslNeedsAttention.length ? (
-          <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-5 max-w-2xl">
+          <section className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-5">
             <h2 className="font-semibold text-amber-100">Hosting needs attention</h2>
             <p className="mt-1 text-sm text-slate-400">
               {dnsNeedsAttention.length
@@ -69,7 +69,7 @@ export default async function HostingStatusPage() {
           </section>
         ) : null}
 
-        <section className="rounded-lg border border-slate-700 bg-slate-900/40 p-5 max-w-2xl space-y-3">
+        <section className="rounded-lg border border-slate-700 bg-slate-900/40 p-5 space-y-3">
           <h2 className="text-base font-semibold text-white">Hosting status</h2>
           <ul className="space-y-2 text-sm text-slate-300">
             <li>Published sites are hosted automatically by DigitalGate.</li>
@@ -90,7 +90,7 @@ export default async function HostingStatusPage() {
         </section>
 
         {sites.length > 0 ? (
-          <section className="space-y-3 max-w-2xl">
+          <section className="space-y-3">
             <h2 className="text-sm font-semibold text-white">Site hosting status</h2>
             <ul className="space-y-2">
               {sites.map((site) => {
