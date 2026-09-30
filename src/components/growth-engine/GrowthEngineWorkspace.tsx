@@ -87,28 +87,27 @@ export function GrowthEngineWorkspace({
 
   return (
     <>
-      <GrowthAppHeader appId="prospecting"><p className="text-sm font-medium text-fuchsia-200">Discover → Audit → Opportunity → Prospect → Convert</p></GrowthAppHeader>
+      <GrowthAppHeader appId="prospecting" description="See pipeline health and move straight into the work that needs attention." />
 
       <main className="dg-page-main space-y-8">
-        <section className="rounded-xl border border-slate-700/80 bg-gradient-to-br from-slate-950/80 to-slate-900/40 px-5 py-5">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">
-            Commercial machine
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-200">
-            {GROWTH_LOOP.map((step, i) => (
-              <span key={step} className="flex items-center gap-2">
-                {i > 0 ? (
-                  <span className="text-slate-600" aria-hidden>
-                    →
-                  </span>
-                ) : null}
-                <span className="rounded-md border border-slate-700/80 bg-slate-950/60 px-2.5 py-1 uppercase tracking-wide text-[11px] text-slate-300">
-                  {step}
+        {variant === "command" ? (
+          <section className="rounded-xl border border-slate-700/80 bg-gradient-to-br from-slate-950/80 to-slate-900/40 px-5 py-5">
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-sky-400">Commercial machine</p>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm font-medium text-slate-200">
+              {GROWTH_LOOP.map((step, i) => (
+                <span key={step} className="flex items-center gap-2">
+                  {i > 0 ? <span className="text-slate-600" aria-hidden>→</span> : null}
+                  <span className="rounded-md border border-slate-700/80 bg-slate-950/60 px-2.5 py-1 uppercase tracking-wide text-[11px] text-slate-300">{step}</span>
                 </span>
-              </span>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <section className="flex flex-wrap gap-3">
+            <Link href="/apps/prospecting/today" className="inline-flex min-h-11 items-center rounded-lg bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-500">Work today →</Link>
+            <Link href={discoveryHref} className="inline-flex min-h-11 items-center rounded-lg border border-slate-700 px-4 text-sm font-semibold text-slate-200 hover:border-violet-500/50">Discover prospects</Link>
+          </section>
+        )}
 
         {showBetaStatus ? <GrowthEngineBetaStatus /> : null}
 
