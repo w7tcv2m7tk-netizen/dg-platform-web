@@ -54,7 +54,15 @@ export default async function ProspectingOverviewPage() {
       </header>
 
       <main className="dg-page-main space-y-6">
-        {loadError ? <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">{loadError} DigitalGate will not estimate unavailable signals.</div> : null}
+        {loadError ? (
+          <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <p>{loadError} DigitalGate has kept unavailable signals out of the workspace rather than estimating them.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href="/apps/prospecting" className="inline-flex min-h-11 items-center rounded-lg bg-amber-200 px-4 font-semibold text-slate-950">Try again</Link>
+              <Link href="/dashboard/advisor" className="inline-flex min-h-11 items-center rounded-lg border border-amber-200/30 px-4 font-semibold text-amber-50">Get help</Link>
+            </div>
+          </div>
+        ) : null}
 
         <section className="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-500/[0.10] via-slate-950/70 to-slate-950/50 p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
