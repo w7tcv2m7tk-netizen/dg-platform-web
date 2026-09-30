@@ -26,6 +26,6 @@ assert.match(setup,/IllionBankStatementsPanel/);
 assert.match(setup,/EquifaxConnectorPanel/);
 assert.match(setup,/VedacheckConnectorPanel/);
 assert.doesNotMatch(setup,/href:\s*"\/dashboard\/settings\/connected-services"/);
-assert.match(nav,/platformMarketplaceNavItem\(\)/);
-assert.match(nav,/platformNetworkNavItem\(showCommandCentre\)/);
+assert.doesNotMatch(nav,/platformMarketplaceNavItem\(\)/);
+assert.doesNotMatch(nav,/platformNetworkNavItem\(showCommandCentre\)/);
 console.log("guided Connect Your Business checks passed");
