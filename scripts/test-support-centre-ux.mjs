@@ -20,9 +20,9 @@ assert.match(supportPage, /<h1[^>]*>Support<\/h1>/);
 assert.doesNotMatch(supportPage, /<h1[^>]*>Support Centre<\/h1>/);
 assert.match(supportPage, />How can we help\?</);
 assert.match(supportPage, />Ask Aida</);
-assert.match(supportPage, />Browse help</);
-assert.match(supportPage, />Contact support</);
-assert.match(supportPage, />Your support conversation</);
+assert.match(supportPage, />Knowledge Base</);
+assert.match(supportPage, />Get help from our team</);
+assert.doesNotMatch(supportPage, />Your support conversation</);
 assert.match(supportPage, /surfacePath="\/support"/);
 
 assert.match(helpPage, /type="search"/);
