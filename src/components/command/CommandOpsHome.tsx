@@ -11,6 +11,7 @@ import {
 
 import { AiAdvisorPanel } from "@/components/command/AiAdvisorPanel";
 import { SalesWeekNowBanner } from "@/components/command/SalesWeekNowBanner";
+import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar";
 
 type AdvisorOrg = {
   organisationId: string;
