@@ -26,8 +26,6 @@ export default async function StaffDeliveryProjectPage({
       title={project.customerName}
       description={`Implementation #${project.referenceCode}`}
       navActive="projects"
-      backHref="/command/delivery/projects"
-      backLabel="Implementation projects"
     >
       <DeliveryProjectRecordView project={project} scope="staff" hideChrome />
     </DeliveryCommandPage>
