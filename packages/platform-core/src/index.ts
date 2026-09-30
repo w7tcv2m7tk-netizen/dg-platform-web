@@ -55,7 +55,6 @@ export * from "./opportunities/status";
 export * from "./tasks";
 export * from "./referrals";
 export * from "./reviews";
-export * from "./marketplace";
 export * from "./network-referrals";
 export * from "./properties";
 export * from "./addresses";
