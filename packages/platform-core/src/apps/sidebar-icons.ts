@@ -39,6 +39,7 @@ const SIDEBAR_ICONS: Record<string, string> = {
   analytics: "▥",
   social: "⊙",
   marketing: "◆",
+  advertising: "◫",
   reviews: "★",
   websites: "◫",
   infrastructure: "⬡",
