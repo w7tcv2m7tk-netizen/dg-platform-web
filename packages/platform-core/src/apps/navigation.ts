@@ -680,12 +680,12 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/platform-intelligence/activity", label: "System activity" },
         { path: "/command/platform-intelligence/service-status", label: "Service status" },
         { path: "/command/platform-intelligence/diagnostics", label: "Diagnostics" },
-        { path: "/command/intelligence", label: "Ask Intelligence" },
         { path: "/command/docs", label: "Docs", matchAlso: ["/command/docs/"] },
         { path: "/command/flags", label: "Feature flags" },
         { path: "/command/product/roadmap", label: "Roadmap" },
         { path: "/command/product/releases", label: "Releases" },
         { path: "/command/product/feedback", label: "Feedback" },
+        { path: "/command/intelligence", label: "Ask Intelligence" },
       ]),
       operatorApp("dg-support", "Support Centre", "advisor", "/support", [
         { path: "/support", label: "Overview" },
