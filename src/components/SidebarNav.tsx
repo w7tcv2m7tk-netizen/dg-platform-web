@@ -298,7 +298,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             ? (communicationsBadge ?? undefined)
             : app.id === "crm"
               ? (crmBadge ?? undefined)
-              : app.badge,
+              : undefined,
       })),
   };
   const industrySection = ia.industry;
