@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 
 import { REFER_AND_EARN_HREF } from "@dg/platform-core";
 
-/** @deprecated Refer & Earn lives under Network */
+/** Referral Programme is the customer-facing home for Refer & Earn. */
 export default function SettingsReferralsRedirectPage() {
   redirect(REFER_AND_EARN_HREF);
 }
