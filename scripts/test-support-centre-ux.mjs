@@ -13,7 +13,7 @@ assert.match(navigation, /operatorApp\("dg-support", "Support Centre"/);
 assert.match(navigation, /path: "\/support\/tickets", label: "Conversations"/);
 
 const orderBlock = sidebar.match(/const DIGITALGATE_OPERATOR_ORDER = \[([\s\S]*?)\] as const;/)?.[1] ?? "";
-assert.ok(orderBlock.indexOf('"dg-support"') > orderBlock.indexOf('"dg-platform-intelligence"'), "Support Centre must be last in the DigitalGate operator app order");
+assert.ok(orderBlock.indexOf('"dg-support"') > orderBlock.indexOf('"dg-product"'), "Support Centre must be last in the DigitalGate operator app order");
 assert.match(sidebar, /"dg-support": "Support Centre"/);
 
 assert.match(supportPage, /<h1[^>]*>Support<\/h1>/);
