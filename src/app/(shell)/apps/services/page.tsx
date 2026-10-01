@@ -53,7 +53,7 @@ export default async function ServicesOverviewPage({
 
   return (
     <>
-      <IndustryAppTitle title={profile.title} description={profile.description} eyebrow={profile.eyebrow} />
+      <IndustryAppTitle title={profile.title} description={profile.description} />
       <main className="dg-page-main space-y-6">
       {canConfigure ? (
         <div className="flex justify-end">

@@ -2,6 +2,8 @@ import { AccommodationDashboard } from "@/components/accommodation/Accommodation
 import { buildAccommodationSummary, type AccommodationSummary } from "@/lib/accommodation-summary";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
+import { getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
+import { resolveSelectedIndustryIdentity } from "@/lib/industry-app-identity";
 
 function safeTimeZone(value?: string | null): string {
   const fallback = "Australia/Brisbane";
@@ -37,17 +39,14 @@ export default async function AccommodationOverviewPage() {
     }
   }
 
-  const siteLabel = session?.organisationName ?? "Accommodation";
+  const selectionIds = session ? await getOrgIndustrySelectionIdsCached() : [];
+  const identity = resolveSelectedIndustryIdentity("accommodation", selectionIds, "Accommodation");
+  const siteLabel = session?.organisationName ?? identity.title;
 
   return (
     <>
-      <IndustryAppTitle title="Accommodation" description="Bookings, guests, stays and accommodation operations in one connected workspace." />
+      <IndustryAppTitle title={identity.title} eyebrow={identity.eyebrow} description="Bookings, guests, stays and accommodation operations in one connected workspace." />
       <main className="dg-page-main space-y-6">
-      <div>
-        <p className="text-sm text-slate-400">
-          {siteLabel} · Platform Core / Neon · Ops
-        </p>
-      </div>
       <AccommodationDashboard
         summary={summary}
         error={session ? summaryError : "Platform session unavailable."}

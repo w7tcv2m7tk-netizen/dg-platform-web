@@ -5,6 +5,7 @@ import {
 } from "@dg/platform-core";
 
 import { DomainsConsole } from "@/components/infrastructure/DomainsConsole";
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 /** DigitalGate Domains — customer domain inventory and management. */
@@ -19,15 +20,11 @@ export default async function Page() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Domains</h1>
-        <p className="text-sm text-slate-400">
-          {canWrite
-            ? "Search, connect, manage DNS and make websites live"
-            : "Domain inventory and connection status"}
-          {session.organisationName ? ` · ${session.organisationName}` : ""}
-        </p>
-      </header>
+      <AppPageHeader
+        family="Infrastructure"
+        title="Domains"
+        description={<>{canWrite ? "Search, connect, manage DNS and make websites live" : "Domain inventory and connection status"}{session.organisationName ? ` · ${session.organisationName}` : ""}</>}
+      />
       <main className="dg-page-main">
         {canWrite ? (
           <DomainsConsole />

@@ -409,6 +409,39 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     letter-spacing: -0.025em;
   }
 
+  /* Canonical non-dashboard page hierarchy. Command Centre and Business Overview
+     may deliberately use dg-page-title; app and settings pages use this smaller scale. */
+  .dg-page-eyebrow {
+    margin: 0;
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    font-weight: 650;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(196 181 253 / 0.82);
+  }
+
+  .dg-app-page-title {
+    margin-top: 0.25rem;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    color: rgb(255 255 255);
+  }
+
+  .dg-page-description {
+    margin-top: 0.5rem;
+    max-width: 48rem;
+    font-size: 0.875rem;
+    line-height: 1.5rem;
+    color: rgb(148 163 184);
+  }
+
+  html[data-theme="light"] .dg-app-page-title { color: #0f172a; }
+  html[data-theme="light"] .dg-page-eyebrow { color: #6d28d9; }
+  html[data-theme="light"] .dg-page-description { color: #64748b; }
+
   @media (max-width: 767px) {
     .dg-page-header {
       text-align: center;

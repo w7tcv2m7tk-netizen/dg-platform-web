@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GrowthSubPageHeader } from "@/components/growth/GrowthSubPageHeader";
 
 import { ReviewFeedList } from "@/components/reviews/ReviewFeedList";
 import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
@@ -17,12 +18,7 @@ export default async function ReviewsInboxPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Review inbox</h1>
-        <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · published customer reviews in one place
-        </p>
-      </header>
+      <GrowthSubPageHeader title="Review inbox" description={<>Published customer reviews for {session?.organisationName ?? "this business"} in one place.</>} />
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="dg-card">

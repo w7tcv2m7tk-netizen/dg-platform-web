@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GrowthSubPageHeader } from "@/components/growth/GrowthSubPageHeader";
 import { listOrganisationActivities } from "@dg/platform-core";
 
 import { SocialComposeForm } from "@/components/social/SocialComposeForm";
@@ -18,15 +19,7 @@ export default async function SocialComposePage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/social" className="text-sm text-blue-400 hover:underline">
-          ← Social overview
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Compose</h1>
-        <p className="text-sm text-slate-400">
-          Save local drafts — LinkedIn publish from Compose is next
-        </p>
-      </header>
+      <GrowthSubPageHeader title="Compose" description="Save local drafts — LinkedIn publish from Compose is next" />
       <main className="dg-page-main space-y-6">
         <section className="dg-card">
           <h2 className="font-semibold text-white">New draft</h2>

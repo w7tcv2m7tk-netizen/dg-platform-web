@@ -6,6 +6,7 @@ import {
   sessionHasFeature,
 } from "@dg/platform-core";
 
+import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 function formatDate(value: string) {
@@ -40,12 +41,10 @@ export default async function ProspectingProspectsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Prospects</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Businesses {session.organisationName} has discovered or is actively working before CRM conversion.
-        </p>
-      </header>
+      <ProspectingPageHeader
+        title="Prospects"
+        description={`Businesses ${session.organisationName} has discovered or is actively working before CRM conversion.`}
+      />
       <main className="dg-page-main space-y-6">
         {loadFailed ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-100">

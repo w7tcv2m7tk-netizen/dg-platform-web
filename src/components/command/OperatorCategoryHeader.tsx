@@ -1,3 +1,18 @@
-export function OperatorCategoryHeader({ title, question }: { eyebrow?: string; title: string; question?: string; backHref?: string; backLabel?: string }) {
-  return <div><h1 className="text-2xl font-bold text-white">{title}</h1>{question ? <p className="mt-1 max-w-3xl text-sm text-slate-400">{question}</p> : null}</div>;
+export function OperatorCategoryHeader({
+  title,
+  question,
+}: {
+  eyebrow?: string;
+  title: string;
+  question?: string;
+  backHref?: string;
+  backLabel?: string;
+}) {
+  return (
+    <div>
+      <p className="dg-page-eyebrow">Operator</p>
+      <h1 className="dg-app-page-title">{title}</h1>
+      {question ? <p className="dg-page-description">{question}</p> : null}
+    </div>
+  );
 }

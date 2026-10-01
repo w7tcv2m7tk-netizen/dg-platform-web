@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { listOrganisationDomains, sessionHasFeature } from "@dg/platform-core";
 
 import { DnsConsole } from "@/components/infrastructure/DnsConsole";
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 /**
@@ -17,12 +18,7 @@ export default async function DnsInfrastructurePage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">DNS</h1>
-        <p className="text-sm text-slate-400">
-          Website DNS records · zone status · SSL readiness
-        </p>
-      </header>
+      <AppPageHeader family="Infrastructure" title="DNS" description={<>Website DNS records · zone status · SSL readiness</>} />
       <main className="dg-page-main">
         {canWrite ? (
           <DnsConsole />

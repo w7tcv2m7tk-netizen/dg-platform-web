@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import { sessionHasFeature } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
@@ -71,12 +72,7 @@ export default async function CommunicationsOverviewPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Communications</h1>
-        <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Centralise customer conversations and use the communication capabilities enabled for this organisation.
-        </p>
-      </header>
+      <AppPageHeader family="Core" title="Communications" description="Centralise customer conversations and use the communication capabilities enabled for this organisation." />
       <main className="dg-page-main space-y-8">
         <section>
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Channels</h2>
