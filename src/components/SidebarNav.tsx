@@ -140,7 +140,6 @@ const DIGITALGATE_OPERATOR_ORDER = [
   "dg-delivery",
   "dg-partners",
   "dg-support",
-  "dg-platform-operations",
   "dg-product",
 ] as const;
 
@@ -151,8 +150,7 @@ const DIGITALGATE_OPERATOR_NAMES: Record<string, string> = {
   "dg-support": "Support Centre",
   "dg-delivery": "Delivery",
   "dg-commercial": "Commercial",
-  "dg-platform-operations": "Platform Operations",
-  "dg-product": "Product",
+  "dg-product": "Platform",
 };
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
