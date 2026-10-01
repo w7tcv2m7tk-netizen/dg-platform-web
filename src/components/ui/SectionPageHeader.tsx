@@ -1,4 +1,4 @@
-export function GrowthSubPageHeader({
+export function SectionPageHeader({
   section,
   title,
   description,

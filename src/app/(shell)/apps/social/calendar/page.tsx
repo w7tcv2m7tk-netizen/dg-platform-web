@@ -18,7 +18,7 @@ export default async function SocialCalendarPage() {
 
   return (
     <>
-      <GrowthSubPageHeader title="Calendar" description="Local drafts (publish later)" />
+      <GrowthSubPageHeader section="Social" title="Calendar" description="Local drafts (publish later)" />
       <main className="dg-page-main space-y-6">
         <section className="dg-card border-blue-500/20">
           <p className="text-sm text-blue-200/90">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { notFound } from "next/navigation";
 import {
   buildAccessContext,
@@ -37,15 +38,7 @@ export default async function AuditLogPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
-          ← Settings
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Audit log</h1>
-        <p className="text-sm text-slate-400">
-          Immutable record of creates, updates, and exports in your organisation
-        </p>
-      </header>
+      <SectionPageHeader section="Settings" title="Audit log" />
       <main className="dg-page-main">
         <div className="dg-card overflow-x-auto">
           {logs.items.length === 0 ? (

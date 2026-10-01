@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { notFound } from "next/navigation";
 import { listCommunicationSignatures, sessionHasFeature } from "@dg/platform-core";
 
@@ -16,16 +17,7 @@ export default async function CommunicationsSignaturesPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/communications" className="text-sm text-sky-400 hover:underline">
-          ← Communications
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Signature Studio</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Org email signatures for {session.organisationName}. The default is appended when you
-          send from Compose.
-        </p>
-      </header>
+      <SectionPageHeader section="Communications" title="Signature Studio" description="Organisation email signatures. The default is appended when you send from Compose." />
       <main className="dg-page-main space-y-6">
         {canWrite ? (
           <SignatureStudio initial={signatures} />

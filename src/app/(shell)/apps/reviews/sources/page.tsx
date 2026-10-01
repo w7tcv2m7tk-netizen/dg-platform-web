@@ -8,7 +8,7 @@ export default async function ReviewsSourcesPage() {
   const { session, feedStatus } = await loadReviewsSessionAndFeed();
   const knownReviewBlock = Boolean(feedStatus.gbpConnected && !feedStatus.gbpReviewsAvailable && feedStatus.gbpReviewsBlockedReason);
   return <>
-    <GrowthSubPageHeader title="Review source" description={<>Connect Google Business Profile to bring published reviews into DigitalGate.</>} />
+    <GrowthSubPageHeader section="Reputation" title="Review source" description={<>Connect Google Business Profile to bring published reviews into DigitalGate.</>} />
     <main className="dg-page-main space-y-4">
       {!session ? <div className="dg-card"><p className="text-sm text-slate-400">Sign in to manage your review source.</p></div> : <>
         {!feedStatus.gbpConnected ? <ReviewsEmptyState title="Google Business Profile is not connected" description="Connect Google Business Profile to monitor published reviews, calculate Reputation Score™ and identify recurring customer themes." actions={[{ href: "/dashboard/settings/connected-services", label: "Open Connected Services →" },{ href: "/apps/reviews/inbox", label: "Review inbox →" }]} /> : null}

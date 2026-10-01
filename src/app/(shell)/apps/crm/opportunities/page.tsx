@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import {
   canAccessCommandCentre,
   isWantOpportunityMetadata,
@@ -18,10 +19,7 @@ export default async function CrmOpportunitiesPage() {
   if (!session) {
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Opportunities</h1>
-          <p className="text-sm text-slate-400">CRM Core App</p>
-        </header>
+        <SectionPageHeader section="CRM" title="Opportunities" />
         <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
             <p className="text-slate-300">Sign in to view opportunities.</p>
@@ -72,16 +70,7 @@ export default async function CrmOpportunitiesPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Opportunities</h1>
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · {meta.total} opportunit
-          {meta.total === 1 ? "y" : "ies"}
-          {isWantd
-            ? " · Wants from wantdproperty.com.au"
-            : " · website and platform enquiries land here"}
-        </p>
-      </header>
+      <SectionPageHeader section="CRM" title="Opportunities" />
       <main className="dg-page-main space-y-6">
         {canWrite ? (
           <section className="dg-card border-sky-500/20">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { notFound } from "next/navigation";
 import { getPlatformApiCatalog } from "@dg/platform-core";
 
@@ -15,15 +16,7 @@ export default async function PlatformApiSettingsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
-          ← Settings
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">API</h1>
-        <p className="text-sm text-slate-400">
-          REST API for integrations, automations, and connectors
-        </p>
-      </header>
+      <SectionPageHeader section="Settings" title="API" />
       <main className="dg-page-main space-y-8">
         <div className="dg-card">
           <h2 className="font-semibold text-white">Base URL</h2>

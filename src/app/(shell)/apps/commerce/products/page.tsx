@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { listProducts, sessionHasFeature } from "@dg/platform-core";
 
 import { CreateProductForm, ProductRowActions } from "@/components/commerce/CreateProductForm";
@@ -18,11 +19,7 @@ export default async function CommerceProductsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/commerce" className="text-sm text-blue-400 hover:underline">← Commerce</Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Products &amp; catalog</h1>
-        <p className="text-sm text-slate-400">{activeCount} active · {products.length} total — reusable line items for quotes and invoices</p>
-      </header>
+      <SectionPageHeader section="Commerce" title="Products" />
       <main className="dg-page-main space-y-6">
         {canManage ? <CreateProductForm /> : <div className="dg-card text-sm text-slate-400">You have read-only access to Commerce.</div>}
         <div className="dg-card dg-table-scroll">

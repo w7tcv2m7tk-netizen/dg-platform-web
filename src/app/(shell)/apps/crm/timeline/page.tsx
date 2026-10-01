@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import {
   formatTimelineDateTime,
   getOrganisationById,
@@ -28,9 +29,7 @@ export default async function CrmTimelinePage() {
   if (!session) {
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Timeline</h1>
-        </header>
+        <SectionPageHeader section="CRM" title="Timeline" />
         <main className="dg-page-main">
           <div className="dg-card">
             <p className="text-slate-300">Sign in to view the activity timeline.</p>
@@ -58,15 +57,7 @@ export default async function CrmTimelinePage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/crm/contacts" className="text-sm text-blue-400 hover:underline">
-          ← CRM
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Timeline</h1>
-        <p className="text-sm text-slate-400">
-          Cross-app activity feed · {meta.total} event{meta.total === 1 ? "" : "s"} · times in {displayTimeZone}
-        </p>
-      </header>
+      <SectionPageHeader section="CRM" title="Timeline" />
       <main className="dg-page-main">
         <div className="dg-card max-w-3xl">
           {items.length === 0 ? (

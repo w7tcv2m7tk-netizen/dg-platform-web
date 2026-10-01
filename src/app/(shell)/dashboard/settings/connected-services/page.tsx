@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 
 import { ConnectedServicesCatalog } from "@/components/settings/ConnectedServicesCatalog";
 import { ConnectedServicesHealthOverview } from "@/components/settings/ConnectedServicesHealthOverview";
@@ -23,9 +24,7 @@ export default async function ConnectedServicesPage({
   if (!session?.organisationId) {
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Connected Services</h1>
-        </header>
+        <SectionPageHeader section="Settings" title="Connected Services" />
         <main className="dg-page-main">
           <p className="text-sm text-slate-500">Sign in to continue.</p>
         </main>

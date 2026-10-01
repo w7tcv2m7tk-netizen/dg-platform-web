@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { notFound } from "next/navigation";
 import { listOrgCommunications, sessionHasFeature } from "@dg/platform-core";
 
@@ -20,15 +21,7 @@ export default async function CommunicationsSentPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/communications" className="text-sm text-sky-400 hover:underline">
-          ← Communications
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Sent</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Outbound email recorded by DigitalGate, including manual and system sends.
-        </p>
-      </header>
+      <SectionPageHeader section="Communications" title="Sent" description="Outbound email recorded by DigitalGate, including manual and system sends." />
       <main className="dg-page-main space-y-6">
         <CommunicationsList
           rows={rows}

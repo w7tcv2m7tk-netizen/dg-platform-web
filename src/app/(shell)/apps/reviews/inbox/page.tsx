@@ -18,7 +18,7 @@ export default async function ReviewsInboxPage() {
 
   return (
     <>
-      <GrowthSubPageHeader title="Review inbox" description={<>Published customer reviews for {session?.organisationName ?? "this business"} in one place.</>} />
+      <GrowthSubPageHeader section="Reputation" title="Review inbox" description={<>Published customer reviews for {session?.organisationName ?? "this business"} in one place.</>} />
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="dg-card">

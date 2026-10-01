@@ -1,5 +1,6 @@
 import { organisationHasIndustryAppBeta, shouldShowIndustryApp } from "@dg/platform-core";
 import Link from "next/link";
+import { IndustrySectionIdentity } from "@/components/industry/IndustrySectionIdentity";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
@@ -37,7 +38,7 @@ export async function IndustryBetaAppLayout({
     },
   );
 
-  if (allowed && selectedForOrganisation) return children;
+  if (allowed && selectedForOrganisation) return <><IndustrySectionIdentity mount={appId} appName={title} />{children}</>;
 
   if (allowed && !selectedForOrganisation) {
     return (

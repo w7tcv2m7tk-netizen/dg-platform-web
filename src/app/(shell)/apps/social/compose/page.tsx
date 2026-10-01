@@ -19,7 +19,7 @@ export default async function SocialComposePage() {
 
   return (
     <>
-      <GrowthSubPageHeader title="Compose" description="Save local drafts — LinkedIn publish from Compose is next" />
+      <GrowthSubPageHeader section="Social" title="Compose" description="Save local drafts — LinkedIn publish from Compose is next" />
       <main className="dg-page-main space-y-6">
         <section className="dg-card">
           <h2 className="font-semibold text-white">New draft</h2>

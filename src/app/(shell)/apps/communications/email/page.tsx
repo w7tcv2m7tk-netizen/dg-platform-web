@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { sessionHasFeature } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 
 /**
  * Email channel hub — send/manage email (not the Inbox attention surface).
@@ -16,16 +17,7 @@ export default async function CommunicationsEmailPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/communications" className="text-sm text-sky-400 hover:underline">
-          ← Communications
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Email</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Send and manage email. Inbox is for conversations that need attention — this is the email
-          channel.
-        </p>
-      </header>
+      <SectionPageHeader section="Communications" title="Email" description="Send and manage email. Inbox is for conversations that need attention — this is the email channel." />
       <main className="dg-page-main space-y-6">
         <div className="flex flex-wrap gap-2">
           <Link

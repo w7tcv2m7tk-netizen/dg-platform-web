@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import {
   getOrganisationById,
   listConsultationAgenda,
@@ -90,15 +91,7 @@ export default async function CrmCalendarPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/crm/tasks" className="text-sm text-blue-400 hover:underline">
-          ← CRM
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Calendar</h1>
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · appointments, consultations and tasks in one operational view
-        </p>
-      </header>
+      <SectionPageHeader section="CRM" title="Calendar" />
 
       <main className="dg-page-main space-y-6">
         <div className="dg-card">

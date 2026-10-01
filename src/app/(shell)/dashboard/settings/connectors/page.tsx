@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { notFound } from "next/navigation";
 import {
   assertPlatformOperator,
@@ -90,14 +91,7 @@ export default async function ConnectorsSettingsPage({ searchParams }: PageProps
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">← Settings</Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Connectors</h1>
-        <p className="text-sm text-slate-400">Operator view — Connector Engine, migration tooling, and provider diagnostics.</p>
-        <p className="mt-2 rounded-lg border border-amber-700/40 bg-amber-950/20 px-3 py-2 text-sm text-amber-100/90">
-          Customers should use <Link href="/dashboard/settings/connected-services" className="text-sky-300 hover:underline">Connected Services</Link> for everyday connect / disconnect. This page is for DigitalGate operator and advanced setup.
-        </p>
-      </header>
+      <SectionPageHeader section="Settings" title="Connectors" />
       <main className="dg-page-main space-y-6">
         <ConnectorEngineCatalog />
         <DomainConnectorPanel flash={domainFlash === "connected" ? "connected" : domainFlash === "error" ? "error" : null} flashMessage={domainFlash ? flashMessage ?? null : null} />

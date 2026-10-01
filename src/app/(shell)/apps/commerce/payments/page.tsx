@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { notFound } from "next/navigation";
 import { listOrganisationPaymentRequests } from "@dg/platform-core";
 
@@ -13,18 +14,7 @@ export default async function CommercePaymentsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link
-          href="/apps/commerce"
-          className="text-sm text-blue-400 hover:underline"
-        >
-          ← Commerce
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Payments</h1>
-        <p className="text-sm text-slate-400">
-          Stripe checkout links and payment request history for this business
-        </p>
-      </header>
+      <SectionPageHeader section="Commerce" title="Payments" />
       <main className="dg-page-main space-y-6">
         <CommercePaymentsList items={payments} />
         <Link

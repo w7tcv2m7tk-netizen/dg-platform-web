@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { notFound } from "next/navigation";
 import { getInfrastructureBackupOverview, sessionHasFeature } from "@dg/platform-core";
 
@@ -20,12 +21,7 @@ export default async function InfrastructureBackupPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Backup</h1>
-        <p className="text-sm text-slate-400">
-          Backup status for this organisation and its Design Studio websites.
-        </p>
-      </header>
+      <SectionPageHeader section="Infrastructure" title="Backup" />
       <main className="dg-page-main space-y-6">
         <ul className="space-y-3">
           {overview.layers.map((layer) => (

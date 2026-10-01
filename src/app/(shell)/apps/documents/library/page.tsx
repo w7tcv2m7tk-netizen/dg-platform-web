@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { listOrgDocuments, sessionHasFeature } from "@dg/platform-core";
 import { notFound } from "next/navigation";
 
@@ -37,15 +38,7 @@ export default async function DocumentsLibraryPage({ searchParams }: PageProps) 
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/documents" className="text-sm text-sky-400 hover:underline">
-          ← Documents
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Library</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Org-scoped documents. Filter by property from Real Estate panels.
-        </p>
-      </header>
+      <SectionPageHeader section="Documents" title="Library" />
       <main className="dg-page-main space-y-10">
         <section>
           <h2 className="text-sm font-medium text-slate-200">Upload</h2>

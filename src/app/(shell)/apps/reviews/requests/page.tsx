@@ -44,7 +44,7 @@ export default async function ReviewRequestsPage() {
 
   return (
     <>
-      <GrowthSubPageHeader title="Review follow-ups" description={<>Turn completed work into timely review follow-up tasks for {session?.organisationName ?? "this business"}.</>} />
+      <GrowthSubPageHeader section="Reputation" title="Review follow-ups" description={<>Turn completed work into timely review follow-up tasks for {session?.organisationName ?? "this business"}.</>} />
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="dg-card">
