@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import {
   getOrganisationBusinessProfile,
   listInvoices,
@@ -36,18 +37,7 @@ export default async function CommerceInvoicesPage({
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/commerce" className="text-sm text-blue-400 hover:underline">← Commerce</Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Invoices</h1>
-        <p className="text-sm text-slate-400">
-          {invoices.length} invoice(s){statusFilter ? ` · ${statusFilter.replace(/_/g, " ")}` : ""} · AU tax invoice layout from Business Profile
-        </p>
-        {statusFilter ? (
-          <Link href="/apps/commerce/invoices" className="mt-2 inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">
-            Clear filter →
-          </Link>
-        ) : null}
-      </header>
+      <SectionPageHeader section="Commerce" title="Invoices" />
       <main className="dg-page-main space-y-6">
         {canManage ? (
           <CreateDocumentForm
