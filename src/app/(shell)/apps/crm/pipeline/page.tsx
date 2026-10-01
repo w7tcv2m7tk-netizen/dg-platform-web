@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { listOpportunities } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
@@ -13,10 +14,7 @@ export default async function CrmPipelinePage() {
   if (!session) {
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Pipeline</h1>
-          <p className="text-sm text-slate-400">CRM Core App</p>
-        </header>
+        <SectionPageHeader section="CRM" title="Pipeline" />
         <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
             <p className="text-slate-300">Sign in to view the pipeline.</p>
@@ -45,12 +43,7 @@ export default async function CrmPipelinePage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Pipeline</h1>
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · {meta.total} opportunit{meta.total === 1 ? "y" : "ies"}
-        </p>
-      </header>
+      <SectionPageHeader section="CRM" title="Pipeline" />
       <main className="dg-page-main space-y-6">
         <div className="dg-card">
           <div className="flex flex-wrap items-start justify-between gap-3">
