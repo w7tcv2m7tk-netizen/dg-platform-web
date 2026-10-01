@@ -195,8 +195,8 @@ export const GROWTH_APP_CATALOG: GrowthAppCatalogItem[] = [
 ];
 
 /**
- * Advanced Communications add-ons under Core Communications (SKU: voice_ai).
- * Not Growth Apps — one commercial key can back multiple capability cards.
+ * AI Communications roadmap capabilities.
+ * Not currently sold as standalone add-ons; keep customer-facing catalogue in Coming Soon state.
  */
 export type CommunicationsAddonCatalogItem = {
   id: string;
@@ -215,31 +215,27 @@ export const COMMUNICATIONS_ADDON_CATALOG: CommunicationsAddonCatalogItem[] = [
     premiumKey: "voice_ai",
     label: "AI Voice Agents",
     icon: "🎙️",
-    price: "+$99/mo",
-    description:
-      "Advanced AI voice agents under Core Communications — Voice Agents still in development",
-    href: "/apps/ai-communications/voice",
-    status: "rolling-out",
+    price: "Coming Soon",
+    description: "AI voice agents for intelligent inbound and outbound business conversations.",
+    status: "soon",
   },
   {
     id: "ai-outreach",
     premiumKey: "voice_ai",
     label: "AI Outreach",
     icon: "📡",
-    price: "+$99/mo",
-    description: "AI-assisted outreach under Core Communications — same Advanced AI add-on SKU",
-    href: "/apps/communications/outreach",
-    status: "rolling-out",
+    price: "Coming Soon",
+    description: "AI-assisted outreach workflows connected to customer and prospect context.",
+    status: "soon",
   },
   {
     id: "call-centre",
     premiumKey: "voice_ai",
     label: "Advanced Call Centre",
     icon: "📞",
-    price: "+$99/mo",
-    description: "Call Centre under Core Communications — Advanced AI Communications add-on",
-    href: "/apps/ai-communications/call-centre",
-    status: "rolling-out",
+    price: "Coming Soon",
+    description: "AI-enabled call handling, routing and conversation workflows for business teams.",
+    status: "soon",
   },
 ];
 
