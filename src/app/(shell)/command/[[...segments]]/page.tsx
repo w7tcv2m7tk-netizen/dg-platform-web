@@ -58,6 +58,7 @@ async function CommandOverviewPage({ initialOrgId }: { initialOrgId?: string }) 
         />
         <div className="relative grid items-end gap-8 lg:grid-cols-[minmax(0,1fr)_220px]">
           <div className="py-1">
+            <p className="dg-page-eyebrow mb-2">Operator</p>
             <h1 className="max-w-3xl text-4xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
               Command Centre
             </h1>
