@@ -7,7 +7,7 @@ import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { AppHorizontalSubnav } from "@/components/navigation/AppHorizontalSubnav";
 import { resolveActiveAppNavigation, routeIsActive } from "@dg/platform-core";
 
-const SKIP_PREFIXES = ["/onboarding", "/signup", "/login"];
+const SKIP_PREFIXES = ["/onboarding", "/signup", "/login", "/dashboard/apps"];
 
 /**
  * Global second-level nav — breadcrumb stays Core / App / Active tab.
