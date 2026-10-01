@@ -6,6 +6,7 @@ import {
 } from "@dg/platform-core";
 
 import { BusinessDiscoverySearch } from "@/components/command/BusinessDiscoverySearch";
+import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
 import { CreateProspectForm } from "@/components/command/CreateProspectForm";
 import { EditProspectForm } from "@/components/command/EditProspectForm";
 import {
@@ -188,19 +189,17 @@ export async function ProspectingDiscoverySurface({
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Discover</h1>
-        <p className="mt-2 max-w-2xl text-base text-slate-200">
-          Find businesses worth pursuing, then let DigitalGate research, qualify and rank them.
-        </p>
-        <div className="mt-3 text-xs">
-          {showArchived ? (
-            <Link href={filterHref(false)} className="text-sky-400 hover:underline">← Hide archived</Link>
-          ) : (
-            <Link href={filterHref(true)} className="text-slate-500 hover:text-sky-400 hover:underline">Show archived</Link>
-          )}
-        </div>
-      </header>
+      <ProspectingPageHeader
+        title="Discover"
+        description="Find businesses worth pursuing, then let DigitalGate research, qualify and rank them."
+      />
+      <div className="px-4 pt-3 text-xs sm:px-6 lg:px-8">
+        {showArchived ? (
+          <Link href={filterHref(false)} className="text-sky-400 hover:underline">← Hide archived</Link>
+        ) : (
+          <Link href={filterHref(true)} className="text-slate-500 hover:text-sky-400 hover:underline">Show archived</Link>
+        )}
+      </div>
 
       <main className="dg-page-main space-y-8">
         {/* Discovery modes drive the live search below. */}
