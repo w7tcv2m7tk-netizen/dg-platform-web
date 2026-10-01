@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { notFound } from "next/navigation";
 import {
   getContact,
@@ -52,15 +53,7 @@ export default async function CommunicationsComposePage({ searchParams }: PagePr
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/communications/email" className="text-sm text-sky-400 hover:underline">
-          ← Email
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Compose email</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Send a manual email with CRM context and your organisation signature.
-        </p>
-      </header>
+      <SectionPageHeader section="Communications" title="Compose email" description="Send a manual email with CRM context and your organisation signature." />
       <main className="dg-page-main space-y-6">
         <CommunicationsComposeForm
           defaultTo={params.to?.trim() || contact?.email || ""}
