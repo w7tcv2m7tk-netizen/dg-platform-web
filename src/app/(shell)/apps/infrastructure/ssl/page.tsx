@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { listOrganisationDomains } from "@dg/platform-core";
 
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function InfrastructureSslPage() {
@@ -12,13 +13,7 @@ export default async function InfrastructureSslPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">SSL</h1>
-        <p className="text-sm text-slate-400">
-          Certificates stay automatic on the default path — issued when a domain is attached to
-          hosting. This is the inventory, not a certificate shop.
-        </p>
-      </header>
+      <AppPageHeader family="Infrastructure" title="SSL" description={<>Certificates stay automatic on the default path — issued when a domain is attached to hosting. This is the inventory, not a certificate shop.</>} />
       <main className="dg-page-main max-w-3xl space-y-6">
         <p className="text-sm text-slate-400">
           {active} of {domains.length} inventoried domain{domains.length === 1 ? "" : "s"}{" "}
