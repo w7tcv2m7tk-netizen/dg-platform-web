@@ -51,6 +51,18 @@ export const googlePlacesProvider: BusinessDataProvider = {
       regionCode: "AU",
     };
 
+
+    // Text-only "agency" searches admit recruiters, creatives and other agencies.
+    // For real-estate discovery, require Google's canonical real-estate category.
+    const discoveryContext = `${ctx.industry ?? ""} ${ctx.businessType ?? ""}`.toLowerCase();
+    const isRealEstateAgency =
+      /real[ _-]?estate|property/.test(discoveryContext) &&
+      /agency|agent|real[ _-]?estate|property/.test(discoveryContext);
+    if (isRealEstateAgency) {
+      body.includedType = "real_estate_agency";
+      body.strictTypeFiltering = true;
+    }
+
     if (
       typeof ctx.latitude === "number" &&
       typeof ctx.longitude === "number" &&
