@@ -29,5 +29,5 @@ console.log("Prospecting mobile workflow checks passed.");
 assert.doesNotMatch(opportunityEngine, /"prospect_created",/);
 assert.match(opportunityEngine, /input\.contactPhone \|\| input\.contactEmail/);
 assert.match(overview, /\["prospect", "audit_created"\]/);
-assert.match(today, /Research prospect/);
-assert.match(today, /Enrich contact/);
+assert.match(actions, /Research prospect/);
+assert.match(actions, /Enrich contact/);
