@@ -171,8 +171,8 @@ export function BusinessDiscoverySearch({
       <div>
         <h2 className="font-semibold text-white">Business Discovery Engine</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Search across connected business-data providers, select the businesses worth pursuing, and
-          import them into your Growth prospect book — not CRM.
+          Find businesses worth pursuing, compare the strongest opportunities, and add them to your
+          prospect book for research and qualification.
         </p>
       </div>
 
@@ -361,7 +361,11 @@ export function BusinessDiscoverySearch({
                         </>
                       ) : "—"}
                     </td>
-                    <td className="px-3 py-2 text-xs text-slate-500">{c.provider}</td>
+                    <td className="px-3 py-2 text-xs text-slate-500">{c.provider === "google_places"
+                        ? "Google Places"
+                        : c.provider === "abn_lookup"
+                          ? "ABN Lookup"
+                          : c.provider}</td>
                   </tr>
                 ))}
               </tbody>
