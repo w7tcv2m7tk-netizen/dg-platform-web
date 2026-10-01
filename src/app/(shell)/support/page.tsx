@@ -168,51 +168,21 @@ export default async function SupportPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link
-          href="/dashboard"
-          className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
-        >
-          ← Dashboard
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Support</h1>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">DigitalGate Support</p>
+        <h1 className="dg-page-title mt-1 text-white">Support</h1>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">
           Get an answer quickly, find step-by-step guidance, or continue with the DigitalGate team.
         </p>
       </header>
 
       <main className="dg-page-main space-y-8">
-        <section className="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-slate-900 to-slate-950 p-5 sm:p-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">DigitalGate support</p>
-          <h2 className="mt-2 text-xl font-semibold text-white">How can we help?</h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">
-            Start with Aida for an immediate answer, search the Knowledge Base, or contact our team when you need a person.
-          </p>
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <a href="#assist" className="rounded-xl border border-sky-500/30 bg-sky-500/10 p-4 transition hover:border-sky-400/60 hover:bg-sky-500/15">
-              <span className="text-sm font-semibold text-white">Ask Aida</span>
-              <p className="mt-1 text-xs leading-5 text-slate-400">Get immediate platform help and practical guidance in your account context.</p>
-              <span className="mt-3 inline-block text-xs font-medium text-sky-300">Start a conversation →</span>
-            </a>
-            <Link href="/support/help" className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 transition hover:border-sky-500/40">
-              <span className="text-sm font-semibold text-white">Browse help</span>
-              <p className="mt-1 text-xs leading-5 text-slate-400">Find step-by-step articles for setup, apps, billing, CRM and connections.</p>
-              <span className="mt-3 inline-block text-xs font-medium text-sky-300">{HELP_ARTICLES.length} help articles →</span>
-            </Link>
-            <a href="#contact" className="rounded-xl border border-slate-700 bg-slate-900/60 p-4 transition hover:border-sky-500/40">
-              <span className="text-sm font-semibold text-white">Contact support</span>
-              <p className="mt-1 text-xs leading-5 text-slate-400">Need a person? Send the DigitalGate team the issue and useful context.</p>
-              <span className="mt-3 inline-block text-xs font-medium text-sky-300">Contact the team →</span>
-            </a>
-          </div>
-        </section>
-
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.6fr)]">
+        <section className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.65fr)]">
           <div id="assist" className="scroll-mt-6">
             <div className="mb-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Instant help</p>
               <h2 className="mt-1 text-lg font-semibold text-white">Ask Aida</h2>
               <p className="mt-1 text-sm text-slate-400">
-                Ask about DigitalGate, a workflow, or something that is not working. Your conversation stays tied to your account and a person can take over when needed.
+                Get an immediate answer in your account context. If Aida cannot resolve it, the same conversation can be handed to the DigitalGate team.
               </p>
             </div>
             <SupportChatPanel embedded userName={userName ?? undefined} surfacePath="/support" />
@@ -254,19 +224,10 @@ export default async function SupportPage() {
               </ul>
             </div>
 
-            <div className="dg-card">
-              <h2 className="font-semibold text-white">Your support conversation</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-400">
-                Your Aida conversation above is your account-linked support thread. Previous messages remain in the same conversation so you can continue where you left off.
-              </p>
-              <a href="#assist" className="mt-3 inline-flex text-xs font-medium text-sky-300 hover:text-sky-200">
-                Continue conversation ↑
-              </a>
-            </div>
           </div>
         </section>
 
-        <section id="contact" className="dg-card max-w-3xl scroll-mt-6">
+        <section id="contact" className="dg-card scroll-mt-6 border-violet-500/15 bg-gradient-to-r from-violet-500/[0.05] to-slate-950/40">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Human support</p>
           <h2 className="mt-1 text-lg font-semibold text-white">Get help from our team</h2>
           <p className="mt-2 text-sm leading-6 text-slate-400">

@@ -3,6 +3,7 @@ import { getPmOverviewCounts } from "@dg/platform-core";
 
 import { canManagePropertyManagement } from "@/lib/property-management-page-access";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
 
 export default async function PropertyManagementOverviewPage() {
   const { session } = await getPlatformPageContext();
@@ -19,7 +20,9 @@ export default async function PropertyManagementOverviewPage() {
   const counts = await getPmOverviewCounts(session.organisationId);
 
   return (
-    <main className="dg-page-main space-y-6">
+    <>
+      <IndustryAppTitle title="Property Management" description="Long-term rental portfolios, leases, maintenance and tenant operations connected to Core CRM." />
+      <main className="dg-page-main space-y-6">
       <div>
         <p className="text-sm text-slate-400">
           {session.organisationName} · Long-term rental portfolio
@@ -65,6 +68,7 @@ export default async function PropertyManagementOverviewPage() {
           Open properties →
         </Link>
       </p>
-    </main>
+      </main>
+    </>
   );
 }

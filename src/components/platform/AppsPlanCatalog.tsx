@@ -237,7 +237,7 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
       </section>
 
       <section id="addons" className="scroll-mt-24">
-        <SectionHeader label="➕ 5 · Platform Add-Ons" title="Extend your platform" description="Extra users, white label and Advanced AI Communications under Core." />
+        <SectionHeader label="➕ 5 · Platform Add-Ons" title="Extend your platform" description="Optional platform extensions, with AI Communications capabilities clearly separated from currently available add-ons." />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {PLATFORM_ADDON_CATALOG.map((addon) => (
             <div key={addon.key} className="dg-plan-card text-left">
@@ -250,11 +250,14 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
           ))}
           {COMMUNICATIONS_ADDON_CATALOG.map((item) => (
             <div key={item.id} className="dg-plan-card text-left">
-              <div className="text-2xl" aria-hidden>{item.icon}</div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="text-2xl" aria-hidden>{item.icon}</div>
+                {statusBadge(item.status ?? "soon")}
+              </div>
               <h3 className="mt-2 font-semibold text-white">{item.label}</h3>
               <p className="mt-1 text-sm font-semibold text-blue-400">{item.price}</p>
               <p className="mt-2 text-xs text-slate-400">{item.description}</p>
-              {item.href ? <Link href={item.href} className="mt-4 inline-block rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-300 hover:border-blue-500 hover:text-white">Open →</Link> : null}
+              {item.status !== "soon" && item.href ? <Link href={item.href} className="mt-4 inline-block rounded-full border border-slate-600 px-4 py-1.5 text-xs font-medium text-slate-300 hover:border-blue-500 hover:text-white">Open →</Link> : null}
             </div>
           ))}
         </div>

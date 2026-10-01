@@ -3,6 +3,7 @@ import { listContacts, listFinanceApplications } from "@dg/platform-core";
 
 import { getOrganisationMoneySettings, formatMoneyFromCents } from "@/lib/organisation-money";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
 
 export default async function FinanceOverviewPage() {
   const { session } = await getPlatformPageContext();
@@ -38,7 +39,9 @@ export default async function FinanceOverviewPage() {
   const nextActionCount = needsBorrower + needsLender + needsAmount;
 
   return (
-    <main className="dg-page-main space-y-6">
+    <>
+      <IndustryAppTitle title="Finance" description="Broker applications, borrower context and loan pipeline activity connected to Core CRM." />
+      <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
         {session.organisationName} · Broker loan pipeline on Core CRM contacts
       </p>
@@ -164,6 +167,7 @@ export default async function FinanceOverviewPage() {
           </Link>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   );
 }
