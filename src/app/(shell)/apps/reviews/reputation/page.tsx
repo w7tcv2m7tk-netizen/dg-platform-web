@@ -4,6 +4,7 @@ import {
 } from "@dg/platform-core";
 
 import { ReviewThemesPanel } from "@/components/reviews/ReviewThemesPanel";
+import { GrowthSubPageHeader } from "@/components/growth/GrowthSubPageHeader";
 import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
@@ -23,12 +24,7 @@ export default async function ReputationScorePage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Reputation Score™</h1>
-        <p className="text-sm text-slate-400">
-          Score calculated from connected, rated customer reviews only.
-        </p>
-      </header>
+      <GrowthSubPageHeader title="Reputation Score™" description={<>Score calculated from connected, rated customer reviews only.</>} />
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="dg-card">
