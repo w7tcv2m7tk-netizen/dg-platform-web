@@ -24,7 +24,7 @@ export default async function ReputationScorePage() {
 
   return (
     <>
-      <GrowthSubPageHeader title="Reputation Score™" description={<>Score calculated from connected, rated customer reviews only.</>} />
+      <GrowthSubPageHeader section="Reputation" title="Reputation Score™" description={<>Score calculated from connected, rated customer reviews only.</>} />
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="dg-card">
