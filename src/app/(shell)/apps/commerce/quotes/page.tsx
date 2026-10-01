@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import {
   getOrganisationBusinessProfile,
   listQuotes,
@@ -33,15 +34,7 @@ export default async function CommerceQuotesPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/commerce" className="text-sm text-blue-400 hover:underline">
-          ← Commerce
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Quotes</h1>
-        <p className="text-sm text-slate-400">
-          {quotes.length} quote(s) · convert accepted quotes to invoices
-        </p>
-      </header>
+      <SectionPageHeader section="Commerce" title="Quotes" />
       <main className="dg-page-main space-y-6">
         {canManage ? (
           <CreateDocumentForm
