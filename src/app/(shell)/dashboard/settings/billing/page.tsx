@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { notFound } from "next/navigation";
 import {
   getOrganisationBillingStatus,
@@ -42,16 +43,7 @@ export default async function BillingSettingsPage({
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/dashboard/settings" className="text-sm text-blue-400 hover:underline">
-          ← Settings
-        </Link>
-        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">Subscription</p>
-        <h1 className="mt-1 text-2xl font-bold text-white">Billing & plan</h1>
-        <p className="text-sm text-slate-400">
-          Subscription status, Stripe Customer Portal, and enabled apps — no invented MRR
-        </p>
-      </header>
+      <SectionPageHeader section="Settings" title="Billing & plan" />
       <main className="dg-page-main space-y-6">
         {canManageBilling ? <BillingCheckoutBanner checkout={params.checkout} /> : null}
 
