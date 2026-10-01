@@ -24,6 +24,8 @@ export async function BusinessAppScaffoldPage({
   if (!route) notFound();
 
   const { session: platformSession } = await getPlatformPageContext();
+  const selectionIds = platformSession ? await getOrgIndustrySelectionIdsCached() : [];
+  const identity = resolveSelectedIndustryIdentity(appId, selectionIds, app.name);
   const isOverview = segment === "";
 
   const showStaffDoc =
