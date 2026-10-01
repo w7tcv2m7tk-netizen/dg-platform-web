@@ -30,7 +30,7 @@ export default async function AppsPage() {
     <>
       <header className="dg-page-header">
         <div>
-          <h1 className="text-2xl font-bold text-white">Your Apps</h1>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">Platform</p>\n          <h1 className="mt-1 text-2xl font-bold text-white">Your Apps</h1>
           <p className="text-sm text-slate-400">
             A focused workspace for this business. DigitalGate keeps unrelated industries hidden by default so the platform feels purpose-built for the way you operate.
           </p>
