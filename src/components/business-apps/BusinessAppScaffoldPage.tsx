@@ -42,7 +42,7 @@ export async function BusinessAppScaffoldPage({
       {isOverview ? (
         <IndustryAppTitle title={identity.title} eyebrow={identity.eyebrow} description={app.tagline} />
       ) : (
-        <SectionPageHeader section={identity.title} title={route.label} description={route.summary} />
+        <SectionPageHeader section={identity.title} title={route.title} description={route.summary} />
       )}
       <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
