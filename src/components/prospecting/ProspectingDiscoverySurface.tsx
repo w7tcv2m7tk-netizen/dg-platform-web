@@ -238,7 +238,11 @@ export async function ProspectingDiscoverySurface({
             Set the criteria below. Results can then be researched, audited and qualified into your prospect book.
           </p>
           <div className="mt-4">
-            <BusinessDiscoverySearch initialProviders={providers} {...searchDefaults} />
+            <BusinessDiscoverySearch
+              initialProviders={providers}
+              {...searchDefaults}
+              prospectBookHref={`${basePath}#prospect-book`}
+            />
           </div>
         </section>
 
@@ -253,7 +257,7 @@ export async function ProspectingDiscoverySurface({
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div id="prospect-book" className="scroll-mt-24 space-y-4">
             <div>
               <h2 className="font-semibold text-white">Prospect book</h2>
               <p className="mt-1 text-sm text-slate-500">

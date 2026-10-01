@@ -91,7 +91,9 @@ function recommendAction(input: OpportunityScoreInput): OpportunityRecommendedAc
   const stage = input.stage;
 
   if (!hasAudit || stage === "prospect") return "run_audit";
-  if (stage === "audit_created" || (!hasReport && hasAudit)) return "send_audit";
+  if (stage === "audit_created" || (!hasReport && hasAudit)) {
+    return input.contactPhone || input.contactEmail ? "send_audit" : "run_audit";
+  }
   if (stage === "proposal_sent" || stage === "meeting_booked") return "close_loop";
   if (stage === "report_viewed") return "call_and_email";
   if (stage === "email_opened" || stage === "follow_up_due") return "call_today";
@@ -102,7 +104,7 @@ function recommendAction(input: OpportunityScoreInput): OpportunityRecommendedAc
 function approachFor(action: OpportunityRecommendedAction, businessName: string): string {
   switch (action) {
     case "run_audit":
-      return `Run a presence audit for ${businessName} before outreach.`;
+      return `Research and enrich ${businessName} before outreach; confirm the right contact and route.`;
     case "send_audit":
       return `Send Digital Growth Audit first — lead with measured gaps, not a cold pitch.`;
     case "call_today":

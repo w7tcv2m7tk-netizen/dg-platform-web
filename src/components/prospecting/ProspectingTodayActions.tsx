@@ -62,6 +62,8 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
 
   const callHref = active.contactPhone ? `tel:${active.contactPhone}` : null;
   const emailHref = active.contactEmail ? `mailto:${active.contactEmail}` : null;
+  const hasContactRoute = Boolean(callHref || emailHref);
+  const needsResearch = active.recommendedActionLabel === "Run audit" || !hasContactRoute;
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -97,18 +99,31 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          {callHref ? (
-            <a href={callHref} onClick={() => setShowLog(true)} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-500">
-              Call now
-            </a>
+          {needsResearch ? (
+            <>
+              <a href="/apps/prospecting/prospects" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-500">
+                Research prospect
+              </a>
+              <a href="/apps/prospecting/discovery" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-700 px-4 text-sm font-semibold text-slate-200">
+                Enrich contact
+              </a>
+            </>
           ) : (
-            <a href="/apps/prospecting/discovery" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-700 px-4 text-sm font-semibold text-slate-200">
-              Find phone
-            </a>
+            <>
+              {callHref ? (
+                <a href={callHref} onClick={() => setShowLog(true)} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-500">
+                  Call now
+                </a>
+              ) : (
+                <a href={emailHref ?? "#"} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white">
+                  Email
+                </a>
+              )}
+              <button type="button" onClick={() => setShowLog(true)} className="min-h-12 rounded-xl border border-violet-500/40 bg-violet-500/10 px-4 text-sm font-semibold text-violet-100">
+                Log outcome
+              </button>
+            </>
           )}
-          <button type="button" onClick={() => setShowLog(true)} className="min-h-12 rounded-xl border border-violet-500/40 bg-violet-500/10 px-4 text-sm font-semibold text-violet-100">
-            Log outcome
-          </button>
         </div>
       </section>
 
