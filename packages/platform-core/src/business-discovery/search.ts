@@ -65,9 +65,16 @@ function dedupeCandidates(candidates: DiscoveryCandidate[]): DiscoveryCandidate[
   }
 
   return [...byKey.values()].sort((a, b) => {
-    const ratingDelta = (b.rating ?? 0) - (a.rating ?? 0);
-    if (ratingDelta !== 0) return ratingDelta;
-    return b.confidence - a.confidence;
+    // Prefer proven reputation over a perfect score backed by only a handful of reviews.
+    const reputationScore = (candidate: DiscoveryCandidate) => {
+      const rating = candidate.rating ?? 0;
+      const reviews = candidate.ratingCount ?? 0;
+      const reviewStrength = Math.min(Math.log10(reviews + 1) / 3, 1);
+      return rating * (0.65 + reviewStrength * 0.35) + candidate.confidence * 0.1;
+    };
+    const scoreDelta = reputationScore(b) - reputationScore(a);
+    if (Math.abs(scoreDelta) > 0.001) return scoreDelta;
+    return (b.ratingCount ?? 0) - (a.ratingCount ?? 0);
   });
 }
 
