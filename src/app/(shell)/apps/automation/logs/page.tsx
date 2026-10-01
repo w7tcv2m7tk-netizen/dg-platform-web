@@ -30,7 +30,7 @@ export default async function AutomationLogsPage() {
 
   return (
     <>
-      <GrowthSubPageHeader
+      <GrowthSubPageHeader section="Automation"
         title="Automation run history"
         description={<>{session?.organisationName ?? "DigitalGate"} · recent automated activity</>}
         actions={<Link href={getAppSetupHref("automation")} className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-0.5 text-xs font-medium text-blue-300 hover:bg-blue-500/15">Setup guide</Link>}
