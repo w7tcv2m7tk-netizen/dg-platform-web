@@ -64,7 +64,7 @@ export default async function StaffDeliverySectionPage({ params }: { params: Pro
   const metrics = workspace?.metrics ?? null;
   const alerts = workspace?.alerts ?? null;
   const tasks = workspace?.tasks ?? null;
-  const titles: Record<string, string> = { customers: "Delivery Customers", plans: "Implementation Plans", team: "Delivery Team", activity: "Delivery Activity", documents: "Implementation Documents", training: "Training", qa: "QA & Go-Live", reports: "Delivery Reports" };
+  const titles: Record<string, string> = { customers: "Customers", plans: "Implementation Plans", team: "Team", activity: "Activity", documents: "Documents", training: "Training", qa: "QA & Go-Live", reports: "Reports" };
 
   return (
     <DeliveryCommandPage title={titles[section]} navActive={navId}>
