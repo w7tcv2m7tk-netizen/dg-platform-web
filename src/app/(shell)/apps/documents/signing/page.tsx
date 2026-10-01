@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { dropboxSignConfigured, listOrgDocuments } from "@dg/platform-core";
 
 import { DocumentsSigningConsole } from "@/components/documents/DocumentsSigningConsole";
@@ -15,16 +16,7 @@ export default async function DocumentsSigningPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/documents/library" className="text-sm text-sky-400 hover:underline">
-          ← Documents
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Signing</h1>
-        <p className="mt-1 max-w-2xl text-sm text-slate-400">
-          Send documents for signature, track signer progress and retain the completed signed PDF in
-          the organisation document record.
-        </p>
-      </header>
+      <SectionPageHeader section="Documents" title="Signing" />
       <main className="dg-page-main space-y-6">
         <DocumentsSigningConsole
           providerConfigured={dropboxSignConfigured()}
