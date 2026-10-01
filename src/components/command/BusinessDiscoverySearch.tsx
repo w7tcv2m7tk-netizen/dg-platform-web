@@ -352,7 +352,14 @@ export function BusinessDiscoverySearch({
                       )}
                     </td>
                     <td className="px-3 py-2 text-slate-400">
-                      {typeof c.rating === "number" ? c.rating.toFixed(1) : "—"}
+                      {typeof c.rating === "number" ? (
+                        <>
+                          {c.rating.toFixed(1)}
+                          {typeof c.ratingCount === "number" ? (
+                            <span className="ml-1 text-slate-600">({c.ratingCount})</span>
+                          ) : null}
+                        </>
+                      ) : "—"}
                     </td>
                     <td className="px-3 py-2 text-xs text-slate-500">{c.provider}</td>
                   </tr>
