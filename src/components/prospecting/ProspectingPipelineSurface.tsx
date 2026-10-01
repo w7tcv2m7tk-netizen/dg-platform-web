@@ -176,7 +176,7 @@ export async function ProspectingPipelineSurface({
             Opportunity Scoring
           </Link>
         </p>
-      </header>
+      </div>
 
       <main className="dg-page-main space-y-8">
         {!process.env.DATABASE_URL ? (
