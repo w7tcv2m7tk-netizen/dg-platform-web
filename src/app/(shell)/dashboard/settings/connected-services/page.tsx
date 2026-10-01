@@ -39,7 +39,7 @@ export default async function ConnectedServicesPage({
         <Link href="/dashboard/settings" className="text-sm text-sky-400 hover:underline">
           ← Settings
         </Link>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-sky-400">Integration Hub</p>
+        <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">Integrations</p>
         <h1 className="mt-1 text-2xl font-bold text-white">Connected Services</h1>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">
           Connect the systems {session.organisationName} already uses. DigitalGate brings authorised data and workflows together without forcing you to replace specialist software that still works.
