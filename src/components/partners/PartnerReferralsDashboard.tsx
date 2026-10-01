@@ -30,25 +30,11 @@ export function PartnerReferralsDashboard({ data }: { data: ReferralsWorkspace }
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command/partners" className="text-sm text-sky-400 hover:underline">
-          ← Partner Network
-        </Link>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
-          Partners · Referrals
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Partner Referrals</h1>
-        <p className="mt-3 max-w-3xl text-base text-slate-200">
+        <p className="dg-page-eyebrow">Partner Network</p>
+        <h1 className="dg-app-page-title">Referrals</h1>
+        <p className="dg-page-description">
           Track every customer opportunity introduced through the DigitalGate Partner Network —
           from introduction through qualification, conversion and commission attribution.
-        </p>
-        <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Acquisition Partner referrals generate Platform + App commission. Delivery Partner activity
-          generates Professional Services and Support &amp; Success revenue. All customer ownership,
-          billing and commercial attribution remain with DigitalGate.
-        </p>
-        <p className="mt-2 max-w-3xl text-xs text-slate-500">
-          Sales / Growth Engine owns DigitalGate&apos;s own pipeline. This page tracks partner-attributed
-          introductions only — not a second prospecting CRM.
         </p>
       </header>
 
@@ -68,7 +54,7 @@ export function PartnerReferralsDashboard({ data }: { data: ReferralsWorkspace }
               value={formatAudOrDash(pulse.referredMrrCents)}
               hint={
                 pulse.referredMrrCents == null
-                  ? "Scaffold until subscription attribution"
+                  ? "Available when subscription attribution is active"
                   : undefined
               }
             />
