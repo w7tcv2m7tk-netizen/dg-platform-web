@@ -7,7 +7,8 @@ import {
   getBusinessAppScaffold,
   type BusinessAppScaffoldId,
 } from "@/lib/business-app-scaffolds";
-import { getPlatformPageContext } from "@/lib/org-apps";
+import { getOrgIndustrySelectionIdsCached, getPlatformPageContext } from "@/lib/org-apps";
+import { resolveSelectedIndustryIdentity } from "@/lib/industry-app-identity";
 import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
 import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 
@@ -37,9 +38,9 @@ export async function BusinessAppScaffoldPage({
   return (
     <>
       {isOverview ? (
-        <IndustryAppTitle title={app.name} description={app.tagline} />
+        <IndustryAppTitle title={identity.title} eyebrow={identity.eyebrow} description={app.tagline} />
       ) : (
-        <SectionPageHeader section={app.name} title={route.label} description={route.summary} />
+        <SectionPageHeader section={identity.title} title={route.label} description={route.summary} />
       )}
       <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
