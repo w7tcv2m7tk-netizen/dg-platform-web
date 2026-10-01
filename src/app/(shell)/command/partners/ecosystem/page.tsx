@@ -8,14 +8,9 @@ export default async function PartnerEcosystemPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command/partners" className="text-sm text-sky-400 hover:underline">
-          ← Partner Operating System
-        </Link>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
-          Partners
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-white">Partner Ecosystem</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
+        <p className="dg-page-eyebrow">Partner Network</p>
+        <h1 className="dg-app-page-title">Partner Ecosystem</h1>
+        <p className="dg-page-description">
           DigitalGate owns the platform. Partners extend acquisition, implementation and
           optimisation — never a generic reseller free-for-all.
         </p>
