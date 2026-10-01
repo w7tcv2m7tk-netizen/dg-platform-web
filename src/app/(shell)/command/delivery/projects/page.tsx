@@ -32,7 +32,7 @@ export default async function StaffDeliveryProjectsPage({
 
   return (
     <DeliveryCommandPage
-      title="Implementation Projects"
+      title="Projects"
       description="Customer implementation containers across DigitalGate Delivery — each project follows the 16-stage Implementation Lifecycle™."
       navActive="projects"
     >
