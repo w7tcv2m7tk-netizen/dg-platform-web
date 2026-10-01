@@ -8,5 +8,5 @@ export function IndustryAppTitle({
   description: string;
   eyebrow?: string;
 }) {
-  return <AppPageHeader family="Industry App" title={title} description={description} />;
+  return <AppPageHeader family={eyebrow ?? "Industry App"} title={title} description={description} />;
 }
