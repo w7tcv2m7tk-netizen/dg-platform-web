@@ -24,9 +24,6 @@ export default async function RealEstateOverviewPage() {
     <>
       <IndustryAppTitle title={identity.title} eyebrow={identity.eyebrow} description="Prospecting, appraisals, vendors, buyers and property pipelines for real estate teams." />
       <main className="dg-page-main space-y-6">
-      <p className="text-sm text-slate-400">
-        {session.organisationName} · Vendor & buyer pipelines · Platform Core / Neon · Beta
-      </p>
       <ReDashboard stats={stats} />
       </main>
     </>
