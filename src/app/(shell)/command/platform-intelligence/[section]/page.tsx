@@ -16,7 +16,7 @@ function shell(title: string, question: string, body: React.ReactNode) {
     <>
       <header className="dg-page-header">
         <OperatorCategoryHeader
-          eyebrow="Platform Intelligence"
+          eyebrow="Platform Operations"
           title={title}
           question={question}
           backHref="/command/platform-intelligence/overview"
@@ -57,10 +57,10 @@ export default async function PlatformIntelligenceSectionPage({
     return (
       <>
         <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Platform Intelligence</h1>
+          <p className="dg-page-eyebrow">Operator</p>
+          <h1 className="dg-app-page-title">Platform Operations</h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-400">
-            Platform ecosystem health — infrastructure, connectors, automation, AI usage and
-            system activity. Customer business health lives in Customer Intelligence.
+            Platform health, connectivity, service status and system activity across DigitalGate. Customer health remains in Customer Intelligence.
           </p>
         </header>
         <main className="dg-page-main space-y-6">
