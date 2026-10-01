@@ -48,7 +48,7 @@ export default async function ProspectingOverviewPage() {
   return (
     <>
       <header className="dg-page-header">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">Growth Engine™</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">Growth</p>
         <h1 className="dg-page-title mt-1 text-white">Prospecting</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-400 sm:text-base">Know who to work on next, why they matter and the action that moves them forward.</p>
       </header>
