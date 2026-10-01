@@ -46,10 +46,6 @@ export default async function FinanceOverviewPage() {
     <>
       <IndustryAppTitle title={identity.title} eyebrow={identity.eyebrow} description="Broker applications, borrower context and loan pipeline activity connected to Core CRM." />
       <main className="dg-page-main space-y-6">
-      <p className="text-sm text-slate-400">
-        {session.organisationName} · Broker loan pipeline on Core CRM contacts
-      </p>
-
       <section className="rounded-2xl border border-blue-500/20 bg-blue-500/[0.05] p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-300">Finance workspace</p>
         <h1 className="mt-1 text-xl font-semibold text-white">Move applications with the customer context attached</h1>
