@@ -4,6 +4,7 @@ import { IndustrySectionIdentity } from "@/components/industry/IndustrySectionId
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
+import { resolveSelectedIndustryIdentity } from "@/lib/industry-app-identity";
 
 /**
  * Shared industry beta layout gate — route/direct URL same as nav + API.
@@ -38,7 +39,10 @@ export async function IndustryBetaAppLayout({
     },
   );
 
-  if (allowed && selectedForOrganisation) return <><IndustrySectionIdentity mount={appId} appName={title} />{children}</>;
+  if (allowed && selectedForOrganisation) {
+    const identity = resolveSelectedIndustryIdentity(appId, industrySelectionIds, title);
+    return <><IndustrySectionIdentity mount={appId} appName={identity.title} />{children}</>;
+  }
 
   if (allowed && !selectedForOrganisation) {
     return (
