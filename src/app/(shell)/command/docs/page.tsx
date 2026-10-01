@@ -21,22 +21,15 @@ export default async function CommandPlatformDocsPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command" className="text-sm text-sky-400 hover:underline">
-          ← Command Centre
-        </Link>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
-          Platform · Docs
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-white">Platform docs</h1>
-        <p className="mt-1 max-w-2xl text-sm text-slate-400">
+        <p className="dg-page-eyebrow">Product</p>
+        <h1 className="dg-app-page-title">Platform Docs</h1>
+        <p className="dg-page-description">
           Source of truth for what DigitalGate is, how it is designed, why decisions were made, and
-          how DigitalGate operates. Curated for staff review — not CRM, not the product UI, and not
-          every file under <code className="text-slate-300">docs/</code>. Ask this allowlist via{" "}
+          how DigitalGate operates. Curated for staff review. Ask this source of truth via{" "}
           <Link href="/command/intelligence" className="text-sky-400 hover:underline">
             Platform Intelligence
           </Link>{" "}
-          (retrieval and reasoning with citations). Not live org tools, and not the floating support
-          chat.
+          for grounded answers with citations.
         </p>
       </header>
       <main className="dg-page-main space-y-8">
