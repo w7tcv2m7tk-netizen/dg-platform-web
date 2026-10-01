@@ -47,11 +47,6 @@ export default async function AccommodationOverviewPage() {
     <>
       <IndustryAppTitle title={identity.title} eyebrow={identity.eyebrow} description="Bookings, guests, stays and accommodation operations in one connected workspace." />
       <main className="dg-page-main space-y-6">
-      <div>
-        <p className="text-sm text-slate-400">
-          {siteLabel} · Platform Core / Neon · Ops
-        </p>
-      </div>
       <AccommodationDashboard
         summary={summary}
         error={session ? summaryError : "Platform session unavailable."}
