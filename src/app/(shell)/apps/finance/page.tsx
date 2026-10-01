@@ -4,6 +4,8 @@ import { listContacts, listFinanceApplications } from "@dg/platform-core";
 import { getOrganisationMoneySettings, formatMoneyFromCents } from "@/lib/organisation-money";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
+import { getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
+import { resolveSelectedIndustryIdentity } from "@/lib/industry-app-identity";
 
 export default async function FinanceOverviewPage() {
   const { session } = await getPlatformPageContext();
@@ -16,11 +18,13 @@ export default async function FinanceOverviewPage() {
     );
   }
 
-  const [{ items, meta }, contacts, money] = await Promise.all([
+  const [{ items, meta }, contacts, money, selectionIds] = await Promise.all([
     listFinanceApplications({ organisationId: session.organisationId, limit: 100 }),
     listContacts({ organisationId: session.organisationId, limit: 100 }),
     getOrganisationMoneySettings(session.organisationId),
+    getOrgIndustrySelectionIdsCached(),
   ]);
+  const identity = resolveSelectedIndustryIdentity("finance", selectionIds, "Finance");
 
   const byStage = new Map<string, number>();
   for (const app of items) {
@@ -40,7 +44,7 @@ export default async function FinanceOverviewPage() {
 
   return (
     <>
-      <IndustryAppTitle title="Finance" description="Broker applications, borrower context and loan pipeline activity connected to Core CRM." />
+      <IndustryAppTitle title={identity.title} eyebrow={identity.eyebrow} description="Broker applications, borrower context and loan pipeline activity connected to Core CRM." />
       <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
         {session.organisationName} · Broker loan pipeline on Core CRM contacts
