@@ -15,6 +15,7 @@ import {
 import { AttentionInterventionCards } from "@/components/command/AttentionInterventionCards";
 import { OperatorMetricStrip } from "@/components/command/OperatorMetricStrip";
 import { OperatorOrgTable } from "@/components/command/OperatorOrgTable";
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
 function shell(
@@ -25,13 +26,9 @@ function shell(
 ) {
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">{title}</h1>
-        <p className="mt-1 max-w-2xl text-sm text-slate-400">{question}</p>
-        {footnote ? (
-          <p className="mt-2 max-w-2xl text-xs text-slate-500">{footnote}</p>
-        ) : null}
-      </header>
+      <AppPageHeader family="Operator" title={title} description={question}>
+        {footnote ? <p className="max-w-2xl text-xs text-slate-500">{footnote}</p> : null}
+      </AppPageHeader>
       <main className="dg-page-main space-y-6">{body}</main>
     </>
   );
