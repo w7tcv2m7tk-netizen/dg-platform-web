@@ -5,6 +5,7 @@ import {
 } from "@dg/platform-core";
 
 import { FunnelBuilderClient } from "@/components/websites/FunnelBuilderClient";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
@@ -24,12 +25,7 @@ export default async function FunnelsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Funnels</h1>
-        <p className="text-sm text-slate-400">
-          Landing page → form → CRM
-        </p>
-      </header>
+      <SectionPageHeader section="Design Studio" title="Funnels" description="Landing pages and conversion journeys that feed CRM." />
       <main className="dg-page-main space-y-4">
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">
