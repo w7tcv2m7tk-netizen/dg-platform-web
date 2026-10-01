@@ -5,7 +5,7 @@ const nav = fs.readFileSync("packages/platform-core/src/apps/navigation.ts", "ut
 const sidebar = fs.readFileSync("src/components/SidebarNav.tsx", "utf8");
 const home = fs.readFileSync("src/components/command/CommandOpsHome.tsx", "utf8");
 
-const order = ["command-centre", "dg-customer-intelligence", "dg-commercial", "dg-delivery", "dg-partners", "dg-support", "dg-product"];
+const order = ["command-centre", "dg-customer-intelligence", "dg-commercial", "dg-delivery", "dg-partners", "dg-product", "dg-support"];
 let cursor = -1;
 for (const id of order) {
   const next = sidebar.indexOf(`"${id}"`, cursor + 1);
