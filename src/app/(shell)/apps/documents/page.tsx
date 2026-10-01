@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import { summarizeOrgDocuments } from "@dg/platform-core";
 
 import { getPlatformPageContext } from "@/lib/platform-page-context";
@@ -9,9 +10,7 @@ export default async function DocumentsOverviewPage() {
   if (!session?.organisationId) {
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Documents</h1>
-        </header>
+        <AppPageHeader family="Core" title="Documents" />
         <main className="dg-page-main">
           <p className="text-sm text-slate-500">Sign in to continue.</p>
         </main>
@@ -30,13 +29,7 @@ export default async function DocumentsOverviewPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Documents</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Documents & Signing — the Core library for {session.organisationName}. Industry Apps
-          can attach documents to the records and workflows they belong to.
-        </p>
-      </header>
+      <AppPageHeader family="Core" title="Documents" description={<>Documents &amp; Signing — the Core library for {session.organisationName}. Industry Apps can attach documents to the records and workflows they belong to.</>} />
       <main className="dg-page-main space-y-8">
         <div className="flex flex-wrap gap-4 text-sm">
           <Link href="/apps/documents/library" className="text-sky-400 hover:underline">
