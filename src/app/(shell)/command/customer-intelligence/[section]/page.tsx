@@ -26,7 +26,7 @@ function shell(
 ) {
   return (
     <>
-      <AppPageHeader family="Operator" title={title} description={question}>
+      <AppPageHeader family="Customer Intelligence" title={title} description={question}>
         {footnote ? <p className="max-w-2xl text-xs text-slate-500">{footnote}</p> : null}
       </AppPageHeader>
       <main className="dg-page-main space-y-6">{body}</main>
