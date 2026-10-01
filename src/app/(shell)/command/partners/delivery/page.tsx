@@ -8,9 +8,9 @@ export default async function PartnerDeliveryPage() {
   return (
     <>
       <header className="dg-page-header">
-        <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">Partners</p>
-        <h1 className="mt-1 text-2xl font-bold text-white">Delivery Partners</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="dg-page-eyebrow">Partner Network</p>
+        <h1 className="dg-app-page-title">Delivery Partners</h1>
+        <p className="dg-page-description">
           Partner type and operating model — who implements and how they earn. Live
           implementation work lives under Delivery.
         </p>
