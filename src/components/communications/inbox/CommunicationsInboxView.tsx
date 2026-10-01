@@ -18,6 +18,7 @@ import {
   type InboxFolderCounts,
 } from "@/components/communications/inbox/CommunicationsInboxWorkspace";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 
 const FOLDER_IDS: InboxFolderId[] = [
   "all",
@@ -167,9 +168,7 @@ export async function CommunicationsInboxView({
   if (!data.session) {
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Inbox</h1>
-        </header>
+        <SectionPageHeader section="Communications" title="Inbox" />
         <main className="dg-page-main">
           <p className="text-sm text-slate-500">Sign in to continue.</p>
         </main>
@@ -179,12 +178,7 @@ export async function CommunicationsInboxView({
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Inbox</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Conversations across mailboxes and CRM — for {data.session.organisationName}.
-        </p>
-      </header>
+      <SectionPageHeader section="Communications" title="Inbox" description={<>Conversations across mailboxes and CRM — for {data.session.organisationName}.</>} />
       <main className="dg-page-main flex min-h-0 flex-col gap-4">
         <Suspense
           fallback={
