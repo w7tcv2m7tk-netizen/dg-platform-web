@@ -40,9 +40,9 @@ export default async function SupportEscalationsPage() {
     <>
       <header className="dg-page-header">
         <OperatorCategoryHeader
-          eyebrow="DigitalGate Support Centre"
+          eyebrow="Support Centre"
           title="Escalations"
-          question="Customer support escalations — Assist paused and needs a human. Not Customer Intelligence or Platform Intelligence."
+          question="Customer support conversations where Assist has paused and a human needs to take over."
           backHref="/support"
           backLabel="Support Centre"
         />
@@ -111,7 +111,7 @@ export default async function SupportEscalationsPage() {
         <p className="text-sm text-slate-500">
           Platform / customer signal alerts live under{" "}
           <Link href="/command/platform-intelligence/overview" className="text-sky-400 hover:underline">
-            Platform Intelligence
+            Platform Operations
           </Link>
           {" · "}
           <Link href="/support/tickets" className="text-sky-400 hover:underline">
