@@ -42,7 +42,7 @@ function HonestHub({ title, description, links }: { title: string; description: 
       <ul className="space-y-2 text-sm">
         {links.map((l) => <li key={l.href}><Link href={l.href} className="text-sky-400 hover:underline">{l.label} →</Link></li>)}
       </ul>
-      <p className="text-xs text-slate-500">No separate {title.toLowerCase()} store yet — work lives on implementation projects and Platform Docs.</p>
+      <p className="text-xs text-slate-500">Use the linked operational workspaces and Platform Docs for the current source of truth.</p>
     </div>
   );
 }
@@ -64,7 +64,7 @@ export default async function StaffDeliverySectionPage({ params }: { params: Pro
   const metrics = workspace?.metrics ?? null;
   const alerts = workspace?.alerts ?? null;
   const tasks = workspace?.tasks ?? null;
-  const titles: Record<string, string> = { customers: "Delivery Customers", plans: "Implementation Plans", team: "Delivery Team", activity: "Delivery Activity", documents: "Implementation Documents", training: "Training", qa: "QA & Go-Live", reports: "Delivery Reports" };
+  const titles: Record<string, string> = { customers: "Customers", plans: "Implementation Plans", team: "Team", activity: "Activity", documents: "Documents", training: "Training", qa: "QA & Go-Live", reports: "Reports" };
 
   return (
     <DeliveryCommandPage title={titles[section]} navActive={navId}>

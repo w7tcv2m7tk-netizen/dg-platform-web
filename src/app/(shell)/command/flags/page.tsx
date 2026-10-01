@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { getOperatorCommandFeatureFlagsOverview } from "@dg/platform-core";
 
 import { FeatureFlagsAdmin } from "@/components/command/FeatureFlagsAdmin";
@@ -13,11 +12,9 @@ export default async function CommandFlagsPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command" className="text-sm text-sky-400 hover:underline">
-          ← Command Centre
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Feature flags</h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="dg-page-eyebrow">Product</p>
+        <h1 className="dg-app-page-title">Feature Flags</h1>
+        <p className="dg-page-description">
           Cross-tenant rollout controls stored on organisation settings.
         </p>
       </header>

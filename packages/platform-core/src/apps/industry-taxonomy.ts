@@ -70,7 +70,7 @@ export const INDUSTRY_TAXONOMY: IndustryGroup[] = [
   },
   {
     id: "accommodation-hospitality",
-    name: "Accommodation & Hospitality",
+    name: "Hospitality & Accommodation",
     description: "Short-stay, hospitality and guest-experience operations.",
     appIds: ["accommodation"],
     subIndustries: [

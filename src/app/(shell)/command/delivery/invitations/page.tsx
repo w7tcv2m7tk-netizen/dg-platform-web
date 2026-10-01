@@ -23,7 +23,7 @@ export default async function StaffDeliveryInvitationsPage() {
 
   return (
     <DeliveryCommandPage
-      title="Delivery Invitations"
+      title="Invitations"
       description={
         <>
           Invite Delivery Partners and Delivery Managers into the DigitalGate Delivery workspace.

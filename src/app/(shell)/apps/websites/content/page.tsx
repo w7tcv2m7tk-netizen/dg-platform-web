@@ -4,6 +4,7 @@ import {
   organisationHasWebsitesBuilder,
 } from "@dg/platform-core";
 
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
@@ -23,14 +24,7 @@ export default async function ContentOverviewPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Content</h1>
-        <p className="text-sm text-slate-400">
-          {canEdit
-            ? "Live page map — open a site to edit components and SEO"
-            : "Live page map — review your website pages and SEO details"}
-        </p>
-      </header>
+      <SectionPageHeader section="Design Studio" title="Content" description="Manage website pages, content and SEO." />
       <main className="dg-page-main space-y-6">
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">

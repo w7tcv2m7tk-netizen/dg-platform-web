@@ -16,7 +16,7 @@ function shell(title: string, question: string, body: React.ReactNode) {
     <>
       <header className="dg-page-header">
         <OperatorCategoryHeader
-          eyebrow="Platform Intelligence"
+          eyebrow="Platform Operations"
           title={title}
           question={question}
           backHref="/command/platform-intelligence/overview"
@@ -57,10 +57,10 @@ export default async function PlatformIntelligenceSectionPage({
     return (
       <>
         <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Platform Intelligence</h1>
+          <p className="dg-page-eyebrow">Operator</p>
+          <h1 className="dg-app-page-title">Platform Operations</h1>
           <p className="mt-1 max-w-2xl text-sm text-slate-400">
-            Platform ecosystem health — infrastructure, connectors, automation, AI usage and
-            system activity. Customer business health lives in Customer Intelligence.
+            Platform health, connectivity, service status and system activity across DigitalGate. Customer health remains in Customer Intelligence.
           </p>
         </header>
         <main className="dg-page-main space-y-6">
@@ -154,10 +154,9 @@ export default async function PlatformIntelligenceSectionPage({
       "Automation health",
       "Platform automation run health — when telemetry exists.",
       <div className="max-w-2xl rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5 text-sm text-slate-300">
-        <p className="font-medium text-white">Not instrumented yet</p>
+        <p className="font-medium text-white">Telemetry not yet available</p>
         <p className="mt-2 text-slate-400">
-          There is no platform-wide automation health aggregate today. Feature flags remain under
-          Product — they are not duplicated here.
+          Platform-wide automation health will appear here when telemetry is available. Feature controls remain in Product.
         </p>
       </div>,
     );
@@ -170,7 +169,7 @@ export default async function PlatformIntelligenceSectionPage({
       <div className="max-w-2xl rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5 text-sm text-slate-300">
         <p className="font-medium text-white">Not instrumented yet</p>
         <p className="mt-2 text-slate-400">
-          There is no platform-wide AI usage aggregate today. Do not invent counters.
+          Platform-wide AI usage and cost will appear here when telemetry is available.
         </p>
       </div>,
     );
@@ -221,8 +220,7 @@ export default async function PlatformIntelligenceSectionPage({
       <div className="max-w-2xl rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5 text-sm text-slate-300">
         <p className="font-medium text-white">Use Platform health + service status</p>
         <p className="mt-2 text-slate-400">
-          Dedicated diagnostics tooling lives under those tabs. Command Centre Alerts remains the
-          priority triage surface — not duplicated here.
+          Use Platform Health and Service Status for the current operational signals. Command Centre remains the priority triage surface.
         </p>
       </div>,
     );

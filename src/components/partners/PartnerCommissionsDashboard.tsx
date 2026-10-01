@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { CommissionsWorkspace } from "@dg/platform-core";
 import {
-  COMMISSION_ARCHITECTURE_NOTE,
   COMMISSION_LIFECYCLE_STAGES,
   COMMISSION_LIFECYCLE_STRIP,
   COMMISSION_MODEL_SECTIONS,
@@ -24,22 +23,12 @@ export function PartnerCommissionsDashboard({ data }: { data: CommissionsWorkspa
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command/partners" className="text-sm text-sky-400 hover:underline">
-          ← Partner Network
-        </Link>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
-          Partners · Commissions
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Partner Commissions</h1>
-        <p className="mt-3 max-w-3xl text-base text-slate-200">
+        <p className="dg-page-eyebrow">Partner Network</p>
+        <h1 className="dg-app-page-title">Commissions</h1>
+        <p className="dg-page-description">
           Track commission earned, approved, payable and paid across the DigitalGate Partner
           Network.
         </p>
-        <p className="mt-2 max-w-3xl text-sm text-slate-400">
-          Commissions are calculated from attributable customer revenue and partner terms. Revenue
-          remains owned and billed by DigitalGate.
-        </p>
-        <p className="mt-2 max-w-3xl text-xs text-slate-500">{COMMISSION_ARCHITECTURE_NOTE}</p>
       </header>
 
       <main className="dg-page-main space-y-8">

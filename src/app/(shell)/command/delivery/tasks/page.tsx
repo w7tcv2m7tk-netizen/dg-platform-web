@@ -16,8 +16,8 @@ export default async function StaffDeliveryTasksPage() {
 
   return (
     <DeliveryCommandPage
-      title="Delivery Tasks"
-      description="Open implementation tasks across all active projects (DeliveryTask — not CRM follow-ups)."
+      title="Tasks"
+      description="Open implementation tasks across all active customer projects."
       navActive="tasks"
     >
       {tasks.length === 0 ? (

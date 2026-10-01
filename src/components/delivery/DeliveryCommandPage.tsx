@@ -3,12 +3,14 @@ import type { ReactNode } from "react";
 import type { DeliveryNavId } from "@/components/delivery/DeliveryWorkspaceNav";
 
 export function DeliveryCommandPage({
+  eyebrow = "Delivery",
   title,
   description,
   children,
   navActive: _navActive,
   headerActions,
 }: {
+  eyebrow?: string;
   title: string;
   description?: ReactNode;
   children: ReactNode;
@@ -18,9 +20,10 @@ export function DeliveryCommandPage({
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">{title}</h1>
+        <p className="dg-page-eyebrow">{eyebrow}</p>
+        <h1 className="dg-app-page-title">{title}</h1>
         {description ? (
-          <div className="mt-1 max-w-2xl text-sm text-slate-400">{description}</div>
+          <div className="dg-page-description">{description}</div>
         ) : null}
         {headerActions ? <div className="mt-4">{headerActions}</div> : null}
       </header>

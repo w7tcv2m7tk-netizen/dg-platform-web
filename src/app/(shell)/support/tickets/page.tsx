@@ -80,7 +80,7 @@ export default async function SupportTicketsPage({
     <>
       <header className="dg-page-header">
         <OperatorCategoryHeader
-          eyebrow="DigitalGate Support Centre"
+          eyebrow="Support Centre"
           title="Customer Support Conversations"
           question="Identify, filter and manage support enquiries across every customer business. Every thread remains owned by its originating organisation."
           backHref="/support"

@@ -9,6 +9,7 @@ import {
   suggestTemplateFromProfile,
 } from "@dg/platform-core";
 
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import { CreateWebsiteForm } from "@/components/websites/CreateWebsiteForm";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
@@ -53,12 +54,11 @@ export default async function WebsitesHomePage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Design Studio</h1>
-        <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · Websites, funnels, logos, content, and Health Centre
-        </p>
-      </header>
+      <AppPageHeader
+        family="Core"
+        title="Design Studio"
+        description="Create and manage websites, funnels, content, brand assets and website health."
+      />
       <main className="dg-page-main">
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-2xl space-y-3">

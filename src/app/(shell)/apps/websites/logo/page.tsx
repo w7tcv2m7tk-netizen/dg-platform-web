@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getOrganisationBusinessProfile, sessionCan } from "@dg/platform-core";
 
 import { LogoDesignStudioClient } from "@/components/websites/LogoDesignStudioClient";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function LogoDesignStudioPage({
@@ -20,13 +21,7 @@ export default async function LogoDesignStudioPage({
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Brand</h1>
-        <p className="text-sm text-slate-400">
-          Logo, icon, and colours for {session?.organisationName ?? "this organisation"} —
-          one identity for the sidebar, websites, invoices, and email.
-        </p>
-      </header>
+      <SectionPageHeader section="Design Studio" title="Brand" description="Manage the shared logo, icon and brand colours for this business." />
       <main className="dg-page-main space-y-6">
         {!session || !profile ? (
           <p className="text-sm text-slate-400">Sign in to view brand assets.</p>

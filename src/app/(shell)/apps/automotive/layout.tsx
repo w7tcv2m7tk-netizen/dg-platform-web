@@ -1,7 +1,9 @@
 import { shouldShowIndustryApp } from "@dg/platform-core";
 import { redirect } from "next/navigation";
+import { IndustrySectionIdentity } from "@/components/industry/IndustrySectionIdentity";
 
 import { getOrgEnabledAppIdsCached, getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
+import { resolveSelectedIndustryIdentity } from "@/lib/industry-app-identity";
 
 export default async function AutomotiveLayout({ children }: { children: React.ReactNode }) {
   const [enabledIds, industrySelectionIds] = await Promise.all([
@@ -15,5 +17,6 @@ export default async function AutomotiveLayout({ children }: { children: React.R
   if (!enabledIds.includes("automotive") || !selectedForOrganisation) {
     redirect("/dashboard/apps");
   }
-  return children;
+  const identity = resolveSelectedIndustryIdentity("automotive", industrySelectionIds, "Automotive");
+  return <><IndustrySectionIdentity mount="automotive" appName={identity.title} />{children}</>;
 }

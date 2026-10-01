@@ -25,16 +25,11 @@ export default async function CustomerPortfolioPage() {
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Customer Intelligence</h1>
-        <p className="mt-1 max-w-2xl text-sm text-slate-400">
+        <p className="dg-page-eyebrow">Operator</p>
+        <h1 className="dg-app-page-title">Customer Intelligence</h1>
+        <p className="dg-page-description">
           Understand customer health, adoption, activity, opportunities and risks across
           the DigitalGate customer base.
-        </p>
-        <p className="mt-2 max-w-2xl text-xs text-slate-500">
-          Success Score™ measures overall customer/platform health. “Needs Attention” is a
-          score-band classification. Attention Required is a separate intervention queue for
-          customers needing active DigitalGate action — zero interventions can coexist with
-          Needs Attention score-band customers.
         </p>
       </header>
       <main className="dg-page-main space-y-8">

@@ -44,18 +44,10 @@ export async function ResellersProgrammeSurface() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/command/partners" className="text-sm text-sky-400 hover:underline">
-          ← Partner Network
-        </Link>
-        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-sky-400">
-          Partners · Acquisition
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">Acquisition Partners</h1>
-        <p className="mt-3 max-w-2xl text-base text-slate-200">
+        <p className="dg-page-eyebrow">Partner Network</p>
+        <h1 className="dg-app-page-title">Acquisition Partners</h1>
+        <p className="dg-page-description">
           Trusted acquisition partners who open doors to businesses that DigitalGate can help.
-        </p>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          {FOUNDING_RESELLER_POSITIONING.body}
         </p>
         <p className="mt-3 max-w-2xl rounded-lg border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-100/90">
           <span className="font-semibold text-white">

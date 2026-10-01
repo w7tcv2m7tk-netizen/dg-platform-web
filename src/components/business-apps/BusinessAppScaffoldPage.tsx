@@ -7,8 +7,10 @@ import {
   getBusinessAppScaffold,
   type BusinessAppScaffoldId,
 } from "@/lib/business-app-scaffolds";
-import { getPlatformPageContext } from "@/lib/org-apps";
+import { getOrgIndustrySelectionIdsCached, getPlatformPageContext } from "@/lib/org-apps";
+import { resolveSelectedIndustryIdentity } from "@/lib/industry-app-identity";
 import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 
 export async function BusinessAppScaffoldPage({
   appId,
@@ -22,6 +24,8 @@ export async function BusinessAppScaffoldPage({
   if (!route) notFound();
 
   const { session: platformSession } = await getPlatformPageContext();
+  const selectionIds = platformSession ? await getOrgIndustrySelectionIdsCached() : [];
+  const identity = resolveSelectedIndustryIdentity(appId, selectionIds, app.name);
   const isOverview = segment === "";
 
   const showStaffDoc =
@@ -35,7 +39,11 @@ export async function BusinessAppScaffoldPage({
 
   return (
     <>
-      {isOverview ? <IndustryAppTitle title={app.name} description={app.tagline} /> : null}
+      {isOverview ? (
+        <IndustryAppTitle title={identity.title} eyebrow={identity.eyebrow} description={app.tagline} />
+      ) : (
+        <SectionPageHeader section={identity.title} title={route.title} description={route.summary} />
+      )}
       <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
         {platformSession?.organisationName ?? "DigitalGate"} · {route.summary}

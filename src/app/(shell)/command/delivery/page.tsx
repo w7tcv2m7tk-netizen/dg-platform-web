@@ -33,19 +33,9 @@ export default async function StaffDeliveryDashboardPage() {
 
   return (
     <DeliveryCommandPage
+      eyebrow="Operator"
       title="Delivery"
-      description={
-        <>
-          <p className="text-base text-slate-200">
-            Implementation ops — onboarding, projects, training and go-live.
-          </p>
-          <p className="mt-2">
-            DigitalGate wins the customer. Delivery makes the customer successful —
-            implementation, training and approved Support &amp; Success. Partner types live under
-            Partners → Delivery Partners.
-          </p>
-        </>
-      }
+      description="Customer implementation from onboarding through training and go-live."
       navActive="dashboard"
       headerActions={
         <div className="flex flex-wrap gap-3">

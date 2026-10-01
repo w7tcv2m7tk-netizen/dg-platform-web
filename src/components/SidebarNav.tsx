@@ -135,18 +135,18 @@ function IaSectionBlock({
 
 const DIGITALGATE_OPERATOR_ORDER = [
   "command-centre",
-  "dg-commercial",
   "dg-customer-intelligence",
-  "dg-product",
+  "dg-commercial",
   "dg-delivery",
   "dg-partners",
+  "dg-product",
   "dg-support",
 ] as const;
 
 const DIGITALGATE_OPERATOR_NAMES: Record<string, string> = {
   "command-centre": "Command Centre",
-  "dg-customer-intelligence": "Customers",
-  "dg-partners": "Partners",
+  "dg-customer-intelligence": "Customer Intelligence",
+  "dg-partners": "Partner Network",
   "dg-support": "Support Centre",
   "dg-delivery": "Delivery",
   "dg-commercial": "Commercial",
