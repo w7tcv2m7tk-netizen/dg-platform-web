@@ -549,16 +549,14 @@ function getDigitalGateOperatorSection(): NavIaSection {
         { path: "/command/revenue", label: "Revenue / MRR" },
         { path: "/command/commercial/subscriptions", label: "Subscriptions" },
       ]),
-      operatorApp("dg-platform-operations", "Platform Operations", "health", "/command/platform-intelligence/overview", [
-        { path: "/command/platform-intelligence/overview", label: "Overview" },
+      operatorApp("dg-product", "Platform", "flags", "/command/product/overview", [
+        { path: "/command/product/overview", label: "Overview" },
+        { path: "/command/platform-intelligence/overview", label: "Operations" },
         { path: "/command/platform-intelligence/health", label: "Health" },
         { path: "/command/platform-intelligence/connectors", label: "Connector Health" },
         { path: "/command/platform-intelligence/activity", label: "System Activity" },
         { path: "/command/platform-intelligence/service-status", label: "Service Status" },
         { path: "/command/platform-intelligence/diagnostics", label: "Diagnostics" },
-      ]),
-      operatorApp("dg-product", "Product", "flags", "/command/product/overview", [
-        { path: "/command/product/overview", label: "Overview" },
         { path: "/command/product/roadmap", label: "Roadmap" },
         { path: "/command/product/releases", label: "Releases" },
         { path: "/command/product/feedback", label: "Feedback" },
