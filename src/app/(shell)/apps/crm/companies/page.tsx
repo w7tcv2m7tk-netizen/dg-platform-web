@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { listCompanies, sessionHasFeature } from "@dg/platform-core";
 
 import { CreateCompanyForm } from "@/components/crm/CreateCompanyForm";
@@ -11,9 +12,7 @@ export default async function CrmCompaniesPage() {
   if (!session) {
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Companies</h1>
-        </header>
+        <SectionPageHeader section="CRM" title="Companies" />
         <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
             <p className="text-slate-300">Sign in to view companies.</p>
@@ -28,15 +27,7 @@ export default async function CrmCompaniesPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/crm/contacts" className="text-sm text-blue-400 hover:underline">
-          ← CRM
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Companies</h1>
-        <p className="text-sm text-slate-400">
-          {meta.total} compan{meta.total === 1 ? "y" : "ies"} · B2B accounts linked to contacts
-        </p>
-      </header>
+      <SectionPageHeader section="CRM" title="Companies" />
       <main className="dg-page-main">
         <div className="grid gap-8 lg:grid-cols-2">
           <div className="dg-card">
