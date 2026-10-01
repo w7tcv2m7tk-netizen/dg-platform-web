@@ -3,6 +3,8 @@ import { getReDashboardStats } from "@dg/platform-core";
 import { ReDashboard } from "@/components/re/ReDashboard";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { IndustryAppTitle } from "@/components/industry/IndustryAppTitle";
+import { getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
+import { resolveSelectedIndustryIdentity } from "@/lib/industry-app-identity";
 
 export default async function RealEstateOverviewPage() {
   const { session } = await getPlatformPageContext();
@@ -15,11 +17,12 @@ export default async function RealEstateOverviewPage() {
     );
   }
 
-  const stats = await getReDashboardStats(session.organisationId);
+  const [stats, selectionIds] = await Promise.all([getReDashboardStats(session.organisationId), getOrgIndustrySelectionIdsCached()]);
+  const identity = resolveSelectedIndustryIdentity("real-estate", selectionIds, "Real Estate");
 
   return (
     <>
-      <IndustryAppTitle title="Real Estate" description="Prospecting, appraisals, vendors, buyers and property pipelines for real estate teams." />
+      <IndustryAppTitle title={identity.title} eyebrow={identity.eyebrow} description="Prospecting, appraisals, vendors, buyers and property pipelines for real estate teams." />
       <main className="dg-page-main space-y-6">
       <p className="text-sm text-slate-400">
         {session.organisationName} · Vendor & buyer pipelines · Platform Core / Neon · Beta
