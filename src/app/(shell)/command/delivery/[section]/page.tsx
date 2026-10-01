@@ -42,7 +42,7 @@ function HonestHub({ title, description, links }: { title: string; description: 
       <ul className="space-y-2 text-sm">
         {links.map((l) => <li key={l.href}><Link href={l.href} className="text-sky-400 hover:underline">{l.label} →</Link></li>)}
       </ul>
-      <p className="text-xs text-slate-500">No separate {title.toLowerCase()} store yet — work lives on implementation projects and Platform Docs.</p>
+      <p className="text-xs text-slate-500">Use the linked operational workspaces and Platform Docs for the current source of truth.</p>
     </div>
   );
 }
