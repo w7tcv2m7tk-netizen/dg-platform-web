@@ -241,7 +241,6 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
     ],
   },
   prospecting: {
-    // Sidebar short name; product brand remains Prospecting & Opportunity Engine™ on-page.
     name: "Prospecting",
     routes: [
       {
@@ -250,12 +249,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
         matchAlso: ["/command/growth-engine"],
       },
       { path: "/apps/prospecting/today", label: "Today", matchAlso: ["/command/sales-week"] },
-      { path: "/apps/prospecting/discovery", label: "Business Discovery" },
-      {
-        path: "/apps/prospecting/scores",
-        label: "Opportunities",
-        matchAlso: ["/command/growth-engine/audits"],
-      },
+      { path: "/apps/prospecting/discovery", label: "Discover" },
       { path: "/apps/prospecting/prospects", label: "Prospects" },
       {
         path: "/apps/prospecting/pipeline",
@@ -263,17 +257,8 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
         matchAlso: ["/command/growth-engine/pipeline"],
       },
       {
-        path: "/apps/prospecting/reports",
-        label: "Reports",
-        matchAlso: [
-          "/command/growth-engine/reports",
-          "/command/growth-engine/proposals",
-          "/command/growth-engine/conversions",
-        ],
-      },
-      {
         path: "/apps/prospecting/activity",
-        label: "Follow-up",
+        label: "Activity",
         matchAlso: ["/command/growth-engine/follow-ups"],
       },
     ],
