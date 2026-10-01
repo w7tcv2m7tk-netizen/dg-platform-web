@@ -16,13 +16,14 @@ assert.match(identity, /SectionPageHeader/);
 assert.match(betaLayout, /IndustrySectionIdentity/);
 
 // Custom Industry Apps may own their layout, but must apply the shared identity directly.
-for (const mount of ["re", "accommodation"]) {
+for (const mount of ["re", "accommodation", "automotive", "creator"]) {
   const layout = read(`src/app/(shell)/apps/${mount}/layout.tsx`);
   assert.match(layout, /IndustrySectionIdentity/, `${mount} must apply the canonical Industry App identity`);
+  assert.match(layout, /resolveSelectedIndustryIdentity/, `${mount} must resolve the selected sub-industry identity`);
 }
 
 // Standard/current and future Industry Apps inherit the same identity through the shared beta layout.
-for (const mount of ["finance", "services", "commercial", "property-management", "automotive", "creator"]) {
+for (const mount of ["finance", "services", "commercial", "property-management"]) {
   const layout = read(`src/app/(shell)/apps/${mount}/layout.tsx`);
   assert.match(layout, /IndustryBetaAppLayout/, `${mount} must inherit the canonical Industry App layout contract`);
 }
