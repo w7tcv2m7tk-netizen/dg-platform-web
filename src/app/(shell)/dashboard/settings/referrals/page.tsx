@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import {
   attributeOrganisationReferral,
   getReferAndEarnDashboard,
@@ -31,14 +32,7 @@ export default async function SettingsReferralProgrammePage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">Programme</p>
-        <h1 className="mt-1 text-2xl font-bold text-white">Referral Programme</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Share DigitalGate and earn platform credit when eligible referrals subscribe. Manage
-          your referral link, activity and programme details here.
-        </p>
-      </header>
+      <SectionPageHeader section="Settings" title="Referral Programme" />
       <main className="dg-page-main space-y-6">
         {!session || !dash ? (
           <div className="dg-card">
