@@ -45,6 +45,7 @@ export function BusinessDiscoverySearch({
   initialBusinessType = "Agency",
   initialRadiusKm = 10,
   initialQ = "",
+  prospectBookHref = "/apps/prospecting/discovery#prospect-book",
 }: {
   initialProviders?: ProviderStatus[];
   initialIndustry?: string;
@@ -52,6 +53,7 @@ export function BusinessDiscoverySearch({
   initialBusinessType?: string;
   initialRadiusKm?: (typeof RADIUS_OPTIONS)[number];
   initialQ?: string;
+  prospectBookHref?: string;
 }) {
   const router = useRouter();
   const [industry, setIndustry] = useState(initialIndustry);
