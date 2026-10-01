@@ -6,6 +6,7 @@ import {
 } from "@dg/platform-core";
 
 import { StudioImagesPanel } from "@/components/websites/StudioImagesPanel";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
@@ -35,12 +36,7 @@ export default async function ImagesLibraryPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Images</h1>
-        <p className="text-sm text-slate-400">
-          Manage website images for this business and copy image links for use in Studio.
-        </p>
-      </header>
+      <SectionPageHeader section="Design Studio" title="Images" description="Manage website images and reusable media for this business." />
       <main className="dg-page-main space-y-6">
         {!allowed ? (
           <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 p-5 max-w-xl">
