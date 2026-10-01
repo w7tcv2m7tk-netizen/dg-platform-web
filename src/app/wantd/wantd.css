@@ -22,8 +22,8 @@
   --wantd-cta-hover: var(--wantd-red-hover);
   --wantd-premium: var(--wantd-gold);
 
-  --font-wantd-display: var(--font-wantd-display), "Syne", system-ui, sans-serif;
-  --font-wantd-sans: var(--font-wantd-sans), "Outfit", system-ui, sans-serif;
+  --font-wantd-display: "Avenir Next", "Trebuchet MS", system-ui, sans-serif;
+  --font-wantd-sans: "Avenir Next", Arial, system-ui, sans-serif;
 
   background: var(--wantd-bg);
   color: var(--wantd-ink);

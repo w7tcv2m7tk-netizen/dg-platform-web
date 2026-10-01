@@ -8,19 +8,6 @@ import { getPublicSiteBrand } from "@dg/platform-core";
 
 import "./wantd.css";
 
-const wantdDisplay = Syne({
-  subsets: ["latin"],
-  variable: "--font-wantd-display",
-  display: "swap",
-  weight: ["700", "800"],
-});
-
-const wantdSans = Outfit({
-  subsets: ["latin"],
-  variable: "--font-wantd-sans",
-  display: "swap",
-});
-
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getPublicSiteBrand("wantd");
   return {
@@ -38,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function WantdLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className={`wantd-root wantd-theme-light ${wantdDisplay.variable} ${wantdSans.variable}`}
+      className="wantd-root wantd-theme-light"
     >
       <header className="wantd-header">
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 py-6">
