@@ -8,6 +8,7 @@ import {
 } from "@dg/platform-core";
 
 import { ResolutionAction } from "@/components/ui/ResolutionAction";
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 
@@ -32,12 +33,7 @@ export default async function HostingStatusPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Hosting</h1>
-        <p className="text-sm text-slate-400">
-          Website hosting · custom domains · DNS · automatic SSL
-        </p>
-      </header>
+      <AppPageHeader family="Infrastructure" title="Hosting" description={<>Website hosting · custom domains · DNS · automatic SSL</>} />
       <main className="dg-page-main space-y-6">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl">
           <Stat label="Published sites" value={String(published.length)} />
