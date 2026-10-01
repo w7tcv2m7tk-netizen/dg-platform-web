@@ -15,6 +15,7 @@ import {
   getWpHealthSite,
   listWpHealthSites,
 } from "@/lib/dg-api";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 import { canAccessWebsiteStudio } from "@/lib/website-studio-access";
 import {
@@ -87,15 +88,7 @@ export default async function WebsiteHealthPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Health Centre</h1>
-        <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} ·{" "}
-          {showWp
-            ? "Legacy WordPress migration connector health"
-            : "Website checklist — publishing, domains, DNS, SSL, forms and SEO"}
-        </p>
-      </header>
+      <SectionPageHeader section="Design Studio" title="Health Centre" description="Website publishing, domains, DNS, SSL, forms and SEO health." />
       <main className="dg-page-main space-y-8">
         {showWp ? (
           <p className="text-sm text-slate-500">
