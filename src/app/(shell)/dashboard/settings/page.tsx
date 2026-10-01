@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getOrganisationBusinessProfile } from "@dg/platform-core";
 
 import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { BusinessProfileCard } from "@/components/platform/BusinessProfileCard";
 import { getOrgEnabledAppIds, getPlatformPageContext } from "@/lib/org-apps";
 
@@ -15,12 +16,7 @@ export default async function PlatformSettingsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-sm text-slate-400">
-          Connected services, billing, referrals and account preferences
-        </p>
-      </header>
+      <SectionPageHeader section="Configuration" title="Settings" description="Connected services, billing, referrals and account preferences" />
       <main className="dg-page-main space-y-6">
         <BusinessProfileCard
           profile={profile}
