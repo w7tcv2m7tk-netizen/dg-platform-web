@@ -50,19 +50,19 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
   );
   const pipelineValue = formatAudOrDash(
     pulse.pipelineValueCents,
-    "Partner-attributed pipeline value — scaffold until Sales linkage",
+    "Available when partner-attributed opportunities are linked",
   );
   const serviceRevenue = formatAudOrDash(
     deliveryPulse.serviceRevenueCents,
-    "Professional Services — scaffold until billing split",
+    "Available when service billing attribution is active",
   );
   const supportRevenue = formatAudOrDash(
     deliveryPulse.supportRevenueCents,
-    "Support & Success — scaffold until attribution",
+    "Available when support billing attribution is active",
   );
   const partnerShare = formatAudOrDash(
     deliveryPulse.partnerShareCents,
-    "Partner share of qualifying service revenue — scaffold",
+    "Available when partner revenue attribution is active",
   );
   const totalServiceCents =
     deliveryPulse.serviceRevenueCents != null && deliveryPulse.supportRevenueCents != null
@@ -76,16 +76,13 @@ export function PartnerProgrammeDashboard({ data }: { data: PartnerDashboardWork
   return (
     <>
       <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white sm:text-3xl">Partner Network</h1>
-        <p className="mt-3 max-w-2xl text-base text-slate-200">
+        <p className="dg-page-eyebrow">Operator</p>
+        <h1 className="dg-app-page-title">Partner Network</h1>
+        <p className="dg-page-description">
           Operating layer for Acquisition Partners, Delivery Partners, ecosystem relationships,
           referrals and commissions.
         </p>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Acquisition Partners bring customers in. Delivery Partners implement and onboard them.
-          Founding 10 is a customer programme, not a partner division. Standard direct referrals and partner referrals are tracked separately.
-        </p>
-        <p className="mt-2 max-w-2xl text-xs text-slate-500">{PARTNER_COMMERCIAL_ENGINE}</p>
+
       </header>
 
       <main className="dg-page-main space-y-8">
