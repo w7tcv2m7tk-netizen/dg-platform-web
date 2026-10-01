@@ -53,6 +53,16 @@ export type PlatformCapabilityCatalogItem = {
 /** Mirrors digitalgate.com.au/pricing — Platform section */
 export const PLATFORM_TIER_CATALOG: PlatformTierCatalogItem[] = [
   {
+    key: "starter",
+    label: "Starter",
+    icon: "🚀",
+    price: "$99",
+    period: "/month",
+    users: "1 User · 1 Business",
+    outcome: "Platform Core essentials for one operator.",
+    features: ["Platform Core essentials", "AI Assistant", "Standard support"],
+  },
+  {
     key: "professional",
     label: "Growth",
     icon: "📈",
@@ -239,8 +249,17 @@ export const COMMUNICATIONS_ADDON_CATALOG: CommunicationsAddonCatalogItem[] = [
   },
 ];
 
-/** Mirrors pricing page — Platform Capabilities (Core · Platform: Commerce, Websites, Infrastructure) */
+/** Platform Capabilities — canonical Core operating capabilities. */
 export const PLATFORM_CAPABILITY_CATALOG: PlatformCapabilityCatalogItem[] = [
+  {
+    appId: "crm",
+    label: "CRM",
+    icon: "👥",
+    price: "Included",
+    badge: "Core",
+    description: "Contacts, companies, pipelines, activities and customer history",
+    status: "included",
+  },
   {
     appId: "commerce",
     label: "Commerce",
