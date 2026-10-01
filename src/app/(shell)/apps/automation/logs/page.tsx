@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GrowthSubPageHeader } from "@/components/growth/GrowthSubPageHeader";
 import { getAppSetupHref, listOrganisationActivities } from "@dg/platform-core";
 
 import { ResolutionAction } from "@/components/ui/ResolutionAction";
@@ -29,23 +30,11 @@ export default async function AutomationLogsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/automation" className="text-sm text-blue-400 hover:underline">
-          ← Automation
-        </Link>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold text-white">Automation run history</h1>
-          <Link
-            href={getAppSetupHref("automation")}
-            className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-0.5 text-xs font-medium text-blue-300 hover:bg-blue-500/15"
-          >
-            Setup guide
-          </Link>
-        </div>
-        <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · recent automated activity
-        </p>
-      </header>
+      <GrowthSubPageHeader
+        title="Automation run history"
+        description={<>{session?.organisationName ?? "DigitalGate"} · recent automated activity</>}
+        actions={<Link href={getAppSetupHref("automation")} className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-0.5 text-xs font-medium text-blue-300 hover:bg-blue-500/15">Setup guide</Link>}
+      />
       <main className="dg-page-main">
         <div className="dg-card">
           <h2 className="font-semibold text-white">Recent runs</h2>
