@@ -18,7 +18,8 @@ assert.match(sidebar, /"dg-support": "Support Centre"/);
 
 assert.match(supportPage, /<h1[^>]*>Support<\/h1>/);
 assert.doesNotMatch(supportPage, /<h1[^>]*>Support Centre<\/h1>/);
-assert.match(supportPage, /DigitalGate Support/);
+assert.match(supportPage, /<p[^>]*>Support<\/p>/);
+assert.match(supportPage, /<h1[^>]*>Support<\/h1>/);
 assert.match(supportPage, />Ask Aida</);
 assert.match(supportPage, />Knowledge Base</);
 assert.match(supportPage, />Get help from our team</);
@@ -28,7 +29,7 @@ assert.match(supportPage, /surfacePath="\/support"/);
 assert.match(helpPage, /type="search"/);
 assert.match(helpPage, /Search setup, billing, CRM, connections, apps/);
 assert.match(helpPage, /No matching help articles/);
-assert.match(operatorInbox, /DigitalGate Support Centre/);
+assert.match(operatorInbox, /Support Centre/);
 assert.match(operatorInbox, /Customer Support Conversations/);
 assert.match(operatorInbox, /Customer business/);
 assert.match(operatorInbox, /All customer businesses/);
