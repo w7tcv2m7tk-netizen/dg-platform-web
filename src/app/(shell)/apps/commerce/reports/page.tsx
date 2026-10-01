@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
@@ -15,11 +16,7 @@ export default async function CommerceReportsIndexPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/commerce" className="text-sm text-blue-400 hover:underline">← Commerce</Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Reports</h1>
-        <p className="text-sm text-slate-400">Financial summaries from DigitalGate invoices & payments (AU-first).</p>
-      </header>
+      <SectionPageHeader section="Commerce" title="Reports" />
       <main className="dg-page-main space-y-4">
         <p className="max-w-2xl text-sm text-slate-400">These reports use real Commerce data where available. Balance Sheet is scaffolded from AR and settled payments — DigitalGate is not a general ledger.</p>
         <ul className="divide-y divide-slate-800 border border-slate-800 rounded-xl overflow-hidden">
