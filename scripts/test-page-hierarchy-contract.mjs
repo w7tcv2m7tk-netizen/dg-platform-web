@@ -8,7 +8,9 @@ const identity = read("src/components/industry/IndustrySectionIdentity.tsx");
 const betaLayout = read("src/components/industry/IndustryBetaAppLayout.tsx");
 
 assert.match(industryTitle, /AppPageHeader/);
-assert.match(industryTitle, /family="Industry App"/);
+assert.match(industryTitle, /family=\{eyebrow \?\? "Industry App"\}/);
+assert.match(scaffold, /resolveSelectedIndustryIdentity/);
+assert.match(betaLayout, /resolveSelectedIndustryIdentity/);
 assert.match(scaffold, /SectionPageHeader/);
 assert.match(identity, /SectionPageHeader/);
 assert.match(betaLayout, /IndustrySectionIdentity/);
