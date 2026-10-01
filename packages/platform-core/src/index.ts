@@ -151,3 +151,5 @@ export * from "./roadmap";
 export * from "./app-guides";
 export * from "./help";
 export * from "./time/display";
+
+export * from "./apps/industry-taxonomy";
