@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import {
   getOrganisationById,
   listConsultationAgenda,
@@ -128,16 +129,7 @@ export default async function CrmConsultationsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/crm/opportunities" className="text-sm text-blue-400 hover:underline">
-          ← CRM
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Consultations</h1>
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · {agenda.upcoming.length} upcoming
-          {total ? ` · ${total} booked` : ""} · times in {displayTimeZone}
-        </p>
-      </header>
+      <SectionPageHeader section="CRM" title="Consultations" />
       <main className="dg-page-main space-y-6">
         {!canWrite ? (
           <div className="dg-card text-sm text-slate-400">You have read-only access to CRM opportunities and consultations.</div>
