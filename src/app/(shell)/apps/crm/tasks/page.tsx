@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import {
   getContactsByIds,
   getOrganisationById,
@@ -198,10 +199,7 @@ export default async function CrmTasksPage() {
   if (!session) {
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Tasks</h1>
-          <p className="text-sm text-slate-400">CRM Core App</p>
-        </header>
+        <SectionPageHeader section="CRM" title="Tasks" />
         <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
             <p className="text-slate-300">Sign in to view tasks.</p>
@@ -247,17 +245,7 @@ export default async function CrmTasksPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/crm/contacts" className="text-sm text-blue-400 hover:underline">
-          ← CRM
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Tasks</h1>
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · {openResult.meta.total} open ·{" "}
-          {completedResult.meta.total} completed
-        </p>
-        <p className="mt-1 text-xs text-slate-500">Times shown in {displayTimeZone}.</p>
-      </header>
+      <SectionPageHeader section="CRM" title="Tasks" />
       <main className="dg-page-main space-y-8">
         {canWrite ? (
           <section className="dg-card">
