@@ -5,6 +5,7 @@ import {
 } from "@dg/platform-core";
 
 import { QueueReviewRequestButton } from "@/components/reviews/QueueReviewRequestButton";
+import { GrowthSubPageHeader } from "@/components/growth/GrowthSubPageHeader";
 import { ReviewsEmptyState } from "@/components/reviews/ReviewsEmptyState";
 import { loadReviewsSessionAndFeed } from "@/lib/reviews-feed";
 
@@ -43,13 +44,7 @@ export default async function ReviewRequestsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Review follow-ups</h1>
-        <p className="text-sm text-slate-400">
-          {session?.organisationName ?? "DigitalGate"} · turn completed work into timely review
-          follow-up tasks
-        </p>
-      </header>
+      <GrowthSubPageHeader title="Review follow-ups" description={<>Turn completed work into timely review follow-up tasks for {session?.organisationName ?? "this business"}.</>} />
       <main className="dg-page-main space-y-6">
         {!session ? (
           <div className="dg-card">
