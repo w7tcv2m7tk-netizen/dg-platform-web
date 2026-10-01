@@ -1,4 +1,5 @@
 export function OperatorCategoryHeader({
+  eyebrow = "Operator",
   title,
   question,
 }: {
@@ -10,7 +11,7 @@ export function OperatorCategoryHeader({
 }) {
   return (
     <div>
-      <p className="dg-page-eyebrow">Operator</p>
+      <p className="dg-page-eyebrow">{eyebrow}</p>
       <h1 className="dg-app-page-title">{title}</h1>
       {question ? <p className="dg-page-description">{question}</p> : null}
     </div>
