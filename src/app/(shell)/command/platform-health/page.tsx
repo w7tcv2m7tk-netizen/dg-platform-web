@@ -1,6 +1,7 @@
 import { getOperatorPlatformAlertsCentre } from "@dg/platform-core";
 
 import { OperatorDataUnavailable } from "@/components/command/OperatorDataUnavailable";
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import { PlatformAlertsDashboard } from "@/components/command/PlatformAlertsDashboard";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
@@ -12,14 +13,7 @@ export default async function CommandPlatformAlertsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Platform Alerts</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Platform health and issues requiring DigitalGate staff attention — investigate exceptions
-          before deciding with AI Advisor. Distinct from customer business alerts inside each
-          organisation.
-        </p>
-      </header>
+      <AppPageHeader family="Operator" title="Platform Alerts" description="Platform health and issues requiring DigitalGate staff attention — investigate exceptions before deciding with AI Advisor. Distinct from customer business alerts inside each organisation." />
       <main className="dg-page-main space-y-8">
         {!data ? (
           <OperatorDataUnavailable label="platform alert" showHealthLink={false} />
