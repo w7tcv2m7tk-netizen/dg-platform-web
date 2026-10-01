@@ -213,7 +213,7 @@ export function AppsPlanCatalog({ industryApps }: { industryApps: ReactNode }) {
       </section>
 
       <section id="platform-apps" className="scroll-mt-24">
-        <SectionHeader label="⬡ 2 · Platform Capabilities" title="Commerce, Documents, Communications, Design Studio & Infrastructure" description="Core operating capabilities connected to your business." />
+        <SectionHeader label="⬡ 2 · Platform Capabilities" title="CRM, Commerce, Documents, Communications, Design Studio & Infrastructure" description="Core operating capabilities connected to your business." />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PLATFORM_CAPABILITY_CATALOG.map((item) => (
             <CatalogAppCard key={item.appId} appId={item.appId} icon={item.icon} label={item.label} price={item.price} description={item.description} status={item.status} enabled={enabledIds.includes(item.appId)} primaryHref={appHref(item.appId)} />
