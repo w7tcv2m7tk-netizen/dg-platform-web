@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { getOrganisationMrr } from "@dg/platform-core";
 
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
@@ -15,11 +16,7 @@ export default async function CommerceSubscriptionsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/commerce" className="text-sm text-blue-400 hover:underline">← Commerce</Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Subscriptions &amp; MRR</h1>
-        <p className="text-sm text-slate-400">Customer recurring revenue mirrored from payment providers (read-only for now)</p>
-      </header>
+      <SectionPageHeader section="Commerce" title="Subscriptions" />
       <main className="dg-page-main space-y-6">
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-slate-300">
           <p className="font-medium text-amber-200">Honest scope</p>
