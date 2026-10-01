@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AppPageHeader } from "@/components/ui/AppPageHeader";
 import {
   getCommerceFinancialSnapshot,
   listInvoices,
@@ -25,10 +26,7 @@ export default async function CommerceOverviewPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Commerce</h1>
-        <p className="text-sm text-slate-400">{session.organisationName} · payments, quotes & invoices</p>
-      </header>
+      <AppPageHeader family="Core" title="Commerce" description={<>{session.organisationName} · payments, quotes &amp; invoices</>} />
       <main className="dg-page-main space-y-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
