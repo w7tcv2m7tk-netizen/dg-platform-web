@@ -168,11 +168,9 @@ export default async function SupportPage() {
   return (
     <>
       <header className="dg-page-header">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">DigitalGate Support</p>
-        <h1 className="dg-page-title mt-1 text-white">Support</h1>
-        <p className="mt-1 max-w-3xl text-sm text-slate-400">
-          Get an answer quickly, find step-by-step guidance, or continue with the DigitalGate team.
-        </p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">Support</p>
+        <h1 className="dg-app-page-title">Support</h1>
+        <p className="dg-page-description">Get an answer quickly, find step-by-step guidance, or continue with the DigitalGate team.</p>
       </header>
 
       <main className="dg-page-main space-y-8">
