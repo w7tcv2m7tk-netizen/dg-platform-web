@@ -40,10 +40,16 @@ export default async function ProspectingOverviewPage() {
   const qualified = stageCount(byStage, ["email_opened", "report_viewed", "follow_up_due", "meeting_booked", "proposal_sent"]);
   const converted = byStage.won ?? 0;
   const activeOpportunities = Math.max(0, (summary?.totalProspects ?? 0) - converted - (byStage.lost ?? 0));
-  const researching = prospects.filter((p) => p.stage === "prospect").length;
+  const researching = stageCount(byStage, ["prospect", "audit_created"]);
   const followUps = byStage.follow_up_due ?? 0;
   const consultations = byStage.meeting_booked ?? 0;
-  const ready = briefing?.recommendedCount ?? 0;
+  const ready =
+    briefing?.rows.filter(
+      (row) =>
+        row.stage !== "prospect" &&
+        row.stage !== "audit_created" &&
+        Boolean(row.contactPhone || row.contactEmail),
+    ).length ?? 0;
   const next = briefing?.rows?.[0] ?? null;
 
   return (
@@ -105,7 +111,7 @@ export default async function ProspectingOverviewPage() {
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             <Metric label="Prospects" value={summary?.totalProspects ?? 0} />
-            <Metric label="Engaged · 7d" value={summary?.engagementsThisWeek ?? 0} />
+            <Metric label="Activity · 7d" value={summary?.engagementsThisWeek ?? 0} />
             <Metric label="Qualified" value={qualified} />
             <Metric label="Opportunities" value={activeOpportunities} />
             <Metric label="Meetings" value={consultations} />
