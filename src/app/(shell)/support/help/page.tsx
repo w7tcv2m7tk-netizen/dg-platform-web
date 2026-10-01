@@ -37,11 +37,9 @@ export default function SupportHelpIndexPage() {
   return (
     <>
       <header className="dg-page-header">
-        <Link href="/support" className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">
-          ← Support
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Knowledge Base</h1>
-        <p className="mt-1 max-w-2xl text-sm text-slate-400">
+        <p className="dg-page-eyebrow">Support Centre</p>
+        <h1 className="dg-app-page-title">Knowledge Base</h1>
+        <p className="dg-page-description">
           Practical guidance for setting up DigitalGate, using your apps and resolving common questions. Search by topic or workflow.
         </p>
       </header>
