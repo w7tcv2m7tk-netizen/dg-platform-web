@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { PartnerDashboardWorkspace } from "@dg/platform-core";
 import { PartnerInvitationCancelButton } from "@/components/partner/PartnerInvitationCancelButton";
 import {
-  PARTNER_COMMERCIAL_ENGINE,
   PARTNER_OS_OWNERSHIP,
 } from "@dg/platform-core";
 
