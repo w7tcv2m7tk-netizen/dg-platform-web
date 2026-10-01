@@ -78,6 +78,12 @@ export const PLATFORM_TIERS: {
   tagline: string;
 }[] = [
   {
+    key: "starter",
+    label: "Starter",
+    price: "$99/mo",
+    tagline: "Platform Core essentials for one operator",
+  },
+  {
     key: "professional",
     label: "Growth",
     price: "$249/mo",
