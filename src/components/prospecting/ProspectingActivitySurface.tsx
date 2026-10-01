@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
 import type {
   ProspectActivityFeedItem,
   ProspectActivityKind,
@@ -110,15 +111,10 @@ export function ProspectingActivitySurface({
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href="/apps/prospecting" className="text-sm text-sky-400 hover:underline">
-          ← Growth Engine™
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Activity</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Calls, messages, notes, tasks and follow-ups across your prospect pipeline.
-        </p>
-      </header>
+      <ProspectingPageHeader
+        title="Activity"
+        description="Calls, messages, notes, tasks and follow-ups across your prospect pipeline."
+      />
 
       <main className="dg-page-main space-y-8">
         {/* Architecture rule */}
