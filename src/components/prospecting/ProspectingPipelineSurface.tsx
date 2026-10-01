@@ -7,6 +7,8 @@ import {
   workspaceStageForProspectStage,
 } from "@dg/platform-core";
 
+import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
+
 import {
   ProspectArchiveControl,
   ProspectAuditButton,
@@ -61,8 +63,6 @@ export async function ProspectingPipelineSurface({
   const scoresHref = "/apps/prospecting/scores";
   const pipelinePath =
     variant === "apps" ? "/apps/prospecting/pipeline" : "/command/growth-engine/pipeline";
-  const hubHref = variant === "apps" ? "/apps/prospecting" : "/command/growth-engine";
-  const hubLabel = "Growth Engine™";
 
   const prospects = process.env.DATABASE_URL
     ? await listGrowthProspects({
@@ -138,14 +138,11 @@ export async function ProspectingPipelineSurface({
 
   return (
     <>
-      <header className="dg-page-header">
-        <Link href={hubHref} className="text-sm text-sky-400 hover:underline">
-          ← {hubLabel}
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Prospect Pipeline</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          Track prospects from discovery through qualification, contact, consultation and conversion.
-        </p>
+      <ProspectingPageHeader
+        title="Prospect Pipeline"
+        description="Track prospects from discovery through qualification, contact, consultation and conversion."
+      />
+      <div className="px-4 pt-3 sm:px-6 lg:px-8">
         {!canWrite ? (
           <p className="mt-2 text-xs text-slate-500">Read-only access — pipeline changes are disabled.</p>
         ) : null}
