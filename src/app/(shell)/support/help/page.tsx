@@ -44,6 +44,7 @@ export default function SupportHelpIndexPage() {
         </p>
       </header>
       <main className="dg-page-main space-y-7">
+        <Link href="/support" className="inline-flex text-sm font-medium text-sky-400 hover:underline">← Support Centre</Link>
         <section className="max-w-3xl">
           <label htmlFor="help-search" className="sr-only">Search the Knowledge Base</label>
           <div className="rounded-xl border border-slate-700 bg-slate-950/70 p-2 focus-within:border-sky-500/60">
