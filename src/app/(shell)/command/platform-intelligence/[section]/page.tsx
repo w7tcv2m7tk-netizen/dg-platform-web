@@ -154,10 +154,9 @@ export default async function PlatformIntelligenceSectionPage({
       "Automation health",
       "Platform automation run health — when telemetry exists.",
       <div className="max-w-2xl rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5 text-sm text-slate-300">
-        <p className="font-medium text-white">Not instrumented yet</p>
+        <p className="font-medium text-white">Telemetry not yet available</p>
         <p className="mt-2 text-slate-400">
-          There is no platform-wide automation health aggregate today. Feature flags remain under
-          Product — they are not duplicated here.
+          Platform-wide automation health will appear here when telemetry is available. Feature controls remain in Product.
         </p>
       </div>,
     );
@@ -170,7 +169,7 @@ export default async function PlatformIntelligenceSectionPage({
       <div className="max-w-2xl rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5 text-sm text-slate-300">
         <p className="font-medium text-white">Not instrumented yet</p>
         <p className="mt-2 text-slate-400">
-          There is no platform-wide AI usage aggregate today. Do not invent counters.
+          Platform-wide AI usage and cost will appear here when telemetry is available.
         </p>
       </div>,
     );
@@ -221,8 +220,7 @@ export default async function PlatformIntelligenceSectionPage({
       <div className="max-w-2xl rounded-xl border border-slate-700/80 bg-slate-950/50 px-5 py-5 text-sm text-slate-300">
         <p className="font-medium text-white">Use Platform health + service status</p>
         <p className="mt-2 text-slate-400">
-          Dedicated diagnostics tooling lives under those tabs. Command Centre Alerts remains the
-          priority triage surface — not duplicated here.
+          Use Platform Health and Service Status for the current operational signals. Command Centre remains the priority triage surface.
         </p>
       </div>,
     );
