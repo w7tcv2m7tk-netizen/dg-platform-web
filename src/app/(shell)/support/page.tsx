@@ -50,7 +50,7 @@ export default async function SupportPage() {
       <>
         <header className="dg-page-header">
           <OperatorCategoryHeader
-            eyebrow="DigitalGate Support Centre"
+            eyebrow="Support Centre"
             title="Support Overview"
             question="See active customer conversations, human escalations and support knowledge in one operational view."
             backHref="/command"
