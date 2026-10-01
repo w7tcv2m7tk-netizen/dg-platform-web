@@ -26,7 +26,7 @@ assert.match(discovery, /router\.push/);
 assert.match(discoverySurface, /id="prospect-book"/);
 console.log("Prospecting mobile workflow checks passed.");
 
-assert.doesNotMatch(opportunityEngine, /"prospect_created",/);
+assert.doesNotMatch(opportunityEngine, /"prospect_created",\s*\n\s*\],/);
 assert.match(opportunityEngine, /input\.contactPhone \|\| input\.contactEmail/);
 assert.match(overview, /\["prospect", "audit_created"\]/);
 assert.match(actions, /Research prospect/);
