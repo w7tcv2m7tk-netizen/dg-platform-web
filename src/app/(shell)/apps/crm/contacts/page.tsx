@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import {
   buildAccessContext,
   hasPermission,
@@ -18,19 +19,7 @@ export default async function CrmContactsPage() {
   if (!session) {
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Contacts</h1>
-          <p className="mt-1 text-sm text-slate-400">
-            CRM ·{" "}
-            <Link href="/apps/communications" className="text-sky-400 hover:underline">
-              Communications
-            </Link>
-            {" · "}
-            <Link href="/apps/crm/timeline" className="text-sky-400 hover:underline">
-              Timeline
-            </Link>
-          </p>
-        </header>
+        <SectionPageHeader section="CRM" title="Contacts" />
         <main className="dg-page-main">
           <div className="dg-card max-w-2xl">
             <p className="text-slate-300">
@@ -81,21 +70,7 @@ export default async function CrmContactsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Contacts</h1>
-        <p className="text-sm text-slate-400">
-          {session.organisationName} · {meta.total} contact
-          {meta.total === 1 ? "" : "s"} in Platform
-          {" · "}
-          <Link href="/apps/communications" className="text-sky-400 hover:underline">
-            Communications
-          </Link>
-          {" · "}
-          <Link href="/apps/crm/timeline" className="text-sky-400 hover:underline">
-            Timeline
-          </Link>
-        </p>
-      </header>
+      <SectionPageHeader section="CRM" title="Contacts" />
       <main className="dg-page-main">
         {canImportContacts || canExportContacts ? (
           <div className="mb-6">
