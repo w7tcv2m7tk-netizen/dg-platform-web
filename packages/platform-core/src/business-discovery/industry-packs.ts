@@ -159,11 +159,35 @@ export function buildDiscoveryTextQuery(input: {
   }
 
   const pack = resolveIndustryPack(input.industry, input.businessType);
-  const type =
-    input.businessType?.trim() ||
-    input.industry?.trim() ||
-    pack.searchTerms[0] ||
-    "business";
+  const industry = input.industry?.trim();
+  const businessType = input.businessType?.trim();
+
+  // Generic business types qualify the selected industry rather than replacing it.
+  // e.g. Real Estate + Agency => "Real Estate Agency", not every kind of agency.
+  const genericTypes = new Set([
+    "agency",
+    "business",
+    "company",
+    "practice",
+    "firm",
+    "service",
+    "services",
+  ]);
+  const typeIsGeneric = Boolean(
+    businessType && genericTypes.has(businessType.toLowerCase()),
+  );
+
+  let type: string;
+  if (industry && businessType && typeIsGeneric) {
+    type = `${industry} ${businessType}`;
+  } else if (businessType) {
+    type = businessType;
+  } else if (industry) {
+    type = industry;
+  } else {
+    type = pack.searchTerms[0] || "business";
+  }
+
   const location = input.location?.trim();
   return location ? `${type} in ${location}` : type;
 }
