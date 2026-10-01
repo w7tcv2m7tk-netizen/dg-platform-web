@@ -39,7 +39,7 @@ export default async function ProspectingOverviewPage() {
   const qualified = stageCount(byStage, ["email_opened", "report_viewed", "follow_up_due", "meeting_booked", "proposal_sent"]);
   const converted = byStage.won ?? 0;
   const activeOpportunities = Math.max(0, (summary?.totalProspects ?? 0) - converted - (byStage.lost ?? 0));
-  const researching = prospects.filter((p) => p.stage === "discovered" || p.stage === "researching").length;
+  const researching = prospects.filter((p) => p.stage === "prospect").length;
   const followUps = byStage.follow_up_due ?? 0;
   const consultations = byStage.meeting_booked ?? 0;
   const ready = briefing?.recommendedCount ?? 0;
