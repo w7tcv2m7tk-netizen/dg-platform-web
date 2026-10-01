@@ -3,6 +3,7 @@ import { AppPageHeader } from "@/components/ui/AppPageHeader";
 export function IndustryAppTitle({
   title,
   description,
+  eyebrow,
 }: {
   title: string;
   description: string;
