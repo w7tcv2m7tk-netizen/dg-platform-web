@@ -7,6 +7,9 @@ export type DecisionMakerCandidate = {
   phone: string | null;
   sourceUrl: string;
   evidence: string;
+  imageUrl: string | null;
+  confidence: "high" | "medium";
+  rank: number;
 };
 
 function cleanText(value: string) {
@@ -43,27 +46,94 @@ function absoluteUrl(href: string, base: string) {
     return ["http:", "https:"].includes(url.protocol) ? url.toString() : null;
   } catch { return null; }
 }
-function extractCandidate(html: string, sourceUrl: string): DecisionMakerCandidate | null {
-  const email = html.match(/mailto:([^"'?#\s>]+)/i)?.[1]?.trim() ?? null;
-  const phoneRaw = html.match(/tel:([^"'?#\s>]+)/i)?.[1] ?? null;
-  const phone = phoneRaw ? decodeURIComponent(phoneRaw).replace(/\s+/g, " ").trim() : null;
-  const text = cleanText(html).slice(0, 80_000);
-  const leadership = text.match(/\b(?:principal|director|owner|founder|managing director|licensee|agency principal)\b.{0,100}/i)?.[0] ?? null;
-  const personJson = validPersonName(html.match(/"@type"\s*:\s*"Person"[\s\S]{0,1500}?"name"\s*:\s*"([^"]+)"/i)?.[1] ?? null);
-  const roleJson = html.match(/"@type"\s*:\s*"Person"[\s\S]{0,1500}?"jobTitle"\s*:\s*"([^"]+)"/i)?.[1]?.trim() ?? null;
-  // A generic phone/email is not a decision-maker candidate. Require a named
-  // person or explicit leadership evidence before surfacing anything.
-  if (!personJson && !leadership) return null;
-  return {
-    name: personJson,
-    role: roleJson,
-    email: personJson ? email : null,
-    phone: personJson ? phone : null,
-    sourceUrl,
-    evidence: leadership || "Named Person structured data found on the business website.",
-  };
+const LEADERSHIP_ROLES = [
+  "principal", "agency principal", "director", "managing director", "owner",
+  "founder", "co-founder", "licensee", "licensee in charge", "chief executive", "ceo",
+];
+function leadershipRank(role: string | null) {
+  if (!role) return 0;
+  const value = role.toLowerCase();
+  if (/\b(?:principal|agency principal|owner|founder|co-founder|managing director|licensee(?: in charge)?|chief executive|ceo)\b/.test(value)) return 100;
+  if (/\bdirector\b/.test(value)) return 90;
+  if (/\b(?:general manager|head of|partner)\b/.test(value)) return 70;
+  return 0;
 }
+function decodeEntities(value: string) {
+  return value.replace(/&amp;/gi, "&").replace(/&#64;|&commat;/gi, "@").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'");
+}
+function headingCandidates(html: string) {
+  return [...html.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)]
+    .map((match) => ({ index: match.index ?? 0, value: validPersonName(cleanText(match[1] || "")) }))
+    .filter((item): item is { index: number; value: string } => Boolean(item.value));
+}
+function nearestHeading(headings: Array<{ index: number; value: string }>, index: number) {
+  return headings.filter((item) => item.index <= index).sort((a,b) => b.index-a.index)[0]?.value ?? null;
+}
+function nearestRole(text: string) {
+  const rolePattern = /\b(?:agency principal|principal|managing director|director|owner|founder|co-founder|licensee(?: in charge)?|chief executive(?: officer)?|ceo|general manager|head of [A-Za-z &-]+|partner)\b/i;
+  return text.match(rolePattern)?.[0] ?? null;
+}
+function candidateImage(html: string, index: number, sourceUrl: string) {
+  const before = html.slice(Math.max(0,index-5000), index);
+  const matches = [...before.matchAll(/<img\b[^>]*(?:src|data-src)=["']([^"']+)["'][^>]*>/gi)];
+  for (const match of matches.reverse()) {
+    const src = match[1] || "";
+    if (!src || /(?:logo|icon|sprite|placeholder|data:image)/i.test(src)) continue;
+    const absolute = absoluteUrl(decodeEntities(src), sourceUrl);
+    if (absolute) return absolute;
+  }
+  return null;
+}
+function extractCandidates(html: string, sourceUrl: string): DecisionMakerCandidate[] {
+  const headings = headingCandidates(html);
+  const candidates: DecisionMakerCandidate[] = [];
+  const emailMatches = [...html.matchAll(/href=["']mailto:([^"'?#\s>]+)["']/gi)];
 
+  for (const match of emailMatches) {
+    const index = match.index ?? 0;
+    const email = validEmail(decodeEntities(match[1] || ""));
+    if (!email) continue;
+    const windowStart = Math.max(0, index - 2500);
+    const windowEnd = Math.min(html.length, index + 1800);
+    const windowHtml = html.slice(windowStart, windowEnd);
+    const windowText = cleanText(windowHtml);
+    const name = nearestHeading(headings, index);
+    if (!name) continue;
+    const role = nearestRole(windowText);
+    const phoneMatches = [...windowHtml.matchAll(/href=["']tel:([^"'?#>]+)["']/gi)];
+    const phone = validPhone(phoneMatches[0]?.[1] ?? null);
+    const rank = leadershipRank(role);
+    if (!rank) continue;
+    candidates.push({
+      name, role, email, phone, sourceUrl,
+      evidence: `${name} is identified as ${role} on the business website with direct public contact details.`,
+      imageUrl: candidateImage(html, index, sourceUrl),
+      confidence: rank >= 90 && (phone || email) ? "high" : "medium",
+      rank: rank + (email ? 5 : 0) + (phone ? 5 : 0),
+    });
+  }
+
+  // Structured Person data remains a useful fallback when the page does not expose
+  // a conventional team card.
+  for (const block of html.matchAll(/"@type"\s*:\s*"Person"[\s\S]{0,2500}/gi)) {
+    const raw = block[0] || "";
+    const name = validPersonName(raw.match(/"name"\s*:\s*"([^"]+)"/i)?.[1] ?? null);
+    const role = raw.match(/"jobTitle"\s*:\s*"([^"]+)"/i)?.[1]?.trim() ?? null;
+    const rank = leadershipRank(role);
+    if (!name || !rank) continue;
+    const email = validEmail(raw.match(/"email"\s*:\s*"([^"]+)"/i)?.[1] ?? null);
+    const phone = validPhone(raw.match(/"telephone"\s*:\s*"([^"]+)"/i)?.[1] ?? null);
+    const imageRaw = raw.match(/"image"\s*:\s*"([^"]+)"/i)?.[1] ?? null;
+    candidates.push({
+      name, role, email, phone, sourceUrl,
+      evidence: `${name} is identified as ${role} in Person structured data on the business website.`,
+      imageUrl: imageRaw ? absoluteUrl(decodeEntities(imageRaw), sourceUrl) : null,
+      confidence: rank >= 90 ? "high" : "medium",
+      rank: rank + (email ? 5 : 0) + (phone ? 5 : 0),
+    });
+  }
+  return candidates;
+}
 export async function researchProspectDecisionMaker(websiteUrl: string | null | undefined) {
   if (!websiteUrl) return { candidates: [] as DecisionMakerCandidate[], searched: [] as string[], note: "No website is recorded." };
   const base = /^https?:\/\//i.test(websiteUrl) ? websiteUrl : `https://${websiteUrl}`;
@@ -86,8 +156,11 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
       const type = res.headers.get("content-type") || "";
       if (!type.includes("html")) continue;
       const html = (await res.text()).slice(0, 300_000);
-      const candidate = extractCandidate(html, res.url || url);
-      if (candidate && !candidates.some((x) => x.name === candidate.name && x.email === candidate.email && x.phone === candidate.phone)) candidates.push(candidate);
+      for (const candidate of extractCandidates(html, res.url || url)) {
+        const existing = candidates.find((x) => x.name?.toLowerCase() === candidate.name?.toLowerCase());
+        if (!existing) candidates.push(candidate);
+        else if (candidate.rank > existing.rank) Object.assign(existing, candidate);
+      }
       if (i === 0) {
         for (const match of html.matchAll(/href=["']([^"']+)["']/gi)) {
           const href = match[1] || "";
@@ -99,5 +172,6 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
       }
     } catch { searched.push(url); }
   }
+  candidates.sort((a,b) => b.rank-a.rank);
   return { candidates: candidates.slice(0, 5), searched, note: candidates.length ? null : "No verified decision-maker candidate was found on the public business website. Use manual research as the fallback." };
 }
