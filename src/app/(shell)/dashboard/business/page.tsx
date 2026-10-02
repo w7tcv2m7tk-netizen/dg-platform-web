@@ -7,6 +7,7 @@ import {
 } from "@dg/platform-core";
 
 import { BusinessProfileEditor } from "@/components/platform/BusinessProfileEditor";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { getOrgEnabledAppIdsCached, getPlatformPageContext } from "@/lib/org-apps";
 import { fetchOverviewConnectorProbes } from "@/lib/overview-connectors";
 
@@ -58,19 +59,7 @@ export default async function BusinessProfilePage({
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Business Profile</h1>
-        <p className="text-sm text-slate-400">
-          Your Digital Business Identity — the foundation every app and AI capability references.
-        </p>
-        <p className="mt-2 text-sm text-slate-500">
-          Launching a new business?{" "}
-          <Link href="/dashboard/business-setup" className="text-sky-400 hover:underline">
-            Start Your Business
-          </Link>{" "}
-          (Business Setup checklist).
-        </p>
-      </header>
+      <SectionPageHeader section="Business" title="Business Profile" description={<>Your Digital Business Identity — the foundation every app and AI capability references. <span className="text-slate-500">Launching a new business? <Link href="/dashboard/business-setup" className="text-sky-400 hover:underline">Start Your Business</Link> (Business Setup checklist).</span></>} />
       <main className="dg-page-main space-y-6">
         {reOnboarding ? (
           <section className="dg-card border border-sky-500/30 bg-sky-500/5">

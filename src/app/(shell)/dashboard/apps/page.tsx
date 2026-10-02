@@ -4,6 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { AppsBillingStatusCard } from "@/components/platform/AppsBillingStatusCard";
 import { PersonalisedAppsOverview } from "@/components/platform/PersonalisedAppsOverview";
 import { PostPurchaseSyncBanner } from "@/components/platform/PostPurchaseSyncBanner";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { fetchPortalMe } from "@/lib/dg-api";
 import { getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
@@ -28,14 +29,7 @@ export default async function AppsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300/80">Platform</p>\n          <h1 className="mt-1 text-2xl font-bold text-white">Your Apps</h1>
-          <p className="text-sm text-slate-400">
-            A focused workspace for this business. DigitalGate keeps unrelated industries hidden by default so the platform feels purpose-built for the way you operate.
-          </p>
-        </div>
-      </header>
+      <SectionPageHeader section="Configuration" title="Your Apps" description="A focused workspace for this business. DigitalGate keeps unrelated industries hidden by default so the platform feels purpose-built for the way you operate." />
 
       <main className="dg-page-main space-y-6">
         <Suspense fallback={null}>
