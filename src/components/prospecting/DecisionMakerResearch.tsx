@@ -15,8 +15,11 @@ export function DecisionMakerResearch({ prospectId }: { prospectId: string }) {
     setLoading(true); setError(null);
     try {
       const res=await fetch("/api/v1/prospecting/prospects/"+prospectId+"/decision-maker",{method:"POST"});
-      const json=await res.json();
-      if(!res.ok) throw new Error(json?.error?.message||"Research failed.");
+      const json=await res.json().catch(()=>null);
+      if(!res.ok) {
+        const detail=json?.error?.message||json?.error||null;
+        throw new Error(detail&&detail!=="Load failed"?detail:"Decision-maker research could not load the public website. Try again or use Edit.");
+      }
       setCandidates(json.data.candidates||[]); setNote(json.data.note||null);
     } catch(e){setError(e instanceof Error?e.message:"Research failed.");} finally{setLoading(false);}
   }
