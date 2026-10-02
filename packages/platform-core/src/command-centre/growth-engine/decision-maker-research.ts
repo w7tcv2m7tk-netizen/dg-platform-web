@@ -168,10 +168,18 @@ function cardCandidates(html: string, sourceUrl: string): DecisionMakerCandidate
 
 function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCandidate | null {
   const top = html.slice(0, 120_000);
-  const heading = [...top.matchAll(/<h[1-4]\b[^>]*>([\s\S]*?)<\/h[1-4]>/gi)]
-    .map(m => validPersonName(decodeText(m[1] || "")))
-    .find(Boolean) ?? null;
+  const headings = [...top.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)]
+    .map(m => decodeText(m[1] || "")).filter(Boolean);
   const role = leadershipRoleFromText(top);
+  // A page heading such as "Meet Our Team" is valid English but not a person.
+  // Prefer a human-looking heading near the leadership role and reject navigation/section labels.
+  const heading = headings
+    .map(value => validPersonName(value))
+    .find(value => value &&
+      /^[A-Z][A-Za-z'’.-]+(?:\s+[A-Z][A-Za-z'’.-]+){1,3}$/.test(value) &&
+      !/^(meet our team|our team|the team|about us|contact us|our people|leadership team|management team)$/i.test(value) &&
+      !leadershipRank(value)
+    ) ?? null;
   const rank = leadershipRank(role);
   if (!heading || !role || !rank) return null;
 
@@ -181,8 +189,9 @@ function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCan
     .map(m => validPhone(decodeHref(m[1] || ""))).filter(Boolean) as string[];
   const text = decodeText(top);
   const labelledMobile = text.match(/(?:Mobile|Phone|Direct)\s*:?\s*(\+?\d[\d ()-]{7,20}\d)/i)?.[1] ?? null;
-  const phone = tels[0] ?? validPhone(labelledMobile);
-  const email = emails.find(e => !/^(info|admin|support|hello|office|sales|rentals?)@/i.test(e)) ?? emails[0] ?? null;
+  const genericPhone = /^(?:1300|1800)/;
+  const phone = validPhone(labelledMobile) ?? tels.find(value => !genericPhone.test(value.replace(/\D/g, ""))) ?? tels[0] ?? null;
+  const email = emails.find(e => !/^(info|admin|support|hello|office|sales|rentals?)@/i.test(e)) ?? null;
   if (!email && !phone) return null;
 
   const image = [...top.matchAll(/<img\b[^>]*(?:src|data-src)=["']([^"']+)["'][^>]*>/gi)]
