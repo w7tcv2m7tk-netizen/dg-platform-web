@@ -10,6 +10,7 @@ import type { ScoreId } from "../../scoring/types";
 export type ProspectPipelineStage =
   | "prospect"
   | "audit_created"
+  | "qualified"
   | "report_sent"
   | "email_opened"
   | "report_viewed"
