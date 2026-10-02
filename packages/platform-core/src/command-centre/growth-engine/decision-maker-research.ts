@@ -55,7 +55,16 @@ function leadershipRank(role: string | null) {
   return 0;
 }
 function decodeEntities(value: string) {
-  return value.replace(/&amp;/gi, "&").replace(/&#64;|&commat;/gi, "@").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'");
+  return value
+    .replace(/&amp;/gi, "&")
+    .replace(/&#64;|&commat;/gi, "@")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&#x2f;|&#47;/gi, "/")
+    .replace(/&#x3a;|&#58;/gi, ":");
+}
+function decodeHref(value: string) {
+  return decodeEntities(value).trim();
 }
 function headingCandidates(html: string) {
   return [...html.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)]
@@ -83,11 +92,11 @@ function candidateImage(html: string, index: number, sourceUrl: string) {
 function extractCandidates(html: string, sourceUrl: string): DecisionMakerCandidate[] {
   const headings = headingCandidates(html);
   const candidates: DecisionMakerCandidate[] = [];
-  const emailMatches = [...html.matchAll(/href=["']mailto:([^"'?#\s>]+)["']/gi)];
+  const emailMatches = [...html.matchAll(/href=["\']\s*mailto:([^"\'?#>]+)["\']/gi)];
 
   for (const match of emailMatches) {
     const index = match.index ?? 0;
-    const email = validEmail(decodeEntities(match[1] || ""));
+    const email = validEmail(decodeHref(match[1] || ""));
     if (!email) continue;
     const windowStart = Math.max(0, index - 2500);
     const windowEnd = Math.min(html.length, index + 1800);
@@ -96,8 +105,8 @@ function extractCandidates(html: string, sourceUrl: string): DecisionMakerCandid
     const name = nearestHeading(headings, index);
     if (!name) continue;
     const role = nearestRole(windowText);
-    const phoneMatches = [...windowHtml.matchAll(/href=["']tel:([^"'?#>]+)["']/gi)];
-    const phone = validPhone(phoneMatches[0]?.[1] ?? null);
+    const phoneMatches = [...windowHtml.matchAll(/href=["\']\s*tel:([^"\'?#>]+)["\']/gi)];
+    const phone = validPhone(phoneMatches[0] ? decodeHref(phoneMatches[0][1] || "") : null);
     const rank = leadershipRank(role);
     if (!rank) continue;
     candidates.push({
@@ -158,8 +167,8 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
         else if (candidate.rank > existing.rank) Object.assign(existing, candidate);
       }
       if (i === 0) {
-        for (const match of html.matchAll(/href=["']([^"']+)["']/gi)) {
-          const href = match[1] || "";
+        for (const match of html.matchAll(/href=["\']([^"\']+)["\']/gi)) {
+          const href = decodeHref(match[1] || "");
           if (!/(about|team|people|agents?|leadership|contact)/i.test(href)) continue;
           const absolute = absoluteUrl(href, res.url || url);
           if (absolute && new URL(absolute).host === new URL(res.url || url).host && !queue.includes(absolute)) queue.push(absolute);
