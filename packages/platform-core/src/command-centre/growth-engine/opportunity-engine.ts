@@ -99,6 +99,7 @@ function recommendAction(input: OpportunityScoreInput): OpportunityRecommendedAc
   if (stage === "proposal_sent" || stage === "meeting_booked") return "close_loop";
   if (stage === "report_viewed") return "call_and_email";
   if (stage === "email_opened" || stage === "follow_up_due") return "call_today";
+  if (stage === "qualified") return "call_today";
   if (stage === "report_sent") return "follow_up";
   return "call_today";
 }
@@ -184,12 +185,15 @@ export function computeProspectOpportunityScore(
   } else if (stage === "proposal_sent") {
     intentPts += 18;
     reasons.push("Proposal outstanding");
+  } else if (stage === "qualified") {
+    intentPts += 12;
+    reasons.push("Qualified for outreach");
   } else if (stage === "report_sent") {
     intentPts += 14;
     reasons.push("Report sent — awaiting engagement");
   } else if (stage === "audit_created") {
     intentPts += 10;
-    reasons.push("Audit ready — send report next");
+    reasons.push("Audit ready — research and qualify before outreach");
   } else {
     intentPts += 6;
   }

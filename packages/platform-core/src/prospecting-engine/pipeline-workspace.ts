@@ -46,14 +46,14 @@ export const PROSPECT_WORKSPACE_STAGES: ProspectWorkspaceStageDef[] = [
     id: "qualified",
     label: "Qualified",
     actionLabel: "Contact",
-    sourceStages: ["report_sent", "email_opened"],
+    sourceStages: ["qualified"],
     description: "Worth pursuing — ready for outreach.",
   },
   {
     id: "contacted",
     label: "Contacted",
     actionLabel: "Follow up",
-    sourceStages: ["report_viewed", "follow_up_due"],
+    sourceStages: ["report_sent", "email_opened", "report_viewed", "follow_up_due"],
     description: "Outreach started — keep the conversation warm.",
   },
   {

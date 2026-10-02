@@ -90,7 +90,7 @@ export default async function ProspectingProspectsPage() {
                   {prospects.map((prospect) => (
                     <tr key={prospect.id} className="align-top">
                       <td className="px-4 py-3">
-                        <p className="font-medium text-white">{prospect.businessName}</p>
+                        <Link href={`/apps/prospecting/prospects/${prospect.id}`} className="font-medium text-white hover:text-violet-300 hover:underline">{prospect.businessName}</Link>
                         <p className="mt-1 text-xs text-slate-500">
                           {[prospect.industry, prospect.location].filter(Boolean).join(" · ") || "Business details not yet enriched"}
                         </p>

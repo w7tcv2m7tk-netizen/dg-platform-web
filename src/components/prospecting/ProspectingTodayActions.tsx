@@ -92,7 +92,6 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
 
         <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/55 p-3">
           <p className="text-xs uppercase tracking-wide text-slate-500">{needsResearch ? "Research brief" : "Contact brief"}</p>
-          <p className="mt-2 text-sm font-medium text-white">{active.recommendedActionLabel}</p>
           <p className="mt-1 text-sm text-slate-300">{active.approachHint}</p>
           {needsResearch ? (
             <p className="mt-3 text-xs text-slate-500">

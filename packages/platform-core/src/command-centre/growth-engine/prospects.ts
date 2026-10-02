@@ -41,6 +41,7 @@ export interface UpdateGrowthProspectInput {
 const PIPELINE_STAGES: ProspectPipelineStage[] = [
   "prospect",
   "audit_created",
+  "qualified",
   "report_sent",
   "email_opened",
   "report_viewed",
