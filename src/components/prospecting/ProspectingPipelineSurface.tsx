@@ -118,7 +118,7 @@ export async function ProspectingPipelineSurface({
         : null,
     });
     const workspaceStage = workspaceStageForProspectStage(prospect.stage);
-    return { prospect, score, workspaceStage, audit, rawAudit };
+    return { prospect, score, workspaceStage, audit };
   });
 
   const stageRows = PROSPECT_WORKSPACE_STAGES.map((stage) => {
