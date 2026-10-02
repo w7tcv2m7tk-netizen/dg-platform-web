@@ -24,7 +24,7 @@ export default async function ConnectedServicesPage({
   if (!session?.organisationId) {
     return (
       <>
-        <SectionPageHeader section="Settings" title="Connected Services" />
+        <SectionPageHeader section="Configuration" title="Connected Services" />
         <main className="dg-page-main">
           <p className="text-sm text-slate-500">Sign in to continue.</p>
         </main>
