@@ -165,8 +165,40 @@ function cardCandidates(html: string, sourceUrl: string): DecisionMakerCandidate
   }
   return out;
 }
+
+function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCandidate | null {
+  const top = html.slice(0, 120_000);
+  const heading = [...top.matchAll(/<h[1-4]\b[^>]*>([\s\S]*?)<\/h[1-4]>/gi)]
+    .map(m => validPersonName(decodeText(m[1] || "")))
+    .find(Boolean) ?? null;
+  const role = leadershipRoleFromText(top);
+  const rank = leadershipRank(role);
+  if (!heading || !role || !rank) return null;
+
+  const emails = [...top.matchAll(/href=["']\s*mailto:([^"'?#>]+)["']/gi)]
+    .map(m => validEmail(decodeHref(m[1] || ""))).filter(Boolean) as string[];
+  const tels = [...top.matchAll(/href=["']\s*tel:([^"'?#>]+)["']/gi)]
+    .map(m => validPhone(decodeHref(m[1] || ""))).filter(Boolean) as string[];
+  const text = decodeText(top);
+  const labelledMobile = text.match(/(?:Mobile|Phone|Direct)\s*:?\s*(\+?\d[\d ()-]{7,20}\d)/i)?.[1] ?? null;
+  const phone = tels[0] ?? validPhone(labelledMobile);
+  const email = emails.find(e => !/^(info|admin|support|hello|office|sales|rentals?)@/i.test(e)) ?? emails[0] ?? null;
+  if (!email && !phone) return null;
+
+  const image = [...top.matchAll(/<img\b[^>]*(?:src|data-src)=["']([^"']+)["'][^>]*>/gi)]
+    .map(m => m[1] || "").find(src => src && !/(?:logo|icon|sprite|placeholder|data:image)/i.test(src)) ?? null;
+  return {
+    name: heading, role, email, phone, sourceUrl,
+    evidence: `${heading} is identified as ${role} on a public individual profile page with direct contact details.`,
+    imageUrl: image ? absoluteUrl(decodeEntities(image), sourceUrl) : null,
+    confidence: "high",
+    rank: rank + (email ? 5 : 0) + (phone ? 5 : 0) + 10,
+  };
+}
 function extractCandidates(html: string, sourceUrl: string): DecisionMakerCandidate[] {
   const cardResults = cardCandidates(html, sourceUrl);
+  const profileResult = profilePageCandidate(html, sourceUrl);
+  if (profileResult) cardResults.push(profileResult);
   const headings = headingCandidates(html);
   const candidates: DecisionMakerCandidate[] = [];
   const emailMatches = [...html.matchAll(/href=["\']\s*mailto:([^"\'?#>]+)["\']/gi)];
