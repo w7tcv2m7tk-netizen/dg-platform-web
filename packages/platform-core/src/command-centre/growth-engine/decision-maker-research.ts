@@ -46,10 +46,6 @@ function absoluteUrl(href: string, base: string) {
     return ["http:", "https:"].includes(url.protocol) ? url.toString() : null;
   } catch { return null; }
 }
-const LEADERSHIP_ROLES = [
-  "principal", "agency principal", "director", "managing director", "owner",
-  "founder", "co-founder", "licensee", "licensee in charge", "chief executive", "ceo",
-];
 function leadershipRank(role: string | null) {
   if (!role) return 0;
   const value = role.toLowerCase();
