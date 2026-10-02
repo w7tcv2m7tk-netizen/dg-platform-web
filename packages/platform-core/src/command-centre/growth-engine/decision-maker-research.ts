@@ -146,8 +146,14 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
   const candidates: DecisionMakerCandidate[] = [];
   const seen = new Set<string>();
   const queue = [base];
+  // Common public people/team routes are worth probing directly. Many modern sites
+  // expose staff cards here but do not link them in the first 300 KB of homepage HTML.
+  for (const pathname of ["/meet-our-team", "/our-team", "/team", "/about", "/about-us", "/people", "/agents", "/contact"]) {
+    const candidate = absoluteUrl(pathname, base);
+    if (candidate && !queue.includes(candidate)) queue.push(candidate);
+  }
 
-  for (let i = 0; i < queue.length && i < 5; i++) {
+  for (let i = 0; i < queue.length && i < 10; i++) {
     const url = queue[i]!;
     if (seen.has(url)) continue;
     seen.add(url);
@@ -172,7 +178,7 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
           if (!/(about|team|people|agents?|leadership|contact)/i.test(href)) continue;
           const absolute = absoluteUrl(href, res.url || url);
           if (absolute && new URL(absolute).host === new URL(res.url || url).host && !queue.includes(absolute)) queue.push(absolute);
-          if (queue.length >= 8) break;
+          if (queue.length >= 16) break;
         }
       }
     } catch { searched.push(url); }
