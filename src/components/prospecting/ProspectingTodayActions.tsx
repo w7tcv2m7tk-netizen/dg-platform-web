@@ -8,6 +8,7 @@ type Row = {
   businessName: string;
   score: number;
   bandLabel: string;
+  recommendedAction: string;
   recommendedActionLabel: string;
   reasons: string[];
   approachHint: string;
@@ -63,7 +64,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const callHref = active.contactPhone ? `tel:${active.contactPhone}` : null;
   const emailHref = active.contactEmail ? `mailto:${active.contactEmail}` : null;
   const hasContactRoute = Boolean(callHref || emailHref);
-  const needsResearch = active.recommendedActionLabel === "Run audit" || !hasContactRoute;
+  const needsResearch = active.recommendedAction === "research" || active.recommendedAction === "run_audit";
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -90,22 +91,25 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
         </div>
 
         <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/55 p-3">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Call brief</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">{needsResearch ? "Research brief" : "Contact brief"}</p>
           <p className="mt-2 text-sm font-medium text-white">{active.recommendedActionLabel}</p>
           <p className="mt-1 text-sm text-slate-300">{active.approachHint}</p>
-          <p className="mt-3 text-xs text-slate-500">
-            Lead with the observed opportunity. Keep the first call short; the goal is permission for the next conversation, not a platform pitch.
-          </p>
+          {needsResearch ? (
+            <p className="mt-3 text-xs text-slate-500">
+              Review the evidence, confirm the decision-maker and assess fit. Qualify the prospect before any outreach.
+            </p>
+          ) : (
+            <p className="mt-3 text-xs text-slate-500">
+              Lead with the observed opportunity. Keep first contact short; the goal is permission for the next conversation, not a platform pitch.
+            </p>
+          )}
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           {needsResearch ? (
             <>
-              <a href="/apps/prospecting/prospects" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-500">
-                Research prospect
-              </a>
-              <a href="/apps/prospecting/discovery" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-700 px-4 text-sm font-semibold text-slate-200">
-                Enrich contact
+              <a href={`/apps/prospecting/prospects/${active.prospectId}`} className="col-span-2 inline-flex min-h-12 items-center justify-center rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-500">
+                Review research
               </a>
             </>
           ) : (
