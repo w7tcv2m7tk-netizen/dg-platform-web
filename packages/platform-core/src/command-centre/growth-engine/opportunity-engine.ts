@@ -27,6 +27,7 @@ const ACTIVE_STAGES: ProspectPipelineStage[] = [
 ];
 
 const ACTION_LABELS: Record<OpportunityRecommendedAction, string> = {
+  research: "Research",
   run_audit: "Run audit",
   send_audit: "Send audit",
   call_today: "Call today",
@@ -91,9 +92,10 @@ function recommendAction(input: OpportunityScoreInput): OpportunityRecommendedAc
   const stage = input.stage;
 
   if (!hasAudit || stage === "prospect") return "run_audit";
-  if (stage === "audit_created" || (!hasReport && hasAudit)) {
-    return input.contactPhone || input.contactEmail ? "send_audit" : "run_audit";
-  }
+  // An audit is research evidence, not permission to contact. Keep newly audited
+  // prospects in research until the lifecycle explicitly qualifies them.
+  if (stage === "audit_created") return "research";
+  if (!hasReport && hasAudit) return "research";
   if (stage === "proposal_sent" || stage === "meeting_booked") return "close_loop";
   if (stage === "report_viewed") return "call_and_email";
   if (stage === "email_opened" || stage === "follow_up_due") return "call_today";
@@ -103,6 +105,8 @@ function recommendAction(input: OpportunityScoreInput): OpportunityRecommendedAc
 
 function approachFor(action: OpportunityRecommendedAction, businessName: string): string {
   switch (action) {
+    case "research":
+      return `Review the audit and business intelligence for ${businessName}, identify the right decision-maker and assess fit before outreach.`;
     case "run_audit":
       return `Research and enrich ${businessName} before outreach; confirm the right contact and route.`;
     case "send_audit":
@@ -347,10 +351,9 @@ export async function getDailyOpportunityBriefing(options?: {
               "report_sent",
               "proposal_sent",
               "meeting_booked",
-              "prospect_created",
             ],
           },
-          prospect: { archivedAt: null },
+          prospect: { archivedAt: null, ...(options?.organisationId ? { organisationId: options.organisationId } : {}) },
         },
       }),
       prisma.growthProspect.count({
@@ -358,6 +361,7 @@ export async function getDailyOpportunityBriefing(options?: {
           archivedAt: null,
           convertedOrganisationId: null,
           stage: { in: ["email_opened", "report_viewed"] },
+          ...(options?.organisationId ? { organisationId: options.organisationId } : {}),
         },
       }),
       prisma.growthProspect.count({
@@ -365,6 +369,7 @@ export async function getDailyOpportunityBriefing(options?: {
           archivedAt: null,
           convertedOrganisationId: null,
           stage: "meeting_booked",
+          ...(options?.organisationId ? { organisationId: options.organisationId } : {}),
         },
       }),
       // Real proposal totals only — from engagement metadata when proposal was created
@@ -375,6 +380,7 @@ export async function getDailyOpportunityBriefing(options?: {
             archivedAt: null,
             convertedOrganisationId: null,
             stage: "proposal_sent",
+            ...(options?.organisationId ? { organisationId: options.organisationId } : {}),
           },
         },
         select: { metadata: true },
@@ -396,6 +402,7 @@ export async function getDailyOpportunityBriefing(options?: {
 
   const stillRequireAction = dailyRows.filter(
     (r) =>
+      r.recommendedAction === "research" ||
       r.recommendedAction === "run_audit" ||
       r.recommendedAction === "send_audit" ||
       r.recommendedAction === "call_today" ||
