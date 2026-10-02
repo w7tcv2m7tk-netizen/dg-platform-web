@@ -248,7 +248,7 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
       if (!res.ok) continue;
       const type = res.headers.get("content-type") || "";
       if (!type.includes("html")) continue;
-      const html = (await res.text()).slice(0, 300_000);
+      const html = (await res.text()).slice(0, 1_000_000);
       for (const candidate of extractCandidates(html, res.url || url)) {
         const existing = candidates.find((x) => x.name?.toLowerCase() === candidate.name?.toLowerCase());
         if (!existing) candidates.push(candidate);
