@@ -326,7 +326,7 @@ export async function ProspectingPipelineSurface({
                             {!showArchived ? (
                               <div className="mt-3 flex flex-wrap gap-1.5">
                                 <Link
-                                  href={scoresHref}
+                                  href={`/apps/prospecting/prospects/${prospect.id}`}
                                   className="rounded-md border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-slate-500"
                                 >
                                   View
