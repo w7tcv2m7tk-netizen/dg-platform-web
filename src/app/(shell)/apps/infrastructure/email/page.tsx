@@ -50,10 +50,7 @@ export default async function EmailInfrastructurePage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <h1 className="text-2xl font-bold text-white">Email</h1>
-        <p className="text-sm text-slate-400">Manage sending domains and email authentication.</p>
-      </header>
+      <SectionPageHeader section="Infrastructure" title="Email" description="Manage sending domains and email authentication." />
       <main className="dg-page-main max-w-2xl">
         <EmailInfrastructureConsole initialOverview={overview} />
       </main>
