@@ -10,7 +10,32 @@ export type DecisionMakerCandidate = {
 };
 
 function cleanText(value: string) {
-  return value.replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/gi, " ").replace(/\s+/g, " ").trim();
+  return value
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function validEmail(value: string | null) {
+  if (!value) return null;
+  const decoded = decodeURIComponent(value).trim();
+  return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(decoded) ? decoded : null;
+}
+function validPhone(value: string | null) {
+  if (!value) return null;
+  const decoded = decodeURIComponent(value).replace(/\s+/g, " ").trim();
+  if (/[A-Za-z{};:=!]/.test(decoded)) return null;
+  const digits = decoded.replace(/\D/g, "");
+  if (digits.length < 8 || digits.length > 15) return null;
+  return /^[+()\d .-]+$/.test(decoded) ? decoded : null;
+}
+function validPersonName(value: string | null) {
+  if (!value) return null;
+  const name = value.replace(/\s+/g, " ").trim();
+  if (name.length < 3 || name.length > 80 || /[@{};:=!<>]/.test(name) || /\d/.test(name)) return null;
+  return name;
 }
 function absoluteUrl(href: string, base: string) {
   try {
@@ -24,10 +49,19 @@ function extractCandidate(html: string, sourceUrl: string): DecisionMakerCandida
   const phone = phoneRaw ? decodeURIComponent(phoneRaw).replace(/\s+/g, " ").trim() : null;
   const text = cleanText(html).slice(0, 80_000);
   const leadership = text.match(/\b(?:principal|director|owner|founder|managing director|licensee|agency principal)\b.{0,100}/i)?.[0] ?? null;
-  const personJson = html.match(/"@type"\s*:\s*"Person"[\s\S]{0,1500}?"name"\s*:\s*"([^"]+)"/i)?.[1] ?? null;
-  const roleJson = html.match(/"@type"\s*:\s*"Person"[\s\S]{0,1500}?"jobTitle"\s*:\s*"([^"]+)"/i)?.[1] ?? null;
-  if (!personJson && !email && !phone && !leadership) return null;
-  return { name: personJson, role: roleJson, email, phone, sourceUrl, evidence: leadership || (personJson ? "Person structured data found on the business website." : "Public contact details found on the business website.") };
+  const personJson = validPersonName(html.match(/"@type"\s*:\s*"Person"[\s\S]{0,1500}?"name"\s*:\s*"([^"]+)"/i)?.[1] ?? null);
+  const roleJson = html.match(/"@type"\s*:\s*"Person"[\s\S]{0,1500}?"jobTitle"\s*:\s*"([^"]+)"/i)?.[1]?.trim() ?? null;
+  // A generic phone/email is not a decision-maker candidate. Require a named
+  // person or explicit leadership evidence before surfacing anything.
+  if (!personJson && !leadership) return null;
+  return {
+    name: personJson,
+    role: roleJson,
+    email: personJson ? email : null,
+    phone: personJson ? phone : null,
+    sourceUrl,
+    evidence: leadership || "Named Person structured data found on the business website.",
+  };
 }
 
 export async function researchProspectDecisionMaker(websiteUrl: string | null | undefined) {
