@@ -39,7 +39,8 @@ export default async function ProspectingOverviewPage() {
   const byStage = summary?.byStage ?? {};
   const qualified = stageCount(byStage, ["email_opened", "report_viewed", "follow_up_due", "meeting_booked", "proposal_sent"]);
   const converted = byStage.won ?? 0;
-  const activeOpportunities = Math.max(0, (summary?.totalProspects ?? 0) - converted - (byStage.lost ?? 0));
+  // Opportunity is a post-qualification lifecycle state, not every active prospect.
+  const activeOpportunities = stageCount(byStage, ["report_sent", "email_opened", "report_viewed", "follow_up_due", "meeting_booked", "proposal_sent"]);
   const researching = stageCount(byStage, ["prospect", "audit_created"]);
   const followUps = byStage.follow_up_due ?? 0;
   const consultations = byStage.meeting_booked ?? 0;
@@ -51,6 +52,7 @@ export default async function ProspectingOverviewPage() {
         Boolean(row.contactPhone || row.contactEmail),
     ).length ?? 0;
   const next = briefing?.rows?.[0] ?? null;
+  const nextIsResearch = next?.stage === "prospect" || next?.stage === "audit_created";
 
   return (
     <>
@@ -77,8 +79,8 @@ export default async function ProspectingOverviewPage() {
               {next ? (
                 <>
                   <h2 className="mt-2 text-2xl font-semibold text-white">{next.businessName}</h2>
-                  <p className="mt-2 max-w-2xl text-sm text-slate-300">{next.recommendedActionLabel}. {next.approachHint}</p>
-                  <p className="mt-2 text-xs text-slate-500">Opportunity Score™ {next.score} · {next.bandLabel}</p>
+                  <p className="mt-2 max-w-2xl text-sm text-slate-300">{nextIsResearch ? "Research" : next.recommendedActionLabel}. {next.approachHint}</p>
+                  <p className="mt-2 text-xs text-slate-500">{nextIsResearch ? "Research priority" : "Opportunity Score™"} {next.score} · {next.bandLabel}</p>
                 </>
               ) : (
                 <>
