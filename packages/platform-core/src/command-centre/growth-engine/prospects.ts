@@ -359,6 +359,8 @@ export async function getGrowthEngineSummary(organisationId: string) {
     prisma.growthProspectEngagement.count({
       where: {
         occurredAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+        // Discovery/import/audit bookkeeping is system history, not sales activity.
+        type: { notIn: ["prospect_created", "stage_changed", "audit_created"] },
         prospect: { organisationId, archivedAt: null },
       },
     }),
