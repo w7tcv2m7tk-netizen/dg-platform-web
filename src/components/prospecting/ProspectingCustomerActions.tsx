@@ -9,6 +9,7 @@ import type { ProspectPipelineStage } from "@dg/platform-core";
 const STAGE_LABELS: Record<string, string> = {
   prospect: "Prospect",
   audit_created: "Audit created",
+  qualified: "Qualified",
   report_sent: "Report sent",
   email_opened: "Email opened",
   report_viewed: "Report viewed",
