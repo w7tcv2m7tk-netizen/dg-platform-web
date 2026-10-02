@@ -89,7 +89,84 @@ function candidateImage(html: string, index: number, sourceUrl: string) {
   }
   return null;
 }
+function decodeText(value: string) {
+  return decodeEntities(cleanText(value));
+}
+function leadershipRoleFromText(text: string) {
+  const value = decodeText(text);
+  const patterns = [
+    /\bAgency Principal\b/i, /\bPrincipal\b/i, /\bManaging Director\b/i,
+    /\bDirector\b/i, /\bOwner\b/i, /\bFounder\b/i, /\bCo-Founder\b/i,
+    /\bLicensee(?: in Charge)?\b/i, /\bChief Executive(?: Officer)?\b/i,
+    /\bCEO\b/i, /\bGeneral Manager\b/i, /\bHead of [A-Za-z &-]+\b/i, /\bPartner\b/i,
+  ];
+  for (const pattern of patterns) {
+    const match = value.match(pattern);
+    if (match) return match[0];
+  }
+  return null;
+}
+function cardCandidates(html: string, sourceUrl: string): DecisionMakerCandidate[] {
+  const out: DecisionMakerCandidate[] = [];
+  // Team sites vary wildly in markup. Anchor each candidate on a direct public
+  // email, then inspect the containing card/list/article or a bounded local block.
+  for (const emailMatch of html.matchAll(/href=["']\s*mailto:([^"'?#>]+)["']/gi)) {
+    const emailIndex = emailMatch.index ?? 0;
+    const email = validEmail(decodeHref(emailMatch[1] || ""));
+    if (!email) continue;
+
+    const openTags = [...html.slice(Math.max(0, emailIndex - 9000), emailIndex).matchAll(/<(article|li|section|div)\b[^>]*>/gi)];
+    let blockStart = Math.max(0, emailIndex - 3500);
+    let blockEnd = Math.min(html.length, emailIndex + 1800);
+    for (const tag of openTags.reverse()) {
+      const tagName = (tag[1] || "").toLowerCase();
+      const absoluteStart = Math.max(0, emailIndex - 9000) + (tag.index ?? 0);
+      const close = html.indexOf(`</${tagName}>`, emailIndex);
+      if (close > emailIndex && close - absoluteStart <= 12000) {
+        blockStart = absoluteStart;
+        blockEnd = close + tagName.length + 3;
+        break;
+      }
+    }
+    const block = html.slice(blockStart, blockEnd);
+    const text = decodeText(block);
+    const role = leadershipRoleFromText(text);
+    const rank = leadershipRank(role);
+    if (!rank) continue;
+
+    const names = [...block.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)]
+      .map(m => validPersonName(decodeText(m[1] || ""))).filter(Boolean) as string[];
+    if (!names.length) {
+      for (const m of block.matchAll(/<(?:strong|b|span|a)\b[^>]*>([\s\S]{2,100}?)<\/(?:strong|b|span|a)>/gi)) {
+        const maybe = validPersonName(decodeText(m[1] || ""));
+        if (maybe && /^[A-Z][A-Za-z'’-]+(?:\s+[A-Z][A-Za-z'’-]+){1,3}$/.test(maybe)) names.push(maybe);
+      }
+    }
+    const name = names.find(n => !leadershipRank(n) && !/^(view profile|read more|contact|email|phone)$/i.test(n)) ?? null;
+    if (!name) continue;
+
+    const phoneMatch = block.match(/href=["']\s*tel:([^"'?#>]+)["']/i);
+    const phone = validPhone(phoneMatch ? decodeHref(phoneMatch[1] || "") : null);
+    const imgMatches = [...block.matchAll(/<img\b[^>]*(?:src|data-src)=["']([^"']+)["'][^>]*>/gi)];
+    let imageUrl: string | null = null;
+    for (const img of imgMatches) {
+      const src = img[1] || "";
+      if (!src || /(?:logo|icon|sprite|placeholder|data:image)/i.test(src)) continue;
+      imageUrl = absoluteUrl(decodeEntities(src), sourceUrl);
+      if (imageUrl) break;
+    }
+    out.push({
+      name, role, email, phone, sourceUrl,
+      evidence: `${name} is identified as ${role} on the business's public team/profile page with direct contact details.`,
+      imageUrl,
+      confidence: rank >= 90 && Boolean(email || phone) ? "high" : "medium",
+      rank: rank + (email ? 5 : 0) + (phone ? 5 : 0),
+    });
+  }
+  return out;
+}
 function extractCandidates(html: string, sourceUrl: string): DecisionMakerCandidate[] {
+  const cardResults = cardCandidates(html, sourceUrl);
   const headings = headingCandidates(html);
   const candidates: DecisionMakerCandidate[] = [];
   const emailMatches = [...html.matchAll(/href=["\']\s*mailto:([^"\'?#>]+)["\']/gi)];
@@ -137,6 +214,11 @@ function extractCandidates(html: string, sourceUrl: string): DecisionMakerCandid
       rank: rank + (email ? 5 : 0) + (phone ? 5 : 0),
     });
   }
+  for (const candidate of cardResults) {
+    const existing = candidates.find(x => x.name?.toLowerCase() === candidate.name?.toLowerCase());
+    if (!existing) candidates.push(candidate);
+    else if (candidate.rank > existing.rank) Object.assign(existing, candidate);
+  }
   return candidates;
 }
 export async function researchProspectDecisionMaker(websiteUrl: string | null | undefined) {
@@ -166,7 +248,7 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
       if (!res.ok) continue;
       const type = res.headers.get("content-type") || "";
       if (!type.includes("html")) continue;
-      const html = (await res.text()).slice(0, 300_000);
+      const html = (await res.text()).slice(0, 1_000_000);
       for (const candidate of extractCandidates(html, res.url || url)) {
         const existing = candidates.find((x) => x.name?.toLowerCase() === candidate.name?.toLowerCase());
         if (!existing) candidates.push(candidate);
