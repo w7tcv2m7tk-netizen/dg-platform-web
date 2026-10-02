@@ -3,6 +3,7 @@ import Link from "next/link";
 import { IntelligenceBusinessReport } from "@/components/intelligence/IntelligenceBusinessReport";
 import { IntelligenceFlow } from "@/components/intelligence/IntelligenceFlow";
 import { IntelligenceHierarchy } from "@/components/intelligence/IntelligenceHierarchy";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { loadAnalyticsPageData } from "@/lib/analytics-page-data";
 
 export default async function IntelligenceReportsPage() {
@@ -11,16 +12,7 @@ export default async function IntelligenceReportsPage() {
 
   return (
     <>
-      <header className="dg-page-header">
-        <p className="text-xs font-medium uppercase tracking-widest text-blue-400/90">
-          Business · Reports
-        </p>
-        <h1 className="mt-2 text-2xl font-bold text-white">Reports</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-400">
-          What do we need to communicate or export? Formal, reportable views for owners, boards and
-          stakeholders — distinct from day-to-day Analytics dashboards.
-        </p>
-      </header>
+      <SectionPageHeader section="Business" title="Reports" description="What do we need to communicate or export? Formal, reportable views for owners, boards and stakeholders — distinct from day-to-day Analytics dashboards." />
       <main className="dg-page-main space-y-6">
         {report ? <IntelligenceBusinessReport data={data} report={report} variant="preview" /> : null}
 
