@@ -167,12 +167,10 @@ function cardCandidates(html: string, sourceUrl: string): DecisionMakerCandidate
 }
 
 function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCandidate | null {
-  const top = html.slice(0, 120_000);
+  const top = html.slice(0, 300_000);
   const headings = [...top.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)]
     .map(m => decodeText(m[1] || "")).filter(Boolean);
   const role = leadershipRoleFromText(top);
-  // A page heading such as "Meet Our Team" is valid English but not a person.
-  // Prefer a human-looking heading near the leadership role and reject navigation/section labels.
   const heading = headings
     .map(value => validPersonName(value))
     .find(value => value &&
@@ -183,19 +181,37 @@ function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCan
   const rank = leadershipRank(role);
   if (!heading || !role || !rank) return null;
 
-  const emails = [...top.matchAll(/href=["']\s*mailto:([^"'?#>]+)["']/gi)]
+  // Scope contact extraction around the person's name/role rather than taking the
+  // first site-wide header/footer contact. This avoids pairing a principal with
+  // the office 1300 number.
+  const plain = decodeText(top);
+  const nameAt = plain.toLowerCase().indexOf(heading.toLowerCase());
+  const roleAt = plain.toLowerCase().indexOf(role.toLowerCase(), Math.max(0, nameAt));
+  const anchorTextAt = Math.max(nameAt, roleAt, 0);
+  const rawNameAt = top.toLowerCase().indexOf(heading.toLowerCase());
+  const rawRoleAt = top.toLowerCase().indexOf(role.toLowerCase(), Math.max(0, rawNameAt));
+  const rawAnchor = Math.max(rawNameAt, rawRoleAt, 0);
+  const local = top.slice(Math.max(0, rawAnchor - 2500), Math.min(top.length, rawAnchor + 9000));
+
+  const localEmails = [...local.matchAll(/href=["']\s*mailto:([^"'?#>]+)["']/gi)]
     .map(m => validEmail(decodeHref(m[1] || ""))).filter(Boolean) as string[];
-  const tels = [...top.matchAll(/href=["']\s*tel:([^"'?#>]+)["']/gi)]
+  const localTels = [...local.matchAll(/href=["']\s*tel:([^"'?#>]+)["']/gi)]
     .map(m => validPhone(decodeHref(m[1] || ""))).filter(Boolean) as string[];
-  const text = decodeText(top);
-  const labelledMobile = text.match(/(?:Mobile|Phone|Direct)\s*:?\s*(\+?\d[\d ()-]{7,20}\d)/i)?.[1] ?? null;
+  const localText = decodeText(local);
+  const labelledMobile = localText.match(/(?:Mobile|Phone|Direct|M)\s*:?\s*(\+?\d[\d ()-]{7,20}\d)/i)?.[1] ?? null;
+  const visibleMobiles = [...localText.matchAll(/(?:\+?61\s?4|04)\d(?:[\s()-]*\d){7,9}/g)]
+    .map(m => validPhone(m[0])).filter(Boolean) as string[];
   const genericPhone = /^(?:1300|1800)/;
-  const phone = validPhone(labelledMobile) ?? tels.find(value => !genericPhone.test(value.replace(/\D/g, ""))) ?? tels[0] ?? null;
-  const email = emails.find(e => !/^(info|admin|support|hello|office|sales|rentals?)@/i.test(e)) ?? null;
+  const phone = validPhone(labelledMobile)
+    ?? visibleMobiles[0]
+    ?? localTels.find(value => !genericPhone.test(value.replace(/\D/g, "")))
+    ?? null;
+  const email = localEmails.find(e => !/^(info|admin|support|hello|office|sales|rentals?)@/i.test(e)) ?? null;
   if (!email && !phone) return null;
 
-  const image = [...top.matchAll(/<img\b[^>]*(?:src|data-src)=["']([^"']+)["'][^>]*>/gi)]
-    .map(m => m[1] || "").find(src => src && !/(?:logo|icon|sprite|placeholder|data:image)/i.test(src)) ?? null;
+  const localImages = [...local.matchAll(/<img\b[^>]*(?:src|data-src|data-lazy-src)=["']([^"']+)["'][^>]*>/gi)]
+    .map(m => m[1] || "").filter(src => src && !/(?:logo|icon|sprite|placeholder|data:image)/i.test(src));
+  const image = localImages[0] ?? null;
   return {
     name: heading, role, email, phone, sourceUrl,
     evidence: `${heading} is identified as ${role} on a public individual profile page with direct contact details.`,
