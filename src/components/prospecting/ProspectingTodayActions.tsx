@@ -168,7 +168,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
               <button key={row.prospectId} type="button" onClick={() => { setActiveId(row.prospectId); setDraft(""); setShowLog(false); }} className="flex min-h-14 w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-950/40 px-4 text-left">
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium text-white">{row.businessName}</span>
-                  <span className="block truncate text-xs text-slate-500">{row.recommendedActionLabel}</span>
+                  <span className="block truncate text-xs text-slate-500">{row.recommendedAction === "research" || row.recommendedAction === "run_audit" ? "Research" : row.recommendedActionLabel}</span>
                 </span>
                 <span className="ml-3 text-sm font-semibold text-violet-300">{row.score}</span>
               </button>
