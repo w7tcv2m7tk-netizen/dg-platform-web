@@ -29,6 +29,7 @@ export const GROWTH_ENGINE_ROUTES = {
 export const GROWTH_ENGINE_STAGE_LABELS: Record<string, string> = {
   prospect: "Prospect",
   audit_created: "Audit created",
+  qualified: "Qualified",
   report_sent: "Report sent",
   email_opened: "Email opened",
   report_viewed: "Report viewed",
