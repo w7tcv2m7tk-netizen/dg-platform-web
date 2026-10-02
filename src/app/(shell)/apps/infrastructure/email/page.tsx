@@ -6,6 +6,7 @@ import {
 } from "@dg/platform-core";
 
 import { EmailInfrastructureConsole } from "@/components/infrastructure/EmailInfrastructureConsole";
+import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 export default async function EmailInfrastructurePage() {
@@ -19,10 +20,7 @@ export default async function EmailInfrastructurePage() {
     const domains = await listOrganisationDomains(session.organisationId);
     return (
       <>
-        <header className="dg-page-header">
-          <h1 className="text-2xl font-bold text-white">Email</h1>
-          <p className="text-sm text-slate-400">Sending-domain and email authentication status.</p>
-        </header>
+        <SectionPageHeader section="Infrastructure" title="Email" description="Sending-domain and email authentication status." />
         <main className="dg-page-main max-w-2xl space-y-4">
           <section className="rounded-lg border border-slate-800 bg-slate-950/60 p-5">
             <h2 className="text-lg font-semibold text-white">Email status</h2>
