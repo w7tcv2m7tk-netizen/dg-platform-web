@@ -15,6 +15,7 @@ export type PresenceAuditResult = {
   probes: {
     websiteUrl: string | null;
     reachable: boolean | null;
+    contentAccessible: boolean | null;
     https: boolean | null;
     statusCode: number | null;
     finalUrl: string | null;
@@ -189,6 +190,7 @@ export async function runPresenceAudit(
   const probes: PresenceAuditResult["probes"] = {
     websiteUrl,
     reachable: null,
+    contentAccessible: null,
     https: null,
     statusCode: null,
     finalUrl: null,
@@ -230,16 +232,6 @@ export async function runPresenceAudit(
     growthSignals = 8;
   } else {
     probes.https = websiteUrl.startsWith("https://");
-    if (!probes.https) {
-      findings.push({
-        domain: "identity",
-        severity: "warning",
-        title: "Website is not on HTTPS",
-        detail: "Prospect URL uses HTTP — browsers and AI crawlers treat this as a trust gap.",
-        recommendedAction: "Recommend SSL before any paid digital work.",
-      });
-      websiteHealth -= 15;
-    }
 
     try {
       // This probe is reachable unauthenticated through the public
@@ -260,18 +252,32 @@ export async function runPresenceAudit(
       });
       clearTimeout(timer);
 
-      probes.reachable = res.ok || (res.status >= 200 && res.status < 400);
+      // Any HTTP response proves the host is reachable. Accessibility is
+      // separate so bot protection is not misreported as an outage.
+      probes.reachable = true;
+      probes.contentAccessible = res.ok || (res.status >= 200 && res.status < 400);
       probes.statusCode = res.status;
       probes.finalUrl = res.url;
       probes.https = res.url.startsWith("https://");
 
-      if (!probes.reachable) {
+      if (!probes.https) {
+        findings.push({
+          domain: "identity",
+          severity: "warning",
+          title: "Website is not on HTTPS",
+          detail: "The final website URL uses HTTP — browsers and AI crawlers treat this as a trust gap.",
+          recommendedAction: "Recommend SSL before any paid digital work.",
+        });
+        websiteHealth -= 15;
+      }
+
+      if (!probes.contentAccessible) {
         findings.push({
           domain: "website",
           severity: "critical",
-          title: `Website returned HTTP ${res.status}`,
-          detail: "The prospect site did not respond successfully during the live probe.",
-          recommendedAction: "Confirm the URL or note hosting issues in the opportunity report.",
+          title: `Website content blocked the audit probe (HTTP ${res.status})`,
+          detail: "The website responded, but its content was not accessible to the audit probe. This can reflect bot protection or access controls rather than a website outage.",
+          recommendedAction: "Verify the site in a browser before treating on-page audit signals as missing.",
         });
         websiteHealth = Math.min(websiteHealth, 25);
         conversionReadiness = Math.min(conversionReadiness, 20);
@@ -517,6 +523,7 @@ export async function runPresenceAudit(
       }
     } catch (err) {
       probes.reachable = false;
+      probes.contentAccessible = false;
       probes.error = err instanceof Error ? err.message : "fetch_failed";
       findings.push({
         domain: "website",

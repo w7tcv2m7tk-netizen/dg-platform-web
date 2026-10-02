@@ -10,6 +10,8 @@ import {
 import { ProspectEditControl } from "@/components/prospecting/ProspectingCustomerActions";
 import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
 import { ProspectQualificationActions } from "@/components/prospecting/ProspectQualificationActions";
+import { DecisionMakerResearch } from "@/components/prospecting/DecisionMakerResearch";
+import { ProspectAuditRefresh } from "@/components/prospecting/ProspectAuditRefresh";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 type Finding = { title?: string; detail?: string; domain?: string; severity?: string; observed?: string; interpretation?: string; recommendedAction?: string };
@@ -43,6 +45,9 @@ export default async function ProspectResearchPage({ params }: { params: Promise
     where: { prospectId: prospect.id, prospect: { organisationId: session.organisationId } },
     orderBy: { auditedAt: "desc" },
   });
+  const findings = findingsFrom(audit?.findings);
+  const probes = probesFrom(audit?.findings);
+  const contentAccessible = probes.contentAccessible !== false;
   const score = computeProspectOpportunityScore({
     stage: prospect.stage,
     updatedAt: new Date(prospect.updatedAt),
@@ -51,10 +56,8 @@ export default async function ProspectResearchPage({ params }: { params: Promise
     contactEmail: prospect.contactEmail,
     industry: prospect.industry,
     metadata: prospect.metadata,
-    audit: audit ? { businessHealth: audit.businessHealth, aiVisibility: audit.aiVisibility, seoScore: audit.seoScore, websiteHealth: audit.websiteHealth } : null,
+    audit: audit && contentAccessible ? { businessHealth: audit.businessHealth, aiVisibility: audit.aiVisibility, seoScore: audit.seoScore, websiteHealth: audit.websiteHealth } : null,
   });
-  const findings = findingsFrom(audit?.findings);
-  const probes = probesFrom(audit?.findings);
   const canWrite = sessionHasFeature(session, "prospecting.prospects.write");
   const canQualify = Boolean(prospect.contactName && (prospect.contactPhone || prospect.contactEmail));
   const isResearch = prospect.stage === "audit_created";
@@ -85,7 +88,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               <p><span className="text-slate-500">Phone:</span> <span className="text-slate-200">{prospect.contactPhone || "Not identified"}</span></p>
               <p><span className="text-slate-500">Email:</span> <span className="text-slate-200">{prospect.contactEmail || "Not identified"}</span></p>
             </div>
-            {canWrite ? <div className="mt-4"><ProspectEditControl prospect={prospect} /></div> : null}
+            {canWrite ? <><DecisionMakerResearch prospectId={prospect.id} /><div className="mt-4"><ProspectEditControl prospect={prospect} /></div></> : null}
           </div>
 
           <div className="dg-card">
@@ -98,21 +101,22 @@ export default async function ProspectResearchPage({ params }: { params: Promise
         </section>
 
         <section className="dg-card">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Audit evidence</p>
+          <div className="flex items-center justify-between gap-3"><p className="text-xs uppercase tracking-wide text-slate-500">Audit evidence</p>{canWrite ? <ProspectAuditRefresh prospectId={prospect.id} /> : null}</div>
           {audit ? (
             <>
-              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {!contentAccessible ? <p className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-amber-100">The website responded but blocked the audit probe. On-page health, SEO and AI Visibility scores are withheld because the content could not be verified.</p> : null}
+              {contentAccessible ? <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[["Business Health", audit.businessHealth], ["AI Visibility", audit.aiVisibility], ["SEO", audit.seoScore], ["Website Health", audit.websiteHealth]].map(([label,value]) => (
                   <div key={String(label)} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
                     <p className="text-xs text-slate-500">{label}</p><p className="mt-1 text-xl font-semibold text-white">{value ?? "—"}/100</p>
                   </div>
                 ))}
-              </div>
+              </div> : null}
               <div className="mt-5 grid gap-4 lg:grid-cols-2">
                 <div>
                   <h2 className="text-sm font-semibold text-white">Observed probes</h2>
                   <div className="mt-3 space-y-2 text-xs text-slate-300">
-                    {["finalUrl","reachable","statusCode","https","hasH1","hasMetaDescription","hasForm","hasJsonLd","hasAnalyticsHint"].map((key) => (
+                    {["finalUrl","reachable","contentAccessible","statusCode","https","hasH1","hasMetaDescription","hasForm","hasJsonLd","hasAnalyticsHint"].map((key) => (
                       <div key={key} className="flex justify-between gap-4 border-b border-slate-800/70 pb-2"><span className="text-slate-500">{key}</span><span className="text-right">{displayProbe(probes[key])}</span></div>
                     ))}
                   </div>
@@ -130,7 +134,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
                   </div>
                 </div>
               </div>
-              <p className="mt-4 text-xs text-amber-200/80">Use observed probe results as the primary evidence. Generated finding copy can be stale or contradictory and should be verified before outreach.</p>
+              <p className="mt-4 text-xs text-slate-500">Observed probe results and findings are generated from the same audit run. Verify material claims before using them in outreach.</p>
             </>
           ) : <p className="mt-3 text-sm text-slate-400">No audit has been created for this prospect yet.</p>}
         </section>

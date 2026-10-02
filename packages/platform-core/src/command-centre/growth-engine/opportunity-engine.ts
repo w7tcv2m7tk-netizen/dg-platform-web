@@ -292,6 +292,7 @@ export async function getDailyOpportunityBriefing(options?: {
           aiVisibility: true,
           seoScore: true,
           websiteHealth: true,
+          findings: true,
         },
       },
       engagements: {
@@ -304,7 +305,10 @@ export async function getDailyOpportunityBriefing(options?: {
   const scored = rows
     .map((row) => {
       const stage = row.stage as ProspectPipelineStage;
-      const audit = row.audits[0] ?? null;
+      const rawAudit = row.audits[0] ?? null;
+      const auditFindings = rawAudit?.findings as { probes?: { contentAccessible?: boolean } } | null;
+      // Do not turn blocked/inaccessible HTML into negative SEO/website evidence.
+      const audit = auditFindings?.probes?.contentAccessible === false ? null : rawAudit;
       const report = row.reports[0] ?? null;
       const meta = (row.metadata as Record<string, unknown> | null) ?? null;
       const result = computeProspectOpportunityScore({
