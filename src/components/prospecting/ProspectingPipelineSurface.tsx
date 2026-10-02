@@ -293,7 +293,7 @@ export async function ProspectingPipelineSurface({
                       {items.length === 0 ? (
                         <li className="px-2 py-3 text-xs text-slate-600">{stage.description}</li>
                       ) : (
-                        items.map(({ prospect, score }) => (
+                        items.map(({ prospect, score, workspaceStage }) => (
                           <li
                             key={prospect.id}
                             className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-3"
