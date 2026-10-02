@@ -92,7 +92,8 @@ function mapEngagementKind(type: string): ProspectActivityKind {
   const t = type.toLowerCase();
   if (t.includes("email")) return "email";
   if (t.includes("sms") || t.includes("message")) return "sms";
-  if (t.includes("meeting") || t.includes("call")) return "meeting";
+  if (t.includes("meeting")) return "meeting";
+  if (t.includes("call")) return "call";
   if (t.includes("follow")) return "follow_up";
   if (t.includes("proposal") || t.includes("report")) return "email";
   return "engagement";
@@ -166,6 +167,9 @@ export async function buildProspectingActivityWorkspace(
 
   for (const p of prospects) {
     for (const e of p.engagements) {
+      // Lifecycle bookkeeping belongs in history, but must not masquerade as
+      // human engagement or inflate sales activity.
+      if (["prospect_created", "stage_changed", "audit_created"].includes(e.type)) continue;
       const kind = mapEngagementKind(e.type);
       feed.push({
         id: `eng-${e.id}`,
@@ -244,7 +248,13 @@ export async function buildProspectingActivityWorkspace(
     }
 
     // Synthetic follow-up due when idle
-    if (p.updatedAt <= idleCutoff && p.stage !== "won" && p.stage !== "lost") {
+    const workspaceStage = workspaceStageForProspectStage(p.stage as ProspectPipelineStage);
+    if (
+      p.updatedAt <= idleCutoff &&
+      !["discovered", "researching"].includes(workspaceStage) &&
+      p.stage !== "won" &&
+      p.stage !== "lost"
+    ) {
       const overdueIso = p.updatedAt.toISOString();
       feed.push({
         id: `followup-${p.id}`,
@@ -306,7 +316,10 @@ export async function buildProspectingActivityWorkspace(
       p.updatedAt <= idleCutoff &&
       p.stage !== "won" &&
       p.stage !== "lost" &&
-      p.stage !== "onboarding",
+      p.stage !== "onboarding" &&
+      !["discovered", "researching"].includes(
+        workspaceStageForProspectStage(p.stage as ProspectPipelineStage),
+      ),
   ).length;
 
   let highValueMissingNextAction = 0;
@@ -356,7 +369,10 @@ export async function buildProspectingActivityWorkspace(
       topRecommendation = {
         prospectId: p.id,
         businessName: p.businessName,
-        actionLabel: score.recommendedActionLabel,
+        actionLabel:
+          workspace === "discovered" || workspace === "researching"
+            ? "Research"
+            : score.recommendedActionLabel,
         reason: score.reasons[0] ?? score.approachHint,
       };
     }
