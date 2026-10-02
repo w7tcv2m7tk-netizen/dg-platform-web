@@ -10,6 +10,8 @@ import {
 import { ProspectEditControl } from "@/components/prospecting/ProspectingCustomerActions";
 import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
 import { ProspectQualificationActions } from "@/components/prospecting/ProspectQualificationActions";
+import { DecisionMakerResearch } from "@/components/prospecting/DecisionMakerResearch";
+import { ProspectAuditRefresh } from "@/components/prospecting/ProspectAuditRefresh";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 type Finding = { title?: string; detail?: string; domain?: string; severity?: string; observed?: string; interpretation?: string; recommendedAction?: string };
@@ -85,7 +87,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               <p><span className="text-slate-500">Phone:</span> <span className="text-slate-200">{prospect.contactPhone || "Not identified"}</span></p>
               <p><span className="text-slate-500">Email:</span> <span className="text-slate-200">{prospect.contactEmail || "Not identified"}</span></p>
             </div>
-            {canWrite ? <div className="mt-4"><ProspectEditControl prospect={prospect} /></div> : null}
+            {canWrite ? <><DecisionMakerResearch prospectId={prospect.id} /><div className="mt-4"><ProspectEditControl prospect={prospect} /></div></> : null}
           </div>
 
           <div className="dg-card">
@@ -98,7 +100,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
         </section>
 
         <section className="dg-card">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Audit evidence</p>
+          <div className="flex items-center justify-between gap-3"><p className="text-xs uppercase tracking-wide text-slate-500">Audit evidence</p>{canWrite ? <ProspectAuditRefresh prospectId={prospect.id} /> : null}</div>
           {audit ? (
             <>
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -112,7 +114,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
                 <div>
                   <h2 className="text-sm font-semibold text-white">Observed probes</h2>
                   <div className="mt-3 space-y-2 text-xs text-slate-300">
-                    {["finalUrl","reachable","statusCode","https","hasH1","hasMetaDescription","hasForm","hasJsonLd","hasAnalyticsHint"].map((key) => (
+                    {["finalUrl","reachable","contentAccessible","statusCode","https","hasH1","hasMetaDescription","hasForm","hasJsonLd","hasAnalyticsHint"].map((key) => (
                       <div key={key} className="flex justify-between gap-4 border-b border-slate-800/70 pb-2"><span className="text-slate-500">{key}</span><span className="text-right">{displayProbe(probes[key])}</span></div>
                     ))}
                   </div>
@@ -130,7 +132,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
                   </div>
                 </div>
               </div>
-              <p className="mt-4 text-xs text-amber-200/80">Use observed probe results as the primary evidence. Generated finding copy can be stale or contradictory and should be verified before outreach.</p>
+              <p className="mt-4 text-xs text-slate-500">Observed probe results and findings are generated from the same audit run. Verify material claims before using them in outreach.</p>
             </>
           ) : <p className="mt-3 text-sm text-slate-400">No audit has been created for this prospect yet.</p>}
         </section>
