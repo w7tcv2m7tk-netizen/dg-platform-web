@@ -44,6 +44,7 @@ type AuditLite = {
   aiVisibility: number | null;
   seoScore: number | null;
   websiteHealth: number | null;
+  findings: unknown;
 };
 
 export async function ProspectingPipelineSurface({
@@ -86,6 +87,7 @@ export async function ProspectingPipelineSurface({
         aiVisibility: true,
         seoScore: true,
         websiteHealth: true,
+        findings: true,
       },
     });
     for (const a of audits) {
@@ -95,7 +97,9 @@ export async function ProspectingPipelineSurface({
   }
 
   const enriched = prospects.map((prospect) => {
-    const audit = auditsByProspect.get(prospect.id) ?? null;
+    const rawAudit = auditsByProspect.get(prospect.id) ?? null;
+    const auditFindings = rawAudit?.findings as { probes?: { contentAccessible?: boolean } } | null;
+    const audit = auditFindings?.probes?.contentAccessible === false ? null : rawAudit;
     const score = computeProspectOpportunityScore({
       stage: prospect.stage,
       updatedAt: new Date(prospect.updatedAt),
@@ -289,7 +293,7 @@ export async function ProspectingPipelineSurface({
                       {items.length === 0 ? (
                         <li className="px-2 py-3 text-xs text-slate-600">{stage.description}</li>
                       ) : (
-                        items.map(({ prospect, score }) => (
+                        items.map(({ prospect, score, workspaceStage }) => (
                           <li
                             key={prospect.id}
                             className="rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-3"
@@ -301,10 +305,10 @@ export async function ProspectingPipelineSurface({
 
                             <div className="mt-2 flex flex-wrap items-baseline gap-2">
                               <span className="text-sm font-semibold text-sky-300">
-                                Opportunity Score™ {score.score}
+                                {workspaceStage === "researching" ? "Research priority" : "Opportunity Score™"} {score.score}
                               </span>
                               <span className="text-xs text-amber-200/90">
-                                {bandEmoji(score.band)} {score.bandLabel} opportunity
+                                {bandEmoji(score.band)} {score.bandLabel}{workspaceStage === "researching" ? "" : " opportunity"}
                               </span>
                             </div>
 
@@ -331,15 +335,15 @@ export async function ProspectingPipelineSurface({
                                 >
                                   View
                                 </Link>
-                                {prospect.contactPhone || prospect.contactEmail ? (
+                                {workspaceStage !== "researching" && workspaceStage !== "discovered" && (prospect.contactPhone || prospect.contactEmail) ? (
                                   <a
                                     href={prospect.contactPhone ? `tel:${prospect.contactPhone}` : `mailto:${prospect.contactEmail}`}
                                     className="rounded-md border border-emerald-700/50 px-2 py-1 text-[11px] text-emerald-300 hover:border-emerald-500"
                                   >
                                     Contact
                                   </a>
-                                ) : canWrite ? (
-                                  <ProspectAuditButton prospectId={prospect.id} label="Enrich" />
+                                ) : canWrite && workspaceStage === "discovered" ? (
+                                  <ProspectAuditButton prospectId={prospect.id} label="Audit" />
                                 ) : null}
                                 {canWrite ? (
                                   <>

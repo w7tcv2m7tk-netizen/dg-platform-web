@@ -240,9 +240,9 @@ export async function buildProspectingActivityWorkspace(
           audit.businessHealth != null
             ? `Business Health ${audit.businessHealth}/100`
             : "Digital presence signals captured.",
-        nextAction: "Review Opportunity Score",
-        ctaLabel: "Scores",
-        ctaHref: "/apps/prospecting/scores",
+        nextAction: p.stage === "audit_created" ? "Review research and qualify" : "Review audit",
+        ctaLabel: p.stage === "audit_created" ? "Research" : "View",
+        ctaHref: `/apps/prospecting/prospects/${p.id}`,
         source: "audit",
       });
     }
@@ -328,7 +328,9 @@ export async function buildProspectingActivityWorkspace(
 
   for (const p of prospects) {
     if (p.stage === "won" || p.stage === "lost") continue;
-    const audit = p.audits[0];
+    const rawAudit = p.audits[0];
+    const auditFindings = rawAudit?.findings as { probes?: { contentAccessible?: boolean } } | null;
+    const audit = auditFindings?.probes?.contentAccessible === false ? null : rawAudit;
     const score = computeProspectOpportunityScore({
       stage: p.stage as ProspectPipelineStage,
       updatedAt: p.updatedAt,
