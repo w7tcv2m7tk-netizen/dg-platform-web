@@ -177,6 +177,7 @@ export interface SalesCallRecommendation {
 export type OpportunityBand = "very_high" | "high" | "medium" | "low";
 
 export type OpportunityRecommendedAction =
+  | "research"
   | "run_audit"
   | "send_audit"
   | "call_today"
