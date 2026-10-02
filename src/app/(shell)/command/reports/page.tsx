@@ -6,6 +6,7 @@ import {
 } from "@dg/platform-core";
 
 import { OperatorDataUnavailable } from "@/components/command/OperatorDataUnavailable";
+import { OperatorCategoryHeader } from "@/components/command/OperatorCategoryHeader";
 import { ScoreCell, TierBadge } from "@/components/command/tier-badge";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
@@ -34,17 +35,7 @@ export default async function CommandReportsPage({ searchParams }: PageProps) {
   return (
     <>
       <header className="dg-page-header">
-        <Link
-          href="/command"
-          className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline"
-        >
-          ← Command Centre
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-white">Growth Reports</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Period executive snapshots from live platform aggregates — leads, activity, listings and
-          invoices.
-        </p>
+        <OperatorCategoryHeader eyebrow="Command Centre" title="Growth Reports" question="Period executive snapshots from live platform aggregates — leads, activity, listings and invoices." backHref="/command" backLabel="Command Centre" />
       </header>
       <main className="dg-page-main space-y-8">
         <div className="flex flex-wrap gap-2">
