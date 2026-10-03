@@ -119,11 +119,14 @@ function decodeCloudflareEmail(encoded: string | null | undefined): string | nul
 }
 
 function expandProtectedEmails(html: string): string {
+  // Cloudflare may put data-cfemail on the anchor itself or on a nested
+  // <span class="__cf_email__"> while the anchor only carries the
+  // /cdn-cgi/l/email-protection href. Decode either form.
   return html.replace(
     /<a\b([^>]*?)href=["'][^"']*\/cdn-cgi\/l\/email-protection[^"']*["']([^>]*)>([\s\S]*?)<\/a>/gi,
-    (full, before, after) => {
-      const attrs = `${before} ${after}`;
-      const encoded = attrs.match(/data-cfemail=["']([0-9a-f]+)["']/i)?.[1] ?? null;
+    (full, before, after, inner) => {
+      const attrsAndInner = `${before} ${after} ${inner}`;
+      const encoded = attrsAndInner.match(/data-cfemail=["']([0-9a-f]+)["']/i)?.[1] ?? null;
       const email = decodeCloudflareEmail(encoded);
       return email ? `<a href="mailto:${email}">${email}</a>` : full;
     }
