@@ -73,7 +73,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
             <p className="mt-1 text-sm text-slate-400">{[prospect.industry, prospect.location].filter(Boolean).join(" · ") || "Business details incomplete"}</p>
           </div>
           <div className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-right">
-            <p className="text-xs uppercase tracking-wide text-violet-200">Research priority</p>
+            <p className="text-xs uppercase tracking-wide text-violet-200">{score.contactPriority != null ? "Contact priority" : "Research priority"}</p>
             <p className="mt-1 text-2xl font-semibold text-white">{score.score}</p>
             <p className="text-xs text-slate-400">{score.bandLabel}</p>
           </div>
@@ -96,7 +96,16 @@ export default async function ProspectResearchPage({ params }: { params: Promise
             <ul className="mt-4 space-y-2 text-sm text-slate-300">
               {score.reasons.length ? score.reasons.map((reason) => <li key={reason}>• {reason}</li>) : <li>No scored fit reasons available yet.</li>}
             </ul>
-            <p className="mt-4 text-xs text-slate-500">Priority score helps order research. It does not qualify the business automatically.</p>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+                {[["Fit", score.fitScore], ["Opportunity", score.opportunityScore], ["Confidence", score.researchConfidence]].map(([label, value]) => (
+                  <div key={String(label)} className="rounded-lg border border-slate-800 bg-slate-950/40 p-2 text-center">
+                    <p className="text-[10px] uppercase tracking-wide text-slate-500">{label}</p>
+                    <p className="mt-1 text-base font-semibold text-white">{value}</p>
+                  </div>
+                ))}
+              </div>
+              {score.penalties.length ? <div className="mt-3 space-y-1 text-xs text-amber-200">{score.penalties.map((penalty) => <p key={penalty}>− {penalty}</p>)}</div> : null}
+              <p className="mt-4 text-xs text-slate-500">Scoring v2 is explainable and lifecycle-aware. Research Priority orders investigation; Contact Priority is only available after qualification.</p>
           </div>
         </section>
 

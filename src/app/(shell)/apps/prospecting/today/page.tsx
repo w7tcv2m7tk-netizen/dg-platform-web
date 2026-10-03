@@ -14,7 +14,7 @@ export default async function ProspectingTodayPage() {
   if (!process.env.DATABASE_URL) {
     return (
       <>
-        <ProspectingPageHeader title="Today" description="Your prioritised next-best-action workflow for today." />
+        <ProspectingPageHeader title="Today" description="Your Daily Top 3 — qualified prospects first, with research work kept separate from outreach." />
         <main className="dg-page-main"><p className="text-sm text-amber-200">Prospecting is temporarily unavailable.</p></main>
       </>
     );
@@ -25,7 +25,7 @@ export default async function ProspectingTodayPage() {
     listGrowthProspects({ organisationId: session.organisationId, limit: 200 }),
   ]);
   const prospectById = new Map(prospects.map((p) => [p.id, p]));
-  const rows = briefing.rows.map((row) => {
+  const allRows = briefing.rows.map((row) => {
     const prospect = prospectById.get(row.prospectId);
     return {
       ...row,
@@ -35,12 +35,16 @@ export default async function ProspectingTodayPage() {
     };
   });
 
+  const contactRows = allRows.filter((row) => row.stage === "qualified").slice(0, 3);
+  const researchRows = allRows.filter((row) => row.stage === "audit_created").slice(0, Math.max(0, 3 - contactRows.length));
+  const rows = contactRows.length ? contactRows : researchRows;
+
   return (
     <>
       <ProspectingPageHeader title="Today" description="Your prioritised next-best-action workflow for today." />
       <main className="dg-page-main space-y-5">
         <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Metric label="Recommended" value={briefing.recommendedCount} />
+          <Metric label="Top 3 ready" value={contactRows.length} />
           <Metric label="Contacted today" value={briefing.contactedToday} />
           <Metric label="Conversations" value={briefing.conversations} />
           <Metric label="Meetings" value={briefing.meetingsBooked} />
