@@ -13,6 +13,7 @@ type Row = {
   recommendedActionLabel: string;
   reasons: string[];
   approachHint: string;
+  businessHealthScore: number | null;
   contactPhone: string | null;
   contactEmail: string | null;
   contactName: string | null;
@@ -70,11 +71,41 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   // just because an older audit/recommendation field still says research or run_audit.
   const needsResearch = active.stage !== "qualified";
   const decisionMaker = active.contactName || "the decision-maker";
-  const opportunitySignals = active.reasons.filter((reason) =>
-    /opportunity|health|seo|visibility|website|conversion|lead|automation|crm/i.test(reason),
-  );
-  const primaryOpportunity = opportunitySignals[0] || active.reasons[0] || "a measurable digital growth opportunity";
-  const openingLine = `Hi ${active.contactName?.split(/\\s+/)[0] || "there"}, Ben Roe from DigitalGate. I was reviewing ${active.businessName} and noticed ${primaryOpportunity.replace(/^[^—]+—\\s*/, "").replace(/^[A-Z]/, (c) => c.toLowerCase())}. I thought it was worth a quick conversation rather than sending you a generic pitch.`;
+  const firstName = active.contactName?.trim().split(/\\s+/)[0] || "there";
+  const signalText = active.reasons.join(" ");
+  const readScore = (label: string) => {
+    const match = signalText.match(new RegExp(`${label}\\\\s+(\\\\d+)\\\\/100`, "i"));
+    return match ? Number(match[1]) : null;
+  };
+  const seoScore = readScore("SEO");
+  const aiVisibilityScore = readScore("AI Visibility");
+  const websiteHealthScore = readScore("Website Health");
+  const evidence = [
+    seoScore != null && seoScore < 55 ? `SEO visibility is ${seoScore}/100, indicating material organic-search headroom.` : null,
+    aiVisibilityScore != null && aiVisibilityScore < 50 ? `AI Visibility is ${aiVisibilityScore}/100, so the business has limited visibility in AI-assisted discovery.` : null,
+    websiteHealthScore != null && websiteHealthScore < 60 ? `Website Health is ${websiteHealthScore}/100, suggesting website and conversion improvements are worth exploring.` : null,
+    active.businessHealthScore != null && active.businessHealthScore < 60
+      ? `The wider audit identified several digital fundamentals that can be improved.`
+      : null,
+  ].filter((item): item is string => Boolean(item));
+  const strongestEvidence = evidence[0] || "The audit identified measurable digital visibility and growth opportunities.";
+  const opportunityParts = [
+    seoScore != null && seoScore < 55 ? "strengthen organic search visibility and the path from search to enquiry" : null,
+    aiVisibilityScore != null && aiVisibilityScore < 50 ? "improve how the business is understood and surfaced by AI/search systems" : null,
+    websiteHealthScore != null && websiteHealthScore < 60 ? "improve website conversion readiness" : null,
+  ].filter(Boolean);
+  const digitalGateOpportunity = opportunityParts.length
+    ? `Explore whether DigitalGate can help ${opportunityParts.join(", ")} while connecting lead follow-up into one operating workflow.`
+    : "Use the audit evidence to identify the highest-value visibility, lead-generation or follow-up gap before recommending a DigitalGate capability.";
+  const openingObservation =
+    seoScore != null && aiVisibilityScore != null
+      ? `your search visibility and AI visibility both have quite a bit of room to improve`
+      : seoScore != null
+        ? `there appears to be meaningful room to improve how the business is found organically`
+        : aiVisibilityScore != null
+          ? `there appears to be meaningful room to improve how the business is surfaced in AI-assisted search`
+          : "I spotted a couple of practical digital visibility opportunities";
+  const openingLine = `Hi ${firstName}, Ben Roe from DigitalGate. I was looking at ${active.businessName} and noticed ${openingObservation}. I have a couple of specific observations that may be useful — have you got a minute?`;
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -102,7 +133,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
 
         <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/55 p-3">
           <p className="text-xs uppercase tracking-wide text-slate-500">{needsResearch ? "Research brief" : "Contact brief"}</p>
-          <p className="mt-1 text-sm text-slate-300">{active.approachHint}</p>
+          <p className="mt-1 text-sm text-slate-300">{needsResearch ? active.approachHint : digitalGateOpportunity}</p>
           {needsResearch ? (
             <p className="mt-3 text-xs text-slate-500">
               Review the evidence, confirm the decision-maker and assess fit. Qualify the prospect before any outreach.
@@ -160,12 +191,12 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
             <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
               <p className="text-xs uppercase tracking-wide text-slate-500">Evidence to lead with</p>
               <ul className="mt-2 space-y-1 text-sm text-slate-300">
-                {active.reasons.slice(0, 4).map((reason) => <li key={reason}>• {reason}</li>)}
+                {evidence.slice(0, 4).map((item) => <li key={item}>• {item}</li>)}
               </ul>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
               <p className="text-xs uppercase tracking-wide text-slate-500">DigitalGate opportunity</p>
-              <p className="mt-2 text-sm text-slate-300">{active.approachHint}</p>
+              <p className="mt-2 text-sm text-slate-300">{digitalGateOpportunity}</p>
               <p className="mt-2 text-xs text-slate-500">Use the evidence to open the conversation; only introduce the relevant DigitalGate capability after confirming the problem matters to them.</p>
             </div>
           </div>
@@ -179,18 +210,19 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
             <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
               <p className="text-xs uppercase tracking-wide text-slate-500">Talking points</p>
               <ul className="mt-2 space-y-1 text-sm text-slate-300">
-                <li>• Confirm whether the observed issue is a current priority.</li>
-                <li>• Ask how leads, follow-up and customer activity are handled today.</li>
-                <li>• Connect only the relevant DigitalGate capability to the confirmed gap.</li>
-                <li>• Aim for a short Platform Consultation, not a full first-call demo.</li>
+                <li>• Lead with: {strongestEvidence}</li>
+                <li>• Ask: “How important is improving online enquiry volume for you over the next 6–12 months?”</li>
+                <li>• Ask: “What happens today from a new website or portal enquiry through to follow-up?”</li>
+                <li>• Ask: “Are SEO, AI visibility and lead follow-up managed together, or through separate systems/providers?”</li>
+                <li>• Goal: earn a short Platform Consultation to review the evidence and relevant DigitalGate capabilities.</li>
               </ul>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
               <p className="text-xs uppercase tracking-wide text-slate-500">Likely objections</p>
               <ul className="mt-2 space-y-1 text-sm text-slate-300">
-                <li>• “We already have systems.” — Ask what is still manual or disconnected.</li>
-                <li>• “Just send information.” — Offer a concise evidence summary specific to their business.</li>
-                <li>• “Not a priority.” — Ask when it would be useful to revisit and log the timing.</li>
+                <li>• “We already have systems.” — “Absolutely — I’m not suggesting replacing something that works. I’m interested in whether visibility, enquiry handling or follow-up still has any gaps.”</li>
+                <li>• “Just send information.” — Send the specific observations from the audit, not a generic DigitalGate brochure, and agree a time to follow up.</li>
+                <li>• “Not a priority.” — Ask whether the timing is the issue or whether the opportunity itself is not relevant, then record the answer.</li>
               </ul>
             </div>
           </div>
