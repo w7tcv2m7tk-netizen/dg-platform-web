@@ -18,6 +18,7 @@ import type {
 const ACTIVE_STAGES: ProspectPipelineStage[] = [
   "prospect",
   "audit_created",
+  "qualified",
   "report_sent",
   "email_opened",
   "report_viewed",
@@ -290,7 +291,14 @@ export async function getDailyOpportunityBriefing(options?: {
       });
       return { row, stage, audit, report, result };
     })
-    .sort((a, b) => b.result.score - a.result.score)
+    .sort((a, b) => {
+      // Canonical readiness rule: qualified + contactable + sufficient evidence
+      // always outranks research work. All prospecting surfaces consume this briefing.
+      if (a.result.dailyTop3Eligible !== b.result.dailyTop3Eligible) {
+        return a.result.dailyTop3Eligible ? -1 : 1;
+      }
+      return b.result.score - a.result.score;
+    })
     .slice(0, limit);
 
   const dailyRows: DailyOpportunityRow[] = scored.map((item, index) => ({
