@@ -373,8 +373,25 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
       const html = (await res.text()).slice(0, 1_000_000);
       for (const candidate of extractCandidates(html, res.url || url)) {
         const existing = candidates.find((x) => x.name?.toLowerCase() === candidate.name?.toLowerCase());
-        if (!existing) candidates.push(candidate);
-        else if (candidate.rank > existing.rank) Object.assign(existing, candidate);
+        if (!existing) {
+          candidates.push(candidate);
+          continue;
+        }
+        // The same person can be evidenced across separate crawled pages (for
+        // example a team listing may expose email while an individual profile
+        // provides stronger identity, mobile and photo evidence). Preserve
+        // complementary verified fields across pages instead of allowing the
+        // higher-ranked page to erase fields it does not contain.
+        const preferred = candidate.rank > existing.rank ? candidate : existing;
+        const supporting = preferred === candidate ? existing : candidate;
+        Object.assign(existing, preferred, {
+          email: preferred.email ?? supporting.email ?? null,
+          phone: preferred.phone ?? supporting.phone ?? null,
+          imageUrl: preferred.imageUrl ?? supporting.imageUrl ?? null,
+          role: preferred.role ?? supporting.role ?? null,
+          confidence: preferred.confidence === "high" || supporting.confidence === "high" ? "high" : preferred.confidence,
+          rank: Math.max(existing.rank, candidate.rank),
+        });
       }
       if (i === 0) {
         for (const match of html.matchAll(/href=["\']([^"\']+)["\']/gi)) {
