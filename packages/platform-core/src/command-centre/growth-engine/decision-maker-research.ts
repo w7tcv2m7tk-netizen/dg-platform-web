@@ -206,7 +206,17 @@ function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCan
     ?? visibleMobiles[0]
     ?? localTels.find(value => !genericPhone.test(value.replace(/\D/g, "")))
     ?? null;
-  const email = localEmails.find(e => !/^(info|admin|support|hello|office|sales|rentals?)@/i.test(e)) ?? null;
+  const localVisibleEmails = [...localText.matchAll(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi)]
+    .map(m => validEmail(m[0])).filter(Boolean) as string[];
+  const decodedProfile = decodeEntities(top)
+    .replace(/&#64;|&commat;/gi, "@")
+    .replace(/\s+(?:\[at\]|\(at\))\s+/gi, "@")
+    .replace(/\s+(?:\[dot\]|\(dot\))\s+/gi, ".");
+  const profileVisibleEmails = [...decodedProfile.matchAll(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi)]
+    .map(m => validEmail(m[0])).filter(Boolean) as string[];
+  const isGenericEmail = (value: string) => /^(info|admin|support|hello|office|sales|rentals?)@/i.test(value);
+  const email = [...localEmails, ...localVisibleEmails, ...profileVisibleEmails]
+    .find(value => !isGenericEmail(value)) ?? null;
   if (!email && !phone) return null;
 
   const localImages = [...local.matchAll(/<img\b[^>]*(?:src|data-src|data-lazy-src)=["']([^"']+)["'][^>]*>/gi)]
