@@ -14,6 +14,10 @@ type Row = {
   reasons: string[];
   approachHint: string;
   businessHealthScore: number | null;
+  seoScore: number | null;
+  aiVisibilityScore: number | null;
+  websiteHealthScore: number | null;
+  auditFindings: Array<{ title: string; detail: string }>;
   contactPhone: string | null;
   contactEmail: string | null;
   contactName: string | null;
@@ -72,20 +76,18 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const needsResearch = active.stage !== "qualified";
   const decisionMaker = active.contactName || "the decision-maker";
   const firstName = active.contactName?.trim().split(/\\s+/)[0] || "there";
-  const signalText = active.reasons.join(" ");
-  const readScore = (label: string) => {
-    const match = signalText.match(new RegExp(`${label}\\\\s+(\\\\d+)\\\\/100`, "i"));
-    return match ? Number(match[1]) : null;
-  };
-  const seoScore = readScore("SEO");
-  const aiVisibilityScore = readScore("AI Visibility");
-  const websiteHealthScore = readScore("Website Health");
+  const seoScore = active.seoScore;
+  const aiVisibilityScore = active.aiVisibilityScore;
+  const websiteHealthScore = active.websiteHealthScore;
   const evidence = [
     seoScore != null && seoScore < 55 ? `SEO visibility is ${seoScore}/100, indicating material organic-search headroom.` : null,
     aiVisibilityScore != null && aiVisibilityScore < 50 ? `AI Visibility is ${aiVisibilityScore}/100, so the business has limited visibility in AI-assisted discovery.` : null,
     websiteHealthScore != null && websiteHealthScore < 60 ? `Website Health is ${websiteHealthScore}/100, suggesting website and conversion improvements are worth exploring.` : null,
+    ...active.auditFindings.slice(0, 3).map((finding) =>
+      finding.detail ? `${finding.title} — ${finding.detail}` : finding.title,
+    ),
     active.businessHealthScore != null && active.businessHealthScore < 60
-      ? `The wider audit identified several digital fundamentals that can be improved.`
+      ? `Business Health is ${active.businessHealthScore}/100, confirming measurable improvement headroom.`
       : null,
   ].filter((item): item is string => Boolean(item));
   const strongestEvidence = evidence[0] || "The audit identified measurable digital visibility and growth opportunities.";
@@ -108,8 +110,9 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const openingLine = `Hi ${firstName}, Ben Roe from DigitalGate. I was looking at ${active.businessName} and noticed ${openingObservation}. I have a couple of specific observations that may be useful — have you got a minute?`;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <section className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 sm:p-5">
+    <div className="w-full space-y-4">
+      <div className={showBrief && !needsResearch ? "grid w-full items-start gap-5 lg:grid-cols-[minmax(340px,0.8fr)_minmax(0,1.4fr)] xl:gap-6" : "mx-auto max-w-3xl"}>
+        <section className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">Do this next</p>
@@ -177,7 +180,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
       </section>
 
       {showBrief && !needsResearch ? (
-        <section className="rounded-2xl border border-violet-500/25 bg-slate-950/70 p-4 sm:p-5">
+        <section className="rounded-2xl border border-violet-500/25 bg-slate-950/70 p-4 sm:p-5 lg:sticky lg:top-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">Contact brief</p>
@@ -228,6 +231,8 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
           </div>
         </section>
       ) : null}
+
+      </div>
 
       {showLog ? (
         <section className="rounded-2xl border border-slate-700 bg-slate-950 p-4">

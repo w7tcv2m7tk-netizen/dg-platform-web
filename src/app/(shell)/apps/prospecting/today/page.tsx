@@ -32,6 +32,10 @@ export default async function ProspectingTodayPage() {
       contactName: prospect?.contactName ?? null,
       industry: prospect?.industry ?? null,
       location: prospect?.location ?? null,
+      seoScore: prospect?.seoScore ?? null,
+      aiVisibilityScore: prospect?.aiVisibilityScore ?? null,
+      websiteHealthScore: prospect?.websiteHealthScore ?? null,
+      auditFindings: prospect?.auditFindings ?? null,
     };
   });
 
