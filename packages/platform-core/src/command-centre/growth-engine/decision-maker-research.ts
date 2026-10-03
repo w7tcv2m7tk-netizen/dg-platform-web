@@ -222,7 +222,15 @@ function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCan
   const rawNameAt = top.toLowerCase().indexOf(heading.toLowerCase());
   const rawRoleAt = top.toLowerCase().indexOf(role.toLowerCase(), Math.max(0, rawNameAt));
   const rawAnchor = Math.max(rawNameAt, rawRoleAt, 0);
-  const local = top.slice(Math.max(0, rawAnchor - 2500), Math.min(top.length, rawAnchor + 9000));
+  // Decode public email-protection markup on the individual profile itself
+  // before extracting local contact details. The profile path is authoritative
+  // for this candidate and may use Cloudflare obfuscation independently of the
+  // team listing.
+  const expandedTop = expandProtectedEmails(top);
+  const expandedRawNameAt = expandedTop.toLowerCase().indexOf(heading.toLowerCase());
+  const expandedRawRoleAt = expandedTop.toLowerCase().indexOf(role.toLowerCase(), Math.max(0, expandedRawNameAt));
+  const expandedAnchor = Math.max(expandedRawNameAt, expandedRawRoleAt, 0);
+  const local = expandedTop.slice(Math.max(0, expandedAnchor - 2500), Math.min(expandedTop.length, expandedAnchor + 9000));
 
   const localEmails = [...local.matchAll(/href=["']\s*mailto:([^"'?#>]+)["']/gi)]
     .map(m => validEmail(decodeHref(m[1] || ""))).filter(Boolean) as string[];
@@ -239,7 +247,7 @@ function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCan
     ?? null;
   const localVisibleEmails = [...localText.matchAll(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi)]
     .map(m => validEmail(m[0])).filter(Boolean) as string[];
-  const decodedProfile = decodeEntities(top)
+  const decodedProfile = decodeEntities(expandedTop)
     .replace(/&#64;|&commat;/gi, "@")
     .replace(/\s+(?:\[at\]|\(at\))\s+/gi, "@")
     .replace(/\s+(?:\[dot\]|\(dot\))\s+/gi, ".");
