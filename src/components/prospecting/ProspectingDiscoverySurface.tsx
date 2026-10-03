@@ -246,141 +246,24 @@ export async function ProspectingDiscoverySurface({
           </div>
         </section>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-          <div id="add-prospect" className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
-            <h2 className="font-semibold text-white">Add prospect</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Add a business directly when you already know who you want to pursue.
-            </p>
-            <div className="mt-4">
-              <CreateProspectForm pipelineHref={pipelineHref} />
+        {variant === "command" ? (
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+            <div id="add-prospect" className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
+              <h2 className="font-semibold text-white">Add prospect</h2>
+              <p className="mt-1 text-sm text-slate-400">Add a business directly when you already know who you want to pursue.</p>
+              <div className="mt-4"><CreateProspectForm pipelineHref={pipelineHref} /></div>
             </div>
-          </div>
-
-          <div id="prospect-book" className="scroll-mt-24 space-y-4">
-            <div>
+            <div className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
               <h2 className="font-semibold text-white">Prospect book</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Businesses you are researching and actively working.
-              </p>
+              <p className="mt-1 text-sm text-slate-400">Open the prospect workspace to manage businesses already being researched or worked.</p>
+              <Link href={hubHref} className="mt-3 inline-flex text-sm text-sky-400 hover:underline">Open prospect workspace →</Link>
             </div>
-            <form className="grid gap-3 sm:grid-cols-3" method="get">
-              {showArchived ? <input type="hidden" name="archived" value="1" /> : null}
-              {mode ? <input type="hidden" name="mode" value={mode} /> : null}
-              <label className="block text-sm">
-                <span className="text-slate-400">Filter book</span>
-                <input
-                  name="q"
-                  defaultValue={searchParams.q ?? ""}
-                  placeholder="Name or site"
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-                />
-              </label>
-              <label className="block text-sm">
-                <span className="text-slate-400">Industry</span>
-                <input
-                  name="industry"
-                  defaultValue={searchParams.industry ?? ""}
-                  placeholder="Real estate"
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-                />
-              </label>
-              <label className="block text-sm">
-                <span className="text-slate-400">Location</span>
-                <input
-                  name="location"
-                  defaultValue={searchParams.location ?? ""}
-                  placeholder="Gold Coast"
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white"
-                />
-              </label>
-              <div className="sm:col-span-3">
-                <button
-                  type="submit"
-                  className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
-                >
-                  Filter
-                </button>
-              </div>
-            </form>
-
-            {!process.env.DATABASE_URL ? (
-              <p className="text-sm text-amber-200">DATABASE_URL required to list prospects.</p>
-            ) : filtered.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-700 px-5 py-8">
-                {all.length === 0 ? (
-                  showArchived ? (
-                    <p className="text-sm text-slate-500">No archived prospects.</p>
-                  ) : (
-                    <div className="space-y-2 text-sm text-slate-400">
-                      <p className="font-medium text-slate-200">Your prospect book is empty.</p>
-                      <p>
-                        Discover businesses using Location, Industry or AI Visibility search, or add
-                        a prospect.
-                      </p>
-                      <p className="text-slate-500">
-                        Research promising businesses, qualify the opportunity and move the best ones into your sales workflow.
-                      </p>
-                    </div>
-                  )
-                ) : (
-                  <p className="text-sm text-slate-500">No prospects match these filters.</p>
-                )}
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {filtered.map((prospect) => (
-                  <li
-                    key={prospect.id}
-                    className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-4 py-3"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium text-white">{prospect.businessName}</p>
-                        <p className="mt-1 text-xs text-slate-500">
-                          {GROWTH_ENGINE_STAGE_LABELS[prospect.stage] ?? prospect.stage}
-                          {[prospect.industry, prospect.location]
-                            .filter(Boolean)
-                            .map((v) => ` · ${v}`)
-                            .join("")}
-                          {prospect.archivedAt ? " · Archived" : ""}
-                        </p>
-                        {[prospect.contactName, prospect.contactEmail, prospect.contactPhone]
-                          .filter(Boolean)
-                          .length > 0 ? (
-                          <p className="mt-1 text-xs text-slate-600">
-                            {[prospect.contactName, prospect.contactEmail, prospect.contactPhone]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </p>
-                        ) : null}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {!showArchived ? (
-                          <>
-                            <EditProspectForm prospect={prospect} />
-                            <Link
-                              href={pipelineHref}
-                              className="text-xs text-sky-400 hover:underline"
-                            >
-                              Pipeline
-                            </Link>
-                            <RunProspectAuditButton prospectId={prospect.id} label="Audit" />
-                          </>
-                        ) : null}
-                        <ArchiveProspectButton
-                          prospectId={prospect.id}
-                          businessName={prospect.businessName}
-                          archived={showArchived}
-                        />
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
-        </div>
+        ) : (
+          <div className="flex justify-end">
+            <Link href="/apps/prospecting/prospects" className="text-sm text-sky-400 hover:underline">Manage existing prospects →</Link>
+          </div>
+        )}
       </main>
     </>
   );
