@@ -108,27 +108,34 @@ function leadershipRoleFromText(text: string) {
 }
 function cardCandidates(html: string, sourceUrl: string): DecisionMakerCandidate[] {
   const out: DecisionMakerCandidate[] = [];
-  // Team sites vary wildly in markup. Anchor each candidate on a direct public
-  // email, then inspect the containing card/list/article or a bounded local block.
-  for (const emailMatch of html.matchAll(/href=["']\s*mailto:([^"'?#>]+)["']/gi)) {
+  // Team sites vary wildly in markup. Normalise visible public emails into
+  // mailto anchors for extraction as some CMS templates render the address as
+  // text rather than a clickable link.
+  const normalisedHtml = html.replace(
+    /(?<!mailto:)(\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b)/gi,
+    '<a href="mailto:$1">$1</a>'
+  );
+  // Anchor each candidate on a direct public email, then inspect the containing
+  // card/list/article or a bounded local block.
+  for (const emailMatch of normalisedHtml.matchAll(/href=["']\s*mailto:([^"'?#>]+)["']/gi)) {
     const emailIndex = emailMatch.index ?? 0;
     const email = validEmail(decodeHref(emailMatch[1] || ""));
     if (!email) continue;
 
-    const openTags = [...html.slice(Math.max(0, emailIndex - 9000), emailIndex).matchAll(/<(article|li|section|div)\b[^>]*>/gi)];
+    const openTags = [...normalisedHtml.slice(Math.max(0, emailIndex - 9000), emailIndex).matchAll(/<(article|li|section|div)\b[^>]*>/gi)];
     let blockStart = Math.max(0, emailIndex - 3500);
-    let blockEnd = Math.min(html.length, emailIndex + 1800);
+    let blockEnd = Math.min(normalisedHtml.length, emailIndex + 1800);
     for (const tag of openTags.reverse()) {
       const tagName = (tag[1] || "").toLowerCase();
       const absoluteStart = Math.max(0, emailIndex - 9000) + (tag.index ?? 0);
-      const close = html.indexOf(`</${tagName}>`, emailIndex);
+      const close = normalisedHtml.indexOf(`</${tagName}>`, emailIndex);
       if (close > emailIndex && close - absoluteStart <= 12000) {
         blockStart = absoluteStart;
         blockEnd = close + tagName.length + 3;
         break;
       }
     }
-    const block = html.slice(blockStart, blockEnd);
+    const block = normalisedHtml.slice(blockStart, blockEnd);
     const text = decodeText(block);
     const role = leadershipRoleFromText(text);
     const rank = leadershipRank(role);
