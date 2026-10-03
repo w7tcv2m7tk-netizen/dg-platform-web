@@ -106,12 +106,36 @@ function leadershipRoleFromText(text: string) {
   }
   return null;
 }
+function decodeCloudflareEmail(encoded: string | null | undefined): string | null {
+  if (!encoded || !/^[0-9a-f]+$/i.test(encoded) || encoded.length < 4 || encoded.length % 2 !== 0) return null;
+  try {
+    const key = parseInt(encoded.slice(0, 2), 16);
+    let value = "";
+    for (let i = 2; i < encoded.length; i += 2) value += String.fromCharCode(parseInt(encoded.slice(i, i + 2), 16) ^ key);
+    return validEmail(value);
+  } catch {
+    return null;
+  }
+}
+
+function expandProtectedEmails(html: string): string {
+  return html.replace(
+    /<a\b([^>]*?)href=["'][^"']*\/cdn-cgi\/l\/email-protection[^"']*["']([^>]*)>([\s\S]*?)<\/a>/gi,
+    (full, before, after) => {
+      const attrs = `${before} ${after}`;
+      const encoded = attrs.match(/data-cfemail=["']([0-9a-f]+)["']/i)?.[1] ?? null;
+      const email = decodeCloudflareEmail(encoded);
+      return email ? `<a href="mailto:${email}">${email}</a>` : full;
+    }
+  );
+}
+
 function cardCandidates(html: string, sourceUrl: string): DecisionMakerCandidate[] {
   const out: DecisionMakerCandidate[] = [];
   // Team sites vary wildly in markup. Normalise visible public emails into
   // mailto anchors for extraction as some CMS templates render the address as
   // text rather than a clickable link.
-  const normalisedHtml = html.replace(
+  const normalisedHtml = expandProtectedEmails(html).replace(
     /(?<!mailto:)(\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b)/gi,
     '<a href="mailto:$1">$1</a>'
   );
