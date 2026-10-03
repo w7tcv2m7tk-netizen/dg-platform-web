@@ -367,8 +367,12 @@ export async function buildProspectingActivityWorkspace(
       highValueMissingNextAction += 1;
     }
 
-    if (score.score > topScore) {
+    if (
+      (score.dailyTop3Eligible && !topIsContactReady) ||
+      (score.dailyTop3Eligible === topIsContactReady && score.score > topScore)
+    ) {
       topScore = score.score;
+      topIsContactReady = score.dailyTop3Eligible;
       topRecommendation = {
         prospectId: p.id,
         businessName: p.businessName,
