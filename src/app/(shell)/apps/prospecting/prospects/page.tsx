@@ -7,6 +7,7 @@ import {
 } from "@dg/platform-core";
 
 import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
+import { CreateProspectForm } from "@/components/command/CreateProspectForm";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 function formatDate(value: string) {
@@ -46,6 +47,15 @@ export default async function ProspectingProspectsPage() {
         description={`Businesses ${session.organisationName} has discovered or is actively working before CRM conversion.`}
       />
       <main className="dg-page-main space-y-6">
+        {canDiscover ? (
+          <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
+            <h2 className="font-semibold text-white">Add prospect</h2>
+            <p className="mt-1 text-sm text-slate-400">Add a business directly when you already know who you want to pursue.</p>
+            <div className="mt-4">
+              <CreateProspectForm pipelineHref="/apps/prospecting/pipeline" />
+            </div>
+          </section>
+        ) : null}
         {loadFailed ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-100">
             Prospect data is temporarily unavailable. Try again shortly.
