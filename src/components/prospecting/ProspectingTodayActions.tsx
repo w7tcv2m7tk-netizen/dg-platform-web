@@ -14,10 +14,6 @@ type Row = {
   reasons: string[];
   approachHint: string;
   businessHealthScore: number | null;
-  seoScore: number | null;
-  aiVisibilityScore: number | null;
-  websiteHealthScore: number | null;
-  auditFindings: Array<{ title: string; detail: string }>;
   contactPhone: string | null;
   contactEmail: string | null;
   contactName: string | null;
@@ -78,7 +74,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const firstName = active.contactName?.trim().split(/\\s+/)[0] || "there";
   const signalText = active.reasons.join(" ");
   const readScore = (label: string) => {
-    const match = signalText.match(new RegExp(`${label}\\s+(\\d+)\\/100`, "i"));
+    const match = signalText.match(new RegExp(`${label}\\\\s+(\\\\d+)\\\\/100`, "i"));
     return match ? Number(match[1]) : null;
   };
   const seoScore = readScore("SEO");
@@ -89,7 +85,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
     aiVisibilityScore != null && aiVisibilityScore < 50 ? `AI Visibility is ${aiVisibilityScore}/100, so the business has limited visibility in AI-assisted discovery.` : null,
     websiteHealthScore != null && websiteHealthScore < 60 ? `Website Health is ${websiteHealthScore}/100, suggesting website and conversion improvements are worth exploring.` : null,
     active.businessHealthScore != null && active.businessHealthScore < 60
-      ? "The audit identified multiple digital fundamentals with measurable improvement headroom."
+      ? `The wider audit identified several digital fundamentals that can be improved.`
       : null,
   ].filter((item): item is string => Boolean(item));
   const strongestEvidence = evidence[0] || "The audit identified measurable digital visibility and growth opportunities.";
@@ -113,8 +109,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
 
   return (
     <div className="mx-auto max-w-6xl space-y-4">
-      <div className={showBrief && !needsResearch ? "grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start" : "mx-auto max-w-2xl"}>
-      <section className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 sm:p-5">
+      <div className={showBrief && !needsResearch ? "grid items-start gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.35fr)]" : ""}>\n      <section className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">Do this next</p>
@@ -182,7 +177,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
       </section>
 
       {showBrief && !needsResearch ? (
-        <section className="rounded-2xl border border-violet-500/25 bg-slate-950/70 p-4 sm:p-5 lg:sticky lg:top-24">
+        <section className="rounded-2xl border border-violet-500/25 bg-slate-950/70 p-4 sm:p-5 lg:sticky lg:top-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">Contact brief</p>
