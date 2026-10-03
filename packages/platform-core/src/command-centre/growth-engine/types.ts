@@ -187,7 +187,16 @@ export type OpportunityRecommendedAction =
   | "close_loop";
 
 export interface ProspectOpportunityScoreResult {
+  /** Lifecycle-aware priority: Research Priority before qualification, Contact Priority after qualification. */
   score: number;
+  scoreVersion: "v2";
+  fitScore: number;
+  opportunityScore: number;
+  researchConfidence: number;
+  contactPriority: number | null;
+  positiveSignals: string[];
+  penalties: string[];
+  dailyTop3Eligible: boolean;
   band: OpportunityBand;
   bandLabel: string;
   reasons: string[];
