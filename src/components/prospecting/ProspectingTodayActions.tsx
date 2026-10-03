@@ -35,6 +35,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const [followUpAt, setFollowUpAt] = useState("");
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState("");
+  const [showBrief, setShowBrief] = useState(false);
   const router = useRouter();
 
   if (!active) return null;
@@ -65,6 +66,12 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const emailHref = active.contactEmail ? `mailto:${active.contactEmail}` : null;
   const hasContactRoute = Boolean(callHref || emailHref);
   const needsResearch = active.recommendedAction === "research" || active.recommendedAction === "run_audit";
+  const decisionMaker = active.contactName || "the decision-maker";
+  const opportunitySignals = active.reasons.filter((reason) =>
+    /opportunity|health|seo|visibility|website|conversion|lead|automation|crm/i.test(reason),
+  );
+  const primaryOpportunity = opportunitySignals[0] || active.reasons[0] || "a measurable digital growth opportunity";
+  const openingLine = `Hi ${active.contactName?.split(/\\s+/)[0] || "there"}, Ben Roe from DigitalGate. I was reviewing ${active.businessName} and noticed ${primaryOpportunity.replace(/^[^—]+—\\s*/, "").replace(/^[A-Z]/, (c) => c.toLowerCase())}. I thought it was worth a quick conversation rather than sending you a generic pitch.`;
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -113,22 +120,79 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
             </>
           ) : (
             <>
-              {callHref ? (
+              <button type="button" onClick={() => setShowBrief((value) => !value)} className="col-span-2 min-h-12 rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-500">
+                {showBrief ? "Hide call brief" : "Prepare call"}
+              </button>
+              {showBrief && callHref ? (
                 <a href={callHref} onClick={() => setShowLog(true)} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-500">
-                  Call now
+                  Call {active.contactName?.split(/\\s+/)[0] || "now"}
                 </a>
-              ) : (
-                <a href={emailHref ?? "#"} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white">
+              ) : showBrief && emailHref ? (
+                <a href={emailHref} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white">
                   Email
                 </a>
-              )}
-              <button type="button" onClick={() => setShowLog(true)} className="min-h-12 rounded-xl border border-violet-500/40 bg-violet-500/10 px-4 text-sm font-semibold text-violet-100">
-                Log outcome
-              </button>
+              ) : null}
+              {showBrief ? (
+                <button type="button" onClick={() => setShowLog(true)} className="min-h-12 rounded-xl border border-violet-500/40 bg-violet-500/10 px-4 text-sm font-semibold text-violet-100">
+                  Log outcome
+                </button>
+              ) : null}
             </>
           )}
         </div>
       </section>
+
+      {showBrief && !needsResearch ? (
+        <section className="rounded-2xl border border-violet-500/25 bg-slate-950/70 p-4 sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">Contact brief</p>
+              <h3 className="mt-1 text-lg font-semibold text-white">{decisionMaker} · {active.businessName}</h3>
+              <p className="mt-1 text-sm text-slate-400">{[active.contactPhone, active.contactEmail].filter(Boolean).join(" · ")}</p>
+            </div>
+            <span className="rounded-lg border border-violet-500/30 px-3 py-1 text-xs font-semibold text-violet-200">Priority {active.score}</span>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Evidence to lead with</p>
+              <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                {active.reasons.slice(0, 4).map((reason) => <li key={reason}>• {reason}</li>)}
+              </ul>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+              <p className="text-xs uppercase tracking-wide text-slate-500">DigitalGate opportunity</p>
+              <p className="mt-2 text-sm text-slate-300">{active.approachHint}</p>
+              <p className="mt-2 text-xs text-slate-500">Use the evidence to open the conversation; only introduce the relevant DigitalGate capability after confirming the problem matters to them.</p>
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Suggested opening</p>
+            <p className="mt-2 text-sm text-slate-200">“{openingLine}”</p>
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Talking points</p>
+              <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                <li>• Confirm whether the observed issue is a current priority.</li>
+                <li>• Ask how leads, follow-up and customer activity are handled today.</li>
+                <li>• Connect only the relevant DigitalGate capability to the confirmed gap.</li>
+                <li>• Aim for a short Platform Consultation, not a full first-call demo.</li>
+              </ul>
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
+              <p className="text-xs uppercase tracking-wide text-slate-500">Likely objections</p>
+              <ul className="mt-2 space-y-1 text-sm text-slate-300">
+                <li>• “We already have systems.” — Ask what is still manual or disconnected.</li>
+                <li>• “Just send information.” — Offer a concise evidence summary specific to their business.</li>
+                <li>• “Not a priority.” — Ask when it would be useful to revisit and log the timing.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {showLog ? (
         <section className="rounded-2xl border border-slate-700 bg-slate-950 p-4">
@@ -165,7 +229,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Next prospects</p>
           <div className="space-y-2">
             {rows.filter((r) => r.prospectId !== active.prospectId).slice(0, 8).map((row) => (
-              <button key={row.prospectId} type="button" onClick={() => { setActiveId(row.prospectId); setDraft(""); setShowLog(false); }} className="flex min-h-14 w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-950/40 px-4 text-left">
+              <button key={row.prospectId} type="button" onClick={() => { setActiveId(row.prospectId); setDraft(""); setShowLog(false); setShowBrief(false); }} className="flex min-h-14 w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-950/40 px-4 text-left">
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium text-white">{row.businessName}</span>
                   <span className="block truncate text-xs text-slate-500">{row.recommendedAction === "research" || row.recommendedAction === "run_audit" ? "Research" : row.recommendedActionLabel}</span>

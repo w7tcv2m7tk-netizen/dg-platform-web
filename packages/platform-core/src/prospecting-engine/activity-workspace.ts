@@ -379,7 +379,9 @@ export async function buildProspectingActivityWorkspace(
         actionLabel:
           workspace === "discovered" || workspace === "researching"
             ? "Research"
-            : score.recommendedActionLabel,
+            : score.dailyTop3Eligible && workspace === "qualified"
+              ? "Prepare call"
+              : score.recommendedActionLabel,
         reason: score.reasons[0] ?? score.approachHint,
       };
     }
