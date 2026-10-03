@@ -125,125 +125,90 @@ function approachFor(action: OpportunityRecommendedAction, businessName: string)
   }
 }
 
-/** Pure Prospect Opportunity Score from observable Growth Engine fields. */
+/** Explainable Prospect Scoring Engine v2 from observable Growth Engine fields. */
 export function computeProspectOpportunityScore(
   input: OpportunityScoreInput,
 ): ProspectOpportunityScoreResult {
-  const reasons: string[] = [];
-  const idle = daysSince(input.updatedAt);
+  const positiveSignals: string[] = [];
+  const penalties: string[] = [];
+  const meta = input.metadata ?? {};
   const health = input.audit?.businessHealth ?? null;
   const seo = input.audit?.seoScore ?? null;
   const ai = input.audit?.aiVisibility ?? null;
   const website = input.audit?.websiteHealth ?? null;
-  const viewCount = input.report?.viewCount ?? 0;
-
-  // Digital gap (0–35): weaker digital presence → higher opportunity
-  let gapPts = 0;
-  if (!input.audit) {
-    gapPts = 18;
-    reasons.push("No presence audit yet — unknown digital gaps");
-  } else {
-    const gaps: number[] = [];
-    if (health != null) gaps.push(100 - health);
-    if (seo != null) gaps.push(100 - seo);
-    if (ai != null) gaps.push(100 - ai);
-    if (website != null) gaps.push(100 - website);
-    const avgGap = gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : 40;
-    gapPts = Math.round((avgGap / 100) * 35);
-    if (health != null && health < 60) {
-      reasons.push(`Business Health ${health}/100 — room to improve`);
-    }
-    if (seo != null && seo < 55) {
-      reasons.push(`SEO score ${seo}/100 — organic visibility likely weak`);
-    }
-    if (ai != null && ai < 50) {
-      reasons.push(`AI Visibility ${ai}/100 — limited AI-search presence`);
-    }
-    if (website != null && website < 60) {
-      reasons.push(`Website health ${website}/100 — conversion/tech gaps likely`);
-    }
-    if (reasons.length === 0 && health != null) {
-      reasons.push(`Audited · Business Health ${health}/100`);
-    }
-  }
-
-  // Intent / urgency (0–30)
-  let intentPts = 0;
-  const stage = input.stage;
-  if (stage === "report_viewed") {
-    intentPts += 28;
-    reasons.push("Viewed opportunity report — high intent");
-  } else if (stage === "follow_up_due") {
-    intentPts += 24;
-    reasons.push("Follow-up due");
-  } else if (stage === "email_opened") {
-    intentPts += 22;
-    reasons.push("Opened outbound email");
-  } else if (stage === "meeting_booked") {
-    intentPts += 20;
-    reasons.push("Meeting booked");
-  } else if (stage === "proposal_sent") {
-    intentPts += 18;
-    reasons.push("Proposal outstanding");
-  } else if (stage === "qualified") {
-    intentPts += 12;
-    reasons.push("Qualified for outreach");
-  } else if (stage === "report_sent") {
-    intentPts += 14;
-    reasons.push("Report sent — awaiting engagement");
-  } else if (stage === "audit_created") {
-    intentPts += 10;
-    reasons.push("Audit ready — research and qualify before outreach");
-  } else {
-    intentPts += 6;
-  }
-  intentPts += Math.min(idle, 10);
-  if (idle >= 3) reasons.push(`Idle ${idle}d since last update`);
-  intentPts += Math.min(viewCount * 3, 9);
-  if (viewCount > 0) {
-    reasons.push(`${viewCount} report view${viewCount === 1 ? "" : "s"}`);
-  }
-  intentPts = Math.min(intentPts, 30);
-
-  // Reachability (0–15)
-  let reachPts = 0;
-  if (input.websiteUrl) reachPts += 5;
-  else reasons.push("No website on file");
-  if (input.contactPhone) reachPts += 5;
-  if (input.contactEmail) reachPts += 5;
-  if (!input.contactPhone && !input.contactEmail) {
-    reasons.push("Missing phone and email — enrich before outreach");
-  }
-
-  // Industry fit (0–10)
-  let fitPts = 4;
-  const meta = input.metadata ?? {};
-  if (meta.industryPackId || meta.discoverySource === "business-discovery") {
-    fitPts = 10;
-    reasons.push("Matches Discovery / industry pack targeting");
-  } else if (input.industry?.trim()) {
-    fitPts = 7;
-  }
-
-  // Reputation signal (0–10): strong reviews + weak digital = good opp
-  let repPts = 3;
   const rating = typeof meta.rating === "number" ? meta.rating : null;
-  if (rating != null && rating >= 4.5) {
-    repPts = health != null && health < 70 ? 10 : 7;
-    reasons.push(`Strong Google rating (${rating.toFixed(1)})`);
-  } else if (rating != null) {
-    repPts = 5;
-  }
 
-  const score = clamp(gapPts + intentPts + reachPts + fitPts + repPts);
+  // Fit (0–100): ICP evidence, commercial/reputation signals and target alignment.
+  let fit = 35;
+  if (meta.industryPackId || meta.discoverySource === "business-discovery") {
+    fit += 25; positiveSignals.push("Matches Discovery / industry targeting");
+  } else if (input.industry?.trim()) {
+    fit += 15; positiveSignals.push("Industry identified");
+  }
+  if (rating != null && rating >= 4.5) {
+    fit += 15; positiveSignals.push(`Strong Google rating (${rating.toFixed(1)})`);
+  } else if (rating != null) fit += 8;
+  if (input.websiteUrl) fit += 10;
+  if (input.contactPhone || input.contactEmail) fit += 10;
+  if (meta.location || meta.address) fit += 5;
+  const fitScore = clamp(fit);
+
+  // Opportunity (0–100): weaker verified digital performance = more DG upside.
+  const verified = [health, seo, ai, website].filter((v): v is number => typeof v === "number");
+  const opportunityScore = verified.length
+    ? clamp(verified.reduce((sum, v) => sum + (100 - v), 0) / verified.length)
+    : 45;
+  if (!input.audit) penalties.push("No verified presence audit yet");
+  if (health != null && health < 60) positiveSignals.push(`Business Health ${health}/100 — improvement opportunity`);
+  if (seo != null && seo < 55) positiveSignals.push(`SEO ${seo}/100 — organic visibility opportunity`);
+  if (ai != null && ai < 50) positiveSignals.push(`AI Visibility ${ai}/100 — AI-search opportunity`);
+  if (website != null && website < 60) positiveSignals.push(`Website Health ${website}/100 — website/conversion opportunity`);
+
+  // Research confidence (0–100): evidence completeness, not prospect quality.
+  let confidence = 0;
+  if (input.websiteUrl) confidence += 15;
+  if (input.audit) confidence += 35;
+  if (input.industry?.trim()) confidence += 10;
+  if (input.contactPhone) confidence += 10;
+  if (input.contactEmail) confidence += 15;
+  if (rating != null) confidence += 5;
+  if (meta.industryPackId || meta.discoverySource === "business-discovery") confidence += 10;
+  const researchConfidence = clamp(confidence);
+  if (!input.contactPhone && !input.contactEmail) penalties.push("No usable contact route");
+  if (researchConfidence < 55) penalties.push("Research confidence is still low");
+
+  const isQualified = input.stage === "qualified";
+  const contactable = Boolean(input.contactPhone || input.contactEmail);
+  const dailyTop3Eligible = isQualified && contactable && researchConfidence >= 55;
+  // Contact Priority rewards fit, opportunity and evidence. Qualification is a gate,
+  // not a score boost, so weak prospects cannot rank highly merely by advancing stage.
+  const contactPriority = dailyTop3Eligible
+    ? clamp(fitScore * 0.38 + opportunityScore * 0.37 + researchConfidence * 0.25)
+    : null;
+  const researchPriority = clamp(fitScore * 0.35 + opportunityScore * 0.4 + researchConfidence * 0.25);
+  const score = contactPriority ?? researchPriority;
+
+  if (input.stage === "qualified") positiveSignals.push("Qualified for outreach");
+  const viewCount = input.report?.viewCount ?? 0;
+  if (viewCount > 0) positiveSignals.push(`${viewCount} report view${viewCount === 1 ? "" : "s"} — engagement signal`);
+  if (input.stage === "report_viewed") positiveSignals.push("Opportunity report viewed");
+  if (input.stage === "meeting_booked") positiveSignals.push("Meeting booked");
+
   const recommendedAction = recommendAction(input);
   const band = bandForScore(score);
-
   return {
     score,
+    scoreVersion: "v2",
+    fitScore,
+    opportunityScore,
+    researchConfidence,
+    contactPriority,
+    positiveSignals: positiveSignals.slice(0, 8),
+    penalties: penalties.slice(0, 5),
+    dailyTop3Eligible,
     band,
     bandLabel: bandLabel(band),
-    reasons: reasons.slice(0, 6),
+    reasons: [...positiveSignals, ...penalties].slice(0, 6),
     recommendedAction,
     recommendedActionLabel: ACTION_LABELS[recommendedAction],
     approachHint: approachFor(recommendedAction, "this business"),
