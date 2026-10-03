@@ -234,7 +234,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
         </section>
       ) : null}
 
-      {showLog ? (
+      </div>\n\n      {showLog ? (
         <section className="rounded-2xl border border-slate-700 bg-slate-950 p-4">
           <h3 className="font-semibold text-white">What happened?</h3>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Quick note — what did they say?" className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-3 text-base text-white placeholder:text-slate-600" />
