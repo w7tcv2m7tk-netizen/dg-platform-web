@@ -14,6 +14,10 @@ type Row = {
   reasons: string[];
   approachHint: string;
   businessHealthScore: number | null;
+  seoScore: number | null;
+  aiVisibilityScore: number | null;
+  websiteHealthScore: number | null;
+  auditFindings: Array<{ title: string; detail: string }>;
   contactPhone: string | null;
   contactEmail: string | null;
   contactName: string | null;
@@ -107,7 +111,8 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
 
   return (
     <div className="w-full space-y-4">
-      <div className={showBrief && !needsResearch ? "grid w-full items-start gap-5 lg:grid-cols-[minmax(340px,0.8fr)_minmax(0,1.4fr)] xl:gap-6" : "mx-auto max-w-3xl"}>\n        <section className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 sm:p-5">
+      <div className={showBrief && !needsResearch ? "grid w-full items-start gap-5 lg:grid-cols-[minmax(340px,0.8fr)_minmax(0,1.4fr)] xl:gap-6" : "mx-auto max-w-3xl"}>
+        <section className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">Do this next</p>
