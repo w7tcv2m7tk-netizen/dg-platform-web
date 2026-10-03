@@ -325,6 +325,7 @@ export async function buildProspectingActivityWorkspace(
   let highValueMissingNextAction = 0;
   let topRecommendation: ProspectActivityIntelligence["topRecommendation"] = null;
   let topScore = -1;
+  let topIsContactReady = false;
 
   for (const p of prospects) {
     if (p.stage === "won" || p.stage === "lost") continue;
