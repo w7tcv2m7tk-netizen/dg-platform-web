@@ -347,6 +347,15 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
   if (!websiteUrl) return { candidates: [] as DecisionMakerCandidate[], searched: [] as string[], note: "No website is recorded." };
   const base = /^https?:\/\//i.test(websiteUrl) ? websiteUrl : `https://${websiteUrl}`;
   const searched: string[] = [];
+  const diagnostics: Array<{
+    url: string;
+    status: number | null;
+    protectedEmailMarkers: number;
+    protectedEmailsDecoded: number;
+    validEmailsFound: number;
+    candidateFields: Array<{ name: string | null; hasEmail: boolean; hasPhone: boolean; hasImage: boolean }>;
+    error?: string;
+  }> = [];
   const candidates: DecisionMakerCandidate[] = [];
   const seen = new Set<string>();
   const queue = [base];
@@ -367,11 +376,36 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
       const res = await safeExternalFetch(url, { signal: controller.signal, headers: { "user-agent": "DigitalGate-ProspectResearch/1.0 (+https://digitalgate.com.au)", accept: "text/html,application/xhtml+xml" } });
       clearTimeout(timer);
       searched.push(res.url || url);
-      if (!res.ok) continue;
+      if (!res.ok) {
+        diagnostics.push({ url: res.url || url, status: res.status, protectedEmailMarkers: 0, protectedEmailsDecoded: 0, validEmailsFound: 0, candidateFields: [] });
+        continue;
+      }
       const type = res.headers.get("content-type") || "";
-      if (!type.includes("html")) continue;
+      if (!type.includes("html")) {
+        diagnostics.push({ url: res.url || url, status: res.status, protectedEmailMarkers: 0, protectedEmailsDecoded: 0, validEmailsFound: 0, candidateFields: [] });
+        continue;
+      }
       const html = (await res.text()).slice(0, 1_000_000);
-      for (const candidate of extractCandidates(html, res.url || url)) {
+      const expandedHtml = expandProtectedEmails(html);
+      const pageCandidates = extractCandidates(html, res.url || url);
+      const protectedEmailMarkers = [...html.matchAll(/data-cfemail=["'][0-9a-f]+["']/gi)].length;
+      const protectedEmailsDecoded = Math.max(0, [...expandedHtml.matchAll(/href=["']mailto:/gi)].length - [...html.matchAll(/href=["']mailto:/gi)].length);
+      const validEmailsFound = [...decodeText(expandedHtml).matchAll(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi)]
+        .map(match => validEmail(match[0])).filter(Boolean).length;
+      diagnostics.push({
+        url: res.url || url,
+        status: res.status,
+        protectedEmailMarkers,
+        protectedEmailsDecoded,
+        validEmailsFound,
+        candidateFields: pageCandidates.map(candidate => ({
+          name: candidate.name,
+          hasEmail: Boolean(candidate.email),
+          hasPhone: Boolean(candidate.phone),
+          hasImage: Boolean(candidate.imageUrl),
+        })),
+      });
+      for (const candidate of pageCandidates) {
         const existing = candidates.find((x) => x.name?.toLowerCase() === candidate.name?.toLowerCase());
         if (!existing) {
           candidates.push(candidate);
@@ -402,8 +436,24 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
           if (queue.length >= 16) break;
         }
       }
-    } catch { searched.push(url); }
+    } catch (error) {
+      searched.push(url);
+      diagnostics.push({
+        url,
+        status: null,
+        protectedEmailMarkers: 0,
+        protectedEmailsDecoded: 0,
+        validEmailsFound: 0,
+        candidateFields: [],
+        error: error instanceof Error ? error.name : "fetch_failed",
+      });
+    }
   }
   candidates.sort((a,b) => b.rank-a.rank);
-  return { candidates: candidates.slice(0, 5), searched, note: candidates.length ? null : "No verified decision-maker candidate was found on the public business website. Use manual research as the fallback." };
+  return {
+    candidates: candidates.slice(0, 5),
+    searched,
+    diagnostics,
+    note: candidates.length ? null : "No verified decision-maker candidate was found on the public business website. Use manual research as the fallback.",
+  };
 }
