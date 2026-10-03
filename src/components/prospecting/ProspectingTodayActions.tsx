@@ -112,7 +112,8 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const openingLine = `Hi ${firstName}, Ben Roe from DigitalGate. I was looking at ${active.businessName} and noticed ${openingObservation}. I have a couple of specific observations that may be useful — have you got a minute?`;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">\n      <div className={showBrief && !needsResearch ? "grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start" : "mx-auto max-w-2xl"}>
+    <div className="mx-auto max-w-6xl space-y-4">
+      <div className={showBrief && !needsResearch ? "grid gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start" : "mx-auto max-w-2xl"}>
       <section className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
