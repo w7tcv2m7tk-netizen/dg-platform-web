@@ -76,16 +76,21 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const needsResearch = active.stage !== "qualified";
   const decisionMaker = active.contactName || "the decision-maker";
   const firstName = active.contactName?.trim().split(/\\s+/)[0] || "there";
-  const seoScore = active.seoScore;
-  const aiVisibilityScore = active.aiVisibilityScore;
-  const websiteHealthScore = active.websiteHealthScore;
+  const signalText = active.reasons.join(" ");
+  const readScore = (label: string) => {
+    const match = signalText.match(new RegExp(`${label}\\s+(\\d+)\\/100`, "i"));
+    return match ? Number(match[1]) : null;
+  };
+  const seoScore = readScore("SEO");
+  const aiVisibilityScore = readScore("AI Visibility");
+  const websiteHealthScore = readScore("Website Health");
   const evidence = [
     seoScore != null && seoScore < 55 ? `SEO visibility is ${seoScore}/100, indicating material organic-search headroom.` : null,
     aiVisibilityScore != null && aiVisibilityScore < 50 ? `AI Visibility is ${aiVisibilityScore}/100, so the business has limited visibility in AI-assisted discovery.` : null,
     websiteHealthScore != null && websiteHealthScore < 60 ? `Website Health is ${websiteHealthScore}/100, suggesting website and conversion improvements are worth exploring.` : null,
-    ...active.auditFindings.slice(0, 3).map((finding) =>
-      finding.detail ? `${finding.title} — ${finding.detail}` : finding.title,
-    ),
+    active.businessHealthScore != null && active.businessHealthScore < 60
+      ? "The audit identified multiple digital fundamentals with measurable improvement headroom."
+      : null,
   ].filter((item): item is string => Boolean(item));
   const strongestEvidence = evidence[0] || "The audit identified measurable digital visibility and growth opportunities.";
   const opportunityParts = [
