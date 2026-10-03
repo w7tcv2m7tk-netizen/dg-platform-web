@@ -283,8 +283,24 @@ function extractCandidates(html: string, sourceUrl: string): DecisionMakerCandid
   }
   for (const candidate of cardResults) {
     const existing = candidates.find(x => x.name?.toLowerCase() === candidate.name?.toLowerCase());
-    if (!existing) candidates.push(candidate);
-    else if (candidate.rank > existing.rank) Object.assign(existing, candidate);
+    if (!existing) {
+      candidates.push(candidate);
+      continue;
+    }
+    // Evidence for the same person can be split across a team card and an
+    // individual profile. Keep the strongest identity/ranking evidence without
+    // allowing a higher-ranked source with a missing field to erase verified
+    // direct contact details discovered elsewhere.
+    const preferred = candidate.rank > existing.rank ? candidate : existing;
+    const supporting = preferred === candidate ? existing : candidate;
+    Object.assign(existing, preferred, {
+      email: preferred.email ?? supporting.email ?? null,
+      phone: preferred.phone ?? supporting.phone ?? null,
+      imageUrl: preferred.imageUrl ?? supporting.imageUrl ?? null,
+      role: preferred.role ?? supporting.role ?? null,
+      confidence: preferred.confidence === "high" || supporting.confidence === "high" ? "high" : preferred.confidence,
+      rank: Math.max(existing.rank, candidate.rank),
+    });
   }
   return candidates;
 }
