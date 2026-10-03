@@ -36,12 +36,12 @@ export default async function ProspectingTodayPage() {
   });
 
   const contactRows = allRows.filter((row) => row.stage === "qualified").slice(0, 3);
-  const researchRows = allRows.filter((row) => row.stage === "audit_created").slice(0, Math.max(0, 3 - contactRows.length));
+  const researchRows = allRows.filter((row) => row.stage === "audit_created").slice(0, 3);
   const rows = contactRows.length ? contactRows : researchRows;
 
   return (
     <>
-      <ProspectingPageHeader title="Today" description="Your prioritised next-best-action workflow for today." />
+      <ProspectingPageHeader title="Today" description="Your Daily Top 3 — qualified prospects first, with research work kept separate from outreach." />
       <main className="dg-page-main space-y-5">
         <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <Metric label="Top 3 ready" value={contactRows.length} />
