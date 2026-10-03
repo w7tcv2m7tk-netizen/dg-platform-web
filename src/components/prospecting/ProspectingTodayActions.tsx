@@ -206,7 +206,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
             <p className="mt-2 text-sm text-slate-200">“{openingLine}”</p>
           </div>
 
-          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="mt-3 grid gap-3 xl:grid-cols-2">
             <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
               <p className="text-xs uppercase tracking-wide text-slate-500">Talking points</p>
               <ul className="mt-2 space-y-1 text-sm text-slate-300">
