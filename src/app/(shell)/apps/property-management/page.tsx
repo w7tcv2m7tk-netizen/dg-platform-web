@@ -21,7 +21,7 @@ export default async function PropertyManagementOverviewPage() {
 
   return (
     <>
-      <IndustryAppTitle title="Property Management" description="Long-term rental portfolios, leases, maintenance and tenant operations connected to Core CRM." />
+      <IndustryAppTitle eyebrow="Property" title="Property Management" description="Long-term rental portfolios, leases, maintenance and tenant operations connected to Core CRM." />
       <main className="dg-page-main space-y-6">
       <div>
         <p className="text-sm text-slate-400">
