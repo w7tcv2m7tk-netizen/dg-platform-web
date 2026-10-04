@@ -48,6 +48,8 @@ export default async function OpportunityReportPage({ params }: { params: Promis
   const google = intelligence.google || {};
   const publicProfiles = intelligence.publicProfiles || {};
   const realEstateJourney = intelligence.realEstateJourney || {};
+  const socialPresenceScore = typeof scorecard.socialPresence === "number" ? scorecard.socialPresence : (Object.values(publicProfiles).filter(Boolean).length >= 4 ? 100 : Object.values(publicProfiles).filter(Boolean).length * 25);
+  const acquisitionReadiness = typeof scorecard.acquisitionReadiness === "number" ? scorecard.acquisitionReadiness : null;
   const commercialRank = (finding: Finding) => {
     const haystack = `${finding.category || ""} ${finding.domain || ""} ${finding.title || ""}`.toLowerCase();
     let score = finding.severity === "critical" ? 40 : finding.severity === "warning" ? 25 : 15;
@@ -87,7 +89,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
         {audit && (Object.keys(publicProfiles).length > 0 || typeof realEstateJourney.hasAppraisalCta === "boolean") ? <section className="mt-8 grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
             <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Connected digital footprint</p>
-            <h2 className="mt-2 text-xl font-semibold text-white">Public profiles linked by the business</h2>
+            <div className="flex items-end justify-between gap-4"><h2 className="mt-2 text-xl font-semibold text-white">Public profiles linked by the business</h2>{socialPresenceScore > 0 ? <div className="text-right"><p className="text-xs uppercase tracking-wide text-slate-500">Social presence</p><p className="text-2xl font-semibold text-white">{socialPresenceScore}<span className="text-xs text-slate-500">/100</span></p></div> : null}</div>
             <div className="mt-4 flex flex-wrap gap-2">
               {Object.entries(publicProfiles).map(([network,url]) => url ? <span key={network} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm capitalize text-slate-200">{network} · verified website link</span> : null)}
               {Object.keys(publicProfiles).length === 0 ? <p className="text-sm text-slate-400">No major social profile links were detected from the homepage.</p> : null}
@@ -95,7 +97,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
           </div>
           <div className="rounded-2xl border border-violet-500/25 bg-violet-950/20 p-6">
             <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Real Estate acquisition intelligence</p>
-            <h2 className="mt-2 text-xl font-semibold text-white">Vendor journey signals</h2>
+            <div className="flex items-end justify-between gap-4"><h2 className="mt-2 text-xl font-semibold text-white">Vendor journey signals</h2>{acquisitionReadiness != null ? <div className="text-right"><p className="text-xs uppercase tracking-wide text-violet-300">Acquisition readiness</p><p className="text-2xl font-semibold text-white">{acquisitionReadiness}<span className="text-xs text-slate-500">/100</span></p></div> : null}</div>
             <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-xl border border-slate-700 p-4"><p className="text-slate-400">Appraisal pathway</p><p className="mt-1 font-semibold text-white">{realEstateJourney.hasAppraisalCta ? "Detected" : "Opportunity"}</p></div>
               <div className="rounded-xl border border-slate-700 p-4"><p className="text-slate-400">Local-area signals</p><p className="mt-1 font-semibold text-white">{realEstateJourney.suburbMentions ?? 0} homepage mentions</p></div>
@@ -173,7 +175,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">90-day opportunity roadmap</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">A practical sequence, not a list of disconnected fixes</h2>
           <div className="mt-5 grid gap-4 lg:grid-cols-3">
-            {[["0–30 days","Foundation",findings.slice(0,1)],["31–60 days","Visibility & conversion",findings.slice(1,2)],["61–90 days","Systemise growth",findings.slice(2,3)]].map(([period,title,items])=><div key={String(period)} className="rounded-xl border border-slate-700 bg-slate-900/70 p-5"><p className="text-xs font-semibold uppercase tracking-wide text-violet-400">{String(period)}</p><h3 className="mt-2 font-semibold text-white">{String(title)}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{Array.isArray(items) && items[0] ? (items[0].recommendedAction || items[0].interpretation || items[0].title) : period === "61–90 days" ? "Connect lead capture, CRM, automation and reporting into a measurable growth system." : "Validate the next highest-value opportunity from the research."}</p></div>)}
+            {[["0–30 days","Foundation","Strengthen the business entity, search and AI foundations first: implement structured data, clarify page hierarchy and preserve the verified local-business signals already working."],["31–60 days","Visibility & conversion","Improve how the business is discovered and presented across search and social, then strengthen the appraisal journey so seller intent moves cleanly from visibility to enquiry."],["61–90 days","Systemise growth","Connect appraisal and property enquiries to CRM, follow-up automation and reporting so vendor and buyer opportunities become a measurable relationship pipeline."]].map(([period,title,action])=><div key={String(period)} className="rounded-xl border border-slate-700 bg-slate-900/70 p-5"><p className="text-xs font-semibold uppercase tracking-wide text-violet-400">{String(period)}</p><h3 className="mt-2 font-semibold text-white">{String(title)}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{String(action)}</p></div>)}
           </div>
         </section>
 
