@@ -179,8 +179,8 @@ export default async function OpportunityReportPage({ params }: { params: Promis
 
         <section className="mt-10 rounded-2xl border border-violet-400/40 bg-gradient-to-br from-violet-500/20 to-slate-900 p-7 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-300">Next step</p><h2 className="mt-2 text-2xl font-semibold text-white">Turn these opportunities into a practical plan</h2>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200">A DigitalGate Platform Consultation will review these findings with you, identify which opportunities matter most commercially and demonstrate the relevant DigitalGate capabilities against your business. There is no obligation to proceed.</p>
-          <a href="https://digitalgate.com.au/contact/" className="mt-5 inline-flex rounded-lg bg-violet-500 px-5 py-3 text-sm font-semibold text-white hover:bg-violet-400">Book a Platform Consultation</a>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200">Book a DigitalGate Strategy Session to review these findings, identify the highest-value priorities for your business and turn the strongest opportunities into a practical next-step plan. There is no obligation to proceed.</p>
+          <a href="https://digitalgate.com.au/strategy-session" className="mt-5 inline-flex rounded-lg bg-violet-500 px-5 py-3 text-sm font-semibold text-white hover:bg-violet-400">Book a Strategy Session</a>
         </section>
 
         <section className="mt-8 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
