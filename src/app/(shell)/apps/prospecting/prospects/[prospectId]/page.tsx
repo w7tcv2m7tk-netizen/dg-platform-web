@@ -33,6 +33,32 @@ function displayProbe(value: unknown) {
   if (value == null || value === "") return "—";
   return String(value);
 }
+type SourceState = { status?: string; note?: string };
+type BusinessIntelligence = {
+  sourceStatus?: Record<string, SourceState>;
+  publicProfiles?: Record<string, string>;
+  realEstateJourney?: { hasAppraisalCta?: boolean; hasAppraisalForm?: boolean; suburbMentions?: number };
+};
+function businessIntelligenceFrom(value: unknown): BusinessIntelligence {
+  if (!value || typeof value !== "object") return {};
+  const intelligence = (value as { businessIntelligence?: unknown }).businessIntelligence;
+  return intelligence && typeof intelligence === "object" && !Array.isArray(intelligence) ? intelligence as BusinessIntelligence : {};
+}
+function sourceStatusFrom(value: unknown): Record<string, SourceState> {
+  if (!value || typeof value !== "object") return {};
+  const sources = (value as { intelligenceSources?: unknown }).intelligenceSources;
+  return sources && typeof sources === "object" && !Array.isArray(sources) ? sources as Record<string, SourceState> : {};
+}
+const SOURCE_LABELS: Record<string, string> = {
+  businessIdentity: "ABR",
+  googleBusinessProfile: "Google Business Profile",
+  website: "Website",
+  socialProfiles: "Website-linked social profiles",
+  propertyMarketIntelligence: "Cotality",
+  domainMarketplace: "Domain",
+  reaMarketplace: "REA Partner Platform",
+  industryCredentials: "Queensland OFT",
+};
 
 export default async function ProspectResearchPage({ params }: { params: Promise<{ prospectId: string }> }) {
   const session = await getAuthorisedPlatformPageSession("prospecting.prospects.read");
@@ -48,6 +74,12 @@ export default async function ProspectResearchPage({ params }: { params: Promise
   });
   const findings = findingsFrom(audit?.findings);
   const probes = probesFrom(audit?.findings);
+  const businessIntelligence = businessIntelligenceFrom(audit?.findings);
+  const intelligenceSources = sourceStatusFrom(audit?.findings);
+  const publicProfiles = businessIntelligence.publicProfiles ?? {};
+  const realEstateJourney = businessIntelligence.realEstateJourney ?? {};
+  const verifiedSocialCount = Object.values(publicProfiles).filter(Boolean).length;
+  const socialReadiness = verifiedSocialCount >= 4 ? "Strong footprint" : verifiedSocialCount >= 2 ? "Established footprint" : verifiedSocialCount === 1 ? "Limited footprint" : "Not verified";
   const contentAccessible = probes.contentAccessible !== false;
   const score = computeProspectOpportunityScore({
     stage: prospect.stage,
@@ -152,6 +184,59 @@ export default async function ProspectResearchPage({ params }: { params: Promise
           ) : <p className="mt-3 text-sm text-slate-400">No audit has been created for this prospect yet.</p>}
         </section>
 
+        <section className="dg-card">
+          <p className="text-xs uppercase tracking-wide text-violet-300">Research intelligence</p>
+          <h2 className="mt-2 text-lg font-semibold text-white">Evidence provenance & acquisition signals</h2>
+          <p className="mt-1 max-w-3xl text-sm text-slate-400">Operator-only evidence trail. Source states are shown exactly as returned by Research; unsupported marketplace claims remain fail-closed.</p>
+
+          <div className="mt-5 grid gap-4 xl:grid-cols-2">
+            <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-4">
+              <h3 className="text-sm font-semibold text-white">Research sources</h3>
+              <div className="mt-3 space-y-3">
+                {Object.entries(SOURCE_LABELS).map(([key, label]) => {
+                  const source = intelligenceSources[key];
+                  return (
+                    <div key={key} className="rounded-lg border border-slate-800/80 p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-sm font-medium text-slate-200">{label}</span>
+                        <span className="rounded-full border border-slate-700 px-2 py-1 text-[10px] uppercase tracking-wide text-slate-400">{source?.status || "not_recorded"}</span>
+                      </div>
+                      {source?.note ? <p className="mt-2 text-xs leading-5 text-slate-500">{source.note}</p> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold text-white">Verified social footprint</h3>
+                  <span className="text-xs font-medium text-violet-300">{socialReadiness}</span>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">{verifiedSocialCount} public profile{verifiedSocialCount === 1 ? "" : "s"} linked by the business website. This rating reflects verified channel coverage only; follower counts, posting frequency and engagement are not inferred.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {Object.entries(publicProfiles).filter(([, url]) => Boolean(url)).map(([network, url]) => (
+                    <a key={network} href={url} target="_blank" rel="noreferrer" className="rounded-full border border-violet-500/30 bg-violet-500/5 px-3 py-1.5 text-xs capitalize text-violet-200 hover:bg-violet-500/10">{network} ↗</a>
+                  ))}
+                  {!verifiedSocialCount ? <span className="text-sm text-slate-500">No website-linked social profiles verified.</span> : null}
+                </div>
+              </div>
+
+              {/real\s*estate/i.test(prospect.industry || "") ? <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-4">
+                <p className="text-xs uppercase tracking-wide text-violet-300">Real Estate acquisition intelligence</p>
+                <h3 className="mt-2 text-base font-semibold text-white">Vendor journey signals</h3>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-3"><p className="text-xs text-slate-500">Appraisal CTA</p><p className="mt-1 text-sm font-medium text-white">{realEstateJourney.hasAppraisalCta ? "Detected" : "Not detected"}</p><p className="mt-1 text-xs text-slate-500">Seller-intent call-to-action on the audited homepage.</p></div>
+                  <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-3"><p className="text-xs text-slate-500">Appraisal form</p><p className="mt-1 text-sm font-medium text-white">{realEstateJourney.hasAppraisalForm ? "Detected" : "Not detected"}</p><p className="mt-1 text-xs text-slate-500">Observable lead-capture path for appraisal intent.</p></div>
+                  <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-3"><p className="text-xs text-slate-500">Local-area authority</p><p className="mt-1 text-sm font-medium text-white">{realEstateJourney.suburbMentions ?? 0} homepage mention{realEstateJourney.suburbMentions === 1 ? "" : "s"}</p><p className="mt-1 text-xs text-slate-500">Local/suburb references observed on the homepage; depth beyond the homepage is not inferred.</p></div>
+                  <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-3"><p className="text-xs text-slate-500">Vendor journey assessment</p><p className="mt-1 text-sm font-medium text-white">{realEstateJourney.hasAppraisalCta && realEstateJourney.hasAppraisalForm ? "Capture pathway visible" : realEstateJourney.hasAppraisalCta ? "Intent visible; capture needs review" : "Acquisition pathway needs review"}</p><p className="mt-1 text-xs text-slate-500">Evidence-based summary of the signals above, not a claim about conversion performance.</p></div>
+                </div>
+              </div> : null}
+            </div>
+          </div>
+        </section>
+
         <section id="opportunity-report" className="dg-card scroll-mt-24">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -203,8 +288,8 @@ export default async function ProspectResearchPage({ params }: { params: Promise
 
         <section className="dg-card">
           <p className="text-xs uppercase tracking-wide text-slate-500">Qualification decision</p>
-          <h2 className="mt-2 text-lg font-semibold text-white">{isResearch ? "Is this business worth pursuing?" : "Research decision recorded"}</h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">Confirm there is a genuine fit and a usable route to the right decision-maker. Qualification unlocks outreach; disqualification closes the prospect without manufacturing contact activity.</p>
+          <h2 className="mt-2 text-lg font-semibold text-white">{isResearch ? "Ready for a qualification decision?" : prospect.stage === "qualified" ? "Qualification complete" : "Research decision recorded"}</h2>
+          <p className="mt-2 max-w-2xl text-sm text-slate-400">{isResearch ? "Research is complete enough to make the next lifecycle decision. Qualifying advances the prospect out of Research; disqualification closes it without manufacturing contact activity." : prospect.stage === "qualified" ? "This prospect has already advanced beyond Research. The evidence above remains the research record; qualification is a separate lifecycle state." : "This prospect has already moved beyond the active Research stage."}</p>
           {canWrite && isResearch ? <div className="mt-5"><ProspectQualificationActions prospectId={prospect.id} canQualify={canQualify} /></div> : <p className="mt-4 text-sm text-slate-300">Current stage: {prospect.stage}</p>}
         </section>
       </main>
