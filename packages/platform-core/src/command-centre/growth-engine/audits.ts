@@ -309,7 +309,7 @@ export async function runGrowthProspectAudit(input: {
       },
       intelligenceSources: businessIntelligence.sourceStatus,
     },
-    auditVersion: "presence-3.4",
+    auditVersion: "presence-3.5",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
