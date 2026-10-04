@@ -54,9 +54,9 @@ DigitalGate`);
     setLoading(true); setError(null);
     try {
       const url=await ensureReport();
-      const printUrl=`${url}?print=1`;
-      const win=window.open(printUrl,"_blank","noopener,noreferrer");
-      if(!win) throw new Error("Allow pop-ups to open the PDF-ready report.");
+      const win=window.open(url,"_blank");
+      if(!win) throw new Error("Allow pop-ups to open the report for PDF export.");
+      window.setTimeout(()=>{ try { win.print(); } catch { /* user can still print from the opened report */ } },1200);
     } catch(e) { setError(e instanceof Error ? e.message : "Could not open PDF-ready report."); }
     finally { setLoading(false); }
   }
