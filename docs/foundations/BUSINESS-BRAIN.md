@@ -91,3 +91,24 @@ The relationship is continuous rather than onboarding-only:
 Customers should have an ongoing **Business Challenge** pathway, framed around “What are you trying to solve?” rather than “What is broken?”. Conventional Support remains for break/fix, access and billing. Business Challenges may be surfaced alongside Support/Success for discoverability, but are a broader advisory capability.
 
 Aggregated, privacy-respecting challenge patterns should inform Industry Intelligence Packs and product development. Industry packs should ultimately combine external research, observable business evidence, direct owner/operator feedback and measured customer outcomes.
+
+
+## Prospect Business Intelligence evidence standard
+
+Prospect research should aim to make DigitalGate useful before a sales conversation. A Business Intelligence Report should combine multiple independently verifiable evidence classes rather than relying on a website-only audit.
+
+Preferred evidence sources, subject to availability and platform terms:
+- public website and technical/on-page signals;
+- Australian Business Register identity (ABN, legal/trading name, entity status and location where available);
+- Google Business Profile / Google Places signals (category, address, rating, review volume, website/phone and local presence);
+- public business social profiles, including Facebook and Instagram;
+- public LinkedIn company and relevant decision-maker evidence where discoverable and permitted;
+- authoritative industry registers for licence/registration numbers where the industry requires them;
+- relevant industry-platform evidence (for example property/listing presence for real estate);
+- DigitalGate's own Industry Intelligence Pack.
+
+Reports must distinguish **verified fact**, **observable signal**, and **DigitalGate interpretation**. Never invent an ABN, licence, social profile, review metric or platform relationship. Connected customer OAuth data is not assumed to be available for an unaffiliated prospect; prospect research should use lawful public/authorised sources.
+
+Identity details such as ABN and applicable licence/registration numbers should appear in the report's business profile/identity section when verified. Their purpose is professional context and trust, not decorative data collection.
+
+The desired prospect reaction is that DigitalGate has taken time to understand the business, provided genuinely useful advice without requiring a sale, and can then implement many of the recommendations through the Platform.
