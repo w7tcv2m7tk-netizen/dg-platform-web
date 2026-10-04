@@ -287,6 +287,24 @@ export async function runGrowthProspectAudit(input: {
     websiteUrl: prospect.websiteUrl,
   });
 
+  const socialProfiles = presence.probes.socialProfiles || {};
+  const socialChannelCount = Object.values(socialProfiles).filter(Boolean).length;
+  // Evidence-safe social score: coverage + website integration only. We do not infer audience,
+  // engagement or posting activity without a compliant observable source.
+  const socialPresenceScore = Math.min(100, socialChannelCount * 20 + (socialChannelCount > 0 ? 20 : 0));
+  const appraisal = presence.probes.appraisalSignals || {};
+  const reputationScore = presence.scores.reputation ?? 0;
+  const localAuthorityScore = Math.min(100, (appraisal.suburbMentions ?? 0) * 20);
+  const appraisalPathScore = (appraisal.hasAppraisalCta ? 50 : 0) + (appraisal.hasAppraisalForm ? 50 : 0);
+  const discoverabilityScore = Math.round(((presence.scores.seo ?? 0) + (presence.scores.aiVisibility ?? 0)) / 2);
+  const acquisitionReadinessScore = Math.round(
+    appraisalPathScore * 0.35 +
+    localAuthorityScore * 0.15 +
+    reputationScore * 0.2 +
+    socialPresenceScore * 0.15 +
+    discoverabilityScore * 0.15,
+  );
+
   const audit = await createGrowthProspectAudit({
     prospectId: prospect.id,
     scores: presence.scores,
@@ -305,12 +323,30 @@ export async function runGrowthProspectAudit(input: {
       digitalGateSolutionMatches: buildDigitalGateSolutionMatches(presence),
       businessIntelligence: {
         ...businessIntelligence,
-        publicProfiles: presence.probes.socialProfiles,
-        realEstateJourney: presence.probes.appraisalSignals,
+        publicProfiles: socialProfiles,
+        socialAssessment: {
+          score: socialPresenceScore,
+          channelCount: socialChannelCount,
+          basis: "Verified channel coverage and website integration only",
+          activityStatus: "not_assessed",
+          audienceStatus: "not_assessed",
+          engagementStatus: "not_assessed",
+        },
+        realEstateJourney: {
+          ...appraisal,
+          acquisitionReadiness: {
+            score: acquisitionReadinessScore,
+            appraisalPath: appraisalPathScore,
+            localAuthority: localAuthorityScore,
+            reputation: reputationScore,
+            socialPresence: socialPresenceScore,
+            discoverability: discoverabilityScore,
+          },
+        },
       },
       intelligenceSources: businessIntelligence.sourceStatus,
     },
-    auditVersion: "presence-3.6",
+    auditVersion: "presence-3.7",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
