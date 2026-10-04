@@ -5,6 +5,7 @@ import { runPresenceAudit } from "./presence-audit";
 import { updateGrowthProspect } from "./prospects";
 import { abnLookupProvider } from "../../business-discovery/providers/abn-lookup";
 import { coreLogicCredentialsConfigured, matchCoreLogicAddress, isCoreLogicPropertyMatch } from "../../connectors/corelogic";
+import { fetchDomainProspectAgencyEvidence } from "../../connectors/domain";
 import { googlePlacesProvider } from "../../business-discovery/providers/google-places";
 import type { DiscoveryCandidate } from "../../business-discovery/types";
 
@@ -74,13 +75,16 @@ export async function createGrowthProspectAudit(input: CreateGrowthProspectAudit
     },
   });
 
-  await updateGrowthProspect({
-    prospectId: input.prospectId,
-    organisationId,
-    stage: "audit_created",
-    actorId: input.actorId,
-    operatorOrganisationId: organisationId,
-  });
+  // Research enrichment must not move an existing prospect backwards.
+  if (prospect.stage === "prospect") {
+    await updateGrowthProspect({
+      prospectId: input.prospectId,
+      organisationId,
+      stage: "audit_created",
+      actorId: input.actorId,
+      operatorOrganisationId: organisationId,
+    });
+  }
 
   await prisma.growthProspectEngagement.create({
     data: {
@@ -168,6 +172,7 @@ type ProspectBusinessIntelligence = {
   identity: { abn?: string; registeredName?: string; registeredLocation?: string };
   google: { placeId?: string; rating?: number; reviewCount?: number; category?: string; address?: string; phone?: string; website?: string; mapsUri?: string };
   propertyMarket: { provider?: string; verifiedLocality?: string; state?: string; postcode?: string; retrievedAt?: string };
+  marketplace: { domain?: unknown };
   sourceStatus: Record<string, { status: string; note?: string }>;
 };
 
@@ -222,11 +227,18 @@ async function enrichProspectBusinessIntelligence(prospect: {
       sourceStatus.propertyMarketIntelligence = { status: "no_locality_match", note: "Cotality is connected but the agency address did not produce a confident property match; no market metrics were inferred." };
     }
   }
+  let marketplace: ProspectBusinessIntelligence["marketplace"] = {};
+  if (/real\s*estate/i.test(prospect.industry || "")) {
+    const domain = await fetchDomainProspectAgencyEvidence({ businessName: prospect.businessName, location: prospect.location }).catch((error) => ({ ok: false as const, status: "provider_error" as const, message: error instanceof Error ? error.message : "Domain research failed" }));
+    sourceStatus.domainMarketplace = { status: domain.status, note: domain.ok ? "Verified against Domain Agents & Listings using platform credentials; no customer OAuth data was used." : domain.message };
+    if (domain.ok) marketplace = { domain };
+  }
   if (place) sourceStatus.googleBusinessProfile = { status: "verified_match" };
   else if (googlePlacesProvider.isConfigured()) sourceStatus.googleBusinessProfile = { status: "no_confident_match", note: "No sufficiently confident Google Places match was found automatically." };
   return {
     identity: abr ? { abn: abr.providerRefs.abn, registeredName: abr.businessName, registeredLocation: abr.location } : {},
     propertyMarket,
+    marketplace,
     google: place ? {
       placeId: place.providerRefs.googlePlaceId, rating: place.rating, reviewCount: place.ratingCount,
       category: place.businessType, address: place.location, phone: place.phone, website: place.websiteUrl,
@@ -288,7 +300,7 @@ export async function runGrowthProspectAudit(input: {
       },
       intelligenceSources: businessIntelligence.sourceStatus,
     },
-    auditVersion: "presence-3.1",
+    auditVersion: "presence-3.2",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
