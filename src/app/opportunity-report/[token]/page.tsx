@@ -138,7 +138,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
             <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Opportunity analysis</p>
             <h2 className="mt-2 text-2xl font-semibold text-white">What we found — and why it matters</h2>
             <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              {findings.slice(0,6).map((f,i)=><article key={i} className="rounded-xl border border-slate-700 bg-slate-900/70 p-5">
+              {rankedFindings.slice(0,6).map((f,i)=><article key={i} className="rounded-xl border border-slate-700 bg-slate-900/70 p-5">
                 <div className="flex gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-xs font-semibold text-violet-300">{i+1}</span><div>
                   <h3 className="font-semibold text-white">{f.title || "Digital opportunity"}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{businessMeaning(f)}</p>
@@ -152,7 +152,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
           <section className="mt-10 grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
             <div className="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-6">
               <p className="text-xs font-semibold uppercase tracking-widest text-violet-300">Priority plan</p><h2 className="mt-2 text-2xl font-semibold text-white">What we would address first</h2>
-              <ol className="mt-5 space-y-4">{findings.slice(0,3).map((f,i)=><li key={i} className="flex gap-3"><span className="font-semibold text-violet-300">0{i+1}</span><div><p className="font-medium text-white">{f.recommendedAction || f.interpretation || f.title}</p><p className="mt-1 text-sm leading-6 text-slate-300">{businessMeaning(f)}</p></div></li>)}</ol>
+              <ol className="mt-5 space-y-4">{rankedFindings.slice(0,3).map((f,i)=><li key={i} className="flex gap-3"><span className="font-semibold text-violet-300">0{i+1}</span><div><p className="font-medium text-white">{f.recommendedAction || f.interpretation || f.title}</p><p className="mt-1 text-sm leading-6 text-slate-300">{businessMeaning(f)}</p></div></li>)}</ol>
             </div>
             <div className="rounded-2xl border border-slate-700 bg-slate-900/70 p-6">
               <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">The bigger opportunity</p><h2 className="mt-2 text-xl font-semibold text-white">From audit to growth system</h2>
