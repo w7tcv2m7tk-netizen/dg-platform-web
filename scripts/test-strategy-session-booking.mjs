@@ -6,6 +6,9 @@ import { resolveDgLegacyRequest } from "../src/lib/dg-legacy-urls.ts";
 import {
   DG_STRATEGY_SESSION_SLUG,
   isDgStrategySessionPage,
+  shouldRenderNativeStrategySessionCapture,
+  strategySessionStudioHtml,
+  strategySessionStudioHtmlHasBookingForm,
 } from "../src/lib/dg-strategy-session.ts";
 import {
   consultationGridSlots,
@@ -46,11 +49,58 @@ test("strategy-session is a public DigitalGate booking page", () => {
   assert.equal(isDgStrategySessionPage("roe-realty", "strategy-session"), false);
   assert.match(byHost, /nativeDgStrategySessionPage/);
   assert.match(byHost, /isDgStrategySessionPage\(slug, pageSlug\)/);
+  assert.match(renderer, /strategySessionStudioHtml/);
+  assert.match(renderer, /shouldRenderNativeStrategySessionCapture/);
+  assert.match(renderer, /showNativeStrategySessionCapture/);
   assert.match(renderer, /<StrategySessionCapture/);
   assert.match(capture, /DG_STRATEGY_SESSION_TITLE/);
   assert.match(
     fs.readFileSync("src/lib/dg-strategy-session.ts", "utf8"),
     /Book a DigitalGate Strategy Session/,
+  );
+});
+
+test("Design Studio HTML is rendered when the strategy-session page has it", () => {
+  assert.equal(strategySessionStudioHtml([]), "");
+  assert.equal(
+    strategySessionStudioHtml([{ type: "html", props: { html: "   " } }]),
+    "",
+  );
+  assert.equal(
+    strategySessionStudioHtml([
+      { type: "html", props: { html: "<section>Updated Studio copy</section>" } },
+    ]),
+    "<section>Updated Studio copy</section>",
+  );
+  assert.equal(
+    strategySessionStudioHtmlHasBookingForm("<section>Updated Studio copy</section>"),
+    false,
+  );
+  assert.equal(
+    strategySessionStudioHtmlHasBookingForm(
+      '<form id="dgBookingForm"><input name="email" /></form>',
+    ),
+    true,
+  );
+  assert.equal(
+    shouldRenderNativeStrategySessionCapture([
+      { type: "html", props: { html: "<section>Updated Studio copy</section>" } },
+    ]),
+    true,
+  );
+  assert.equal(
+    shouldRenderNativeStrategySessionCapture([
+      {
+        type: "html",
+        props: { html: '<form id="dgBookingForm"><input name="email" /></form>' },
+      },
+    ]),
+    false,
+  );
+  assert.doesNotMatch(
+    renderer,
+    /isProductFunnel \|\| isDgStrategySession\s*\n\s*\? \[\]/,
+    "saved Studio HTML must not be discarded just because this is strategy-session",
   );
 });
 
