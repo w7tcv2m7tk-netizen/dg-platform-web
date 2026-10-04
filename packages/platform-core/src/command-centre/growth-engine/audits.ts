@@ -3,6 +3,9 @@ import { randomBytes } from "node:crypto";
 import type { ProspectAuditFinding, ProspectAuditScores } from "./types";
 import { runPresenceAudit } from "./presence-audit";
 import { updateGrowthProspect } from "./prospects";
+import { abnLookupProvider } from "../../business-discovery/providers/abn-lookup";
+import { googlePlacesProvider } from "../../business-discovery/providers/google-places";
+import type { DiscoveryCandidate } from "../../business-discovery/types";
 
 export interface CreateGrowthProspectAuditInput {
   prospectId: string;
@@ -159,6 +162,60 @@ function buildDigitalGateSolutionMatches(presence: Awaited<ReturnType<typeof run
   return matches.slice(0, 8);
 }
 
+
+type ProspectBusinessIntelligence = {
+  identity: { abn?: string; registeredName?: string; registeredLocation?: string };
+  google: { placeId?: string; rating?: number; reviewCount?: number; category?: string; address?: string; phone?: string; website?: string; mapsUri?: string };
+  sourceStatus: Record<string, { status: string; note?: string }>;
+};
+
+function normaliseBusinessName(value: string) {
+  return value.toLowerCase().replace(/\b(pty|ltd|limited|proprietary|the)\b/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function bestCandidate(name: string, rows: DiscoveryCandidate[]) {
+  const wanted = normaliseBusinessName(name);
+  return rows.find((row) => normaliseBusinessName(row.businessName) === wanted)
+    ?? rows.find((row) => {
+      const candidate = normaliseBusinessName(row.businessName);
+      return candidate.includes(wanted) || wanted.includes(candidate);
+    })
+    ?? null;
+}
+
+async function enrichProspectBusinessIntelligence(prospect: {
+  businessName: string; industry: string | null; location: string | null; websiteUrl: string | null;
+}): Promise<ProspectBusinessIntelligence> {
+  const sourceStatus: ProspectBusinessIntelligence["sourceStatus"] = {
+    website: { status: "analysed" },
+    businessIdentity: { status: abnLookupProvider.isConfigured() ? "searched" : "unavailable", note: abnLookupProvider.unavailableReason() },
+    googleBusinessProfile: { status: googlePlacesProvider.isConfigured() ? "searched" : "unavailable", note: googlePlacesProvider.unavailableReason() },
+    socialProfiles: { status: "planned", note: "Public business social profile discovery is the next enrichment layer." },
+    linkedin: { status: "planned", note: "Public LinkedIn evidence requires a compliant public-profile discovery path; customer OAuth data is not used for prospects." },
+    industryCredentials: { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
+  };
+  const ctx = { textQuery: prospect.businessName, location: prospect.location ?? undefined, industry: prospect.industry ?? undefined, businessType: prospect.industry ?? undefined, limit: 8 };
+  const [abrRows, placeRows] = await Promise.all([
+    abnLookupProvider.isConfigured() ? abnLookupProvider.search(ctx).catch(() => []) : Promise.resolve([]),
+    googlePlacesProvider.isConfigured() ? googlePlacesProvider.search(ctx).catch(() => []) : Promise.resolve([]),
+  ]);
+  const abr = bestCandidate(prospect.businessName, abrRows);
+  const place = bestCandidate(prospect.businessName, placeRows);
+  if (abr) sourceStatus.businessIdentity = { status: "verified_match" };
+  else if (abnLookupProvider.isConfigured()) sourceStatus.businessIdentity = { status: "no_confident_match", note: "No sufficiently confident ABR name match was found automatically." };
+  if (place) sourceStatus.googleBusinessProfile = { status: "verified_match" };
+  else if (googlePlacesProvider.isConfigured()) sourceStatus.googleBusinessProfile = { status: "no_confident_match", note: "No sufficiently confident Google Places match was found automatically." };
+  return {
+    identity: abr ? { abn: abr.providerRefs.abn, registeredName: abr.businessName, registeredLocation: abr.location } : {},
+    google: place ? {
+      placeId: place.providerRefs.googlePlaceId, rating: place.rating, reviewCount: place.ratingCount,
+      category: place.businessType, address: place.location, phone: place.phone, website: place.websiteUrl,
+      mapsUri: place.providerRefs.mapsUri,
+    } : {},
+    sourceStatus,
+  };
+}
+
 /** Live presence audit for a prospect — fetches website signals when a URL exists. */
 export async function runGrowthProspectAudit(input: {
   prospectId: string;
@@ -181,6 +238,13 @@ export async function runGrowthProspectAudit(input: {
     contactPhone: prospect.contactPhone,
   });
 
+  const businessIntelligence = await enrichProspectBusinessIntelligence({
+    businessName: prospect.businessName,
+    industry: prospect.industry,
+    location: prospect.location,
+    websiteUrl: prospect.websiteUrl,
+  });
+
   const audit = await createGrowthProspectAudit({
     prospectId: prospect.id,
     scores: presence.scores,
@@ -197,16 +261,10 @@ export async function runGrowthProspectAudit(input: {
         searchVisibility: presence.scores.seo ?? null,
       },
       digitalGateSolutionMatches: buildDigitalGateSolutionMatches(presence),
-      intelligenceSources: {
-        website: { status: "analysed", url: prospect.websiteUrl ?? null },
-        businessIdentity: { status: "available_via_abr" },
-        googleBusinessProfile: { status: "research_target" },
-        socialProfiles: { status: "research_target" },
-        linkedin: { status: "research_target" },
-        industryCredentials: { status: "research_target" },
-      },
+      businessIntelligence,
+      intelligenceSources: businessIntelligence.sourceStatus,
     },
-    auditVersion: "presence-2.0",
+    auditVersion: "presence-2.1",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,

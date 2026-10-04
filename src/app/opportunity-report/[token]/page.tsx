@@ -2,7 +2,12 @@ import { notFound } from "next/navigation";
 
 type Finding = { title?: string; detail?: string; observed?: string; interpretation?: string; recommendedAction?: string };
 type SolutionMatch = { capability?: string; opportunity?: string; evidence?: string; benefit?: string; relevance?: string };
-type AuditPayload = { items?: Finding[]; strengths?: string[]; industryInsights?: Array<{title?:string;detail?:string;recommendedAction?:string}>; scorecard?: Record<string,number|null>; researchContext?: Record<string,unknown>; digitalGateSolutionMatches?: SolutionMatch[] };
+type BusinessIntelligence = {
+  identity?: { abn?: string; registeredName?: string; registeredLocation?: string };
+  google?: { placeId?: string; rating?: number; reviewCount?: number; category?: string; address?: string; phone?: string; website?: string; mapsUri?: string };
+  sourceStatus?: Record<string,{status?:string;note?:string}>;
+};
+type AuditPayload = { items?: Finding[]; strengths?: string[]; industryInsights?: Array<{title?:string;detail?:string;recommendedAction?:string}>; scorecard?: Record<string,number|null>; researchContext?: Record<string,unknown>; digitalGateSolutionMatches?: SolutionMatch[]; businessIntelligence?: BusinessIntelligence };
 function auditPayload(value: unknown): AuditPayload { return value && typeof value === "object" ? value as AuditPayload : {}; }
 function findingsFrom(value: unknown): Finding[] {
   if (!value || typeof value !== "object") return [];
@@ -36,6 +41,9 @@ export default async function OpportunityReportPage({ params }: { params: Promis
   const industryInsights = Array.isArray(payload.industryInsights) ? payload.industryInsights : [];
   const scorecard = payload.scorecard || {};
   const solutionMatches = Array.isArray(payload.digitalGateSolutionMatches) ? payload.digitalGateSolutionMatches : [];
+  const intelligence = payload.businessIntelligence || {};
+  const identity = intelligence.identity || {};
+  const google = intelligence.google || {};
   await prisma.growthProspectReport.update({ where: { id: report.id }, data: { viewCount: { increment: 1 }, firstViewedAt: report.firstViewedAt ?? new Date() } });
   await prisma.growthProspectEngagement.create({ data: { prospectId: report.prospectId, reportId: report.id, type: "report_viewed" } });
 
@@ -50,6 +58,18 @@ export default async function OpportunityReportPage({ params }: { params: Promis
           <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">An evidence-based review of your current digital position, highlighting practical opportunities to improve visibility, customer acquisition and digital operations.</p>
           <p className="mt-3 text-xs text-slate-500">Prepared {report.generatedAt.toLocaleDateString("en-AU",{day:"numeric",month:"long",year:"numeric"})} · Based on observable public digital signals</p>
         </header>
+
+        {audit && (identity.abn || google.placeId) ? <section className="mt-8 rounded-2xl border border-violet-500/25 bg-slate-900/70 p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Business intelligence profile</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">Verified business footprint</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Identity and local-presence details below are matched against independent public business data sources, separate from DigitalGate's interpretation.</p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {identity.abn ? <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">ABN</p><p className="mt-2 font-semibold text-white">{identity.abn}</p><p className="mt-1 text-xs text-slate-400">{identity.registeredName || "ABR verified"}</p></div> : null}
+            {google.category ? <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Google category</p><p className="mt-2 font-semibold capitalize text-white">{google.category}</p><p className="mt-1 text-xs text-slate-400">Google Places</p></div> : null}
+            {typeof google.rating === "number" ? <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Google reputation</p><p className="mt-2 text-xl font-semibold text-white">{google.rating.toFixed(1)} ★</p><p className="mt-1 text-xs text-slate-400">{google.reviewCount ?? "—"} public reviews</p></div> : null}
+            {google.address ? <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Local presence</p><p className="mt-2 text-sm font-semibold text-white">{google.address}</p><p className="mt-1 text-xs text-slate-400">Google Places verified</p></div> : null}
+          </div>
+        </section> : null}
 
         {audit ? <>
           <section className="mt-9">
