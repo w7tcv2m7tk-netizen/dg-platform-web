@@ -72,10 +72,13 @@ export default async function ProspectResearchPage({ params }: { params: Promise
             <h1 className="mt-2 text-2xl font-semibold text-white">{prospect.businessName}</h1>
             <p className="mt-1 text-sm text-slate-400">{[prospect.industry, prospect.location].filter(Boolean).join(" · ") || "Business details incomplete"}</p>
           </div>
-          <div className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-right">
+          <div className="flex flex-wrap items-start gap-3">
+            <Link href={`/apps/prospecting/prospects/${prospect.id}#opportunity-report`} className="rounded-lg border border-violet-500/40 px-3 py-2 text-sm font-medium text-violet-200 hover:bg-violet-500/10">Preview report</Link>
+            <div className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-right">
             <p className="text-xs uppercase tracking-wide text-violet-200">{score.contactPriority != null ? "Contact priority" : "Research priority"}</p>
             <p className="mt-1 text-2xl font-semibold text-white">{score.score}</p>
             <p className="text-xs text-slate-400">{score.bandLabel}</p>
+            </div>
           </div>
         </div>
 
@@ -146,6 +149,59 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               <p className="mt-4 text-xs text-slate-500">Observed probe results and findings are generated from the same audit run. Verify material claims before using them in outreach.</p>
             </>
           ) : <p className="mt-3 text-sm text-slate-400">No audit has been created for this prospect yet.</p>}
+        </section>
+
+        <section id="opportunity-report" className="dg-card scroll-mt-24">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-violet-300">Digital Opportunity Report</p>
+              <h2 className="mt-2 text-lg font-semibold text-white">{prospect.businessName}</h2>
+              <p className="mt-1 max-w-2xl text-sm text-slate-400">Prospect-facing preview generated from verified research evidence. Internal qualification, contact strategy and sales notes stay private.</p>
+            </div>
+            <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">Report v1 · preview</span>
+          </div>
+          {audit && contentAccessible ? (
+            <>
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[["Business Health", audit.businessHealth], ["AI Visibility", audit.aiVisibility], ["SEO", audit.seoScore], ["Website Health", audit.websiteHealth]].map(([label,value]) => (
+                  <div key={String(label)} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+                    <p className="text-xs text-slate-500">{label}</p><p className="mt-1 text-xl font-semibold text-white">{value ?? "—"}/100</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4">
+                  <h3 className="text-sm font-semibold text-white">Key opportunities</h3>
+                  <div className="mt-3 space-y-3">
+                    {findings.slice(0, 5).map((finding, index) => (
+                      <div key={index}>
+                        <p className="text-sm font-medium text-slate-200">{finding.title || "Digital opportunity"}</p>
+                        <p className="mt-1 text-xs text-slate-400">{finding.observed || finding.detail || "Evidence recorded in the audit."}</p>
+                      </div>
+                    ))}
+                    {!findings.length ? <p className="text-sm text-slate-500">Refresh research to generate evidence-backed opportunities.</p> : null}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-slate-800 bg-slate-950/40 p-4">
+                  <h3 className="text-sm font-semibold text-white">Recommended next priorities</h3>
+                  <ol className="mt-3 space-y-2 text-sm text-slate-300">
+                    {findings.slice(0, 3).map((finding, index) => <li key={index}>{index + 1}. {finding.recommendedAction || finding.interpretation || finding.title || "Review this opportunity with DigitalGate."}</li>)}
+                    {!findings.length ? <li>Complete the research audit before generating recommendations.</li> : null}
+                  </ol>
+                  <p className="mt-4 text-xs text-slate-500">Only evidence recorded by the audit is included. Material claims should be verified before the report is sent.</p>
+                </div>
+              </div>
+              <div className="mt-5 rounded-lg border border-violet-500/20 bg-violet-500/5 p-4">
+                <h3 className="text-sm font-semibold text-white">How DigitalGate can help</h3>
+                <p className="mt-2 text-sm text-slate-300">Use this evidence as the starting point for a Platform Consultation: confirm which opportunities matter commercially, then demonstrate the relevant DigitalGate capabilities rather than sending a generic platform pitch.</p>
+              </div>
+            </>
+          ) : <p className="mt-4 text-sm text-slate-400">A verified, accessible audit is required before a prospect-facing report can be generated.</p>}
+          <div className="mt-5 flex flex-wrap gap-2">
+            <button type="button" disabled className="rounded-lg bg-violet-600/50 px-4 py-2 text-sm font-medium text-white/70">Generate share link · next</button>
+            <button type="button" disabled className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-500">Export PDF · next</button>
+            <button type="button" disabled className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-500">Email report · next</button>
+          </div>
         </section>
 
         <section className="dg-card">
