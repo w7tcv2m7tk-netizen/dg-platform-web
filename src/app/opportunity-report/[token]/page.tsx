@@ -5,6 +5,8 @@ type SolutionMatch = { capability?: string; opportunity?: string; evidence?: str
 type BusinessIntelligence = {
   identity?: { abn?: string; registeredName?: string; registeredLocation?: string };
   google?: { placeId?: string; rating?: number; reviewCount?: number; category?: string; address?: string; phone?: string; website?: string; mapsUri?: string };
+  publicProfiles?: { facebook?: string; instagram?: string; linkedin?: string; youtube?: string; tiktok?: string };
+  realEstateJourney?: { hasAppraisalCta?: boolean; hasAppraisalForm?: boolean; suburbMentions?: number };
   sourceStatus?: Record<string,{status?:string;note?:string}>;
 };
 type AuditPayload = { items?: Finding[]; strengths?: string[]; industryInsights?: Array<{title?:string;detail?:string;recommendedAction?:string}>; scorecard?: Record<string,number|null>; researchContext?: Record<string,unknown>; digitalGateSolutionMatches?: SolutionMatch[]; businessIntelligence?: BusinessIntelligence };
@@ -44,6 +46,17 @@ export default async function OpportunityReportPage({ params }: { params: Promis
   const intelligence = payload.businessIntelligence || {};
   const identity = intelligence.identity || {};
   const google = intelligence.google || {};
+  const publicProfiles = intelligence.publicProfiles || {};
+  const realEstateJourney = intelligence.realEstateJourney || {};
+  const commercialRank = (finding: Finding) => {
+    const haystack = `${finding.category || ""} ${finding.domain || ""} ${finding.title || ""}`.toLowerCase();
+    let score = finding.severity === "critical" ? 40 : finding.severity === "warning" ? 25 : 15;
+    if (/vendor|appraisal|conversion|lead|reputation|local authority|google|crm|follow-up/.test(haystack)) score += 45;
+    if (/ai.visibility|structured|schema|seo/.test(haystack)) score += 25;
+    if (/open graph|h1/.test(haystack)) score -= 10;
+    return score;
+  };
+  const rankedFindings = [...findings].sort((a,b) => commercialRank(b) - commercialRank(a));
   await prisma.growthProspectReport.update({ where: { id: report.id }, data: { viewCount: { increment: 1 }, firstViewedAt: report.firstViewedAt ?? new Date() } });
   await prisma.growthProspectEngagement.create({ data: { prospectId: report.prospectId, reportId: report.id, type: "report_viewed" } });
 
@@ -68,6 +81,25 @@ export default async function OpportunityReportPage({ params }: { params: Promis
             {google.category ? <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Google category</p><p className="mt-2 font-semibold capitalize text-white">{google.category}</p><p className="mt-1 text-xs text-slate-400">Google Places</p></div> : null}
             {typeof google.rating === "number" ? <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Google reputation</p><p className="mt-2 text-xl font-semibold text-white">{google.rating.toFixed(1)} ★</p><p className="mt-1 text-xs text-slate-400">{google.reviewCount ?? "—"} public reviews</p></div> : null}
             {google.address ? <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Local presence</p><p className="mt-2 text-sm font-semibold text-white">{google.address}</p><p className="mt-1 text-xs text-slate-400">Google Places verified</p></div> : null}
+          </div>
+        </section> : null}
+
+        {audit && (Object.keys(publicProfiles).length > 0 || typeof realEstateJourney.hasAppraisalCta === "boolean") ? <section className="mt-8 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Connected digital footprint</p>
+            <h2 className="mt-2 text-xl font-semibold text-white">Public profiles linked by the business</h2>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {Object.entries(publicProfiles).map(([network,url]) => url ? <span key={network} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm capitalize text-slate-200">{network} · verified website link</span> : null)}
+              {Object.keys(publicProfiles).length === 0 ? <p className="text-sm text-slate-400">No major social profile links were detected from the homepage.</p> : null}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-violet-500/25 bg-violet-950/20 p-6">
+            <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Real Estate acquisition intelligence</p>
+            <h2 className="mt-2 text-xl font-semibold text-white">Vendor journey signals</h2>
+            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-xl border border-slate-700 p-4"><p className="text-slate-400">Appraisal pathway</p><p className="mt-1 font-semibold text-white">{realEstateJourney.hasAppraisalCta ? "Detected" : "Opportunity"}</p></div>
+              <div className="rounded-xl border border-slate-700 p-4"><p className="text-slate-400">Local-area signals</p><p className="mt-1 font-semibold text-white">{realEstateJourney.suburbMentions ?? 0} homepage mentions</p></div>
+            </div>
           </div>
         </section> : null}
 
