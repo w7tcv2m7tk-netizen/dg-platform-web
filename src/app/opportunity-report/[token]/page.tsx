@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-type Finding = { title?: string; detail?: string; observed?: string; interpretation?: string; recommendedAction?: string };
+type Finding = { title?: string; detail?: string; observed?: string; interpretation?: string; recommendedAction?: string; category?: string; domain?: string; severity?: string };
 type SolutionMatch = { capability?: string; opportunity?: string; evidence?: string; benefit?: string; relevance?: string };
 type BusinessIntelligence = {
   identity?: { abn?: string; registeredName?: string; registeredLocation?: string };
