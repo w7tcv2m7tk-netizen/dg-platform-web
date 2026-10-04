@@ -19,6 +19,7 @@ export const PUBLIC_ROUTE_PATTERNS: string[] = [
   "/onboarding",
   "/r/(.*)",
   "/opportunity/(.*)",
+  "/opportunity-report/(.*)",
   "/sites/(.*)",
   "/founding-customers/(.*)",
   "/founding-resellers/(.*)",
