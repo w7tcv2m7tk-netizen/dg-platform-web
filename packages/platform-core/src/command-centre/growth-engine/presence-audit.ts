@@ -35,6 +35,8 @@ export type PresenceAuditResult = {
     hasMapsOrGbpHint: boolean;
     hasReviewHint: boolean;
     hasAnalyticsHint: boolean;
+    socialProfiles: { facebook?: string; instagram?: string; linkedin?: string; youtube?: string; tiktok?: string };
+    appraisalSignals: { hasAppraisalCta: boolean; hasAppraisalForm: boolean; suburbMentions: number };
     error?: string;
   };
 };
@@ -165,7 +167,23 @@ function extractSignals(html: string) {
       html,
     );
 
+  const socialProfiles: { facebook?: string; instagram?: string; linkedin?: string; youtube?: string; tiktok?: string } = {};
+  const hrefs = Array.from(html.matchAll(/href=["']([^"'#]+)["']/gi), (m) => m[1]);
+  for (const href of hrefs) {
+    if (!socialProfiles.facebook && /(?:facebook\.com|fb\.com)\//i.test(href)) socialProfiles.facebook = href;
+    if (!socialProfiles.instagram && /instagram\.com\//i.test(href)) socialProfiles.instagram = href;
+    if (!socialProfiles.linkedin && /linkedin\.com\/(?:company|in)\//i.test(href)) socialProfiles.linkedin = href;
+    if (!socialProfiles.youtube && /(?:youtube\.com|youtu\.be)\//i.test(href)) socialProfiles.youtube = href;
+    if (!socialProfiles.tiktok && /tiktok\.com\/@/i.test(href)) socialProfiles.tiktok = href;
+  }
+  const appraisalMatches = html.match(/\b(appraisal|property valuation|what(?:'|’)s my (?:home|property) worth|sell(?:ing)? your (?:home|property))\b/gi) || [];
+  const hasAppraisalCta = appraisalMatches.length > 0;
+  const hasAppraisalForm = hasForm && hasAppraisalCta;
+  const suburbMentions = (html.match(/\b(currumbin|tugun|palm beach|elanora|tallebudgera|coolangatta|burleigh|reedy creek)\b/gi) || []).length;
+
   return {
+    socialProfiles,
+    appraisalSignals: { hasAppraisalCta, hasAppraisalForm, suburbMentions },
     title,
     hasMetaDescription,
     hasViewport,
@@ -211,6 +229,8 @@ export async function runPresenceAudit(
     hasMapsOrGbpHint: false,
     hasReviewHint: false,
     hasAnalyticsHint: false,
+    socialProfiles: {},
+    appraisalSignals: { hasAppraisalCta: false, hasAppraisalForm: false, suburbMentions: 0 },
   };
 
   let websiteHealth = 20;
@@ -308,6 +328,60 @@ export async function runPresenceAudit(
           probes.hasMapsOrGbpHint = signals.hasMapsOrGbpHint;
           probes.hasReviewHint = signals.hasReviewHint;
           probes.hasAnalyticsHint = signals.hasAnalyticsHint;
+          probes.socialProfiles = signals.socialProfiles;
+          probes.appraisalSignals = signals.appraisalSignals;
+
+          const socialCount = Object.keys(signals.socialProfiles).length;
+          if (socialCount > 0) {
+            strengths.push(`The website links to ${socialCount} public social profile${socialCount === 1 ? "" : "s"}, providing a connected public digital footprint.`);
+            growthSignals += Math.min(10, socialCount * 3);
+          } else {
+            findings.push({
+              domain: "social",
+              severity: "opportunity",
+              category: "Digital Footprint",
+              title: "Public social footprint is not connected from the website",
+              observed: "No Facebook, Instagram, LinkedIn, YouTube or TikTok profile link was detected on the homepage.",
+              interpretation: "Disconnected business profiles weaken entity consistency and make it harder to move between the agency's owned and social presence.",
+              detail: "No major public social profile links were detected on the homepage.",
+              recommendedAction: "Verify the agency's active public profiles and connect them consistently across website, Google and social channels.",
+            });
+          }
+
+          if (pack === "real_estate") {
+            if (signals.appraisalSignals.hasAppraisalCta) {
+              strengths.push("Vendor/appraisal intent language is visible, providing a foundation for seller acquisition.");
+              conversionReadiness += 10;
+            } else {
+              findings.push({
+                domain: "website",
+                severity: "critical",
+                category: "Vendor Acquisition",
+                title: "Vendor appraisal pathway is not prominent on the homepage",
+                observed: "No clear appraisal, valuation or seller-intent language was detected on the homepage.",
+                interpretation: "For a real-estate agency, vendor intent is commercially valuable. A weak appraisal pathway can leave high-value seller demand uncaptured.",
+                detail: "A prominent vendor/appraisal pathway was not detected.",
+                recommendedAction: "Create a prominent appraisal/value pathway and connect every enquiry to CRM follow-up and vendor nurture.",
+              });
+              conversionReadiness -= 10;
+            }
+            if (signals.appraisalSignals.suburbMentions >= 3) {
+              strengths.push("Multiple local suburb references are visible, supporting geographic authority.");
+              seo += 5;
+              aiVisibility += 5;
+            } else {
+              findings.push({
+                domain: "seo",
+                severity: "warning",
+                category: "Local Authority",
+                title: "Limited suburb authority signals on the homepage",
+                observed: `Only ${signals.appraisalSignals.suburbMentions} target-area suburb references were detected in the homepage HTML.`,
+                interpretation: "Real-estate discovery is highly local. Strong suburb and agent entity signals help reinforce where the agency has authority.",
+                detail: "Homepage local-area coverage appears limited.",
+                recommendedAction: "Strengthen suburb, agent, listing and appraisal content as a connected local-authority strategy.",
+              });
+            }
+          }
 
           if (signals.title) {
             websiteHealth += 8;
