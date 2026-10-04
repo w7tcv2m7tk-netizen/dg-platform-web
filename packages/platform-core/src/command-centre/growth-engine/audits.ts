@@ -4,6 +4,7 @@ import type { ProspectAuditFinding, ProspectAuditScores } from "./types";
 import { runPresenceAudit } from "./presence-audit";
 import { updateGrowthProspect } from "./prospects";
 import { abnLookupProvider } from "../../business-discovery/providers/abn-lookup";
+import { coreLogicCredentialsConfigured } from "../../connectors/corelogic";
 import { googlePlacesProvider } from "../../business-discovery/providers/google-places";
 import type { DiscoveryCandidate } from "../../business-discovery/types";
 
@@ -190,7 +191,7 @@ async function enrichProspectBusinessIntelligence(prospect: {
     website: { status: "analysed" },
     businessIdentity: { status: abnLookupProvider.isConfigured() ? "searched" : "unavailable", note: abnLookupProvider.unavailableReason() },
     googleBusinessProfile: { status: googlePlacesProvider.isConfigured() ? "searched" : "unavailable", note: googlePlacesProvider.unavailableReason() },
-    socialProfiles: { status: "planned", note: "Public business social profile discovery is the next enrichment layer." },
+    socialProfiles: { status: "website_verified", note: "Public social profiles linked by the business website are captured as first-party public evidence." },
     linkedin: { status: "planned", note: "Public LinkedIn evidence requires a compliant public-profile discovery path; customer OAuth data is not used for prospects." },
     industryCredentials: { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
   };
@@ -261,10 +262,14 @@ export async function runGrowthProspectAudit(input: {
         searchVisibility: presence.scores.seo ?? null,
       },
       digitalGateSolutionMatches: buildDigitalGateSolutionMatches(presence),
-      businessIntelligence,
+      businessIntelligence: {
+        ...businessIntelligence,
+        publicProfiles: presence.probes.socialProfiles,
+        realEstateJourney: presence.probes.appraisalSignals,
+      },
       intelligenceSources: businessIntelligence.sourceStatus,
     },
-    auditVersion: "presence-2.1",
+    auditVersion: "presence-3.0",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
