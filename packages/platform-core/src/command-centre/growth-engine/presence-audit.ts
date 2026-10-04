@@ -138,7 +138,7 @@ function normaliseUrl(raw: string | null | undefined): string | null {
   }
 }
 
-function extractSignals(html: string) {
+function extractSignals(html: string, localTerms: string[] = []) {
   const lower = html.toLowerCase();
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
   const title = titleMatch?.[1]?.replace(/\s+/g, " ").trim().slice(0, 200) || null;
@@ -179,7 +179,13 @@ function extractSignals(html: string) {
   const appraisalMatches = html.match(/\b(appraisal|property valuation|what(?:'|’)s my (?:home|property) worth|sell(?:ing)? your (?:home|property))\b/gi) || [];
   const hasAppraisalCta = appraisalMatches.length > 0;
   const hasAppraisalForm = hasForm && hasAppraisalCta;
-  const suburbMentions = (html.match(/\b(currumbin|tugun|palm beach|elanora|tallebudgera|coolangatta|burleigh|reedy creek)\b/gi) || []).length;
+  const visibleText = html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ");
+  const normalisedText = visibleText.toLowerCase();
+  const suburbMentions = localTerms.reduce((count, term) => {
+    const needle = term.trim().toLowerCase();
+    if (!needle || needle.length < 3) return count;
+    return count + normalisedText.split(needle).length - 1;
+  }, 0);
 
   return {
     socialProfiles,
@@ -314,7 +320,11 @@ export async function runPresenceAudit(
           : "";
 
         if (html) {
-          const signals = extractSignals(html);
+          const localTerms = (input.location || "")
+            .split(",")
+            .map((part) => part.replace(/\b(?:qld|nsw|vic|sa|wa|tas|nt|act|australia|\d{4})\b/gi, "").trim())
+            .filter((part) => part.length >= 3);
+          const signals = extractSignals(html, localTerms);
           probes.title = signals.title;
           probes.hasMetaDescription = signals.hasMetaDescription;
           probes.hasViewport = signals.hasViewport;
