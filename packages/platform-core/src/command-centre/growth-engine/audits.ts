@@ -4,7 +4,7 @@ import type { ProspectAuditFinding, ProspectAuditScores } from "./types";
 import { runPresenceAudit } from "./presence-audit";
 import { updateGrowthProspect } from "./prospects";
 import { abnLookupProvider } from "../../business-discovery/providers/abn-lookup";
-import { coreLogicCredentialsConfigured } from "../../connectors/corelogic";
+import { coreLogicCredentialsConfigured, matchCoreLogicAddress, isCoreLogicPropertyMatch } from "../../connectors/corelogic";
 import { googlePlacesProvider } from "../../business-discovery/providers/google-places";
 import type { DiscoveryCandidate } from "../../business-discovery/types";
 
@@ -167,6 +167,7 @@ function buildDigitalGateSolutionMatches(presence: Awaited<ReturnType<typeof run
 type ProspectBusinessIntelligence = {
   identity: { abn?: string; registeredName?: string; registeredLocation?: string };
   google: { placeId?: string; rating?: number; reviewCount?: number; category?: string; address?: string; phone?: string; website?: string; mapsUri?: string };
+  propertyMarket: { provider?: string; verifiedLocality?: string; state?: string; postcode?: string; retrievedAt?: string };
   sourceStatus: Record<string, { status: string; note?: string }>;
 };
 
@@ -194,6 +195,7 @@ async function enrichProspectBusinessIntelligence(prospect: {
     socialProfiles: { status: "website_verified", note: "Public social profiles linked by the business website are captured as first-party public evidence." },
     linkedin: { status: "planned", note: "Public LinkedIn evidence requires a compliant public-profile discovery path; customer OAuth data is not used for prospects." },
     industryCredentials: { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
+    propertyMarketIntelligence: { status: coreLogicCredentialsConfigured() ? "available" : "unavailable", note: coreLogicCredentialsConfigured() ? "Cotality connector available; locality evidence is verified before market intelligence is attached." : "Cotality connector is not configured." },
   };
   const ctx = { textQuery: prospect.businessName, location: prospect.location ?? undefined, industry: prospect.industry ?? undefined, businessType: prospect.industry ?? undefined, limit: 8 };
   const [abrRows, placeRows] = await Promise.all([
@@ -204,10 +206,27 @@ async function enrichProspectBusinessIntelligence(prospect: {
   const place = bestCandidate(prospect.businessName, placeRows);
   if (abr) sourceStatus.businessIdentity = { status: "verified_match" };
   else if (abnLookupProvider.isConfigured()) sourceStatus.businessIdentity = { status: "no_confident_match", note: "No sufficiently confident ABR name match was found automatically." };
+  let propertyMarket: ProspectBusinessIntelligence["propertyMarket"] = {};
+  if (coreLogicCredentialsConfigured() && /real\s*estate/i.test(prospect.industry || "") && prospect.location) {
+    const matched = await matchCoreLogicAddress(prospect.location).catch(() => null);
+    if (matched?.ok && isCoreLogicPropertyMatch(matched.match)) {
+      propertyMarket = {
+        provider: "Cotality",
+        verifiedLocality: matched.match.address?.locality,
+        state: matched.match.address?.state,
+        postcode: matched.match.address?.postcode,
+        retrievedAt: new Date().toISOString(),
+      };
+      sourceStatus.propertyMarketIntelligence = { status: "locality_verified", note: "Cotality Address Match verified the agency location. Market statistics remain fail-closed until the entitled Statistics endpoint contract is implemented." };
+    } else {
+      sourceStatus.propertyMarketIntelligence = { status: "no_locality_match", note: "Cotality is connected but the agency address did not produce a confident property match; no market metrics were inferred." };
+    }
+  }
   if (place) sourceStatus.googleBusinessProfile = { status: "verified_match" };
   else if (googlePlacesProvider.isConfigured()) sourceStatus.googleBusinessProfile = { status: "no_confident_match", note: "No sufficiently confident Google Places match was found automatically." };
   return {
     identity: abr ? { abn: abr.providerRefs.abn, registeredName: abr.businessName, registeredLocation: abr.location } : {},
+    propertyMarket,
     google: place ? {
       placeId: place.providerRefs.googlePlaceId, rating: place.rating, reviewCount: place.ratingCount,
       category: place.businessType, address: place.location, phone: place.phone, website: place.websiteUrl,
@@ -269,7 +288,7 @@ export async function runGrowthProspectAudit(input: {
       },
       intelligenceSources: businessIntelligence.sourceStatus,
     },
-    auditVersion: "presence-3.0",
+    auditVersion: "presence-3.1",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
