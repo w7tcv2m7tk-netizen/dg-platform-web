@@ -48,13 +48,13 @@ export default async function ProspectingProspectsPage() {
       />
       <main className="dg-page-main space-y-6">
         {canDiscover ? (
-          <section className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-5">
-            <h2 className="font-semibold text-white">Add prospect</h2>
-            <p className="mt-1 text-sm text-slate-400">Add a business directly when you already know who you want to pursue.</p>
+          <details className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
+            <summary className="cursor-pointer select-none font-semibold text-white">+ Add prospect</summary>
+            <p className="mt-2 text-sm text-slate-400">Add a business directly when you already know who you want to pursue.</p>
             <div className="mt-4">
               <CreateProspectForm pipelineHref="/apps/prospecting/pipeline" />
             </div>
-          </section>
+          </details>
         ) : null}
         {loadFailed ? (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-100">
@@ -94,6 +94,7 @@ export default async function ProspectingProspectsPage() {
                     <th className="px-4 py-3 font-medium">Stage</th>
                     <th className="px-4 py-3 font-medium">Contact</th>
                     <th className="px-4 py-3 font-medium">Updated</th>
+                    <th className="px-4 py-3 font-medium">Next action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/80">
@@ -115,6 +116,14 @@ export default async function ProspectingProspectsPage() {
                         </p>
                       </td>
                       <td className="px-4 py-3 text-slate-500">{formatDate(prospect.updatedAt)}</td>
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/apps/prospecting/prospects/${prospect.id}`}
+                          className="inline-flex rounded-lg bg-violet-600 px-3 py-2 text-xs font-medium text-white hover:bg-violet-500"
+                        >
+                          {prospect.stage === "qualified" ? (prospect.contactName ? `Prepare contact · ${prospect.contactName}` : "Prepare contact") : prospect.stage === "audit_created" ? "Continue research" : "Research"}
+                        </Link>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
