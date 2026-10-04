@@ -4,6 +4,7 @@ import type { ProspectAuditFinding, ProspectAuditScores } from "./types";
 import { runPresenceAudit } from "./presence-audit";
 import { updateGrowthProspect } from "./prospects";
 import { abnLookupProvider } from "../../business-discovery/providers/abn-lookup";
+import { coreLogicCredentialsConfigured } from "../../connectors/corelogic";
 import { googlePlacesProvider } from "../../business-discovery/providers/google-places";
 import type { DiscoveryCandidate } from "../../business-discovery/types";
 
