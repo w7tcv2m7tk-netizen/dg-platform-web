@@ -349,3 +349,27 @@ PropTrack remains on hold (no inventing). This connector is real Cotality sandbo
 10. Confirm Cotality panel shows photo count when `/images` returned; blank gallery should receive Cotality CDN URLs after pull (watermarked in sandbox).
 
 
+
+
+---
+
+## Prospecting / Real Estate Business Intelligence
+
+The existing DigitalGate Cotality connector is also the canonical property-market source for the Prospecting Real Estate Intelligence Pack. It must not be duplicated as a separate prospecting integration.
+
+For an agency prospect, Research may use entitled Cotality **Search / Market Insights / Statistics** to add market context for the agency's verified service area. This is market/business intelligence, not homeowner prospect harvesting.
+
+Evidence rules:
+
+- use only fields returned by the configured Cotality entitlement;
+- label Cotality facts as property-market intelligence, separate from DigitalGate interpretation;
+- never infer an agency's sales/listing performance from Cotality market statistics alone;
+- never invent AVM, listing, sales-volume, market-share or competitor metrics;
+- retain source/provider and retrieval timestamp in the Research payload;
+- do not expose restricted property-level data in a public Digital Opportunity Report unless the licence/entitlement permits it.
+
+The current connector already has Search available and documents Market Insights / Statistics capability. The next implementation step is a typed locality/market-statistics adapter once the exact enabled endpoint/response contract for the active Cotality client is confirmed. Until then Research records the connector as available rather than fabricating market metrics.
+
+### Queensland licence verification
+
+Queensland Office of Fair Trading licence/registration checking is an authoritative verification source for the Real Estate Intelligence Pack, but **not** a bulk discovery source. Research should store an individually verified result (holder/business, licence class/number/status when supplied by the register, source and verification date). OFT data must not be harvested in bulk for prospect marketing.
