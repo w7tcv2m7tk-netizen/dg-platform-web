@@ -187,8 +187,26 @@ export async function runGrowthProspectAudit(input: {
     findings: {
       items: presence.findings,
       probes: presence.probes,
+      strengths: presence.strengths,
+      industryInsights: presence.industryInsights,
+      industryPack: presence.industryPack,
+      scorecard: {
+        reputation: presence.scores.reputation ?? null,
+        conversionReadiness: presence.scores.conversionReadiness ?? null,
+        growthSignals: presence.scores.growthSignals ?? null,
+        searchVisibility: presence.scores.seo ?? null,
+      },
+      digitalGateSolutionMatches: buildDigitalGateSolutionMatches(presence),
+      intelligenceSources: {
+        website: { status: "analysed", url: prospect.websiteUrl ?? null },
+        businessIdentity: { status: "available_via_abr" },
+        googleBusinessProfile: { status: "research_target" },
+        socialProfiles: { status: "research_target" },
+        linkedin: { status: "research_target" },
+        industryCredentials: { status: "research_target" },
+      },
     },
-    auditVersion: "presence-1.0",
+    auditVersion: "presence-2.0",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
