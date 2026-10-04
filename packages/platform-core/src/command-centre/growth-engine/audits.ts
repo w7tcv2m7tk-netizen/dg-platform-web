@@ -6,6 +6,7 @@ import { updateGrowthProspect } from "./prospects";
 import { abnLookupProvider } from "../../business-discovery/providers/abn-lookup";
 import { coreLogicCredentialsConfigured, matchCoreLogicAddress, isCoreLogicPropertyMatch } from "../../connectors/corelogic";
 import { fetchDomainProspectAgencyEvidence } from "../../connectors/domain";
+import { probeReaConnection, reaCredentialsConfigured } from "../../connectors/rea";
 import { googlePlacesProvider } from "../../business-discovery/providers/google-places";
 import type { DiscoveryCandidate } from "../../business-discovery/types";
 
@@ -201,6 +202,7 @@ async function enrichProspectBusinessIntelligence(prospect: {
     linkedin: { status: "planned", note: "Public LinkedIn evidence requires a compliant public-profile discovery path; customer OAuth data is not used for prospects." },
     industryCredentials: { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
     propertyMarketIntelligence: { status: coreLogicCredentialsConfigured() ? "available" : "unavailable", note: coreLogicCredentialsConfigured() ? "Cotality connector available; locality evidence is verified before market intelligence is attached." : "Cotality connector is not configured." },
+    reaMarketplace: { status: reaCredentialsConfigured() ? "connected_scope_limited" : "unavailable", note: reaCredentialsConfigured() ? "REA Partner Platform is connected for agency activation and listing upload. The current granted/implemented surface does not provide a general unaffiliated-agency search, so no competitor marketplace metrics are inferred." : "REA Partner Platform credentials are not configured." },
   };
   const ctx = { textQuery: prospect.businessName, location: prospect.location ?? undefined, industry: prospect.industry ?? undefined, businessType: prospect.industry ?? undefined, limit: 8 };
   const [abrRows, placeRows] = await Promise.all([
@@ -229,6 +231,11 @@ async function enrichProspectBusinessIntelligence(prospect: {
   }
   let marketplace: ProspectBusinessIntelligence["marketplace"] = {};
   if (/real\s*estate/i.test(prospect.industry || "")) {
+    if (reaCredentialsConfigured()) {
+      const rea = await probeReaConnection().catch(() => null);
+      if (rea?.tokenOk && rea.apiOk) sourceStatus.reaMarketplace = { status: "partner_connected_scope_limited", note: "REA Partner credentials and Integrations API verified. Prospect research remains fail-closed because this API surface lists agencies that activated DigitalGate; it is not a general competitor-search source." };
+      else if (rea) sourceStatus.reaMarketplace = { status: "provider_error", note: rea.message };
+    }
     const domain = await fetchDomainProspectAgencyEvidence({ businessName: prospect.businessName, location: prospect.location }).catch((error) => ({ ok: false as const, status: "provider_error" as const, message: error instanceof Error ? error.message : "Domain research failed" }));
     sourceStatus.domainMarketplace = { status: domain.status, note: domain.ok ? "Verified against Domain Agents & Listings using platform credentials; no customer OAuth data was used." : domain.message };
     if (domain.ok) marketplace = { domain };
@@ -300,7 +307,7 @@ export async function runGrowthProspectAudit(input: {
       },
       intelligenceSources: businessIntelligence.sourceStatus,
     },
-    auditVersion: "presence-3.2",
+    auditVersion: "presence-3.3",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
