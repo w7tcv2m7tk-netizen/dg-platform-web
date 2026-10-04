@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 
 type Finding = { title?: string; detail?: string; observed?: string; interpretation?: string; recommendedAction?: string };
+type AuditPayload = { items?: Finding[]; strengths?: string[]; industryInsights?: Array<{title?:string;detail?:string;recommendedAction?:string}>; scorecard?: Record<string,number|null>; researchContext?: Record<string,unknown> };
+function auditPayload(value: unknown): AuditPayload { return value && typeof value === "object" ? value as AuditPayload : {}; }
 function findingsFrom(value: unknown): Finding[] {
   if (!value || typeof value !== "object") return [];
   const items = (value as { items?: unknown }).items;
@@ -27,7 +29,11 @@ export default async function OpportunityReportPage({ params }: { params: Promis
   if (!report) notFound();
 
   const audit = report.prospect.audits[0];
+  const payload = auditPayload(audit?.findings);
   const findings = findingsFrom(audit?.findings);
+  const strengths = Array.isArray(payload.strengths) ? payload.strengths : [];
+  const industryInsights = Array.isArray(payload.industryInsights) ? payload.industryInsights : [];
+  const scorecard = payload.scorecard || {};
   await prisma.growthProspectReport.update({ where: { id: report.id }, data: { viewCount: { increment: 1 }, firstViewedAt: report.firstViewedAt ?? new Date() } });
   await prisma.growthProspectEngagement.create({ data: { prospectId: report.prospectId, reportId: report.id, type: "report_viewed" } });
 
@@ -51,6 +57,28 @@ export default async function OpportunityReportPage({ params }: { params: Promis
               {scores.map(([label,value,description]) => <div key={label} className="rounded-xl border border-slate-700 bg-slate-900/70 p-5"><p className="text-sm font-medium text-slate-300">{label}</p><p className="mt-2 text-3xl font-semibold text-white">{value ?? "—"}<span className="text-base text-slate-500">/100</span></p><p className="mt-2 text-xs font-medium text-violet-300">{scoreLabel(value)}</p><p className="mt-2 text-xs leading-5 text-slate-400">{description}</p></div>)}
             </div>
           </section>
+
+          <section className="mt-10 grid gap-5 lg:grid-cols-2">
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">Digital strengths</p>
+              <h2 className="mt-2 text-xl font-semibold text-white">What is already working</h2>
+              <div className="mt-4 space-y-3">{strengths.length ? strengths.slice(0,6).map((strength,i)=><div key={i} className="flex gap-3 text-sm leading-6 text-slate-300"><span className="text-emerald-300">✓</span><p>{strength}</p></div>) : <p className="text-sm text-slate-400">The current audit is focused on opportunity signals. Re-run Research to populate the richer strengths profile.</p>}</div>
+            </div>
+            <div className="rounded-2xl border border-slate-700 bg-slate-900/70 p-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Six-pillar intelligence</p>
+              <h2 className="mt-2 text-xl font-semibold text-white">Beyond the headline score</h2>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                {[["Reputation",scorecard.reputation],["Conversion",scorecard.conversionReadiness],["Growth signals",scorecard.growthSignals],["Search",scorecard.searchVisibility]].map(([label,value])=><div key={String(label)} className="rounded-lg border border-slate-700 p-3"><p className="text-slate-400">{label}</p><p className="mt-1 text-lg font-semibold text-white">{value ?? "—"}<span className="text-xs text-slate-500">/100</span></p></div>)}
+              </div>
+              <p className="mt-4 text-xs leading-5 text-slate-400">These dimensions help distinguish technical website health from trust, conversion and measurable growth readiness.</p>
+            </div>
+          </section>
+
+          {industryInsights.length ? <section className="mt-10">
+            <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Industry intelligence</p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">Opportunities specific to {report.prospect.industry || "this business"}</h2>
+            <div className="mt-5 grid gap-4 lg:grid-cols-3">{industryInsights.map((item,i)=><article key={i} className="rounded-xl border border-violet-500/20 bg-violet-500/5 p-5"><h3 className="font-semibold text-white">{item.title}</h3><p className="mt-2 text-sm leading-6 text-slate-300">{item.detail}</p><p className="mt-4 text-sm leading-6 text-violet-200">{item.recommendedAction}</p></article>)}</div>
+          </section> : null}
 
           <section className="mt-10">
             <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Opportunity analysis</p>
@@ -79,6 +107,14 @@ export default async function OpportunityReportPage({ params }: { params: Promis
             </div>
           </section>
         </> : <p className="mt-8 text-slate-300">The underlying audit is unavailable.</p>}
+
+        <section className="mt-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">90-day opportunity roadmap</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">A practical sequence, not a list of disconnected fixes</h2>
+          <div className="mt-5 grid gap-4 lg:grid-cols-3">
+            {[["0–30 days","Foundation",findings.slice(0,1)],["31–60 days","Visibility & conversion",findings.slice(1,2)],["61–90 days","Systemise growth",findings.slice(2,3)]].map(([period,title,items])=><div key={String(period)} className="rounded-xl border border-slate-700 bg-slate-900/70 p-5"><p className="text-xs font-semibold uppercase tracking-wide text-violet-400">{String(period)}</p><h3 className="mt-2 font-semibold text-white">{String(title)}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{Array.isArray(items) && items[0] ? (items[0].recommendedAction || items[0].interpretation || items[0].title) : period === "61–90 days" ? "Connect lead capture, CRM, automation and reporting into a measurable growth system." : "Validate the next highest-value opportunity from the research."}</p></div>)}
+          </div>
+        </section>
 
         <section className="mt-10 rounded-2xl border border-violet-400/40 bg-gradient-to-br from-violet-500/20 to-slate-900 p-7 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-300">Next step</p><h2 className="mt-2 text-2xl font-semibold text-white">Turn these opportunities into a practical plan</h2>
