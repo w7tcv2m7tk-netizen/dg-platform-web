@@ -12,6 +12,7 @@ import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageH
 import { ProspectQualificationActions } from "@/components/prospecting/ProspectQualificationActions";
 import { DecisionMakerResearch } from "@/components/prospecting/DecisionMakerResearch";
 import { ProspectAuditRefresh } from "@/components/prospecting/ProspectAuditRefresh";
+import { ProspectReportActions } from "@/components/prospecting/ProspectReportActions";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
 type Finding = { title?: string; detail?: string; domain?: string; severity?: string; observed?: string; interpretation?: string; recommendedAction?: string };
@@ -197,11 +198,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               </div>
             </>
           ) : <p className="mt-4 text-sm text-slate-400">A verified, accessible audit is required before a prospect-facing report can be generated.</p>}
-          <div className="mt-5 flex flex-wrap gap-2">
-            <button type="button" disabled className="rounded-lg bg-violet-600/50 px-4 py-2 text-sm font-medium text-white/70">Generate share link · next</button>
-            <button type="button" disabled className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-500">Export PDF · next</button>
-            <button type="button" disabled className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-500">Email report · next</button>
-          </div>
+          <ProspectReportActions prospectId={prospect.id} canGenerate={Boolean(audit && contentAccessible)} />
         </section>
 
         <section className="dg-card">
