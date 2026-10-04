@@ -200,7 +200,9 @@ async function enrichProspectBusinessIntelligence(prospect: {
     googleBusinessProfile: { status: googlePlacesProvider.isConfigured() ? "searched" : "unavailable", note: googlePlacesProvider.unavailableReason() },
     socialProfiles: { status: "website_verified", note: "Public social profiles linked by the business website are captured as first-party public evidence." },
     linkedin: { status: "planned", note: "Public LinkedIn evidence requires a compliant public-profile discovery path; customer OAuth data is not used for prospects." },
-    industryCredentials: { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
+    industryCredentials: /real\s*estate/i.test(prospect.industry || "") && /\bqld\b|queensland/i.test(prospect.location || "")
+      ? { status: "manual_verification_available", note: "Queensland OFT maintains the authoritative public property licence register. Verification is deliberately individual/manual because OFT conditions prohibit bulk requests for marketing purposes; store licence holder, class, number/status and verification date only after a specific check." }
+      : { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
     propertyMarketIntelligence: { status: coreLogicCredentialsConfigured() ? "available" : "unavailable", note: coreLogicCredentialsConfigured() ? "Cotality connector available; locality evidence is verified before market intelligence is attached." : "Cotality connector is not configured." },
     reaMarketplace: { status: reaCredentialsConfigured() ? "connected_scope_limited" : "unavailable", note: reaCredentialsConfigured() ? "REA Partner Platform is connected for agency activation and listing upload. The current granted/implemented surface does not provide a general unaffiliated-agency search, so no competitor marketplace metrics are inferred." : "REA Partner Platform credentials are not configured." },
   };
@@ -307,7 +309,7 @@ export async function runGrowthProspectAudit(input: {
       },
       intelligenceSources: businessIntelligence.sourceStatus,
     },
-    auditVersion: "presence-3.3",
+    auditVersion: "presence-3.4",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
