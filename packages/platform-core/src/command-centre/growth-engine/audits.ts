@@ -52,7 +52,7 @@ export async function createGrowthProspectAudit(input: CreateGrowthProspectAudit
 
   const prospect = await prisma.growthProspect.findUnique({
     where: { id: input.prospectId },
-    select: { id: true, organisationId: true, archivedAt: true },
+    select: { id: true, organisationId: true, archivedAt: true, stage: true },
   });
   if (!prospect || prospect.archivedAt) return null;
 
