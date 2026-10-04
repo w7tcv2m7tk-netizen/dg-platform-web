@@ -69,3 +69,25 @@ See [VOICE-AGENT-ARCHITECTURE.md](../ai/VOICE-AGENT-ARCHITECTURE.md). Authorised
 Implementation builds the Brain during onboarding (SOP stage 09). Prefer Body-led onboarding language from [BUSINESS-BODY.md](./BUSINESS-BODY.md) (DNA → Eyes → Ears → Heart → Arms → Think). See [DELIVERY-OPERATING-MODEL.md](../partners/DELIVERY-OPERATING-MODEL.md).
 
 **Lock:** `packages/platform-core/src/brain/` · `packages/platform-core/src/partners/delivery-model.ts` (`BUSINESS_BRAIN_ONBOARDING`)
+
+
+## Business Challenges & Continuous Improvement
+
+**Product direction:** Business Brain should retain the problems the organisation says it needs to solve, not only static company facts. These are durable business context and should inform onboarding, Advisor recommendations, Success/Support, automation and future product recommendations.
+
+Capture at onboarding:
+- the biggest challenges currently holding the business back;
+- where the team loses the most time;
+- where revenue, leads or opportunities may be leaking;
+- the top outcomes the business wants in the next 6–12 months;
+- up to three ranked priorities, in the customer's own language.
+
+Challenges are not support tickets and must not be forced into a DigitalGate product. DigitalGate should combine stated challenges with Business Brain context, Industry Intelligence, connected data and observable evidence, then recommend an appropriate response. Where DigitalGate can help, map the recommendation to the relevant Platform, Growth or Industry capability and explain why.
+
+The relationship is continuous rather than onboarding-only:
+
+`Pain point → understand context → diagnose → recommend → implement where appropriate → measure outcome → update Business Brain`.
+
+Customers should have an ongoing **Business Challenge** pathway, framed around “What are you trying to solve?” rather than “What is broken?”. Conventional Support remains for break/fix, access and billing. Business Challenges may be surfaced alongside Support/Success for discoverability, but are a broader advisory capability.
+
+Aggregated, privacy-respecting challenge patterns should inform Industry Intelligence Packs and product development. Industry packs should ultimately combine external research, observable business evidence, direct owner/operator feedback and measured customer outcomes.
