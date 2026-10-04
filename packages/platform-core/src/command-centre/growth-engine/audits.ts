@@ -75,13 +75,16 @@ export async function createGrowthProspectAudit(input: CreateGrowthProspectAudit
     },
   });
 
-  await updateGrowthProspect({
-    prospectId: input.prospectId,
-    organisationId,
-    stage: "audit_created",
-    actorId: input.actorId,
-    operatorOrganisationId: organisationId,
-  });
+  // Research enrichment must not move an existing prospect backwards.
+  if (prospect.stage === "prospect") {
+    await updateGrowthProspect({
+      prospectId: input.prospectId,
+      organisationId,
+      stage: "audit_created",
+      actorId: input.actorId,
+      operatorOrganisationId: organisationId,
+    });
+  }
 
   await prisma.growthProspectEngagement.create({
     data: {
@@ -225,7 +228,7 @@ async function enrichProspectBusinessIntelligence(prospect: {
     }
   }
   let marketplace: ProspectBusinessIntelligence["marketplace"] = {};
-  if (/real\\s*estate/i.test(prospect.industry || "")) {
+  if (/real\s*estate/i.test(prospect.industry || "")) {
     const domain = await fetchDomainProspectAgencyEvidence({ businessName: prospect.businessName, location: prospect.location }).catch((error) => ({ ok: false as const, status: "provider_error" as const, message: error instanceof Error ? error.message : "Domain research failed" }));
     sourceStatus.domainMarketplace = { status: domain.status, note: domain.ok ? "Verified against Domain Agents & Listings using platform credentials; no customer OAuth data was used." : domain.message };
     if (domain.ok) marketplace = { domain };
