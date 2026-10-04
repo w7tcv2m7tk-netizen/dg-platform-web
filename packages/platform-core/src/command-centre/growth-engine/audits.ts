@@ -6,7 +6,7 @@ import { updateGrowthProspect } from "./prospects";
 import { abnLookupProvider } from "../../business-discovery/providers/abn-lookup";
 import { coreLogicCredentialsConfigured, matchCoreLogicAddress, isCoreLogicPropertyMatch } from "../../connectors/corelogic";
 import { fetchDomainProspectAgencyEvidence } from "../../connectors/domain";
-import { probeReaConnection, reaCredentialsConfigured } from "../../connectors/rea";
+import { reaCredentialsConfigured } from "../../connectors/rea";
 import { googlePlacesProvider } from "../../business-discovery/providers/google-places";
 import type { DiscoveryCandidate } from "../../business-discovery/types";
 
@@ -228,15 +228,16 @@ async function enrichProspectBusinessIntelligence(prospect: {
       };
       sourceStatus.propertyMarketIntelligence = { status: "locality_verified", note: "Cotality Address Match verified the agency location. Market statistics remain fail-closed until the entitled Statistics endpoint contract is implemented." };
     } else {
-      sourceStatus.propertyMarketIntelligence = { status: "no_locality_match", note: "Cotality is connected but the agency address did not produce a confident property match; no market metrics were inferred." };
+      sourceStatus.propertyMarketIntelligence = { status: "connected_locality_unresolved", note: "Cotality is connected, but the agency office address did not resolve within the configured Address Match dataset. This does not imply the agency or locality is absent from Cotality. Prospect market metrics remain fail-closed until an entitled locality/Statistics adapter is implemented." };
     }
   }
   let marketplace: ProspectBusinessIntelligence["marketplace"] = {};
   if (/real\s*estate/i.test(prospect.industry || "")) {
     if (reaCredentialsConfigured()) {
-      const rea = await probeReaConnection().catch(() => null);
-      if (rea?.tokenOk && rea.apiOk) sourceStatus.reaMarketplace = { status: "partner_connected_scope_limited", note: "REA Partner credentials and Integrations API verified. Prospect research remains fail-closed because this API surface lists agencies that activated DigitalGate; it is not a general competitor-search source." };
-      else if (rea) sourceStatus.reaMarketplace = { status: "provider_error", note: rea.message };
+      sourceStatus.reaMarketplace = {
+        status: "connected_scope_limited",
+        note: "REA Partner Platform credentials are configured for DigitalGate agency activation and listing upload. Prospect research remains fail-closed because the granted/implemented Partner surface is not a general unaffiliated-agency search source. Activation/integrations health is checked separately and does not determine competitor-research availability.",
+      };
     }
     const domain = await fetchDomainProspectAgencyEvidence({ businessName: prospect.businessName, location: prospect.location }).catch((error) => ({ ok: false as const, status: "provider_error" as const, message: error instanceof Error ? error.message : "Domain research failed" }));
     sourceStatus.domainMarketplace = { status: domain.status, note: domain.ok ? "Verified against Domain Agents & Listings using platform credentials; no customer OAuth data was used." : domain.message };
@@ -309,7 +310,7 @@ export async function runGrowthProspectAudit(input: {
       },
       intelligenceSources: businessIntelligence.sourceStatus,
     },
-    auditVersion: "presence-3.5",
+    auditVersion: "presence-3.6",
     actorId: input.actorId,
     operatorOrganisationId:
       input.operatorOrganisationId ?? prospect.organisationId ?? undefined,
