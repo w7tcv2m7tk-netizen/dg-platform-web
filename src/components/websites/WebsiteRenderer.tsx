@@ -18,7 +18,11 @@ import {
 import { PropertyReportCapture } from "@/components/websites/PropertyReportCapture";
 import { RoeBookingCapture } from "@/components/websites/RoeBookingCapture";
 import { StrategySessionCapture } from "@/components/websites/StrategySessionCapture";
-import { isDgStrategySessionPage } from "@/lib/dg-strategy-session";
+import {
+  isDgStrategySessionPage,
+  shouldRenderNativeStrategySessionCapture,
+  strategySessionStudioHtml,
+} from "@/lib/dg-strategy-session";
 import { HtmlWithGallery } from "@/components/websites/HtmlWithGallery";
 import { HtmlWithDgForms } from "@/components/websites/HtmlWithDgForms";
 import { DgHomepageScrollScenes } from "@/components/websites/DgHomepageScrollScenes";
@@ -1282,9 +1286,15 @@ export function WebsitePageRenderer({
         ? ("buyer_consultation" as const)
         : null;
   const isDgStrategySession = isDgStrategySessionPage(siteSlug, pageSlug);
+  const strategySessionHtml = isDgStrategySession
+    ? strategySessionStudioHtml(components)
+    : "";
+  const useStrategySessionStudioHtml = Boolean(strategySessionHtml);
+  const showNativeStrategySessionCapture =
+    isDgStrategySession && shouldRenderNativeStrategySessionCapture(components);
   /** Product subdomain funnels are chromeless capture apps — never render Studio HTML stubs. */
   const renderComponents =
-    isProductFunnel || isDgStrategySession
+    isProductFunnel || (isDgStrategySession && !useStrategySessionStudioHtml)
       ? []
       : bookingKind
         ? components.filter((c) => c.type !== "html" && c.type !== "contact_form")
@@ -1571,7 +1581,7 @@ export function WebsitePageRenderer({
               logoUrl={theme.logoUrl || theme.iconUrl}
             />
           ) : null}
-          {isDgStrategySession ? (
+          {showNativeStrategySessionCapture ? (
             <StrategySessionCapture siteSlug={siteSlug || "digitalgate"} />
           ) : null}
           {wantdComponents.map((c) => (
