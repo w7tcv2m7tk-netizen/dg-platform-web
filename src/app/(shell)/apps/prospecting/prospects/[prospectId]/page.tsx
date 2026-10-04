@@ -57,7 +57,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
     contactEmail: prospect.contactEmail,
     industry: prospect.industry,
     metadata: prospect.metadata,
-    audit: audit && contentAccessible ? { businessHealth: audit.businessHealth, aiVisibility: audit.aiVisibility, seoScore: audit.seoScore, websiteHealth: audit.websiteHealth } : null,
+    audit: audit && contentAccessible ? { businessHealth: audit.businessHealth, aiVisibility: audit.aiVisibility, seoScore: audit.seoScore, websiteHealth: audit.websiteHealth, findings: audit.findings } : null,
   });
   const canWrite = sessionHasFeature(session, "prospecting.prospects.write");
   const canQualify = Boolean(prospect.contactName && (prospect.contactPhone || prospect.contactEmail));
