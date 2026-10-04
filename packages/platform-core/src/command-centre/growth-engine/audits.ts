@@ -92,6 +92,73 @@ export async function createGrowthProspectAudit(input: CreateGrowthProspectAudit
   return serializeAudit(audit);
 }
 
+type DigitalGateSolutionMatch = {
+  capability: string;
+  opportunity: string;
+  evidence: string;
+  benefit: string;
+  relevance: "high" | "medium";
+};
+
+function buildDigitalGateSolutionMatches(presence: Awaited<ReturnType<typeof runPresenceAudit>>): DigitalGateSolutionMatch[] {
+  const matches: DigitalGateSolutionMatch[] = [];
+  const findings = presence.findings || [];
+  const has = (re: RegExp) => findings.some((f) => re.test(`${f.title} ${f.category || ""} ${f.domain}`));
+
+  if ((presence.scores.aiVisibility ?? 100) < 60 || has(/structured|ai.visibility/i)) matches.push({
+    capability: "AI Visibility Framework™",
+    opportunity: "Improve how search engines and AI systems understand and surface the business.",
+    evidence: `AI Visibility ${presence.scores.aiVisibility ?? "—"}/100`,
+    benefit: "Stronger machine-readable entity signals and a clearer foundation for AI/search discovery.",
+    relevance: "high",
+  });
+  if ((presence.scores.seo ?? 100) < 65 || has(/h1|meta|search|seo/i)) matches.push({
+    capability: "SEO & Growth",
+    opportunity: "Strengthen organic visibility and search-result foundations.",
+    evidence: `Search Visibility ${presence.scores.seo ?? "—"}/100`,
+    benefit: "Improve the business's ability to be discovered for commercially relevant searches.",
+    relevance: "high",
+  });
+  if ((presence.scores.conversionReadiness ?? 100) < 70 || has(/conversion|form|call.to.action|contact pathway/i)) matches.push({
+    capability: "Websites & Lead Generation",
+    opportunity: "Turn more existing website attention into identifiable enquiries and next actions.",
+    evidence: `Conversion Readiness ${presence.scores.conversionReadiness ?? "—"}/100`,
+    benefit: "Clearer conversion journeys and more measurable lead capture.",
+    relevance: "high",
+  });
+  if ((presence.scores.reputation ?? 100) < 70 || has(/review|reputation|local/i)) matches.push({
+    capability: "Reputation & Local Visibility",
+    opportunity: "Strengthen trust and local/entity authority around the business.",
+    evidence: `Reputation & Presence ${presence.scores.reputation ?? "—"}/100`,
+    benefit: "Stronger trust signals for prospects and better local business context for search systems.",
+    relevance: "medium",
+  });
+  if ((presence.scores.growthSignals ?? 100) < 70 || has(/analytics|tracking|measurement/i)) matches.push({
+    capability: "Analytics & Business Intelligence",
+    opportunity: "Make lead-generation and marketing performance measurable.",
+    evidence: `Growth Signals ${presence.scores.growthSignals ?? "—"}/100`,
+    benefit: "Connect activity to enquiries, pipeline and commercial outcomes rather than isolated marketing metrics.",
+    relevance: "medium",
+  });
+  if (presence.industryPack === "real_estate") {
+    matches.push({
+      capability: "Real Estate Industry App",
+      opportunity: "Connect appraisal generation, prospecting, CRM follow-up and local market authority into one operating workflow.",
+      evidence: "Real Estate industry profile identified",
+      benefit: "Create a more systematic vendor-acquisition and relationship pipeline around the agency's existing digital presence.",
+      relevance: "high",
+    });
+    matches.push({
+      capability: "Prospecting + CRM + Automation",
+      opportunity: "Capture and progress buyer, seller and appraisal intent with consistent next actions.",
+      evidence: "Real Estate customer journey requires ongoing relationship follow-up",
+      benefit: "Reduce lead leakage and turn digital intent into an organised prospect-to-customer workflow.",
+      relevance: "high",
+    });
+  }
+  return matches.slice(0, 8);
+}
+
 /** Live presence audit for a prospect — fetches website signals when a URL exists. */
 export async function runGrowthProspectAudit(input: {
   prospectId: string;
