@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 
 type Finding = { title?: string; detail?: string; observed?: string; interpretation?: string; recommendedAction?: string };
-type AuditPayload = { items?: Finding[]; strengths?: string[]; industryInsights?: Array<{title?:string;detail?:string;recommendedAction?:string}>; scorecard?: Record<string,number|null>; researchContext?: Record<string,unknown> };
+type SolutionMatch = { capability?: string; opportunity?: string; evidence?: string; benefit?: string; relevance?: string };
+type AuditPayload = { items?: Finding[]; strengths?: string[]; industryInsights?: Array<{title?:string;detail?:string;recommendedAction?:string}>; scorecard?: Record<string,number|null>; researchContext?: Record<string,unknown>; digitalGateSolutionMatches?: SolutionMatch[] };
 function auditPayload(value: unknown): AuditPayload { return value && typeof value === "object" ? value as AuditPayload : {}; }
 function findingsFrom(value: unknown): Finding[] {
   if (!value || typeof value !== "object") return [];
@@ -34,6 +35,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
   const strengths = Array.isArray(payload.strengths) ? payload.strengths : [];
   const industryInsights = Array.isArray(payload.industryInsights) ? payload.industryInsights : [];
   const scorecard = payload.scorecard || {};
+  const solutionMatches = Array.isArray(payload.digitalGateSolutionMatches) ? payload.digitalGateSolutionMatches : [];
   await prisma.growthProspectReport.update({ where: { id: report.id }, data: { viewCount: { increment: 1 }, firstViewedAt: report.firstViewedAt ?? new Date() } });
   await prisma.growthProspectEngagement.create({ data: { prospectId: report.prospectId, reportId: report.id, type: "report_viewed" } });
 
@@ -107,6 +109,13 @@ export default async function OpportunityReportPage({ params }: { params: Promis
             </div>
           </section>
         </> : <p className="mt-8 text-slate-300">The underlying audit is unavailable.</p>}
+
+        {solutionMatches.length ? <section className="mt-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">DigitalGate opportunity map</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">Where DigitalGate directly connects to the opportunities found</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">These are not generic product recommendations. Each match is derived from evidence observed during the business intelligence review.</p>
+          <div className="mt-5 space-y-4">{solutionMatches.map((match,i)=><article key={i} className="grid gap-4 rounded-xl border border-violet-500/20 bg-violet-500/5 p-5 lg:grid-cols-[0.8fr_1.4fr_1.4fr]"><div><p className="text-xs font-semibold uppercase tracking-wide text-violet-300">{match.relevance === "high" ? "High relevance" : "Relevant"}</p><h3 className="mt-1 font-semibold text-white">{match.capability}</h3><p className="mt-2 text-xs text-slate-400">{match.evidence}</p></div><div><p className="text-xs uppercase tracking-wide text-slate-500">Opportunity</p><p className="mt-1 text-sm leading-6 text-slate-300">{match.opportunity}</p></div><div><p className="text-xs uppercase tracking-wide text-slate-500">Potential benefit</p><p className="mt-1 text-sm leading-6 text-slate-300">{match.benefit}</p></div></article>)}</div>
+        </section> : null}
 
         <section className="mt-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">90-day opportunity roadmap</p>

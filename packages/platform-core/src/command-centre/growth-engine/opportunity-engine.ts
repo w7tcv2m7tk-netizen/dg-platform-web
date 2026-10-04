@@ -78,6 +78,7 @@ export type OpportunityScoreInput = {
     aiVisibility: number | null;
     seoScore: number | null;
     websiteHealth: number | null;
+    findings?: unknown;
   } | null;
   report?: {
     viewCount: number;
@@ -138,6 +139,13 @@ export function computeProspectOpportunityScore(
   const ai = input.audit?.aiVisibility ?? null;
   const website = input.audit?.websiteHealth ?? null;
   const rating = typeof meta.rating === "number" ? meta.rating : null;
+  const auditPayload = input.audit?.findings && typeof input.audit.findings === "object"
+    ? input.audit.findings as { digitalGateSolutionMatches?: Array<{ relevance?: string; capability?: string }> }
+    : null;
+  const solutionMatches = Array.isArray(auditPayload?.digitalGateSolutionMatches)
+    ? auditPayload.digitalGateSolutionMatches
+    : [];
+  const highSolutionMatches = solutionMatches.filter((m) => m?.relevance === "high").length;
 
   // Fit (0–100): ICP evidence, commercial/reputation signals and target alignment.
   let fit = 35;
@@ -156,10 +164,20 @@ export function computeProspectOpportunityScore(
 
   // Opportunity (0–100): weaker verified digital performance = more DG upside.
   const verified = [health, seo, ai, website].filter((v): v is number => typeof v === "number");
-  const opportunityScore = verified.length
+  const digitalGapScore = verified.length
     ? clamp(verified.reduce((sum, v) => sum + (100 - v), 0) / verified.length)
     : 45;
+  // Need alone is not enough: prioritise gaps DigitalGate can demonstrably solve.
+  // Research v2 persists solution matches from the same evidence used by the report.
+  const solutionFitScore = solutionMatches.length
+    ? clamp(45 + solutionMatches.length * 6 + highSolutionMatches * 7)
+    : 45;
+  const opportunityScore = clamp(digitalGapScore * 0.68 + solutionFitScore * 0.32);
   if (!input.audit) penalties.push("No verified presence audit yet");
+  if (solutionMatches.length) {
+    positiveSignals.push(`${solutionMatches.length} DigitalGate solution match${solutionMatches.length === 1 ? "" : "es"} identified`);
+    if (highSolutionMatches >= 2) positiveSignals.push(`${highSolutionMatches} high-relevance DigitalGate opportunities`);
+  }
   if (health != null && health < 60) positiveSignals.push(`Business Health ${health}/100 — improvement opportunity`);
   if (seo != null && seo < 55) positiveSignals.push(`SEO ${seo}/100 — organic visibility opportunity`);
   if (ai != null && ai < 50) positiveSignals.push(`AI Visibility ${ai}/100 — AI-search opportunity`);
