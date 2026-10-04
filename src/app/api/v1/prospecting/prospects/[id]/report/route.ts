@@ -61,29 +61,3 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   await prisma.growthProspectEngagement.create({ data: { prospectId: id, reportId: report.id, type: "report_emailed", metadata: { actorId: session.clerkUserId, to: String(body?.to || ""), subject: String(body?.subject || "") } } });
   return NextResponse.json({ data: { recorded: true } });
 }
-
-
-export async function PATCH(req: Request, { params }: RouteParams) {
-  const session = await requirePlatformAuth(req);
-  if (isNextResponse(session)) return session;
-  const denied = requireFeature(session, "prospecting.prospects.write");
-  if (denied) return denied;
-  const { id } = await params;
-  const prospect = await getGrowthProspect(id, organisationGrowthScope(session.organisationId));
-  if (!prospect || prospect.archivedAt) {
-    return NextResponse.json({ error: { code: "not_found", message: "Prospect not found" } }, { status: 404 });
-  }
-  const body = await req.json().catch(() => null);
-  if (body?.action !== "email_sent") {
-    return NextResponse.json({ error: { code: "validation_error", message: "Unsupported report action" } }, { status: 422 });
-  }
-  const { prisma } = await import("@dg/database");
-  const report = await prisma.growthProspectReport.findFirst({ where: { prospectId: id }, orderBy: { generatedAt: "desc" } });
-  if (!report) {
-    return NextResponse.json({ error: { code: "report_required", message: "Generate the report before recording delivery." } }, { status: 409 });
-  }
-  await prisma.growthProspectEngagement.create({
-    data: { prospectId: id, reportId: report.id, type: "report_emailed", metadata: { actorId: session.clerkUserId, to: String(body?.to || ""), subject: String(body?.subject || "") } },
-  });
-  return NextResponse.json({ data: { recorded: true } });
-}
