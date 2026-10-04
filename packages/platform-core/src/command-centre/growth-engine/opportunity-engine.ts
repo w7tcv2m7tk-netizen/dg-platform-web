@@ -78,6 +78,7 @@ export type OpportunityScoreInput = {
     aiVisibility: number | null;
     seoScore: number | null;
     websiteHealth: number | null;
+    findings?: unknown;
   } | null;
   report?: {
     viewCount: number;
