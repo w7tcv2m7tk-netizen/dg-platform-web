@@ -37,7 +37,11 @@ type SourceState = { status?: string; note?: string };
 type BusinessIntelligence = {
   sourceStatus?: Record<string, SourceState>;
   publicProfiles?: Record<string, string>;
-  realEstateJourney?: { hasAppraisalCta?: boolean; hasAppraisalForm?: boolean; suburbMentions?: number };
+  socialAssessment?: { score?: number; channelCount?: number; basis?: string; activityStatus?: string; audienceStatus?: string; engagementStatus?: string };
+  realEstateJourney?: {
+    hasAppraisalCta?: boolean; hasAppraisalForm?: boolean; suburbMentions?: number;
+    acquisitionReadiness?: { score?: number; appraisalPath?: number; localAuthority?: number; reputation?: number; socialPresence?: number; discoverability?: number };
+  };
 };
 function businessIntelligenceFrom(value: unknown): BusinessIntelligence {
   if (!value || typeof value !== "object") return {};
@@ -77,7 +81,9 @@ export default async function ProspectResearchPage({ params }: { params: Promise
   const businessIntelligence = businessIntelligenceFrom(audit?.findings);
   const intelligenceSources = sourceStatusFrom(audit?.findings);
   const publicProfiles = businessIntelligence.publicProfiles ?? {};
+  const socialAssessment = businessIntelligence.socialAssessment ?? {};
   const realEstateJourney = businessIntelligence.realEstateJourney ?? {};
+  const acquisitionReadiness = realEstateJourney.acquisitionReadiness ?? {};
   const verifiedSocialCount = Object.values(publicProfiles).filter(Boolean).length;
   const socialReadiness = verifiedSocialCount >= 4 ? "Strong footprint" : verifiedSocialCount >= 2 ? "Established footprint" : verifiedSocialCount === 1 ? "Limited footprint" : "Not verified";
   const contentAccessible = probes.contentAccessible !== false;
@@ -212,9 +218,10 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-white">Verified social footprint</h3>
-                  <span className="text-xs font-medium text-violet-300">{socialReadiness}</span>
+                  <div className="text-right"><span className="text-xs font-medium text-violet-300">{socialReadiness}</span>{typeof socialAssessment.score === "number" ? <p className="mt-1 text-2xl font-semibold text-white">{socialAssessment.score}<span className="text-xs text-slate-500">/100</span></p> : null}</div>
                 </div>
-                <p className="mt-2 text-xs text-slate-500">{verifiedSocialCount} public profile{verifiedSocialCount === 1 ? "" : "s"} linked by the business website. This rating reflects verified channel coverage only; follower counts, posting frequency and engagement are not inferred.</p>
+                <p className="mt-2 text-xs text-slate-500">{verifiedSocialCount} public profile{verifiedSocialCount === 1 ? "" : "s"} linked by the business website. Social Presence scores verified channel coverage and website integration only; audience, posting activity and engagement remain explicitly unassessed until observable evidence is available.</p>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[10px] uppercase tracking-wide text-slate-500"><div className="rounded border border-slate-800 p-2">Activity<br/><span className="text-slate-300">Not assessed</span></div><div className="rounded border border-slate-800 p-2">Audience<br/><span className="text-slate-300">Not assessed</span></div><div className="rounded border border-slate-800 p-2">Engagement<br/><span className="text-slate-300">Not assessed</span></div></div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {Object.entries(publicProfiles).filter(([, url]) => Boolean(url)).map(([network, url]) => (
                     <a key={network} href={url} target="_blank" rel="noreferrer" className="rounded-full border border-violet-500/30 bg-violet-500/5 px-3 py-1.5 text-xs capitalize text-violet-200 hover:bg-violet-500/10">{network} ↗</a>
@@ -226,6 +233,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               {/real\s*estate/i.test(prospect.industry || "") ? <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-4">
                 <p className="text-xs uppercase tracking-wide text-violet-300">Real Estate acquisition intelligence</p>
                 <h3 className="mt-2 text-base font-semibold text-white">Vendor journey signals</h3>
+                {typeof acquisitionReadiness.score === "number" ? <div className="mt-4 rounded-lg border border-violet-500/30 bg-violet-500/10 p-4"><div className="flex items-end justify-between gap-4"><div><p className="text-xs uppercase tracking-wide text-violet-300">Acquisition readiness</p><p className="mt-1 text-xs text-slate-400">Evidence-weighted vendor acquisition readiness, not claimed conversion performance.</p></div><p className="text-3xl font-semibold text-white">{acquisitionReadiness.score}<span className="text-sm text-slate-500">/100</span></p></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">{[["Appraisal path",acquisitionReadiness.appraisalPath],["Local authority",acquisitionReadiness.localAuthority],["Reputation",acquisitionReadiness.reputation],["Social presence",acquisitionReadiness.socialPresence],["Discoverability",acquisitionReadiness.discoverability]].map(([label,value])=><div key={String(label)} className="rounded border border-slate-800 bg-slate-950/30 p-2"><p className="text-[10px] text-slate-500">{label}</p><p className="mt-1 text-sm font-semibold text-white">{value ?? "—"}<span className="text-[10px] text-slate-500">/100</span></p></div>)}</div></div> : null}
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-3"><p className="text-xs text-slate-500">Appraisal CTA</p><p className="mt-1 text-sm font-medium text-white">{realEstateJourney.hasAppraisalCta ? "Detected" : "Not detected"}</p><p className="mt-1 text-xs text-slate-500">Seller-intent call-to-action on the audited homepage.</p></div>
                   <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-3"><p className="text-xs text-slate-500">Appraisal form</p><p className="mt-1 text-sm font-medium text-white">{realEstateJourney.hasAppraisalForm ? "Detected" : "Not detected"}</p><p className="mt-1 text-xs text-slate-500">Observable lead-capture path for appraisal intent.</p></div>
@@ -279,7 +287,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               </div>
               <div className="mt-5 rounded-lg border border-violet-500/20 bg-violet-500/5 p-4">
                 <h3 className="text-sm font-semibold text-white">How DigitalGate can help</h3>
-                <p className="mt-2 text-sm text-slate-300">Use this evidence as the starting point for a Platform Consultation: confirm which opportunities matter commercially, then demonstrate the relevant DigitalGate capabilities rather than sending a generic platform pitch.</p>
+                <p className="mt-2 text-sm text-slate-300">Use this evidence as the starting point for a Strategy Session: confirm which opportunities matter commercially, then demonstrate the relevant DigitalGate capabilities rather than sending a generic platform pitch.</p>
               </div>
             </>
           ) : <p className="mt-4 text-sm text-slate-400">A verified, accessible audit is required before a prospect-facing report can be generated.</p>}
