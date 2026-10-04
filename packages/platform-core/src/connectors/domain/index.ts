@@ -53,3 +53,9 @@ export {
   type PublishPropertyToDomainInput,
   type PublishPropertyToDomainResult,
 } from "./publish-property";
+
+
+export {
+  fetchDomainProspectAgencyEvidence,
+  type DomainProspectAgencyEvidence,
+} from "./prospect-intelligence";
