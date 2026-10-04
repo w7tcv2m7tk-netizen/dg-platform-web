@@ -12,6 +12,9 @@ import type { ProspectAuditFinding, ProspectAuditScores } from "./types";
 export type PresenceAuditResult = {
   scores: ProspectAuditScores;
   findings: ProspectAuditFinding[];
+  industryPack: PresenceIndustryPack;
+  strengths: string[];
+  industryInsights: Array<{ title: string; detail: string; recommendedAction: string }>;
   probes: {
     websiteUrl: string | null;
     reachable: boolean | null;
@@ -186,6 +189,7 @@ export async function runPresenceAudit(
   const findings: ProspectAuditFinding[] = [];
   const websiteUrl = normaliseUrl(input.websiteUrl);
   const pack = resolvePresenceIndustryPack(input.industry);
+  const strengths: string[] = [];
 
   const probes: PresenceAuditResult["probes"] = {
     websiteUrl,
@@ -308,6 +312,7 @@ export async function runPresenceAudit(
           if (signals.title) {
             websiteHealth += 8;
             seo += 10;
+            strengths.push("A homepage title is present, giving search engines a basic page-topic signal.");
           } else {
             findings.push({
               domain: "seo",
@@ -320,6 +325,7 @@ export async function runPresenceAudit(
 
           if (signals.hasMetaDescription) {
             seo += 12;
+            strengths.push("A homepage meta description is present, providing a foundation for search-result messaging.");
           } else {
             findings.push({
               domain: "seo",
@@ -332,6 +338,7 @@ export async function runPresenceAudit(
 
           if (signals.hasViewport) {
             websiteHealth += 10;
+            strengths.push("Mobile viewport support is present, providing a basic mobile-ready foundation.");
           } else {
             findings.push({
               domain: "website",
@@ -344,6 +351,7 @@ export async function runPresenceAudit(
 
           if (signals.hasH1) {
             seo += 8;
+            strengths.push("A primary H1 heading is present, supporting clearer content hierarchy.");
           } else {
             findings.push({
               domain: "seo",
@@ -354,6 +362,7 @@ export async function runPresenceAudit(
           }
 
           if (signals.hasOpenGraph) {
+            strengths.push("Open Graph metadata is present, supporting stronger social sharing previews.");
             aiVisibility += 15;
             seo += 5;
             growthSignals += 8;
@@ -368,6 +377,7 @@ export async function runPresenceAudit(
           }
 
           if (signals.hasJsonLd) {
+            strengths.push("Structured data is present, helping machines interpret the business and page content.");
             aiVisibility += 25;
             seo += 10;
             reputation += 10;
@@ -401,6 +411,7 @@ export async function runPresenceAudit(
 
           // Conversion readiness
           if (signals.hasForm) {
+            strengths.push("An enquiry form is detectable on the homepage, providing a direct conversion path.");
             conversionReadiness += 25;
             growthSignals += 8;
           } else {
@@ -453,6 +464,7 @@ export async function runPresenceAudit(
 
           // Reputation & presence
           if (signals.hasMapsOrGbpHint) {
+            strengths.push("Local/Google Maps signals are visible on the homepage, supporting local entity confidence.");
             reputation += 25;
             growthSignals += 10;
           } else {
@@ -477,6 +489,7 @@ export async function runPresenceAudit(
             });
           }
           if (signals.hasReviewHint) {
+            strengths.push("Review or testimonial signals are visible, supporting online trust.");
             reputation += 20;
           } else {
             findings.push({
@@ -496,6 +509,7 @@ export async function runPresenceAudit(
           }
 
           if (signals.hasAnalyticsHint) {
+            strengths.push("Common analytics/tracking signals are detectable, providing a measurement foundation.");
             growthSignals += 15;
           } else {
             findings.push({
@@ -594,7 +608,53 @@ export async function runPresenceAudit(
     });
   }
 
+  const industryInsights: PresenceAuditResult["industryInsights"] =
+    pack === "real_estate"
+      ? [
+          {
+            title: "Vendor and appraisal acquisition",
+            detail: "For a real-estate agency, seller intent is a high-value digital signal. Appraisal pathways should be prominent, measurable and connected to structured follow-up.",
+            recommendedAction: "Review appraisal CTAs, suburb landing pages, lead capture and automated vendor nurture as one acquisition journey.",
+          },
+          {
+            title: "Suburb and local authority",
+            detail: "Agency visibility depends on strong local entity signals across suburbs, agents, listings, reviews and Google Business Profile presence.",
+            recommendedAction: "Build consistent suburb, agent and local-business entity signals that reinforce geographic authority for search and AI discovery.",
+          },
+          {
+            title: "Listing traffic to relationship pipeline",
+            detail: "Property and buyer traffic creates first-party intent that can support future seller, buyer and appraisal opportunities when captured and followed up well.",
+            recommendedAction: "Connect property enquiries and website conversion points to CRM segmentation, follow-up automation and measurable next actions.",
+          },
+        ]
+      : pack === "accommodation"
+        ? [
+            {
+              title: "Direct enquiry and booking journey",
+              detail: "Accommodation visibility is most valuable when guests can move quickly from discovery to availability, trust and booking.",
+              recommendedAction: "Review high-intent booking paths, location content, reputation signals and direct enquiry follow-up as one guest journey.",
+            },
+          ]
+        : pack === "trades"
+          ? [
+              {
+                title: "Service-area lead generation",
+                detail: "Trades and service businesses benefit from clear service-area authority and frictionless quote/call pathways.",
+                recommendedAction: "Connect service-area visibility, quote capture and follow-up into a measurable lead pipeline.",
+              },
+            ]
+          : [
+              {
+                title: "Lead capture and follow-up",
+                detail: "Digital visibility creates value when visitor intent is captured, followed up and measured consistently.",
+                recommendedAction: "Connect the strongest website conversion points to CRM, automation and measurable follow-up.",
+              },
+            ];
+
   return {
+    industryPack: pack,
+    strengths: Array.from(new Set(strengths)).slice(0, 8),
+    industryInsights,
     scores: {
       businessHealth,
       websiteHealth: websiteHealthScore,
