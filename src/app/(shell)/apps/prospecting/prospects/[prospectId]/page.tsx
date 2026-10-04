@@ -291,7 +291,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               </div>
             </>
           ) : <p className="mt-4 text-sm text-slate-400">A verified, accessible audit is required before a prospect-facing report can be generated.</p>}
-          <ProspectReportActions prospectId={prospect.id} canGenerate={Boolean(audit && contentAccessible)} />
+          <ProspectReportActions prospectId={prospect.id} canGenerate={Boolean(audit && contentAccessible)} recipientName={prospect.contactName} recipientEmail={prospect.contactEmail} businessName={prospect.businessName} />
         </section>
 
         <section className="dg-card">
