@@ -218,6 +218,20 @@ export interface DailyOpportunityRow {
   reasons: string[];
   approachHint: string;
   businessHealthScore: number | null;
+  auditScores: {
+    businessHealth: number;
+    aiVisibility: number;
+    seo: number;
+    websiteHealth: number;
+  } | null;
+  auditFindings: Array<{
+    title: string;
+    observed: string;
+    detail: string;
+    recommendedAction: string;
+  }>;
+  reportSent: boolean;
+  reportFirstViewedAt: string | null;
   reportViewCount: number;
   hasAudit: boolean;
   hasReport: boolean;
