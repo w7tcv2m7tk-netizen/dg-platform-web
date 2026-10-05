@@ -274,10 +274,16 @@ export async function convertLeadToOpportunity(input: {
 
   const metadata = (lead.metadata as Record<string, unknown> | null) ?? {};
   const leadType = (metadata.lead_type as string | undefined) ?? "vendor";
+  const isDigitalGateAcquisition =
+    lead.source === "free_audit" ||
+    metadata.capture_path === "gen2_public_business_audit" ||
+    metadata.product === "digitalgate_business_audit";
   const stage =
     input.stage ??
     (typeof metadata.stage === "string" ? metadata.stage : null) ??
-    (leadType === "consultation"
+    (isDigitalGateAcquisition
+      ? "opportunity"
+      : leadType === "consultation"
       ? "booked"
       : leadType === "founding_10"
         ? "application_received"
@@ -335,7 +341,9 @@ export async function convertLeadToOpportunity(input: {
     valueCents: input.valueCents,
     pipelineId:
       input.pipelineId ??
-      (leadType === "consultation"
+      (isDigitalGateAcquisition
+        ? "digitalgate_sales"
+        : leadType === "consultation"
         ? "platform_consultation"
         : leadType === "founding_10"
           ? "founding_10"
@@ -346,6 +354,12 @@ export async function convertLeadToOpportunity(input: {
               : "vendor"),
     metadata: {
       lead_type: leadType,
+      ...(isDigitalGateAcquisition
+        ? {
+            acquisition_source: "business_audit",
+            acquisition_product: "digital_opportunity_report",
+          }
+        : {}),
       converted_from_lead: true,
       ...(leadType === "founding_10"
         ? {
