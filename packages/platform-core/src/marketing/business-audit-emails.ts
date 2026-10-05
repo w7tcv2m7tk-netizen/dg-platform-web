@@ -1,6 +1,6 @@
 /**
- * Free DigitalGate Business Audit™ nurture emails 2–5.
- * Email 1 is the instant DigitalGate Business Health Score™ report.
+ * Digital Opportunity Report nurture emails 2–5.
+ * Email 1 is the secure Digital Opportunity Report delivery email.
  */
 
 import { composeEmailBody } from "../communications/email-html";
@@ -104,7 +104,7 @@ ${strategy}
           },
           {
             type: "button",
-            label: "Book a free DigitalGate strategy session →",
+            label: "Book a DigitalGate Strategy Session →",
             href: strategy,
           },
           {
@@ -130,7 +130,7 @@ Your DigitalGate Business Health Score™ overall sits at ${overall}/100.
 
 We look at HTTPS, mobile readiness, homepage structure, calls to action, contact pathways and whether the site is designed to turn visitors into enquiries.
 
-See how we'd improve this on a strategy call:
+See how we'd improve this on a Strategy Session:
 ${strategy}
 
 — Ben Roe | DigitalGate`;
@@ -179,7 +179,7 @@ ${strategy}
   if (step === 4) {
     const body = `Hi ${first},
 
-Based on your DigitalGate Business Audit™ for ${company}, the highest-leverage moves usually sit in three places:
+Following the Digital Opportunity Report for ${company}, the highest-leverage moves usually sit in three places:
 
 1. Technical & conversion foundations — HTTPS, mobile readiness, clear CTAs and enquiry paths
 2. Search & local presence — titles, descriptions, structured data and Google Business Profile signals
@@ -187,7 +187,7 @@ Based on your DigitalGate Business Audit™ for ${company}, the highest-leverage
 
 Your business has ${opps} significant opportunities. Would you like DigitalGate to show you how we'd address them?
 
-Book your free strategy session:
+Book a DigitalGate Strategy Session:
 ${strategy}
 
 — Ben Roe | DigitalGate`;
@@ -205,7 +205,7 @@ ${strategy}
           },
           {
             type: "paragraph",
-            text: `Based on your DigitalGate Business Audit™ for ${company}, the highest-leverage moves usually sit in three places:`,
+            text: `Following the Digital Opportunity Report for ${company}, the highest-leverage moves usually sit in three places:`,
           },
           {
             type: "list",
@@ -218,7 +218,7 @@ ${strategy}
           },
           {
             type: "button",
-            label: "Book your free strategy session",
+            label: "Book a DigitalGate Strategy Session",
             href: strategy,
           },
           { type: "signoff", lines: ["— Ben Roe | DigitalGate"] },
@@ -230,7 +230,7 @@ ${strategy}
 
   const body = `Hi ${first},
 
-This is the final email in your DigitalGate Business Audit™ series for ${company}.
+This is the final email in your Digital Opportunity Report series for ${company}.
 
 You've received:
 - Your DigitalGate Business Health Score™ and pillar breakdown
@@ -238,9 +238,9 @@ You've received:
 - Website Health & conversion notes
 - Prioritised opportunities to improve visibility, trust and lead generation
 
-The free audit is the diagnosis. DigitalGate is the system that helps you act on it.
+The Digital Opportunity Report is the diagnosis. DigitalGate is the system that helps you act on it.
 
-If you'd like a clear plan tailored to your business, book a free strategy session:
+If you'd like a clear plan tailored to your business, book a DigitalGate Strategy Session:
 ${strategy}
 
 — Ben Roe | DigitalGate
@@ -259,7 +259,7 @@ https://digitalgate.com.au`;
         },
         {
           type: "paragraph",
-          text: `This is the final email in your DigitalGate Business Audit™ series for ${company}.`,
+          text: `This is the final email in your Digital Opportunity Report series for ${company}.`,
         },
         {
           type: "list",
@@ -272,7 +272,7 @@ https://digitalgate.com.au`;
         },
         {
           type: "highlight",
-          text: "The free audit is the diagnosis. DigitalGate is the system that helps you act on it.",
+          text: "The Digital Opportunity Report is the diagnosis. DigitalGate is the system that helps you act on it.",
         },
         {
           type: "button",

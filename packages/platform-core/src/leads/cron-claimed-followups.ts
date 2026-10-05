@@ -41,10 +41,17 @@ export async function processClaimedFreeAuditFollowups(options?: {
     where: {
       OR: [
         { source: "free_audit" },
+        { source: "prospecting_opportunity_report" },
         {
           metadata: {
             path: ["capture_path"],
             equals: "gen2_public_business_audit",
+          },
+        },
+        {
+          metadata: {
+            path: ["capture_path"],
+            equals: "prospecting_opportunity_report",
           },
         },
       ],
@@ -63,6 +70,23 @@ export async function processClaimedFreeAuditFollowups(options?: {
     const meta = (lead.metadata as Record<string, unknown> | null) ?? {};
     const sequence = meta.free_audit_sequence as FreeAuditSequenceMeta | undefined;
     if (!sequence?.email || !sequence.email_1_sent || !sequence.activatedAt) continue;
+
+    // Stop the report nurture once this recipient has booked a Strategy Session.
+    // Match on the tenant-scoped contact email so inbound audit leads do not keep
+    // receiving acquisition emails after they have converted to a consultation.
+    const consultationBooked = await prisma.lead.findFirst({
+      where: {
+        organisationId: lead.organisationId,
+        id: { not: lead.id },
+        contact: { email: { equals: sequence.email, mode: "insensitive" } },
+        OR: [
+          { metadata: { path: ["lead_type"], equals: "consultation" } },
+          { metadata: { path: ["page_slug"], equals: "strategy-session" } },
+        ],
+      },
+      select: { id: true },
+    });
+    if (consultationBooked) continue;
 
     for (const step of dueFreeAuditFollowupSteps(sequence, now)) {
       if (processed >= limit) break;
