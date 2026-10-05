@@ -6,7 +6,8 @@ type BusinessIntelligence = {
   identity?: { abn?: string; registeredName?: string; registeredLocation?: string };
   google?: { placeId?: string; rating?: number; reviewCount?: number; category?: string; address?: string; phone?: string; website?: string; mapsUri?: string };
   publicProfiles?: { facebook?: string; instagram?: string; linkedin?: string; youtube?: string; tiktok?: string };
-  realEstateJourney?: { hasAppraisalCta?: boolean; hasAppraisalForm?: boolean; suburbMentions?: number };
+  realEstateJourney?: { hasAppraisalCta?: boolean; hasAppraisalForm?: boolean; suburbMentions?: number; acquisitionReadiness?: { score?: number; appraisalPath?: number; localAuthority?: number; reputation?: number; socialPresence?: number; discoverability?: number } };
+  socialAssessment?: { score?: number; channelCount?: number; basis?: string; activityStatus?: string; audienceStatus?: string; engagementStatus?: string };
   sourceStatus?: Record<string,{status?:string;note?:string}>;
 };
 type AuditPayload = { items?: Finding[]; strengths?: string[]; industryInsights?: Array<{title?:string;detail?:string;recommendedAction?:string}>; scorecard?: Record<string,number|null>; researchContext?: Record<string,unknown>; digitalGateSolutionMatches?: SolutionMatch[]; businessIntelligence?: BusinessIntelligence };
@@ -48,8 +49,9 @@ export default async function OpportunityReportPage({ params }: { params: Promis
   const google = intelligence.google || {};
   const publicProfiles = intelligence.publicProfiles || {};
   const realEstateJourney = intelligence.realEstateJourney || {};
-  const socialPresenceScore = typeof scorecard.socialPresence === "number" ? scorecard.socialPresence : (Object.values(publicProfiles).filter(Boolean).length >= 4 ? 100 : Object.values(publicProfiles).filter(Boolean).length * 25);
-  const acquisitionReadiness = typeof scorecard.acquisitionReadiness === "number" ? scorecard.acquisitionReadiness : null;
+  const socialAssessment = intelligence.socialAssessment || {};
+  const socialPresenceScore = typeof socialAssessment.score === "number" ? socialAssessment.score : null;
+  const acquisitionReadiness = typeof realEstateJourney.acquisitionReadiness?.score === "number" ? realEstateJourney.acquisitionReadiness.score : null;
   const commercialRank = (finding: Finding) => {
     const haystack = `${finding.category || ""} ${finding.domain || ""} ${finding.title || ""}`.toLowerCase();
     let score = finding.severity === "critical" ? 40 : finding.severity === "warning" ? 25 : 15;
@@ -71,7 +73,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-400">DigitalGate · Digital Opportunity Report</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-white">{report.prospect.businessName}</h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">An evidence-based review of your current digital position, highlighting practical opportunities to improve visibility, customer acquisition and digital operations.</p>
-          <p className="mt-3 text-xs text-slate-500">Prepared {report.generatedAt.toLocaleDateString("en-AU",{day:"numeric",month:"long",year:"numeric"})} · Based on observable public digital signals</p>
+          <p className="mt-3 text-xs text-slate-500">Prepared {report.generatedAt.toLocaleDateString("en-AU",{day:"numeric",month:"long",year:"numeric"})} · Based on observable public digital signals · DigitalGate diagnostic scoring</p>
         </header>
 
         {audit && (identity.abn || google.placeId) ? <section className="mt-8 rounded-2xl border border-violet-500/25 bg-slate-900/70 p-6">
@@ -89,7 +91,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
         {audit && (Object.keys(publicProfiles).length > 0 || typeof realEstateJourney.hasAppraisalCta === "boolean") ? <section className="mt-8 grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
             <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Connected digital footprint</p>
-            <div className="flex items-end justify-between gap-4"><h2 className="mt-2 text-xl font-semibold text-white">Public profiles linked by the business</h2>{socialPresenceScore > 0 ? <div className="text-right"><p className="text-xs uppercase tracking-wide text-slate-500">Social presence</p><p className="text-2xl font-semibold text-white">{socialPresenceScore}<span className="text-xs text-slate-500">/100</span></p></div> : null}</div>
+            <div className="flex items-end justify-between gap-4"><h2 className="mt-2 text-xl font-semibold text-white">Public profiles linked by the business</h2>{socialPresenceScore != null ? <div className="text-right"><p className="text-xs uppercase tracking-wide text-slate-500">Social presence</p><p className="text-2xl font-semibold text-white">{socialPresenceScore}<span className="text-xs text-slate-500">/100</span></p><p className="mt-1 max-w-40 text-[10px] leading-4 text-slate-500">Website-linked channel coverage only; activity, audience and engagement are not assessed.</p></div> : null}</div>
             <div className="mt-4 flex flex-wrap gap-2">
               {Object.entries(publicProfiles).map(([network,url]) => url ? <span key={network} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm capitalize text-slate-200">{network} · verified website link</span> : null)}
               {Object.keys(publicProfiles).length === 0 ? <p className="text-sm text-slate-400">No major social profile links were detected from the homepage.</p> : null}
@@ -126,7 +128,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
               <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                 {[["Reputation",scorecard.reputation],["Conversion",scorecard.conversionReadiness],["Growth signals",scorecard.growthSignals],["Search",scorecard.searchVisibility]].map(([label,value])=><div key={String(label)} className="rounded-lg border border-slate-700 p-3"><p className="text-slate-400">{label}</p><p className="mt-1 text-lg font-semibold text-white">{value ?? "—"}<span className="text-xs text-slate-500">/100</span></p></div>)}
               </div>
-              <p className="mt-4 text-xs leading-5 text-slate-400">These dimensions help distinguish technical website health from trust, conversion and measurable growth readiness.</p>
+              <p className="mt-4 text-xs leading-5 text-slate-400">These DigitalGate diagnostic scores are calculated from observable public website and business-profile signals captured at audit time. They are directional indicators, not third-party rankings or guarantees of search performance, leads or revenue.</p>
             </div>
           </section>
 
