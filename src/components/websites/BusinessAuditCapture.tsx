@@ -1081,7 +1081,7 @@ export function BusinessAuditCapture({
                 style={{ ...btnStyle, marginTop: "1rem" }}
                 onClick={() => setStep("contact")}
               >
-                Get the full report →
+                Create my full report →
               </button>
             </>
           ) : null}
@@ -1122,7 +1122,7 @@ export function BusinessAuditCapture({
                 style={fieldStyle}
               />
               <button type="submit" disabled={busy} style={btnStyle}>
-                Email My Full Report →
+                Create My Digital Opportunity Report →
               </button>
             </form>
           ) : null}
@@ -1131,7 +1131,7 @@ export function BusinessAuditCapture({
               <h3 style={{ color: "#fff" }}>You&apos;re all set</h3>
               <p style={{ color: "#94a3b8" }}>{doneMessage}</p>
               <a href={strategyHref} style={{ ...btnStyle, display: "inline-flex", textDecoration: "none" }}>
-                Show me how you&apos;d fix this →
+                Book a Strategy Session →
               </a>
             </div>
           ) : null}
@@ -1391,7 +1391,7 @@ export function BusinessAuditCapture({
 
             {step === "contact" ? (
               <>
-                <h2>Get your full DigitalGate Business Audit™</h2>
+                <h2>Create your Digital Opportunity Report</h2>
                 <p className="dg-ba-funnel__sub">
                   We&apos;ll email the full breakdown and keep your DigitalGate
                   Business Health Score™ on file.
@@ -1471,7 +1471,7 @@ export function BusinessAuditCapture({
                     ))}
                   </select>
                   <button type="submit" disabled={busy}>
-                    {busy ? "Sending…" : "Email My Full Report →"}
+                    {busy ? "Sending…" : "Create My Digital Opportunity Report →"}
                   </button>
                 </form>
               </>
@@ -1501,7 +1501,7 @@ export function BusinessAuditCapture({
                   </p>
                 ) : null}
                 <a className="dg-ba-primary" href={strategyHref}>
-                  Show me how you&apos;d fix this →
+                  Book a Strategy Session →
                 </a>
               </div>
             ) : null}
