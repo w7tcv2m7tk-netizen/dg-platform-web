@@ -288,6 +288,38 @@ async function enrichProspectBusinessIntelligence(prospect: {
   };
 }
 
+function canonicaliseProspectResearchFindings(
+  findings: ProspectAuditFinding[],
+): ProspectAuditFinding[] {
+  return findings.map((finding) => {
+    if (finding.title === "Low DigitalGate Business Health Score™") {
+      return {
+        ...finding,
+        detail: finding.detail?.replace(
+          /\s*[—-]\s*strong opening for a DigitalGate conversation\.?/i,
+          ".",
+        ),
+        recommendedAction:
+          "Prioritise the weakest verified foundations first, then re-measure the Business Health Score.",
+      };
+    }
+
+    if (
+      finding.title === "Location information could not be fully established" &&
+      /no location was recorded on the prospect record/i.test(
+        `${finding.observed ?? ""} ${finding.detail ?? ""}`,
+      )
+    ) {
+      return {
+        ...finding,
+        title: "Prospect location has not been verified",
+      };
+    }
+
+    return finding;
+  });
+}
+
 /** Live presence audit for a prospect — fetches website signals when a URL exists. */
 export async function runGrowthProspectAudit(input: {
   prospectId: string;
@@ -309,6 +341,12 @@ export async function runGrowthProspectAudit(input: {
     contactEmail: prospect.contactEmail,
     contactPhone: prospect.contactPhone,
   });
+
+  // Canonicalise at the prospect-audit boundary so persisted Research evidence,
+  // the operator UI and customer report all consume the same finding copy.
+  // This also cleans legacy wording if a stale platform-core build ever reaches
+  // this route; the public report remains a final defensive boundary.
+  const researchFindings = canonicaliseProspectResearchFindings(presence.findings);
 
   const businessIntelligence = await enrichProspectBusinessIntelligence({
     businessName: prospect.businessName,
@@ -339,7 +377,7 @@ export async function runGrowthProspectAudit(input: {
     prospectId: prospect.id,
     scores: presence.scores,
     findings: {
-      items: presence.findings,
+      items: researchFindings,
       probes: presence.probes,
       strengths: presence.strengths,
       industryInsights: presence.industryInsights,
@@ -392,7 +430,7 @@ export async function runGrowthProspectAudit(input: {
       industry: prospect.industry,
       location: prospect.location,
     },
-    findingsList: presence.findings,
+    findingsList: researchFindings,
     probes: presence.probes,
   };
 }
