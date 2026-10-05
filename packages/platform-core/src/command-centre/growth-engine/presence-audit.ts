@@ -655,7 +655,7 @@ export async function runPresenceAudit(
         domain: "gbp",
         severity: "opportunity",
         category: "Local & Regional Visibility",
-        title: "Location information could not be fully established",
+        title: "Prospect location has not been verified",
         observed: "No location was recorded on the prospect record.",
         interpretation:
           "Without a location we cannot fully prioritise Google Business Profile and local search angles yet.",
@@ -687,8 +687,8 @@ export async function runPresenceAudit(
       domain: "website",
       severity: "critical",
       title: "Low DigitalGate Business Health Score™",
-      detail: `Composite score ${businessHealth}/100 from live presence probes — strong opening for a DigitalGate conversation.`,
-      recommendedAction: "Lead with Website Health + AI Visibility in the opportunity report.",
+      detail: `Composite score ${businessHealth}/100 from live presence probes.`,
+      recommendedAction: "Prioritise the weakest verified foundations first, then re-measure the Business Health Score.",
     });
   }
 
