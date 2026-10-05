@@ -226,9 +226,7 @@ async function enrichProspectBusinessIntelligence(prospect: {
     googleBusinessProfile: { status: googlePlacesProvider.isConfigured() ? "searched" : "unavailable", note: googlePlacesProvider.unavailableReason() },
     socialProfiles: { status: "website_verified", note: "Public social profiles linked by the business website are captured as first-party public evidence." },
     linkedin: { status: "planned", note: "Public LinkedIn evidence requires a compliant public-profile discovery path; customer OAuth data is not used for prospects." },
-    industryCredentials: /real\s*estate/i.test(prospect.industry || "") && /\bqld\b|queensland/i.test(prospect.location || "")
-      ? { status: "manual_verification_available", note: "Queensland OFT maintains the authoritative public property licence register. Verification is deliberately individual/manual because OFT conditions prohibit bulk requests for marketing purposes; store licence holder, class, number/status and verification date only after a specific check." }
-      : { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
+    industryCredentials: { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
     propertyMarketIntelligence: { status: coreLogicCredentialsConfigured() ? "available" : "unavailable", note: coreLogicCredentialsConfigured() ? "Cotality connector available; locality evidence is verified before market intelligence is attached." : "Cotality connector is not configured." },
     reaMarketplace: { status: reaCredentialsConfigured() ? "connected_scope_limited" : "unavailable", note: reaCredentialsConfigured() ? "REA Partner Platform is connected for agency activation and listing upload. The current granted/implemented surface does not provide a general unaffiliated-agency search, so no competitor marketplace metrics are inferred." : "REA Partner Platform credentials are not configured." },
   };
@@ -242,6 +240,18 @@ async function enrichProspectBusinessIntelligence(prospect: {
   const place = googleCandidateMatchesProspect(prospect, placeCandidate) ? placeCandidate : null;
   if (abr) sourceStatus.businessIdentity = { status: "verified_match" };
   else if (abnLookupProvider.isConfigured()) sourceStatus.businessIdentity = { status: "no_confident_match", note: "No sufficiently confident ABR name match was found automatically." };
+
+  // Licence-source availability follows verified Australian identity evidence as well
+  // as the prospect record. A missing operator-entered location must not downgrade a
+  // Queensland real-estate prospect to PLANNED when ABR has independently verified QLD.
+  const verifiedAustralianLocation = [prospect.location, abr?.location].filter(Boolean).join(" ");
+  if (/real\\s*estate/i.test(prospect.industry || "") && /\\bqld\\b|queensland/i.test(verifiedAustralianLocation)) {
+    sourceStatus.industryCredentials = {
+      status: "manual_verification_available",
+      note: "Queensland OFT maintains the authoritative public property licence register. Verification is deliberately individual/manual because OFT conditions prohibit bulk requests for marketing purposes; store licence holder, class, number/status and verification date only after a specific check.",
+    };
+  }
+
   let propertyMarket: ProspectBusinessIntelligence["propertyMarket"] = {};
   if (coreLogicCredentialsConfigured() && /real\s*estate/i.test(prospect.industry || "") && prospect.location) {
     const matched = await matchCoreLogicAddress(prospect.location).catch(() => null);
@@ -348,13 +358,19 @@ export async function runGrowthProspectAudit(input: {
   // the operator UI and customer report all consume the same finding copy.
   // This also cleans legacy wording if a stale platform-core build ever reaches
   // this route; the public report remains a final defensive boundary.
-  const researchFindings = canonicaliseProspectResearchFindings(presence.findings);
-
   const businessIntelligence = await enrichProspectBusinessIntelligence({
     businessName: prospect.businessName,
     industry: prospect.industry,
     location: prospect.location,
     websiteUrl: prospect.websiteUrl,
+  });
+
+  // Keep one location issue, not two. If ABR has independently established an
+  // Australian registered location, the CRM-only "prospect location" warning adds
+  // no useful evidence and duplicates the website/local-presence finding.
+  const researchFindings = canonicaliseProspectResearchFindings(presence.findings).filter((finding) => {
+    if (finding.title !== "Prospect location has not been verified") return true;
+    return !businessIntelligence.identity.registeredLocation;
   });
 
   const socialProfiles = presence.probes.socialProfiles || {};
