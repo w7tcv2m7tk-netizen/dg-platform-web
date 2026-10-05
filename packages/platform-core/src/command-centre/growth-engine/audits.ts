@@ -245,7 +245,7 @@ async function enrichProspectBusinessIntelligence(prospect: {
   // as the prospect record. A missing operator-entered location must not downgrade a
   // Queensland real-estate prospect to PLANNED when ABR has independently verified QLD.
   const verifiedAustralianLocation = [prospect.location, abr?.location].filter(Boolean).join(" ");
-  if (/real\\s*estate/i.test(prospect.industry || "") && /\\bqld\\b|queensland/i.test(verifiedAustralianLocation)) {
+  if (/real\s*estate/i.test(prospect.industry || "") && /\bqld\b|queensland/i.test(verifiedAustralianLocation)) {
     sourceStatus.industryCredentials = {
       status: "manual_verification_available",
       note: "Queensland OFT maintains the authoritative public property licence register. Verification is deliberately individual/manual because OFT conditions prohibit bulk requests for marketing purposes; store licence holder, class, number/status and verification date only after a specific check.",
