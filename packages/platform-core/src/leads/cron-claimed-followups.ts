@@ -41,10 +41,17 @@ export async function processClaimedFreeAuditFollowups(options?: {
     where: {
       OR: [
         { source: "free_audit" },
+        { source: "prospecting_opportunity_report" },
         {
           metadata: {
             path: ["capture_path"],
             equals: "gen2_public_business_audit",
+          },
+        },
+        {
+          metadata: {
+            path: ["capture_path"],
+            equals: "prospecting_opportunity_report",
           },
         },
       ],
