@@ -60,7 +60,24 @@ export default async function OpportunityReportPage({ params }: { params: Promis
     if (/open graph|h1/.test(haystack)) score -= 10;
     return score;
   };
-  const rankedFindings = [...findings].sort((a,b) => commercialRank(b) - commercialRank(a));
+  const customerSafeText = (value?: string | null) => {
+    if (!value) return value || "";
+    if (/strong opening for a DigitalGate conversation/i.test(value)) {
+      return value.replace(/\s*[—-]\s*strong opening for a DigitalGate conversation\.?/i, ".");
+    }
+    if (/lead with website health\s*\+\s*ai visibility in the opportunity report/i.test(value)) {
+      return "Prioritise the weakest verified foundations first, then re-measure the Business Health Score.";
+    }
+    return value;
+  };
+  const customerFindings = findings.map((finding) => ({
+    ...finding,
+    observed: customerSafeText(finding.observed),
+    detail: customerSafeText(finding.detail),
+    interpretation: customerSafeText(finding.interpretation),
+    recommendedAction: customerSafeText(finding.recommendedAction),
+  }));
+  const rankedFindings = [...customerFindings].sort((a,b) => commercialRank(b) - commercialRank(a));
   await prisma.growthProspectReport.update({ where: { id: report.id }, data: { viewCount: { increment: 1 }, firstViewedAt: report.firstViewedAt ?? new Date() } });
   await prisma.growthProspectEngagement.create({ data: { prospectId: report.prospectId, reportId: report.id, type: "report_viewed" } });
 
