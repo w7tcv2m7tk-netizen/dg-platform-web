@@ -56,6 +56,11 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   const body = await req.json().catch(() => null);
   if (body?.action !== "email_sent") return NextResponse.json({ error: { code: "validation_error", message: "Unsupported report action" } }, { status: 422 });
   const { prisma } = await import("@dg/database");
+  const audit = await prisma.growthProspectAudit.findFirst({
+    where: { prospectId: id, prospect: { organisationId: session.organisationId } },
+    orderBy: { auditedAt: "desc" },
+  });
+  if (!audit) return NextResponse.json({ error: { code: "audit_required", message: "Research audit is required before recording report delivery." } }, { status: 409 });
   const report = await prisma.growthProspectReport.findFirst({ where: { prospectId: id }, orderBy: { generatedAt: "desc" } });
   if (!report) return NextResponse.json({ error: { code: "report_required", message: "Generate the report before recording delivery." } }, { status: 409 });
   const recipientEmail = String(body?.to || "").trim();
@@ -68,7 +73,6 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   // acquisition lead linked to the prospect so this is not treated as a customer.
   if (recipientEmail) {
     const findings = (audit.findings as Record<string, unknown> | null) ?? {};
-    const scorecard = (findings.scorecard as Record<string, unknown> | null) ?? {};
     const firstName = (prospect.contactName || "").trim().split(/\s+/)[0] || "there";
     let lead = await prisma.lead.findFirst({
       where: {
