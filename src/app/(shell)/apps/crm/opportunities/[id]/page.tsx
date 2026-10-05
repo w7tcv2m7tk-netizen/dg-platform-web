@@ -62,6 +62,9 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
       : null;
   const founding = isFoundingPipeline(opportunity.pipelineId, leadType);
   const meta = (opportunity.metadata ?? {}) as Record<string, unknown>;
+  const isDigitalGateAcquisition =
+    opportunity.pipelineId === "digitalgate_sales" ||
+    meta.acquisition_source === "business_audit";
   const inviteToken =
     typeof meta.founding_invite_token === "string" ? meta.founding_invite_token : null;
   const entryType =
@@ -219,7 +222,7 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
               invitationSentAt={invitationSentAt}
               customerOrganisationId={customerOrganisationId}
             />
-          ) : staff && canWrite && canReadContacts && contact && opportunity.contactId ? (
+          ) : staff && canWrite && canReadContacts && contact && opportunity.contactId && !isDigitalGateAcquisition ? (
             <InviteToFounding10Form
               contactId={opportunity.contactId}
               defaultName={[contact.firstName, contact.lastName].filter(Boolean).join(" ")}
