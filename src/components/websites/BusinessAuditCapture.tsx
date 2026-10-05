@@ -1031,8 +1031,8 @@ export function BusinessAuditCapture({
                 See how your business is performing online.
               </h3>
               <p style={{ margin: "0 0 1.1rem", color: "#94a3b8", fontSize: "0.95rem", lineHeight: 1.55 }}>
-                Get a free DigitalGate Business Audit™ across website, search, AI
-                visibility and conversion readiness.
+                Get a complimentary DigitalGate Business Audit™ across website,
+                search, AI visibility and conversion readiness.
               </p>
               <form onSubmit={(e) => void onWebsiteSubmit(e)}>
                 <label htmlFor="dgBaUrlEmbedded" style={labelStyle}>
@@ -1049,7 +1049,7 @@ export function BusinessAuditCapture({
                   style={fieldStyle}
                 />
                 <button type="submit" disabled={busy} style={btnStyle}>
-                  {busy ? "Scanning…" : "Get My Free Business Audit →"}
+                  {busy ? "Scanning…" : "Start My Business Audit →"}
                 </button>
               </form>
             </>
@@ -1222,15 +1222,15 @@ export function BusinessAuditCapture({
                 className="dg-ba-funnel__brand-logo"
               />
             </a>
-            <p className="dg-ba-funnel__eyebrow">Free Business Audit</p>
+            <p className="dg-ba-funnel__eyebrow">Complimentary Business Audit</p>
             <h1>
               See how your business performs{" "}
               <span className="dg-ba-funnel__gradient">across the digital world</span>
             </h1>
             <p className="dg-ba-funnel__lede">
-              Get an instant snapshot of your website, search presence, AI
-              visibility and digital foundations — then discover where you may
-              be losing visibility, enquiries and opportunities.
+              Get an instant DigitalGate Business Health Score™ and discover
+              the opportunities affecting your visibility, enquiries and growth.
+              Complete your audit to receive your full Digital Opportunity Report.
             </p>
             <ol className="dg-ba-funnel__pillars">
               {PILLAR_LABELS.map(({ label }) => (
@@ -1254,7 +1254,8 @@ export function BusinessAuditCapture({
                 <h2>Enter your website to start</h2>
                 <p className="dg-ba-funnel__sub">
                   We&apos;ll scan your digital presence and show your DigitalGate
-                  Business Health Score™.
+                  Business Health Score™. Complete the audit to receive your
+                  Digital Opportunity Report.
                 </p>
                 <form onSubmit={(e) => void onWebsiteSubmit(e)}>
                   <label htmlFor="dgBaUrl">Website URL</label>
@@ -1270,7 +1271,7 @@ export function BusinessAuditCapture({
                     onChange={(e) => setWebsiteUrl(e.target.value)}
                   />
                   <button type="submit" disabled={busy}>
-                    {busy ? "Scanning…" : "Get My Free Business Audit →"}
+                    {busy ? "Scanning…" : "Start My Business Audit →"}
                   </button>
                   <p className="dg-ba-funnel__note">
                     No credit card required. Takes less than 60 seconds.
@@ -1529,7 +1530,7 @@ export function BusinessAuditCapture({
               </a>
             </div>
             <p>
-              DigitalGate Business Audit™ — a DigitalGate acquisition product.
+              DigitalGate Business Audit™ · Your gateway to a Digital Opportunity Report.
             </p>
           </div>
         </div>
