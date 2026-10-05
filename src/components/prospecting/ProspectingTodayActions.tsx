@@ -14,6 +14,8 @@ type Row = {
   reasons: string[];
   approachHint: string;
   businessHealthScore: number | null;
+  reportUrl?: string | null;
+  reportViewed?: boolean;
   contactPhone: string | null;
   contactEmail: string | null;
   contactName: string | null;
@@ -94,6 +96,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
     aiVisibilityScore != null && aiVisibilityScore < 50 ? "improve how the business is understood and surfaced by AI/search systems" : null,
     websiteHealthScore != null && websiteHealthScore < 60 ? "improve website conversion readiness" : null,
   ].filter(Boolean);
+  const reportSignal = active.reportViewed ? "They have already viewed the Digital Opportunity Report, so lead with the findings they have seen rather than re-introducing DigitalGate." : active.reportUrl ? "A Digital Opportunity Report is ready to use as the evidence asset after the conversation." : null;
   const digitalGateOpportunity = opportunityParts.length
     ? `Explore whether DigitalGate can help ${opportunityParts.join(", ")} while connecting lead follow-up into one operating workflow.`
     : "Use the audit evidence to identify the highest-value visibility, lead-generation or follow-up gap before recommending a DigitalGate capability.";
@@ -197,7 +200,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
             <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
               <p className="text-xs uppercase tracking-wide text-slate-500">DigitalGate opportunity</p>
               <p className="mt-2 text-sm text-slate-300">{digitalGateOpportunity}</p>
-              <p className="mt-2 text-xs text-slate-500">Use the evidence to open the conversation; only introduce the relevant DigitalGate capability after confirming the problem matters to them.</p>
+              <p className="mt-2 text-xs text-slate-500">Use the evidence to open the conversation; only introduce the relevant DigitalGate capability after confirming the problem matters to them.</p>{reportSignal ? <p className="mt-2 text-xs text-violet-300">{reportSignal}</p> : null}
             </div>
           </div>
 
@@ -214,7 +217,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
                 <li>• Ask: “How important is improving online enquiry volume for you over the next 6–12 months?”</li>
                 <li>• Ask: “What happens today from a new website or portal enquiry through to follow-up?”</li>
                 <li>• Ask: “Are SEO, AI visibility and lead follow-up managed together, or through separate systems/providers?”</li>
-                <li>• Goal: earn a short Platform Consultation to review the evidence and relevant DigitalGate capabilities.</li>
+                <li>• Goal: earn a short Strategy Session to review the evidence and relevant DigitalGate capabilities.</li>
               </ul>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
