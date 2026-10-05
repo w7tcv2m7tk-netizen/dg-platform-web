@@ -332,7 +332,26 @@ export async function getDailyOpportunityBriefing(options?: {
     reasons: item.result.reasons,
     approachHint: approachFor(item.result.recommendedAction, item.row.businessName),
     businessHealthScore: item.audit?.businessHealth ?? null,
+    auditScores: item.audit
+      ? {
+          businessHealth: item.audit.businessHealth,
+          aiVisibility: item.audit.aiVisibility,
+          seo: item.audit.seoScore,
+          websiteHealth: item.audit.websiteHealth,
+        }
+      : null,
+    auditFindings: (() => {
+      const findings = item.audit?.findings as { findings?: Array<{ title?: string; observed?: string; detail?: string; recommendedAction?: string }> } | null;
+      return (findings?.findings ?? []).slice(0, 8).map((finding) => ({
+        title: finding.title ?? "",
+        observed: finding.observed ?? "",
+        detail: finding.detail ?? "",
+        recommendedAction: finding.recommendedAction ?? "",
+      }));
+    })(),
     reportViewCount: item.report?.viewCount ?? 0,
+    reportSent: Boolean(item.report?.sentAt),
+    reportFirstViewedAt: item.report?.firstViewedAt?.toISOString() ?? null,
     hasAudit: Boolean(item.audit),
     hasReport: Boolean(item.report),
     websiteUrl: item.row.websiteUrl,

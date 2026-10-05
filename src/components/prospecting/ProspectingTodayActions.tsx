@@ -14,6 +14,12 @@ type Row = {
   reasons: string[];
   approachHint: string;
   businessHealthScore: number | null;
+  auditScores: { businessHealth: number | null; aiVisibility: number | null; seo: number | null; websiteHealth: number | null } | null;
+  auditFindings: Array<{ title: string; observed: string; detail: string; recommendedAction: string }>;
+  reportViewCount: number;
+  reportSent: boolean;
+  reportFirstViewedAt: string | null;
+  hasReport: boolean;
   contactPhone: string | null;
   contactEmail: string | null;
   contactName: string | null;
@@ -72,40 +78,50 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const needsResearch = active.stage !== "qualified";
   const decisionMaker = active.contactName || "the decision-maker";
   const firstName = active.contactName?.trim().split(/\\s+/)[0] || "there";
-  const signalText = active.reasons.join(" ");
-  const readScore = (label: string) => {
-    const match = signalText.match(new RegExp(`${label}\\\\s+(\\\\d+)\\\\/100`, "i"));
-    return match ? Number(match[1]) : null;
-  };
-  const seoScore = readScore("SEO");
-  const aiVisibilityScore = readScore("AI Visibility");
-  const websiteHealthScore = readScore("Website Health");
-  const evidence = [
-    seoScore != null && seoScore < 55 ? `SEO visibility is ${seoScore}/100, indicating material organic-search headroom.` : null,
-    aiVisibilityScore != null && aiVisibilityScore < 50 ? `AI Visibility is ${aiVisibilityScore}/100, so the business has limited visibility in AI-assisted discovery.` : null,
-    websiteHealthScore != null && websiteHealthScore < 60 ? `Website Health is ${websiteHealthScore}/100, suggesting website and conversion improvements are worth exploring.` : null,
-    active.businessHealthScore != null && active.businessHealthScore < 60
-      ? `The wider audit identified several digital fundamentals that can be improved.`
-      : null,
-  ].filter((item): item is string => Boolean(item));
-  const strongestEvidence = evidence[0] || "The audit identified measurable digital visibility and growth opportunities.";
+  const scores = active.auditScores;
+  const materialFindings = active.auditFindings
+    .filter((finding) => finding.title && !/business health score/i.test(finding.title))
+    .slice(0, 4);
+  const evidence = materialFindings.length
+    ? materialFindings.map((finding) =>
+        [finding.title, finding.observed].filter(Boolean).join(" — "),
+      )
+    : [
+        scores?.seo != null && scores.seo < 55 ? `SEO visibility is ${scores.seo}/100.` : null,
+        scores?.aiVisibility != null && scores.aiVisibility < 50 ? `AI Visibility is ${scores.aiVisibility}/100.` : null,
+        active.businessHealthScore != null && active.businessHealthScore < 60
+          ? `Business Health is ${active.businessHealthScore}/100.`
+          : null,
+      ].filter((item): item is string => Boolean(item));
+  const strongestFinding = materialFindings[0] ?? null;
+  const strongestEvidence = evidence[0] || "The research identified a verified digital growth opportunity.";
   const opportunityParts = [
-    seoScore != null && seoScore < 55 ? "strengthen organic search visibility and the path from search to enquiry" : null,
-    aiVisibilityScore != null && aiVisibilityScore < 50 ? "improve how the business is understood and surfaced by AI/search systems" : null,
-    websiteHealthScore != null && websiteHealthScore < 60 ? "improve website conversion readiness" : null,
+    materialFindings.some((finding) => /suburb|local|appraisal|enquiry|vendor/i.test(finding.title))
+      ? "strengthen the path from local visibility and appraisal intent to enquiry"
+      : null,
+    scores?.seo != null && scores.seo < 55 ? "improve organic search visibility" : null,
+    scores?.aiVisibility != null && scores.aiVisibility < 50 ? "improve AI/search discoverability" : null,
   ].filter(Boolean);
   const digitalGateOpportunity = opportunityParts.length
-    ? `Explore whether DigitalGate can help ${opportunityParts.join(", ")} while connecting lead follow-up into one operating workflow.`
-    : "Use the audit evidence to identify the highest-value visibility, lead-generation or follow-up gap before recommending a DigitalGate capability.";
-  const openingObservation =
-    seoScore != null && aiVisibilityScore != null
-      ? `your search visibility and AI visibility both have quite a bit of room to improve`
-      : seoScore != null
-        ? `there appears to be meaningful room to improve how the business is found organically`
-        : aiVisibilityScore != null
-          ? `there appears to be meaningful room to improve how the business is surfaced in AI-assisted search`
-          : "I spotted a couple of practical digital visibility opportunities";
-  const openingLine = `Hi ${firstName}, Ben Roe from DigitalGate. I was looking at ${active.businessName} and noticed ${openingObservation}. I have a couple of specific observations that may be useful — have you got a minute?`;
+    ? `Explore whether DigitalGate can help ${opportunityParts.join(", ")} and connect captured intent to CRM follow-up and automation.`
+    : "Use the verified research evidence to identify the highest-value acquisition or follow-up gap before recommending a DigitalGate capability.";
+  const reportState = active.reportViewCount > 0
+    ? `Opportunity Report viewed ${active.reportViewCount} time${active.reportViewCount === 1 ? "" : "s"}`
+    : active.reportSent
+      ? "Opportunity Report sent — not yet viewed"
+      : active.hasReport
+        ? "Opportunity Report prepared — not yet sent"
+        : "Opportunity Report not yet prepared";
+  const openingObservation = strongestFinding?.title
+    ? strongestFinding.title.replace(/\.$/, "").toLowerCase()
+    : scores?.seo != null && scores?.aiVisibility != null
+      ? "some practical search and AI visibility opportunities"
+      : "a couple of practical digital growth opportunities";
+  const openingLine = active.reportViewCount > 0
+    ? `Hi ${firstName}, Ben Roe from DigitalGate. I saw you had a look at the Digital Opportunity Report for ${active.businessName}. The ${openingObservation} stood out as one of the clearest opportunities — have you got a minute to compare notes?`
+    : active.reportSent
+      ? `Hi ${firstName}, Ben Roe from DigitalGate. I sent through the Digital Opportunity Report for ${active.businessName}. One finding worth flagging is ${openingObservation}. Have you got a minute and I’ll give you the short version?`
+      : `Hi ${firstName}, Ben Roe from DigitalGate. I was looking at ${active.businessName} and found ${openingObservation}. I’ve got the evidence behind it rather than a generic pitch — have you got a minute?`;
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -198,6 +214,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
               <p className="text-xs uppercase tracking-wide text-slate-500">DigitalGate opportunity</p>
               <p className="mt-2 text-sm text-slate-300">{digitalGateOpportunity}</p>
               <p className="mt-2 text-xs text-slate-500">Use the evidence to open the conversation; only introduce the relevant DigitalGate capability after confirming the problem matters to them.</p>
+              <p className="mt-3 text-xs font-medium text-violet-300">{reportState}</p>
             </div>
           </div>
 
@@ -214,7 +231,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
                 <li>• Ask: “How important is improving online enquiry volume for you over the next 6–12 months?”</li>
                 <li>• Ask: “What happens today from a new website or portal enquiry through to follow-up?”</li>
                 <li>• Ask: “Are SEO, AI visibility and lead follow-up managed together, or through separate systems/providers?”</li>
-                <li>• Goal: earn a short Platform Consultation to review the evidence and relevant DigitalGate capabilities.</li>
+                <li>• Goal: earn a DigitalGate Strategy Session to review the Opportunity Report and agree the highest-value next steps.</li>
               </ul>
             </div>
             <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3">
