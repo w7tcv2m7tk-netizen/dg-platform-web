@@ -219,10 +219,10 @@ export interface DailyOpportunityRow {
   approachHint: string;
   businessHealthScore: number | null;
   auditScores: {
-    businessHealth: number;
-    aiVisibility: number;
-    seo: number;
-    websiteHealth: number;
+    businessHealth: number | null;
+    aiVisibility: number | null;
+    seo: number | null;
+    websiteHealth: number | null;
   } | null;
   auditFindings: Array<{
     title: string;
