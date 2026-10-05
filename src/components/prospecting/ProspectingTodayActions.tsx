@@ -19,6 +19,7 @@ type Row = {
   reportViewCount: number;
   reportSent: boolean;
   reportFirstViewedAt: string | null;
+  hasReport: boolean;
   contactPhone: string | null;
   contactEmail: string | null;
   contactName: string | null;
