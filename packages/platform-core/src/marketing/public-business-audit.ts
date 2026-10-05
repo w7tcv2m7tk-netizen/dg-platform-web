@@ -500,7 +500,7 @@ export async function submitPublicBusinessAudit(input: {
           websiteUrl,
           probes: audit.probes,
         },
-      } as Prisma.InputJsonValue,
+      } as unknown as Prisma.InputJsonValue,
       auditVersion: "public-business-audit-v2",
     },
   });
