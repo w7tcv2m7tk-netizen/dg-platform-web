@@ -25,6 +25,13 @@ export default async function ProspectingTodayPage() {
     listGrowthProspects({ organisationId: session.organisationId, limit: 200 }),
   ]);
   const prospectById = new Map(prospects.map((p) => [p.id, p]));
+  const { prisma } = await import("@dg/database");
+  const latestReports = await prisma.growthProspectReport.findMany({
+    where: { prospectId: { in: prospects.map((p) => p.id) }, prospect: { organisationId: session.organisationId } },
+    orderBy: { generatedAt: "desc" },
+  });
+  const reportByProspect = new Map<string, (typeof latestReports)[number]>();
+  for (const report of latestReports) if (!reportByProspect.has(report.prospectId)) reportByProspect.set(report.prospectId, report);
   const allRows = briefing.rows.map((row) => {
     const prospect = prospectById.get(row.prospectId);
     return {
@@ -32,6 +39,8 @@ export default async function ProspectingTodayPage() {
       contactName: prospect?.contactName ?? null,
       industry: prospect?.industry ?? null,
       location: prospect?.location ?? null,
+      reportUrl: reportByProspect.get(row.prospectId)?.shareToken ? `/opportunity-report/${reportByProspect.get(row.prospectId)?.shareToken}` : null,
+      reportViewed: Boolean(reportByProspect.get(row.prospectId)?.firstViewedAt),
     };
   });
 
