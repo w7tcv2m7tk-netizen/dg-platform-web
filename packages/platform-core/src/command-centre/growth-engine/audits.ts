@@ -191,6 +191,30 @@ function bestCandidate(name: string, rows: DiscoveryCandidate[]) {
     ?? null;
 }
 
+function normaliseHost(value?: string | null) {
+  if (!value) return "";
+  try {
+    return new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+function googleCandidateMatchesProspect(prospect: { location: string | null; websiteUrl: string | null }, candidate: DiscoveryCandidate | null) {
+  if (!candidate) return false;
+  const prospectHost = normaliseHost(prospect.websiteUrl);
+  const candidateHost = normaliseHost(candidate.websiteUrl);
+  if (prospectHost && candidateHost && prospectHost === candidateHost) return true;
+
+  // Without a website-domain match, require the known prospect locality to agree
+  // with the Places address. A name-only match is never sufficient for verified GBP.
+  const location = (prospect.location || "").toLowerCase();
+  const address = (candidate.location || "").toLowerCase();
+  if (!location || !address) return false;
+  const tokens = location.split(/[^a-z0-9]+/).filter((token) => token.length >= 3 && !/^(street|road|avenue|drive|court|unit|suite|qld|nsw|vic|sa|wa|tas|nt|act|australia)$/.test(token));
+  return tokens.length > 0 && tokens.some((token) => address.includes(token));
+}
+
 async function enrichProspectBusinessIntelligence(prospect: {
   businessName: string; industry: string | null; location: string | null; websiteUrl: string | null;
 }): Promise<ProspectBusinessIntelligence> {
@@ -212,7 +236,8 @@ async function enrichProspectBusinessIntelligence(prospect: {
     googlePlacesProvider.isConfigured() ? googlePlacesProvider.search(ctx).catch(() => []) : Promise.resolve([]),
   ]);
   const abr = bestCandidate(prospect.businessName, abrRows);
-  const place = bestCandidate(prospect.businessName, placeRows);
+  const placeCandidate = bestCandidate(prospect.businessName, placeRows);
+  const place = googleCandidateMatchesProspect(prospect, placeCandidate) ? placeCandidate : null;
   if (abr) sourceStatus.businessIdentity = { status: "verified_match" };
   else if (abnLookupProvider.isConfigured()) sourceStatus.businessIdentity = { status: "no_confident_match", note: "No sufficiently confident ABR name match was found automatically." };
   let propertyMarket: ProspectBusinessIntelligence["propertyMarket"] = {};
@@ -244,7 +269,12 @@ async function enrichProspectBusinessIntelligence(prospect: {
     if (domain.ok) marketplace = { domain };
   }
   if (place) sourceStatus.googleBusinessProfile = { status: "verified_match" };
-  else if (googlePlacesProvider.isConfigured()) sourceStatus.googleBusinessProfile = { status: "no_confident_match", note: "No sufficiently confident Google Places match was found automatically." };
+  else if (googlePlacesProvider.isConfigured()) sourceStatus.googleBusinessProfile = {
+    status: "no_confident_match",
+    note: placeCandidate
+      ? "A name match was found in Google Places, but its website/location evidence did not match the prospect strongly enough. Google evidence was excluded."
+      : "No sufficiently confident Google Places match was found automatically.",
+  };
   return {
     identity: abr ? { abn: abr.providerRefs.abn, registeredName: abr.businessName, registeredLocation: abr.location } : {},
     propertyMarket,
