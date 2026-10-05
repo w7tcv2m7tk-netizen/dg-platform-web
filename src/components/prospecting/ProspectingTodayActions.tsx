@@ -14,7 +14,7 @@ type Row = {
   reasons: string[];
   approachHint: string;
   businessHealthScore: number | null;
-  auditScores: { businessHealth: number; aiVisibility: number; seo: number; websiteHealth: number } | null;
+  auditScores: { businessHealth: number | null; aiVisibility: number | null; seo: number | null; websiteHealth: number | null } | null;
   auditFindings: Array<{ title: string; observed: string; detail: string; recommendedAction: string }>;
   reportViewCount: number;
   reportSent: boolean;
