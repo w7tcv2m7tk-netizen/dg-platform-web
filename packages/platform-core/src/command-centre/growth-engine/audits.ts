@@ -109,9 +109,11 @@ type DigitalGateSolutionMatch = {
   relevance: "high" | "medium";
 };
 
-function buildDigitalGateSolutionMatches(presence: Awaited<ReturnType<typeof runPresenceAudit>>): DigitalGateSolutionMatch[] {
+function buildDigitalGateSolutionMatches(
+  presence: Awaited<ReturnType<typeof runPresenceAudit>>,
+  findings: ProspectAuditFinding[] = presence.findings || [],
+): DigitalGateSolutionMatch[] {
   const matches: DigitalGateSolutionMatch[] = [];
-  const findings = presence.findings || [];
   const has = (re: RegExp) => findings.some((f) => re.test(`${f.title} ${f.category || ""} ${f.domain}`));
 
   if ((presence.scores.aiVisibility ?? 100) < 60 || has(/structured|ai.visibility/i)) matches.push({
@@ -388,7 +390,7 @@ export async function runGrowthProspectAudit(input: {
         growthSignals: presence.scores.growthSignals ?? null,
         searchVisibility: presence.scores.seo ?? null,
       },
-      digitalGateSolutionMatches: buildDigitalGateSolutionMatches(presence),
+      digitalGateSolutionMatches: buildDigitalGateSolutionMatches(presence, researchFindings),
       businessIntelligence: {
         ...businessIntelligence,
         publicProfiles: socialProfiles,
