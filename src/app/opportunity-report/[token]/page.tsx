@@ -93,7 +93,7 @@ export default async function OpportunityReportPage({ params }: { params: Promis
             <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Connected digital footprint</p>
             <div className="flex items-end justify-between gap-4"><h2 className="mt-2 text-xl font-semibold text-white">Public profiles linked by the business</h2>{socialPresenceScore != null ? <div className="text-right"><p className="text-xs uppercase tracking-wide text-slate-500">Social presence</p><p className="text-2xl font-semibold text-white">{socialPresenceScore}<span className="text-xs text-slate-500">/100</span></p><p className="mt-1 max-w-40 text-[10px] leading-4 text-slate-500">Website-linked channel coverage only; activity, audience and engagement are not assessed.</p></div> : null}</div>
             <div className="mt-4 flex flex-wrap gap-2">
-              {Object.entries(publicProfiles).map(([network,url]) => url ? <span key={network} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm capitalize text-slate-200">{network} · verified website link</span> : null)}
+              {Object.entries(publicProfiles).map(([network,url]) => url ? <a key={network} href={url} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm capitalize text-slate-200 transition hover:border-violet-400 hover:text-white" aria-label={`Open ${network} profile verified from the business website`}>{network} · verified website link ↗</a> : null)}
               {Object.keys(publicProfiles).length === 0 ? <p className="text-sm text-slate-400">No major social profile links were detected from the homepage.</p> : null}
             </div>
           </div>
