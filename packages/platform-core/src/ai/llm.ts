@@ -231,6 +231,7 @@ async function callOpenAiCompatible(input: {
   maxTokens: number;
   label: "OpenAI" | "AI Gateway";
   signal?: AbortSignal;
+  constrained?: boolean;
 }): Promise<LlmTransportResult> {
   const gpt5 = isGpt5Family(input.model);
   const body: Record<string, unknown> = {
@@ -244,6 +245,7 @@ async function callOpenAiCompatible(input: {
     body.max_tokens = input.maxTokens;
   }
 
+  if (input.constrained) body.store = false;
   const res = await fetch(input.url, {
     method: "POST",
     headers: {
@@ -252,6 +254,7 @@ async function callOpenAiCompatible(input: {
     },
     body: JSON.stringify(body),
     signal: input.signal,
+    ...(input.constrained ? { redirect: "error" as const } : {}),
   });
   const json = (await res.json().catch(() => ({}))) as {
     choices?: Array<{ message?: { content?: string } }>;
@@ -278,6 +281,7 @@ async function callOpenAi(input: {
   messages: LlmChatMessage[];
   maxTokens: number;
   signal?: AbortSignal;
+  constrained?: boolean;
 }): Promise<LlmTransportResult> {
   return callOpenAiCompatible({
     url: "https://api.openai.com/v1/chat/completions",
@@ -287,6 +291,7 @@ async function callOpenAi(input: {
     maxTokens: input.maxTokens,
     label: "OpenAI",
     signal: input.signal,
+    constrained: input.constrained,
   });
 }
 
@@ -372,6 +377,7 @@ async function callTransport(
   messages: LlmChatMessage[],
   maxTokens: number,
   signal?: AbortSignal,
+  constrained = false,
 ): Promise<LlmTransportResult> {
   if (transport.provider === "gateway") {
     return callGateway({
@@ -389,6 +395,7 @@ async function callTransport(
       messages,
       maxTokens,
       signal,
+      constrained,
     });
   }
   return callAnthropic({
@@ -410,9 +417,21 @@ export async function llmChat(input: {
   allowedProviders?: readonly LlmProvider[];
   /** Gateway requests must not surface/log provider errors that can echo inputs. */
   safeErrors?: boolean;
+  /** Exact ordered attempt plan. Omitted preserves all legacy routing. */
+  executionPlan?: readonly LlmTransportPlanEntry[];
 }): Promise<LlmGenerateResult> {
   const tier = input.tier ?? "standard";
-  const chain = resolveLlmTransports(tier).filter(
+  const configured = resolveLlmTransports(tier);
+  const constrained = input.executionPlan !== undefined;
+  const invalidPlan = () => new LlmChatError("Invalid constrained transport plan", [], []);
+  if (constrained && (!Array.isArray(input.executionPlan) || !input.executionPlan.length || input.executionPlan.length > 3)) throw invalidPlan();
+  const selected = constrained ? Array.from(input.executionPlan!).map((entry) => {
+    if (!entry || Object.keys(entry).some((key) => key !== "provider" && key !== "model")) throw invalidPlan();
+    const transport = configured.find((candidate) => candidate.provider === entry.provider && candidate.model === entry.model);
+    if (!transport || (input.allowedProviders !== undefined && !input.allowedProviders.includes(entry.provider))) throw invalidPlan();
+    return transport;
+  }) : configured;
+  const chain = selected.filter(
     (transport) => input.allowedProviders === undefined || input.allowedProviders.includes(transport.provider),
   );
   const transportPlan = chain.map((t) => ({
@@ -441,6 +460,7 @@ export async function llmChat(input: {
         input.messages,
         maxTokens,
         input.signal,
+        constrained,
       );
       if (input.signal?.aborted) throw new Error("Request aborted");
       attempts.push({

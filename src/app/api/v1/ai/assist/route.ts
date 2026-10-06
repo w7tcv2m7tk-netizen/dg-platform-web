@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
   assertEntitlement,
+  crmDisclosurePolicy,
+  crmExecutionPolicy,
   buildListingDescriptionAssistEntity,
   buildLiveTwinWithScores,
   gatherOverviewLiveMetrics,
@@ -307,7 +309,7 @@ export async function POST(req: Request) {
     context,
     action,
     entity,
-    gatewayContext: action === "lead_summary" ? {
+    gatewayContext: action === "lead_summary" || action === "lead_follow_up" ? {
       organisationId: session.organisationId,
       actor: {
         type: session.clerkUserId.startsWith("api_key:") ? "connector" : "user",
@@ -315,7 +317,8 @@ export async function POST(req: Request) {
       },
       correlationId: randomUUID(),
       // Explicit server policy for this existing cloud-backed feature. Never read from the body.
-      disclosurePolicy: { mode: "cloud_allowed", allowedProviders: ["gateway", "anthropic", "openai"] },
+      disclosurePolicy: crmDisclosurePolicy(),
+      executionPolicy: crmExecutionPolicy(),
       deadlineMs: 12_000,
       signal: req.signal,
     } : undefined,
