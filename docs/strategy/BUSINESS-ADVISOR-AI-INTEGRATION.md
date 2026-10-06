@@ -98,6 +98,14 @@ Then: DigitalGate org → one founding customer → another → DG / RE / Financ
 
 ---
 
+## Aida autonomy and ongoing responsibilities (approved direction)
+
+The trust ladder above remains the founding delivery boundary. Its canonical long-term elaboration is [Read → Analyse → Recommend → Draft → Request Approval → Execute → Verify → Audit](../foundations/AI-GOVERNANCE.md#aida-autonomy-ladder), with capability-specific limits determined by risk, tenant policy, user permissions, connector authority and action type. Human approval remains explicit for consequential actions; inference never grants execution authority.
+
+Future businesses may assign [persistent Aida responsibilities](../ROADMAP.md#persistent-aida-responsibilities-future), but these produce governed observations/recommendations/actions through the same permission, approval, evidence, verification and audit framework. This does not enable an unrestricted agent or alter the existing Act-first scope. Useful outcomes are measured through the shared [business-impact/value direction](../ROADMAP.md#business-impact--ai-value-measurement-future).
+
+---
+
 ## Context Builder (architectural insist)
 
 One hub — callers must not each invent custom prompt stacks:

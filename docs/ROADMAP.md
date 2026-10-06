@@ -19,6 +19,46 @@
 
 ---
 
+## AI Gateway slice roadmap
+
+**Approved direction: 7 October 2026.** This extends the canonical AI and Business Brain architecture; it does not expand the founding ship list or authorise implementing the whole future roadmap.
+
+| Slice | Scope and boundary |
+|-------|--------------------|
+| **1 — AI Gateway foundation** | Preserve the completed shared Gateway foundation and existing AI Assist contracts. |
+| **2 — Task routing & disclosure policy** | Preserve versioned task/execution/disclosure policies, tenant/actor context, exact-observation constraints and fail-closed recipient restrictions. |
+| **3 — Local Routine Execution** | Code merged through PR #987 and production code deployment verified; operational activation remains gated. Only asynchronous `local_routine` for `lead_summary` / `lead_follow_up`, with the locked `dg-fast:latest` model/digest/profile and fenced encrypted jobs. No specialist execution or autonomous tools. |
+| **4 — Local Specialist Execution** | Future controlled `dg-coder` / `local_specialist`, model transition management, specialist workloads and appropriate escalation within execution/disclosure policy. Not enabled by Slice 3 or this documentation approval. |
+| **5 — AI Governance, Autonomous Operations & Observability** | Future staged delivery of the Action Ledger, Aida Autonomy Ladder, evidence/provenance, persistent responsibilities, approval boundaries, execution verification, model/data disclosure provenance, incident readiness, business-impact measurement, operational observability and model routing/cost/latency optimisation. |
+
+Slice 3 production migration, encryption key, worker credentials, deployment and recipient approvals, and Mac worker/launchd installation remain separate operational gates. This roadmap does not apply or provision any of them. Slice 1–3 behaviour and AI Visibility exact-observation execution remain unchanged. See [AI Architecture](./ai/AI-ARCHITECTURE.md) and the existing [Slice 3 runbook](./ai/AI-GATEWAY-SLICE-3-RUNBOOK.md).
+
+When Slice 5 approaches, produce and approve a staged implementation plan with bounded capabilities, dependencies, acceptance tests and rollout gates. A proposed sequencing basis is: (1) structured provenance, ledger coverage and verification contracts; (2) capability-specific autonomy/approval boundaries and one bounded persistent responsibility; (3) incident reconstruction and defensible value measurement; (4) evidence-based operational/routing/cost/latency improvements. Content governance and broader reputation capabilities need separately scoped increments. This is planning direction, not permission to implement every item together. Routing optimisation must never override disclosure, tenant isolation, specialist contracts or exact observations.
+
+### Persistent Aida Responsibilities (future)
+
+Businesses should eventually be able to assign ongoing governed responsibilities: monitor overdue leads, advertising performance, reputation, website conversion health, vendor/listing campaigns and operational exceptions. Each responsibility needs an accountable owner, tenant/data/tool scope, trigger/cadence, evidence/freshness expectations, maximum autonomy level, approval boundary and measurable outcome, plus pause/revoke controls.
+
+Responsibilities generate observations, recommendations and authorised actions through the same [governance framework](./foundations/AI-GOVERNANCE.md), rechecking current permissions and connector authority. They are not an unrestricted autonomous agent and do not imply authority to send, publish, spend or modify records.
+
+### Business Impact / AI Value Measurement (future)
+
+`Work Eliminated → Work Accelerated → Work Improved`
+
+Measure defensible outcomes: time saved, response-time improvement, leads recovered, opportunities identified, processes automated and conversion/revenue influence. Relate measurements to business goals, evidence, baselines, observation periods and attribution uncertainty. Distinguish estimated savings and influence from observed results; avoid claiming causal revenue gains without support. Raw AI task counts are operational usage measures, not the primary measure of value.
+
+### AI Visibility → AI Reputation & Evidence (future)
+
+Preserve current exact-observation integrity. Evolve toward understanding how major AI/search systems understand, cite, mention and recommend a business; associations with locations/services/topics; supporting web/entity/reputation evidence; appropriately sourced competitor comparisons; and change over time. See the [presence and observation architecture](./foundations/SEO-AND-AI-VISIBILITY.md#ai-reputation--evidence--approved-roadmap-direction). This does not change current observation execution semantics.
+
+### Strategic watch items — intelligence signals only
+
+Monitor conversational advertising/sponsored agents; increasingly autonomous Google/Meta advertising; visual and multimodal AI discovery; broader paid-acquisition orchestration; Australian AI governance/regulatory developments; Australian data-residency/privacy expectations; emerging agent interoperability/tool protocols; and material changes in model/provider privacy, ZDR and data-retention policies.
+
+These are watch signals for future proposals, not committed features or statements of current legal compliance. Apply the [Briefing → DigitalGate development loop](./foundations/BUSINESS-BRAIN-KNOWLEDGE.md#briefing--digitalgate-development-loop): compare against current architecture/product, propose a change, obtain Ben approval, capture it in roadmap/Brain/docs, then implement when appropriate. Model privacy claims require current provider/account evidence; `store: false` is not ZDR.
+
+---
+
 ## North star (wow moment)
 
 A new agency signs up, connects website + Google + Meta + Analytics + Stripe + email.

@@ -227,6 +227,24 @@ The implementation should emit shared events for material changes, e.g.:
 - knowledge.archived
 - knowledge.conflict_detected
 
+## Evidence & Provenance Graph (approved long-term direction)
+
+Extend the existing source model, knowledge lifecycle, object relationships and authoritative Business Context into a traceable evidence/provenance architecture. Reuse canonical CRM, document and knowledge objects; do not duplicate their stores or replace tenant authorisation with a graph lookup.
+
+Recommendations and consequential actions should link to structured CRM records, current APPROVED Business Brain knowledge, documents, analytics, advertising, reputation, SEO, AI Visibility and authorised industry data. Preserve source/reference, observation time, freshness or review horizon, authority, access/data classification and relevant derivation/provenance. Distinguish observed facts, approved knowledge and interpretations, and retain the evidence/version used for a decision where policy permits. Stale, missing, disputed or superseded evidence must be visible rather than silently promoted to truth.
+
+Source access and external disclosure are separate decisions. Approved knowledge does not automatically authorise disclosure to an external model. Retrieval must satisfy tenant/user permissions, and any model use must independently satisfy the existing AI Gateway task and recipient policy. Preserve exact AI Visibility observations as evidence without substituting models or adding grounding to the original observation.
+
+The graph supplies evidence to the [AI Action Ledger](./AI-GOVERNANCE.md#ai-action-ledger); it records structured provenance, not model chain-of-thought. Graph persistence, semantic retrieval and temporal reasoning remain future enhancements, not schema changes authorised here.
+
+## Briefing → DigitalGate development loop
+
+`briefing signal → compare with current DG architecture/product → proposed change → Ben approval → roadmap/Brain/docs → implementation when appropriate`
+
+Product intelligence proposes changes; it must not automatically edit architecture or become product scope. Ben's approval is the incorporation gate. Record approved insights as institutional DigitalGate knowledge with source, approval, scope, current-versus-future status and links to canonical documents. Use the existing review, deduplication, conflict and supersession lifecycle rather than keeping decisions only in individual conversations. Approval of strategic direction does not authorise every related runtime implementation.
+
+For DigitalGate, platform architecture decisions belong in Platform Knowledge and applicable DigitalGate organisation knowledge, not in unrelated customer tenants. This documentation update captures the approved direction; it does not import knowledge into a production database or change seed approval status.
+
 ## Historical conversation backfill
 
 DigitalGate is the first dogfood organisation.

@@ -43,6 +43,18 @@ Same UX pattern on both surfaces. Operator hub also collapses beta honesty const
 
 ---
 
+## Approved growth strategy — business context and governed action
+
+DigitalGate should not attempt to recreate Google/Meta optimisation engines. Its defensible layer is the business operating context those platforms do not naturally own:
+
+`first-party business context + CRM outcomes + lead quality + commercial outcomes + cross-channel evidence + governed AI actions`
+
+Growth orchestration should connect platform performance to actual business outcomes, with authorised connector access and evidence provenance. Recommendations do not grant permission to change campaigns, spend budgets, contact prospects or publish content. Any future execution follows the [Aida Autonomy Ladder and Action Ledger](./foundations/AI-GOVERNANCE.md), retaining human approval boundaries.
+
+Future material AI-generated customer-facing content across Growth, Websites, SEO and Aida follows the shared [AI Content Governance](./foundations/AI-GOVERNANCE.md#ai-content-governance-future) direction. Measure value through [Work Eliminated → Work Accelerated → Work Improved](./ROADMAP.md#business-impact--ai-value-measurement-future), not raw generation counts. Advertising autonomy, sponsored agents and wider acquisition orchestration remain [strategic watch signals](./ROADMAP.md#strategic-watch-items--intelligence-signals-only), not new product scope.
+
+---
+
 ## Hub UX (locked direction)
 
 1. **Headline** — Growth Engine™ · Acquire → Qualify → Convert
