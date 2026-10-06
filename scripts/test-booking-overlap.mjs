@@ -542,8 +542,10 @@ describe("H-9 Gen 2 update", () => {
     assert.equal(oks.length, 1, "only one move succeeds");
     assert.equal(fails.length, 1);
     assert.ok(fails[0].err instanceof StayBookingConflictError);
+    // Calendar-date inputs are parsed as local midnight by the production write path.
+    const targetCheckin = new Date("2026-09-20T00:00:00");
     const atTarget = store.rows.filter(
-      (r) => r.checkin?.toISOString() === d("2026-09-20").toISOString(),
+      (r) => r.checkin?.getTime() === targetCheckin.getTime(),
     );
     assert.equal(atTarget.length, 1, "only one booking landed on the target dates");
   });
