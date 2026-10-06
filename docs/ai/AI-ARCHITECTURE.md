@@ -29,6 +29,47 @@ DigitalGate → Vercel → AI Service → Model Router → OpenAI / Anthropic / 
 
 ---
 
+## AI Gateway Slice 1 — CRM lead summaries
+
+**Implemented pilot:** only the CRM AI Assist `lead_summary` action passes through
+`packages/platform-core/src/ai/gateway.ts`. Other AI features continue calling the
+existing Model Router. Vercel AI Gateway is still a cloud transport underneath
+DigitalGate's policy boundary.
+
+The authenticated AI Assist route supplies organisation, actor (user or API-key
+connector), a server-generated correlation ID and explicit `cloud_allowed` policy
+allowing the existing Gateway, Anthropic and OpenAI transports. This policy
+preserves the feature's existing cloud disclosure; it is not inferred from an
+`internal` classification or accepted from the request body. Tenant consistency,
+supported task/policy, provider eligibility and bounded inference deadlines are
+checked before inference. `local_only`, unknown policy values and missing server
+identity fail closed. The existing deterministic summary remains available when
+inference is blocked, unavailable or produces empty/invalid output.
+
+Flow: authenticated route → existing Business Context / lead prompt → DigitalGate
+AI Gateway → permitted `llmChat` cloud failover → summary or deterministic fallback.
+The pilot keeps its existing standard tier and 1200 output-token limit, with a
+12-second inference deadline (gateway maximum 20 seconds). No structured-output
+framework, new endpoint, model-default change or database migration is introduced.
+
+The existing Activity + AuditLog ledger receives identity, task, correlation,
+outcome, provider/model, inference latency, safe completed-attempt metadata and
+provider-reported tokens. Missing usage is `null`, not zero; usage describes the
+selected successful response, not a complete bill for failed attempts. Raw
+prompts, lead/contact content, responses, credentials and provider error text are
+not included in gateway accounting. Accounting failures are reported with a
+fixed warning and do not discard a valid draft. Invalid accounting identity is
+rejected without persistence. The inference deadline does not bound ledger writes.
+
+**Local inference is NOT implemented.** Ollama remains external to the platform.
+There is no Ollama/OpenRouter adapter, Mac worker or private connection in this
+slice. A hybrid worker architecture is planned, not live: a future Mac-side
+worker could claim leased jobs over outbound authenticated HTTPS, calling Ollama
+only at `127.0.0.1:11434`. Neither LAN/public Ollama access nor inbound router ports
+are part of that design. Restricted requests currently cannot run inference.
+
+---
+
 ## Future capability — hybrid local + cloud inference
 
 **Status:** Retained future architecture option — **not authorised for current production implementation**.

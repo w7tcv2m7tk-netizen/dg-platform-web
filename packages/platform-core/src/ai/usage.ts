@@ -26,6 +26,7 @@ export type AiLedgerEventType =
 export type RecordAiLedgerEventInput = {
   organisationId: string;
   actorId?: string;
+  actorType?: "user" | "system" | "connector";
   eventType: AiLedgerEventType;
   title: string;
   body?: string;
@@ -44,6 +45,7 @@ export type RecordAiLedgerEventInput = {
 export async function recordAiLedgerEvent(input: RecordAiLedgerEventInput) {
   const metadata = {
     eventType: input.eventType,
+    ...(input.actorType ? { actorType: input.actorType } : {}),
     correlationId: input.correlationId,
     toolId: input.toolId ?? null,
     recommendationId: input.recommendationId ?? null,
@@ -71,7 +73,7 @@ export async function recordAiLedgerEvent(input: RecordAiLedgerEventInput) {
   await writeAuditLog({
     organisationId: input.organisationId,
     actorId: input.actorId,
-    actorType: input.actorId ? "user" : "system",
+    actorType: input.actorType ?? (input.actorId ? "user" : "system"),
     action:
       input.eventType.includes("failed") ||
       input.eventType.includes("rejected") ||

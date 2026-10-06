@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import {
   assertEntitlement,
@@ -302,7 +303,23 @@ export async function POST(req: Request) {
     profileOverride: profile,
   });
 
-  const result = await generateAiAssist({ context, action, entity });
+  const result = await generateAiAssist({
+    context,
+    action,
+    entity,
+    gatewayContext: action === "lead_summary" ? {
+      organisationId: session.organisationId,
+      actor: {
+        type: session.clerkUserId.startsWith("api_key:") ? "connector" : "user",
+        id: session.clerkUserId,
+      },
+      correlationId: randomUUID(),
+      // Explicit server policy for this existing cloud-backed feature. Never read from the body.
+      disclosurePolicy: { mode: "cloud_allowed", allowedProviders: ["gateway", "anthropic", "openai"] },
+      deadlineMs: 12_000,
+      signal: req.signal,
+    } : undefined,
+  });
 
   return NextResponse.json({
     data: {

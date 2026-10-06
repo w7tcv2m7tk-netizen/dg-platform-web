@@ -6,6 +6,7 @@ import {
   type CrmAssistEntity,
 } from "../org/business-context";
 import { llmChat, llmConfigured, type LlmGenerateResult } from "./llm";
+import { aiGatewayGenerate, AiGatewayError, type AiGatewayActor, type AiGatewayDisclosurePolicy } from "./gateway";
 import { templateListingDescriptionFromFacts } from "./listing-description";
 import { buildAidaEvidenceContext, formatAidaEvidencePrompt } from "./evidence-context";
 
@@ -97,13 +98,26 @@ export async function generateAiAssist(input: {
   context: BusinessContext;
   action: AiGenerateAction;
   entity?: CrmAssistEntity | null;
+  /** Required for the lead_summary pilot; supplied by the authenticated server boundary. */
+  gatewayContext?: {
+    organisationId: string;
+    actor: AiGatewayActor;
+    correlationId: string;
+    disclosurePolicy: AiGatewayDisclosurePolicy;
+    deadlineMs?: number;
+    signal?: AbortSignal;
+  };
+}, deps?: {
+  chat?: typeof llmChat;
+  configured?: typeof llmConfigured;
+  gateway?: typeof aiGatewayGenerate;
 }): Promise<AiAssistResult> {
   const template =
     input.action === "listing_description" && input.entity?.notes?.length
       ? templateListingDescriptionFromFacts(input.entity.notes)
       : generateFromBusinessContext(input.context, input.action, input.entity);
 
-  if (!llmConfigured()) {
+  if (input.action !== "lead_summary" && !(deps?.configured ?? llmConfigured)()) {
     return { output: template, source: "template" };
   }
 
@@ -116,7 +130,7 @@ export async function generateAiAssist(input: {
       "Australian English spelling when the org locale is en-AU.",
     ].join("\n");
 
-    const result: LlmGenerateResult = await llmChat({
+    const modelInput = {
       messages: [
         { role: "system", content: system },
         {
@@ -126,7 +140,18 @@ export async function generateAiAssist(input: {
       ],
       maxTokens: 1200,
       tier: "standard",
-    });
+    } satisfies Parameters<typeof llmChat>[0];
+    const result: LlmGenerateResult = input.action === "lead_summary"
+      ? await (async () => {
+          if (!input.gatewayContext) throw new AiGatewayError("invalid_request");
+          return (deps?.gateway ?? aiGatewayGenerate)({
+            ...input.gatewayContext,
+            task: "lead_summary",
+            businessContext: input.context,
+            ...modelInput,
+          });
+        })()
+      : await (deps?.chat ?? llmChat)(modelInput);
 
     return {
       output: result.text,
