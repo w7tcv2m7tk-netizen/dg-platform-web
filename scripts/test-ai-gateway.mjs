@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { beforeEach, afterEach, test } from "node:test";
 import { aiGatewayGenerate } from "../packages/platform-core/src/ai/gateway.ts";
 import { generateAiAssist } from "../packages/platform-core/src/ai/generate.ts";
+import { crmDisclosurePolicy, crmExecutionPolicy } from "../packages/platform-core/src/ai/policy.ts";
 import { llmChat } from "../packages/platform-core/src/ai/llm.ts";
 import { generateFromBusinessContext } from "../packages/platform-core/src/org/business-context.ts";
 import { prisma } from "@dg/database";
@@ -36,8 +37,9 @@ const request = (overrides = {}) => ({
   actor: { type: "user", id: "user_actor" },
   correlationId: "request_123",
   task: "lead_summary",
-  disclosurePolicy: { mode: "cloud_allowed", allowedProviders: ["openai"] },
-  messages: [{ role: "user", content: PRIVATE_INPUT }],
+  disclosurePolicy: crmDisclosurePolicy(),
+  executionPolicy: crmExecutionPolicy(),
+  authorisedInput: { organisationId: "org_a", messages: [{ role: "user", content: PRIVATE_INPUT }], disclosure: crmDisclosurePolicy(), evidence: [] },
   maxTokens: 1200,
   ...overrides,
 });
@@ -88,7 +90,7 @@ test("cross-tenant context is rejected before inference", async () => {
 
 test("local-only, unknown and malformed policies fail closed", async () => {
   for (const [policy, code] of [
-    [{ mode: "local_only" }, "local_transport_unavailable"],
+    [{ version: 1, classification: "restricted", cloudPermitted: false, approvedRecipients: [], localRequired: true, cloudFallbackPermitted: false }, "local_transport_unavailable"],
     [{ mode: "internal" }, "policy_denied"],
     [{ mode: "restricted" }, "policy_denied"],
     [{ mode: "cloud_allowed", allowedProviders: ["openrouter"] }, "policy_denied"],
@@ -104,20 +106,16 @@ test("local-only, unknown and malformed policies fail closed", async () => {
   }
 });
 
-test("fallback uses only allowed providers and retains successful attempt metadata", async (t) => {
+test("confidential request strips caller transport widening and has no cloud fallback", async (t) => {
   const urls = [];
-  t.mock.method(globalThis, "fetch", async (url) => {
-    urls.push(url);
-    return url.includes("ai-gateway") ? failureResponse() : openaiResponse();
-  });
-  const ledger = recorder();
-  const result = await aiGatewayGenerate(request({
-    disclosurePolicy: { mode: "cloud_allowed", allowedProviders: ["gateway", "openai"] },
-  }), ledger);
-  assert.deepEqual(urls, ["https://ai-gateway.vercel.sh/v1/chat/completions", "https://api.openai.com/v1/chat/completions"]);
-  assert.deepEqual(result.attempts.map((attempt) => attempt.ok), [false, true]);
-  assert.equal(ledger.events[0].result.fallbackUsed, true);
-  assert.doesNotMatch(JSON.stringify(ledger.events), /PRIVATE_PROMPT/);
+  t.mock.method(globalThis, "fetch", async (url) => { urls.push(url); return failureResponse(); });
+  const disclosurePolicy = { ...crmDisclosurePolicy(), cloudFallbackPermitted: true,
+    approvedRecipients: [ ...crmDisclosurePolicy().approvedRecipients,
+      { transport: "gateway", upstream: "gateway_managed", model: "openai/gpt-5.4-mini" },
+      { transport: "anthropic", upstream: "anthropic", model: "claude-sonnet-4-20250514" }] };
+  await assert.rejects(aiGatewayGenerate(request({ disclosurePolicy,
+    executionPolicy: { ...crmExecutionPolicy(), fallbackPermitted: true, maxAttempts: 3 } }), recorder()), { code: "transport_failed" });
+  assert.deepEqual(urls, ["https://api.openai.com/v1/chat/completions"]);
 });
 
 test("exhausting an allowlist never falls through to disallowed providers", async (t) => {
@@ -142,11 +140,10 @@ test("deadline exhaustion aborts the current transport and prevents further atte
   const ledger = recorder();
   await assert.rejects(aiGatewayGenerate(request({
     deadlineMs: 10,
-    disclosurePolicy: { mode: "cloud_allowed", allowedProviders: ["gateway", "anthropic", "openai"] },
   }), ledger), { code: "deadline_exceeded" });
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(observedSignal.aborted, true);
-  assert.deepEqual(urls, ["https://ai-gateway.vercel.sh/v1/chat/completions"]);
+  assert.deepEqual(urls, ["https://api.openai.com/v1/chat/completions"]);
   assert.equal(ledger.events[0].result.outcome, "deadline_exceeded");
 });
 
@@ -177,11 +174,11 @@ test("invalid deadlines, task types and token limits are rejected before inferen
   }
 });
 
-test("OpenAI and Gateway token usage is captured, including a reported zero", async (t) => {
+test("OpenAI token usage is captured, including a reported zero", async (t) => {
   t.mock.method(globalThis, "fetch", async () => openaiResponse(PRIVATE_OUTPUT, { prompt_tokens: 42, completion_tokens: 0 }));
-  for (const provider of ["openai", "gateway"]) {
+  for (const provider of ["openai"]) {
     const ledger = recorder();
-    const result = await aiGatewayGenerate(request({ disclosurePolicy: { mode: "cloud_allowed", allowedProviders: [provider] } }), ledger);
+    const result = await aiGatewayGenerate(request(), ledger);
     assert.deepEqual(result.usage, { tokensIn: 42, tokensOut: 0 });
     assert.equal(ledger.events[0].tokensIn, 42);
     assert.equal(ledger.events[0].tokensOut, 0);
@@ -192,7 +189,7 @@ test("Anthropic reported usage is captured", async (t) => {
   t.mock.method(globalThis, "fetch", async () => Response.json({
     content: [{ type: "text", text: "A useful summary" }], usage: { input_tokens: 31, output_tokens: 8 },
   }));
-  const result = await aiGatewayGenerate(request({ disclosurePolicy: { mode: "cloud_allowed", allowedProviders: ["anthropic"] } }), recorder());
+  const result = await llmChat({ messages: [{ role: "user", content: "Legacy" }], allowedProviders: ["anthropic"] });
   assert.deepEqual(result.usage, { tokensIn: 31, tokensOut: 8 });
 });
 
@@ -261,7 +258,8 @@ const businessContext = {
 const lead = { kind: "lead", id: "lead_a", title: "Test lead", contactEmail: "contact@example.invalid" };
 const gatewayContext = {
   organisationId: "org_a", actor: { type: "user", id: "user_actor" }, correlationId: "request_123",
-  disclosurePolicy: { mode: "cloud_allowed", allowedProviders: ["openai"] },
+  disclosurePolicy: crmDisclosurePolicy(),
+  executionPolicy: crmExecutionPolicy(),
 };
 
 test("lead-summary pilot passes identity and preserves the existing prompt and token limit", async () => {
@@ -278,8 +276,8 @@ test("lead-summary pilot passes identity and preserves the existing prompt and t
   assert.equal(captured.actor.id, "user_actor");
   assert.equal(captured.task, "lead_summary");
   assert.equal(captured.maxTokens, 1200);
-  assert.equal(captured.tier, "standard");
-  assert.match(captured.messages[1].content, /Summarise this lead for an agent/);
+  assert.equal(captured.executionPolicy.preferredLane, "cloud_standard");
+  assert.match(captured.authorisedInput.messages[1].content, /Summarise this lead for an agent/);
 });
 
 test("empty, invalid and oversized lead-summary output retains exact deterministic fallback", async () => {
@@ -306,7 +304,7 @@ test("blocked policy, missing identity and unavailable transports retain lead-su
 });
 
 test("existing non-lead-summary actions keep the legacy path and no-provider fallback", async () => {
-  for (const action of ["social_post", "email_draft", "briefing", "lead_follow_up", "opportunity_follow_up",
+  for (const action of ["social_post", "email_draft", "briefing", "opportunity_follow_up",
     "opportunity_summary", "contact_follow_up", "contact_summary", "listing_description"]) {
     let calls = 0;
     const deps = {
@@ -340,4 +338,87 @@ test("llmChat without new options retains original models and provider failover"
   assert.equal(result.text, "Legacy answer");
   assert.equal(result.provider, "anthropic");
   assert.equal(typeof result.latencyMs, "number");
+});
+
+test("lead_follow_up goes through the gateway and remains a draft with deterministic fallback", async () => {
+  let captured;
+  const input = { context: businessContext, action: "lead_follow_up", entity: lead, gatewayContext };
+  const result = await generateAiAssist(input, {
+    chat: () => { throw new Error("legacy call forbidden"); },
+    gateway: (request) => { captured = request; return aiGatewayGenerate(request, { ...recorder(), chat: async () => fakeResult({ text: "Subject: Next steps\nPlease reply." }) }); },
+  });
+  assert.equal(captured.task, "lead_follow_up");
+  assert.equal(result.source, "llm");
+  assert.match(result.output, /Subject:/);
+  assert.deepEqual(Object.keys(result).sort(), ["latencyMs", "model", "output", "provider", "source"]);
+  for (const text of ["", null, "x".repeat(20001)]) {
+    const fallback = await generateAiAssist(input, { gateway: (r) => aiGatewayGenerate(r, { ...recorder(), chat: async () => fakeResult({ text }) }) });
+    assert.equal(fallback.source, "template");
+    assert.equal(fallback.output, generateFromBusinessContext(businessContext, "lead_follow_up", lead));
+  }
+});
+
+test("explicit execution plan never substitutes a configured model and prohibits redirects", async (t) => {
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    assert.equal(url, "https://api.openai.com/v1/chat/completions");
+    assert.equal(options.redirect, "error");
+    assert.equal(JSON.parse(options.body).store, false);
+    return openaiResponse();
+  });
+  await aiGatewayGenerate(request(), recorder());
+  process.env.OPENAI_MODEL = "unapproved-model";
+  let called = false;
+  await assert.rejects(aiGatewayGenerate(request(), { ...recorder(), chat: async () => { called = true; return fakeResult(); } }), { code: "policy_denied" });
+  assert.equal(called, false);
+  await assert.rejects(llmChat({ messages: [], executionPlan: [{ provider: "openai", model: "gpt-4o-mini" }] }));
+});
+
+test("safe accounting contains routing metadata and excludes arbitrary transport metadata", async () => {
+  const ledger = recorder();
+  await aiGatewayGenerate(request(), { ...ledger, chat: async () => fakeResult({ metadata: PRIVATE_INPUT,
+    attempts: [{ provider: "openai", model: "gpt-4o-mini", ok: true, error: PRIVATE_OUTPUT, prompt: PRIVATE_INPUT }] }) });
+  const metadata = ledger.events[0].result;
+  assert.equal(metadata.taskVersion, 1);
+  assert.equal(metadata.policyVersion, 1);
+  assert.equal(metadata.classification, "tenant_confidential");
+  assert.equal(metadata.transport, "openai");
+  assert.equal(metadata.upstream, "openai");
+  assert.equal(metadata.selectedLane, "cloud_standard");
+  assert.equal(metadata.policyDecision, "allowed");
+  assert.equal(metadata.validation, "passed");
+  assert.doesNotMatch(JSON.stringify(ledger.events), /PRIVATE_PROMPT|PRIVATE_MODEL_RESPONSE|contact@example/);
+});
+
+test("invalid text still accounts for reported usage without persisting the response", async () => {
+  const ledger = recorder();
+  await assert.rejects(aiGatewayGenerate(request(), { ...ledger, chat: async () => fakeResult({ text: "", usage: { tokensIn: 31, tokensOut: 0 } }) }), { code: "invalid_output" });
+  assert.equal(ledger.events[0].tokensIn, 31);
+  assert.equal(ledger.events[0].tokensOut, 0);
+  assert.equal(ledger.events[0].result.validation, "failed");
+});
+
+test("policy denial accounts for known effective restricted classification", async () => {
+  const ledger = recorder();
+  await assert.rejects(aiGatewayGenerate(request({ disclosurePolicy: { version: 1, classification: "restricted", cloudPermitted: false, approvedRecipients: [], localRequired: true, cloudFallbackPermitted: false } }), ledger), { code: "local_transport_unavailable" });
+  assert.equal(ledger.events[0].result.classification, "restricted");
+  assert.equal(ledger.events[0].result.task, "lead_summary");
+  assert.equal(ledger.events[0].result.policyDecision, "denied");
+  assert.equal(ledger.events[0].result.policyReason, "local_transport_unavailable");
+});
+
+test("legacy Gateway reported usage remains compatible", async (t) => {
+  t.mock.method(globalThis, "fetch", async () => openaiResponse("Legacy", { prompt_tokens: 12, completion_tokens: 3 }));
+  const result = await llmChat({ messages: [{ role: "user", content: "public" }], allowedProviders: ["gateway"] });
+  assert.equal(result.provider, "gateway");
+  assert.deepEqual(result.usage, { tokensIn: 12, tokensOut: 3 });
+});
+
+test("unapproved transport/model result is rejected and cannot contaminate accounting", async () => {
+  for (const target of [{ provider: "anthropic", model: PRIVATE_OUTPUT }, { provider: "openai", model: PRIVATE_INPUT }]) {
+    const ledger = recorder();
+    await assert.rejects(aiGatewayGenerate(request(), { ...ledger, chat: async () => fakeResult({ ...target, text: PRIVATE_OUTPUT, usage: { tokensIn: 99, tokensOut: 99 } }) }), { code: "policy_denied" });
+    assert.equal(ledger.events[0].model, null);
+    assert.equal(ledger.events[0].tokensIn, null);
+    assert.doesNotMatch(JSON.stringify(ledger.events), /PRIVATE_PROMPT|PRIVATE_MODEL_RESPONSE|contact@example/);
+  }
 });

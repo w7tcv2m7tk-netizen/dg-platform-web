@@ -7,6 +7,7 @@ import {
 } from "../org/business-context";
 import { llmChat, llmConfigured, type LlmGenerateResult } from "./llm";
 import { aiGatewayGenerate, AiGatewayError, type AiGatewayActor, type AiGatewayDisclosurePolicy } from "./gateway";
+import { crmDisclosurePolicy, type AiExecutionPolicy } from "./policy";
 import { templateListingDescriptionFromFacts } from "./listing-description";
 import { buildAidaEvidenceContext, formatAidaEvidencePrompt } from "./evidence-context";
 
@@ -98,12 +99,13 @@ export async function generateAiAssist(input: {
   context: BusinessContext;
   action: AiGenerateAction;
   entity?: CrmAssistEntity | null;
-  /** Required for the lead_summary pilot; supplied by the authenticated server boundary. */
+  /** Required for the two CRM gateway tasks; supplied by the authenticated server boundary. */
   gatewayContext?: {
     organisationId: string;
     actor: AiGatewayActor;
     correlationId: string;
     disclosurePolicy: AiGatewayDisclosurePolicy;
+    executionPolicy: AiExecutionPolicy;
     deadlineMs?: number;
     signal?: AbortSignal;
   };
@@ -117,7 +119,8 @@ export async function generateAiAssist(input: {
       ? templateListingDescriptionFromFacts(input.entity.notes)
       : generateFromBusinessContext(input.context, input.action, input.entity);
 
-  if (input.action !== "lead_summary" && !(deps?.configured ?? llmConfigured)()) {
+  const gatewayTask = input.action === "lead_summary" || input.action === "lead_follow_up";
+  if (!gatewayTask && !(deps?.configured ?? llmConfigured)()) {
     return { output: template, source: "template" };
   }
 
@@ -141,14 +144,23 @@ export async function generateAiAssist(input: {
       maxTokens: 1200,
       tier: "standard",
     } satisfies Parameters<typeof llmChat>[0];
-    const result: LlmGenerateResult = input.action === "lead_summary"
+    const result: LlmGenerateResult = gatewayTask
       ? await (async () => {
           if (!input.gatewayContext) throw new AiGatewayError("invalid_request");
           return (deps?.gateway ?? aiGatewayGenerate)({
             ...input.gatewayContext,
-            task: "lead_summary",
+            task: input.action as "lead_summary" | "lead_follow_up",
             businessContext: input.context,
-            ...modelInput,
+            maxTokens: modelInput.maxTokens,
+            authorisedInput: {
+              organisationId: input.context.organisationId,
+              messages: modelInput.messages,
+              disclosure: crmDisclosurePolicy(),
+              evidence: [
+                { organisationId: input.context.organisationId, source: "business_context", disclosure: crmDisclosurePolicy() },
+                { organisationId: input.gatewayContext.organisationId, source: "crm", disclosure: crmDisclosurePolicy() },
+              ],
+            },
           });
         })()
       : await (deps?.chat ?? llmChat)(modelInput);

@@ -29,44 +29,77 @@ DigitalGate → Vercel → AI Service → Model Router → OpenAI / Anthropic / 
 
 ---
 
-## AI Gateway Slice 1 — CRM lead summaries
+## AI Gateway Slice 2 — CRM summary and follow-up drafts
 
-**Implemented pilot:** only the CRM AI Assist `lead_summary` action passes through
-`packages/platform-core/src/ai/gateway.ts`. Other AI features continue calling the
-existing Model Router. Vercel AI Gateway is still a cloud transport underneath
-DigitalGate's policy boundary.
+**Implemented tasks:** only CRM AI Assist `lead_summary` and `lead_follow_up`
+pass through `gateway.ts` and version-1 task/disclosure policy in `policy.ts`.
+Other AI features retain their existing `llmChat` paths and transport failover.
+Follow-up output is an editable draft: no sending, outreach or tool execution.
 
-The authenticated AI Assist route supplies organisation, actor (user or API-key
-connector), a server-generated correlation ID and explicit `cloud_allowed` policy
-allowing the existing Gateway, Anthropic and OpenAI transports. This policy
-preserves the feature's existing cloud disclosure; it is not inferred from an
-`internal` classification or accepted from the request body. Tenant consistency,
-supported task/policy, provider eligibility and bounded inference deadlines are
-checked before inference. `local_only`, unknown policy values and missing server
-identity fail closed. The existing deterministic summary remains available when
-inference is blocked, unavailable or produces empty/invalid output.
+The authenticated route supplies organisation, actor, server-generated correlation
+ID and explicit policy; browser JSON cannot choose recipients or classification.
+Existing tenant-scoped CRM retrieval and Business Context authorise access before
+inference. The gateway fetches no knowledge and grants no data access. Its bounded
+organisation-bound input/evidence envelope carries classification and recipient
+restrictions, which intersect with registered task requirements. CRM contacts,
+notes, activities and private Business Context have a `tenant_confidential` floor.
+Approved knowledge does not automatically authorise cloud disclosure; these tasks
+do not automatically retrieve Business Brain knowledge.
 
-Flow: authenticated route → existing Business Context / lead prompt → DigitalGate
-AI Gateway → permitted `llmChat` cloud failover → summary or deterministic fallback.
-The pilot keeps its existing standard tier and 1200 output-token limit, with a
-12-second inference deadline (gateway maximum 20 seconds). No structured-output
-framework, new endpoint, model-default change or database migration is introduced.
+Classifications are `public`, `platform_internal`, `tenant_confidential` and
+`restricted`. Classification alone never grants cloud permission. Confidential
+CRM approval is **direct OpenAI, requested model `gpt-4o-mini`, only**. Transport
+and upstream recipient are separate identities. Vercel AI Gateway and Anthropic
+are prohibited for these tasks, including failover. Configuration is intersected
+with approval: a different `OPENAI_MODEL`, or no direct key, causes deterministic
+fallback rather than recipient substitution. No credentials/configuration change
+is required. Existing non-migrated model defaults are unchanged.
 
-The existing Activity + AuditLog ledger receives identity, task, correlation,
-outcome, provider/model, inference latency, safe completed-attempt metadata and
-provider-reported tokens. Missing usage is `null`, not zero; usage describes the
-selected successful response, not a complete bill for failed attempts. Raw
-prompts, lead/contact content, responses, credentials and provider error text are
-not included in gateway accounting. Accounting failures are reported with a
-fixed warning and do not discard a valid draft. Invalid accounting identity is
-rejected without persistence. The inference deadline does not bound ledger writes.
+The complete eligible attempt plan is validated before disclosure; `llmChat`
+accepts an additive constrained plan while retaining legacy behavior when omitted.
+The direct endpoint is `https://api.openai.com/v1/chat/completions`, the approved
+model is explicit in the request, redirects are rejected, and `store: false` is
+sent. The initial CRM policy permits one attempt, with no alternate transport or
+model. This guarantees requested recipient/model identity, not physical serving
+hardware or immutable weights behind the `gpt-4o-mini` alias. Technical routing
+approval does not establish customer consent, contractual/regional compliance or
+Zero Data Retention. OpenAI API abuse-monitoring retention remains applicable
+unless separately approved account controls say otherwise; `store: false` is not
+Zero Data Retention. No account/privacy settings are changed by this slice.
 
-**Local inference is NOT implemented.** Ollama remains external to the platform.
-There is no Ollama/OpenRouter adapter, Mac worker or private connection in this
-slice. A hybrid worker architecture is planned, not live: a future Mac-side
-worker could claim leased jobs over outbound authenticated HTTPS, calling Ollama
-only at `127.0.0.1:11434`. Neither LAN/public Ollama access nor inbound router ports
-are part of that design. Restricted requests currently cannot run inference.
+Execution requirements describe capability, grounding, text result contract,
+interactive latency and context budget separately from model names. Lanes are
+`local_routine`, `local_specialist`, `cloud_standard`, `cloud_reasoning` and
+`exact_observation`. Current CRM execution uses the standard cloud lane. Reasoning
+and specialist requirements cannot silently use routine deployments. Fallback
+requires both execution permission and every applicable disclosure permission;
+escalation cannot expand recipients. Unknown/malformed policy fails closed.
+Exact observation requires one exact provider/model, no substitution, no
+escalation and no added grounding: this is a policy invariant only. **AI Visibility
+is not migrated**, and its production observation semantics are unchanged.
+
+Both tasks retain the existing prompts, 1200 output-token ceiling, 12-second
+inference deadline (maximum 20 seconds) and deterministic templates. Their declared
+4096-token context limit uses a conservative UTF-8-byte upper bound plus framing
+margin and output allowance. Oversize inputs fail safely without truncation,
+recipient widening or escalation. Empty, invalid or oversized text results use
+the same deterministic fallback. There is no general structured-output framework.
+
+Existing Activity/AuditLog accounting stores bounded identity, correlation,
+task/version, policy/version, effective classification, decision/reason, lane,
+transport, upstream/model, local/cloud, latency, safe attempts/fallback/escalation,
+validation and failure category. Provider usage is nullable; unknown is not zero.
+Usage describes reported completed responses, not a complete bill for failed
+attempts. Prompts, responses, contacts, evidence, credentials, provider exception
+bodies and arbitrary caller metadata are excluded. Accounting failures are
+non-fatal with a fixed warning; inference deadlines do not bound ledger writes.
+
+**Local execution is designed but unavailable.** Local-required/restricted requests
+return `local_transport_unavailable` with zero cloud calls. No Mac worker exists.
+Raw Ollama remains external, localhost-only (`127.0.0.1:11434`) and unconnected to
+production; it must never be exposed to LAN/internet. Outbound leased worker jobs
+are planned, not implemented. OpenRouter is not implemented. No database
+migration, new public endpoint or autonomous tool execution is introduced.
 
 ---
 
