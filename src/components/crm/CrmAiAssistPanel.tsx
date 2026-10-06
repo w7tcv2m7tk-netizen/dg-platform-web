@@ -25,6 +25,8 @@ export function CrmAiAssistPanel({
   const [output, setOutput] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<"llm" | "template" | null>(null);
+  const [runLocal, setRunLocal] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
   const actions: Array<[CrmAiAction, string]> =
     variant === "opportunity"
@@ -47,6 +49,7 @@ export function CrmAiAssistPanel({
     setError(null);
     setOutput(null);
     setSource(null);
+    setPendingStatus(null);
     const res = await fetch("/api/v1/ai/assist", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -55,14 +58,41 @@ export function CrmAiAssistPanel({
         leadId,
         opportunityId,
         contactId,
+        ...(runLocal ? { executionLane: "local_routine", idempotencyKey: crypto.randomUUID() } : {}),
       }),
     });
     const json = await res.json().catch(() => null);
-    setLoading(null);
     if (!res.ok) {
+      setLoading(null);
       setError("AI Assist could not complete that request. Please try again.");
       return;
     }
+    if (json?.data?.accepted && typeof json.data.statusUrl === "string") {
+      setPendingStatus("queued");
+      for (let attempt = 0; attempt < 150; attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 2_000));
+        try {
+          const status = await fetch(json.data.statusUrl, { cache: "no-store" });
+          const statusJson = await status.json();
+          const item = statusJson?.data;
+          if (!status.ok || !item) continue;
+          setPendingStatus(item.status as string);
+          if (["succeeded", "failed", "cancelled", "expired"].includes(item.status)) {
+            setOutput(item.status === "succeeded" && typeof item.result === "string" ? item.result : (json.data.fallbackOutput as string));
+            setSource(item.status === "succeeded" && typeof item.result === "string" ? "llm" : "template");
+            setPendingStatus(null);
+            setLoading(null);
+            return;
+          }
+        } catch { /* continue polling within the job lifetime */ }
+      }
+      setOutput(json.data.fallbackOutput as string);
+      setSource("template");
+      setPendingStatus(null);
+      setLoading(null);
+      return;
+    }
+    setLoading(null);
     setOutput(json.data.output as string);
     setSource((json.data.source as "llm" | "template") ?? "template");
   }
@@ -95,6 +125,13 @@ export function CrmAiAssistPanel({
           </button>
         ))}
       </div>
+      {variant === "lead" ? (
+        <label className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+          <input type="checkbox" checked={runLocal} onChange={(event) => setRunLocal(event.target.checked)} disabled={loading !== null} />
+          Run asynchronously on the organisation’s explicitly approved Mac
+        </label>
+      ) : null}
+      {pendingStatus ? <p className="mt-3 text-xs text-slate-400">Local request: {pendingStatus}</p> : null}
       {error ? <p className="mt-3 text-sm text-amber-400">{error}</p> : null}
       {output ? (
         <div className="mt-4 space-y-2">

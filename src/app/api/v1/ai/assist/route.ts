@@ -208,6 +208,8 @@ export async function POST(req: Request) {
     contactId?: string;
     propertyId?: string;
     listingDraft?: ListingDescriptionDraftInput;
+    executionLane?: "cloud_standard" | "local_routine";
+    idempotencyKey?: string;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -224,6 +226,16 @@ export async function POST(req: Request) {
       { error: { code: "invalid_action", message: "Unknown action" } },
       { status: 400 },
     );
+  }
+
+  if (body.executionLane === "local_routine" && action !== "lead_summary" && action !== "lead_follow_up") {
+    return NextResponse.json({ error: { code: "unsupported_local_task", message: "This task cannot run on the local routine lane" } }, { status: 422 });
+  }
+  if (body.executionLane !== undefined && body.executionLane !== "cloud_standard" && body.executionLane !== "local_routine") {
+    return NextResponse.json({ error: { code: "invalid_execution_lane", message: "Unsupported execution lane" } }, { status: 422 });
+  }
+  if (body.executionLane === "local_routine" && !/^[0-9a-f-]{36}$/i.test(body.idempotencyKey ?? "")) {
+    return NextResponse.json({ error: { code: "invalid_idempotency_key", message: "A request id is required for local execution" } }, { status: 400 });
   }
 
   if (CRM_ACTIONS.includes(action)) {
@@ -316,13 +328,21 @@ export async function POST(req: Request) {
         id: session.clerkUserId,
       },
       correlationId: randomUUID(),
+      idempotencyKey: body.executionLane === "local_routine" ? body.idempotencyKey : undefined,
       // Explicit server policy for this existing cloud-backed feature. Never read from the body.
       disclosurePolicy: crmDisclosurePolicy(),
-      executionPolicy: crmExecutionPolicy(),
+      executionPolicy: body.executionLane === "local_routine"
+        ? { ...crmExecutionPolicy(), preferredLane: "local_routine", fallbackPermitted: false, escalationPermitted: false }
+        : crmExecutionPolicy(),
       deadlineMs: 12_000,
       signal: req.signal,
     } : undefined,
   });
+
+  if (result.job) {
+    return NextResponse.json({ data: { action, accepted: true, jobId: result.job.id, status: result.job.status,
+      statusUrl: result.job.statusUrl, fallbackOutput: result.fallbackOutput, source: "pending" } }, { status: 202 });
+  }
 
   return NextResponse.json({
     data: {

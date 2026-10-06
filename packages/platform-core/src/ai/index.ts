@@ -8,3 +8,6 @@ export * from "./usage";
 export * from "./evidence-context";
 export * from "./gateway";
 export * from "./policy";
+export * from "./local-crypto";
+export * from "./local-worker-auth";
+export * from "./local-jobs";

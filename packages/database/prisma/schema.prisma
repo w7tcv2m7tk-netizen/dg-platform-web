@@ -89,6 +89,9 @@ model Organisation {
   platformSubscriptionEvents  PlatformSubscriptionEvent[]
   stripeWebhookReceipts       StripeWebhookReceipt[]
   aidaConversations           AidaConversation[]
+  aiLocalRecipientApprovals    AiLocalRecipientApproval[]
+  aiInferenceJobs             AiInferenceJob[]
+  aiAccountingEvents          AiAccountingOutbox[]
 
   @@map("organisations")
 }
@@ -1905,4 +1908,160 @@ model AidaConversation {
   @@index([organisationId, createdAt])
   @@index([expiresAt])
   @@map("aida_conversations")
+}
+
+model AiWorkerPrincipal {
+  id                          String                 @id @default(cuid())
+  name                        String
+  credentialHash              String                 @unique @map("credential_hash")
+  credentialPrefix            String                 @map("credential_prefix")
+  previousCredentialHash      String?                @unique @map("previous_credential_hash")
+  previousCredentialExpiresAt DateTime?              @map("previous_credential_expires_at")
+  revokedAt                   DateTime?              @map("revoked_at")
+  lastSeenAt                  DateTime?              @map("last_seen_at")
+  createdAt                   DateTime               @default(now()) @map("created_at")
+  deployments                 AiLocalDeployment[]
+  leases                      AiInferenceJob[]       @relation("AiJobLeaseWorker")
+  claimReceipts               AiWorkerClaimReceipt[]
+
+  @@index([revokedAt])
+  @@map("ai_worker_principals")
+}
+
+model AiLocalDeployment {
+  id           String                     @id @default(cuid())
+  name         String
+  workerId     String                     @map("worker_id")
+  endpointKind String                     @default("ollama_loopback") @map("endpoint_kind")
+  lane         String                     @default("local_routine")
+  modelId      String                     @default("dg-fast:latest") @map("model_id")
+  modelDigest  String                     @map("model_digest")
+  active       Boolean                    @default(true)
+  createdAt    DateTime                   @default(now()) @map("created_at")
+  updatedAt    DateTime                   @updatedAt @map("updated_at")
+  worker       AiWorkerPrincipal          @relation(fields: [workerId], references: [id], onDelete: Restrict)
+  approvals    AiLocalRecipientApproval[]
+  jobs         AiInferenceJob[]
+
+  @@unique([workerId, name])
+  @@index([active, lane, modelId])
+  @@map("ai_local_deployments")
+}
+
+model AiWorkerClaimReceipt {
+  id          String            @id @default(cuid())
+  workerId    String            @map("worker_id")
+  operationId String            @map("operation_id")
+  jobId       String            @map("job_id")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  worker      AiWorkerPrincipal @relation(fields: [workerId], references: [id], onDelete: Restrict)
+
+  @@unique([workerId, operationId])
+  @@index([createdAt])
+  @@map("ai_worker_claim_receipts")
+}
+
+model AiLocalRecipientApproval {
+  id                    String            @id @default(cuid())
+  organisationId        String            @map("organisation_id")
+  deploymentId          String            @map("deployment_id")
+  approvedByActorType   String            @map("approved_by_actor_type")
+  approvedByActorId     String?           @map("approved_by_actor_id")
+  policyVersion         Int               @map("policy_version")
+  classificationCeiling String            @map("classification_ceiling")
+  approvedAt            DateTime          @default(now()) @map("approved_at")
+  revokedAt             DateTime?         @map("revoked_at")
+  organisation          Organisation      @relation(fields: [organisationId], references: [id], onDelete: Restrict)
+  deployment            AiLocalDeployment @relation(fields: [deploymentId], references: [id], onDelete: Restrict)
+  jobs                  AiInferenceJob[]
+
+  @@unique([id, organisationId, deploymentId])
+  @@index([organisationId, deploymentId, revokedAt])
+  @@index([organisationId, revokedAt])
+  @@map("ai_local_recipient_approvals")
+}
+
+model AiInferenceJob {
+  id                        String                   @id @default(cuid())
+  organisationId            String                   @map("organisation_id")
+  actorType                 String                   @map("actor_type")
+  actorId                   String?                  @map("actor_id")
+  correlationId             String                   @map("correlation_id")
+  task                      String
+  taskVersion               Int                      @map("task_version")
+  policyVersion             Int                      @map("policy_version")
+  classification            String
+  executionLane             String                   @map("execution_lane")
+  deploymentId              String                   @map("deployment_id")
+  approvalId                String                   @map("approval_id")
+  idempotencyKey            String                   @map("idempotency_key")
+  requestHash               String                   @map("request_hash")
+  resultContract            String                   @map("result_contract")
+  resultContractVersion     Int                      @map("result_contract_version")
+  contextBudgetTokens       Int                      @map("context_budget_tokens")
+  maxOutputTokens           Int                      @map("max_output_tokens")
+  maxAttempts               Int                      @default(2) @map("max_attempts")
+  attemptCount              Int                      @default(0) @map("attempt_count")
+  deadlineAt                DateTime                 @map("deadline_at")
+  expiresAt                 DateTime                 @map("expires_at")
+  payloadCiphertext         Bytes?                   @map("payload_ciphertext")
+  payloadNonce              Bytes?                   @map("payload_nonce")
+  payloadKeyVersion         String?                  @map("payload_key_version")
+  status                    String                   @default("queued")
+  leaseWorkerId             String?                  @map("lease_worker_id")
+  leaseTokenHash            String?                  @map("lease_token_hash")
+  claimOperationId          String?                  @map("claim_operation_id")
+  leaseGeneration           Int                      @default(0) @map("lease_generation")
+  leaseExpiresAt            DateTime?                @map("lease_expires_at")
+  lastHeartbeatAt           DateTime?                @map("last_heartbeat_at")
+  lastHeartbeatOperationId  String?                  @map("last_heartbeat_operation_id")
+  heartbeatSequence         Int                      @default(0) @map("heartbeat_sequence")
+  cancelRequestedAt         DateTime?                @map("cancel_requested_at")
+  resultCiphertext          Bytes?                   @map("result_ciphertext")
+  resultNonce               Bytes?                   @map("result_nonce")
+  resultKeyVersion          String?                  @map("result_key_version")
+  resultHash                String?                  @map("result_hash")
+  resultModel               String?                  @map("result_model")
+  usageInputTokens          Int?                     @map("usage_input_tokens")
+  usageOutputTokens         Int?                     @map("usage_output_tokens")
+  completionOperationId     String?                  @map("completion_operation_id")
+  completionRequestHash     String?                  @map("completion_request_hash")
+  completionWorkerId        String?                  @map("completion_worker_id")
+  completionLeaseTokenHash  String?                  @map("completion_lease_token_hash")
+  completionLeaseGeneration Int?                     @map("completion_lease_generation")
+  completedAt               DateTime?                @map("completed_at")
+  payloadPurgeAt            DateTime?                @map("payload_purge_at")
+  resultPurgeAt             DateTime?                @map("result_purge_at")
+  metadataPurgeAt           DateTime?                @map("metadata_purge_at")
+  errorCode                 String?                  @map("error_code")
+  createdAt                 DateTime                 @default(now()) @map("created_at")
+  updatedAt                 DateTime                 @updatedAt @map("updated_at")
+  organisation              Organisation             @relation(fields: [organisationId], references: [id], onDelete: Restrict)
+  deployment                AiLocalDeployment        @relation(fields: [deploymentId], references: [id], onDelete: Restrict)
+  approval                  AiLocalRecipientApproval @relation(fields: [approvalId, organisationId, deploymentId], references: [id, organisationId, deploymentId], onDelete: Restrict)
+  leaseWorker               AiWorkerPrincipal?       @relation("AiJobLeaseWorker", fields: [leaseWorkerId], references: [id], onDelete: Restrict)
+
+  @@index([status, createdAt])
+  @@index([status, expiresAt])
+  @@index([leaseWorkerId, leaseExpiresAt])
+  @@index([organisationId, createdAt])
+  @@index([deploymentId, status])
+  @@map("ai_inference_jobs")
+}
+
+model AiAccountingOutbox {
+  id               String       @id @default(cuid())
+  jobId            String       @unique @map("job_id")
+  organisationId   String       @map("organisation_id")
+  eventType        String       @map("event_type")
+  eventKey         String       @unique @map("event_key")
+  payload          Json
+  createdAt        DateTime     @default(now()) @map("created_at")
+  deliveredAt      DateTime?    @map("delivered_at")
+  deliveryAttempts Int          @default(0) @map("delivery_attempts")
+  nextAttemptAt    DateTime?    @map("next_attempt_at")
+  organisation     Organisation @relation(fields: [organisationId], references: [id], onDelete: Restrict)
+
+  @@index([deliveredAt, nextAttemptAt])
+  @@map("ai_accounting_outbox")
 }

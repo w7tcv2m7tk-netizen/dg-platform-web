@@ -90,6 +90,49 @@ export async function recordAiLedgerEvent(input: RecordAiLedgerEventInput) {
   return activity;
 }
 
+/** Idempotently writes durable local inference outbox events into the existing tenant activity/audit ledger. */
+export async function deliverAiAccountingOutbox(limit = 50) {
+  if (!process.env.DATABASE_URL) return { delivered: 0, retried: 0 };
+  const { prisma } = await import("@dg/database");
+  const due = await prisma.aiAccountingOutbox.findMany({ where: { deliveredAt: null,
+    OR: [{ nextAttemptAt: null }, { nextAttemptAt: { lte: new Date() } }] }, orderBy: { createdAt: "asc" }, take: Math.min(Math.max(limit, 1), 100), select: { id: true } });
+  let delivered = 0;
+  let retried = 0;
+  for (const candidate of due) {
+    try {
+      const didDeliver = await prisma.$transaction(async (tx) => {
+        const locked = await tx.$queryRaw<Array<{ id: string; job_id: string; organisation_id: string; event_type: string; event_key: string; payload: Record<string, unknown>; delivery_attempts: number }>>`
+          SELECT "id", "job_id", "organisation_id", "event_type", "event_key", "payload", "delivery_attempts"
+          FROM "ai_accounting_outbox" WHERE "id" = ${candidate.id} AND "delivered_at" IS NULL
+            AND ("next_attempt_at" IS NULL OR "next_attempt_at" <= (NOW() AT TIME ZONE 'UTC')) FOR UPDATE SKIP LOCKED`;
+        const event = locked[0];
+        if (!event) return false;
+        const payload = event.payload ?? {};
+        const correlationId = event.event_key;
+        const metadata = { eventType: event.event_type, actorType: "system", correlationId, toolId: null, recommendationId: null,
+          provider: "ollama", model: "dg-fast:latest", latencyMs: null, tokensIn: payload.tokensIn ?? null,
+          tokensOut: payload.tokensOut ?? null, result: { ...payload, accountingEventKey: event.event_key }, error: null } as Prisma.InputJsonValue;
+        await tx.activity.create({ data: { organisationId: event.organisation_id, entityType: "AiInteraction", entityId: correlationId,
+          activityType: event.event_type, title: "AI Gateway local draft", sourceApp: "ai", metadata } });
+        await tx.auditLog.create({ data: { organisationId: event.organisation_id, actorType: "system", action: "create",
+          entityType: "AiInteraction", entityId: correlationId, changes: metadata } });
+        await tx.aiAccountingOutbox.update({ where: { id: event.id }, data: { deliveredAt: new Date(),
+          deliveryAttempts: { increment: 1 }, nextAttemptAt: null } });
+        return true;
+      });
+      if (didDeliver) delivered += 1;
+    } catch {
+      const row = await prisma.aiAccountingOutbox.findUnique({ where: { id: candidate.id }, select: { deliveryAttempts: true } });
+      const attempts = Math.min((row?.deliveryAttempts ?? 0) + 1, 30);
+      const delayMs = Math.min(60 * 60_000, 2 ** attempts * 1_000);
+      await prisma.$executeRaw`UPDATE "ai_accounting_outbox" SET "delivery_attempts" = LEAST("delivery_attempts" + 1, 2147483647),
+        "next_attempt_at" = ${new Date(Date.now() + delayMs)} WHERE "id" = ${candidate.id} AND "delivered_at" IS NULL`;
+      retried += 1;
+    }
+  }
+  return { delivered, retried };
+}
+
 export type AiFeedbackRating = "useful" | "not_useful";
 
 export async function recordAiFeedback(input: {
