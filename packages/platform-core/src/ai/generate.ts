@@ -18,6 +18,8 @@ export type AiAssistResult = {
   model?: string;
   latencyMs?: number;
   error?: string;
+  job?: { id: string; status: string; statusUrl: string };
+  fallbackOutput?: string;
 };
 
 function userPromptForAction(
@@ -108,6 +110,7 @@ export async function generateAiAssist(input: {
     executionPolicy: AiExecutionPolicy;
     deadlineMs?: number;
     signal?: AbortSignal;
+    idempotencyKey?: string;
   };
 }, deps?: {
   chat?: typeof llmChat;
@@ -144,12 +147,13 @@ export async function generateAiAssist(input: {
       maxTokens: 1200,
       tier: "standard",
     } satisfies Parameters<typeof llmChat>[0];
-    const result: LlmGenerateResult = gatewayTask
+    const result: LlmGenerateResult | Awaited<ReturnType<typeof aiGatewayGenerate>> = gatewayTask
       ? await (async () => {
           if (!input.gatewayContext) throw new AiGatewayError("invalid_request");
           return (deps?.gateway ?? aiGatewayGenerate)({
             ...input.gatewayContext,
             task: input.action as "lead_summary" | "lead_follow_up",
+            idempotencyKey: input.gatewayContext.idempotencyKey,
             businessContext: input.context,
             maxTokens: modelInput.maxTokens,
             authorisedInput: {
@@ -164,6 +168,10 @@ export async function generateAiAssist(input: {
           });
         })()
       : await (deps?.chat ?? llmChat)(modelInput);
+
+    if ("jobId" in result) {
+      return { output: "", source: "llm", job: { id: result.jobId, status: result.status, statusUrl: result.statusUrl }, fallbackOutput: template };
+    }
 
     return {
       output: result.text,

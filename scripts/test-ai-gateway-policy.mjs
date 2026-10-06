@@ -79,16 +79,34 @@ test("specialist capability cannot silently use routine deployment", () => rejec
   r.executionPolicy = { ...crmExecutionPolicy(), preferredLane: "local_specialist", fallbackPermitted: true, requirements: { capability: "specialist_coding" } };
   r.disclosurePolicy.cloudFallbackPermitted = r.authorisedInput.disclosure.cloudFallbackPermitted = r.authorisedInput.evidence[0].disclosure.cloudFallbackPermitted = true;
 }, "capability_unavailable"));
-test("local preferred requires both execution and all disclosure fallback permission", async () => {
-  await rejected((r) => r.executionPolicy = { ...crmExecutionPolicy(), preferredLane: "local_routine", fallbackPermitted: true }, "local_transport_unavailable");
+test("local routine requires explicit local permission and never falls back to cloud", () => {
+  const fallback = req();
+  fallback.executionPolicy = { ...crmExecutionPolicy(), preferredLane: "local_routine", fallbackPermitted: true, localDeploymentId: "dep_test" };
+  assert.throws(() => resolveAiRouting({ ...fallback, deployments: describeAiDeployments([{ provider: "openai", model: "gpt-4o-mini" }]) }), { code: "local_transport_unavailable" });
+  const local = req();
+  local.executionPolicy = { ...crmExecutionPolicy(), preferredLane: "local_routine", localDeploymentId: "dep_test" };
+  const decision = resolveAiRouting({ ...local, deployments: describeAiDeployments([{ provider: "openai", model: "gpt-4o-mini" }]) });
+  assert.equal(decision.reason, "approved_local_plan");
+  assert.deepEqual(decision.plan, []);
+  assert.equal(decision.localDeploymentId, "dep_test");
+  local.authorisedInput.evidence[0].disclosure.localPermitted = false;
+  assert.throws(() => resolveAiRouting({ ...local, deployments: [] }), { code: "policy_denied" });
+});
+test("restricted requests can route only to explicitly local-required routine", () => {
   const r = req();
-  r.executionPolicy = { ...crmExecutionPolicy(), preferredLane: "local_routine", fallbackPermitted: true };
-  for (const p of [r.disclosurePolicy, r.authorisedInput.disclosure, r.authorisedInput.evidence[0].disclosure]) p.cloudFallbackPermitted = true;
-  const decision = resolveAiRouting({ ...r, deployments: describeAiDeployments([{ provider: "openai", model: "gpt-4o-mini" }]) });
-  assert.equal(decision.reason, "approved_cloud_fallback");
-  assert.equal(decision.plan[0].transport, "openai");
-  r.authorisedInput.evidence[0].disclosure.cloudFallbackPermitted = false;
-  assert.throws(() => resolveAiRouting({ ...r, deployments: [] }), { code: "local_transport_unavailable" });
+  r.disclosurePolicy = local();
+  r.authorisedInput.disclosure = local();
+  r.authorisedInput.evidence[0].disclosure = local();
+  r.executionPolicy = { ...crmExecutionPolicy(), preferredLane: "local_routine", localDeploymentId: "dep_test" };
+  const decision = resolveAiRouting({ ...r, deployments: [] });
+  assert.equal(decision.disclosure.classification, "restricted");
+  assert.equal(decision.disclosure.cloudPermitted, false);
+  assert.equal(decision.reason, "approved_local_plan");
+});
+test("malformed local deployment hint fails closed", () => {
+  const r = req();
+  r.executionPolicy = { ...crmExecutionPolicy(), preferredLane: "local_routine", localDeploymentId: "https://attacker.invalid" };
+  assert.throws(() => resolveAiRouting({ ...r, deployments: [] }), { code: "policy_denied" });
 });
 const exact = () => ({ target: CRM_APPROVED_RECIPIENT, plan: [CRM_APPROVED_RECIPIENT], grounding: "none", escalationPermitted: false });
 test("exact observation accepts only a single exact direct recipient", () => assert.doesNotThrow(() => validateExactObservation(exact())));

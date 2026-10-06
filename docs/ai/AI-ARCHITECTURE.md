@@ -295,3 +295,14 @@ Apps never call provider APIs directly.
 | **Later** | Prospecting “who next” + Documents prepare-from-template on same loop; Voice / Agents only after trust ladder Level 4–5 |
 
 Legacy planning notes remain valid but **do not** override Act-first / Context Builder priority above.
+# AI Gateway Slice 3 — local routine execution
+
+Slice 3 adds an asynchronous `local_routine` path for `lead_summary` and `lead_follow_up` only. Cloud standard execution remains synchronous and retains the existing 12–20 second contract. Local selection never implies cloud permission or cloud fallback.
+
+The cloud policy resolves an active worker deployment and an organisation-specific, classification-bounded approval before it accepts a job. The job snapshots organisation, authorised actor, task/policy versions, correlation, classification, lane, deployment and result contract. Tenant status/result/cancel requests are authorised against the current organisation session and CRM permissions. Worker identity is execution identity only; worker routes never accept a tenant selector and expose only a lease already assigned to that worker.
+
+The Postgres job row owns lease generation, token hash, deadlines, retry count, cancellation, encrypted payload and encrypted result. PostgreSQL claim uses `FOR UPDATE SKIP LOCKED` and a partial unique index limits one live lease per worker. Fenced heartbeat/completion require worker, token, generation, active recipient approval, deployment, deadline and status. No transaction spans inference.
+
+Job payloads and results use AES-256-GCM with versioned 32-byte keys from `AI_JOB_ENCRYPTION_KEY_V1` (and later numbered versions). The cloud runtime holds the keys and decrypts only after worker authentication and lease/recipient validation. This is application encryption at rest, not cloud-blind encryption. The Mac credential is a separate 256-bit bearer secret stored in Keychain; only SHA-256 hashes are persisted server-side.
+
+The Mac worker polls over HTTPS and calls only Ollama at `127.0.0.1:11434`. It verifies the exact `dg-fast:latest` tag, pinned digest, Qwen3.5 9B Q4_K_M metadata, and fixed generation profile before inference. It processes one job at a time. `dg-coder`, `local_specialist`, model swapping, Advisor, Support Aida, tools, push transport and Level-3 envelope encryption remain outside Slice 3.

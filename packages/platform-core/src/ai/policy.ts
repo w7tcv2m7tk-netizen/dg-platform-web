@@ -12,6 +12,8 @@ export type AiDisclosurePolicy = {
   cloudPermitted: boolean;
   approvedRecipients: readonly AiRecipient[];
   localRequired: boolean;
+  /** Explicitly permits disclosure to an approved local recipient. Omitted means false unless localRequired. */
+  localPermitted?: boolean;
   cloudFallbackPermitted: boolean;
 };
 export type AiExecutionRequirements = {
@@ -28,6 +30,8 @@ export type AiExecutionPolicy = {
   maxAttempts: number;
   requirements?: Partial<AiExecutionRequirements>;
   exactTarget?: AiRecipient;
+  /** Server-derived deployment hint. Database approval is checked again before enqueue and disclosure. */
+  localDeploymentId?: string;
 };
 export type AiAuthorisedInput = {
   organisationId: string;
@@ -55,7 +59,7 @@ export const AI_TASK_DEFINITIONS: Readonly<Record<AiTask, AiTaskDefinition>> = O
 /** Explicit approval, independent of OPENAI_MODEL. Configuration is intersected, never treated as approval. */
 export const CRM_APPROVED_RECIPIENT: Readonly<AiRecipient> = Object.freeze({ transport: "openai", upstream: "openai", model: "gpt-4o-mini" });
 export function crmDisclosurePolicy(): AiDisclosurePolicy {
-  return { version: 1, classification: "tenant_confidential", cloudPermitted: true, approvedRecipients: [{ ...CRM_APPROVED_RECIPIENT }], localRequired: false, cloudFallbackPermitted: false };
+  return { version: 1, classification: "tenant_confidential", cloudPermitted: true, approvedRecipients: [{ ...CRM_APPROVED_RECIPIENT }], localRequired: false, localPermitted: true, cloudFallbackPermitted: false };
 }
 export function crmExecutionPolicy(): AiExecutionPolicy {
   return { preferredLane: "cloud_standard", fallbackPermitted: false, escalationPermitted: false, maxAttempts: 1 };
@@ -79,9 +83,10 @@ function recipient(value: unknown): value is AiRecipient {
 }
 const sameRecipient = (a: AiRecipient, b: AiRecipient) => a.transport === b.transport && a.upstream === b.upstream && a.model === b.model;
 export function validateDisclosurePolicy(value: unknown): asserts value is AiDisclosurePolicy {
-  if (!object(value) || !keys(value, ["version", "classification", "cloudPermitted", "approvedRecipients", "localRequired", "cloudFallbackPermitted"]) ||
+  if (!object(value) || !keys(value, ["version", "classification", "cloudPermitted", "approvedRecipients", "localRequired", "localPermitted", "cloudFallbackPermitted"]) ||
     value.version !== 1 || !CLASSIFICATIONS.includes(value.classification as AiClassification) ||
-    typeof value.cloudPermitted !== "boolean" || typeof value.localRequired !== "boolean" || typeof value.cloudFallbackPermitted !== "boolean" ||
+    typeof value.cloudPermitted !== "boolean" || typeof value.localRequired !== "boolean" ||
+    (value.localPermitted !== undefined && typeof value.localPermitted !== "boolean") || typeof value.cloudFallbackPermitted !== "boolean" ||
     !Array.isArray(value.approvedRecipients) || value.approvedRecipients.length > 8 || !Array.from(value.approvedRecipients).every(recipient)) deny();
   if ((!value.cloudPermitted && (value.approvedRecipients.length || value.cloudFallbackPermitted)) ||
     (value.localRequired && (value.cloudPermitted || value.cloudFallbackPermitted)) ||
@@ -93,11 +98,12 @@ export function intersectDisclosure(policies: readonly AiDisclosurePolicy[], flo
   const classification = CLASSIFICATIONS[Math.max(CLASSIFICATIONS.indexOf(floor), ...policies.map((p) => CLASSIFICATIONS.indexOf(p.classification)))];
   const localRequired = classification === "restricted" || policies.some((p) => p.localRequired);
   const cloudPermitted = !localRequired && policies.every((p) => p.cloudPermitted);
+  const localPermitted = localRequired || policies.every((p) => p.localPermitted === true);
   const approvedRecipients = cloudPermitted
     ? policies[0].approvedRecipients.filter((r) => policies.every((p) => p.approvedRecipients.some((a) => sameRecipient(a, r))))
     : [];
   // A caller cannot widen the platform's confidential recipient approval.
-  return { version: 1, classification, localRequired, cloudPermitted,
+  return { version: 1, classification, localRequired, localPermitted, cloudPermitted,
     cloudFallbackPermitted: cloudPermitted && policies.every((p) => p.cloudFallbackPermitted),
     approvedRecipients: classification === "tenant_confidential"
       ? approvedRecipients.filter((r) => sameRecipient(r, CRM_APPROVED_RECIPIENT)) : approvedRecipients };
@@ -120,7 +126,8 @@ export function describeAiDeployments(configured: readonly LlmTransportPlanEntry
 }
 export type AiRoutingDecision = {
   task: AiTask; definition: AiTaskDefinition; disclosure: AiDisclosurePolicy;
-  requirements: AiExecutionRequirements; plan: AiDeployment[]; reason: "approved_cloud_plan" | "approved_cloud_fallback";
+  requirements: AiExecutionRequirements; plan: AiDeployment[]; reason: "approved_cloud_plan" | "approved_cloud_fallback" | "approved_local_plan";
+  localDeploymentId?: string;
 };
 export function resolveAiRouting(input: {
   organisationId: string; task: AiTask; authorisedInput: AiAuthorisedInput;
@@ -140,9 +147,10 @@ export function resolveAiRouting(input: {
   const disclosure = intersectDisclosure([input.disclosurePolicy, envelope.disclosure, ...envelope.evidence.map((e) => e.disclosure)], floor);
   try {
     const execution = input.executionPolicy;
-    if (!object(execution) || !keys(execution, ["preferredLane", "fallbackPermitted", "escalationPermitted", "maxAttempts", "requirements", "exactTarget"]) ||
+    if (!object(execution) || !keys(execution, ["preferredLane", "fallbackPermitted", "escalationPermitted", "maxAttempts", "requirements", "exactTarget", "localDeploymentId"]) ||
       !LANES.includes(execution.preferredLane) || typeof execution.fallbackPermitted !== "boolean" || typeof execution.escalationPermitted !== "boolean" ||
       !Number.isSafeInteger(execution.maxAttempts) || execution.maxAttempts < 1 || execution.maxAttempts > 3) deny();
+    if (execution.localDeploymentId !== undefined && execution.preferredLane !== "local_routine") deny();
     const extra = execution.requirements === undefined ? {} : execution.requirements;
     if (!object(extra) || !keys(extra, ["capability", "grounding", "output", "latencyClass", "contextBudgetTokens"])) deny();
     const req: AiExecutionRequirements = { ...task.requirements, ...extra };
@@ -150,24 +158,30 @@ export function resolveAiRouting(input: {
       req.latencyClass !== task.requirements.latencyClass || !Number.isSafeInteger(req.contextBudgetTokens) || req.contextBudgetTokens < 1 ||
       req.contextBudgetTokens > task.requirements.contextBudgetTokens) deny();
     if (execution.preferredLane === "exact_observation" || execution.exactTarget !== undefined) deny();
+    if (disclosure.localRequired && execution.preferredLane !== "local_routine") throw new AiPolicyError("local_transport_unavailable", disclosure.classification);
     if (!Number.isSafeInteger(input.maxTokens) || input.maxTokens < 1 || input.maxTokens > task.maxOutputTokens) throw new AiPolicyError("invalid_request");
-    const localPreferred = execution.preferredLane === "local_routine" || execution.preferredLane === "local_specialist";
-    if (disclosure.localRequired || (localPreferred && (!disclosure.cloudFallbackPermitted || !execution.fallbackPermitted))) throw new AiPolicyError("local_transport_unavailable");
+    if (execution.preferredLane === "local_specialist") throw new AiPolicyError("capability_unavailable", disclosure.classification);
     // UTF-8 bytes conservatively upper-bound byte-level text tokens; allow framing margin.
     // This is deliberately an upper bound, not a claim to measure provider token usage.
     const contextUpperBound = envelope.messages.reduce((n, m) => n + new TextEncoder().encode(m.content).length + 64, 64) + input.maxTokens;
     if (contextUpperBound > req.contextBudgetTokens) throw new AiPolicyError("context_exceeded");
+    if (execution.preferredLane === "cloud_reasoning" && req.capability !== "reasoning") deny();
+    if (execution.preferredLane === "local_routine") {
+      if (execution.fallbackPermitted || execution.escalationPermitted) throw new AiPolicyError("local_transport_unavailable", disclosure.classification);
+      if (!disclosure.localPermitted || req.capability !== "routine" ||
+          typeof execution.localDeploymentId !== "string" || !/^[A-Za-z0-9_-]{1,120}$/.test(execution.localDeploymentId)) deny();
+      return { task: input.task, definition: task, disclosure, requirements: req, plan: [],
+        reason: "approved_local_plan", localDeploymentId: execution.localDeploymentId };
+    }
     if (!disclosure.cloudPermitted || !disclosure.approvedRecipients.length) deny();
-    if ((execution.preferredLane === "cloud_reasoning" && req.capability !== "reasoning") ||
-      (execution.preferredLane === "local_specialist" && req.capability !== "specialist_coding")) deny();
     const permitted = input.deployments.filter((d) => disclosure.approvedRecipients.some((r) => sameRecipient(r, d)));
     const capable = permitted.filter((d) => d.capability === req.capability);
     if (permitted.length && !capable.length) throw new AiPolicyError("capability_unavailable");
-    const plan = capable.filter((d) => localPreferred || d.lane === execution.preferredLane || execution.escalationPermitted);
+    const plan = capable.filter((d) => d.lane === execution.preferredLane || execution.escalationPermitted);
     if (!plan.length) deny();
     return { task: input.task, definition: task, disclosure, requirements: req,
       plan: plan.slice(0, execution.fallbackPermitted && disclosure.cloudFallbackPermitted ? execution.maxAttempts : 1),
-      reason: localPreferred ? "approved_cloud_fallback" : "approved_cloud_plan" };
+      reason: "approved_cloud_plan" };
   } catch (error) {
     if (error instanceof AiPolicyError) throw new AiPolicyError(error.code, disclosure.classification);
     throw error;
