@@ -1254,9 +1254,28 @@ export async function updatePropertyStatus(
   });
   if (!existing) return null;
 
+  const existingMetadata =
+    (existing.metadata as Record<string, unknown> | null) ?? {};
+  const listingStartedAt =
+    typeof existingMetadata.listing_started_at === "string"
+      ? existingMetadata.listing_started_at
+      : null;
+  const metadata =
+    status === "listed" && !listingStartedAt
+      ? {
+          ...existingMetadata,
+          listing_started_at: new Date().toISOString(),
+        }
+      : existingMetadata;
+
   const property = await prisma.property.update({
     where: { id: propertyId },
-    data: { status },
+    data: {
+      status,
+      ...(metadata !== existingMetadata
+        ? { metadata: metadata as Prisma.InputJsonValue }
+        : {}),
+    },
   });
 
   await prisma.activity.create({
