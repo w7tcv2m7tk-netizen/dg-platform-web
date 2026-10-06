@@ -1,10 +1,23 @@
-import { afterEach, describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import { afterEach, beforeEach, describe, it } from "node:test";
 import { buildMetaAuthorizeUrl } from "./auth";
 
-const originalEnv = { ...process.env };
+const metaEnvKeys = [
+  "META_APP_ID", "META_APP_SECRET", "META_CONFIG_ID",
+  "META_USE_BUSINESS_LOGIN_CONFIG", "META_OAUTH_SCOPES",
+] as const;
+let originalEnv: Map<string, string | undefined>;
+
+beforeEach(() => {
+  originalEnv = new Map(metaEnvKeys.map((key) => [key, process.env[key]]));
+  for (const key of metaEnvKeys) delete process.env[key];
+});
 
 afterEach(() => {
-  process.env = { ...originalEnv };
+  for (const [key, value] of originalEnv) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
 });
 
 describe("Meta OAuth authorisation", () => {
@@ -14,13 +27,13 @@ describe("Meta OAuth authorisation", () => {
     process.env.META_CONFIG_ID = "config-id";
     delete process.env.META_USE_BUSINESS_LOGIN_CONFIG;
     const result = buildMetaAuthorizeUrl("state");
-    expect(result.ok).toBe(true);
+    assert.equal(result.ok, true);
     if (!result.ok) return;
     const url = new URL(result.url);
-    expect(url.searchParams.get("config_id")).toBeNull();
-    expect(url.searchParams.get("scope")).toContain("pages_show_list");
-    expect(url.searchParams.get("scope")).toContain("pages_read_engagement");
-    expect(url.searchParams.get("scope")).toContain("business_management");
+    assert.equal(url.searchParams.get("config_id"), null);
+    assert.ok(url.searchParams.get("scope")?.includes("pages_show_list"));
+    assert.ok(url.searchParams.get("scope")?.includes("pages_read_engagement"));
+    assert.ok(url.searchParams.get("scope")?.includes("business_management"));
   });
 
   it("uses the Facebook Login for Business configuration only when explicitly enabled", () => {
@@ -29,10 +42,10 @@ describe("Meta OAuth authorisation", () => {
     process.env.META_CONFIG_ID = "config-id";
     process.env.META_USE_BUSINESS_LOGIN_CONFIG = "true";
     const result = buildMetaAuthorizeUrl("state");
-    expect(result.ok).toBe(true);
+    assert.equal(result.ok, true);
     if (!result.ok) return;
     const url = new URL(result.url);
-    expect(url.searchParams.get("config_id")).toBe("config-id");
-    expect(url.searchParams.get("scope")).toBeNull();
+    assert.equal(url.searchParams.get("config_id"), "config-id");
+    assert.equal(url.searchParams.get("scope"), null);
   });
 });

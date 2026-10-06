@@ -15,11 +15,24 @@ export type LlmChatMessage = {
   content: string;
 };
 
+export type LlmTokenUsage = {
+  tokensIn: number | null;
+  tokensOut: number | null;
+};
+
+type LlmTransportResult = { text: string; usage: LlmTokenUsage };
+
+function reportedTokens(value: unknown): number | null {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : null;
+}
+
 export type LlmGenerateResult = {
   text: string;
   provider: LlmProvider;
   model: string;
   latencyMs: number;
+  usage?: LlmTokenUsage;
+  attempts?: LlmTransportAttempt[];
 };
 
 /** Safe transport descriptor — never includes API keys. */
@@ -31,6 +44,7 @@ export type LlmTransportPlanEntry = {
 export type LlmTransportAttempt = LlmTransportPlanEntry & {
   ok: boolean;
   error?: string;
+  usage?: LlmTokenUsage;
 };
 
 export class LlmChatError extends Error {
@@ -217,7 +231,7 @@ async function callOpenAiCompatible(input: {
   maxTokens: number;
   label: "OpenAI" | "AI Gateway";
   signal?: AbortSignal;
-}): Promise<string> {
+}): Promise<LlmTransportResult> {
   const gpt5 = isGpt5Family(input.model);
   const body: Record<string, unknown> = {
     model: input.model,
@@ -242,13 +256,20 @@ async function callOpenAiCompatible(input: {
   const json = (await res.json().catch(() => ({}))) as {
     choices?: Array<{ message?: { content?: string } }>;
     error?: { message?: string };
+    usage?: { prompt_tokens?: unknown; completion_tokens?: unknown };
   };
   if (!res.ok) {
     throw new Error(json.error?.message || `${input.label} HTTP ${res.status}`);
   }
   const text = json.choices?.[0]?.message?.content?.trim();
   if (!text) throw new Error(`${input.label} returned empty content`);
-  return text;
+  return {
+    text,
+    usage: {
+      tokensIn: reportedTokens(json.usage?.prompt_tokens),
+      tokensOut: reportedTokens(json.usage?.completion_tokens),
+    },
+  };
 }
 
 async function callOpenAi(input: {
@@ -257,7 +278,7 @@ async function callOpenAi(input: {
   messages: LlmChatMessage[];
   maxTokens: number;
   signal?: AbortSignal;
-}): Promise<string> {
+}): Promise<LlmTransportResult> {
   return callOpenAiCompatible({
     url: "https://api.openai.com/v1/chat/completions",
     apiKey: input.apiKey,
@@ -275,7 +296,7 @@ async function callGateway(input: {
   messages: LlmChatMessage[];
   maxTokens: number;
   signal?: AbortSignal;
-}): Promise<string> {
+}): Promise<LlmTransportResult> {
   return callOpenAiCompatible({
     url: GATEWAY_CHAT_URL,
     apiKey: input.apiKey,
@@ -293,7 +314,7 @@ async function callAnthropic(input: {
   messages: LlmChatMessage[];
   maxTokens: number;
   signal?: AbortSignal;
-}): Promise<string> {
+}): Promise<LlmTransportResult> {
   const system = input.messages
     .filter((m) => m.role === "system")
     .map((m) => m.content)
@@ -326,6 +347,7 @@ async function callAnthropic(input: {
   const json = (await res.json().catch(() => ({}))) as {
     content?: Array<{ type?: string; text?: string }>;
     error?: { message?: string };
+    usage?: { input_tokens?: unknown; output_tokens?: unknown };
   };
   if (!res.ok) {
     throw new Error(json.error?.message || `Anthropic HTTP ${res.status}`);
@@ -336,7 +358,13 @@ async function callAnthropic(input: {
     .join("\n")
     .trim();
   if (!text) throw new Error("Anthropic returned empty content");
-  return text;
+  return {
+    text,
+    usage: {
+      tokensIn: reportedTokens(json.usage?.input_tokens),
+      tokensOut: reportedTokens(json.usage?.output_tokens),
+    },
+  };
 }
 
 async function callTransport(
@@ -344,7 +372,7 @@ async function callTransport(
   messages: LlmChatMessage[],
   maxTokens: number,
   signal?: AbortSignal,
-): Promise<string> {
+): Promise<LlmTransportResult> {
   if (transport.provider === "gateway") {
     return callGateway({
       apiKey: transport.apiKey,
@@ -378,9 +406,15 @@ export async function llmChat(input: {
   maxTokens?: number;
   tier?: LlmTaskTier;
   signal?: AbortSignal;
+  /** Omitted preserves the existing failover chain; [] permits no transport. */
+  allowedProviders?: readonly LlmProvider[];
+  /** Gateway requests must not surface/log provider errors that can echo inputs. */
+  safeErrors?: boolean;
 }): Promise<LlmGenerateResult> {
   const tier = input.tier ?? "standard";
-  const chain = resolveLlmTransports(tier);
+  const chain = resolveLlmTransports(tier).filter(
+    (transport) => input.allowedProviders === undefined || input.allowedProviders.includes(transport.provider),
+  );
   const transportPlan = chain.map((t) => ({
     provider: t.provider,
     model: t.model,
@@ -402,37 +436,44 @@ export async function llmChat(input: {
   for (const transport of chain) {
     if (input.signal?.aborted) break;
     try {
-      const text = await callTransport(
+      const result = await callTransport(
         transport,
         input.messages,
         maxTokens,
         input.signal,
       );
+      if (input.signal?.aborted) throw new Error("Request aborted");
       attempts.push({
         provider: transport.provider,
         model: transport.model,
         ok: true,
+        usage: result.usage,
       });
       return {
-        text,
+        text: result.text,
         provider: transport.provider,
         model: transport.model,
         latencyMs: Date.now() - started,
+        usage: result.usage,
+        attempts,
       };
     } catch (err) {
       lastError = err;
-      const message = err instanceof Error ? err.message : String(err);
+      const message = input.safeErrors
+        ? (input.signal?.aborted ? "Request aborted" : "Transport request failed")
+        : err instanceof Error ? err.message : String(err);
       attempts.push({
         provider: transport.provider,
         model: transport.model,
         ok: false,
         error: message,
       });
-      console.warn(`[ai] ${transport.provider} failed — trying next transport`, message);
+      if (!input.safeErrors) console.warn(`[ai] ${transport.provider} failed — trying next transport`, message);
     }
   }
 
   const lastMessage =
+    input.safeErrors ? "All eligible LLM transports failed" :
     lastError instanceof Error ? lastError.message : "All LLM transports failed";
   const attemptSummary = attempts
     .map((a) => `${a.provider}/${a.model}${a.ok ? "" : `: ${a.error ?? "failed"}`}`)
