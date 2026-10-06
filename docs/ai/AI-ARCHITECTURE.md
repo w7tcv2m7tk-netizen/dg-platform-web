@@ -31,6 +31,8 @@ DigitalGate → Vercel → AI Service → Model Router → OpenAI / Anthropic / 
 
 ## AI Gateway Slice 2 — CRM summary and follow-up drafts
 
+**Historical Slice 2 snapshot:** statements below that local execution/worker jobs are unavailable describe the Slice 2 boundary. The later Slice 3 section supersedes those availability statements for its two approved tasks; production operational activation remains separately gated. Other policy and disclosure restrictions remain intact.
+
 **Implemented tasks:** only CRM AI Assist `lead_summary` and `lead_follow_up`
 pass through `gateway.ts` and version-1 task/disclosure policy in `policy.ts`.
 Other AI features retain their existing `llmChat` paths and transport failover.
@@ -105,7 +107,7 @@ migration, new public endpoint or autonomous tool execution is introduced.
 
 ## Future capability — hybrid local + cloud inference
 
-**Status:** Retained future architecture option — **not authorised for current production implementation**.
+**Status:** Broader future architecture option. The bounded Slice 3 implementation below is the approved local-routine exception; this section does not authorise additional tasks, specialist execution, hardware clusters or production activation.
 
 DigitalGate should preserve the option for the Model Router to choose between **frontier cloud models** and **approved local/on-premise models**. The Business Brain remains the governed context layer regardless of where inference runs.
 
@@ -144,6 +146,16 @@ Good local candidates are bounded, measurable tasks such as classification, extr
 Local inference remains another provider lane behind the existing **DigitalGate AI Service / Model Router**; Apps still never call models directly. Business Brain, Digital Twin, permissions, Tool Registry, audit and human-approval rules remain authoritative. “Local” must not automatically be treated as private: runtime telemetry, storage and networking still require verification.
 
 Do **not** build a Mac cluster as current production infrastructure. Revisit when production usage can identify repeatable workloads and measure tokens, cost, latency, quality and privacy requirements by task. Any proof of concept should compare an approved local model with the current cloud route on the same evaluation set, while keeping the hardware implementation replaceable.
+
+---
+
+## Governed autonomous operations — approved architecture direction
+
+Inference supplies recommendations; DigitalGate separately authorises actions. The [AI Governance](../foundations/AI-GOVERNANCE.md#approved-governance-direction--7-october-2026) canon defines the AI Action Ledger lifecycle, Aida Autonomy Ladder, model/data disclosure provenance, future content governance and incident readiness. These extend the existing Context Builder, Tool Registry and Activity/AuditLog architecture rather than replacing AI Gateway policy.
+
+Business Context and approved Business Brain knowledge evolve toward the [Evidence & Provenance Graph](../foundations/BUSINESS-BRAIN-KNOWLEDGE.md#evidence--provenance-graph-approved-long-term-direction). Approved knowledge still requires independent external-disclosure permission. Use structured evidence and decisions, never stored model chain-of-thought. Tenant isolation, capability permissions, connector authority and human approval remain execution boundaries.
+
+Future persistent Aida responsibilities and business-impact measurement are captured in the [slice roadmap](../ROADMAP.md#ai-gateway-slice-roadmap). Slice 4 remains **Local Specialist Execution**. Slice 5 is **AI Governance, Autonomous Operations & Observability**, requiring a separately approved staged plan before implementation. Current Slice 1–3 contracts and AI Visibility exact-observation semantics are preserved; this direction grants no additional runtime authority.
 
 ---
 
