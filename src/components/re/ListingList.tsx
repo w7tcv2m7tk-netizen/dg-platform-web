@@ -32,6 +32,70 @@ function formatPublicPrice(
   return formatPrice(cents, locale, currency);
 }
 
+type VendorVelocityStage = {
+  label: string;
+  tone: "calm" | "watch" | "decision" | "overdue";
+  checkpoint: string;
+};
+
+function getVendorVelocityStage(daysOnMarket: number): VendorVelocityStage {
+  if (daysOnMarket <= 7) {
+    return {
+      label: "Days 1–7 · Market response",
+      tone: "calm",
+      checkpoint:
+        "Review enquiry quality, competing listings and inspection attendance.",
+    };
+  }
+  if (daysOnMarket <= 14) {
+    return {
+      label: "Days 8–14 · Buyer feedback",
+      tone: "watch",
+      checkpoint: "Review buyer objections, second inspections and offers.",
+    };
+  }
+  if (daysOnMarket <= 21) {
+    return {
+      label: "Days 14–21 · Price discovery",
+      tone: "decision",
+      checkpoint:
+        "Determine whether price is preventing enquiry from converting.",
+    };
+  }
+  if (daysOnMarket < 28) {
+    return {
+      label: "Before day 28 · Decision window",
+      tone: "decision",
+      checkpoint:
+        "Act decisively if the evidence shows the market has rejected the price.",
+    };
+  }
+  return {
+    label: "Day 28+ · Campaign review",
+    tone: "overdue",
+    checkpoint:
+      "Reassess price and campaign evidence now; the fresh-listing advantage may be fading.",
+  };
+}
+
+function getDaysOnMarket(metadata: Record<string, unknown> | null | undefined) {
+  const raw = metadata?.listing_started_at;
+  if (typeof raw !== "string") return null;
+  const startedAt = new Date(raw);
+  if (Number.isNaN(startedAt.getTime())) return null;
+  return Math.max(
+    1,
+    Math.floor((Date.now() - startedAt.getTime()) / (24 * 60 * 60 * 1000)) + 1,
+  );
+}
+
+const VENDOR_VELOCITY_TONES: Record<VendorVelocityStage["tone"], string> = {
+  calm: "border-blue-500/20 bg-blue-500/5 text-blue-200",
+  watch: "border-violet-500/20 bg-violet-500/5 text-violet-200",
+  decision: "border-amber-500/25 bg-amber-500/5 text-amber-200",
+  overdue: "border-rose-500/25 bg-rose-500/5 text-rose-200",
+};
+
 export function ListingList({
   properties,
   canManage = false,
@@ -115,6 +179,10 @@ export function ListingList({
           typeof property.metadata?.inspection_times === "string"
             ? property.metadata.inspection_times
             : null;
+        const daysOnMarket =
+          property.status === "listed" ? getDaysOnMarket(property.metadata) : null;
+        const velocity =
+          daysOnMarket != null ? getVendorVelocityStage(daysOnMarket) : null;
 
         return (
           <li
@@ -181,6 +249,36 @@ export function ListingList({
                 ) : null}
               </div>
             </div>
+
+            {property.status === "listed" ? (
+              <div className="mt-4">
+                {velocity && daysOnMarket != null ? (
+                  <div
+                    className={`rounded-lg border px-3.5 py-3 ${VENDOR_VELOCITY_TONES[velocity.tone]}`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide">
+                        Vendor Velocity · Day {daysOnMarket}
+                      </p>
+                      <p className="text-xs font-medium">{velocity.label}</p>
+                    </div>
+                    <p className="mt-1.5 text-sm text-slate-300">
+                      <span className="font-medium text-white">Checkpoint:</span>{" "}
+                      {velocity.checkpoint}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-slate-800 bg-slate-950/40 px-3.5 py-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                      Vendor Velocity
+                    </p>
+                    <p className="mt-1 text-sm text-slate-400">
+                      Campaign timing will begin the next time this property is moved to Listed.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : null}
 
             <div className="mt-4 flex flex-wrap items-end gap-3">
               {canManage ? (
