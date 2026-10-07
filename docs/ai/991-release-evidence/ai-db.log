@@ -1,0 +1,685 @@
+postgres (PostgreSQL) 18.6 (Homebrew)
+The files belonging to this database system will be owned by user "okcomputers".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "C".
+The default text search configuration will be set to "english".
+
+Data page checksums are enabled.
+
+creating directory /var/folders/m9/8ynzhmdj1bx7w62v4n25dpdh0000gn/T/dg-slice3-pg-obc4tl/data ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default "max_connections" ... 100
+selecting default "shared_buffers" ... 128MB
+selecting default time zone ... Australia/Brisbane
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+Success. You can now start the database server using:
+
+    '/opt/homebrew/opt/postgresql@18/bin/pg_ctl' -D /var/folders/m9/8ynzhmdj1bx7w62v4n25dpdh0000gn/T/dg-slice3-pg-obc4tl/data -l logfile start
+
+waiting for server to start.... done
+server started
+
+psql:/var/folders/m9/8ynzhmdj1bx7w62v4n25dpdh0000gn/T/dg-slice3-pg-obc4tl/baseline.sql:2: NOTICE:  schema "public" already exists, skipping
+CREATE SCHEMA
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+Isolated Slice 3 cluster: /var/folders/m9/8ynzhmdj1bx7w62v4n25dpdh0000gn/T/dg-slice3-pg-obc4tl/data, 127.0.0.1:59035, database dg_slice3_test
+(node:95654) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/database/src/index.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ completion holds authority locks through commit against later worker revocation (118.109166ms)
+✔ completion holds authority locks through commit against later deployment disable (95.404417ms)
+✔ completion holds authority locks through commit against later approval revocation (103.708292ms)
+✔ completion holds authority locks through commit against later cancellation (95.359667ms)
+prisma:error transaction failed to commit
+✔ expiry after the result write but before commit rolls back result and outbox (2084.8355ms)
+prisma:error
+Invalid `prisma.aiInferenceJob.create()` invocation:
+
+
+Unique constraint failed on the fields: (`organisation_id`,`actor_type`,`actor_id`,`idempotency_key`)
+prisma:error
+Invalid `prisma.aiInferenceJob.create()` invocation:
+
+
+Unique constraint failed on the fields: (`organisation_id`,`actor_type`,`actor_id`,`idempotency_key`)
+✔ identical concurrent enqueue is idempotent (82.0705ms)
+✔ conflicting request hash with the same idempotency key is rejected (68.753084ms)
+prisma:error
+Invalid `prisma.aiInferenceJob.create()` invocation:
+
+
+Unique constraint failed on the fields: (`organisation_id`,`actor_type`,`actor_id`,`idempotency_key`)
+✔ concurrent conflicting enqueue commits exactly one request (65.843458ms)
+prisma:error
+Invalid `prisma.aiInferenceJob.create()` invocation:
+
+
+Unique constraint failed on the fields: (`organisation_id`,`actor_type`,`idempotency_key`)
+prisma:error
+Invalid `prisma.aiInferenceJob.create()` invocation:
+
+
+Unique constraint failed on the fields: (`organisation_id`,`actor_type`,`idempotency_key`)
+prisma:error
+Invalid `prisma.aiInferenceJob.create()` invocation:
+
+
+Unique constraint failed on the fields: (`organisation_id`,`actor_type`,`idempotency_key`)
+prisma:error
+Invalid `prisma.aiInferenceJob.create()` invocation:
+
+
+Unique constraint failed on the fields: (`organisation_id`,`actor_type`,`idempotency_key`)
+prisma:error
+Invalid `prisma.aiInferenceJob.create()` invocation:
+
+
+Unique constraint failed on the fields: (`organisation_id`,`actor_type`,`idempotency_key`)
+✔ nullable system actor idempotency has database uniqueness (66.82275ms)
+✔ tenant isolation scopes identical idempotency keys (64.018875ms)
+✔ recipient approval isolation rejects another tenant's deployment/approval (57.823458ms)
+✔ classification ceiling is enforced before enqueue (57.4795ms)
+✔ revoked recipient cannot be newly claimed (60.039417ms)
+✔ revoked recipient cannot heartbeat (63.18025ms)
+✔ revoked recipient cannot complete (64.549958ms)
+✔ revoked worker cannot claim (68.867791ms)
+✔ revoked worker cannot heartbeat (73.271666ms)
+✔ revoked worker cannot complete (68.502875ms)
+✔ disabled deployment cannot claim (66.862167ms)
+✔ disabled deployment cannot complete (67.670125ms)
+✔ concurrent claim returns a job to exactly one caller (79.629709ms)
+✔ another worker cannot receive an assigned deployment's job (71.507125ms)
+prisma:error
+Invalid `prisma.$queryRaw()` invocation:
+
+
+Raw query failed. Code: `23505`. Message: `Key (lease_worker_id)=(cmuxxu6yl007ee8t2v2loye1w) already exists.`
+✔ one-live-lease-per-worker invariant survives concurrent claims for multiple jobs (69.694416ms)
+✔ lease recovery increments generation and fences the previous lease (75.160417ms)
+✔ heartbeat sequence fencing and exact replay (72.68275ms)
+✔ heartbeat cannot extend beyond deadline or expiry (75.625125ms)
+✔ expired lease cannot complete (77.586834ms)
+✔ stale generation cannot complete (76.396833ms)
+✔ wrong lease token cannot complete (99.748625ms)
+✔ wrong worker cannot complete (91.880042ms)
+✔ model/digest contract mismatch cannot complete (84.2985ms)
+✔ cancellation wins a controlled race with completion (93.515583ms)
+✔ deadline changed during the completion lock wait is authoritative (86.824ms)
+✔ database wall time defeats transaction-start time after a lock wait (1077.735292ms)
+✔ heartbeat cannot resurrect a lease that expired during its row-lock wait (1079.3045ms)
+✔ approval revocation wins a controlled race with completion (80.58875ms)
+✔ worker revocation wins a controlled race with completion (81.214458ms)
+✔ deployment disable wins a controlled race with completion (81.532792ms)
+✔ legitimate duplicate completion is idempotent (72.988125ms)
+✔ simultaneous legitimate completions are idempotent (73.720333ms)
+✔ duplicate completion rejects another worker, wrong token, stale generation and changed body (77.8935ms)
+✔ duplicate completion rejects revoked worker/recipient and disabled deployment (80.379125ms)
+✔ old retry completion cannot be replayed after a new generation (78.477292ms)
+✔ retry limit makes the second retryable failure terminal (80.588791ms)
+✔ expired queued job recovery schedules retention (69.229917ms)
+✔ expired lease recovery queues a retry then reaches retry limit (78.150708ms)
+✔ completion atomically commits encrypted result and scoped accounting outbox (72.979083ms)
+✔ failed completion cannot leave partial result or outbox state (75.256959ms)
+prisma:error
+Invalid `prisma.aiAccountingOutbox.create()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "test outbox failure", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+✔ outbox insertion failure rolls back the preceding result mutation (81.200458ms)
+✔ encrypted payload is persisted without plaintext (73.93625ms)
+✔ encrypted result persists without plaintext and decrypts only through tenant-scoped read (77.430042ms)
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "AI payload retention period has not elapsed", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "AI result retention period has not elapsed", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+✔ purge before retention time is rejected by database triggers (79.297125ms)
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "purged AI payload cannot be restored", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "purged AI result cannot be restored", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+✔ purge after retention is allowed and purged ciphertext cannot be restored (83.334708ms)
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "terminal AI inference job is immutable", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "terminal AI inference job is immutable", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "terminal AI inference job is immutable", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "terminal AI inference job is immutable", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "terminal AI inference job is immutable", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "terminal AI inference job is immutable", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+✔ terminal state and completion receipt cannot be mutated illegally (90.756583ms)
+✔ cross-tenant job/result access and cancellation are rejected (77.06425ms)
+prisma:error
+Invalid `prisma.aiInferenceJob.update()` invocation:
+
+
+Foreign key constraint violated on the constraint: `ai_inference_jobs_approval_org_deployment_fkey`
+✔ cross-tenant approval relationship is rejected by the database (72.8925ms)
+✔ accounting outbox delivery is idempotent under concurrent maintenance (79.823666ms)
+ℹ tests 57
+ℹ suites 0
+ℹ pass 57
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8562.516042
+(node:96139) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/database/src/index.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ canonical Slice 3 physical columns and boundary indexes match the deployed SQL contract (29.923958ms)
+✔ receipt CHECK catalogue exactly matches canonical #991 and #993 physicalSchema (9.956375ms)
+✔ atomic provision pins all identity and audits never contain credential/hash/prefix (16.903ms)
+✔ durable replay rejects on another client and duplicate request creates nothing (22.549292ms)
+✔ concurrent provision calls produce exactly one principal/deployment (13.880333ms)
+✔ recovery rotates exact worker, preserves five-minute overlap, never creates records (16.874458ms)
+prisma:error
+Invalid `prisma.aiLocalDeployment.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "new row for relation \"ai_local_deployments\" violates check constraint \"ai_local_deployments_model_check\"", severity: "ERROR", detail: Some("Failing row contains (cmuxxuaxy000ke86j5ypcfh71, dg-mac-1, cmuxxuaxx000ie86jiuuwz90x, ollama_loopback, local_routine, other, bb416f08ee253472fdb015ecc32db5ad8fbf0baf76226781fb62b711835c0f7d, t, 2026-10-07 10:01:45.19, 2026-10-07 10:01:45.191)."), column: None, hint: None }), transient: false })
+prisma:error
+Invalid `prisma.aiLocalDeployment.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "new row for relation \"ai_local_deployments\" violates check constraint \"ai_local_deployments_lane_check\"", severity: "ERROR", detail: Some("Failing row contains (cmuxxuayt000qe86j43a7o3v0, dg-mac-1, cmuxxuayt000oe86j4rv0v75d, ollama_loopback, other, dg-fast:latest, bb416f08ee253472fdb015ecc32db5ad8fbf0baf76226781fb62b711835c0f7d, t, 2026-10-07 10:01:45.222, 2026-10-07 10:01:45.223)."), column: None, hint: None }), transient: false })
+prisma:error
+Invalid `prisma.aiLocalDeployment.update()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "23514", message: "new row for relation \"ai_local_deployments\" violates check constraint \"ai_local_deployments_endpoint_check\"", severity: "ERROR", detail: Some("Failing row contains (cmuxxuaz8000te86jofo3btmi, dg-mac-1, cmuxxuaz7000re86j6fu0my5s, remote, local_routine, dg-fast:latest, bb416f08ee253472fdb015ecc32db5ad8fbf0baf76226781fb62b711835c0f7d, t, 2026-10-07 10:01:45.236, 2026-10-07 10:01:45.237)."), column: None, hint: None }), transient: false })
+✔ wrong identity, revoked worker, altered/inactive deployment cannot rotate (229.019333ms)
+✔ durable cooldown and three-attempt budget survive new process/client (20.76625ms)
+✔ transaction rechecks window/timestamp after lock; no nonce/mutation on stale input (9.554667ms)
+prisma:error
+Invalid `prisma.aiWorkerPrincipal.create()` invocation:
+
+
+Unique constraint failed on the fields: (`name`)
+✔ DB constraint rejects pinned duplicates even outside provisioner (12.299083ms)
+prisma:error
+Invalid `prisma.aiLocalDeployment.create()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "synthetic fixed failure", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+✔ mutation failure rolls worker/deployment back but durably consumes nonce with safe outcome (16.590583ms)
+✔ concurrent same nonce is single-use even when operations race (13.449167ms)
+✔ window expires while request waits for the transaction lock: no mutation/receipt (10.726333ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 556.326042
+waiting for server to shut down.... done
+server stopped
+Disposable Slice 3 PostgreSQL cluster stopped and destroyed
