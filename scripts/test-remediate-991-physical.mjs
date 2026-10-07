@@ -43,7 +43,15 @@ const full = async () => (await prisma.$queryRawUnsafe(`SELECT jsonb_build_objec
   'unrelated',(SELECT jsonb_agg(to_jsonb(s) ORDER BY id) FROM unrelated.sentinel s)) AS snapshot`))[0].snapshot;
 function withoutReplaced(snapshot) {
   const excluded = new Set(["nonce", "fingerprint", "window_id", "outcome"].map(c => `ai_worker_provisioning_receipts_${c}_check`));
-  return { ...snapshot, constraints: snapshot.constraints.filter(c => !excluded.has(c.conname)) };
+  const receipt = snapshot.classes.find(c => c.relname === 'ai_worker_provisioning_receipts').oid;
+  const window = snapshot.classes.find(c => c.relname === 'ai_worker_provisioning_window_idx').oid;
+  const storage = new Set(['relfilenode','relpages','reltuples','relallvisible','relallfrozen','relfrozenxid','relminmxid','reltoastrelid']);
+  return { ...snapshot,
+    classes: snapshot.classes.map(c => Object.fromEntries(Object.entries(c).filter(([k]) => !storage.has(k) && !(c.relname==='ai_worker_provisioning_window_idx' && k==='oid')))).sort((a,b)=>a.relname.localeCompare(b.relname)),
+    attributes: snapshot.attributes.filter(a => a.attrelid!==window && !(a.attrelid===receipt && ['created_at','completed_at'].includes(a.attname))),
+    indexes: snapshot.indexes.filter(i=>i.indexrelid!==window),
+    constraints: snapshot.constraints.filter(c => !excluded.has(c.conname)).map(c => c.conname==='ai_worker_provisioning_receipts_created_at_not_null' ? Object.fromEntries(Object.entries(c).filter(([k])=>k!=='oid')) : c).sort((a,b)=>a.conname.localeCompare(b.conname)),
+  };
 }
 async function refused(response) {
   assert.equal(response.status, 403);
@@ -83,24 +91,19 @@ beforeEach(async () => {
   delete process.env.DG_RECONCILE_991_OPERATION; delete process.env.DG_RECONCILE_991_SECRET_SHA256;
   secret = randomBytes(32).toString("hex"); events = [];
   process.env.DG_REMEDIATE_991_PHYSICAL_SECRET_SHA256 = hash(secret);
+  await prisma.$executeRawUnsafe('DROP TABLE IF EXISTS public.receipt_child CASCADE');
   await prisma.$executeRawUnsafe('DROP TABLE IF EXISTS public.ai_worker_provisioning_receipts CASCADE');
   await prisma.$executeRawUnsafe('DROP INDEX IF EXISTS public.ai_worker_pinned_name_unique');
   await prisma.$executeRawUnsafe('DROP SCHEMA IF EXISTS unrelated CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE public._prisma_migrations, public.memberships, public.ai_worker_principals');
+  await prisma.$executeRawUnsafe('TRUNCATE public._prisma_migrations, public.memberships, public.ai_worker_principals, public.ai_local_deployments, public.ai_local_recipient_approvals, public.ai_inference_jobs, public.ai_worker_claim_receipts, public.ai_accounting_outbox');
   for (const sql of canonical.replace(/^--.*$/gm, "").split(";").map(s => s.trim()).filter(Boolean)) await prisma.$executeRawUnsafe(sql);
   for (const c of observed.filter(c => c.definition.startsWith("CHECK"))) {
     await prisma.$executeRawUnsafe(`ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ${c.name}, ADD CONSTRAINT ${c.name} ${c.definition}`);
   }
+  await prisma.$executeRawUnsafe("ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN created_at TYPE timestamp(3) USING (created_at AT TIME ZONE 'UTC'), ALTER COLUMN completed_at TYPE timestamp(3) USING (completed_at AT TIME ZONE 'UTC')");
   await prisma.$executeRaw`INSERT INTO public.memberships VALUES ('member1','operator_org','user_operator','owner','active')`;
   await prisma.$executeRaw`INSERT INTO public._prisma_migrations (id,checksum,migration_name,started_at,finished_at,logs,applied_steps_count)
     VALUES ('history1','unchanged','existing','2026-10-07 01:27:01.271473+00','2026-10-07 01:27:01.271474+00','untouched',7)`;
-  for (const [i, name] of ['20260901_stripe_connect_tenant_trust','20260904_business_brain_knowledge',
-    '20260910_aida_public_conversations','20260913_ai_visibility_intelligence'].entries()) {
-    await prisma.$executeRaw`INSERT INTO public._prisma_migrations (id,checksum,migration_name) VALUES (${`older${i}`},'unchanged',${name})`;
-  }
-  await prisma.$executeRaw`INSERT INTO public.ai_worker_provisioning_receipts (nonce,fingerprint,window_id,operation,outcome,worker_id,deployment_id,created_at,completed_at)
-    VALUES (repeat('a',64),repeat('b',64),repeat('c',32),'provision','succeeded','synthetic','synthetic','2026-10-07 01:27:01.271473+00','2026-10-07 01:27:02.654321+00'),
-      (repeat('d',64),repeat('e',64),repeat('f',32),'recover','mutation_failed',NULL,NULL,'2026-10-07 01:27:01.271474+00',NULL)`;
   await prisma.$executeRawUnsafe('CREATE SCHEMA unrelated');
   await prisma.$executeRawUnsafe('CREATE TABLE unrelated.sentinel(id int PRIMARY KEY, payload jsonb, stamp timestamptz)');
   await prisma.$executeRawUnsafe('CREATE INDEX sentinel_payload ON unrelated.sentinel USING gin(payload)');
@@ -117,7 +120,7 @@ test("exact artifact mechanically bound; all rehearsed settings/DO retained", ()
   assert.equal(spawnSync(process.execPath, ['scripts/generate-remediate-991-sql.mjs','--check'], { encoding: 'utf8' }).status, 0);
 });
 
-test("variant converges exactly; four changes only; operation/PK/index/table/rows/history/unrelated unchanged; replay refuses", async () => {
+test("variant converges exactly; six deltas only; operation/PK/index/table/rows/history/unrelated unchanged; replay refuses", async () => {
   const start = await full();
   const original = await prisma.$queryRaw`SELECT conname AS name, pg_get_constraintdef(oid) AS definition FROM pg_constraint
     WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass AND contype<>'n' ORDER BY conname`;
@@ -129,8 +132,10 @@ test("variant converges exactly; four changes only; operation/PK/index/table/row
   const end = await full();
   assert.deepEqual(withoutReplaced(end), withoutReplaced(start));
   const changed = start.constraints.filter(c => !end.constraints.some(e => e.oid === c.oid)).map(c=>c.conname).sort();
-  assert.deepEqual(changed, ['fingerprint','nonce','outcome','window_id'].map(c=>`ai_worker_provisioning_receipts_${c}_check`).sort());
+  assert.deepEqual(changed, [...['fingerprint','nonce','outcome','window_id'].map(c=>`ai_worker_provisioning_receipts_${c}_check`),'ai_worker_provisioning_receipts_created_at_not_null'].sort());
   assert.deepEqual(await catalogue(), JSON.parse(readFileSync('docs/ai/991-rehearsal-results.json','utf8')).finalCatalogue);
+  const [shape]=await prisma.$queryRawUnsafe(readFileSync('scripts/sql/991-receipt-shape.sql','utf8'));
+  assert.deepEqual(shape.shape,JSON.parse(readFileSync('docs/ai/991-six-delta-rehearsal-results.json','utf8')).canonicalFullShape);
   assert.deepEqual(events.map(e => e.outcome), ['attempt','success']);
   assert.equal(events[0].actor, 'user_operator'); assert.equal(events[0].requestId,events[1].requestId);
   await unchangedRefusal();
@@ -138,11 +143,25 @@ test("variant converges exactly; four changes only; operation/PK/index/table/row
 
 for (const [field,value] of [['nonce','x'.repeat(16)],['fingerprint','Z'.repeat(64)],['window_id','x'],['outcome','verified'],['outcome','rejected']]) {
   test(`incompatible ${field}/${value.slice(0,8)} refuses before DDL and preserves exact state`, async () => {
+    await prisma.$executeRaw`INSERT INTO public.ai_worker_provisioning_receipts (nonce,fingerprint,window_id,operation,outcome)
+      VALUES(repeat('a',64),repeat('b',64),repeat('c',32),'provision','succeeded')`;
     await prisma.$executeRawUnsafe(`UPDATE public.ai_worker_provisioning_receipts SET ${field}='${value}' WHERE nonce=repeat('a',64)`);
     await unchangedRefusal();
   });
 }
 for (const [name,ddl] of [
+  ['timestamp type',"ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN completed_at TYPE timestamptz USING (completed_at AT TIME ZONE 'UTC')"],
+  ['timestamp precision','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN created_at TYPE timestamp(6)'],
+  ['nullability','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN completed_at SET NOT NULL'],
+  ['extra column','ALTER TABLE public.ai_worker_provisioning_receipts ADD COLUMN unexpected text'],
+  ['extra index','CREATE INDEX unexpected ON public.ai_worker_provisioning_receipts(outcome)'],
+  ['operation','ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_operation_check; ALTER TABLE public.ai_worker_provisioning_receipts ADD CONSTRAINT ai_worker_provisioning_receipts_operation_check CHECK(operation=\'provision\')'],
+  ['rule','CREATE RULE unexpected AS ON INSERT TO public.ai_worker_provisioning_receipts DO ALSO NOTIFY synthetic'],
+  ['inheritance','CREATE TABLE public.receipt_child () INHERITS(public.ai_worker_provisioning_receipts)'],
+  ['forced RLS','ALTER TABLE public.ai_worker_provisioning_receipts FORCE ROW LEVEL SECURITY'],
+  ['policy','CREATE POLICY unexpected ON public.ai_worker_provisioning_receipts USING (true)'],
+  ['text collation','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN fingerprint TYPE text COLLATE \"C\"'],
+  ['PK','ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_pkey'],
   ['name','ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT ai_worker_provisioning_receipts_nonce_check TO wrong'],
   ['definition','ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_nonce_check; ALTER TABLE public.ai_worker_provisioning_receipts ADD CONSTRAINT ai_worker_provisioning_receipts_nonce_check CHECK(length(nonce)>10)'],
   ['index','DROP INDEX public.ai_worker_provisioning_window_idx; CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts(created_at,window_id)'],
@@ -155,6 +174,36 @@ for (const [name,ddl] of [
   await unchangedRefusal();
 });
 
+test('nonempty compatible receipts refuse; no timestamp value converted', async()=>{
+  await prisma.$executeRaw`INSERT INTO public.ai_worker_provisioning_receipts (nonce,fingerprint,window_id,operation,outcome)
+    VALUES(repeat('a',64),repeat('b',64),repeat('c',32),'provision','succeeded')`;
+  await unchangedRefusal();
+});
+for(const table of ['ai_worker_principals','ai_local_deployments','ai_local_recipient_approvals','ai_inference_jobs','ai_worker_claim_receipts','ai_accounting_outbox']) {
+  test(`nonzero safety state ${table} refuses`,async()=>{
+    await prisma.$executeRawUnsafe(`INSERT INTO public.${table} VALUES ('unexpected'${table==='ai_worker_principals'?",'unexpected'":''})`);
+    await unchangedRefusal();
+  });
+}
+for(const name of ['20261007_ai_worker_provisioning_boundary','20260901_stripe_connect_tenant_trust','20260904_business_brain_knowledge','20260910_aida_public_conversations','20260913_ai_visibility_intelligence']) {
+  test(`unexpected history ${name} refuses`,async()=>{
+    await prisma.$executeRaw`INSERT INTO public._prisma_migrations(id,checksum,migration_name,finished_at) VALUES('unexpected','checksum',${name},now())`;
+    await unchangedRefusal();
+  });
+}
+test('unfinished history refuses',async()=>{
+  await prisma.$executeRaw`UPDATE public._prisma_migrations SET finished_at=NULL`;
+  await unchangedRefusal();
+});
+test('timezone-independent precision six final catalogue',async()=>{
+  const db=wrappedDatabase(async(sql,tx)=>{
+    if(sql===body) await tx.$executeRawUnsafe("SET LOCAL timezone='Australia/Brisbane'");
+    return tx.$executeRawUnsafe(sql);
+  });
+  assert.equal((await invoke(request(),'user_operator',db)).status,200);
+  const columns=await prisma.$queryRaw`SELECT data_type,datetime_precision FROM information_schema.columns WHERE table_schema='public' AND table_name='ai_worker_provisioning_receipts' AND column_name IN ('created_at','completed_at')`;
+  assert.deepEqual(columns,[{data_type:'timestamp with time zone',datetime_precision:6},{data_type:'timestamp with time zone',datetime_precision:6}]);
+});
 for (const [key,value] of [['DG_REMEDIATE_991_PHYSICAL_OPERATION',undefined],['DG_REMEDIATE_991_PHYSICAL_OPERATION','reconcile_991'],
   ['NODE_ENV','development'],['VERCEL_ENV','preview'],['VERCEL_ENV',undefined],['AI_WORKER_PROVISIONING_ENABLED','true']]) {
   test(`activation refuses ${key}=${value} before auth/database`, async () => {
@@ -225,7 +274,7 @@ test('forced failure after first DDL rolls back exact original state',async()=>{
   const forced=body.slice(0,end)+"\n RAISE EXCEPTION 'synthetic failure after first DDL';\n"+body.slice(end);
   await unchangedRefusal(wrappedDatabase((sql,tx)=>tx.$executeRawUnsafe(sql===body?forced:sql)));
 });
-test('forced final postcondition failure rolls back all four replacements',async()=>{
+test('forced final postcondition failure rolls back all six changes',async()=>{
   const tail=body.lastIndexOf("RAISE EXCEPTION 'Catalogue does not match expected variant'");
   const pos=body.lastIndexOf('IF catalog.safe',tail);
   const forced=body.slice(0,pos)+body.slice(pos).replace('IF catalog.safe IS DISTINCT FROM true','IF true OR catalog.safe IS DISTINCT FROM true');

@@ -1,0 +1,68 @@
+{
+  "branch": "fix/991-complete-physical-remediation",
+  "base": "24c2ac312b46ef2a0ea4659d92880f2dc2bd7df5",
+  "remediationSha256": "4388e9711c1a0214ba373d0bf49c092035f0a3c8efea7f60e1e34f6ae27e9090",
+  "canonicalSha256": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
+  "sourceHashes": {
+    "scripts/sql/remediate-991-checks.sql": "4388e9711c1a0214ba373d0bf49c092035f0a3c8efea7f60e1e34f6ae27e9090",
+    "src/lib/remediate-991-physical.ts": "5e8355ab05f72ce3baed22924596dc4c90365bc7d31bfd221f33cd5690a21c6f",
+    "src/lib/remediate-991-sql.ts": "95cca310cad4760ed35e199af1fde7484646f393b6b9265f5c629ee860cdab60",
+    "src/lib/remediate-991-sql-generated.ts": "64b581f96e9e27dcfac91fc98499738effd31fb998ec43a91f5b48879bccaf13",
+    "scripts/generate-remediate-991-sql.mjs": "cdf255f8de9c2e6b989b00da0ee437eaff479e289ee7b55b29f766c1cf630974",
+    "src/app/api/admin/remediate-991-physical/route.ts": "8a7abac14a0c59f48b628055adc01959a2faca5e9cc5c00e14087df5a28e394b",
+    "src/lib/remediate-991-request.ts": "10d0b6d0ea55ef2a2c83bcb32e59c9d7f2ffabb7a81987acc5863ba1990c0c5c",
+    "src/middleware.ts": "d0c680f6b5b557691f2f2cb7f992225176fa3db748dda28c93b9c1192066971d",
+    "src/components/platform/EnabledAppsProvider.tsx": "39b4cff6460a4c08b909d984880f2d4bdbc2457ce40c192f0c919dcb7a08162b",
+    "package.json": "9bd981377f6fb17c401c88e796467e0c4ac0e64ecd8e286b63bbfc318391d496",
+    "packages/database/prisma/migrations/20261007_ai_worker_provisioning_boundary/migration.sql": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
+    "packages/database/prisma/schema.prisma": "dd24e81f5f2aa85813734f644ebe9cd4ec177426a410e92f0b639610c671e091"
+  },
+  "results": {
+    "sqlRehearsal": {
+      "passed": 50,
+      "failed": 0
+    },
+    "executor": {
+      "passed": 89,
+      "failed": 0
+    },
+    "aiLocalDb": {
+      "passed": 57,
+      "failed": 0
+    },
+    "provisioningDb": {
+      "passed": 13,
+      "failed": 0
+    },
+    "securityIncludingClientBoundary": {
+      "passed": 48,
+      "failed": 0
+    },
+    "normalBuildExit": 0,
+    "typescript": 0,
+    "lint": 0,
+    "binding": 0,
+    "diff-check": 0
+  },
+  "productionAccess": false,
+  "productionMutation": false,
+  "productionAuthorityConfigured": false,
+  "remediationRequests": 0,
+  "reconciliation": false,
+  "provisioning": false,
+  "historicalPrs": {
+    "993": {
+      "draft": true,
+      "state": "OPEN",
+      "head": "13205f181e274e155ac9a94c8a50c1f1df7d4517"
+    },
+    "994": {
+      "draft": true,
+      "state": "OPEN",
+      "head": "5b5a5f5d009c480161790ec60652062415f58189"
+    }
+  },
+  "browserClerkPrerequisite": "Unresolved; supported browser bridge client trust failure",
+  "buildEnvironment": "Normal npm run build outside sandbox; restricted attempt stalled with zero CPU during Turbopack compilation and was stopped.",
+  "retainedLogFormatting": "Trailing whitespace and terminal carriage returns normalized; raw transcripts remain in local temporary evidence."
+}

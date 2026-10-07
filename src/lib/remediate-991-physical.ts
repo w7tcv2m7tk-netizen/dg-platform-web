@@ -53,7 +53,7 @@ export async function handleRemediate991Physical(request: Request, dependencies:
       await tx.$executeRaw`LOCK TABLE public.memberships IN SHARE MODE`;
       await operator(tx, userId);
       if (!enabled() || !validRequest(request)) refuse();
-      // Exact rehearsed DO block: locks, checks, four replacements, postconditions.
+      // Exact rehearsed DO block: locks, checks, six deltas, postconditions.
       await tx.$executeRawUnsafe(body);
       if (!enabled() || !validRequest(request)) refuse();
       await operator(tx, userId);

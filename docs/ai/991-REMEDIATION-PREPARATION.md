@@ -232,3 +232,8 @@ Scope does not remediate other schema differences or unresolved migration histor
 
 STOP FOR REVIEW. Preparation and isolated rehearsal are complete. No authorization
 for Production execution is inferred from this report.
+# Superseded four-CHECK preparation
+
+This historical preparation omitted the two Production timestamp discrepancies.
+Do not execute its four-CHECK contract. See [six-delta replacement review](991-SIX-DELTA-REMEDIATION-REVIEW.md),
+including the correction to the Neon rehearsal branch interpretation.

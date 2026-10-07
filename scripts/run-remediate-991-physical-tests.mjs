@@ -55,6 +55,7 @@ try {
     CREATE TABLE public.ai_local_recipient_approvals (id text PRIMARY KEY);
     CREATE TABLE public.ai_inference_jobs (id text PRIMARY KEY);
     CREATE TABLE public.ai_worker_claim_receipts (id text PRIMARY KEY);
+    CREATE TABLE public.ai_accounting_outbox (id text PRIMARY KEY);
   `);
   const psql = ["-X", "-h", "127.0.0.1", "-p", String(port), "-U", "physical_test", "-d", "dg_991_physical_test", "-v", "ON_ERROR_STOP=1"];
   run(path.join(bin, "psql"), [...psql, "-f", fixture]);

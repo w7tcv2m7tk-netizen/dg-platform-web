@@ -1,0 +1,91 @@
+(node:6506) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/local-crypto.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ AES-GCM uses a fresh nonce and authenticates the complete AAD (1.324709ms)
+✔ versioned decryption continues to read v1 after writes move to v2 (0.151125ms)
+(node:6507) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/local-worker-auth.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ worker credential is high entropy and never accepted without Bearer framing (8.10875ms)
+✔ worker authentication uses only a hash, supports expiring rotation overlap, and touches lastSeen (0.74625ms)
+✔ revoked or unknown principals do not authenticate (0.1115ms)
+(node:6508) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/local-worker-provisioning.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ activation window is Production only, explicit, bounded, fingerprint matched and fail-closed (0.511084ms)
+✔ valid canonical signatures match client; arbitrary authority-bearing fields rejected (10.328167ms)
+✔ unauthenticated, bearer/tenant authority, wrong key, stale/future and altered request rejected (0.843167ms)
+✔ request stream and response stream are bounded without trust in Content-Length (1.636708ms)
+✔ local HTTPS success passes only credential in memory to exact Keychain account (0.787958ms)
+✔ DB success / Keychain failure preserves identities and never reprovisions (0.21175ms)
+✔ ambiguous network result, redirect, invalid response and unsafe preflight never retry (0.269458ms)
+✔ recovery request contains only exact worker identity (0.173458ms)
+✔ native signer argv/env contains no secret, only non-secret message uses stdin (0.231042ms)
+✔ route never logs or throws raw errors; no-store and narrow exemption (0.354167ms)
+✔ audit whitelist drops credential, signature, arbitrary fields and unsafe identities (0.121709ms)
+✔ Production endpoint/database/role are pinned without returning credentials (0.146125ms)
+{"eventType":"ai_worker_provisioning_outcome","outcome":"disabled","timestamp":"2026-10-07T11:25:10.906Z"}
+✔ real handler fails closed, unauthenticated response is no-store, all methods denied (27.928292ms)
+✔ local TLS verification cannot be disabled through inherited environment (8.0535ms)
+▶ API keys never hold platform authority
+  ✔ isApiKeyPrincipal recognises only api_key:* principals (79.280791ms)
+(node:6509) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ hasPlatformAuthority denies an api-key session in an allowlisted org (1.229459ms)
+  ✔ hasPlatformAuthority denies an api-key session even with a dg:staff role (0.937208ms)
+  ✔ canAccessCommandCentre denies an api-key session in the operator org (10.423709ms)
+  ✔ toPlatformUserType returns null for an api-key principal, even if hasAuthority is forced (4.265375ms)
+  ✔ buildAccessContext gives an api-key session no operator grants (7.377208ms)
+  ✔ assertPlatformOperator refuses to mint a capability for an api-key session (C-3) (2.785208ms)
+✔ API keys never hold platform authority (107.07075ms)
+▶ producer / detector contract
+  ✔ apiKeyToPlatformSession mints an api_key:* principal the detector recognises (1.956791ms)
+✔ producer / detector contract (2.124375ms)
+✔ EnabledAppsProvider runtime dependencies cannot reach Node/server modules (36.077583ms)
+(node:6511) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/local-worker-auth.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Stage 0: claim reaches dedicated auth and rejects missing/invalid/revoked bearer (4.646583ms)
+✔ Stage 0: valid claim bearer reaches operation with machine identity only (0.505208ms)
+✔ Stage 0: heartbeat reaches dedicated auth and rejects missing/invalid/revoked bearer (0.793958ms)
+✔ Stage 0: valid heartbeat bearer reaches operation with machine identity only (0.311125ms)
+✔ Stage 0: complete reaches dedicated auth and rejects missing/invalid/revoked bearer (0.665667ms)
+✔ Stage 0: valid complete bearer reaches operation with machine identity only (0.2245ms)
+✔ Stage 0: worker HTTPS requirement survives Clerk exemption (0.340916ms)
+✔ Stage 0: maintenance fails closed for absent/wrong cron authentication (0.594166ms)
+✔ Stage 0: authenticated maintenance GET/POST reaches accounting and retention (0.2435ms)
+✔ Stage 0: neighbouring routes and ordinary tenant APIs still require Clerk (1.390875ms)
+▶ H-2: middleware public route allowlist
+  ✔ exempts every endpoint that authenticates itself or owns its signed-out handoff (3.117125ms)
+  ✔ does not exempt authenticated surface (0.699291ms)
+  ✔ keeps webhook exemptions to exact paths, not a subtree wildcard (1.056ms)
+✔ H-2: middleware public route allowlist (5.011417ms)
+▶ C-2: platform authority is server-controlled only
+  ✔ does not grant platform authority from a digitalgate-* slug or name (65.739542ms)
+(node:6512) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ does not infer digitalgate_owner for a self-named organisation (8.550458ms)
+  ✔ does not let a self-named organisation reach Command Centre (4.919208ms)
+  ✔ does not grant the digitalgate_owner permission bypass to a self-named org (13.42475ms)
+✔ C-2: platform authority is server-controlled only (93.15525ms)
+▶ C-2: genuine operators retain access
+  ✔ allows only the owner fallback inside an allowlisted operator organisation (1.239875ms)
+  ✔ grants platform authority via the dg:staff membership role (0.868458ms)
+  ✔ fails closed when no allowlist is configured and role is ordinary (0.737292ms)
+✔ C-2: genuine operators retain access (3.011208ms)
+ℹ tests 48
+ℹ suites 5
+ℹ pass 48
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 330.646291
