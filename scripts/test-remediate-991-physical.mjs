@@ -174,6 +174,36 @@ for (const [name,ddl] of [
   await unchangedRefusal();
 });
 
+// The first gate must fail before any of the six authorized DDL statements.
+async function catalogueRefusalBeforeMutation() {
+  const mutation = body.indexOf('  ALTER TABLE public.ai_worker_provisioning_receipts\n');
+  assert.ok(mutation > 0);
+  const trapped = body.slice(0, mutation) + "  RAISE EXCEPTION 'unexpected mutation reached';\n" + body.slice(mutation);
+  let error;
+  await unchangedRefusal(wrappedDatabase(async (sql, tx) => {
+    try { return await tx.$executeRawUnsafe(sql === body ? trapped : sql); }
+    catch (caught) { error = caught; throw caught; }
+  }));
+  assert.match(String(error), /Catalogue does not match expected variant/);
+  assert.doesNotMatch(String(error), /unexpected mutation reached/);
+}
+for (const field of ['nonce','fingerprint','window_id','operation','outcome','created_at']) {
+  test(`starting NOT NULL identity ${field} refuses before mutation`, async () => {
+    await prisma.$executeRawUnsafe(`ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT ai_worker_provisioning_receipts_${field}_not_null TO unexpected_not_null`);
+    await catalogueRefusalBeforeMutation();
+  });
+}
+test('additional NOT NULL identity refuses before mutation', async () => {
+  await prisma.$executeRawUnsafe('ALTER TABLE public.ai_worker_provisioning_receipts ADD CONSTRAINT unexpected_not_null NOT NULL completed_at');
+  await catalogueRefusalBeforeMutation();
+});
+for (const index of ['ai_worker_provisioning_window_idx','ai_worker_provisioning_receipts_pkey']) {
+  test(`starting CLUSTER marker ${index} refuses before mutation`, async () => {
+    await prisma.$executeRawUnsafe(`ALTER TABLE public.ai_worker_provisioning_receipts CLUSTER ON ${index}`);
+    await catalogueRefusalBeforeMutation();
+  });
+}
+
 test('nonempty compatible receipts refuse; no timestamp value converted', async()=>{
   await prisma.$executeRaw`INSERT INTO public.ai_worker_provisioning_receipts (nonce,fingerprint,window_id,operation,outcome)
     VALUES(repeat('a',64),repeat('b',64),repeat('c',32),'provision','succeeded')`;
@@ -280,6 +310,33 @@ test('forced final postcondition failure rolls back all six changes',async()=>{
   const forced=body.slice(0,pos)+body.slice(pos).replace('IF catalog.safe IS DISTINCT FROM true','IF true OR catalog.safe IS DISTINCT FROM true');
   await unchangedRefusal(wrappedDatabase((sql,tx)=>tx.$executeRawUnsafe(sql===body?forced:sql)));
 });
+for (const field of ['nonce','fingerprint','window_id','operation','outcome','created_at']) {
+  test(`final NOT NULL identity ${field} drift rolls back all six changes`, async () => {
+    const finalSelect = body.lastIndexOf('    SELECT\n      ARRAY(SELECT a.attname');
+    assert.ok(finalSelect > body.indexOf('ALTER COLUMN created_at TYPE timestamptz'));
+    const drift = `ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT ai_worker_provisioning_receipts_${field}_not_null TO unexpected_not_null;\n`;
+    const forced = body.slice(0, finalSelect) + drift + body.slice(finalSelect);
+    let error;
+    await unchangedRefusal(wrappedDatabase(async (sql, tx) => {
+      try { return await tx.$executeRawUnsafe(sql === body ? forced : sql); }
+      catch (caught) { error = caught; throw caught; }
+    }));
+    assert.match(String(error), /Catalogue does not match expected variant/);
+  });
+}
+for (const index of ['ai_worker_provisioning_window_idx','ai_worker_provisioning_receipts_pkey']) {
+  test(`final CLUSTER state ${index} drift rolls back all six changes`, async () => {
+    const finalSelect = body.lastIndexOf('    SELECT\n      ARRAY(SELECT a.attname');
+    assert.ok(finalSelect > body.indexOf('ALTER COLUMN created_at TYPE timestamptz'));
+    const forced = body.slice(0, finalSelect) + `ALTER TABLE public.ai_worker_provisioning_receipts CLUSTER ON ${index};\n` + body.slice(finalSelect);
+    let error;
+    await unchangedRefusal(wrappedDatabase(async (sql, tx) => {
+      try { return await tx.$executeRawUnsafe(sql === body ? forced : sql); }
+      catch (caught) { error = caught; throw caught; }
+    }));
+    assert.match(String(error), /Catalogue does not match expected variant/);
+  });
+}
 test('kill switch changed after DDL rolls back before commit',async()=>{
   await unchangedRefusal(wrappedDatabase(async(sql,tx)=>{
     const value=await tx.$executeRawUnsafe(sql);if(sql===body)delete process.env.DG_REMEDIATE_991_PHYSICAL_OPERATION;return value;

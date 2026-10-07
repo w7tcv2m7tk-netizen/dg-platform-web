@@ -152,10 +152,25 @@ try:
       ('unresolved history', "UPDATE public._prisma_migrations SET finished_at=NULL WHERE id='history1';"),
       ('older conflicting history', "INSERT INTO public._prisma_migrations VALUES('unexpected','checksum','20260901_stripe_connect_tenant_trust',now(),now(),'',NULL,0);"),
     ]
+    # Every expected PostgreSQL 18 NOT NULL identity is part of the exact gate.
+    for field in ['nonce','fingerprint','window_id','operation','outcome','created_at']:
+        drift_cases.append(('NOT NULL identity '+field,
+          f"ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT ai_worker_provisioning_receipts_{field}_not_null TO unexpected_not_null;"))
+    drift_cases.append(('additional NOT NULL identity',
+      'ALTER TABLE public.ai_worker_provisioning_receipts ADD CONSTRAINT unexpected_not_null NOT NULL completed_at;'))
+    for table,index in [('ai_worker_provisioning_receipts','ai_worker_provisioning_window_idx'),
+                        ('ai_worker_provisioning_receipts','ai_worker_provisioning_receipts_pkey')]:
+        drift_cases.append(('CLUSTER marker '+index, f'ALTER TABLE public.{table} CLUSTER ON {index};'))
     for field in ['fingerprint','window_id','outcome']:
         drift_cases.append((field+' check',f"ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_{field}_check, ADD CONSTRAINT ai_worker_provisioning_receipts_{field}_check CHECK(length({field})>0);"))
     for name,drift in drift_cases:
-        setup();sql(drift);refused_case('catalogue/history drift '+name)
+        setup();sql(drift)
+        if name.startswith(('NOT NULL identity','additional NOT NULL','CLUSTER marker')):
+            mutation=remediation.index('  ALTER TABLE public.ai_worker_provisioning_receipts\n')
+            trapped=remediation[:mutation]+"  RAISE EXCEPTION 'unexpected mutation reached';\n"+remediation[mutation:]
+            refused_case('catalogue/history drift '+name,trapped,expected_error='Catalogue does not match expected variant')
+        else:
+            refused_case('catalogue/history drift '+name)
     for table in ['ai_worker_principals','ai_local_deployments','ai_local_recipient_approvals','ai_inference_jobs','ai_worker_claim_receipts','ai_accounting_outbox']:
         setup();sql(f"INSERT INTO public.{table} VALUES ('unexpected'"+(",'unexpected'" if table=='ai_worker_principals' else '')+");")
         refused_case('nonzero safety state '+table,expected_error='Requires zero')
@@ -184,6 +199,21 @@ try:
     pos=remediation.rfind('IF catalog.safe',0,tail)
     forced_post=remediation[:pos]+remediation[pos:].replace('IF catalog.safe IS DISTINCT FROM true','IF true OR catalog.safe IS DISTINCT FROM true',1)
     refused_case('postcondition mismatch rolls back all six changes',forced_post)
+    # Inject unrelated identity/CLUSTER drift after all six DDL changes, before
+    # the final catalogue SELECT. Exact rollback must restore the entire fixture.
+    final_select=remediation.rfind('    SELECT\n      ARRAY(SELECT a.attname')
+    for field in ['nonce','fingerprint','window_id','operation','outcome','created_at']:
+        setup()
+        drift=f"ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT ai_worker_provisioning_receipts_{field}_not_null TO unexpected_not_null;\n"
+        refused_case('final NOT NULL identity rollback '+field,
+          remediation[:final_select]+drift+remediation[final_select:],
+          expected_error='Catalogue does not match expected variant')
+    for index in ['ai_worker_provisioning_window_idx','ai_worker_provisioning_receipts_pkey']:
+        setup()
+        drift=f'ALTER TABLE public.ai_worker_provisioning_receipts CLUSTER ON {index};\n'
+        refused_case('final CLUSTER state rollback '+index,
+          remediation[:final_select]+drift+remediation[final_select:],
+          expected_error='Catalogue does not match expected variant')
     record('canonical SHA and independently applied canonical full catalogue verified')
     results['passed']=True
 finally:

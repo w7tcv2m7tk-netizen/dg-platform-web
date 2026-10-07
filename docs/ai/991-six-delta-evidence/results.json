@@ -1,29 +1,33 @@
 {
   "branch": "fix/991-complete-physical-remediation",
   "base": "24c2ac312b46ef2a0ea4659d92880f2dc2bd7df5",
-  "remediationSha256": "4388e9711c1a0214ba373d0bf49c092035f0a3c8efea7f60e1e34f6ae27e9090",
+  "remediationSha256": "1c07112091af372cfad73488c822cd98fab271b05896458495369c3b0c8f1b6e",
   "canonicalSha256": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
   "sourceHashes": {
-    "scripts/sql/remediate-991-checks.sql": "4388e9711c1a0214ba373d0bf49c092035f0a3c8efea7f60e1e34f6ae27e9090",
+    "scripts/sql/remediate-991-checks.sql": "1c07112091af372cfad73488c822cd98fab271b05896458495369c3b0c8f1b6e",
     "src/lib/remediate-991-physical.ts": "5e8355ab05f72ce3baed22924596dc4c90365bc7d31bfd221f33cd5690a21c6f",
-    "src/lib/remediate-991-sql.ts": "95cca310cad4760ed35e199af1fde7484646f393b6b9265f5c629ee860cdab60",
-    "src/lib/remediate-991-sql-generated.ts": "64b581f96e9e27dcfac91fc98499738effd31fb998ec43a91f5b48879bccaf13",
-    "scripts/generate-remediate-991-sql.mjs": "cdf255f8de9c2e6b989b00da0ee437eaff479e289ee7b55b29f766c1cf630974",
+    "src/lib/remediate-991-sql.ts": "34d595d10896364e3cd2e9d019bd71a1d4d3d1e296bcc30643bad9a2af6ed19d",
+    "src/lib/remediate-991-sql-generated.ts": "c1962bf79b3d26477d0f891fadbc58991cd2843254994980ea2b0ca4f4022861",
+    "scripts/generate-remediate-991-sql.mjs": "77b7cc96b3c5f2214e26f99d5684d469e8e6efefd504826c89785b052edaccde",
     "src/app/api/admin/remediate-991-physical/route.ts": "8a7abac14a0c59f48b628055adc01959a2faca5e9cc5c00e14087df5a28e394b",
     "src/lib/remediate-991-request.ts": "10d0b6d0ea55ef2a2c83bcb32e59c9d7f2ffabb7a81987acc5863ba1990c0c5c",
     "src/middleware.ts": "d0c680f6b5b557691f2f2cb7f992225176fa3db748dda28c93b9c1192066971d",
     "src/components/platform/EnabledAppsProvider.tsx": "39b4cff6460a4c08b909d984880f2d4bdbc2457ce40c192f0c919dcb7a08162b",
     "package.json": "9bd981377f6fb17c401c88e796467e0c4ac0e64ecd8e286b63bbfc318391d496",
     "packages/database/prisma/migrations/20261007_ai_worker_provisioning_boundary/migration.sql": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
-    "packages/database/prisma/schema.prisma": "dd24e81f5f2aa85813734f644ebe9cd4ec177426a410e92f0b639610c671e091"
+    "packages/database/prisma/schema.prisma": "dd24e81f5f2aa85813734f644ebe9cd4ec177426a410e92f0b639610c671e091",
+    "scripts/rehearse-991-check-remediation.py": "f6e393c36378d89032b58baef8d68bc32e2f2b76523acd4b92b3bc20e16f9603",
+    "scripts/test-remediate-991-physical.mjs": "32879ba26c5b8499d51585252a90c03beac93a745eb76b18c91960fe61b0d5bc",
+    "scripts/sql/991-receipt-shape.sql": "c9eddde27ffac97f77041ab78969496b4c2f305d085bb182b976b6438a584830",
+    "scripts/test-991-catalogue-counterexamples.py": "7ee7f988472fc83b00b82f2a1dc09bbf30ff0f1d8ec79f967b43abacbc42172c"
   },
   "results": {
     "sqlRehearsal": {
-      "passed": 50,
+      "passed": 67,
       "failed": 0
     },
     "executor": {
-      "passed": 89,
+      "passed": 106,
       "failed": 0
     },
     "aiLocalDb": {
@@ -35,14 +39,26 @@
       "failed": 0
     },
     "securityIncludingClientBoundary": {
-      "passed": 48,
+      "passed": 58,
       "failed": 0
     },
     "normalBuildExit": 0,
     "typescript": 0,
     "lint": 0,
     "binding": 0,
-    "diff-check": 0
+    "diff-check": 0,
+    "independentCounterexamples": {
+      "passed": 5,
+      "failed": 0
+    },
+    "normalBuildNodeTests": {
+      "tests": 881,
+      "passed": 881,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "staticPages": 456
+    }
   },
   "productionAccess": false,
   "productionMutation": false,
@@ -63,6 +79,111 @@
     }
   },
   "browserClerkPrerequisite": "Unresolved; supported browser bridge client trust failure",
-  "buildEnvironment": "Normal npm run build outside sandbox; restricted attempt stalled with zero CPU during Turbopack compilation and was stopped.",
-  "retainedLogFormatting": "Trailing whitespace and terminal carriage returns normalized; raw transcripts remain in local temporary evidence."
+  "buildEnvironment": "Normal npm run build in isolated staged-tree copy outside sandbox; no env files, minimal inherited environment, dummy Clerk values and unreachable loopback database. Runtime-source hashes unchanged after validation.",
+  "priorReviewedHead": "3c2bfa1b8dfb929c2c171443b2bdada295d275fa",
+  "retentionReview": {
+    "secretScan": "No secret material; api_key:operator is a test label",
+    "uniqueEvidence": "Security rationale, prior failed-review cases, canonical reference, all rehearsal outcomes and rollback digests retained; repeated SQL queries, stack traces, fixture startup output and empty logs omitted",
+    "removedLogs": [
+      {
+        "file": "ai-db.log",
+        "lines": 685,
+        "sha256": "d026d383d4c97c8ba2fc6f8e5a76575bba1d8642c3aa9ade38e94ee8c59efb0a"
+      },
+      {
+        "file": "binding.log",
+        "lines": 1,
+        "sha256": "ca3974b00599e625415d59e1d103b563bc4b965814ab00648f65cd5b2c4a38b0"
+      },
+      {
+        "file": "diff-check.log",
+        "lines": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "executor.log",
+        "lines": 138,
+        "sha256": "588fd1e03681f01008b5f478686be5f282461570cfadbc261760f09069ad9703"
+      },
+      {
+        "file": "lint.log",
+        "lines": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "normal-build.log",
+        "lines": 2765,
+        "sha256": "e90b9e22381445c6e7b87fa31e6d236c68169a6ebee45e7f9303ac731da96e67"
+      },
+      {
+        "file": "rehearsal.log",
+        "lines": 51,
+        "sha256": "d9caa24365b5023a5482ec671eb2f2479bf3f5fe6cbdb557546f8e8305e91ca7"
+      },
+      {
+        "file": "security.log",
+        "lines": 91,
+        "sha256": "9dc9c43668349136cf2768be0cf63bc833e0464fa36e36f6cf92f87b19f51a53"
+      },
+      {
+        "file": "typescript.log",
+        "lines": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "commands": {
+    "binding": "node scripts/generate-remediate-991-sql.mjs --check",
+    "sqlRehearsal": "python3 scripts/rehearse-991-check-remediation.py /absolute/postgresql18/bin --evidence /tmp/991-rehearsal.json",
+    "executor": "node scripts/run-remediate-991-physical-tests.mjs /absolute/postgresql18/bin",
+    "aiLocalAndProvisioningDb": "node scripts/run-ai-local-db-tests.mjs /absolute/postgresql18/bin",
+    "independentCounterexamples": "python3 scripts/test-991-catalogue-counterexamples.py /absolute/postgresql18/bin --evidence /tmp/991-counterexamples.json",
+    "security": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-local-crypto.mjs scripts/test-ai-worker-auth.mjs scripts/test-ai-worker-provisioning.mjs scripts/test-ai-worker-keychain.mjs scripts/test-middleware-public-routes.mjs scripts/test-platform-authority.mjs scripts/test-api-key-authority.mjs scripts/test-connector-secret-boundaries.mjs scripts/test-enabled-apps-client-boundary.mjs",
+    "typescript": "npx tsc --noEmit",
+    "lint": "npx eslint scripts/generate-remediate-991-sql.mjs scripts/run-remediate-991-physical-tests.mjs scripts/test-remediate-991-physical.mjs src/lib/remediate-991-physical.ts src/lib/remediate-991-sql.ts src/lib/remediate-991-sql-generated.ts src/lib/remediate-991-request.ts src/app/api/admin/remediate-991-physical/route.ts src/middleware.ts",
+    "diff": "git diff origin/main --check",
+    "build": "npm run build"
+  },
+  "independentCounterexamples": [
+    {
+      "name": "ordinary six-delta state equals fresh canonical PostgreSQL 18 reference",
+      "passed": true
+    },
+    {
+      "name": "original renamed NOT NULL counterexample refuses unchanged reviewed SQL",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant",
+      "unchangedDumpSha256": "bbddeef310308f25596606217eb830878241b84bf553f9c4d4ce70cb7fc7bfa1"
+    },
+    {
+      "name": "original CLUSTER counterexample refuses unchanged reviewed SQL",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant",
+      "unchangedDumpSha256": "bd500ccfeac530888fa698d951c2fcf3dac39eedeeb18d19f343d54487d1b997"
+    },
+    {
+      "name": "final NOT NULL identity drift rolls back",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant",
+      "unchangedDumpSha256": "eb3dc1f3ae3b7445b19fad57271dbe1fd8e05a33f289d2c216b5e6236e885b44"
+    },
+    {
+      "name": "final CLUSTER drift rolls back",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant",
+      "unchangedDumpSha256": "21293f36999de0d26439bd2e37f5e59db963c1441d7d5b7201cb323ed1228dc7"
+    }
+  ],
+  "testedTreeBeforeDocumentationResults": "b3e45ff3286d1f8a938d826c5cd1659716bb1d75",
+  "validationLogs": {
+    "rehearsal": "8c926263706816a62c7fdd7920c64204e2ad209d206ff79fce3b56b1a1f7548d",
+    "executor": "ddd711a40e0a10388a39768617dc9e84edd41faab4a6db91f204c399b5f3345a",
+    "ai-db": "69434a820cd9eb21c5f0e2c3a3ec2fc5ae7eac2bbcb2d8393b4354c80906cd70",
+    "security": "3cba76289dff12e52bab769ec31d953fe177fa6f14661f9015ce2cfe4b5cc338",
+    "counterexamples": "95ef0b22444e5a43e541a2ff6066a7fd35cc9020debb15c1c4a798d62cee7c6c",
+    "typescript": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build": "2e9f8db68c98f1351a94a452e1956231c1ef7af1dba693d21ac407f34e6efafd"
+  },
+  "scopeCheck": "All five original ALTER statements (six semantic deltas), locks and timeouts are byte-identical to prior reviewed head; canonical SQL and Prisma schema unchanged."
 }

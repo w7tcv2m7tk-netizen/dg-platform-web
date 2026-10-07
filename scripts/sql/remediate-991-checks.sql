@@ -22,6 +22,16 @@ SET LOCAL idle_in_transaction_session_timeout = '5s';
 SET LOCAL transaction_timeout = '25s';
 DO $remediation$
 DECLARE catalog record; incompatible bigint; before_state jsonb; after_state jsonb;
+  -- PostgreSQL 18 NOT NULL objects: exact name, column key, definition and flags.
+  -- ALTER TYPE may recreate created_at's object OID, never its logical identity.
+  expected_not_null CONSTANT text[] := ARRAY[
+    'ai_worker_provisioning_receipts_created_at_not_null:NOT NULL created_at:{8}:true:true:false:false:true:0:false',
+    'ai_worker_provisioning_receipts_fingerprint_not_null:NOT NULL fingerprint:{2}:true:true:false:false:true:0:false',
+    'ai_worker_provisioning_receipts_nonce_not_null:NOT NULL nonce:{1}:true:true:false:false:true:0:false',
+    'ai_worker_provisioning_receipts_operation_not_null:NOT NULL operation:{4}:true:true:false:false:true:0:false',
+    'ai_worker_provisioning_receipts_outcome_not_null:NOT NULL outcome:{5}:true:true:false:false:true:0:false',
+    'ai_worker_provisioning_receipts_window_id_not_null:NOT NULL window_id:{3}:true:true:false:false:true:0:false'
+  ]::text[];
 BEGIN
   IF current_setting('server_version_num')::int NOT BETWEEN 180000 AND 189999 THEN
     RAISE EXCEPTION 'Requires PostgreSQL 18';
@@ -69,10 +79,16 @@ BEGIN
           AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attnum) AS columns,
       ARRAY(SELECT pg_get_constraintdef(oid) FROM pg_constraint
         WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
-          -- PostgreSQL 18 catalogs NOT NULL constraints; attnotnull above checks them.
+          -- CHECK/PK definitions; NOT NULL identities and flags are checked separately below.
           AND contype <> 'n'
           AND convalidated AND NOT condeferrable ORDER BY pg_get_constraintdef(oid)) AS constraints,
-      ARRAY(SELECT pg_get_indexdef(i.indexrelid) FROM pg_index i
+      ARRAY(SELECT conname || ':' || pg_get_constraintdef(oid) || ':' || conkey::text
+        || ':' || convalidated::text || ':' || conenforced::text
+        || ':' || condeferrable::text || ':' || condeferred::text
+        || ':' || conislocal::text || ':' || coninhcount::text || ':' || connoinherit::text
+        FROM pg_constraint WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
+          AND contype='n' ORDER BY conname) AS not_null_constraints,
+      ARRAY(SELECT pg_get_indexdef(i.indexrelid) || ':clustered=' || i.indisclustered::text FROM pg_index i
         WHERE i.indexrelid IN ('public.ai_worker_provisioning_receipts_pkey'::regclass,
           'public.ai_worker_provisioning_window_idx'::regclass, 'public.ai_worker_pinned_name_unique'::regclass)
           AND i.indisvalid AND i.indisready AND i.indislive ORDER BY pg_get_indexdef(i.indexrelid)) AS indexes,
@@ -95,8 +111,9 @@ BEGIN
       AND (SELECT reloptions IS NULL AND relam=(SELECT oid FROM pg_am WHERE amname='heap') AND relreplident='d'
         FROM pg_class WHERE oid='public.ai_worker_provisioning_receipts'::regclass) AS safe INTO catalog;
   IF catalog.safe IS DISTINCT FROM true OR catalog.columns IS DISTINCT FROM ARRAY['nonce:text:true:','fingerprint:text:true:','window_id:text:true:','operation:text:true:','outcome:text:true:','worker_id:text:false:','deployment_id:text:false:','created_at:timestamp(3) without time zone:true:clock_timestamp()','completed_at:timestamp(3) without time zone:false:']::text[]
+    OR catalog.not_null_constraints IS DISTINCT FROM expected_not_null
     OR catalog.constraints IS DISTINCT FROM ARRAY['CHECK (((length(nonce) >= 16) AND (length(nonce) <= 128)))','CHECK (((length(window_id) >= 1) AND (length(window_id) <= 80)))','CHECK ((length(fingerprint) = 64))','CHECK ((operation = ANY (ARRAY[''provision''::text, ''recover''::text])))','CHECK ((outcome = ANY (ARRAY[''verified''::text, ''succeeded''::text, ''rejected''::text, ''mutation_failed''::text, ''window_closed''::text])))','PRIMARY KEY (nonce)']::text[]
-    OR catalog.indexes IS DISTINCT FROM ARRAY['CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)','CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = ''dg-mac-1''::text)','CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)']::text[] THEN
+    OR catalog.indexes IS DISTINCT FROM ARRAY['CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at):clustered=false','CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = ''dg-mac-1''::text):clustered=false','CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce):clustered=false']::text[] THEN
     RAISE EXCEPTION 'Catalogue does not match expected variant';
   END IF;
 
@@ -126,7 +143,7 @@ BEGIN
     'history',(SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY id),'[]') FROM public._prisma_migrations m),
     'relations',(SELECT jsonb_agg(to_jsonb(c) - ARRAY['relfilenode','relpages','reltuples','relallvisible','relallfrozen','relfrozenxid','relminmxid','reltoastrelid'] ORDER BY oid) FROM pg_class c WHERE oid IN
       ('public.ai_worker_provisioning_receipts'::regclass,'public.ai_worker_principals'::regclass)),
-    'indexes',(SELECT jsonb_agg(jsonb_build_object('definition',pg_get_indexdef(i.indexrelid),'valid',i.indisvalid,'ready',i.indisready,'live',i.indislive,'primary',i.indisprimary,'unique',i.indisunique) ORDER BY pg_get_indexdef(i.indexrelid)) FROM pg_index i WHERE indrelid IN
+    'indexes',(SELECT jsonb_agg(jsonb_build_object('definition',pg_get_indexdef(i.indexrelid),'valid',i.indisvalid,'ready',i.indisready,'live',i.indislive,'clustered',i.indisclustered,'primary',i.indisprimary,'unique',i.indisunique) ORDER BY pg_get_indexdef(i.indexrelid)) FROM pg_index i WHERE indrelid IN
       ('public.ai_worker_provisioning_receipts'::regclass,'public.ai_worker_principals'::regclass)),
     'untouched_columns',(SELECT jsonb_agg(to_jsonb(a) ORDER BY attnum) FROM pg_attribute a WHERE attrelid='public.ai_worker_provisioning_receipts'::regclass AND attnum>0 AND attname NOT IN ('created_at','completed_at')),
     'untouched_constraints',(SELECT jsonb_agg(CASE WHEN conname='ai_worker_provisioning_receipts_created_at_not_null' THEN to_jsonb(c)-'oid' ELSE to_jsonb(c) END ORDER BY conname) FROM pg_constraint c
@@ -155,10 +172,16 @@ BEGIN
           AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attnum) AS columns,
       ARRAY(SELECT pg_get_constraintdef(oid) FROM pg_constraint
         WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
-          -- PostgreSQL 18 catalogs NOT NULL constraints; attnotnull above checks them.
+          -- CHECK/PK definitions; NOT NULL identities and flags are checked separately below.
           AND contype <> 'n'
           AND convalidated AND NOT condeferrable ORDER BY pg_get_constraintdef(oid)) AS constraints,
-      ARRAY(SELECT pg_get_indexdef(i.indexrelid) FROM pg_index i
+      ARRAY(SELECT conname || ':' || pg_get_constraintdef(oid) || ':' || conkey::text
+        || ':' || convalidated::text || ':' || conenforced::text
+        || ':' || condeferrable::text || ':' || condeferred::text
+        || ':' || conislocal::text || ':' || coninhcount::text || ':' || connoinherit::text
+        FROM pg_constraint WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
+          AND contype='n' ORDER BY conname) AS not_null_constraints,
+      ARRAY(SELECT pg_get_indexdef(i.indexrelid) || ':clustered=' || i.indisclustered::text FROM pg_index i
         WHERE i.indexrelid IN ('public.ai_worker_provisioning_receipts_pkey'::regclass,
           'public.ai_worker_provisioning_window_idx'::regclass, 'public.ai_worker_pinned_name_unique'::regclass)
           AND i.indisvalid AND i.indisready AND i.indislive ORDER BY pg_get_indexdef(i.indexrelid)) AS indexes,
@@ -181,8 +204,9 @@ BEGIN
       AND (SELECT reloptions IS NULL AND relam=(SELECT oid FROM pg_am WHERE amname='heap') AND relreplident='d'
         FROM pg_class WHERE oid='public.ai_worker_provisioning_receipts'::regclass) AS safe INTO catalog;
   IF catalog.safe IS DISTINCT FROM true OR catalog.columns IS DISTINCT FROM ARRAY['nonce:text:true:','fingerprint:text:true:','window_id:text:true:','operation:text:true:','outcome:text:true:','worker_id:text:false:','deployment_id:text:false:','created_at:timestamp with time zone:true:clock_timestamp()','completed_at:timestamp with time zone:false:']::text[]
+    OR catalog.not_null_constraints IS DISTINCT FROM expected_not_null
     OR catalog.constraints IS DISTINCT FROM ARRAY['CHECK ((fingerprint ~ ''^[a-f0-9]{64}$''::text))','CHECK ((nonce ~ ''^[a-f0-9]{64}$''::text))','CHECK ((operation = ANY (ARRAY[''provision''::text, ''recover''::text])))','CHECK ((outcome = ANY (ARRAY[''attempt''::text, ''succeeded''::text, ''duplicate''::text, ''identity_mismatch''::text, ''mutation_failed''::text, ''window_closed''::text])))','CHECK ((window_id ~ ''^[a-f0-9]{32}$''::text))','PRIMARY KEY (nonce)']::text[]
-    OR catalog.indexes IS DISTINCT FROM ARRAY['CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)','CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = ''dg-mac-1''::text)','CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)']::text[] THEN
+    OR catalog.indexes IS DISTINCT FROM ARRAY['CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at):clustered=false','CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = ''dg-mac-1''::text):clustered=false','CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce):clustered=false']::text[] THEN
     RAISE EXCEPTION 'Catalogue does not match expected variant';
   END IF;
   IF EXISTS (SELECT 1 FROM public.ai_worker_provisioning_receipts)
@@ -197,7 +221,7 @@ BEGIN
     'history',(SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY id),'[]') FROM public._prisma_migrations m),
     'relations',(SELECT jsonb_agg(to_jsonb(c) - ARRAY['relfilenode','relpages','reltuples','relallvisible','relallfrozen','relfrozenxid','relminmxid','reltoastrelid'] ORDER BY oid) FROM pg_class c WHERE oid IN
       ('public.ai_worker_provisioning_receipts'::regclass,'public.ai_worker_principals'::regclass)),
-    'indexes',(SELECT jsonb_agg(jsonb_build_object('definition',pg_get_indexdef(i.indexrelid),'valid',i.indisvalid,'ready',i.indisready,'live',i.indislive,'primary',i.indisprimary,'unique',i.indisunique) ORDER BY pg_get_indexdef(i.indexrelid)) FROM pg_index i WHERE indrelid IN
+    'indexes',(SELECT jsonb_agg(jsonb_build_object('definition',pg_get_indexdef(i.indexrelid),'valid',i.indisvalid,'ready',i.indisready,'live',i.indislive,'clustered',i.indisclustered,'primary',i.indisprimary,'unique',i.indisunique) ORDER BY pg_get_indexdef(i.indexrelid)) FROM pg_index i WHERE indrelid IN
       ('public.ai_worker_provisioning_receipts'::regclass,'public.ai_worker_principals'::regclass)),
     'untouched_columns',(SELECT jsonb_agg(to_jsonb(a) ORDER BY attnum) FROM pg_attribute a WHERE attrelid='public.ai_worker_provisioning_receipts'::regclass AND attnum>0 AND attname NOT IN ('created_at','completed_at')),
     'untouched_constraints',(SELECT jsonb_agg(CASE WHEN conname='ai_worker_provisioning_receipts_created_at_not_null' THEN to_jsonb(c)-'oid' ELSE to_jsonb(c) END ORDER BY conname) FROM pg_constraint c

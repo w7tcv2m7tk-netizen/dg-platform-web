@@ -6,7 +6,7 @@ const root = new URL("../", import.meta.url);
 const remediation = readFileSync(new URL("scripts/sql/remediate-991-checks.sql", root), "utf8");
 const canonical = readFileSync(new URL("packages/database/prisma/migrations/20261007_ai_worker_provisioning_boundary/migration.sql", root), "utf8");
 const hash = text => createHash("sha256").update(text).digest("hex");
-if (hash(remediation) !== "4388e9711c1a0214ba373d0bf49c092035f0a3c8efea7f60e1e34f6ae27e9090"
+if (hash(remediation) !== "1c07112091af372cfad73488c822cd98fab271b05896458495369c3b0c8f1b6e"
   || hash(canonical) !== "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d") {
   throw new Error("Reviewed #991 artifact checksum mismatch");
 }

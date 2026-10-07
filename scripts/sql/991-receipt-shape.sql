@@ -17,13 +17,13 @@ SELECT jsonb_build_object(
       AND ic.table_name='ai_worker_provisioning_receipts' AND ic.column_name=a.attname
     WHERE a.attrelid='public.ai_worker_provisioning_receipts'::regclass AND a.attnum>0),
   'constraints', (SELECT jsonb_agg(jsonb_build_object('name',conname,'type',contype,
-    'definition',pg_get_constraintdef(oid),'validated',convalidated,'enforced',conenforced,
+    'definition',pg_get_constraintdef(oid),'column_numbers',conkey,'validated',convalidated,'enforced',conenforced,
     'deferrable',condeferrable,'deferred',condeferred,'local',conislocal,
     'inherited',coninhcount,'no_inherit',connoinherit) ORDER BY conname)
     FROM pg_constraint WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass),
   'indexes', (SELECT jsonb_agg(jsonb_build_object('definition',pg_get_indexdef(i.indexrelid),
     'primary',i.indisprimary,'unique',i.indisunique,'valid',i.indisvalid,'ready',i.indisready,
-    'live',i.indislive,'predicate',pg_get_expr(i.indpred,i.indrelid),
+    'live',i.indislive,'clustered',i.indisclustered,'predicate',pg_get_expr(i.indpred,i.indrelid),
     'expressions',pg_get_expr(i.indexprs,i.indrelid),'options',c.reloptions,
     'opclasses',ARRAY(SELECT o.opcname FROM unnest(i.indclass::oid[]) WITH ORDINALITY x(oid,n)
       JOIN pg_opclass o ON o.oid=x.oid ORDER BY x.n)) ORDER BY pg_get_indexdef(i.indexrelid))

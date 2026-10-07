@@ -1,292 +1,6 @@
 {
   "postgres": "postgres (PostgreSQL) 18.6 (Homebrew)",
   "canonicalSha256": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
-  "cases": [
-    {
-      "name": "A exact observed starting catalogue",
-      "passed": true
-    },
-    {
-      "name": "checksum refusal missing",
-      "passed": true,
-      "error": "ERROR:  division by zero"
-    },
-    {
-      "name": "checksum refusal mismatch",
-      "passed": true,
-      "error": "ERROR:  division by zero"
-    },
-    {
-      "name": "exact empty Production variant converges all six deltas; canonical catalogue and preservation",
-      "passed": true
-    },
-    {
-      "name": "already-canonical repeated execution refuses",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "aaa95358f40fafb8fb47393b486fa34306a4501e58c074eeecfb315e73b08308"
-    },
-    {
-      "name": "session-timezone-independent empty conversion GMT",
-      "passed": true
-    },
-    {
-      "name": "session-timezone-independent empty conversion Australia/Brisbane",
-      "passed": true
-    },
-    {
-      "name": "session-timezone-independent empty conversion America/New_York",
-      "passed": true
-    },
-    {
-      "name": "nonempty canonical-compatible data refuses",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "f062b86a3cb0e2917674e886ce3ab93e5d59b076b07590de4f092fe2ef520804"
-    },
-    {
-      "name": "incompatible timestamp/data nonce xxxxxxxx",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "be39c7fc68a36165d9756e4e033ee8ca0d301a6dd8ddaaf41c6765ee6ac4b632"
-    },
-    {
-      "name": "incompatible timestamp/data fingerprint ZZZZZZZZ",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "d0a1a28cd32293930783dfbf0afa1de3e6c422a542791b3fdd635740d0d22ab1"
-    },
-    {
-      "name": "incompatible timestamp/data window_id x",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "39901b2eb73e2107e8ed2879f6d3e3a940897a80fda0d10a8e515d69725af8e3"
-    },
-    {
-      "name": "incompatible timestamp/data outcome verified",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "263972a4dc7bb5c458a13e2a72a6bb403308a45c127790ec2023c0b6b7d1ae83"
-    },
-    {
-      "name": "incompatible timestamp/data outcome rejected",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "d332d5192d45f6426ce4148fb0225b81a839a427f2038a4a19282c78fe265d7b"
-    },
-    {
-      "name": "catalogue/history drift timestamp type",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "21a4fd625b07a0f4be15ec29f7e59ace3efeafbcd210c1aa0f90cc8bf3678aa0"
-    },
-    {
-      "name": "catalogue/history drift timestamp precision",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "fa7da888c37cb1cc6f428519a1b7aa2a3d4719cea61b122d1237c8190e284769"
-    },
-    {
-      "name": "catalogue/history drift constraint identity",
-      "passed": true,
-      "error": "ERROR:  Unexpected catalogue state\nCONTEXT:  PL/pgSQL function inline_code_block line 91 at RAISE",
-      "unchangedDumpSha256": "58630cbf7ca80e6f9deafaef30bd48344367323f22dfddc450d804e79837a067"
-    },
-    {
-      "name": "catalogue/history drift nonce check",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "6bcdb053ab4bebe5431fa1f309a6dcb59625f57755a5b3a79f2ccf2f4f90c4a0"
-    },
-    {
-      "name": "catalogue/history drift operation check",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "b93aedf17e90b7882b36451aaf2d3717251957a3773476b5464a689a336eb140"
-    },
-    {
-      "name": "catalogue/history drift PK",
-      "passed": true,
-      "error": "ERROR:  relation \"public.ai_worker_provisioning_receipts_pkey\" does not exist\nLINE 13:         WHERE i.indexrelid IN ('public.ai_worker_provisionin...\n                                        ^\nQUERY:  SELECT\n      ARRAY(SELECT a.attname || ':' || format_type(a.atttypid,a.atttypmod) || ':'\n        || a.attnotnull::text || ':' || COALESCE(pg_get_expr(d.adbin,d.adrelid), '')\n        FROM pg_attribute a LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum\n        WHERE a.attrelid='public.ai_worker_provisioning_receipts'::regclass\n          AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attnum) AS columns,\n      ARRAY(SELECT pg_get_constraintdef(oid) FROM pg_constraint\n        WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass\n          -- PostgreSQL 18 catalogs NOT NULL constraints; attnotnull above checks them.\n          AND contype <> 'n'\n          AND convalidated AND NOT condeferrable ORDER BY pg_get_constraintdef(oid)) AS constraints,\n      ARRAY(SELECT pg_get_indexdef(i.indexrelid) FROM pg_index i\n        WHERE i.indexrelid IN ('public.ai_worker_provisioning_receipts_pkey'::regclass,\n          'public.ai_worker_provisioning_window_idx'::regclass, 'public.ai_worker_pinned_name_unique'::regclass)\n          AND i.indisvalid AND i.indisready AND i.indislive ORDER BY pg_get_indexdef(i.indexrelid)) AS indexes,\n      (SELECT count(*)=3 AND bool_and(relkind='r' AND relpersistence='p' AND NOT relrowsecurity AND NOT relforcerowsecurity AND NOT relispartition)\n        FROM pg_class WHERE oid IN ('public._prisma_migrations'::regclass,\n          'public.ai_worker_provisioning_receipts'::regclass, 'public.ai_worker_principals'::regclass))\n      AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgrelid='public._prisma_migrations'::regclass AND NOT tgisinternal)\n      AND NOT EXISTS (SELECT 1 FROM pg_rewrite WHERE ev_class IN\n        ('public._prisma_migrations'::regclass,'public.ai_worker_provisioning_receipts'::regclass,'public.ai_worker_principals'::regclass))\n      AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgrelid='public.ai_worker_provisioning_receipts'::regclass)\n      AND NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgrelid='public.ai_worker_principals'::regclass AND NOT tgisinternal)\n      AND NOT EXISTS (SELECT 1 FROM pg_policy WHERE polrelid='public.ai_worker_provisioning_receipts'::regclass)\n      AND NOT EXISTS (SELECT 1 FROM pg_inherits WHERE inhrelid='public.ai_worker_provisioning_receipts'::regclass OR inhparent='public.ai_worker_provisioning_receipts'::regclass)\n      AND (SELECT count(*)=2 FROM pg_index WHERE indrelid='public.ai_worker_provisioning_receipts'::regclass)\n      AND NOT EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid='public.ai_worker_provisioning_receipts'::regclass AND attnum>0\n        AND (attisdropped OR attidentity<>'' OR attgenerated<>'' OR attinhcount<>0 OR NOT attislocal OR attndims<>0 OR atthasmissing\n          OR (atttypid='text'::regtype AND attcollation<>'pg_catalog.\"default\"'::regcollation)))\n      AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass\n        AND (NOT convalidated OR condeferrable OR condeferred OR NOT conislocal OR coninhcount<>0 OR NOT conenforced))\n      AND (SELECT reloptions IS NULL AND relam=(SELECT oid FROM pg_am WHERE amname='heap') AND relreplident='d'\n        FROM pg_class WHERE oid='public.ai_worker_provisioning_receipts'::regclass) AS safe\nCONTEXT:  PL/pgSQL function inline_code_block line 42 at SQL statement",
-      "unchangedDumpSha256": "71c33cc15513913271106da02d264531591e524af66fabb4ab7071aa417a2194"
-    },
-    {
-      "name": "catalogue/history drift index definition",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "8b55fc9e01123bd02ddea60d107a25b5dd9815776c493f866c0e714af9862d6c"
-    },
-    {
-      "name": "catalogue/history drift extra index",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "ccf66d16100d41911527fa04cd41559fd3ee0e0ba5e960e40a68708baa48bbb4"
-    },
-    {
-      "name": "catalogue/history drift default",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "23fac22ab151a788b729400129e17a2a194f7df6f2c7bcca800149a08be3b6ce"
-    },
-    {
-      "name": "catalogue/history drift nullability",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "26ed7cbbcf64d6f72ed2e868bc74ce449d1123ae7763170778e883d6c516cd54"
-    },
-    {
-      "name": "catalogue/history drift extra column",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "cd7653337c98026b4548b8a15feb3814035b4839bd376b266cc6bd601a25769a"
-    },
-    {
-      "name": "catalogue/history drift RLS",
-      "passed": true,
-      "error": "ERROR:  Unsafe safety/history relations\nCONTEXT:  PL/pgSQL function inline_code_block line 21 at RAISE",
-      "unchangedDumpSha256": "e943e6404d4a974556c34f06b8d5e4c5b6a2d5a782ad5e5dd818c1e6f8220cb9"
-    },
-    {
-      "name": "catalogue/history drift forced RLS",
-      "passed": true,
-      "error": "ERROR:  Unsafe safety/history relations\nCONTEXT:  PL/pgSQL function inline_code_block line 21 at RAISE",
-      "unchangedDumpSha256": "91db678820565d21f2cdedaadaf16a6ad3e0bffbf5a404c5f83b29907c56c1fd"
-    },
-    {
-      "name": "catalogue/history drift policy",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "75b08036be98b108748acdc0d3dc79e023004eda63624357b8c0dcafd645aab7"
-    },
-    {
-      "name": "catalogue/history drift inheritance",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "618e7d0dd0ccff24e236b26171ebebc77400007be0b3d55a5e7be033476c7e11"
-    },
-    {
-      "name": "catalogue/history drift rule",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "bd3ebaf545b9cfcfd52114e11229a344d662949e0c7abd83b99ccf50a60252ad"
-    },
-    {
-      "name": "catalogue/history drift trigger",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "d410793188e956b7511a4b4f114158884f546ef7e9db1e4e0ecc7e6ed7d197ac"
-    },
-    {
-      "name": "catalogue/history drift unvalidated check",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "44f9799936002bb5c67f6668bf7fc02171973933e2a48952842395ab4746028d"
-    },
-    {
-      "name": "catalogue/history drift history rule",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "cfca50dbf67b0f0282b5562fc55b12d0a51235d55d6d9f72bccad530f11798fd"
-    },
-    {
-      "name": "catalogue/history drift #991 history present",
-      "passed": true,
-      "error": "ERROR:  Unexpected migration history state\nCONTEXT:  PL/pgSQL function inline_code_block line 38 at RAISE",
-      "unchangedDumpSha256": "5855e3fca7dc65f28524642b3081114187b1417e78f45346ca3e442f66c725df"
-    },
-    {
-      "name": "catalogue/history drift unresolved history",
-      "passed": true,
-      "error": "ERROR:  Unexpected migration history state\nCONTEXT:  PL/pgSQL function inline_code_block line 38 at RAISE",
-      "unchangedDumpSha256": "1f107405c2e2ef830d0951a579bf093521f00f7f78541dc62a9d09897194932b"
-    },
-    {
-      "name": "catalogue/history drift older conflicting history",
-      "passed": true,
-      "error": "ERROR:  Unexpected migration history state\nCONTEXT:  PL/pgSQL function inline_code_block line 38 at RAISE",
-      "unchangedDumpSha256": "05a3fa3200aa0b7c34030a65fd92c41f3c1d8a730b98125e4540d53f0903b780"
-    },
-    {
-      "name": "catalogue/history drift fingerprint check",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "4732e959d99a300b19c26a14f794dcaf507903eeff8f13f74ffef2ac307b48c5"
-    },
-    {
-      "name": "catalogue/history drift window_id check",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "3e92c0a6046e68a6c4a03b533477f1c6e66100b2c1c737ada810f8d4b4ccf991"
-    },
-    {
-      "name": "catalogue/history drift outcome check",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 78 at RAISE",
-      "unchangedDumpSha256": "381201febb2727d33ccb3c5f16cfa737f20dc8546184baf303621d68ab64dd22"
-    },
-    {
-      "name": "nonzero safety state ai_worker_principals",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "00104cb3f6ac5a20dee00ab009d46b15d9325d216cadcac7c0e472e68ad5f3a7"
-    },
-    {
-      "name": "nonzero safety state ai_local_deployments",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "20ad1d5f08c305f7401874ce5e9a55dc3726d7b70e34d834be6884d1c44f9df4"
-    },
-    {
-      "name": "nonzero safety state ai_local_recipient_approvals",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "f074988e8125361433dd80e05618562ebbb2fde85f8e8bdcd6f8a7c490f345d7"
-    },
-    {
-      "name": "nonzero safety state ai_inference_jobs",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "9db7ad094ebabca537ba68af4629a666ad367cd22e97c047e3826de2e8131161"
-    },
-    {
-      "name": "nonzero safety state ai_worker_claim_receipts",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "0f417a67859a4ccc83d9acb9f126704a72a1f99845c4e4d541c03c63ab20055f"
-    },
-    {
-      "name": "nonzero safety state ai_accounting_outbox",
-      "passed": true,
-      "error": "ERROR:  Requires zero receipt and worker execution state\nCONTEXT:  PL/pgSQL function inline_code_block line 30 at RAISE",
-      "unchangedDumpSha256": "f7dc1b47bbb3e82c15c5a61463d82a386dc3807c22d5fed292d3caed6b6311cc"
-    },
-    {
-      "name": "F bounded lock contention",
-      "passed": true,
-      "elapsedSeconds": 2.015985583000001,
-      "error": "ERROR:  canceling statement due to lock timeout\nCONTEXT:  SQL statement \"LOCK TABLE public.ai_worker_provisioning_receipts IN ACCESS EXCLUSIVE MODE\"\nPL/pgSQL function inline_code_block line 11 at SQL statement"
-    },
-    {
-      "name": "G forced failure after timestamp DDL",
-      "passed": true,
-      "error": "ERROR:  synthetic failure after first replacement\nCONTEXT:  PL/pgSQL function inline_code_block line 122 at RAISE",
-      "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"
-    },
-    {
-      "name": "H explicit rollback restores original catalogue and data",
-      "passed": true
-    },
-    {
-      "name": "postcondition mismatch rolls back all six changes",
-      "passed": true,
-      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 164 at RAISE",
-      "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"
-    },
-    {
-      "name": "canonical SHA and independently applied canonical full catalogue verified",
-      "passed": true
-    }
-  ],
   "canonicalFullShape": {
     "rules": 0,
     "table": {
@@ -462,6 +176,7 @@
         "unique": false,
         "options": null,
         "primary": false,
+        "clustered": false,
         "opclasses": [
           "text_ops",
           "timestamptz_ops"
@@ -477,6 +192,7 @@
         "unique": true,
         "options": null,
         "primary": true,
+        "clustered": false,
         "opclasses": [
           "text_ops"
         ],
@@ -498,7 +214,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "NOT NULL created_at",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          8
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_fingerprint_check",
@@ -510,7 +229,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "CHECK ((fingerprint ~ '^[a-f0-9]{64}$'::text))",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          2
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_fingerprint_not_null",
@@ -522,7 +244,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "NOT NULL fingerprint",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          2
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_nonce_check",
@@ -534,7 +259,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "CHECK ((nonce ~ '^[a-f0-9]{64}$'::text))",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          1
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_nonce_not_null",
@@ -546,7 +274,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "NOT NULL nonce",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          1
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_operation_check",
@@ -558,7 +289,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          4
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_operation_not_null",
@@ -570,7 +304,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "NOT NULL operation",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          4
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_outcome_check",
@@ -582,7 +319,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "CHECK ((outcome = ANY (ARRAY['attempt'::text, 'succeeded'::text, 'duplicate'::text, 'identity_mismatch'::text, 'mutation_failed'::text, 'window_closed'::text])))",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          5
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_outcome_not_null",
@@ -594,7 +334,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "NOT NULL outcome",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          5
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_pkey",
@@ -606,7 +349,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "PRIMARY KEY (nonce)",
-        "no_inherit": true
+        "no_inherit": true,
+        "column_numbers": [
+          1
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_window_id_check",
@@ -618,7 +364,10 @@
         "validated": true,
         "deferrable": false,
         "definition": "CHECK ((window_id ~ '^[a-f0-9]{32}$'::text))",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          3
+        ]
       },
       {
         "name": "ai_worker_provisioning_receipts_window_id_not_null",
@@ -630,73 +379,14 @@
         "validated": true,
         "deferrable": false,
         "definition": "NOT NULL window_id",
-        "no_inherit": false
+        "no_inherit": false,
+        "column_numbers": [
+          3
+        ]
       }
     ],
     "inheritance": 0
   },
-  "startingConstraints": [
-    {
-      "name": "ai_worker_provisioning_receipts_fingerprint_check",
-      "definition": "CHECK ((length(fingerprint) = 64))",
-      "convalidated": true,
-      "condeferrable": false,
-      "condeferred": false,
-      "conislocal": true,
-      "coninhcount": 0,
-      "conenforced": true
-    },
-    {
-      "name": "ai_worker_provisioning_receipts_nonce_check",
-      "definition": "CHECK (((length(nonce) >= 16) AND (length(nonce) <= 128)))",
-      "convalidated": true,
-      "condeferrable": false,
-      "condeferred": false,
-      "conislocal": true,
-      "coninhcount": 0,
-      "conenforced": true
-    },
-    {
-      "name": "ai_worker_provisioning_receipts_operation_check",
-      "definition": "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
-      "convalidated": true,
-      "condeferrable": false,
-      "condeferred": false,
-      "conislocal": true,
-      "coninhcount": 0,
-      "conenforced": true
-    },
-    {
-      "name": "ai_worker_provisioning_receipts_outcome_check",
-      "definition": "CHECK ((outcome = ANY (ARRAY['verified'::text, 'succeeded'::text, 'rejected'::text, 'mutation_failed'::text, 'window_closed'::text])))",
-      "convalidated": true,
-      "condeferrable": false,
-      "condeferred": false,
-      "conislocal": true,
-      "coninhcount": 0,
-      "conenforced": true
-    },
-    {
-      "name": "ai_worker_provisioning_receipts_pkey",
-      "definition": "PRIMARY KEY (nonce)",
-      "convalidated": true,
-      "condeferrable": false,
-      "condeferred": false,
-      "conislocal": true,
-      "coninhcount": 0,
-      "conenforced": true
-    },
-    {
-      "name": "ai_worker_provisioning_receipts_window_id_check",
-      "definition": "CHECK (((length(window_id) >= 1) AND (length(window_id) <= 80)))",
-      "convalidated": true,
-      "condeferrable": false,
-      "condeferred": false,
-      "conislocal": true,
-      "coninhcount": 0,
-      "conenforced": true
-    }
-  ],
   "startingCatalogue": {
     "columns": [
       "nonce:text:true:",
@@ -724,747 +414,90 @@
     ],
     "safe": true
   },
-  "startingFullShape": {
-    "rules": 0,
-    "table": {
-      "rls": false,
-      "kind": "r",
-      "options": null,
-      "force_rls": false,
-      "partition": false,
-      "persistence": "p",
-      "access_method": "heap",
-      "replica_identity": "d"
-    },
-    "columns": [
-      {
-        "name": "nonce",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 1,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "fingerprint",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 2,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "window_id",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 3,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "operation",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 4,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "outcome",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 5,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "worker_id",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": false,
-        "position": 6,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "deployment_id",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": false,
-        "position": 7,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamp(3) without time zone",
-        "local": true,
-        "typmod": 3,
-        "default": "clock_timestamp()",
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 8,
-        "collation": null,
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": 3
-      },
-      {
-        "name": "completed_at",
-        "type": "timestamp(3) without time zone",
-        "local": true,
-        "typmod": 3,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": false,
-        "position": 9,
-        "collation": null,
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": 3
-      }
-    ],
-    "indexes": [
-      {
-        "live": true,
-        "ready": true,
-        "valid": true,
-        "unique": false,
-        "options": null,
-        "primary": false,
-        "opclasses": [
-          "text_ops",
-          "timestamp_ops"
-        ],
-        "predicate": null,
-        "definition": "CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)",
-        "expressions": null
-      },
-      {
-        "live": true,
-        "ready": true,
-        "valid": true,
-        "unique": true,
-        "options": null,
-        "primary": true,
-        "opclasses": [
-          "text_ops"
-        ],
-        "predicate": null,
-        "definition": "CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)",
-        "expressions": null
-      }
-    ],
-    "policies": 0,
-    "triggers": 0,
-    "constraints": [
-      {
-        "name": "ai_worker_provisioning_receipts_created_at_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL created_at",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_fingerprint_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK ((length(fingerprint) = 64))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_fingerprint_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL fingerprint",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_nonce_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK (((length(nonce) >= 16) AND (length(nonce) <= 128)))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_nonce_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL nonce",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_operation_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_operation_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL operation",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_outcome_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK ((outcome = ANY (ARRAY['verified'::text, 'succeeded'::text, 'rejected'::text, 'mutation_failed'::text, 'window_closed'::text])))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_outcome_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL outcome",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_pkey",
-        "type": "p",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "PRIMARY KEY (nonce)",
-        "no_inherit": true
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_window_id_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK (((length(window_id) >= 1) AND (length(window_id) <= 80)))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_window_id_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL window_id",
-        "no_inherit": false
-      }
-    ],
-    "inheritance": 0
-  },
   "beforeHistoryDigest": "dfa46e2c306237920f075dd9435a3ef4",
   "afterHistoryDigest": "dfa46e2c306237920f075dd9435a3ef4",
-  "finalFullShape": {
-    "rules": 0,
-    "table": {
-      "rls": false,
-      "kind": "r",
-      "options": null,
-      "force_rls": false,
-      "partition": false,
-      "persistence": "p",
-      "access_method": "heap",
-      "replica_identity": "d"
-    },
-    "columns": [
-      {
-        "name": "nonce",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 1,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "fingerprint",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 2,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "window_id",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 3,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "operation",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 4,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "outcome",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 5,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "worker_id",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": false,
-        "position": 6,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "deployment_id",
-        "type": "text",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": false,
-        "position": 7,
-        "collation": "default",
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": null
-      },
-      {
-        "name": "created_at",
-        "type": "timestamp with time zone",
-        "local": true,
-        "typmod": -1,
-        "default": "clock_timestamp()",
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": true,
-        "position": 8,
-        "collation": null,
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": 6
-      },
-      {
-        "name": "completed_at",
-        "type": "timestamp with time zone",
-        "local": true,
-        "typmod": -1,
-        "default": null,
-        "dropped": false,
-        "missing": false,
-        "identity": "",
-        "not_null": false,
-        "position": 9,
-        "collation": null,
-        "generated": "",
-        "inherited": 0,
-        "dimensions": 0,
-        "datetime_precision": 6
-      }
-    ],
-    "indexes": [
-      {
-        "live": true,
-        "ready": true,
-        "valid": true,
-        "unique": false,
-        "options": null,
-        "primary": false,
-        "opclasses": [
-          "text_ops",
-          "timestamptz_ops"
-        ],
-        "predicate": null,
-        "definition": "CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)",
-        "expressions": null
-      },
-      {
-        "live": true,
-        "ready": true,
-        "valid": true,
-        "unique": true,
-        "options": null,
-        "primary": true,
-        "opclasses": [
-          "text_ops"
-        ],
-        "predicate": null,
-        "definition": "CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)",
-        "expressions": null
-      }
-    ],
-    "policies": 0,
-    "triggers": 0,
-    "constraints": [
-      {
-        "name": "ai_worker_provisioning_receipts_created_at_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL created_at",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_fingerprint_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK ((fingerprint ~ '^[a-f0-9]{64}$'::text))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_fingerprint_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL fingerprint",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_nonce_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK ((nonce ~ '^[a-f0-9]{64}$'::text))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_nonce_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL nonce",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_operation_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_operation_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL operation",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_outcome_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK ((outcome = ANY (ARRAY['attempt'::text, 'succeeded'::text, 'duplicate'::text, 'identity_mismatch'::text, 'mutation_failed'::text, 'window_closed'::text])))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_outcome_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL outcome",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_pkey",
-        "type": "p",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "PRIMARY KEY (nonce)",
-        "no_inherit": true
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_window_id_check",
-        "type": "c",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "CHECK ((window_id ~ '^[a-f0-9]{32}$'::text))",
-        "no_inherit": false
-      },
-      {
-        "name": "ai_worker_provisioning_receipts_window_id_not_null",
-        "type": "n",
-        "local": true,
-        "deferred": false,
-        "enforced": true,
-        "inherited": 0,
-        "validated": true,
-        "deferrable": false,
-        "definition": "NOT NULL window_id",
-        "no_inherit": false
-      }
-    ],
-    "inheritance": 0
-  },
-  "finalCatalogue": {
-    "columns": [
-      "nonce:text:true:",
-      "fingerprint:text:true:",
-      "window_id:text:true:",
-      "operation:text:true:",
-      "outcome:text:true:",
-      "worker_id:text:false:",
-      "deployment_id:text:false:",
-      "created_at:timestamp with time zone:true:clock_timestamp()",
-      "completed_at:timestamp with time zone:false:"
-    ],
-    "constraints": [
-      "CHECK ((fingerprint ~ '^[a-f0-9]{64}$'::text))",
-      "CHECK ((nonce ~ '^[a-f0-9]{64}$'::text))",
-      "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
-      "CHECK ((outcome = ANY (ARRAY['attempt'::text, 'succeeded'::text, 'duplicate'::text, 'identity_mismatch'::text, 'mutation_failed'::text, 'window_closed'::text])))",
-      "CHECK ((window_id ~ '^[a-f0-9]{32}$'::text))",
-      "PRIMARY KEY (nonce)"
-    ],
-    "indexes": [
-      "CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)",
-      "CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = 'dg-mac-1'::text)",
-      "CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)"
-    ],
-    "safe": true
-  },
-  "finalTimestampColumns": [
-    {
-      "column_name": "completed_at",
-      "data_type": "timestamp with time zone",
-      "datetime_precision": 6,
-      "is_nullable": "YES",
-      "column_default": null
-    },
-    {
-      "column_name": "created_at",
-      "data_type": "timestamp with time zone",
-      "datetime_precision": 6,
-      "is_nullable": "NO",
-      "column_default": "clock_timestamp()"
-    }
-  ],
   "passed": true,
-  "stoppedAndDestroyed": true
+  "stoppedAndDestroyed": true,
+  "finalMatchesCanonicalFullShape": true,
+  "startingTimestampTypes": {
+    "created_at": {
+      "type": "timestamp(3) without time zone",
+      "typmod": 3,
+      "datetime_precision": 3
+    },
+    "completed_at": {
+      "type": "timestamp(3) without time zone",
+      "typmod": 3,
+      "datetime_precision": 3
+    }
+  },
+  "cases": [
+    {"name": "A exact observed starting catalogue", "passed": true},
+    {"name": "checksum refusal missing", "passed": true, "error": "ERROR:  division by zero"},
+    {"name": "checksum refusal mismatch", "passed": true, "error": "ERROR:  division by zero"},
+    {"name": "exact empty Production variant converges all six deltas; canonical catalogue and preservation", "passed": true},
+    {"name": "already-canonical repeated execution refuses", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "aaa95358f40fafb8fb47393b486fa34306a4501e58c074eeecfb315e73b08308"},
+    {"name": "session-timezone-independent empty conversion GMT", "passed": true},
+    {"name": "session-timezone-independent empty conversion Australia/Brisbane", "passed": true},
+    {"name": "session-timezone-independent empty conversion America/New_York", "passed": true},
+    {"name": "nonempty canonical-compatible data refuses", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "f062b86a3cb0e2917674e886ce3ab93e5d59b076b07590de4f092fe2ef520804"},
+    {"name": "incompatible timestamp/data nonce xxxxxxxx", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "be39c7fc68a36165d9756e4e033ee8ca0d301a6dd8ddaaf41c6765ee6ac4b632"},
+    {"name": "incompatible timestamp/data fingerprint ZZZZZZZZ", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "d0a1a28cd32293930783dfbf0afa1de3e6c422a542791b3fdd635740d0d22ab1"},
+    {"name": "incompatible timestamp/data window_id x", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "39901b2eb73e2107e8ed2879f6d3e3a940897a80fda0d10a8e515d69725af8e3"},
+    {"name": "incompatible timestamp/data outcome verified", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "263972a4dc7bb5c458a13e2a72a6bb403308a45c127790ec2023c0b6b7d1ae83"},
+    {"name": "incompatible timestamp/data outcome rejected", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "d332d5192d45f6426ce4148fb0225b81a839a427f2038a4a19282c78fe265d7b"},
+    {"name": "catalogue/history drift timestamp type", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "21a4fd625b07a0f4be15ec29f7e59ace3efeafbcd210c1aa0f90cc8bf3678aa0"},
+    {"name": "catalogue/history drift timestamp precision", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "fa7da888c37cb1cc6f428519a1b7aa2a3d4719cea61b122d1237c8190e284769"},
+    {"name": "catalogue/history drift constraint identity", "passed": true, "error": "ERROR:  Unexpected catalogue state", "unchangedDumpSha256": "58630cbf7ca80e6f9deafaef30bd48344367323f22dfddc450d804e79837a067"},
+    {"name": "catalogue/history drift nonce check", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "6bcdb053ab4bebe5431fa1f309a6dcb59625f57755a5b3a79f2ccf2f4f90c4a0"},
+    {"name": "catalogue/history drift operation check", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "b93aedf17e90b7882b36451aaf2d3717251957a3773476b5464a689a336eb140"},
+    {"name": "catalogue/history drift PK", "passed": true, "error": "ERROR:  relation \"public.ai_worker_provisioning_receipts_pkey\" does not exist", "unchangedDumpSha256": "71c33cc15513913271106da02d264531591e524af66fabb4ab7071aa417a2194"},
+    {"name": "catalogue/history drift index definition", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "8b55fc9e01123bd02ddea60d107a25b5dd9815776c493f866c0e714af9862d6c"},
+    {"name": "catalogue/history drift extra index", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "ccf66d16100d41911527fa04cd41559fd3ee0e0ba5e960e40a68708baa48bbb4"},
+    {"name": "catalogue/history drift default", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "23fac22ab151a788b729400129e17a2a194f7df6f2c7bcca800149a08be3b6ce"},
+    {"name": "catalogue/history drift nullability", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "26ed7cbbcf64d6f72ed2e868bc74ce449d1123ae7763170778e883d6c516cd54"},
+    {"name": "catalogue/history drift extra column", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "cd7653337c98026b4548b8a15feb3814035b4839bd376b266cc6bd601a25769a"},
+    {"name": "catalogue/history drift RLS", "passed": true, "error": "ERROR:  Unsafe safety/history relations", "unchangedDumpSha256": "e943e6404d4a974556c34f06b8d5e4c5b6a2d5a782ad5e5dd818c1e6f8220cb9"},
+    {"name": "catalogue/history drift forced RLS", "passed": true, "error": "ERROR:  Unsafe safety/history relations", "unchangedDumpSha256": "91db678820565d21f2cdedaadaf16a6ad3e0bffbf5a404c5f83b29907c56c1fd"},
+    {"name": "catalogue/history drift policy", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "75b08036be98b108748acdc0d3dc79e023004eda63624357b8c0dcafd645aab7"},
+    {"name": "catalogue/history drift inheritance", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "618e7d0dd0ccff24e236b26171ebebc77400007be0b3d55a5e7be033476c7e11"},
+    {"name": "catalogue/history drift rule", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "bd3ebaf545b9cfcfd52114e11229a344d662949e0c7abd83b99ccf50a60252ad"},
+    {"name": "catalogue/history drift trigger", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "d410793188e956b7511a4b4f114158884f546ef7e9db1e4e0ecc7e6ed7d197ac"},
+    {"name": "catalogue/history drift unvalidated check", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "44f9799936002bb5c67f6668bf7fc02171973933e2a48952842395ab4746028d"},
+    {"name": "catalogue/history drift history rule", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "cfca50dbf67b0f0282b5562fc55b12d0a51235d55d6d9f72bccad530f11798fd"},
+    {"name": "catalogue/history drift #991 history present", "passed": true, "error": "ERROR:  Unexpected migration history state", "unchangedDumpSha256": "6b0d56ef8d909362d41bb885345ebe9670cdc16119271e8b60b6e79537c17b13"},
+    {"name": "catalogue/history drift unresolved history", "passed": true, "error": "ERROR:  Unexpected migration history state", "unchangedDumpSha256": "1f107405c2e2ef830d0951a579bf093521f00f7f78541dc62a9d09897194932b"},
+    {"name": "catalogue/history drift older conflicting history", "passed": true, "error": "ERROR:  Unexpected migration history state", "unchangedDumpSha256": "70d7696b1f90e86d005f5c5c1e9fdfba12d4dc34e8faf578e7f3dc15d3b01da3"},
+    {"name": "catalogue/history drift NOT NULL identity nonce", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "e228de08e2de3439f3d3ac4bf36e4a4b5b9d299df7186353f637ebd58154c0b2"},
+    {"name": "catalogue/history drift NOT NULL identity fingerprint", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "b7000a61ed8ed4d93cc058ed8cfafc89f879ab49f9eed4095b3f8b1538a7baf2"},
+    {"name": "catalogue/history drift NOT NULL identity window_id", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "80f54158db78e19e7ff63af05771535de39805aabbb287346862adc0369b15ba"},
+    {"name": "catalogue/history drift NOT NULL identity operation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "c0cf235fb1d4ad28373b7c95481996a6e47f89b45fd667c481251361e751a350"},
+    {"name": "catalogue/history drift NOT NULL identity outcome", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0564e367063604c7608609c1b091a814ce5b7edf4107ca24c0de7953d7bd03a3"},
+    {"name": "catalogue/history drift NOT NULL identity created_at", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "33ebc2bce02503bee448866e1a9634576b4275f0c7974132b04d82bb3f3cb175"},
+    {"name": "catalogue/history drift additional NOT NULL identity", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0b2f8418bb394edbe9148e8f83df0964465139b5adeb81405c2da7bc6ad4d886"},
+    {"name": "catalogue/history drift CLUSTER marker ai_worker_provisioning_window_idx", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "e04085cae8643b9b1cddc7d5d9f275fa3ac3aa349cea72cf8a705f70508399a0"},
+    {"name": "catalogue/history drift CLUSTER marker ai_worker_provisioning_receipts_pkey", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "7d19f4faf81ab6867a4f3646a453aa4ab14bb8074d6dc54e0103c862d4786d3c"},
+    {"name": "catalogue/history drift fingerprint check", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "4732e959d99a300b19c26a14f794dcaf507903eeff8f13f74ffef2ac307b48c5"},
+    {"name": "catalogue/history drift window_id check", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "3e92c0a6046e68a6c4a03b533477f1c6e66100b2c1c737ada810f8d4b4ccf991"},
+    {"name": "catalogue/history drift outcome check", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "381201febb2727d33ccb3c5f16cfa737f20dc8546184baf303621d68ab64dd22"},
+    {"name": "nonzero safety state ai_worker_principals", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "00104cb3f6ac5a20dee00ab009d46b15d9325d216cadcac7c0e472e68ad5f3a7"},
+    {"name": "nonzero safety state ai_local_deployments", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "20ad1d5f08c305f7401874ce5e9a55dc3726d7b70e34d834be6884d1c44f9df4"},
+    {"name": "nonzero safety state ai_local_recipient_approvals", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "f074988e8125361433dd80e05618562ebbb2fde85f8e8bdcd6f8a7c490f345d7"},
+    {"name": "nonzero safety state ai_inference_jobs", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "9db7ad094ebabca537ba68af4629a666ad367cd22e97c047e3826de2e8131161"},
+    {"name": "nonzero safety state ai_worker_claim_receipts", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "0f417a67859a4ccc83d9acb9f126704a72a1f99845c4e4d541c03c63ab20055f"},
+    {"name": "nonzero safety state ai_accounting_outbox", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "f7dc1b47bbb3e82c15c5a61463d82a386dc3807c22d5fed292d3caed6b6311cc"},
+    {"name": "F bounded lock contention", "passed": true, "elapsedSeconds": 2.0145230420000004, "error": "ERROR:  canceling statement due to lock timeout"},
+    {"name": "G forced failure after timestamp DDL", "passed": true, "error": "ERROR:  synthetic failure after first replacement", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "H explicit rollback restores original catalogue and data", "passed": true},
+    {"name": "postcondition mismatch rolls back all six changes", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "final NOT NULL identity rollback nonce", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "final NOT NULL identity rollback fingerprint", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "final NOT NULL identity rollback window_id", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "final NOT NULL identity rollback operation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "final NOT NULL identity rollback outcome", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "final NOT NULL identity rollback created_at", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "final CLUSTER state rollback ai_worker_provisioning_window_idx", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "final CLUSTER state rollback ai_worker_provisioning_receipts_pkey", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "canonical SHA and independently applied canonical full catalogue verified", "passed": true}
+  ]
 }
