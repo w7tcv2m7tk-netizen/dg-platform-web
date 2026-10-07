@@ -34,6 +34,11 @@ export const PUBLIC_ROUTE_PATTERNS: string[] = [
   "/api/v1/addresses/resolve",
   "/api/v1/websites/public/(.*)",
   "/api/public/(.*)",
+  // Machine authentication remains mandatory in each handler; no Clerk session.
+  "/api/internal/ai-worker/claim",
+  "/api/internal/ai-worker/heartbeat",
+  "/api/internal/ai-worker/complete",
+  "/api/cron/ai-gateway-maintenance",
   "/api/cron/property-report-followups",
   "/api/cron/lead-followups",
   "/api/cron/pagespeed",

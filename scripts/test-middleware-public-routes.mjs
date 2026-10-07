@@ -9,6 +9,7 @@
  * This test also guards the opposite failure: a wildcard broad enough to
  * expose authenticated surface area.
  */
+import "./test-ai-machine-route-boundary.mjs";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import path from "node:path";
@@ -73,6 +74,11 @@ const MUST_BE_PUBLIC = [
   "/api/connectors/domain/callback",
   "/api/connectors/rea/callback",
   "/api/connectors/microsoft-365/callback",
+  // Slice 3 machine routes — dedicated worker bearer / CRON_SECRET in handler
+  "/api/internal/ai-worker/claim",
+  "/api/internal/ai-worker/heartbeat",
+  "/api/internal/ai-worker/complete",
+  "/api/cron/ai-gateway-maintenance",
   // Cron — CRON_SECRET in handler
   "/api/cron/lead-followups",
   "/api/cron/pagespeed",
@@ -105,6 +111,16 @@ const MUST_BE_PROTECTED = [
   "/dashboard",
   "/apps/crm/contacts",
   "/command/growth-engine/proposals",
+  "/api/internal/ai-worker",
+  "/api/internal/ai-worker/admin",
+  "/api/internal/ai-worker/claim/admin",
+  "/api/internal/ai-worker/claim-extra",
+  "/api/internal/other",
+  "/api/cron/ai-gateway-maintenance/admin",
+  "/api/cron/ai-gateway-maintenance-extra",
+  "/api/v1/ai/assist",
+  "/api/v1/ai/jobs/test",
+  "/api/v1/ai/local-recipient-approvals",
   // Do not accidentally exempt a future onboarding subtree.
   "/onboarding/admin",
 ];
