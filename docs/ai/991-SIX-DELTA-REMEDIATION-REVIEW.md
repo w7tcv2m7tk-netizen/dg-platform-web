@@ -12,7 +12,7 @@ Canonical migration SHA-256 remains
 `55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d`.
 The canonical migration and Prisma schema are unchanged.
 Replacement `scripts/sql/remediate-991-checks.sql` SHA-256:
-`1c07112091af372cfad73488c822cd98fab271b05896458495369c3b0c8f1b6e`.
+`c6ad8dbd875bd289eb82d7a37f041daff006b38a6ab9643fffc0711d1f4644f1`.
 The historical filename is retained so the existing guarded executor remains the
 only server mutation path; its content now repairs six deltas.
 
@@ -155,6 +155,45 @@ It does not import the rehearsal/executor helpers or derive canonical expectatio
 from the remediation literals. The six mutation statements, lock order, timeouts,
 executor/session/secret boundary and canonical migration bytes are unchanged.
 
+## Repaired CHECK identity correction
+
+Independent review of `e6e43b5a21f5ef948f18790f55ac703ffd2c41fc` found
+that swapping nonce/fingerprint CHECK names after the six changes committed a
+noncanonical catalogue. Its SQL hash was
+`1c07112091af372cfad73488c822cd98fab271b05896458495369c3b0c8f1b6e`.
+Definitions alone could not detect the permutation, and preservation excluded
+both repaired names.
+
+Both starting and final comparisons now bind every CHECK/PK name to its type,
+definition, constrained column numbers and validated/enforced/deferrable/deferred/
+local/inheritance/no-inherit flags. Repaired CHECK keys are nonce `{1}`,
+fingerprint `{2}`, window_id `{3}` and outcome `{5}`. Operation `{4}` and PK `{1}`
+remain canonical. Any unexpected name, binding, additional CHECK or flag refuses.
+No rename or normalization is executed.
+
+Each SQL/executor suite adds 20 cases: before-mutation refusal and post-DDL full
+rollback for nonce/fingerprint and window_id/outcome name swaps, nonce/window_id
+column rebinding, all four repaired CHECK renames, an extra CHECK and NO INHERIT.
+Before-DDL traps prove the catalogue gate fires first; final cases compare the
+entire fixture after rollback. Independent SQL cases compare normal success to a
+fresh canonical PostgreSQL 18 database. The original NOT NULL and CLUSTER
+counterexamples still refuse, and their final-drift rollback regressions pass.
+
+A separate disposable-cluster reproduction executed the exact prior Git SQL and
+the corrected SQL with the identical nonce/fingerprint swap: prior SQL committed
+and failed canonical equality; corrected SQL refused with an unchanged dump.
+Its seven cases passed. Reproduce the corrected case using
+`scripts/test-991-catalogue-counterexamples.py`; retrieve the prior artifact with
+`git show e6e43b5a:scripts/sql/remediate-991-checks.sql` for comparison.
+
+All five mutation statements (six semantic deltas), locks and timeouts are
+byte-for-byte unchanged from that reviewed head. Canonical migration, Prisma
+schema, route, middleware, request/authority boundaries and NOT NULL/CLUSTER
+gates are unchanged. Generated SQL was rebound to the new hash above.
+The normal build passed with 881/881 node:test cases and 456 generated pages;
+nonfatal warnings also included Prisma CommonJS exports and NFT tracing.
+No bulky logs were restored. No Production or operational action occurred.
+
 ## Evidence retention review
 
 Before deleting transcripts, all files were inventoried, scanned again for secret
@@ -186,12 +225,12 @@ All decisive checks passed on this main-based catalogue correction:
 
 | Check | Result |
 |---|---|
-| Fresh PostgreSQL 18 SQL rehearsal | 67 passed, 0 failed |
-| Physical executor / security / binding | 106 passed, 0 failed |
+| Fresh PostgreSQL 18 SQL rehearsal | 87 passed, 0 failed |
+| Physical executor / security / binding | 126 passed, 0 failed |
 | AI local DB regression | 57 passed, 0 failed |
 | Provisioning DB regression | 13 passed, 0 failed |
 | Focused worker/security/client-boundary regressions | 58 passed, 0 failed |
-| Independent original counterexamples and final-drift rollback | 5 passed, 0 failed |
+| Independent original counterexamples and final-drift rollback | 25 passed, 0 failed |
 | TypeScript, focused ESLint, generated binding, diff whitespace | exit 0 |
 | Normal supported npm run build, including existing prebuild | exit 0; 881/881 node:test cases |
 

@@ -214,6 +214,30 @@ try:
         refused_case('final CLUSTER state rollback '+index,
           remediation[:final_select]+drift+remediation[final_select:],
           expected_error='Catalogue does not match expected variant')
+    # Bind repaired CHECK identities at both transaction boundaries.
+    def swapped_checks(left, right):
+        prefix='ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT '
+        return (prefix+f'ai_worker_provisioning_receipts_{left}_check TO temporary_check; '
+          +prefix+f'ai_worker_provisioning_receipts_{right}_check TO ai_worker_provisioning_receipts_{left}_check; '
+          +prefix+f'temporary_check TO ai_worker_provisioning_receipts_{right}_check;\n')
+    check_drifts=[
+      ('nonce/fingerprint swap',swapped_checks('nonce','fingerprint')),
+      ('window_id/outcome swap',swapped_checks('window_id','outcome')),
+      ('nonce rebound',"ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_nonce_check, ADD CONSTRAINT ai_worker_provisioning_receipts_nonce_check CHECK(fingerprint ~ '^[a-f0-9]{64}$');\n"),
+      ('window_id rebound',"ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_window_id_check, ADD CONSTRAINT ai_worker_provisioning_receipts_window_id_check CHECK(outcome ~ '^[a-f0-9]{32}$');\n"),
+      ('additional CHECK','ALTER TABLE public.ai_worker_provisioning_receipts ADD CONSTRAINT unexpected_check CHECK(length(nonce)>0);\n'),
+      ('NO INHERIT',"ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_nonce_check, ADD CONSTRAINT ai_worker_provisioning_receipts_nonce_check CHECK(nonce ~ '^[a-f0-9]{64}$') NO INHERIT;\n"),
+    ]
+    for field in ['nonce','fingerprint','window_id','outcome']:
+        check_drifts.append(('rename '+field,f'ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT ai_worker_provisioning_receipts_{field}_check TO unexpected_check;\n'))
+    mutation=remediation.index('  ALTER TABLE public.ai_worker_provisioning_receipts\n')
+    trapped=remediation[:mutation]+"  RAISE EXCEPTION 'unexpected mutation reached';\n"+remediation[mutation:]
+    for name,drift in check_drifts:
+        setup();sql(drift)
+        refused_case('starting CHECK identity '+name,trapped,expected_error='Catalogue does not match expected variant')
+        setup()
+        refused_case('final CHECK identity rollback '+name,
+          remediation[:final_select]+drift+remediation[final_select:],expected_error='Catalogue does not match expected variant')
     record('canonical SHA and independently applied canonical full catalogue verified')
     results['passed']=True
 finally:

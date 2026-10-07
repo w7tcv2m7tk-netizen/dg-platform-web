@@ -77,11 +77,14 @@ BEGIN
         FROM pg_attribute a LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
         WHERE a.attrelid='public.ai_worker_provisioning_receipts'::regclass
           AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attnum) AS columns,
-      ARRAY(SELECT pg_get_constraintdef(oid) FROM pg_constraint
-        WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
-          -- CHECK/PK definitions; NOT NULL identities and flags are checked separately below.
-          AND contype <> 'n'
-          AND convalidated AND NOT condeferrable ORDER BY pg_get_constraintdef(oid)) AS constraints,
+      -- Bind each CHECK/PK name to its type, definition, column keys and flags.
+      -- A definition multiset cannot detect permutations of repaired CHECK names.
+      ARRAY(SELECT conname || ':' || contype::text || ':' || pg_get_constraintdef(oid) || ':' || conkey::text
+        || ':' || convalidated::text || ':' || conenforced::text
+        || ':' || condeferrable::text || ':' || condeferred::text
+        || ':' || conislocal::text || ':' || coninhcount::text || ':' || connoinherit::text
+        FROM pg_constraint WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
+          AND contype <> 'n' ORDER BY conname) AS constraints,
       ARRAY(SELECT conname || ':' || pg_get_constraintdef(oid) || ':' || conkey::text
         || ':' || convalidated::text || ':' || conenforced::text
         || ':' || condeferrable::text || ':' || condeferred::text
@@ -112,7 +115,14 @@ BEGIN
         FROM pg_class WHERE oid='public.ai_worker_provisioning_receipts'::regclass) AS safe INTO catalog;
   IF catalog.safe IS DISTINCT FROM true OR catalog.columns IS DISTINCT FROM ARRAY['nonce:text:true:','fingerprint:text:true:','window_id:text:true:','operation:text:true:','outcome:text:true:','worker_id:text:false:','deployment_id:text:false:','created_at:timestamp(3) without time zone:true:clock_timestamp()','completed_at:timestamp(3) without time zone:false:']::text[]
     OR catalog.not_null_constraints IS DISTINCT FROM expected_not_null
-    OR catalog.constraints IS DISTINCT FROM ARRAY['CHECK (((length(nonce) >= 16) AND (length(nonce) <= 128)))','CHECK (((length(window_id) >= 1) AND (length(window_id) <= 80)))','CHECK ((length(fingerprint) = 64))','CHECK ((operation = ANY (ARRAY[''provision''::text, ''recover''::text])))','CHECK ((outcome = ANY (ARRAY[''verified''::text, ''succeeded''::text, ''rejected''::text, ''mutation_failed''::text, ''window_closed''::text])))','PRIMARY KEY (nonce)']::text[]
+    OR catalog.constraints IS DISTINCT FROM ARRAY[
+      'ai_worker_provisioning_receipts_fingerprint_check:c:CHECK ((length(fingerprint) = 64)):{2}:true:true:false:false:true:0:false',
+      'ai_worker_provisioning_receipts_nonce_check:c:CHECK (((length(nonce) >= 16) AND (length(nonce) <= 128))):{1}:true:true:false:false:true:0:false',
+      'ai_worker_provisioning_receipts_operation_check:c:CHECK ((operation = ANY (ARRAY[''provision''::text, ''recover''::text]))):{4}:true:true:false:false:true:0:false',
+      'ai_worker_provisioning_receipts_outcome_check:c:CHECK ((outcome = ANY (ARRAY[''verified''::text, ''succeeded''::text, ''rejected''::text, ''mutation_failed''::text, ''window_closed''::text]))):{5}:true:true:false:false:true:0:false',
+      'ai_worker_provisioning_receipts_pkey:p:PRIMARY KEY (nonce):{1}:true:true:false:false:true:0:true',
+      'ai_worker_provisioning_receipts_window_id_check:c:CHECK (((length(window_id) >= 1) AND (length(window_id) <= 80))):{3}:true:true:false:false:true:0:false'
+    ]::text[]
     OR catalog.indexes IS DISTINCT FROM ARRAY['CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at):clustered=false','CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = ''dg-mac-1''::text):clustered=false','CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce):clustered=false']::text[] THEN
     RAISE EXCEPTION 'Catalogue does not match expected variant';
   END IF;
@@ -170,11 +180,14 @@ BEGIN
         FROM pg_attribute a LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
         WHERE a.attrelid='public.ai_worker_provisioning_receipts'::regclass
           AND a.attnum>0 AND NOT a.attisdropped ORDER BY a.attnum) AS columns,
-      ARRAY(SELECT pg_get_constraintdef(oid) FROM pg_constraint
-        WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
-          -- CHECK/PK definitions; NOT NULL identities and flags are checked separately below.
-          AND contype <> 'n'
-          AND convalidated AND NOT condeferrable ORDER BY pg_get_constraintdef(oid)) AS constraints,
+      -- Bind each CHECK/PK name to its type, definition, column keys and flags.
+      -- A definition multiset cannot detect permutations of repaired CHECK names.
+      ARRAY(SELECT conname || ':' || contype::text || ':' || pg_get_constraintdef(oid) || ':' || conkey::text
+        || ':' || convalidated::text || ':' || conenforced::text
+        || ':' || condeferrable::text || ':' || condeferred::text
+        || ':' || conislocal::text || ':' || coninhcount::text || ':' || connoinherit::text
+        FROM pg_constraint WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
+          AND contype <> 'n' ORDER BY conname) AS constraints,
       ARRAY(SELECT conname || ':' || pg_get_constraintdef(oid) || ':' || conkey::text
         || ':' || convalidated::text || ':' || conenforced::text
         || ':' || condeferrable::text || ':' || condeferred::text
@@ -205,7 +218,14 @@ BEGIN
         FROM pg_class WHERE oid='public.ai_worker_provisioning_receipts'::regclass) AS safe INTO catalog;
   IF catalog.safe IS DISTINCT FROM true OR catalog.columns IS DISTINCT FROM ARRAY['nonce:text:true:','fingerprint:text:true:','window_id:text:true:','operation:text:true:','outcome:text:true:','worker_id:text:false:','deployment_id:text:false:','created_at:timestamp with time zone:true:clock_timestamp()','completed_at:timestamp with time zone:false:']::text[]
     OR catalog.not_null_constraints IS DISTINCT FROM expected_not_null
-    OR catalog.constraints IS DISTINCT FROM ARRAY['CHECK ((fingerprint ~ ''^[a-f0-9]{64}$''::text))','CHECK ((nonce ~ ''^[a-f0-9]{64}$''::text))','CHECK ((operation = ANY (ARRAY[''provision''::text, ''recover''::text])))','CHECK ((outcome = ANY (ARRAY[''attempt''::text, ''succeeded''::text, ''duplicate''::text, ''identity_mismatch''::text, ''mutation_failed''::text, ''window_closed''::text])))','CHECK ((window_id ~ ''^[a-f0-9]{32}$''::text))','PRIMARY KEY (nonce)']::text[]
+    OR catalog.constraints IS DISTINCT FROM ARRAY[
+      'ai_worker_provisioning_receipts_fingerprint_check:c:CHECK ((fingerprint ~ ''^[a-f0-9]{64}$''::text)):{2}:true:true:false:false:true:0:false',
+      'ai_worker_provisioning_receipts_nonce_check:c:CHECK ((nonce ~ ''^[a-f0-9]{64}$''::text)):{1}:true:true:false:false:true:0:false',
+      'ai_worker_provisioning_receipts_operation_check:c:CHECK ((operation = ANY (ARRAY[''provision''::text, ''recover''::text]))):{4}:true:true:false:false:true:0:false',
+      'ai_worker_provisioning_receipts_outcome_check:c:CHECK ((outcome = ANY (ARRAY[''attempt''::text, ''succeeded''::text, ''duplicate''::text, ''identity_mismatch''::text, ''mutation_failed''::text, ''window_closed''::text]))):{5}:true:true:false:false:true:0:false',
+      'ai_worker_provisioning_receipts_pkey:p:PRIMARY KEY (nonce):{1}:true:true:false:false:true:0:true',
+      'ai_worker_provisioning_receipts_window_id_check:c:CHECK ((window_id ~ ''^[a-f0-9]{32}$''::text)):{3}:true:true:false:false:true:0:false'
+    ]::text[]
     OR catalog.indexes IS DISTINCT FROM ARRAY['CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at):clustered=false','CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = ''dg-mac-1''::text):clustered=false','CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce):clustered=false']::text[] THEN
     RAISE EXCEPTION 'Catalogue does not match expected variant';
   END IF;

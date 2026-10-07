@@ -103,6 +103,36 @@ def refuses(name, statement):
            unchangedDumpSha256=hashlib.sha256(before.encode()).hexdigest())
 
 
+# Independent fault DDL: no expected catalogue literals or rehearsal helpers.
+def swap_checks(left, right):
+    table = 'public.ai_worker_provisioning_receipts'
+    prefix = 'ai_worker_provisioning_receipts_'
+    return (f'ALTER TABLE {table} RENAME CONSTRAINT {prefix}{left}_check TO temporary_check; '
+            f'ALTER TABLE {table} RENAME CONSTRAINT {prefix}{right}_check TO {prefix}{left}_check; '
+            f'ALTER TABLE {table} RENAME CONSTRAINT temporary_check TO {prefix}{right}_check;\n')
+
+
+check_drifts = [
+    ('nonce/fingerprint name swap', swap_checks('nonce', 'fingerprint')),
+    ('window_id/outcome name swap', swap_checks('window_id', 'outcome')),
+    ('nonce rebound to fingerprint', 'ALTER TABLE public.ai_worker_provisioning_receipts '
+     'DROP CONSTRAINT ai_worker_provisioning_receipts_nonce_check, '
+     "ADD CONSTRAINT ai_worker_provisioning_receipts_nonce_check CHECK (fingerprint ~ '^[a-f0-9]{64}$');\n"),
+    ('window_id rebound to outcome', 'ALTER TABLE public.ai_worker_provisioning_receipts '
+     'DROP CONSTRAINT ai_worker_provisioning_receipts_window_id_check, '
+     "ADD CONSTRAINT ai_worker_provisioning_receipts_window_id_check CHECK (outcome ~ '^[a-f0-9]{32}$');\n"),
+    ('additional CHECK', 'ALTER TABLE public.ai_worker_provisioning_receipts '
+     'ADD CONSTRAINT unexpected_check CHECK (length(nonce)>0);\n'),
+    ('NO INHERIT CHECK', 'ALTER TABLE public.ai_worker_provisioning_receipts '
+     'DROP CONSTRAINT ai_worker_provisioning_receipts_nonce_check, '
+     "ADD CONSTRAINT ai_worker_provisioning_receipts_nonce_check CHECK (nonce ~ '^[a-f0-9]{64}$') NO INHERIT;\n"),
+]
+for field in ['nonce', 'fingerprint', 'window_id', 'outcome']:
+    check_drifts.append(('renamed ' + field + ' CHECK',
+        f'ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT '
+        f'ai_worker_provisioning_receipts_{field}_check TO unexpected_check;\n'))
+
+
 try:
     checked(run('initdb', ['-D', str(data), '-U', 'counterexample', '-A', 'trust',
                            '--encoding=UTF8', '--locale=C', '-L',
@@ -138,6 +168,15 @@ try:
     ]:
         setup()
         refuses(name, remediation[:final_select] + drift + remediation[final_select:])
+    mutation = remediation.index('  ALTER TABLE public.ai_worker_provisioning_receipts\n')
+    trapped = remediation[:mutation] + "  RAISE EXCEPTION 'unexpected mutation reached';\n" + remediation[mutation:]
+    for name, drift in check_drifts:
+        setup()
+        checked(sql(drift))
+        refuses('starting CHECK identity ' + name + ' refuses before mutation', trapped)
+        setup()
+        refuses('final CHECK identity ' + name + ' rolls back all six deltas',
+                remediation[:final_select] + drift + remediation[final_select:])
     results['passed'] = True
 finally:
     if (data / 'postmaster.pid').exists():

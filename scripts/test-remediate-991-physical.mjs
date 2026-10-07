@@ -204,6 +204,42 @@ for (const index of ['ai_worker_provisioning_window_idx','ai_worker_provisioning
   });
 }
 
+// Synthetic identity drift must fail before DDL or roll the complete DDL back.
+function swappedChecks(left, right) {
+  const prefix = 'ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT ';
+  return `${prefix}ai_worker_provisioning_receipts_${left}_check TO temporary_check;
+    ${prefix}ai_worker_provisioning_receipts_${right}_check TO ai_worker_provisioning_receipts_${left}_check;
+    ${prefix}temporary_check TO ai_worker_provisioning_receipts_${right}_check`;
+}
+const checkIdentityDrifts = [
+  ['nonce/fingerprint swap', swappedChecks('nonce', 'fingerprint')],
+  ['window_id/outcome swap', swappedChecks('window_id', 'outcome')],
+  ['nonce rebound', "ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_nonce_check, ADD CONSTRAINT ai_worker_provisioning_receipts_nonce_check CHECK(fingerprint ~ '^[a-f0-9]{64}$')"],
+  ['window_id rebound', "ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_window_id_check, ADD CONSTRAINT ai_worker_provisioning_receipts_window_id_check CHECK(outcome ~ '^[a-f0-9]{32}$')"],
+  ['additional CHECK', 'ALTER TABLE public.ai_worker_provisioning_receipts ADD CONSTRAINT unexpected_check CHECK(length(nonce)>0)'],
+  ['NO INHERIT', "ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_nonce_check, ADD CONSTRAINT ai_worker_provisioning_receipts_nonce_check CHECK(nonce ~ '^[a-f0-9]{64}$') NO INHERIT"],
+  ...['nonce', 'fingerprint', 'window_id', 'outcome'].map(field => [
+    `rename ${field}`, `ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT ai_worker_provisioning_receipts_${field}_check TO unexpected_check`,
+  ]),
+];
+for (const [name, drift] of checkIdentityDrifts) {
+  test(`starting CHECK identity ${name} refuses before mutation`, async () => {
+    for (const sql of drift.split(';').map(s => s.trim()).filter(Boolean)) await prisma.$executeRawUnsafe(sql);
+    await catalogueRefusalBeforeMutation();
+  });
+  test(`final CHECK identity ${name} rolls back all six deltas`, async () => {
+    const finalSelect = body.lastIndexOf('    SELECT\n      ARRAY(SELECT a.attname');
+    assert.ok(finalSelect > body.indexOf('ALTER COLUMN created_at TYPE timestamptz'));
+    const forced = body.slice(0, finalSelect) + drift + ';\n' + body.slice(finalSelect);
+    let error;
+    await unchangedRefusal(wrappedDatabase(async (sql, tx) => {
+      try { return await tx.$executeRawUnsafe(sql === body ? forced : sql); }
+      catch (caught) { error = caught; throw caught; }
+    }));
+    assert.match(String(error), /Catalogue does not match expected variant/);
+  });
+}
+
 test('nonempty compatible receipts refuse; no timestamp value converted', async()=>{
   await prisma.$executeRaw`INSERT INTO public.ai_worker_provisioning_receipts (nonce,fingerprint,window_id,operation,outcome)
     VALUES(repeat('a',64),repeat('b',64),repeat('c',32),'provision','succeeded')`;
