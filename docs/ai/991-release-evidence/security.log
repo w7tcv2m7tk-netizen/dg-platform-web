@@ -1,0 +1,183 @@
+(node:95142) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/gateway.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cross-tenant input makes zero inference calls (1.631917ms)
+✔ cross-tenant evidence makes zero inference calls (0.203791ms)
+✔ unknown task fails closed (0.149292ms)
+✔ malformed and unknown policy classifications fail closed (0.632ms)
+✔ public classification alone grants no cloud access (0.230916ms)
+✔ platform_internal classification alone grants no cloud access (0.911167ms)
+✔ tenant confidential only permits independently approved direct model (2.05125ms)
+✔ confidential denies alternate recipient gateway/openai/gpt-5.4-mini (0.45575ms)
+✔ confidential denies alternate recipient anthropic/claude-sonnet-4-20250514 (0.318917ms)
+✔ confidential denies alternate recipient openai/gpt-4o (1.146708ms)
+✔ restricted makes zero cloud calls (0.4095ms)
+✔ local requirement makes zero cloud calls (0.531292ms)
+✔ restricted evidence overrides permissive request (0.194084ms)
+✔ restricted payload overrides permissive request (0.143583ms)
+✔ caller cannot lower registered CRM classification or remove grounding (0.536666ms)
+✔ empty disclosure intersection makes zero calls (0.123458ms)
+✔ Gateway transport cannot claim approved OpenAI upstream (0.116167ms)
+✔ reasoning cannot silently fall back to standard (0.118292ms)
+✔ specialist capability cannot silently use routine deployment (0.114875ms)
+✔ local routine requires explicit local permission and never falls back to cloud (0.160167ms)
+✔ restricted requests can route only to explicitly local-required routine (0.086ms)
+✔ malformed local deployment hint fails closed (0.075292ms)
+✔ exact observation accepts only a single exact direct recipient (0.097417ms)
+✔ exact observation forbids provider/model substitution or additional fallback (0.083667ms)
+✔ exact observation forbids escalation (0.0545ms)
+✔ exact observation forbids added grounding (0.054417ms)
+✔ observation invariant is not a migrated task (0.093042ms)
+✔ context overflow rejects intact input and never escalates disclosure (0.2335ms)
+✔ cancellation after failed attempt prevents later eligible attempt (11.221625ms)
+✔ transport plan validates every candidate before first disclosure (0.104791ms)
+✔ local required remains terminal even for oversized input (0.117917ms)
+✔ deadline exhaustion prevents a second constrained transport attempt (11.646708ms)
+✔ null execution requirements and sparse envelopes fail closed (0.529916ms)
+✔ sparse recipient approval and constrained attempt plans are rejected before inference (0.192916ms)
+(node:95143) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/gateway.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ allowed lead_summary reaches only its eligible cloud transport (18.023584ms)
+✔ cross-tenant context is rejected before inference (0.367208ms)
+✔ local-only, unknown and malformed policies fail closed (0.469292ms)
+✔ confidential request strips caller transport widening and has no cloud fallback (0.449916ms)
+✔ exhausting an allowlist never falls through to disallowed providers (0.303208ms)
+✔ deadline exhaustion aborts the current transport and prevents further attempts (12.881666ms)
+✔ pre-aborted requests do not call transports (0.279958ms)
+✔ unresponsive injected transport is bounded by the deadline (12.34575ms)
+✔ invalid deadlines, task types and token limits are rejected before inference (0.275625ms)
+✔ OpenAI token usage is captured, including a reported zero (0.261084ms)
+✔ Anthropic reported usage is captured (0.227ms)
+✔ missing or invalid usage stays unknown rather than zero (0.322083ms)
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_request
+[ai] LLM failed — using template fallback AI Gateway: policy_denied
+[ai] LLM failed — using template fallback AI Gateway: transport_failed
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+✔ actor, correlation and task reach real ledger storage without raw content (2.742875ms)
+✔ accounting failure does not discard a valid summary or leak database errors (0.2515ms)
+✔ lead-summary pilot passes identity and preserves the existing prompt and token limit (0.556459ms)
+✔ empty, invalid and oversized lead-summary output retains exact deterministic fallback (0.608208ms)
+✔ blocked policy, missing identity and unavailable transports retain lead-summary fallback (0.31325ms)
+✔ existing non-lead-summary actions keep the legacy path and no-provider fallback (0.250208ms)
+✔ llmChat without new options retains original models and provider failover (0.480583ms)
+✔ lead_follow_up goes through the gateway and remains a draft with deterministic fallback (0.394084ms)
+✔ explicit execution plan never substitutes a configured model and prohibits redirects (0.309583ms)
+✔ safe accounting contains routing metadata and excludes arbitrary transport metadata (0.141083ms)
+✔ invalid text still accounts for reported usage without persisting the response (0.118125ms)
+✔ policy denial accounts for known effective restricted classification (0.112542ms)
+✔ legacy Gateway reported usage remains compatible (0.135167ms)
+✔ unapproved transport/model result is rejected and cannot contaminate accounting (0.195458ms)
+(node:95144) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/local-crypto.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ AES-GCM uses a fresh nonce and authenticates the complete AAD (1.109208ms)
+✔ versioned decryption continues to read v1 after writes move to v2 (0.156541ms)
+(node:95145) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/local-worker-auth.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ worker credential is high entropy and never accepted without Bearer framing (7.872125ms)
+✔ worker authentication uses only a hash, supports expiring rotation overlap, and touches lastSeen (0.707375ms)
+✔ revoked or unknown principals do not authenticate (0.116ms)
+✔ native transport uses pipe only, minimal environment, and no child output (1.350459ms)
+✔ provision emits only pinned safe metadata and uses exact generated account (0.452041ms)
+✔ installation failure redacts errors and preserves IDs without retrying (0.219333ms)
+✔ existing principal or failed helper preflight blocks fresh provisioning (0.197125ms)
+✔ recovery rotates only the existing principal, never reprovisions (0.233709ms)
+✔ failed recovery never automatically rotates twice; mismatched IDs do not rotate (0.216083ms)
+✔ native helper preserves ACLs, never requests old password, and has no output/file sink (0.756667ms)
+✔ duplicate child/stdin errors settle once, clear pipe buffer and stop child (0.321833ms)
+✔ actual process stdout/stderr contains safe metadata only on install failure (84.233708ms)
+(node:95147) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/local-worker-provisioning.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ activation window is Production only, explicit, bounded, fingerprint matched and fail-closed (1.066083ms)
+✔ valid canonical signatures match client; arbitrary authority-bearing fields rejected (13.581708ms)
+✔ unauthenticated, bearer/tenant authority, wrong key, stale/future and altered request rejected (0.842541ms)
+✔ request stream and response stream are bounded without trust in Content-Length (1.861584ms)
+✔ local HTTPS success passes only credential in memory to exact Keychain account (0.855208ms)
+✔ DB success / Keychain failure preserves identities and never reprovisions (0.238584ms)
+✔ ambiguous network result, redirect, invalid response and unsafe preflight never retry (0.293875ms)
+✔ recovery request contains only exact worker identity (0.173041ms)
+✔ native signer argv/env contains no secret, only non-secret message uses stdin (0.226ms)
+✔ route never logs or throws raw errors; no-store and narrow exemption (0.469833ms)
+✔ audit whitelist drops credential, signature, arbitrary fields and unsafe identities (0.1965ms)
+✔ Production endpoint/database/role are pinned without returning credentials (0.158875ms)
+{"eventType":"ai_worker_provisioning_outcome","outcome":"disabled","timestamp":"2026-10-07T10:01:23.178Z"}
+✔ real handler fails closed, unauthenticated response is no-store, all methods denied (28.807292ms)
+✔ local TLS verification cannot be disabled through inherited environment (21.884666ms)
+▶ API keys never hold platform authority
+  ✔ isApiKeyPrincipal recognises only api_key:* principals (87.770875ms)
+(node:95148) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ hasPlatformAuthority denies an api-key session in an allowlisted org (3.37325ms)
+  ✔ hasPlatformAuthority denies an api-key session even with a dg:staff role (5.443416ms)
+  ✔ canAccessCommandCentre denies an api-key session in the operator org (10.178125ms)
+  ✔ toPlatformUserType returns null for an api-key principal, even if hasAuthority is forced (5.848834ms)
+  ✔ buildAccessContext gives an api-key session no operator grants (11.056125ms)
+  ✔ assertPlatformOperator refuses to mint a capability for an api-key session (C-3) (7.352ms)
+✔ API keys never hold platform authority (131.695833ms)
+▶ producer / detector contract
+  ✔ apiKeyToPlatformSession mints an api_key:* principal the detector recognises (1.532958ms)
+✔ producer / detector contract (1.620958ms)
+(node:95149) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/ai/local-worker-auth.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Stage 0: claim reaches dedicated auth and rejects missing/invalid/revoked bearer (4.50275ms)
+✔ Stage 0: valid claim bearer reaches operation with machine identity only (0.575708ms)
+✔ Stage 0: heartbeat reaches dedicated auth and rejects missing/invalid/revoked bearer (0.909583ms)
+✔ Stage 0: valid heartbeat bearer reaches operation with machine identity only (0.335333ms)
+✔ Stage 0: complete reaches dedicated auth and rejects missing/invalid/revoked bearer (0.6525ms)
+✔ Stage 0: valid complete bearer reaches operation with machine identity only (0.24225ms)
+✔ Stage 0: worker HTTPS requirement survives Clerk exemption (0.189833ms)
+✔ Stage 0: maintenance fails closed for absent/wrong cron authentication (0.462833ms)
+✔ Stage 0: authenticated maintenance GET/POST reaches accounting and retention (0.219792ms)
+✔ Stage 0: neighbouring routes and ordinary tenant APIs still require Clerk (1.35525ms)
+▶ H-2: middleware public route allowlist
+  ✔ exempts every endpoint that authenticates itself or owns its signed-out handoff (3.186292ms)
+  ✔ does not exempt authenticated surface (0.721125ms)
+  ✔ keeps webhook exemptions to exact paths, not a subtree wildcard (1.045125ms)
+✔ H-2: middleware public route allowlist (5.12325ms)
+▶ C-2: platform authority is server-controlled only
+  ✔ does not grant platform authority from a digitalgate-* slug or name (83.342875ms)
+(node:95150) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ does not infer digitalgate_owner for a self-named organisation (14.681625ms)
+  ✔ does not let a self-named organisation reach Command Centre (6.099666ms)
+  ✔ does not grant the digitalgate_owner permission bypass to a self-named org (9.734708ms)
+✔ C-2: platform authority is server-controlled only (114.510083ms)
+▶ C-2: genuine operators retain access
+  ✔ allows only the owner fallback inside an allowlisted operator organisation (2.054542ms)
+  ✔ grants platform authority via the dg:staff membership role (2.257167ms)
+  ✔ fails closed when no allowlist is configured and role is ordinary (1.254208ms)
+✔ C-2: genuine operators retain access (5.881458ms)
+✔ worker accepts HTTPS control plane only and pins dg-fast digest (0.994875ms)
+✔ actual worker runtime loads in Node strip-only mode without a listening port (0.345959ms)
+✔ worker independently verifies exact local model name and digest (32.412166ms)
+✔ Ollama contract uses the locked dg-fast profile and reports unknown-safe usage (1.140917ms)
+✔ Ollama rejects model substitution and clamps authorised output cap (0.222ms)
+ℹ tests 121
+ℹ suites 5
+ℹ pass 121
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 311.60275

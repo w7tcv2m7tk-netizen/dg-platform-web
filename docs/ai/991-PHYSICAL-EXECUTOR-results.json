@@ -1,0 +1,215 @@
+{
+  "head": "13205f181e274e155ac9a94c8a50c1f1df7d4517",
+  "branch": "fix/991-physical-remediation-executor",
+  "postgres": "postgres (PostgreSQL) 18.6 (Homebrew)",
+  "canonicalSha256": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
+  "remediationSha256": "8ec224c121ee3612a45b52e1f00b988db99d1b507e231fbb7dcb1815cb6ae96c",
+  "remediationLines": 139,
+  "harness": {
+    "passed": true,
+    "postgres": "postgres (PostgreSQL) 18.6 (Homebrew)",
+    "stoppedAndDestroyed": true,
+    "marker": "bc355b0d-a64e-4efc-8183-9ba02ee2c45a",
+    "completedAt": "2026-10-07T09:51:15.352Z",
+    "inheritedDatabaseCredentials": false
+  },
+  "tests": {
+    "executor": {
+      "groups": 1,
+      "tests": 63,
+      "passed": 63,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/dg991-physical-executor-tests.log"
+    },
+    "reconcile993": {
+      "groups": 1,
+      "tests": 28,
+      "passed": 28,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/dg991-executor-reconcile-regression.log"
+    },
+    "aiDatabase": {
+      "groups": 2,
+      "tests": 70,
+      "passed": 70,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/dg991-executor-ai-db-regression.log"
+    },
+    "security": {
+      "groups": 1,
+      "tests": 121,
+      "passed": 121,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/dg991-executor-security-regression.log"
+    },
+    "unit": {
+      "groups": 1,
+      "tests": 569,
+      "passed": 569,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/dg991-executor-unit-regression.log"
+    },
+    "prebuild": {
+      "groups": 26,
+      "tests": 880,
+      "passed": 880,
+      "failed": 0,
+      "skipped": 0,
+      "log": "/private/tmp/dg991-executor-build.log"
+    }
+  },
+  "productionConnected": false,
+  "productionCredentialsRetrieved": false,
+  "productionMutated": false,
+  "prismaHistoryReconciled": false,
+  "deployed": false,
+  "commitCreated": false,
+  "prCreated": false,
+  "typescript": "passed",
+  "focusedLint": "passed",
+  "diffCheck": "passed",
+  "build": {
+    "prebuild": "passed",
+    "turbopack": "stalled; stopped owned child",
+    "unchangedHeadBaseline": "same five node: import errors via EnabledAppsProvider",
+    "webpackLog": "/private/tmp/dg991-executor-build-webpack.log",
+    "baselineLog": "/private/tmp/dg991-executor-baseline-build.log",
+    "historicalWebpack": "failed",
+    "normalSupportedBuild": "passed; npm run build exit 0; compilation, TypeScript and 456 static pages completed",
+    "normalBuildLog": "docs/ai/991-release-evidence/normal-build.log"
+  },
+  "executorFileSha256": {
+    "scripts/generate-remediate-991-sql.mjs": "cd6f81b79f6d2b74a5a116aa9f6cd4971ece4ed22a0a766fc1d089f2b4a0831c",
+    "scripts/rehearse-991-check-remediation.py": "170102a6c081b5c99216853ad29fc34d7392b7f3f91f9382321aa9528f7f1c7b",
+    "scripts/run-remediate-991-physical-tests.mjs": "79f199d800fa5a420f57c0b9bdca4e5df3fda2ae4152f9a876c64c8157e0a3f8",
+    "scripts/sql/991-observed-constraints.json": "12b2917fd4b8a11de974f1b1e95a3c017c8ae9fa2c07654ea9d6c807ae148659",
+    "scripts/sql/991-physical-catalogue.sql": "f8c4e151bbe87c21fbfc971f80f464a2f233dd749b39af08c09af96f5646fdad",
+    "scripts/sql/remediate-991-checks.sql": "8ec224c121ee3612a45b52e1f00b988db99d1b507e231fbb7dcb1815cb6ae96c",
+    "scripts/test-enabled-apps-client-boundary.mjs": "7869ddf718bb056f205fdc741e95e8ff4b1131d82c71becb5895283759e57333",
+    "scripts/test-remediate-991-physical.mjs": "7cdb6e7537d06003d407a9d1d9ae1d733bfe28c511a7dfe1eca377c0930cfba0",
+    "src/app/api/admin/remediate-991-physical/route.ts": "8a7abac14a0c59f48b628055adc01959a2faca5e9cc5c00e14087df5a28e394b",
+    "src/lib/remediate-991-physical.ts": "edc88056bfe889f8d3c72d8b8c2cbcd461ae4e903aa67adda5d5007a7ddfae91",
+    "src/lib/remediate-991-request.ts": "10d0b6d0ea55ef2a2c83bcb32e59c9d7f2ffabb7a81987acc5863ba1990c0c5c",
+    "src/lib/remediate-991-sql-generated.ts": "6a0d033ccbc11e551c5fe89fc0088b897d05fccca533bd9ab7c7a8a14bc4ec90",
+    "src/lib/remediate-991-sql.ts": "e8db711a9fa07cd55a86b6731b5ca2296ebff5ba110fecd2018fd338d8100712",
+    "package.json": "9bd981377f6fb17c401c88e796467e0c4ac0e64ecd8e286b63bbfc318391d496",
+    "scripts/test-ai-worker-provisioning-db.mjs": "11884e370baefc782f4677b59da4fa5dd977ae80f5788962c12edb469c796788",
+    "src/components/platform/EnabledAppsProvider.tsx": "39b4cff6460a4c08b909d984880f2d4bdbc2457ce40c192f0c919dcb7a08162b",
+    "src/middleware.ts": "142a9f65a7acfe736bbfc36901e83caecbda0a74f4a2be20bec1f0368555014e"
+  },
+  "releaseValidation": {
+    "buildCommand": "npm run build",
+    "buildExitCode": 0,
+    "buildLog": "docs/ai/991-release-evidence/normal-build.log",
+    "buildSnapshot": "/private/tmp/dg991-executor-build-x8mgzi89",
+    "sourceSnapshotVerification": "All application/build inputs byte-identical. Four rehearsal/executor-only harness files absent from build snapshot; not consumed by npm run build. Final dedicated suite logs postdate their source edits.",
+    "checks": {
+      "focusedLint": {
+        "exitCode": 0,
+        "rerunAfterDisconnect": true
+      },
+      "typescript": {
+        "command": "tsc --noEmit --incremental false",
+        "exitCode": 0,
+        "rerunAfterDisconnect": true,
+        "cwd": "byte-identical isolated build snapshot"
+      },
+      "diffCheck": {
+        "workingTreeExitCode": 0,
+        "stagedStandardExitCode": 2,
+        "stagedExceptions": [
+          "scripts/sql/remediate-991-checks.sql:33",
+          "scripts/sql/remediate-991-checks.sql:98"
+        ],
+        "reason": "Two whitespace-only lines are immutable reviewed SQL bytes. Preserve required SHA-256. Staged check with only blank-at-eol disabled passes. No source whitespace errors."
+      }
+    },
+    "logTotals": {
+      "normal-build": {
+        "tests": 881,
+        "pass": 881,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "executor": {
+        "tests": 63,
+        "pass": 63,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "reconcile": {
+        "tests": 28,
+        "pass": 28,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "ai-db": {
+        "tests": 70,
+        "pass": 70,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "security": {
+        "tests": 121,
+        "pass": 121,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "focused": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "unchangedHeadBoundaryNegative": {
+      "expectedFailure": true,
+      "log": "docs/ai/991-release-evidence/boundary-negative.log"
+    },
+    "rehearsalCases": 21,
+    "reconcile993": {
+      "isDraft": true,
+      "state": "OPEN",
+      "mergedAt": null,
+      "head": "13205f181e274e155ac9a94c8a50c1f1df7d4517",
+      "implementationUnchanged": true
+    },
+    "originalLogSha256": {
+      "normal-build": "5e0ccc88a48fe89e9fa8c8632c2f352f136f40707444ae2a27d79e2ae34bc1d6",
+      "executor": "86a5ff1738516e0419df44404ba61da5dd71ee06c4c93bdaefc19a80feadfe3f",
+      "reconcile": "89d57f5d0990c45070776bd0dfd1b69c2ce239c3b8abaf2ccf897cfd60ebdd6c",
+      "ai-db": "84bb4005768d26819f3f8cd3398262f38f192897811acec1bcd1603bac52b461",
+      "security": "79484d809d6fd466564172ecea12f2863493f6e03de5c6f45ebac8f19e5be174",
+      "focused": "02bbcd741b64ccf07543e14a9d57e4010e7c3d32b5c942f0e57659d98f5c8b72",
+      "boundary-negative": "6c66dd440dde1f5e577a077f16b5fdc49059de021cae06d108c9e2079ac18e36"
+    },
+    "retainedLogSha256": {
+      "normal-build": "e95448a7bcbfbad1a43386fed2ce53a14d1493d0710622c6f48564bb47ddabda",
+      "executor": "86a5ff1738516e0419df44404ba61da5dd71ee06c4c93bdaefc19a80feadfe3f",
+      "security": "79484d809d6fd466564172ecea12f2863493f6e03de5c6f45ebac8f19e5be174",
+      "boundary-negative": "6c66dd440dde1f5e577a077f16b5fdc49059de021cae06d108c9e2079ac18e36",
+      "ai-db": "1e0d051d5d5aa720f27b62732808038a4a0acaf203be2d0ceee51ca3e125bb06",
+      "reconcile": "89d57f5d0990c45070776bd0dfd1b69c2ce239c3b8abaf2ccf897cfd60ebdd6c",
+      "focused": "02bbcd741b64ccf07543e14a9d57e4010e7c3d32b5c942f0e57659d98f5c8b72"
+    },
+    "logRetentionNote": "Only trailing whitespace and extra terminal blank lines normalized in retained logs; original temporary logs unchanged and original hashes retained."
+  },
+  "reconciliationFileSha256": {
+    "src/lib/reconcile-991.ts": "c9eefbfbbacc827f19eb4c529874267551c1992012f1e00c5991db6ffc71ad9d",
+    "src/app/api/admin/reconcile-991/route.ts": "5d2a7d4eaef691fd53655046a2bed2e120c7aac06feb42e76b8018829c89da97",
+    "scripts/test-reconcile-991.mjs": "85fd1bcbd06a0ada067a81bfcf204bb1d9dd38c0f2c072ce911b3acfe3fc93a7",
+    "scripts/run-reconcile-991-tests.mjs": "9886669fed478d1cdf679dd08db9eeed1eea470cd42e2059c544366f2505ebd7"
+  },
+  "sourceControlNote": "Evidence recorded immediately before authorised release-preparation commit and separate draft PR; final SHA and PR are reported externally."
+}

@@ -42,6 +42,27 @@ test("canonical Slice 3 physical columns and boundary indexes match the deployed
   // A raw physical-column read catches accidental camelCase SQL independently of Prisma mappings.
   assert.deepEqual(await prisma.$queryRaw`SELECT revoked_at FROM public.ai_worker_principals`, []);
 });
+test("receipt CHECK catalogue exactly matches canonical #991 and #993 physicalSchema", async () => {
+  const constraints = await prisma.$queryRaw`SELECT conname AS name, contype AS type,
+    convalidated AS validated, condeferrable AS deferrable, conislocal AS local,
+    coninhcount AS inherited, pg_get_constraintdef(oid) AS definition
+    FROM pg_constraint WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
+      AND contype <> 'n' ORDER BY conname`;
+  const expected = {
+    ai_worker_provisioning_receipts_nonce_check: "CHECK ((nonce ~ '^[a-f0-9]{64}$'::text))",
+    ai_worker_provisioning_receipts_fingerprint_check: "CHECK ((fingerprint ~ '^[a-f0-9]{64}$'::text))",
+    ai_worker_provisioning_receipts_window_id_check: "CHECK ((window_id ~ '^[a-f0-9]{32}$'::text))",
+    ai_worker_provisioning_receipts_operation_check: "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
+    ai_worker_provisioning_receipts_outcome_check: "CHECK ((outcome = ANY (ARRAY['attempt'::text, 'succeeded'::text, 'duplicate'::text, 'identity_mismatch'::text, 'mutation_failed'::text, 'window_closed'::text])))",
+    ai_worker_provisioning_receipts_pkey: "PRIMARY KEY (nonce)",
+  };
+  assert.deepEqual(Object.fromEntries(constraints.map(c => [c.name, c.definition])), expected);
+  for (const c of constraints) {
+    assert.equal(c.type, c.name.endsWith('_pkey') ? 'p' : 'c');
+    assert.equal(c.validated, true); assert.equal(c.deferrable, false);
+    assert.equal(c.local, true); assert.equal(c.inherited, 0);
+  }
+});
 async function created() {
   const r = await executeProvision(request(), config, prisma); assert.ok(r.workerId); return r;
 }

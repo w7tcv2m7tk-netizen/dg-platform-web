@@ -1,15 +1,10 @@
 "use client";
 
-import {
-  appIdsFromPlanSelection,
-  buildAccessContext,
-  filterNavigationByAccess,
-  getCategorizedPlatformNavigation,
-  getDefaultEnabledAppIds,
-  getPartnerWorkspaceShellLinks,
-  type PartnerType,
-  type PlanSelectionInput,
-} from "@dg/platform-core";
+import { appIdsFromPlanSelection, getDefaultEnabledAppIds, type PlanSelectionInput } from "@dg/platform-core/apps/org-apps";
+import { buildAccessContext } from "@dg/platform-core/access/evaluate";
+import { filterNavigationByAccess } from "@dg/platform-core/access/nav-filter";
+import { getCategorizedPlatformNavigation, getPartnerWorkspaceShellLinks } from "@dg/platform-core/apps/navigation";
+import type { PartnerType } from "@dg/platform-core/partners/types";
 import { useRouter } from "next/navigation";
 import {
   createContext,
@@ -83,12 +78,18 @@ export function EnabledAppsProvider({
 }) {
   const router = useRouter();
   const [enabledIds, setEnabledIdsState] = useState(initialEnabledIds);
+  const [previousInitialIds, setPreviousInitialIds] = useState(initialEnabledIds);
+  // Adopt refreshed server props before children render; optimistic edits still
+  // live in enabledIds until the next server-provided array arrives.
+  if (previousInitialIds !== initialEnabledIds) {
+    setPreviousInitialIds(initialEnabledIds);
+    setEnabledIdsState(initialEnabledIds);
+  }
   const [syncing, setSyncing] = useState(false);
   const [syncingAppId, setSyncingAppId] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
 
   useEffect(() => {
-    setEnabledIdsState(initialEnabledIds);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(initialEnabledIds));
     } catch {
