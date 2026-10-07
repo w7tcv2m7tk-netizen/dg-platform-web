@@ -41,6 +41,9 @@ function hasPlatformApiKey(req: Request) {
 }
 const authorizedParties = ["https://app.digitalgate.com.au", "https://dg-platform-web.vercel.app", "http://localhost:3000", process.env.NEXT_PUBLIC_APP_URL].filter((url): url is string => Boolean(url));
 const clerkHandler = clerkMiddleware(async (auth, req) => {
+  // Temporary #991 endpoint authenticates Clerk identity + operator membership
+  // itself and always returns a fixed no-store response, never a login redirect.
+  if (req.nextUrl.pathname === "/api/admin/reconcile-991") return;
   if (isApiV1Route(req) && hasPlatformApiKey(req)) return;
   const authState = await auth();
   if (authState.userId && isAuthEntryRoute(req)) {
@@ -74,6 +77,9 @@ const BRAND_TO_FUNNEL_REDIRECTS: Array<{ hostRe: RegExp; pathRe: RegExp; destina
 export default async function middleware(req: NextRequest, event: unknown) {
   const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
   const path = req.nextUrl.pathname;
+  if (path === "/api/admin/reconcile-991") {
+    return (await clerkHandler(req, event as never)) ?? NextResponse.next();
+  }
   if (path === "/favicon.ico") {
     const url = req.nextUrl.clone(); url.pathname = "/icon";
     const rewrite = NextResponse.rewrite(url);
