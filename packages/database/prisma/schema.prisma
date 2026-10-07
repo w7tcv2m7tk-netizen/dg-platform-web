@@ -2065,3 +2065,18 @@ model AiAccountingOutbox {
   @@index([deliveredAt, nextAttemptAt])
   @@map("ai_accounting_outbox")
 }
+
+// Security replay/budget ledger, deliberately separate from business audit logs.
+model AiWorkerProvisioningReceipt {
+  nonce String @id
+  fingerprint String
+  windowId String @map("window_id")
+  operation String
+  outcome String
+  workerId String? @map("worker_id")
+  deploymentId String? @map("deployment_id")
+  createdAt DateTime @default(dbgenerated("clock_timestamp()")) @map("created_at") @db.Timestamptz(6)
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+  @@index([windowId, createdAt], map: "ai_worker_provisioning_window_idx")
+  @@map("ai_worker_provisioning_receipts")
+}

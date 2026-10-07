@@ -14,6 +14,7 @@
     "test:ai-gateway": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-gateway.mjs",
     "test:ai-local-crypto": "node --experimental-strip-types --test scripts/test-ai-local-crypto.mjs",
     "test:ai-worker-auth": "node --experimental-strip-types --test scripts/test-ai-worker-auth.mjs",
+    "test:ai-worker-provisioning": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-worker-provisioning.mjs",
     "test:ai-worker-keychain": "node --test scripts/test-ai-worker-keychain.mjs",
     "test:ai-local-worker": "node --experimental-strip-types --test workers/mac-ai/test/contract.test.ts",
     "test:ai-local-db": "node scripts/run-ai-local-db-tests.mjs",

@@ -62,8 +62,10 @@ try {
   const psqlArgs = ["-X", "-h", "127.0.0.1", "-p", String(port), "-U", "slice3_test", "-d", "dg_slice3_test", "-v", "ON_ERROR_STOP=1", "--single-transaction"];
   run(path.join(pgBin, "psql"), [...psqlArgs, "-f", sql]);
   run(path.join(pgBin, "psql"), [...psqlArgs, "-f", "packages/database/prisma/migrations/20261007_ai_gateway_slice3_local_routine/migration.sql"]);
+  run(path.join(pgBin, "psql"), [...psqlArgs, "-f", "packages/database/prisma/migrations/20261007_ai_worker_provisioning_boundary/migration.sql"]);
   console.log(`Isolated Slice 3 cluster: ${data}, 127.0.0.1:${port}, database dg_slice3_test`);
   run(process.execPath, ["--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=20000", "scripts/test-ai-local-db.mjs"], { env });
+  run(process.execPath, ["--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=20000", "scripts/test-ai-worker-provisioning-db.mjs"], { env });
   passed = true;
 } finally {
   // Do not remove the directory unless the owned server has stopped.

@@ -75,6 +75,7 @@ const MUST_BE_PUBLIC = [
   "/api/connectors/rea/callback",
   "/api/connectors/microsoft-365/callback",
   // Slice 3 machine routes — dedicated worker bearer / CRON_SECRET in handler
+  "/api/internal/ai-worker/provisioning",
   "/api/internal/ai-worker/claim",
   "/api/internal/ai-worker/heartbeat",
   "/api/internal/ai-worker/complete",
@@ -113,6 +114,8 @@ const MUST_BE_PROTECTED = [
   "/command/growth-engine/proposals",
   "/api/internal/ai-worker",
   "/api/internal/ai-worker/admin",
+  "/api/internal/ai-worker/provisioning/admin",
+  "/api/internal/ai-worker/provisioning-extra",
   "/api/internal/ai-worker/claim/admin",
   "/api/internal/ai-worker/claim-extra",
   "/api/internal/other",
