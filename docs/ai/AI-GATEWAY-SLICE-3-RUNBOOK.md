@@ -13,8 +13,16 @@
 
    The one-time JSON output contains the bearer credential. Transfer it directly into the Mac Keychain and discard the transient output. Do not paste it into tickets, chat, shell history, or logs. Give the deployment ID from that output to the organisation owner/admin for approval.
 5. An organisation owner/admin explicitly approves that deployment with `POST /api/v1/ai/local-recipient-approvals`, choosing the highest classification the organisation permits. Revoke with `DELETE /api/v1/ai/local-recipient-approvals/{id}`. Revocation blocks new claims and prevents heartbeat/completion; it cannot recall plaintext already disclosed to a currently leased worker.
-6. Store the credential in macOS Keychain under service `com.digitalgate.ai-worker`, account equal to the worker ID (for example, run `security add-generic-password -U -s com.digitalgate.ai-worker -a <worker-id>` and enter the credential at the prompt). Configure `DG_AI_GATEWAY_URL`, `DG_AI_WORKER_ID`, and `DG_FAST_OLLAMA_DIGEST` in the launchd environment. Only the URL is public configuration; never put the credential in the plist.
+6. Store the credential in macOS Keychain under service `com.digitalgate.ai-worker`, account equal to the worker ID (for example, run `security add-generic-password -U -s com.digitalgate.ai-worker -a <worker-id> -w` and enter the credential at the secure prompt; `-w` must be the final option). Configure `DG_AI_GATEWAY_URL`, `DG_AI_WORKER_ID`, and `DG_FAST_OLLAMA_DIGEST` in the launchd environment. These three values are non-secret configuration. Never put the worker bearer directly in the command line, shell history, plist, source, `.env`, logs or documentation. Do not use `-A` to allow every application access. The worker captures Keychain retrieval output directly into process memory; do not run the retrieval command in a terminal where it prints the secret.
 7. Start the worker with Node 24 or newer. Install a launchd job only after the credential and pinned digest are confirmed. The worker opens no listening port and never changes the Ollama bind address.
+
+## Machine endpoint authentication boundary
+
+Slice 3 exempts only `/api/internal/ai-worker/claim`, `/api/internal/ai-worker/heartbeat`, `/api/internal/ai-worker/complete` and `/api/cron/ai-gateway-maintenance` from Clerk session protection. This exemption only lets the handlers perform their own machine authentication; it grants no unauthenticated operation or tenant/admin session. Worker routes require the dedicated worker bearer and retain HTTPS, revocation and lease/deployment/recipient fencing checks.
+
+Maintenance uses the existing `authorizeCronRequest` contract: `CRON_SECRET` is mandatory; the handler accepts its exact value through `Authorization: Bearer …` or `x-cron-secret`. Vercel scheduled requests use the bearer form. `x-vercel-cron` alone is not authentication. Do not weaken this contract if cron configuration is missing. No route-family wildcard exemption is permitted.
+
+Use only `packages/database/prisma/migrations/20261007_ai_gateway_slice3_local_routine/migration.sql`; SHA-256 `0e2376fdfb12b7b871f9dfc9177867d6fb7f674daf71a98d510d874edc19ebbc`. Do not select migration files by wildcard or use duplicate copies. This repair does not apply the migration or activate production.
 
 ## Locked Ollama profile
 
@@ -40,7 +48,7 @@ Set `PG_BIN` to the actual installed PostgreSQL 18 binary directory on your mach
 
 ## Revocation and rotation
 
-Disable an organisation recipient through the approval DELETE route. Rotate with `node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/rotate-ai-local-worker.mjs <worker-id>`: install the one-time output in Keychain within the five-minute overlap, verify polling, then allow the previous credential to expire. Revoke with `node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/revoke-ai-local-worker.mjs <worker-id>`; this immediately blocks auth and future lease renewal. Do not log bearer values or include raw Ollama errors.
+Disable an organisation recipient through the approval DELETE route. Rotate with `node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/rotate-ai-local-worker.mjs <worker-id>`: install the one-time output in Keychain within the five-minute overlap, restart the worker and verify polling, then allow the previous credential to expire. Slice 3 reads the Keychain credential once at startup, so updating Keychain alone does not rotate the running process. Revoke with `node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/revoke-ai-local-worker.mjs <worker-id>`; this immediately blocks auth and future lease renewal. Do not log bearer values or include raw Ollama errors.
 
 ## Current operational prerequisites
 
