@@ -1,3 +1,4 @@
+import type { Prisma } from "@dg/database";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 export type AuthenticatedAiWorker = { id: string; name: string };
@@ -27,12 +28,14 @@ export async function provisionAiWorker(input: { name: string }): Promise<{ id: 
   return { id: worker.id, credential };
 }
 
-export async function rotateAiWorkerCredential(workerId: string): Promise<string> {
+export async function rotateAiWorkerCredential(workerId: string, transaction?: Prisma.TransactionClient): Promise<string> {
   const credential = createAiWorkerCredential();
   const { prisma } = await import("@dg/database");
-  const worker = await prisma.aiWorkerPrincipal.findFirst({ where: { id: workerId, revokedAt: null } });
+  const db = transaction ?? prisma;
+  if (transaction) await transaction.$queryRaw`SELECT id FROM ai_worker_principals WHERE id = ${workerId} FOR UPDATE`;
+  const worker = await db.aiWorkerPrincipal.findFirst({ where: { id: workerId, revokedAt: null } });
   if (!worker) throw new Error("Worker unavailable");
-  await prisma.aiWorkerPrincipal.update({ where: { id: workerId }, data: {
+  await db.aiWorkerPrincipal.update({ where: { id: workerId }, data: {
     previousCredentialHash: worker.credentialHash,
     previousCredentialExpiresAt: new Date(Date.now() + 5 * 60_000),
     credentialHash: tokenHash(credential), credentialPrefix: credential.slice(0, 12),
@@ -54,17 +57,18 @@ export async function registerAiLocalDeployment(input: { workerId: string; name:
     endpointKind: "ollama_loopback", lane: "local_routine", modelId: "dg-fast:latest", modelDigest: input.modelDigest } });
 }
 
-export async function provisionAiLocalWorker(input: { name: string; modelDigest: string }) {
+export async function provisionAiLocalWorker(input: { name: string; modelDigest: string }, transaction?: Prisma.TransactionClient) {
   if (!/^(sha256:)?[a-f0-9]{64}$/i.test(input.modelDigest) || !input.name.trim()) throw new Error("Invalid approved deployment identity");
   const credential = createAiWorkerCredential();
   const { prisma } = await import("@dg/database");
-  const created = await prisma.$transaction(async (tx) => {
+  const create = async (tx: Prisma.TransactionClient) => {
     const worker = await tx.aiWorkerPrincipal.create({ data: { name: input.name.trim().slice(0, 100),
       credentialHash: tokenHash(credential), credentialPrefix: credential.slice(0, 12) }, select: { id: true } });
     const deployment = await tx.aiLocalDeployment.create({ data: { name: input.name.trim().slice(0, 100),
       workerId: worker.id, endpointKind: "ollama_loopback", lane: "local_routine", modelId: "dg-fast:latest", modelDigest: input.modelDigest } });
     return { workerId: worker.id, deploymentId: deployment.id };
-  });
+  };
+  const created = transaction ? await create(transaction) : await prisma.$transaction(create);
   return { ...created, credential };
 }
 
