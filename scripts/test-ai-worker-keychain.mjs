@@ -26,7 +26,7 @@ test("native transport uses pipe only, minimal environment, and no child output"
     assert.deepEqual(Object.keys(options.env).sort(), ["HOME", "PATH"]);
     assert.ok(!JSON.stringify({ args, options }).includes(credential));
     const child = new EventEmitter(); child.stdin = new EventEmitter();
-    child.stdin.end = (value) => { received = value; queueMicrotask(() => child.emit("close", 0)); };
+    child.stdin.end = (value) => { received = value.toString("utf8"); queueMicrotask(() => child.emit("close", 0)); };
     return child;
   });
   assert.equal(received, credential);
@@ -71,6 +71,31 @@ test("native helper preserves ACLs, never requests old password, and has no outp
   assert.ok(source.includes("SecKeychainItemModifyAttributesAndData(item, nil"));
   assert.ok(source.includes("SecKeychainAddGenericPassword"));
   assert.doesNotMatch(source, /print\(|standardOutput|standardError|write\(|SecAccess|SecACL|Process\(/);
+  assert.ok(source.includes("memset_s(buffer, capacity, 0, capacity)"));
+  assert.ok(source.includes("exit(run())"));
+  assert.doesNotMatch(source, /String\(data:|resetBytes|\bData\(/);
+});
+
+test("duplicate child/stdin errors settle once, clear pipe buffer and stop child", async () => {
+  let bytes;
+  let killed = 0;
+  let destroyed = 0;
+  await assert.rejects(keychainCall("worker-1", credential, () => {
+    const child = new EventEmitter(); child.stdin = new EventEmitter();
+    child.stdin.destroy = () => { destroyed++; };
+    child.kill = () => { killed++; };
+    child.stdin.end = (value) => {
+      bytes = value;
+      queueMicrotask(() => {
+        child.stdin.emit("error", new Error(credential));
+        child.emit("error", new Error(credential));
+        child.emit("close", 0);
+      });
+    };
+    return child;
+  }), { message: "Keychain installation failed" });
+  assert.equal(killed, 1); assert.equal(destroyed, 1);
+  assert.ok(bytes.every((byte) => byte === 0));
 });
 
 test("actual process stdout/stderr contains safe metadata only on install failure", () => {

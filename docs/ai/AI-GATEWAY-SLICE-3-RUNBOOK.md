@@ -37,6 +37,19 @@ Maintenance uses the existing `authorizeCronRequest` contract: `CRON_SECRET` is 
 
 Use only `packages/database/prisma/migrations/20261007_ai_gateway_slice3_local_routine/migration.sql`; SHA-256 `0e2376fdfb12b7b871f9dfc9177867d6fb7f674daf71a98d510d874edc19ebbc`. Do not select migration files by wildcard or use duplicate copies. This repair does not apply the migration or activate production.
 
+## Local Keychain integration review (no database access)
+
+Build the stable helper above with mode `700`, then run the explicit local-only test:
+
+```sh
+swiftc scripts/test-ai-worker-keychain-metadata.swift -o /tmp/dg-keychain-metadata
+node scripts/test-ai-worker-keychain-integration.mjs /tmp/dg-keychain-metadata
+```
+
+This test generates two synthetic credentials entirely in memory for only `dg-keychain-integration-test`. It refuses to touch a pre-existing item. It verifies actual create/update, exact service/account, one matching item, unchanged ACLs, restricted decrypt access, empty helper stdout/stderr and actual process argv/environment. The inspector requests attributes/item references only, never password data. Cleanup uses `security delete-generic-password` with the exact disposable service/account, suppresses its metadata output, and verifies absence. No production scripts or database imports run. If interrupted, inspect only the disposable item's metadata and delete that exact item without `-g`/password readback before another test. Cleanup failures are explicit.
+
+Memory clearing is bounded: Swift validates bytes without making a credential String/Data copy, wipes its native buffer using `memset_s` on every normal return, then exits. Node clears the anonymous-pipe buffer on settlement and drops credential references after installation; immutable strings returned by the authoritative provisioner are garbage-collected, not guaranteed zeroised. OS pipe/Security-framework internals and abrupt process termination are outside application zeroisation guarantees. Child failures settle once and terminate the helper; they never retry provisioning. The classic macOS Security APIs are deprecated but deliberately retained here for the existing default Keychain/ACL contract; the real local test verifies their current behaviour. Updating data preserves access controls rather than deleting/recreating items.
+
 ## Locked Ollama profile
 
 `dg-fast:latest`, verified Qwen3.5 9B Q4_K_M digest; `/api/chat`; `stream:false`; `think:false`; `num_ctx:4096`; `num_predict` from the authorised task; `temperature:0.2`; `top_k:20`; `top_p:0.9`; `presence_penalty:1.5`; `keep_alive:"5m"`. The worker concurrency is one. No substitution or tuning is allowed in Slice 3.
