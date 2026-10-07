@@ -1,0 +1,31 @@
+✖ EnabledAppsProvider runtime dependencies cannot reach Node/server modules (58.212625ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 258.782208
+
+✖ failing tests:
+
+test at scripts/test-enabled-apps-client-boundary.mjs:10:1
+✖ EnabledAppsProvider runtime dependencies cannot reach Node/server modules (58.212625ms)
+  AssertionError [ERR_ASSERTION]: src/components/platform/EnabledAppsProvider.tsx -> packages/platform-core/src/index.ts -> packages/platform-core/src/org/index.ts -> packages/platform-core/src/org/memberships.ts -> packages/platform-core/src/org/brand-presets.ts -> @dg/database
+      at edge (file:///private/tmp/dg991-executor-baseline-vtgtr2cj/scripts/test-enabled-apps-client-boundary.mjs:32:14)
+      at dynamic (file:///private/tmp/dg991-executor-baseline-vtgtr2cj/scripts/test-enabled-apps-client-boundary.mjs:53:9)
+      at visitNode2 (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/typescript/lib/typescript.js:32449:18)
+      at forEachChildInAwaitExpression (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/typescript/lib/typescript.js:32641:12)
+      at Object.forEachChild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/typescript/lib/typescript.js:32970:35)
+      at dynamic (file:///private/tmp/dg991-executor-baseline-vtgtr2cj/scripts/test-enabled-apps-client-boundary.mjs:55:10)
+      at visitNode2 (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/typescript/lib/typescript.js:32449:18)
+      at forEachChildInVariableDeclaration (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/typescript/lib/typescript.js:32511:123)
+      at Object.forEachChild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/typescript/lib/typescript.js:32970:35)
+      at dynamic (file:///private/tmp/dg991-executor-baseline-vtgtr2cj/scripts/test-enabled-apps-client-boundary.mjs:55:10) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '=='
+  }

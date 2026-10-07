@@ -1,0 +1,32 @@
+[
+  {
+    "name": "ai_worker_provisioning_receipts_fingerprint_check",
+    "definition": "CHECK ((length(fingerprint) = 64))",
+    "observedOid": 1581066
+  },
+  {
+    "name": "ai_worker_provisioning_receipts_nonce_check",
+    "definition": "CHECK (((length(nonce) >= 16) AND (length(nonce) <= 128)))",
+    "observedOid": 1581068
+  },
+  {
+    "name": "ai_worker_provisioning_receipts_operation_check",
+    "definition": "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
+    "observedOid": 1581064
+  },
+  {
+    "name": "ai_worker_provisioning_receipts_outcome_check",
+    "definition": "CHECK ((outcome = ANY (ARRAY['verified'::text, 'succeeded'::text, 'rejected'::text, 'mutation_failed'::text, 'window_closed'::text])))",
+    "observedOid": 1581065
+  },
+  {
+    "name": "ai_worker_provisioning_receipts_window_id_check",
+    "definition": "CHECK (((length(window_id) >= 1) AND (length(window_id) <= 80)))",
+    "observedOid": 1581067
+  },
+  {
+    "name": "ai_worker_provisioning_receipts_pkey",
+    "definition": "PRIMARY KEY (nonce)",
+    "observedOid": 1581078
+  }
+]

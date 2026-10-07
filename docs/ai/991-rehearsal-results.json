@@ -1,0 +1,240 @@
+{
+  "postgres": "postgres (PostgreSQL) 18.6 (Homebrew)",
+  "canonicalSha256": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
+  "cases": [
+    {
+      "name": "A exact observed starting catalogue",
+      "passed": true
+    },
+    {
+      "name": "checksum refusal missing",
+      "passed": true,
+      "error": "ERROR:  division by zero"
+    },
+    {
+      "name": "checksum refusal mismatch",
+      "passed": true,
+      "error": "ERROR:  division by zero"
+    },
+    {
+      "name": "B C J convergence, rows, table/index/PK identity and unrelated schema/history preservation",
+      "passed": true
+    },
+    {
+      "name": "I already canonical one-shot refusal",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 35 at RAISE",
+      "unchangedDumpSha256": "3586af4469716d560312852bbdcf5a0e840219179337f54412dfbfed3183caa6"
+    },
+    {
+      "name": "D incompatible nonce xxxxxxxx",
+      "passed": true,
+      "error": "ERROR:  Incompatible rows: 1\nCONTEXT:  PL/pgSQL function inline_code_block line 58 at RAISE",
+      "unchangedDumpSha256": "aab979c043c7842d139a7f505396968e6845bb1c020af285f09e1b46b2c241f3"
+    },
+    {
+      "name": "D incompatible fingerprint ZZZZZZZZ",
+      "passed": true,
+      "error": "ERROR:  Incompatible rows: 1\nCONTEXT:  PL/pgSQL function inline_code_block line 58 at RAISE",
+      "unchangedDumpSha256": "e6cc85f45b3b2d20de4e85a0757d9f35c2a7b06c49197d8b0f401457ff14b982"
+    },
+    {
+      "name": "D incompatible window_id x",
+      "passed": true,
+      "error": "ERROR:  Incompatible rows: 1\nCONTEXT:  PL/pgSQL function inline_code_block line 58 at RAISE",
+      "unchangedDumpSha256": "ff67f605fe25671b9cfc3b7b16f1774df9e596a4052e640200c5d044b157a43b"
+    },
+    {
+      "name": "D incompatible outcome verified",
+      "passed": true,
+      "error": "ERROR:  Incompatible rows: 1\nCONTEXT:  PL/pgSQL function inline_code_block line 58 at RAISE",
+      "unchangedDumpSha256": "3d4bfdf485d0e8a0f856ba8d6cb5dcc00cede7be1aace74b893a88d7541023b3"
+    },
+    {
+      "name": "D incompatible outcome rejected",
+      "passed": true,
+      "error": "ERROR:  Incompatible rows: 1\nCONTEXT:  PL/pgSQL function inline_code_block line 58 at RAISE",
+      "unchangedDumpSha256": "6512796504a4f44e855ef59688eb4866cb5cd83e23c693b897e2079f78f39eb4"
+    },
+    {
+      "name": "E catalogue drift 1",
+      "passed": true,
+      "error": "ERROR:  Unexpected catalogue state\nCONTEXT:  PL/pgSQL function inline_code_block line 48 at RAISE",
+      "unchangedDumpSha256": "0b4693ca7c9bc9be09701acf678c61b2b7269039f50b44dccf1038ac51866a08"
+    },
+    {
+      "name": "E catalogue drift 2",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 35 at RAISE",
+      "unchangedDumpSha256": "d6c4c9c91210e957dfc33e004c96e9f8126f161f5ec25da20acc233fa92e289b"
+    },
+    {
+      "name": "E catalogue drift 3",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 35 at RAISE",
+      "unchangedDumpSha256": "add57ad7aab0f1471980f39162ba7440cb73f4509e70e1e6a685d67b0a86d7a6"
+    },
+    {
+      "name": "E catalogue drift 4",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 35 at RAISE",
+      "unchangedDumpSha256": "7ce3cd6269b6234d1de5c2523543097856892ecd39d6caf128372ac71baf7a8e"
+    },
+    {
+      "name": "E catalogue drift 5",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 35 at RAISE",
+      "unchangedDumpSha256": "cfcb269b538f64eaaaafa4ad201e8a8a38b8b3266d18201d323d8150d914d7fb"
+    },
+    {
+      "name": "E catalogue drift 6",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 35 at RAISE",
+      "unchangedDumpSha256": "9ab3dd815f5c764a35da07982361a81a885bb24057c809273f731cc70b62ee27"
+    },
+    {
+      "name": "F bounded lock contention",
+      "passed": true,
+      "elapsedSeconds": 2.015872042,
+      "error": "ERROR:  canceling statement due to lock timeout\nCONTEXT:  SQL statement \"LOCK TABLE public.ai_worker_provisioning_receipts IN ACCESS EXCLUSIVE MODE\"\nPL/pgSQL function inline_code_block line 8 at SQL statement"
+    },
+    {
+      "name": "G forced failure after first constraint replacement",
+      "passed": true,
+      "error": "ERROR:  synthetic failure after first replacement\nCONTEXT:  PL/pgSQL function inline_code_block line 72 at RAISE",
+      "unchangedDumpSha256": "10ae5ca7ed31fc1a424d67de70d9cc58f845ed63b561d88fdb404e7a798a7575"
+    },
+    {
+      "name": "H explicit rollback restores original catalogue and data",
+      "passed": true
+    },
+    {
+      "name": "postcondition mismatch rolls back all four replacements",
+      "passed": true,
+      "error": "ERROR:  Catalogue does not match expected variant\nCONTEXT:  PL/pgSQL function inline_code_block line 100 at RAISE",
+      "unchangedDumpSha256": "10ae5ca7ed31fc1a424d67de70d9cc58f845ed63b561d88fdb404e7a798a7575"
+    },
+    {
+      "name": "canonical SHA and exact #993 physicalSchema query/expectations verified",
+      "passed": true
+    }
+  ],
+  "startingConstraints": [
+    {
+      "name": "ai_worker_provisioning_receipts_fingerprint_check",
+      "definition": "CHECK ((length(fingerprint) = 64))",
+      "convalidated": true,
+      "condeferrable": false,
+      "condeferred": false,
+      "conislocal": true,
+      "coninhcount": 0,
+      "conenforced": true
+    },
+    {
+      "name": "ai_worker_provisioning_receipts_nonce_check",
+      "definition": "CHECK (((length(nonce) >= 16) AND (length(nonce) <= 128)))",
+      "convalidated": true,
+      "condeferrable": false,
+      "condeferred": false,
+      "conislocal": true,
+      "coninhcount": 0,
+      "conenforced": true
+    },
+    {
+      "name": "ai_worker_provisioning_receipts_operation_check",
+      "definition": "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
+      "convalidated": true,
+      "condeferrable": false,
+      "condeferred": false,
+      "conislocal": true,
+      "coninhcount": 0,
+      "conenforced": true
+    },
+    {
+      "name": "ai_worker_provisioning_receipts_outcome_check",
+      "definition": "CHECK ((outcome = ANY (ARRAY['verified'::text, 'succeeded'::text, 'rejected'::text, 'mutation_failed'::text, 'window_closed'::text])))",
+      "convalidated": true,
+      "condeferrable": false,
+      "condeferred": false,
+      "conislocal": true,
+      "coninhcount": 0,
+      "conenforced": true
+    },
+    {
+      "name": "ai_worker_provisioning_receipts_pkey",
+      "definition": "PRIMARY KEY (nonce)",
+      "convalidated": true,
+      "condeferrable": false,
+      "condeferred": false,
+      "conislocal": true,
+      "coninhcount": 0,
+      "conenforced": true
+    },
+    {
+      "name": "ai_worker_provisioning_receipts_window_id_check",
+      "definition": "CHECK (((length(window_id) >= 1) AND (length(window_id) <= 80)))",
+      "convalidated": true,
+      "condeferrable": false,
+      "condeferred": false,
+      "conislocal": true,
+      "coninhcount": 0,
+      "conenforced": true
+    }
+  ],
+  "startingCatalogue": {
+    "columns": [
+      "nonce:text:true:",
+      "fingerprint:text:true:",
+      "window_id:text:true:",
+      "operation:text:true:",
+      "outcome:text:true:",
+      "worker_id:text:false:",
+      "deployment_id:text:false:",
+      "created_at:timestamp with time zone:true:clock_timestamp()",
+      "completed_at:timestamp with time zone:false:"
+    ],
+    "constraints": [
+      "CHECK (((length(nonce) >= 16) AND (length(nonce) <= 128)))",
+      "CHECK (((length(window_id) >= 1) AND (length(window_id) <= 80)))",
+      "CHECK ((length(fingerprint) = 64))",
+      "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
+      "CHECK ((outcome = ANY (ARRAY['verified'::text, 'succeeded'::text, 'rejected'::text, 'mutation_failed'::text, 'window_closed'::text])))",
+      "PRIMARY KEY (nonce)"
+    ],
+    "indexes": [
+      "CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)",
+      "CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = 'dg-mac-1'::text)",
+      "CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)"
+    ],
+    "safe": true
+  },
+  "finalCatalogue": {
+    "columns": [
+      "nonce:text:true:",
+      "fingerprint:text:true:",
+      "window_id:text:true:",
+      "operation:text:true:",
+      "outcome:text:true:",
+      "worker_id:text:false:",
+      "deployment_id:text:false:",
+      "created_at:timestamp with time zone:true:clock_timestamp()",
+      "completed_at:timestamp with time zone:false:"
+    ],
+    "constraints": [
+      "CHECK ((fingerprint ~ '^[a-f0-9]{64}$'::text))",
+      "CHECK ((nonce ~ '^[a-f0-9]{64}$'::text))",
+      "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
+      "CHECK ((outcome = ANY (ARRAY['attempt'::text, 'succeeded'::text, 'duplicate'::text, 'identity_mismatch'::text, 'mutation_failed'::text, 'window_closed'::text])))",
+      "CHECK ((window_id ~ '^[a-f0-9]{32}$'::text))",
+      "PRIMARY KEY (nonce)"
+    ],
+    "indexes": [
+      "CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)",
+      "CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = 'dg-mac-1'::text)",
+      "CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)"
+    ],
+    "safe": true
+  },
+  "passed": true,
+  "stoppedAndDestroyed": true
+}
