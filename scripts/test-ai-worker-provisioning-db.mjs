@@ -25,6 +25,23 @@ beforeEach(async () => {
 });
 after(async () => { await prisma.$disconnect(); await control.$disconnect(); });
 const allowNext = async () => prisma.$executeRaw`UPDATE ai_worker_provisioning_receipts SET created_at = clock_timestamp() - interval '61 seconds'`;
+test("canonical Slice 3 physical columns and boundary indexes match the deployed SQL contract", async () => {
+  const columns = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'ai_worker_principals' ORDER BY ordinal_position`;
+  assert.deepEqual(columns.map(row => row.column_name), ["id", "name", "credential_hash", "credential_prefix", "previous_credential_hash", "previous_credential_expires_at", "revoked_at", "last_seen_at", "created_at"]);
+  const receipts = await prisma.$queryRaw`SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'ai_worker_provisioning_receipts' ORDER BY ordinal_position`;
+  assert.deepEqual(receipts.map(row => row.column_name), ["nonce", "fingerprint", "window_id", "operation", "outcome", "worker_id", "deployment_id", "created_at", "completed_at"]);
+  const indexes = await prisma.$queryRaw`SELECT c.relname AS name, i.indisunique AS unique, i.indisvalid AS valid, pg_get_expr(i.indpred, i.indrelid) AS predicate, pg_get_indexdef(i.indexrelid) AS definition FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relnamespace = 'public'::regnamespace AND c.relname IN ('ai_worker_pinned_name_unique', 'ai_worker_provisioning_window_idx') ORDER BY c.relname`;
+  assert.equal(indexes.length, 2);
+  const pinned = indexes.find(row => row.name === 'ai_worker_pinned_name_unique');
+  assert.equal(pinned.unique, true); assert.equal(pinned.valid, true);
+  assert.equal(pinned.predicate, "(name = 'dg-mac-1'::text)");
+  assert.match(pinned.definition, /ON public\.ai_worker_principals USING btree \(name\)/);
+  const window = indexes.find(row => row.name === 'ai_worker_provisioning_window_idx');
+  assert.equal(window.unique, false); assert.equal(window.valid, true); assert.equal(window.predicate, null);
+  assert.match(window.definition, /ON public\.ai_worker_provisioning_receipts USING btree \(window_id, created_at\)/);
+  // A raw physical-column read catches accidental camelCase SQL independently of Prisma mappings.
+  assert.deepEqual(await prisma.$queryRaw`SELECT revoked_at FROM public.ai_worker_principals`, []);
+});
 async function created() {
   const r = await executeProvision(request(), config, prisma); assert.ok(r.workerId); return r;
 }
