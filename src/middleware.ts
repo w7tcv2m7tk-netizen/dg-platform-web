@@ -1,6 +1,8 @@
 import { clerkFrontendApiProxy, clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { PHYSICAL_991_PATH, physical991Envelope, physical991AuthResponse, refusePhysical991 } from "@/lib/remediate-991-request";
+
 import { AUTH_AFTER_SIGN_IN_URL, AUTH_SIGN_IN_URL } from "@/lib/auth-routes";
 import { OAUTH_RETURN_COOKIE, isDashboardOverviewPath, sanitizeOAuthReturnDestination } from "@/lib/oauth-return-path";
 import { CLERK_PROXY_PATH, clerkFrontendApiOrigin, inAppSignInUrl, isClerkProxyPath, isOffAppClerkNavigationUrl, shouldEnableClerkFrontendApiProxy } from "@/lib/clerk-proxy";
@@ -41,6 +43,7 @@ function hasPlatformApiKey(req: Request) {
 }
 const authorizedParties = ["https://app.digitalgate.com.au", "https://dg-platform-web.vercel.app", "http://localhost:3000", process.env.NEXT_PUBLIC_APP_URL].filter((url): url is string => Boolean(url));
 const clerkHandler = clerkMiddleware(async (auth, req) => {
+  if (req.nextUrl.pathname === PHYSICAL_991_PATH) return;
   if (isApiV1Route(req) && hasPlatformApiKey(req)) return;
   const authState = await auth();
   if (authState.userId && isAuthEntryRoute(req)) {
@@ -74,6 +77,11 @@ const BRAND_TO_FUNNEL_REDIRECTS: Array<{ hostRe: RegExp; pathRe: RegExp; destina
 export default async function middleware(req: NextRequest, event: unknown) {
   const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
   const path = req.nextUrl.pathname;
+  if (path === PHYSICAL_991_PATH) {
+    if (!physical991Envelope(req)) return refusePhysical991();
+    try { return physical991AuthResponse(await clerkHandler(req, event as never)) ?? NextResponse.next(); }
+    catch { return refusePhysical991(); }
+  }
   if (path === "/favicon.ico") {
     const url = req.nextUrl.clone(); url.pathname = "/icon";
     const rewrite = NextResponse.rewrite(url);

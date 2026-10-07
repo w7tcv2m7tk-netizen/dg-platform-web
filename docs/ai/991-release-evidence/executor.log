@@ -1,0 +1,111 @@
+postgres (PostgreSQL) 18.6 (Homebrew)
+The files belonging to this database system will be owned by user "okcomputers".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "C".
+The default text search configuration will be set to "english".
+
+Data page checksums are enabled.
+
+creating directory /var/folders/m9/8ynzhmdj1bx7w62v4n25dpdh0000gn/T/dg-991-physical-pg-En0bUf/data ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default "max_connections" ... 100
+selecting default "shared_buffers" ... 128MB
+selecting default time zone ... Australia/Brisbane
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+Success. You can now start the database server using:
+
+    '/opt/homebrew/opt/postgresql@18/bin/pg_ctl' -D /var/folders/m9/8ynzhmdj1bx7w62v4n25dpdh0000gn/T/dg-991-physical-pg-En0bUf/data -l logfile start
+
+waiting for server to start.... done
+server started
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+(node:95192) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/src/lib/remediate-991-physical.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ exact artifact mechanically bound; all rehearsed settings/DO retained (61.793209ms)
+✔ variant converges exactly; four changes only; operation/PK/index/table/rows/history/unrelated unchanged; replay refuses (51.1825ms)
+✔ incompatible nonce/xxxxxxxx refuses before DDL and preserves exact state (18.42025ms)
+✔ incompatible fingerprint/ZZZZZZZZ refuses before DDL and preserves exact state (17.717833ms)
+✔ incompatible window_id/x refuses before DDL and preserves exact state (20.015459ms)
+✔ incompatible outcome/verified refuses before DDL and preserves exact state (18.163625ms)
+✔ incompatible outcome/rejected refuses before DDL and preserves exact state (17.942166ms)
+✔ catalogue drift name refuses and preserves exact state (18.646625ms)
+✔ catalogue drift definition refuses and preserves exact state (17.647041ms)
+✔ catalogue drift index refuses and preserves exact state (18.132958ms)
+✔ catalogue drift default refuses and preserves exact state (20.521042ms)
+✔ catalogue drift RLS refuses and preserves exact state (19.935959ms)
+✔ catalogue drift validation refuses and preserves exact state (17.904917ms)
+✔ catalogue drift extra constraint refuses and preserves exact state (17.402625ms)
+✔ activation refuses DG_REMEDIATE_991_PHYSICAL_OPERATION=undefined before auth/database (9.764083ms)
+✔ activation refuses DG_REMEDIATE_991_PHYSICAL_OPERATION=reconcile_991 before auth/database (8.738833ms)
+✔ activation refuses NODE_ENV=development before auth/database (8.889125ms)
+✔ activation refuses VERCEL_ENV=preview before auth/database (9.188583ms)
+✔ activation refuses VERCEL_ENV=undefined before auth/database (9.199875ms)
+✔ activation refuses AI_WORKER_PROVISIONING_ENABLED=true before auth/database (8.636958ms)
+✔ insufficient identity null (14.275958ms)
+✔ insufficient identity api_key:operator (14.421416ms)
+✔ insufficient identity user_other (17.584542ms)
+✔ insufficient authority admin/active/operator_org (17.383917ms)
+✔ insufficient authority owner/inactive/operator_org (17.690083ms)
+✔ insufficient authority owner/active/tenant (17.134209ms)
+✔ existing staff authority accepted without #993 enablement or session provisioning (15.168791ms)
+✔ request wrong secret refuses before auth/database (9.031125ms)
+✔ request malformed secret refuses before auth/database (8.5155ms)
+✔ request missing secret refuses before auth/database (9.606708ms)
+✔ request wrong operation refuses before auth/database (8.662708ms)
+✔ request wrong origin refuses before auth/database (8.972333ms)
+✔ request API key refuses before auth/database (9.3155ms)
+✔ request body refuses before auth/database (8.507708ms)
+✔ request empty stream body refuses before auth/database (9.794792ms)
+✔ wrong URL https://app.digitalgate.com.au/api/admin/remediate-991-physical?x=1 refuses (8.791292ms)
+✔ wrong URL https://app.digitalgate.com.au/api/admin/remediate-991-physical? refuses (8.644583ms)
+✔ wrong URL https://app.digitalgate.com.au/api/admin/remediate-991-physical/ refuses (8.762458ms)
+✔ wrong URL https://app.digitalgate.com.au/api/admin/reconcile-991 refuses (8.0135ms)
+✔ wrong URL https://preview.example/api/admin/remediate-991-physical refuses (8.459625ms)
+✔ unsupported GET fixed refusal (8.929667ms)
+✔ unsupported HEAD fixed refusal (12.915375ms)
+✔ unsupported OPTIONS fixed refusal (9.018667ms)
+✔ unsupported PUT fixed refusal (8.754542ms)
+✔ unsupported PATCH fixed refusal (9.135625ms)
+✔ unsupported DELETE fixed refusal (8.332416ms)
+✔ unsupported TRACE fixed refusal (9.555083ms)
+✔ bad configured secret hash  refuses (16.138584ms)
+✔ bad configured secret hash not-a-ha refuses (15.171ms)
+✔ bad configured secret hash AAAAAAAA refuses (15.235875ms)
+✔ concurrent invocation fails try-lock; exactly one succeeds; replay refuses (29.036875ms)
+✔ bounded receipt lock contention refuses and preserves original state (2026.27525ms)
+✔ forced failure after first DDL rolls back exact original state (46.793875ms)
+✔ forced final postcondition failure rolls back all four replacements (41.324042ms)
+✔ kill switch changed after DDL rolls back before commit (61.092875ms)
+✔ authority revoked before membership lock is rechecked (54.586916ms)
+✔ safe responses/audit never leak secret, SQL, credentials or driver errors (20.371167ms)
+✔ audit transport failure cannot turn committed success into refusal (35.757875ms)
+✔ wrong remediation artifact fails build/test binding (95.569917ms)
+✔ wrong canonical artifact fails build/test binding (111.226208ms)
+✔ wrong generated artifact fails build/test binding (121.981333ms)
+✔ server-only route uses Clerk session, separate authority, fixed unsupported verbs and no global connector/redirect/credential access (28.211709ms)
+✔ Clerk handshake redirects/errors/rewrites become fixed safe middleware refusals (18.607375ms)
+ℹ tests 63
+ℹ suites 0
+ℹ pass 63
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3561.299583
+waiting for server to shut down.... done
+server stopped
+Owned #991 physical-remediation test cluster stopped and destroyed

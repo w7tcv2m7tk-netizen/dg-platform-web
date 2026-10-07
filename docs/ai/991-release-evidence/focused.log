@@ -1,0 +1,43 @@
+(node:95136) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-platform-current/packages/platform-core/src/access/evaluate.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-platform-current/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Command Centre: SSR ≡ hydration parity
+  ✔ client boolean (no server env) yields the same platformUserType as the server env (69.393ms)
+  ✔ reproduces the bug the fix addresses: no env AND no boolean => no authority on the client (0.408583ms)
+✔ Command Centre: SSR ≡ hydration parity (70.205208ms)
+▶ Command Centre: navigation visibility (no server env, client boolean)
+  ✔ operator keeps Command Centre; ordinary tenant does not (32.933291ms)
+✔ Command Centre: navigation visibility (no server env, client boolean) (33.015459ms)
+▶ toPlatformUserType: hasAuthority override
+  ✔ maps role → user type when authority is supplied, without reading env (0.393833ms)
+  ✔ returns null when authority is explicitly false, even for an owner (0.239ms)
+  ✔ falls back to the server allowlist when hasAuthority is omitted (0.185291ms)
+✔ toPlatformUserType: hasAuthority override (0.909917ms)
+▶ server authority is independent and cannot be granted by a client value
+  ✔ canAccessCommandCentre ignores a fabricated client context / boolean (0.937292ms)
+  ✔ hasPlatformAuthority accepts only organisationId + role (no client override) (0.185ms)
+✔ server authority is independent and cannot be granted by a client value (1.192792ms)
+▶ C-2 intact: organisation slug/name never grant authority
+  ✔ a DigitalGate-looking slug/name on a non-allowlisted org is denied (0.25525ms)
+✔ C-2 intact: organisation slug/name never grant authority (0.282959ms)
+▶ no browser exposure of the allowlist
+  ✔ client components never read process.env.DG_COMMAND_CENTRE_ORG_IDS and no NEXT_PUBLIC variant exists (0.41825ms)
+✔ no browser exposure of the allowlist (0.435709ms)
+customer sidebar canonical app checks passed
+✔ scripts/test-customer-sidebar-canonical-apps.mjs (47.638125ms)
+✔ EnabledAppsProvider runtime dependencies cannot reach Node/server modules (32.658458ms)
+Guided Setup funnel regression: OK
+✔ scripts/test-guided-setup-funnel.mjs (47.665709ms)
+✔ onboarding recognises canonical parent Industry ids and aliases (0.330875ms)
+✔ onboarding chooses one primary sub-industry per parent Industry (0.062542ms)
+✔ shared runtime app ids cannot implicitly activate every sibling template (0.114833ms)
+✔ Services runtime keys are mirrored from exact active child Apps (0.127166ms)
+ℹ tests 17
+ℹ suites 6
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 300.933334
