@@ -4,7 +4,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { PrismaClient } from "@prisma/client";
-import { handleReconcile991 } from "../src/lib/reconcile-991.ts";
+import { handleReconcile991, handleReconcile991Action, RECONCILE_991_CONFIRMATION } from "../src/lib/reconcile-991.ts";
 
 const prisma = new PrismaClient({ log: [] });
 const control = new PrismaClient({ log: [] });
@@ -17,6 +17,13 @@ const request = (extra = {}) => new Request(`${origin}/api/admin/reconcile-991`,
   Origin: origin, "X-DG-Operation": "reconcile_991", "X-DG-Reconcile-991-Secret": secret }, ...extra });
 const invoke = (req = request(), userId = "user_operator", db = prisma) => handleReconcile991(req, {
   userId: async () => userId, database: () => db,
+});
+const invokeAction = (confirmation = RECONCILE_991_CONFIRMATION, options = {}) => handleReconcile991Action(confirmation, {
+  userId: async () => typeof options.userId === "function"
+    ? options.userId()
+    : options.userId === undefined ? "user_operator" : options.userId,
+  database: () => options.database ?? prisma,
+  isCurrentPlatformOperator: options.isCurrentPlatformOperator ?? (async userId => userId === "user_operator"),
 });
 const history = async () => (await prisma.$queryRaw`SELECT COALESCE(jsonb_agg(to_jsonb(m) ORDER BY id)::text,'[]') AS snapshot FROM public._prisma_migrations m`)[0].snapshot;
 const refused = async result => {
@@ -227,6 +234,83 @@ test("operator and state are rechecked after locking", async () => {
   const before = await history();
   await refused(await afterPrecheck(tx => tx.$executeRaw`UPDATE public.memberships SET status='inactive'`));
   assert.equal(await history(), before);
+});
+
+test("operator action refuses missing activation, invalid confirmation, unauthenticated and non-operator submissions before transaction", async () => {
+  const noTransaction = { $transaction: () => assert.fail("transaction must not start") };
+  assert.equal(await invokeAction(null, { database: noTransaction }), "refused");
+  assert.equal(await invokeAction("", { database: noTransaction }), "refused");
+  assert.equal(await invokeAction(RECONCILE_991_CONFIRMATION, { userId: null, database: noTransaction }), "refused");
+  assert.equal(await invokeAction(RECONCILE_991_CONFIRMATION, { userId: "api_key:operator", database: noTransaction }), "refused");
+  assert.equal(await invokeAction(RECONCILE_991_CONFIRMATION, {
+    database: noTransaction, isCurrentPlatformOperator: async () => false,
+  }), "refused");
+
+  const previous = process.env.DG_RECONCILE_991_OPERATION;
+  const previousVercel = process.env.VERCEL_ENV;
+  const previousNode = process.env.NODE_ENV;
+  const previousWorkers = process.env.AI_WORKER_PROVISIONING_ENABLED;
+  for (const [key, value] of [["DG_RECONCILE_991_OPERATION", undefined], ["VERCEL_ENV", "preview"],
+    ["NODE_ENV", "development"], ["AI_WORKER_PROVISIONING_ENABLED", "true"]]) {
+    if (value === undefined) delete process.env[key]; else process.env[key] = value;
+    assert.equal(await invokeAction(RECONCILE_991_CONFIRMATION, {
+      database: noTransaction, userId: async () => assert.fail("auth must not run when disabled"),
+    }), "refused");
+  }
+  if (previous === undefined) delete process.env.DG_RECONCILE_991_OPERATION;
+  else process.env.DG_RECONCILE_991_OPERATION = previous;
+  process.env.VERCEL_ENV = previousVercel;
+  process.env.NODE_ENV = previousNode;
+  if (previousWorkers === undefined) delete process.env.AI_WORKER_PROVISIONING_ENABLED;
+  else process.env.AI_WORKER_PROVISIONING_ENABLED = previousWorkers;
+});
+
+test("operator action rechecks revoked authority inside the transaction", async () => {
+  const before = await history();
+  const result = await invokeAction(RECONCILE_991_CONFIRMATION, {
+    isCurrentPlatformOperator: async () => {
+      await prisma.$executeRaw`UPDATE public.memberships SET status='inactive'`;
+      return true;
+    },
+  });
+  assert.equal(result, "refused");
+  assert.equal(await history(), before);
+  await prisma.$executeRaw`UPDATE public.memberships SET status='active'`;
+});
+
+test("operator action concurrency and replay permit one history insert only", async () => {
+  const concurrent = await Promise.all([invokeAction(), invokeAction()]);
+  assert.deepEqual(concurrent.sort(), ["refused", "success"]);
+  assert.equal((await prisma.$queryRaw`SELECT count(*)::int AS n FROM public._prisma_migrations WHERE migration_name=${migration}`)[0].n, 1);
+  const [protectedState] = await prisma.$queryRaw`SELECT
+    (SELECT count(*) FROM public.ai_accounting_outbox) +
+    (SELECT count(*) FROM public.ai_worker_principals) +
+    (SELECT count(*) FROM public.ai_local_deployments) +
+    (SELECT count(*) FROM public.ai_local_recipient_approvals) +
+    (SELECT count(*) FROM public.ai_inference_jobs) +
+    (SELECT count(*) FROM public.ai_worker_claim_receipts) +
+    (SELECT count(*) FROM public.ai_worker_provisioning_receipts) AS protected_rows`;
+  assert.equal(protectedState.protected_rows, 0n);
+  assert.equal(await invokeAction(), "refused");
+  assert.equal((await prisma.$queryRaw`SELECT count(*)::int AS n FROM public._prisma_migrations WHERE migration_name=${migration}`)[0].n, 1);
+});
+
+test("operator action surfaces ambiguous completion and never retries", async () => {
+  let attempts = 0;
+  const database = { $transaction: async () => { attempts++; throw new Error("simulated commit acknowledgement loss"); } };
+  assert.equal(await invokeAction(RECONCILE_991_CONFIRMATION, { database }), "ambiguous");
+  assert.equal(attempts, 1);
+});
+
+test("operator action keeps credentials server-side and does not call the HTTP route", async () => {
+  const action = readFileSync("src/app/(shell)/command/reconcile-991/actions.ts", "utf8");
+  const form = readFileSync("src/app/(shell)/command/reconcile-991/Reconcile991Form.tsx", "utf8");
+  const page = readFileSync("src/app/(shell)/command/reconcile-991/page.tsx", "utf8");
+  assert.match(action, /auth\(\{ acceptsToken: 'session_token' \}\)/);
+  assert.match(action, /handleReconcile991Action/);
+  assert.doesNotMatch(action, /fetch\s*\(|SECRET_SHA256|X-DG-Reconcile-991-Secret|process\.env\.DATABASE_URL/);
+  assert.doesNotMatch(form, /SECRET|DATABASE_URL|fetch\s*\(/);
+  assert.doesNotMatch(page, /runReconcile991Action\s*\(/);
 });
 test("schema is rechecked after locking", async () => {
   const before = await history();
