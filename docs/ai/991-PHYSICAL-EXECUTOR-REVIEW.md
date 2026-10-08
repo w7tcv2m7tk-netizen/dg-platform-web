@@ -269,3 +269,8 @@ Canonical migration directory and #993 core/route have no differences from HEAD.
 8. Disable the operation, revoke/remove its hash, and remove the temporary route/core/middleware carve-out/embedded artifacts in a reviewed rollout. Confirm the serving deployment has the disabled/removal state. STOP for a separate review before any #993 reconciliation, deployment or worker provisioning.
 
 No step above was executed against Production. STOP FOR REVIEW.
+# Superseded four-CHECK executor review
+
+This historical stacked-branch report does not validate the complete observed
+Production schema. See [six-delta replacement review](991-SIX-DELTA-REMEDIATION-REVIEW.md).
+The old four-CHECK contract must not be executed; historical results below are retained.
