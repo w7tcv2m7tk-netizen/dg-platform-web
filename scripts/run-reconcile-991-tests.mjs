@@ -43,6 +43,7 @@ try {
       rolled_back_at timestamptz, started_at timestamptz NOT NULL DEFAULT now(), applied_steps_count int NOT NULL DEFAULT 0);
     CREATE TABLE public.memberships (id text PRIMARY KEY, organisation_id text NOT NULL,
       clerk_user_id text NOT NULL, role text NOT NULL, status text NOT NULL);
+    CREATE TABLE public.ai_accounting_outbox (id text PRIMARY KEY);
     CREATE TABLE public.ai_worker_principals (id text PRIMARY KEY, name text NOT NULL);
     CREATE TABLE public.ai_local_deployments (id text PRIMARY KEY);
     CREATE TABLE public.ai_local_recipient_approvals (id text PRIMARY KEY);
