@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicGrowthOpportunityReport } from "@dg/platform-core";
+import { prospectReportAccess } from "@/lib/prospect-report-access";
+
+export const dynamic = "force-dynamic";
+export const metadata = { robots: { index: false, follow: false } };
 
 export default async function PublicOpportunityReportPage({
   params,
@@ -11,9 +15,12 @@ export default async function PublicOpportunityReportPage({
 }) {
   const { token } = await params;
   const { preview } = await searchParams;
-  const isPreview = preview === "1" || preview === "true";
+  const access = await prospectReportAccess(preview);
+  const isPreview = access.kind === "preview";
   const report = process.env.DATABASE_URL
-    ? await getPublicGrowthOpportunityReport(token, { recordView: !isPreview })
+    ? await getPublicGrowthOpportunityReport(token, access.kind === "preview"
+      ? { previewOrganisationId: access.organisationId }
+      : { recordView: access.recordView })
     : null;
 
   if (!report) notFound();

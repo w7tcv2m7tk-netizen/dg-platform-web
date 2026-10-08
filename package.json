@@ -137,6 +137,7 @@
     "test:operator-commercial-entitlement-truth": "node scripts/test-operator-commercial-entitlement-truth.mjs",
     "test:operator-ia-readiness": "node scripts/test-operator-ia-readiness.mjs",
     "test:page-hierarchy-contract": "node scripts/test-page-hierarchy-contract.mjs",
+    "test:prospecting-report-integrity": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-prospecting-report-integrity.mjs",
     "test:business-discovery-relevance": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/test-business-discovery-relevance.mjs"
   },
   "dependencies": {
