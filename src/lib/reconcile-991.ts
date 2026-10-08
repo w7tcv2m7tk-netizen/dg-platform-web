@@ -56,13 +56,19 @@ async function state(tx: Transaction): Promise<Snapshot> {
       (SELECT count(*)::int FROM public._prisma_migrations WHERE migration_name IN (
         '20260901_stripe_connect_tenant_trust', '20260904_business_brain_knowledge',
         '20260910_aida_public_conversations', '20260913_ai_visibility_intelligence')) AS "olderCount",
-      NOT (EXISTS (SELECT 1 FROM public.ai_worker_principals)
+      NOT (EXISTS (SELECT 1 FROM public.ai_accounting_outbox)
+        OR EXISTS (SELECT 1 FROM public.ai_worker_principals)
         OR EXISTS (SELECT 1 FROM public.ai_local_deployments)
         OR EXISTS (SELECT 1 FROM public.ai_local_recipient_approvals)
         OR EXISTS (SELECT 1 FROM public.ai_inference_jobs)
         OR EXISTS (SELECT 1 FROM public.ai_worker_claim_receipts)
         OR EXISTS (SELECT 1 FROM public.ai_worker_provisioning_receipts)) AS empty`;
   if (!s || s.olderCount !== 0 || !s.empty) refuse();
+  // Reconciliation must not mask an incomplete or rolled-back migration.
+  const [history] = await tx.$queryRaw<{ invalid: boolean }[]>`
+    SELECT EXISTS (SELECT 1 FROM public._prisma_migrations
+      WHERE finished_at IS NULL OR rolled_back_at IS NOT NULL) AS invalid`;
+  if (!history || history.invalid) refuse();
   return s;
 }
 
