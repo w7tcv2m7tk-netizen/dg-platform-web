@@ -1,0 +1,199 @@
+{
+  "checkedAt": "2026-10-08T21:26:21.916Z",
+  "mergeCommit": "0bca41dc3a9371df02ae951ade4667362f511e4f",
+  "productionDeployment": {
+    "id": "dpl_68rMRpniSXKGEcDfs7RTLa7N2ujz",
+    "state": "READY",
+    "alias": "app.digitalgate.com.au",
+    "sha": "0bca41dc3a9371df02ae951ade4667362f511e4f"
+  },
+  "health": {
+    "/api/health": 200,
+    "/api/health/db": 200
+  },
+  "neon": {
+    "project": "gentle-sky-35028642",
+    "branch": "br-old-shadow-a7ffezls",
+    "endpoint": "ep-bold-tree-a7bny92m",
+    "database": "neondb"
+  },
+  "flags": {
+    "AI_WORKER_PROVISIONING_ENABLED": "ABSENT",
+    "DG_REMEDIATE_991_PHYSICAL_OPERATION": "disabled",
+    "DG_RECONCILE_991_OPERATION": "reconcile_991",
+    "physicalLastUpdatedAt": 1791458505379,
+    "reconciliationLastUpdatedAt": 1791464317395,
+    "deploymentCreatedAt": 1791494330169
+  },
+  "readOnlyTransactionResults": [
+    [],
+    [
+      {
+        "database": "neondb",
+        "role": "neondb_owner",
+        "read_only": "on",
+        "isolation": "repeatable read",
+        "server_version": "18.6 (c021049)",
+        "checked_at": "2026-10-08T21:26:21.916Z"
+      }
+    ],
+    [
+      {
+        "columns": [
+          "nonce:text:true:",
+          "fingerprint:text:true:",
+          "window_id:text:true:",
+          "operation:text:true:",
+          "outcome:text:true:",
+          "worker_id:text:false:",
+          "deployment_id:text:false:",
+          "created_at:timestamp with time zone:true:clock_timestamp()",
+          "completed_at:timestamp with time zone:false:"
+        ],
+        "constraints": [
+          "CHECK ((fingerprint ~ '^[a-f0-9]{64}$'::text))",
+          "CHECK ((nonce ~ '^[a-f0-9]{64}$'::text))",
+          "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
+          "CHECK ((outcome = ANY (ARRAY['attempt'::text, 'succeeded'::text, 'duplicate'::text, 'identity_mismatch'::text, 'mutation_failed'::text, 'window_closed'::text])))",
+          "CHECK ((window_id ~ '^[a-f0-9]{32}$'::text))",
+          "PRIMARY KEY (nonce)"
+        ],
+        "indexes": [
+          "CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)",
+          "CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = 'dg-mac-1'::text)",
+          "CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)"
+        ],
+        "safe": true
+      }
+    ],
+    [
+      {
+        "table_name": "ai_accounting_outbox",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_worker_principals",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_local_deployments",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_local_recipient_approvals",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_inference_jobs",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_worker_claim_receipts",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_worker_provisioning_receipts",
+        "rows": 0
+      }
+    ],
+    [
+      {
+        "total": 12,
+        "target_count": 0,
+        "older_conflicting_count": 0,
+        "invalid_count": 0,
+        "history_sha256": "f57059be8b625e31d8504805c22af61fd8b9b51d343c9efb0757ecfdef471693"
+      }
+    ],
+    [
+      {
+        "migration_name": "20260819_add_partner_programme",
+        "checksum": "3d156b2cf0e64b3f2760dfc4c91feed0cdc35f8fb8374f1b34d55f84ae4a6698",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260820_add_delivery_workspace",
+        "checksum": "5e84f99e48c298129b0a3c2b66589d8c52691e2730cdcc8e5e4e47d71a659a05",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260820_membership_permissions",
+        "checksum": "fb2d729c612f7bafdc9244a792e4e817af82a174a6d167850b073d563fbacd02",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260822_add_support_chat",
+        "checksum": "540089553e5de95559105423c677d169fc3eaf69048519073b9f474828bc78b4",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260823_ota_ical_last_sync",
+        "checksum": "d0d31e756a7ef2f83b5c0a11879e8a83e210df6079884188061ae15f82ab3136",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260823_pm_floor",
+        "checksum": "4d1a50c60d9208d59b80adb7e8a197080fb33604c175c9b72b542ee4260c5ac9",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260825_partner_terms_accept",
+        "checksum": "01f6a874fabb2cef9f5480e9b944709b474aeb15cf3088b70f72579ae7cccdf0",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260826_platform_subscription_lifecycle",
+        "checksum": "9c1c4b0a3eeb3bd9def3f34b23070ba38fdbea59dd4d14df6655deb6503acdff",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260828_partner_commercial_model",
+        "checksum": "82e2649d6ab522fcdd03d0a50931ba582fca3cc3937751a53e25f456bffd105d",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260829_support_conversation_org_scope",
+        "checksum": "3464c70bf5fb8774dc34b41e3a9b475116f92c1d1e9fb56e9faa24df48771c07",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20260830_stripe_webhook_receipt_state",
+        "checksum": "d6b1645896077499228c0fec740d8e1b6ab080b555c82df7b1aaa950c07e1c00",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      },
+      {
+        "migration_name": "20261007_ai_gateway_slice3_local_routine",
+        "checksum": "0e2376fdfb12b7b871f9dfc9177867d6fb7f674daf71a98d510d874edc19ebbc",
+        "finished": true,
+        "rolled_back": false,
+        "applied_steps_count": 0
+      }
+    ]
+  ],
+  "schemaExactMatch": true,
+  "all12RepositoryMigrationChecksumsMatch": true,
+  "reconciliationExecuted": false,
+  "productionRecordsModified": false
+}
