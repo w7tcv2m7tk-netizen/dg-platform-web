@@ -3,10 +3,48 @@ export const PHYSICAL_991_OPERATION = "remediate_991_physical";
 export const PHYSICAL_991_PATH = "/api/admin/remediate-991-physical";
 export const PHYSICAL_991_ORIGIN = "https://app.digitalgate.com.au";
 
-export function physical991Envelope(request: Request): boolean {
-  return request.method === "POST" && request.url === PHYSICAL_991_ORIGIN + PHYSICAL_991_PATH
-    && request.headers.get("Origin") === PHYSICAL_991_ORIGIN && request.body === null
-    && !request.headers.has("X-API-Key");
+// A network POST can have a stream even when it carries zero bytes. Cache only
+// the body result so repeated endpoint checks still revalidate headers and URL.
+const emptyBodies = new WeakMap<Request, Promise<boolean>>();
+const EMPTY_BODY_TIMEOUT_MS = 1000;
+
+async function readEmptyBody(request: Request): Promise<boolean> {
+  if (request.signal.aborted || request.bodyUsed) return false;
+  if (request.body === null) return true;
+  let reader: ReadableStreamDefaultReader<Uint8Array>;
+  try { reader = request.body.getReader(); } catch { return false; }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      (async () => {
+        // Bound empty chunks too, so a pathological stream cannot starve timers.
+        for (let chunks = 0; chunks < 16; chunks++) {
+          const { done, value } = await reader.read();
+          if (request.signal.aborted) return false;
+          if (done) return true;
+          // Zero bytes allowed: reject the first non-empty chunk without buffering.
+          if (!(value instanceof Uint8Array) || value.byteLength !== 0) return false;
+        }
+        return false;
+      })(),
+      new Promise<false>(resolve => { timer = setTimeout(() => resolve(false), EMPTY_BODY_TIMEOUT_MS); }),
+    ]);
+  } catch { return false; }
+  finally {
+    clearTimeout(timer);
+    // Cancellation may itself stall; never wait for an untrusted stream's cancel.
+    void reader.cancel().catch(() => undefined);
+    reader.releaseLock();
+  }
+}
+
+export async function physical991Envelope(request: Request): Promise<boolean> {
+  if (request.method !== "POST" || request.url !== PHYSICAL_991_ORIGIN + PHYSICAL_991_PATH
+    || request.headers.get("Origin") !== PHYSICAL_991_ORIGIN || request.headers.has("X-API-Key")
+    || request.signal.aborted) return false;
+  let empty = emptyBodies.get(request);
+  if (!empty) { empty = readEmptyBody(request); emptyBodies.set(request, empty); }
+  return await empty && !request.signal.aborted;
 }
 
 export type Physical991Audit = {
