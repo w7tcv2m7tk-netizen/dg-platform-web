@@ -352,3 +352,17 @@ test("anonymous URL access neither boosts scores nor establishes reader identity
   assert.match(after.positiveSignals.join(" "), /reader identity unknown/);
   assert.doesNotMatch(after.positiveSignals.join(" "), /engagement signal|report viewed/i);
 });
+
+test("legacy Command Centre does not qualify/convert or identify readers from anonymous URL accesses", () => {
+  const workspace = fs.readFileSync("src/components/growth-engine/GrowthEngineWorkspace.tsx", "utf8");
+  assert.doesNotMatch(workspace, /"report_viewed"/);
+  assert.match(workspace, /Recorded activity · 7d/);
+  const follow = fs.readFileSync("src/app/(shell)/command/growth-engine/follow-ups/page.tsx", "utf8");
+  assert.doesNotMatch(follow, /CONVERT_STAGES[^;]+report_viewed/);
+  assert.match(follow, /public URL accessed; reader unknown/);
+  const stages = fs.readFileSync("src/components/command/ProspectStageSelect.tsx", "utf8");
+  assert.match(stages, /report_viewed: "Public report URL accessed"/);
+  const triggers = fs.readFileSync("packages/platform-core/src/apps/builtins/command-centre.ts", "utf8");
+  assert.match(triggers, /Public report URL accessed \(reader unknown\)/);
+  assert.doesNotMatch(triggers, /Prospect report viewed|Report not opened \(idle\)/);
+});
