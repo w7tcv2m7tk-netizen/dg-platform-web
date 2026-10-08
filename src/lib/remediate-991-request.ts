@@ -49,7 +49,7 @@ export async function physical991Envelope(request: Request): Promise<boolean> {
 
 export type Physical991Audit = {
   operation: typeof PHYSICAL_991_OPERATION; requestId: string; timestamp: string;
-  actor: string | null; outcome: "attempt" | "success" | "refused";
+  actor: string | null; outcome: "attempt" | "success" | "refused" | "ambiguous";
 };
 
 // Only an explicit allowlisted shape is emitted. Never pass errors or request objects.
