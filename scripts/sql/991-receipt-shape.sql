@@ -2,7 +2,9 @@
 SELECT jsonb_build_object(
   'table', (SELECT jsonb_build_object('kind',c.relkind,'persistence',c.relpersistence,
     'access_method',a.amname,'rls',c.relrowsecurity,'force_rls',c.relforcerowsecurity,
-    'partition',c.relispartition,'replica_identity',c.relreplident,'options',c.reloptions)
+    'partition',c.relispartition,'replica_identity',c.relreplident,'options',c.reloptions,
+    'database_default_tablespace',c.reltablespace=0,
+    'explicit_tablespace',(SELECT spcname FROM pg_tablespace WHERE oid=c.reltablespace))
     FROM pg_class c JOIN pg_am a ON a.oid=c.relam
     WHERE c.oid='public.ai_worker_provisioning_receipts'::regclass),
   'columns', (SELECT jsonb_agg(jsonb_build_object('name',a.attname,'position',a.attnum,
@@ -10,6 +12,8 @@ SELECT jsonb_build_object(
     'default',pg_get_expr(d.adbin,d.adrelid),'identity',a.attidentity,'generated',a.attgenerated,
     'collation',col.collname,'local',a.attislocal,'inherited',a.attinhcount,
     'dimensions',a.attndims,'missing',a.atthasmissing,'dropped',a.attisdropped,
+    'storage',a.attstorage,'compression',a.attcompression,
+    'statistics_target',a.attstattarget,'attribute_options',a.attoptions,
     'datetime_precision',ic.datetime_precision) ORDER BY a.attnum)
     FROM pg_attribute a LEFT JOIN pg_attrdef d ON d.adrelid=a.attrelid AND d.adnum=a.attnum
     LEFT JOIN pg_collation col ON col.oid=a.attcollation
@@ -25,6 +29,8 @@ SELECT jsonb_build_object(
     'primary',i.indisprimary,'unique',i.indisunique,'valid',i.indisvalid,'ready',i.indisready,
     'live',i.indislive,'clustered',i.indisclustered,'predicate',pg_get_expr(i.indpred,i.indrelid),
     'expressions',pg_get_expr(i.indexprs,i.indrelid),'options',c.reloptions,
+    'database_default_tablespace',c.reltablespace=0,
+    'explicit_tablespace',(SELECT spcname FROM pg_tablespace WHERE oid=c.reltablespace),
     'opclasses',ARRAY(SELECT o.opcname FROM unnest(i.indclass::oid[]) WITH ORDINALITY x(oid,n)
       JOIN pg_opclass o ON o.oid=x.oid ORDER BY x.n)) ORDER BY pg_get_indexdef(i.indexrelid))
     FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid

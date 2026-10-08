@@ -11,7 +11,9 @@
       "partition": false,
       "persistence": "p",
       "access_method": "heap",
-      "replica_identity": "d"
+      "replica_identity": "d",
+      "explicit_tablespace": null,
+      "database_default_tablespace": true
     },
     "columns": [
       {
@@ -22,6 +24,7 @@
         "default": null,
         "dropped": false,
         "missing": false,
+        "storage": "x",
         "identity": "",
         "not_null": true,
         "position": 1,
@@ -29,6 +32,9 @@
         "generated": "",
         "inherited": 0,
         "dimensions": 0,
+        "compression": "",
+        "attribute_options": null,
+        "statistics_target": null,
         "datetime_precision": null
       },
       {
@@ -39,6 +45,7 @@
         "default": null,
         "dropped": false,
         "missing": false,
+        "storage": "x",
         "identity": "",
         "not_null": true,
         "position": 2,
@@ -46,6 +53,9 @@
         "generated": "",
         "inherited": 0,
         "dimensions": 0,
+        "compression": "",
+        "attribute_options": null,
+        "statistics_target": null,
         "datetime_precision": null
       },
       {
@@ -56,6 +66,7 @@
         "default": null,
         "dropped": false,
         "missing": false,
+        "storage": "x",
         "identity": "",
         "not_null": true,
         "position": 3,
@@ -63,6 +74,9 @@
         "generated": "",
         "inherited": 0,
         "dimensions": 0,
+        "compression": "",
+        "attribute_options": null,
+        "statistics_target": null,
         "datetime_precision": null
       },
       {
@@ -73,6 +87,7 @@
         "default": null,
         "dropped": false,
         "missing": false,
+        "storage": "x",
         "identity": "",
         "not_null": true,
         "position": 4,
@@ -80,6 +95,9 @@
         "generated": "",
         "inherited": 0,
         "dimensions": 0,
+        "compression": "",
+        "attribute_options": null,
+        "statistics_target": null,
         "datetime_precision": null
       },
       {
@@ -90,6 +108,7 @@
         "default": null,
         "dropped": false,
         "missing": false,
+        "storage": "x",
         "identity": "",
         "not_null": true,
         "position": 5,
@@ -97,6 +116,9 @@
         "generated": "",
         "inherited": 0,
         "dimensions": 0,
+        "compression": "",
+        "attribute_options": null,
+        "statistics_target": null,
         "datetime_precision": null
       },
       {
@@ -107,6 +129,7 @@
         "default": null,
         "dropped": false,
         "missing": false,
+        "storage": "x",
         "identity": "",
         "not_null": false,
         "position": 6,
@@ -114,6 +137,9 @@
         "generated": "",
         "inherited": 0,
         "dimensions": 0,
+        "compression": "",
+        "attribute_options": null,
+        "statistics_target": null,
         "datetime_precision": null
       },
       {
@@ -124,6 +150,7 @@
         "default": null,
         "dropped": false,
         "missing": false,
+        "storage": "x",
         "identity": "",
         "not_null": false,
         "position": 7,
@@ -131,6 +158,9 @@
         "generated": "",
         "inherited": 0,
         "dimensions": 0,
+        "compression": "",
+        "attribute_options": null,
+        "statistics_target": null,
         "datetime_precision": null
       },
       {
@@ -141,6 +171,7 @@
         "default": "clock_timestamp()",
         "dropped": false,
         "missing": false,
+        "storage": "p",
         "identity": "",
         "not_null": true,
         "position": 8,
@@ -148,6 +179,9 @@
         "generated": "",
         "inherited": 0,
         "dimensions": 0,
+        "compression": "",
+        "attribute_options": null,
+        "statistics_target": null,
         "datetime_precision": 6
       },
       {
@@ -158,6 +192,7 @@
         "default": null,
         "dropped": false,
         "missing": false,
+        "storage": "p",
         "identity": "",
         "not_null": false,
         "position": 9,
@@ -165,6 +200,9 @@
         "generated": "",
         "inherited": 0,
         "dimensions": 0,
+        "compression": "",
+        "attribute_options": null,
+        "statistics_target": null,
         "datetime_precision": 6
       }
     ],
@@ -183,7 +221,9 @@
         ],
         "predicate": null,
         "definition": "CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)",
-        "expressions": null
+        "expressions": null,
+        "explicit_tablespace": null,
+        "database_default_tablespace": true
       },
       {
         "live": true,
@@ -198,7 +238,9 @@
         ],
         "predicate": null,
         "definition": "CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)",
-        "expressions": null
+        "expressions": null,
+        "explicit_tablespace": null,
+        "database_default_tablespace": true
       }
     ],
     "policies": 0,
@@ -431,7 +473,7 @@
       "datetime_precision": 3
     }
   },
-  "remediationSha256": "c6ad8dbd875bd289eb82d7a37f041daff006b38a6ab9643fffc0711d1f4644f1",
+  "remediationSha256": "cf0d815ad5d5594ba19b0e00b39a525659bcd80567fbbcb66046c737c951a7a8",
   "cases": [
     {"name": "A exact observed starting catalogue", "passed": true},
     {"name": "checksum refusal missing", "passed": true, "error": "ERROR:  division by zero"},
@@ -466,9 +508,9 @@
     {"name": "catalogue/history drift trigger", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "d410793188e956b7511a4b4f114158884f546ef7e9db1e4e0ecc7e6ed7d197ac"},
     {"name": "catalogue/history drift unvalidated check", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "44f9799936002bb5c67f6668bf7fc02171973933e2a48952842395ab4746028d"},
     {"name": "catalogue/history drift history rule", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "cfca50dbf67b0f0282b5562fc55b12d0a51235d55d6d9f72bccad530f11798fd"},
-    {"name": "catalogue/history drift #991 history present", "passed": true, "error": "ERROR:  Unexpected migration history state", "unchangedDumpSha256": "f815636cd4ebe2e3ef7e7f3216e07a2459926efa93c2fba11f1035211cf583d2"},
+    {"name": "catalogue/history drift #991 history present", "passed": true, "error": "ERROR:  Unexpected migration history state", "unchangedDumpSha256": "ca44ce4d52adad0d7c3ea3d8d4cf5cd9691228a88f8cf8715f7cc27b663d4445"},
     {"name": "catalogue/history drift unresolved history", "passed": true, "error": "ERROR:  Unexpected migration history state", "unchangedDumpSha256": "1f107405c2e2ef830d0951a579bf093521f00f7f78541dc62a9d09897194932b"},
-    {"name": "catalogue/history drift older conflicting history", "passed": true, "error": "ERROR:  Unexpected migration history state", "unchangedDumpSha256": "cceb3996985c64fbe772e442346e46a4b2a50c38e3480db8c49e4a7486426435"},
+    {"name": "catalogue/history drift older conflicting history", "passed": true, "error": "ERROR:  Unexpected migration history state", "unchangedDumpSha256": "8fe26f7892a6003dbd90ce74ea60ca26c8252ca17acae746e063ca288d52bb8f"},
     {"name": "catalogue/history drift NOT NULL identity nonce", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "e228de08e2de3439f3d3ac4bf36e4a4b5b9d299df7186353f637ebd58154c0b2"},
     {"name": "catalogue/history drift NOT NULL identity fingerprint", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "b7000a61ed8ed4d93cc058ed8cfafc89f879ab49f9eed4095b3f8b1538a7baf2"},
     {"name": "catalogue/history drift NOT NULL identity window_id", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "80f54158db78e19e7ff63af05771535de39805aabbb287346862adc0369b15ba"},
@@ -487,7 +529,7 @@
     {"name": "nonzero safety state ai_inference_jobs", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "9db7ad094ebabca537ba68af4629a666ad367cd22e97c047e3826de2e8131161"},
     {"name": "nonzero safety state ai_worker_claim_receipts", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "0f417a67859a4ccc83d9acb9f126704a72a1f99845c4e4d541c03c63ab20055f"},
     {"name": "nonzero safety state ai_accounting_outbox", "passed": true, "error": "ERROR:  Requires zero receipt and worker execution state", "unchangedDumpSha256": "f7dc1b47bbb3e82c15c5a61463d82a386dc3807c22d5fed292d3caed6b6311cc"},
-    {"name": "F bounded lock contention", "passed": true, "elapsedSeconds": 2.0164219170000006, "error": "ERROR:  canceling statement due to lock timeout"},
+    {"name": "F bounded lock contention", "passed": true, "elapsedSeconds": 2.0161498750000018, "error": "ERROR:  canceling statement due to lock timeout"},
     {"name": "G forced failure after timestamp DDL", "passed": true, "error": "ERROR:  synthetic failure after first replacement", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
     {"name": "H explicit rollback restores original catalogue and data", "passed": true},
     {"name": "postcondition mismatch rolls back all six changes", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
@@ -519,6 +561,27 @@
     {"name": "final CHECK identity rollback rename window_id", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
     {"name": "starting CHECK identity rename outcome", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "866c504d6a74eee694ab087d4db03dda1c02fc6ecee46271266919595442f5c8"},
     {"name": "final CHECK identity rollback rename outcome", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity worker_id STORAGE PLAIN", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "e25f97275e16b818122e9782b6b4780a01f4b66776963a64e267011c98c47262"},
+    {"name": "final physical identity rollback worker_id STORAGE PLAIN", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity deployment_id COMPRESSION pglz", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "7b95994be7f64183f5e0159401f94984de7fe24203c8a857777ab809df19f8f6"},
+    {"name": "final physical identity rollback deployment_id COMPRESSION pglz", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity created_at statistics target", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "549549c09a003ae385ee6876fe5d0c1a1c607648ed3de1a524c148712321cf41"},
+    {"name": "final physical identity rollback created_at statistics target", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity completed_at n_distinct", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "3bcdfbbc531db5fd165fd53aa1542b41d568adbc729d2b06714626af7231c96c"},
+    {"name": "final physical identity rollback completed_at n_distinct", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity created_at n_distinct_inherited", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "6c2ce9d9027bf264803bf2db1c5c0ea461d2ce6760df839d80d48cc93340e3fe"},
+    {"name": "final physical identity rollback created_at n_distinct_inherited", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity nonce statistics target", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "28c55f876fc77eb61dc43985818370734d2f93f19c7cb2d5d26629e8112dcc73"},
+    {"name": "final physical identity rollback nonce statistics target", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity fingerprint attribute options", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "244bc78d972bdb2301e1883017ff84b396e2b8839c800eea5e6d54bd4e4c64cf"},
+    {"name": "final physical identity rollback fingerprint attribute options", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity receipt table tablespace", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "7674187abe662ba38ad6528879f1383b3abd72a5e9357f12a51a038acb52f46f"},
+    {"name": "final physical identity rollback receipt table tablespace", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity window index tablespace", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "daf17f454183a15d86a55e3ede0183c07df532fc223da5e3a4172947380ce17c"},
+    {"name": "final physical identity rollback window index tablespace", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "starting physical identity PK index tablespace", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "81d19bf05369206a2c483e0ada87da0277ef1a0d430c6f5dd52c708b63599ad8"},
+    {"name": "final physical identity rollback PK index tablespace", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0067bf35a30c493306f0e0f49a48a7167917d6b9db7a356d19e8046cf8773961"},
+    {"name": "maintenance and effective defaults retain canonical physical identity", "passed": true},
     {"name": "canonical SHA and independently applied canonical full catalogue verified", "passed": true}
   ]
 }

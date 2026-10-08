@@ -94,7 +94,10 @@ BEGIN
       ARRAY(SELECT pg_get_indexdef(i.indexrelid) || ':clustered=' || i.indisclustered::text FROM pg_index i
         WHERE i.indexrelid IN ('public.ai_worker_provisioning_receipts_pkey'::regclass,
           'public.ai_worker_provisioning_window_idx'::regclass, 'public.ai_worker_pinned_name_unique'::regclass)
-          AND i.indisvalid AND i.indisready AND i.indislive ORDER BY pg_get_indexdef(i.indexrelid)) AS indexes,
+          AND i.indisvalid AND i.indisready AND i.indislive
+          AND (i.indrelid <> 'public.ai_worker_provisioning_receipts'::regclass
+            OR (SELECT reltablespace=0 FROM pg_class WHERE oid=i.indexrelid))
+          ORDER BY pg_get_indexdef(i.indexrelid)) AS indexes,
       (SELECT count(*)=3 AND bool_and(relkind='r' AND relpersistence='p' AND NOT relrowsecurity AND NOT relforcerowsecurity AND NOT relispartition)
         FROM pg_class WHERE oid IN ('public._prisma_migrations'::regclass,
           'public.ai_worker_provisioning_receipts'::regclass, 'public.ai_worker_principals'::regclass))
@@ -109,9 +112,16 @@ BEGIN
       AND NOT EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid='public.ai_worker_provisioning_receipts'::regclass AND attnum>0
         AND (attisdropped OR attidentity<>'' OR attgenerated<>'' OR attinhcount<>0 OR NOT attislocal OR attndims<>0 OR atthasmissing
           OR (atttypid='text'::regtype AND attcollation<>'pg_catalog."default"'::regcollation)))
+      -- Persistent column policy, not ANALYZE results or effective session defaults.
+      -- Canonical text uses EXTENDED storage; fixed-width timestamps use PLAIN.
+      AND NOT EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid='public.ai_worker_provisioning_receipts'::regclass
+        AND attnum>0 AND NOT attisdropped
+        AND (attstorage::text IS DISTINCT FROM CASE WHEN atttypid='text'::regtype THEN 'x' ELSE 'p' END
+          OR attcompression::text IS DISTINCT FROM ''
+          OR attstattarget IS NOT NULL OR attoptions IS NOT NULL))
       AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
         AND (NOT convalidated OR condeferrable OR condeferred OR NOT conislocal OR coninhcount<>0 OR NOT conenforced))
-      AND (SELECT reloptions IS NULL AND relam=(SELECT oid FROM pg_am WHERE amname='heap') AND relreplident='d'
+      AND (SELECT reloptions IS NULL AND relam=(SELECT oid FROM pg_am WHERE amname='heap') AND relreplident='d' AND reltablespace=0
         FROM pg_class WHERE oid='public.ai_worker_provisioning_receipts'::regclass) AS safe INTO catalog;
   IF catalog.safe IS DISTINCT FROM true OR catalog.columns IS DISTINCT FROM ARRAY['nonce:text:true:','fingerprint:text:true:','window_id:text:true:','operation:text:true:','outcome:text:true:','worker_id:text:false:','deployment_id:text:false:','created_at:timestamp(3) without time zone:true:clock_timestamp()','completed_at:timestamp(3) without time zone:false:']::text[]
     OR catalog.not_null_constraints IS DISTINCT FROM expected_not_null
@@ -197,7 +207,10 @@ BEGIN
       ARRAY(SELECT pg_get_indexdef(i.indexrelid) || ':clustered=' || i.indisclustered::text FROM pg_index i
         WHERE i.indexrelid IN ('public.ai_worker_provisioning_receipts_pkey'::regclass,
           'public.ai_worker_provisioning_window_idx'::regclass, 'public.ai_worker_pinned_name_unique'::regclass)
-          AND i.indisvalid AND i.indisready AND i.indislive ORDER BY pg_get_indexdef(i.indexrelid)) AS indexes,
+          AND i.indisvalid AND i.indisready AND i.indislive
+          AND (i.indrelid <> 'public.ai_worker_provisioning_receipts'::regclass
+            OR (SELECT reltablespace=0 FROM pg_class WHERE oid=i.indexrelid))
+          ORDER BY pg_get_indexdef(i.indexrelid)) AS indexes,
       (SELECT count(*)=3 AND bool_and(relkind='r' AND relpersistence='p' AND NOT relrowsecurity AND NOT relforcerowsecurity AND NOT relispartition)
         FROM pg_class WHERE oid IN ('public._prisma_migrations'::regclass,
           'public.ai_worker_provisioning_receipts'::regclass, 'public.ai_worker_principals'::regclass))
@@ -212,9 +225,16 @@ BEGIN
       AND NOT EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid='public.ai_worker_provisioning_receipts'::regclass AND attnum>0
         AND (attisdropped OR attidentity<>'' OR attgenerated<>'' OR attinhcount<>0 OR NOT attislocal OR attndims<>0 OR atthasmissing
           OR (atttypid='text'::regtype AND attcollation<>'pg_catalog."default"'::regcollation)))
+      -- Persistent column policy, not ANALYZE results or effective session defaults.
+      -- Canonical text uses EXTENDED storage; fixed-width timestamps use PLAIN.
+      AND NOT EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid='public.ai_worker_provisioning_receipts'::regclass
+        AND attnum>0 AND NOT attisdropped
+        AND (attstorage::text IS DISTINCT FROM CASE WHEN atttypid='text'::regtype THEN 'x' ELSE 'p' END
+          OR attcompression::text IS DISTINCT FROM ''
+          OR attstattarget IS NOT NULL OR attoptions IS NOT NULL))
       AND NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.ai_worker_provisioning_receipts'::regclass
         AND (NOT convalidated OR condeferrable OR condeferred OR NOT conislocal OR coninhcount<>0 OR NOT conenforced))
-      AND (SELECT reloptions IS NULL AND relam=(SELECT oid FROM pg_am WHERE amname='heap') AND relreplident='d'
+      AND (SELECT reloptions IS NULL AND relam=(SELECT oid FROM pg_am WHERE amname='heap') AND relreplident='d' AND reltablespace=0
         FROM pg_class WHERE oid='public.ai_worker_provisioning_receipts'::regclass) AS safe INTO catalog;
   IF catalog.safe IS DISTINCT FROM true OR catalog.columns IS DISTINCT FROM ARRAY['nonce:text:true:','fingerprint:text:true:','window_id:text:true:','operation:text:true:','outcome:text:true:','worker_id:text:false:','deployment_id:text:false:','created_at:timestamp with time zone:true:clock_timestamp()','completed_at:timestamp with time zone:false:']::text[]
     OR catalog.not_null_constraints IS DISTINCT FROM expected_not_null

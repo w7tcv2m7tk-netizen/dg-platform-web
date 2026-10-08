@@ -20,6 +20,8 @@ env = {k: os.environ[k] for k in ['PATH', 'HOME', 'TMPDIR'] if k in os.environ}
 env['LC_ALL'] = 'C'
 owned = pathlib.Path(tempfile.mkdtemp(prefix='dg991-counterexamples-'))
 data = owned / 'data'
+tablespace = owned / 'tablespace'
+tablespace.mkdir()
 # No credential/service-file fallback, inherited URLs or TCP listener.
 env['PGPASSFILE'] = str(owned / 'no-password-file')
 env['PGSERVICEFILE'] = str(owned / 'no-service-file')
@@ -133,12 +135,28 @@ for field in ['nonce', 'fingerprint', 'window_id', 'outcome']:
         f'ai_worker_provisioning_receipts_{field}_check TO unexpected_check;\n'))
 
 
+# Durable hostile-review cases; no field is repaired by runtime SQL.
+physical_drifts = [
+    ('worker_id STORAGE PLAIN', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN worker_id SET STORAGE PLAIN;'),
+    ('deployment_id COMPRESSION pglz', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN deployment_id SET COMPRESSION pglz;'),
+    ('created_at statistics target', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN created_at SET STATISTICS 100;'),
+    ('completed_at n_distinct', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN completed_at SET (n_distinct=0.5);'),
+    ('created_at n_distinct_inherited', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN created_at SET (n_distinct_inherited=0.5);'),
+    ('nonce statistics target', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN nonce SET STATISTICS 100;'),
+    ('fingerprint attribute options', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN fingerprint SET (n_distinct=0.5);'),
+    ('receipt table tablespace', 'ALTER TABLE public.ai_worker_provisioning_receipts SET TABLESPACE dg991_identity_test_space;'),
+    ('window index tablespace', 'ALTER INDEX public.ai_worker_provisioning_window_idx SET TABLESPACE dg991_identity_test_space;'),
+    ('PK index tablespace', 'ALTER INDEX public.ai_worker_provisioning_receipts_pkey SET TABLESPACE dg991_identity_test_space;'),
+]
+
+
 try:
     checked(run('initdb', ['-D', str(data), '-U', 'counterexample', '-A', 'trust',
                            '--encoding=UTF8', '--locale=C', '-L',
                            str(args.pg_bin.resolve().parent / 'share/postgresql')]))
     checked(run('pg_ctl', ['-D', str(data), '-l', str(owned / 'server.log'), '-w', 'start',
                           '-o', f"-c listen_addresses='' -p 55492 -k {owned} -c timezone=UTC"]))
+    checked(sql("CREATE TABLESPACE dg991_identity_test_space LOCATION '" + str(tablespace).replace("'", "''") + "';", 'postgres'))
     checked(sql('CREATE DATABASE canonical;', 'postgres'))
     checked(sql(fixture + canonical, 'canonical'))
     setup()
@@ -177,6 +195,19 @@ try:
         setup()
         refuses('final CHECK identity ' + name + ' rolls back all six deltas',
                 remediation[:final_select] + drift + remediation[final_select:])
+    for name, drift in physical_drifts:
+        setup()
+        checked(sql(drift))
+        refuses('starting physical identity ' + name + ' refuses before mutation', trapped)
+        setup()
+        refuses('final physical identity ' + name + ' rolls back all six deltas',
+                remediation[:final_select] + drift + '\n' + remediation[final_select:])
+    # Collected statistics/maintenance are not declared column configuration.
+    setup()
+    checked(sql('VACUUM ANALYZE public.ai_worker_provisioning_receipts;'))
+    checked(sql('SET default_statistics_target=1000; SET default_toast_compression=pglz;\n' + remediation))
+    assert json.loads(checked(sql(shape_query))) == json.loads(checked(sql(shape_query, 'canonical')))
+    record('maintenance and effective defaults retain canonical physical identity')
     results['passed'] = True
 finally:
     if (data / 'postmaster.pid').exists():

@@ -8,11 +8,56 @@ The previous four-CHECK executor must not be executed.
 
 ## Authoritative artifacts and timestamp DDL
 
+### Physical-identity boundary (PostgreSQL 18)
+
+Reviewed before implementing the storage/statistics/tablespace correction, using
+the PostgreSQL 18 [pg_attribute catalogue](https://www.postgresql.org/docs/18/catalog-pg-attribute.html),
+[pg_class catalogue](https://www.postgresql.org/docs/18/catalog-pg-class.html) and
+[tablespace catalogue](https://www.postgresql.org/docs/18/catalog-pg-tablespace.html).
+This is a defined receipt-schema contract, not equality of every system-catalogue
+row across independently created databases.
+
+- Canonical column identity includes the existing ordered names, types/typmods,
+  precision, defaults, nullability, collation, local/inheritance, dropped/missing,
+  dimensions, identity and generation protections. All nine receipt columns also
+  require their declared storage policy (`x` for text; `p` for timestamps),
+  default compression (`attcompression` empty), default statistics target
+  (`attstattarget IS NULL` in PostgreSQL 18), and no attribute options
+  (`attoptions IS NULL`, covering both `n_distinct` and `n_distinct_inherited`).
+  Explicit tuning is persistent schema configuration, not collected statistics.
+  Default compression/target identity does not pin their effective server/session
+  settings; using the configured default remains canonical.
+- Constraint names, definitions, keys and existing flags, index definitions and
+  required flags including CLUSTER, table safety/access method/replica identity,
+  and absence of unexpected objects remain enforced. Receipt table and its two
+  indexes require database-default tablespace identity (`reltablespace=0`), not a
+  particular physical path, cross-database OID or hard-coded `pg_default` name.
+  A nonzero explicit tablespace is rejected, even if all other properties match.
+- Runtime/maintenance state is not fresh-database identity: collected
+  `pg_statistic`/`pg_stats`, row/page/visibility estimates, vacuum/freeze counters,
+  transaction IDs, file nodes and automatically recreated heap/TOAST/index or
+  constraint object OIDs. PostgreSQL may change these during maintenance or type
+  rewrites. Lazy `relhas*` hints are not compared to fresh-reference literals;
+  actual indexes/triggers/rules/inheritance are checked through their catalogues.
+  Existing before/after preservation still protects unaffected state.
+- Ownership/grants/ACLs and global database settings are deployment security or
+  administration state, not literals specified by #991. This operation does not
+  change or authorize changes to them. Type-derived representation/cache fields
+  need not duplicate the built-in type contract. FDW, sequence and materialized-view
+  metadata are inapplicable to this ordinary permanent heap table; partitioned,
+  inherited and foreign receipt relations are excluded by the existing gates.
+
+Both gates and the independent reference shape use this same explicit physical
+boundary. None of the new fields is normalized or repaired. ANALYZE/VACUUM and
+changes to effective default settings must not invalidate an otherwise approved
+empty starting state. The only allowed mutation remains the five existing ALTER
+statements implementing six deltas.
+
 Canonical migration SHA-256 remains
 `55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d`.
 The canonical migration and Prisma schema are unchanged.
 Replacement `scripts/sql/remediate-991-checks.sql` SHA-256:
-`c6ad8dbd875bd289eb82d7a37f041daff006b38a6ab9643fffc0711d1f4644f1`.
+`cf0d815ad5d5594ba19b0e00b39a525659bcd80567fbbcb66046c737c951a7a8`.
 The historical filename is retained so the existing guarded executor remains the
 only server mutation path; its content now repairs six deltas.
 
@@ -84,7 +129,8 @@ behavior are preserved. Route and middleware code are unchanged.
 
 Final gate requires canonical column types/precision/defaults/nullability,
 all five canonical CHECKs, all six named NOT NULL constraints and the canonical
-PK/index definitions including unclustered state; the same
+PK/index definitions including unclustered state and default receipt placement;
+canonical column storage/compression/statistics/options; the same
 table-safety conditions remain enforced. Receipt rows remain zero. Before/after
 history and unaffected columns/constraints/principal catalogue/index definitions
 must match. Locked execution-state tables remain empty throughout the transaction.
@@ -194,6 +240,38 @@ The normal build passed with 881/881 node:test cases and 456 generated pages;
 nonfatal warnings also included Prisma CommonJS exports and NFT tracing.
 No bulky logs were restored. No Production or operational action occurred.
 
+## Storage/statistics/tablespace correction
+
+Hostile review of `db1b62ad4089673d0fc58dffc4906454f4a4dfff` found seven
+noncanonical commits: initial worker_id STORAGE PLAIN, deployment_id COMPRESSION
+pglz and receipt nondefault tablespace; initial and post-DDL created_at statistics
+target and completed_at n_distinct overrides. The prior reviewed SQL hash was
+`c6ad8dbd875bd289eb82d7a37f041daff006b38a6ab9643fffc0711d1f4644f1`.
+The physical-identity boundary above was reviewed and documented before the fix.
+
+Both gates now require canonical storage/compression and absence of explicit
+statistics/options on all nine receipt columns, including timestamps. Receipt
+table and receipt PK/window indexes must use database-default tablespace identity.
+The independent shape query exposes these same fields; its fresh canonical
+reference is executed from unchanged Git migration bytes. Existing principal
+placement/administration state is not subjected to the new receipt placement rule.
+
+Durable SQL/executor regressions cover all five discovered mutation types at both
+boundaries, n_distinct_inherited, text statistics/options and both receipt-index
+tablespaces. Every starting case includes a first-DDL trap; every final case
+requires full rollback. VACUUM/ANALYZE and changed effective statistics defaults
+still succeed and match the expanded canonical shape. Fixed-width timestamp
+storage/compression is checked even where PostgreSQL disallows setting an
+inapplicable method through ALTER COLUMN.
+
+The independent hostile review's original 50 supported-DDL probes were rerun:
+50 refusals, zero noncanonical commits or unsupported mutations. Its ordinary
+success also matches a separately queried expanded fresh canonical reference.
+The previous NOT NULL, CLUSTER and CHECK-name attacks remain rejected.
+All five mutation statements (six deltas), lock order, timeouts and authority
+boundaries are byte-identical to the prior head. No new property is repaired.
+The canonical migration/Prisma schema remain unchanged; no bulky logs are stored.
+
 ## Evidence retention review
 
 Before deleting transcripts, all files were inventoried, scanned again for secret
@@ -225,12 +303,12 @@ All decisive checks passed on this main-based catalogue correction:
 
 | Check | Result |
 |---|---|
-| Fresh PostgreSQL 18 SQL rehearsal | 87 passed, 0 failed |
-| Physical executor / security / binding | 126 passed, 0 failed |
+| Fresh PostgreSQL 18 SQL rehearsal | 108 passed, 0 failed |
+| Physical executor / security / binding | 147 passed, 0 failed |
 | AI local DB regression | 57 passed, 0 failed |
 | Provisioning DB regression | 13 passed, 0 failed |
 | Focused worker/security/client-boundary regressions | 58 passed, 0 failed |
-| Independent original counterexamples and final-drift rollback | 25 passed, 0 failed |
+| Independent catalogue counterexamples and final-drift rollback | 46 passed, 0 failed |
 | TypeScript, focused ESLint, generated binding, diff whitespace | exit 0 |
 | Normal supported npm run build, including existing prebuild | exit 0; 881/881 node:test cases |
 

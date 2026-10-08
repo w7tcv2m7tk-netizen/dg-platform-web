@@ -27,6 +27,8 @@ observed = json.loads((ROOT/'scripts/sql/991-observed-constraints.json').read_te
 remediation = (ROOT/'scripts/sql/remediate-991-checks.sql').read_text()
 owned = pathlib.Path(tempfile.mkdtemp(prefix='dg991-checks-'))
 data = owned/'data'
+tablespace = owned/'tablespace'
+tablespace.mkdir()
 results = {'postgres': checked(command('postgres',['--version'])).strip(), 'canonicalSha256':SHA,'cases':[]}
 assert ' 18.' in results['postgres']
 # Empty listen_addresses makes TCP connectivity impossible; owned Unix socket only.
@@ -100,6 +102,7 @@ def refused_case(name, script=remediation, expected_error=None):
 try:
     checked(command('initdb',['-D',str(data),'-U','rehearsal','-A','trust','--encoding=UTF8','--locale=C','-L',str(args.pg_bin.resolve().parent/'share/postgresql')]))
     checked(command('pg_ctl',['-D',str(data),'-l',str(owned/'server.log'),'-w','start','-o',f"-c listen_addresses='' -p 55491 -k {owned} -c timezone=UTC"]))
+    sql("CREATE TABLESPACE dg991_identity_test_space LOCATION "+quote(str(tablespace))+";",db='postgres')
     sql('CREATE DATABASE canonical;',db='postgres');sql(fixture+canonical,db='canonical')
     assert catalog('canonical')==expected_catalog
     results['canonicalFullShape']=shape('canonical')
@@ -238,6 +241,28 @@ try:
         setup()
         refused_case('final CHECK identity rollback '+name,
           remediation[:final_select]+drift+remediation[final_select:],expected_error='Catalogue does not match expected variant')
+    physical_drifts=[
+      ('worker_id STORAGE PLAIN','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN worker_id SET STORAGE PLAIN;'),
+      ('deployment_id COMPRESSION pglz','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN deployment_id SET COMPRESSION pglz;'),
+      ('created_at statistics target','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN created_at SET STATISTICS 100;'),
+      ('completed_at n_distinct','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN completed_at SET (n_distinct=0.5);'),
+      ('created_at n_distinct_inherited','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN created_at SET (n_distinct_inherited=0.5);'),
+      ('nonce statistics target','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN nonce SET STATISTICS 100;'),
+      ('fingerprint attribute options','ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN fingerprint SET (n_distinct=0.5);'),
+      ('receipt table tablespace','ALTER TABLE public.ai_worker_provisioning_receipts SET TABLESPACE dg991_identity_test_space;'),
+      ('window index tablespace','ALTER INDEX public.ai_worker_provisioning_window_idx SET TABLESPACE dg991_identity_test_space;'),
+      ('PK index tablespace','ALTER INDEX public.ai_worker_provisioning_receipts_pkey SET TABLESPACE dg991_identity_test_space;'),
+    ]
+    for name,drift in physical_drifts:
+        setup();sql(drift)
+        refused_case('starting physical identity '+name,trapped,expected_error='Catalogue does not match expected variant')
+        setup()
+        refused_case('final physical identity rollback '+name,
+          remediation[:final_select]+drift+'\n'+remediation[final_select:],expected_error='Catalogue does not match expected variant')
+    setup();sql('VACUUM ANALYZE public.ai_worker_provisioning_receipts;')
+    sql('SET default_statistics_target=1000; SET default_toast_compression=pglz;\n'+remediation)
+    assert shape()==shape('canonical')
+    record('maintenance and effective defaults retain canonical physical identity')
     record('canonical SHA and independently applied canonical full catalogue verified')
     results['passed']=True
 finally:

@@ -218,6 +218,16 @@ const checkIdentityDrifts = [
   ['window_id rebound', "ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_window_id_check, ADD CONSTRAINT ai_worker_provisioning_receipts_window_id_check CHECK(outcome ~ '^[a-f0-9]{32}$')"],
   ['additional CHECK', 'ALTER TABLE public.ai_worker_provisioning_receipts ADD CONSTRAINT unexpected_check CHECK(length(nonce)>0)'],
   ['NO INHERIT', "ALTER TABLE public.ai_worker_provisioning_receipts DROP CONSTRAINT ai_worker_provisioning_receipts_nonce_check, ADD CONSTRAINT ai_worker_provisioning_receipts_nonce_check CHECK(nonce ~ '^[a-f0-9]{64}$') NO INHERIT"],
+  ['worker_id STORAGE PLAIN', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN worker_id SET STORAGE PLAIN'],
+  ['deployment_id COMPRESSION pglz', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN deployment_id SET COMPRESSION pglz'],
+  ['created_at statistics target', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN created_at SET STATISTICS 100'],
+  ['completed_at n_distinct', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN completed_at SET (n_distinct=0.5)'],
+  ['created_at n_distinct_inherited', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN created_at SET (n_distinct_inherited=0.5)'],
+  ['nonce statistics target', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN nonce SET STATISTICS 100'],
+  ['fingerprint attribute options', 'ALTER TABLE public.ai_worker_provisioning_receipts ALTER COLUMN fingerprint SET (n_distinct=0.5)'],
+  ['receipt table tablespace', 'ALTER TABLE public.ai_worker_provisioning_receipts SET TABLESPACE dg991_identity_test_space'],
+  ['window index tablespace', 'ALTER INDEX public.ai_worker_provisioning_window_idx SET TABLESPACE dg991_identity_test_space'],
+  ['PK index tablespace', 'ALTER INDEX public.ai_worker_provisioning_receipts_pkey SET TABLESPACE dg991_identity_test_space'],
   ...['nonce', 'fingerprint', 'window_id', 'outcome'].map(field => [
     `rename ${field}`, `ALTER TABLE public.ai_worker_provisioning_receipts RENAME CONSTRAINT ai_worker_provisioning_receipts_${field}_check TO unexpected_check`,
   ]),
@@ -239,6 +249,20 @@ for (const [name, drift] of checkIdentityDrifts) {
     assert.match(String(error), /Catalogue does not match expected variant/);
   });
 }
+
+test('maintenance and effective defaults retain canonical physical identity', async () => {
+  await prisma.$executeRawUnsafe('VACUUM ANALYZE public.ai_worker_provisioning_receipts');
+  const db = wrappedDatabase(async (sql, tx) => {
+    if (sql === body) {
+      await tx.$executeRawUnsafe('SET LOCAL default_statistics_target=1000');
+      await tx.$executeRawUnsafe('SET LOCAL default_toast_compression=pglz');
+    }
+    return tx.$executeRawUnsafe(sql);
+  });
+  assert.equal((await invoke(request(), 'user_operator', db)).status, 200);
+  const [actual] = await prisma.$queryRawUnsafe(readFileSync('scripts/sql/991-receipt-shape.sql', 'utf8'));
+  assert.deepEqual(actual.shape, JSON.parse(readFileSync('docs/ai/991-six-delta-rehearsal-results.json', 'utf8')).canonicalFullShape);
+});
 
 test('nonempty compatible receipts refuse; no timestamp value converted', async()=>{
   await prisma.$executeRaw`INSERT INTO public.ai_worker_provisioning_receipts (nonce,fingerprint,window_id,operation,outcome)
