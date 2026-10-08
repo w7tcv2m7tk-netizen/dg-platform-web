@@ -12,7 +12,7 @@ const STAGE_LABELS: Record<string, string> = {
   qualified: "Qualified",
   report_sent: "Report sent",
   email_opened: "Email opened",
-  report_viewed: "Report viewed",
+  report_viewed: "Public report URL accessed",
   follow_up_due: "Follow-up due",
   meeting_booked: "Meeting booked",
   proposal_sent: "Proposal sent",

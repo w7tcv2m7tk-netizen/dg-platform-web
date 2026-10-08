@@ -90,6 +90,7 @@ function daysSince(date: Date) {
 
 function mapEngagementKind(type: string): ProspectActivityKind {
   const t = type.toLowerCase();
+  if (t === "report_viewed") return "engagement";
   if (t.includes("email")) return "email";
   if (t.includes("sms") || t.includes("message")) return "sms";
   if (t.includes("meeting")) return "meeting";
@@ -100,6 +101,7 @@ function mapEngagementKind(type: string): ProspectActivityKind {
 }
 
 function engagementTitle(type: string): string {
+  if (type === "report_viewed") return "Public report URL accessed";
   return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -178,9 +180,9 @@ export async function buildProspectingActivityWorkspace(
         bucket: bucketFor(e.occurredAt.toISOString(), now),
         prospectId: p.id,
         businessName: p.businessName,
-        contactName: p.contactName,
+        contactName: e.type === "report_viewed" ? null : p.contactName,
         title: engagementTitle(e.type),
-        body: null,
+        body: e.type === "report_viewed" ? "Reader identity unknown; confirm receipt." : null,
         nextAction: null,
         ctaLabel: "View pipeline",
         ctaHref: "/apps/prospecting/pipeline",
@@ -200,7 +202,7 @@ export async function buildProspectingActivityWorkspace(
           contactName: p.contactName,
           title: "Email sent",
           body: report.executiveSummary?.slice(0, 160) ?? "Opportunity report sent.",
-          nextAction: report.viewCount === 0 ? "Follow up if unopened" : null,
+          nextAction: report.viewCount === 0 ? "Confirm report receipt" : null,
           ctaLabel: "Follow up",
           ctaHref: "/apps/prospecting/pipeline",
           source: "report",
@@ -214,10 +216,10 @@ export async function buildProspectingActivityWorkspace(
           bucket: bucketFor(report.firstViewedAt.toISOString(), now),
           prospectId: p.id,
           businessName: p.businessName,
-          contactName: p.contactName,
-          title: "Report viewed",
-          body: `Viewed ${report.viewCount} time${report.viewCount === 1 ? "" : "s"}.`,
-          nextAction: "Call today",
+          contactName: null,
+          title: "Public report URL accessed",
+          body: `${report.viewCount} public URL access${report.viewCount === 1 ? "" : "es"}; reader identity unknown.`,
+          nextAction: "Confirm report receipt",
           ctaLabel: "Call",
           ctaHref: p.contactPhone ? `tel:${p.contactPhone}` : "/apps/prospecting/pipeline",
           source: "report",

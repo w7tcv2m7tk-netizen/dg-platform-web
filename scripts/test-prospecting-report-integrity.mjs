@@ -40,17 +40,27 @@ function fixture() {
     },
     growthProspectEngagement: { create: async ({ data }) => { engagements.push(data); return data; } },
   };
-  const db = { $transaction: async fn => fn(tx) };
+  let lock = Promise.resolve();
+  const db = { $transaction: async fn => {
+    let release;
+    const transaction = { ...tx, $queryRaw: async (_sql, id, organisationId) => {
+      const previous = lock;
+      lock = new Promise(resolve => { release = resolve; });
+      await previous;
+      return prospect.id === id && (organisationId === undefined || prospect.organisationId === organisationId) && !prospect.archivedAt ? [{ id }] : [];
+    } };
+    try { return await fn(transaction); } finally { release?.(); }
+  } };
   return { db, tx, prospect, audits, reports, engagements, setDate: date => { now = new Date(date); } };
 }
 async function generated() { const f=fixture(); const { report }=await generateGrowthReportSnapshot(f.db,"p1","tenant-a"); f.engagements.length=0; return { ...f, report }; }
 
 // Execute the real server pages/auth helper with only external boundaries mocked.
-function moduleFrom(file, mocks) {
+function moduleFrom(file, mocks, runtimeProcess = process) {
   const source=fs.readFileSync(file,"utf8");
   const code=ts.transpileModule(source,{ compilerOptions:{ module:ts.ModuleKind.CommonJS, target:ts.ScriptTarget.ES2022, jsx:ts.JsxEmit.ReactJSX } }).outputText;
   const exports={};
-  const context={ exports, require: id => id in mocks ? mocks[id] : require(id), console, process, URL };
+  const context={ exports, require: id => id in mocks ? mocks[id] : require(id), console, process: runtimeProcess, URL };
   vm.runInNewContext(code,context,{filename:file}); return exports;
 }
 const notFound=()=>{ throw new Error("NOT_FOUND"); };
@@ -82,6 +92,7 @@ test("attached audit A and business identity survive audit B and prospect edits;
   const before=await render(renderer(f,previewAccess),tokenA);
   f.audits.push({...f.audits[0],id:"audit-b",auditedAt:new Date("2026-10-04"),findings:{items:[{title:"Evidence B",detail:"Frozen B"}]}});
   f.prospect.businessName="Edited Agency"; f.prospect.location="Edited locality";
+  f.prospect.websiteUrl="https://edited.example.test"; f.prospect.industry="Edited industry";
   assert.equal(await render(renderer(f,previewAccess),tokenA),before);
   f.setDate("2026-10-05"); const b=await generateGrowthReportSnapshot(f.db,"p1","tenant-a");
   assert.equal(b.created,true); assert.notEqual(b.report.shareToken,tokenA);
@@ -222,4 +233,122 @@ test("delivery recording executes against audit A after B and rejects a foreign 
   const prior=f.engagements.length;
   const refused=await route.PATCH(request("foreign-report-id"),{params:Promise.resolve({id:"p1"})});
   assert.equal(refused.status,409); assert.equal(f.engagements.length,prior);
+});
+
+
+test("simultaneous generation reuses one active snapshot/token", async () => {
+  const f = fixture();
+  const results = await Promise.all(Array.from({ length: 10 }, () => generateGrowthReportSnapshot(f.db, "p1", "tenant-a")));
+  assert.equal(f.reports.length, 1);
+  assert.equal(new Set(results.map(r => r.report.shareToken)).size, 1);
+  assert.equal(results.filter(r => r.created).length, 1);
+  assert.equal(f.engagements.filter(e => e.type === "report_generated").length, 1);
+});
+
+for (const failure of ["http", "network", "malformed", "unconfirmed", "success"]) {
+  test(`email delivery UI requires successful selected-snapshot recording: ${failure}`, async () => {
+    const state = []; let hook = 0; let patch;
+    const source = fs.readFileSync("src/components/prospecting/ProspectReportActions.tsx", "utf8");
+    const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
+    const exports = {};
+    const fetch = async (url, options) => {
+      if (options.method === "POST" && url.endsWith("/report")) return Response.json({ data: { id: "report-a", shareUrl: "https://example.test/token-a" } });
+      if (options.method === "POST") return Response.json({ data: { submitted: true } });
+      patch = JSON.parse(options.body);
+      if (failure === "network") throw new Error("network");
+      if (failure === "malformed") return new Response("invalid");
+      return Response.json({ data: { recorded: failure === "success" } }, { status: failure === "http" ? 409 : 200 });
+    };
+    vm.runInNewContext(code, { exports, fetch, require: id => id === "react" ? { useState: initial => {
+      const index = hook++; state[index] = initial; return [initial, value => { state[index] = value; }];
+    } } : require(id) });
+    const tree = exports.ProspectReportActions({ prospectId: "p1", canGenerate: true, recipientEmail: "synthetic@example.test", businessName: "Synthetic" });
+    // Re-render with the email dialog open to execute the real Send handler.
+    state[3] = true; hook = 0;
+    vm.runInNewContext(code, { exports, fetch, require: id => id === "react" ? { useState: () => {
+      const index = hook++; return [state[index], value => { state[index] = value; }];
+    } } : require(id) });
+    const opened = exports.ProspectReportActions({ prospectId: "p1", canGenerate: true, recipientEmail: "synthetic@example.test", businessName: "Synthetic" });
+    const find = node => {
+      if (!node || typeof node !== "object") return null;
+      if (node.type === "button" && node.props.children === "Send report") return node;
+      for (const child of [node.props?.children].flat(Infinity)) { const found = find(child); if (found) return found; }
+      return null;
+    };
+    assert.ok(tree); const button = find(opened); assert.ok(button);
+    button.props.onClick();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(patch.reportId, "report-a");
+    assert.equal(state[5], failure === "success");
+    if (failure !== "success") assert.match(state[2], /delivery recording failed/);
+  });
+}
+
+test("historical URL accesses remain anonymous throughout activity and follow-up copy", () => {
+  const activity = fs.readFileSync("packages/platform-core/src/prospecting-engine/activity-workspace.ts", "utf8");
+  assert.match(activity, /contactName: e.type === "report_viewed" \? null/);
+  assert.match(activity, /reader identity unknown/);
+  assert.doesNotMatch(activity, /Report viewed|Follow up if unopened/);
+  const follow = fs.readFileSync("packages/platform-core/src/command-centre/growth-engine/follow-ups.ts", "utf8");
+  assert.doesNotMatch(follow, /High intent/); assert.match(follow, /reader unknown/);
+});
+
+
+test("both report-generation entry points serialize on the same prospect", async () => {
+  const f = fixture();
+  const core = moduleFrom("packages/platform-core/src/command-centre/growth-engine/reports.ts", {
+    "./report-snapshot": { loadGrowthReportSnapshot, prospectReportIdentity: p => ({ businessName: p.businessName, websiteUrl: p.websiteUrl, industry: p.industry, location: p.location }), savedProspectReportIdentity: p => p?.businessName ? p : null },
+    "@dg/database": { prisma: f.db },
+    "./audits": { newShareToken: () => "legacy-token" },
+    "./scope": { growthScopeWhere: () => ({ organisationId: "tenant-a" }) },
+    "./prospects": {},
+  });
+  // Core performs its initial scoped reads and generation bookkeeping outside
+  // the transaction; expose the same delegates there as on the real Prisma client.
+  Object.assign(f.db, f.tx);
+  const results = await Promise.all(Array.from({ length: 10 }, (_, i) => i % 2
+    ? core.createGrowthProspectReport({ prospectId: "p1", scope: {} })
+    : generateGrowthReportSnapshot(f.db, "p1", "tenant-a")));
+  assert.equal(f.reports.length, 1);
+  assert.equal(new Set(results.map(r => r.report?.shareToken ?? r.shareToken)).size, 1);
+});
+
+
+test("inbound Business Audit generator supplies the same frozen-identity contract", () => {
+  const source = fs.readFileSync("packages/platform-core/src/marketing/public-business-audit.ts", "utf8");
+  assert.match(source, /auditId: prospectAudit.id,\s+prospectSnapshot: prospectReportIdentity\(prospect\)/);
+});
+
+
+for (const routeFile of ["src/app/opportunity/[token]/page.tsx", "src/app/opportunity-report/[token]/page.tsx"]) {
+  for (const state of ["active", "archived", "revoked"]) {
+    test(`both token routes enforce tenant preview lifecycle: ${routeFile} ${state}`, async () => {
+      const f = await generated();
+      if (state === "archived") f.prospect.archivedAt = new Date();
+      if (state === "revoked") f.reports[0].revokedAt = new Date();
+      const core = moduleFrom("packages/platform-core/src/command-centre/growth-engine/reports.ts", {
+        "./report-snapshot": { loadGrowthReportSnapshot }, "@dg/database": { prisma: f.db }, "./audits": {}, "./scope": {}, "./prospects": {},
+      });
+      const page = moduleFrom(routeFile, {
+        "next/navigation": { notFound }, "next/link": { __esModule: true, default: props => require("react").createElement("a", props) },
+        "@dg/platform-core": { getPublicGrowthOpportunityReport: core.getPublicGrowthOpportunityReport },
+        "@dg/database": { prisma: f.db },
+        "@dg/platform-core/command-centre/growth-engine/report-snapshot": { loadGrowthReportSnapshot },
+        "@/lib/prospect-report-access": { prospectReportAccess: async () => previewAccess },
+      }, { env: { DATABASE_URL: "postgresql://synthetic:synthetic@127.0.0.1:1/synthetic" } }).default;
+      if (state === "active") assert.match(await render(page, f.report.shareToken, "1"), /Evidence A/);
+      else await assert.rejects(render(page, f.report.shareToken, "1"), /NOT_FOUND/);
+      assert.equal(f.reports[0].viewCount, 0); assert.equal(f.engagements.length, 0);
+    });
+  }
+}
+
+test("anonymous URL access neither boosts scores nor establishes reader identity", () => {
+  const { computeProspectOpportunityScore } = moduleFrom("packages/platform-core/src/command-centre/growth-engine/opportunity-engine.ts", {});
+  const input = { stage: "qualified", businessName: "Synthetic", websiteUrl: "https://example.test", industry: "Real Estate", contactEmail: "synthetic@example.test", contactPhone: "000", metadata: {}, audit: { businessHealth: 61, seoScore: 71, aiVisibility: 51, websiteHealth: 81 }, report: { viewCount: 0, sentAt: new Date(), firstViewedAt: null } };
+  const before = computeProspectOpportunityScore(input);
+  const after = computeProspectOpportunityScore({ ...input, report: { ...input.report, viewCount: 25, firstViewedAt: new Date() } });
+  for (const field of ["score", "fitScore", "opportunityScore", "researchConfidence", "contactPriority", "dailyTop3Eligible", "recommendedAction"]) assert.equal(after[field], before[field]);
+  assert.match(after.positiveSignals.join(" "), /reader identity unknown/);
+  assert.doesNotMatch(after.positiveSignals.join(" "), /engagement signal|report viewed/i);
 });

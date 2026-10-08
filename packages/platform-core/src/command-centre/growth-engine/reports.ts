@@ -1,4 +1,4 @@
-import { loadGrowthReportSnapshot, prospectReportIdentity } from "./report-snapshot";
+import { loadGrowthReportSnapshot, prospectReportIdentity, savedProspectReportIdentity } from "./report-snapshot";
 import type { ProspectAuditFinding } from "./types";
 import { newShareToken } from "./audits";
 import { updateGrowthProspect } from "./prospects";
@@ -140,16 +140,36 @@ export async function createGrowthProspectReport(input: {
   });
 
   const sentAt = input.markSent ? new Date() : null;
-  const report = await prisma.growthProspectReport.create({
-    data: {
-      prospectId: prospect.id,
-      auditId: audit.id,
-      shareToken: newShareToken(),
-      executiveSummary,
-      prospectSnapshot: prospectReportIdentity(prospect),
-      sentAt,
-    },
+  const report = await prisma.$transaction(async (tx) => {
+    // Share the prospect-row lock with the Prospecting generator so both
+    // generation entry points reuse a single active snapshot for this audit.
+    const locked = await tx.$queryRaw<{ id: string }[]>`
+      SELECT id FROM growth_prospects WHERE id = ${prospect.id}
+        AND organisation_id IS NOT DISTINCT FROM ${prospect.organisationId}
+        AND archived_at IS NULL FOR UPDATE
+    `;
+    if (!locked.length) return null;
+    const existing = await tx.growthProspectReport.findFirst({
+      where: { prospectId: prospect.id, auditId: audit.id, revokedAt: null },
+      orderBy: { generatedAt: "desc" },
+    });
+    if (existing && savedProspectReportIdentity(existing.prospectSnapshot)) {
+      return sentAt && !existing.sentAt
+        ? tx.growthProspectReport.update({ where: { id: existing.id }, data: { sentAt } })
+        : existing;
+    }
+    return tx.growthProspectReport.create({
+      data: {
+        prospectId: prospect.id,
+        auditId: audit.id,
+        shareToken: newShareToken(),
+        executiveSummary,
+        prospectSnapshot: prospectReportIdentity(prospect),
+        sentAt,
+      },
+    });
   });
+  if (!report) return null;
 
   await prisma.growthProspectEngagement.create({
     data: {

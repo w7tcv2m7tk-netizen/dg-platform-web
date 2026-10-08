@@ -18,7 +18,7 @@ export function prospectReportIdentity(prospect: ProspectIdentity): ProspectIden
   };
 }
 
-function savedIdentity(value: unknown): ProspectIdentity | null {
+export function savedProspectReportIdentity(value: unknown): ProspectIdentity | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const snapshot = value as Record<string, unknown>;
   if (typeof snapshot.businessName !== "string" || !snapshot.businessName.trim()) return null;
@@ -47,7 +47,7 @@ export async function loadGrowthReportSnapshot(
     });
     if (!report || report.revokedAt || report.prospect.archivedAt || !report.auditId) return null;
     if (access.kind === "preview" && report.prospect.organisationId !== access.organisationId) return null;
-    const prospect = savedIdentity(report.prospectSnapshot);
+    const prospect = savedProspectReportIdentity(report.prospectSnapshot);
     // Legacy records cannot truthfully reconstruct their historical business identity.
     // Preserve their data/token, but require a newly generated complete snapshot.
     if (!prospect) return null;
@@ -76,6 +76,14 @@ export async function loadGrowthReportSnapshot(
 /** Reuse only the same evidence snapshot. New research requires a new token/date. */
 export async function generateGrowthReportSnapshot(db: ReportDatabase, prospectId: string, organisationId: string) {
   return db.$transaction(async (tx) => {
+    // Serialize generation for this prospect, without a legacy-data backfill or
+    // unique index. The lock lasts through the existing-snapshot check/create.
+    const locked = await tx.$queryRaw<{ id: string }[]>`
+      SELECT id FROM growth_prospects
+      WHERE id = ${prospectId} AND organisation_id = ${organisationId}
+        AND archived_at IS NULL FOR UPDATE
+    `;
+    if (!locked.length) return null;
     const prospect = await tx.growthProspect.findFirst({ where: { id: prospectId, organisationId, archivedAt: null } });
     if (!prospect) return null;
     const audit = await tx.growthProspectAudit.findFirst({ where: { prospectId }, orderBy: { auditedAt: "desc" } });
@@ -83,7 +91,7 @@ export async function generateGrowthReportSnapshot(db: ReportDatabase, prospectI
     const existing = await tx.growthProspectReport.findFirst({
       where: { prospectId, auditId: audit.id, revokedAt: null }, orderBy: { generatedAt: "desc" },
     });
-    if (existing && savedIdentity(existing.prospectSnapshot)) return { report: existing, created: false };
+    if (existing && savedProspectReportIdentity(existing.prospectSnapshot)) return { report: existing, created: false };
     const report = await tx.growthProspectReport.create({ data: {
       prospectId, auditId: audit.id, shareToken: randomBytes(24).toString("hex"),
       prospectSnapshot: prospectReportIdentity(prospect),

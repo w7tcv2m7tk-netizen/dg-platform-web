@@ -74,7 +74,10 @@ DigitalGate`);
       })});
       const json=await res.json().catch(()=>null);
       if(!res.ok) throw new Error(json?.error?.message || "Email send failed.");
-      await fetch(`/api/v1/prospecting/prospects/${prospectId}/report`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"email_sent",reportId:id,to:to.trim(),subject:subject.trim()})});
+      const recordingFailure = "Email submitted, but report delivery recording failed. Confirm the record before resending.";
+      const recorded = await fetch(`/api/v1/prospecting/prospects/${prospectId}/report`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"email_sent",reportId:id,to:to.trim(),subject:subject.trim()})}).catch(() => { throw new Error(recordingFailure); });
+      const recording = await recorded.json().catch(() => null);
+      if (!recorded.ok || recording?.data?.recorded !== true) throw new Error(recordingFailure);
       setSent(true); setEmailOpen(false);
     } catch(e) { setError(e instanceof Error ? e.message : "Email send failed."); }
     finally { setSending(false); }

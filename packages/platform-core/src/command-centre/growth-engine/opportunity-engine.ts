@@ -378,7 +378,7 @@ export async function getDailyOpportunityBriefing(options?: {
         where: {
           archivedAt: null,
           convertedOrganisationId: null,
-          stage: { in: ["email_opened", "report_viewed"] },
+          stage: { in: ["email_opened"] },
           ...(options?.organisationId ? { organisationId: options.organisationId } : {}),
         },
       }),
