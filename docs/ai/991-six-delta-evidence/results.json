@@ -1,0 +1,272 @@
+{
+  "branch": "fix/991-complete-physical-remediation",
+  "base": "24c2ac312b46ef2a0ea4659d92880f2dc2bd7df5",
+  "remediationSha256": "cf0d815ad5d5594ba19b0e00b39a525659bcd80567fbbcb66046c737c951a7a8",
+  "canonicalSha256": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
+  "sourceHashes": {
+    "scripts/sql/remediate-991-checks.sql": "cf0d815ad5d5594ba19b0e00b39a525659bcd80567fbbcb66046c737c951a7a8",
+    "src/lib/remediate-991-physical.ts": "5e8355ab05f72ce3baed22924596dc4c90365bc7d31bfd221f33cd5690a21c6f",
+    "src/lib/remediate-991-sql.ts": "34592d9c5065b39aa084ff99fc2acdac6753081d0983bc5c5e8960c5ae61d39b",
+    "src/lib/remediate-991-sql-generated.ts": "c748ce0b12a5077d5ec61c016e8c1e2ab3aef4e6682fdddb13b5d57552b0af45",
+    "scripts/generate-remediate-991-sql.mjs": "bac3a763824a6d460921599d1e2eb752d2126a89a450a6e2c847441c84567261",
+    "src/app/api/admin/remediate-991-physical/route.ts": "8a7abac14a0c59f48b628055adc01959a2faca5e9cc5c00e14087df5a28e394b",
+    "src/lib/remediate-991-request.ts": "10d0b6d0ea55ef2a2c83bcb32e59c9d7f2ffabb7a81987acc5863ba1990c0c5c",
+    "src/middleware.ts": "d0c680f6b5b557691f2f2cb7f992225176fa3db748dda28c93b9c1192066971d",
+    "src/components/platform/EnabledAppsProvider.tsx": "39b4cff6460a4c08b909d984880f2d4bdbc2457ce40c192f0c919dcb7a08162b",
+    "package.json": "9bd981377f6fb17c401c88e796467e0c4ac0e64ecd8e286b63bbfc318391d496",
+    "packages/database/prisma/migrations/20261007_ai_worker_provisioning_boundary/migration.sql": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
+    "packages/database/prisma/schema.prisma": "dd24e81f5f2aa85813734f644ebe9cd4ec177426a410e92f0b639610c671e091",
+    "scripts/rehearse-991-check-remediation.py": "2e95bc9c6cb806b370c3390f906e077f9048fa16871a116848c8bb8f56d0dcbe",
+    "scripts/test-remediate-991-physical.mjs": "99542775ddb2346cf5ceda6b7aadd8e4617c323fe62293154d575a4c7f77d2e0",
+    "scripts/sql/991-receipt-shape.sql": "7863859f60054e60f9c6a93e46b25dbfc205fb9371ce1d3b9d55fd9bd6143d76",
+    "scripts/test-991-catalogue-counterexamples.py": "6f4436845072b6050f30d04646e8d98b7fd99e1e63f22c3c637f0f220acab80f",
+    "scripts/run-remediate-991-physical-tests.mjs": "3e1508f2dd116d4b91927ddc30dd0445978f2160172eb71f0879cc8cf68b77e6"
+  },
+  "results": {
+    "sqlRehearsal": {
+      "passed": 108,
+      "failed": 0
+    },
+    "executor": {
+      "passed": 147,
+      "failed": 0
+    },
+    "aiLocalDb": {
+      "passed": 57,
+      "failed": 0
+    },
+    "provisioningDb": {
+      "passed": 13,
+      "failed": 0
+    },
+    "securityIncludingClientBoundary": {
+      "passed": 58,
+      "failed": 0
+    },
+    "normalBuildExit": 0,
+    "typescript": 0,
+    "lint": 0,
+    "binding": 0,
+    "diff-check": 0,
+    "independentCounterexamples": {
+      "passed": 46,
+      "failed": 0
+    },
+    "normalBuildNodeTests": {
+      "tests": 881,
+      "passed": 881,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "staticPages": 456
+    }
+  },
+  "productionAccess": false,
+  "productionMutation": false,
+  "productionAuthorityConfigured": false,
+  "remediationRequests": 0,
+  "reconciliation": false,
+  "provisioning": false,
+  "historicalPrs": {
+    "993": {
+      "draft": true,
+      "state": "OPEN",
+      "head": "13205f181e274e155ac9a94c8a50c1f1df7d4517"
+    },
+    "994": {
+      "draft": true,
+      "state": "OPEN",
+      "head": "5b5a5f5d009c480161790ec60652062415f58189"
+    }
+  },
+  "browserClerkPrerequisite": "Unresolved; supported browser bridge client trust failure",
+  "buildEnvironment": "Normal npm run build in isolated staged-tree copy outside sandbox; no env files, minimal inherited environment, dummy Clerk values and unreachable loopback database. Runtime-source hashes unchanged after validation.",
+  "priorReviewedHead": "3c2bfa1b8dfb929c2c171443b2bdada295d275fa",
+  "retentionReview": {
+    "secretScan": "No secret material; api_key:operator is a test label",
+    "uniqueEvidence": "Security rationale, prior failed-review cases, canonical reference, all rehearsal outcomes and rollback digests retained; repeated SQL queries, stack traces, fixture startup output and empty logs omitted",
+    "removedLogs": [
+      {
+        "file": "ai-db.log",
+        "lines": 685,
+        "sha256": "d026d383d4c97c8ba2fc6f8e5a76575bba1d8642c3aa9ade38e94ee8c59efb0a"
+      },
+      {
+        "file": "binding.log",
+        "lines": 1,
+        "sha256": "ca3974b00599e625415d59e1d103b563bc4b965814ab00648f65cd5b2c4a38b0"
+      },
+      {
+        "file": "diff-check.log",
+        "lines": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "executor.log",
+        "lines": 138,
+        "sha256": "588fd1e03681f01008b5f478686be5f282461570cfadbc261760f09069ad9703"
+      },
+      {
+        "file": "lint.log",
+        "lines": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "file": "normal-build.log",
+        "lines": 2765,
+        "sha256": "e90b9e22381445c6e7b87fa31e6d236c68169a6ebee45e7f9303ac731da96e67"
+      },
+      {
+        "file": "rehearsal.log",
+        "lines": 51,
+        "sha256": "d9caa24365b5023a5482ec671eb2f2479bf3f5fe6cbdb557546f8e8305e91ca7"
+      },
+      {
+        "file": "security.log",
+        "lines": 91,
+        "sha256": "9dc9c43668349136cf2768be0cf63bc833e0464fa36e36f6cf92f87b19f51a53"
+      },
+      {
+        "file": "typescript.log",
+        "lines": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  "commands": {
+    "binding": "node scripts/generate-remediate-991-sql.mjs --check",
+    "sqlRehearsal": "python3 scripts/rehearse-991-check-remediation.py /absolute/postgresql18/bin --evidence /tmp/991-rehearsal.json",
+    "executor": "node scripts/run-remediate-991-physical-tests.mjs /absolute/postgresql18/bin",
+    "aiLocalAndProvisioningDb": "node scripts/run-ai-local-db-tests.mjs /absolute/postgresql18/bin",
+    "independentCounterexamples": "python3 scripts/test-991-catalogue-counterexamples.py /absolute/postgresql18/bin --evidence /tmp/991-counterexamples.json",
+    "security": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-local-crypto.mjs scripts/test-ai-worker-auth.mjs scripts/test-ai-worker-provisioning.mjs scripts/test-ai-worker-keychain.mjs scripts/test-middleware-public-routes.mjs scripts/test-platform-authority.mjs scripts/test-api-key-authority.mjs scripts/test-connector-secret-boundaries.mjs scripts/test-enabled-apps-client-boundary.mjs",
+    "typescript": "npx tsc --noEmit --incremental false",
+    "lint": "npx eslint scripts/generate-remediate-991-sql.mjs scripts/run-remediate-991-physical-tests.mjs scripts/test-remediate-991-physical.mjs src/lib/remediate-991-physical.ts src/lib/remediate-991-sql.ts src/lib/remediate-991-sql-generated.ts src/lib/remediate-991-request.ts src/app/api/admin/remediate-991-physical/route.ts src/middleware.ts",
+    "diff": "git diff origin/main --check",
+    "build": "npm run build"
+  },
+  "independentCounterexamples": [
+    {"name": "ordinary six-delta state equals fresh canonical PostgreSQL 18 reference", "passed": true},
+    {"name": "original renamed NOT NULL counterexample refuses unchanged reviewed SQL", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "57034fdea678ffeef70b4d9645dd446ac7d05a9e1cb8ba7eb177f83fe1a9e418"},
+    {"name": "original CLUSTER counterexample refuses unchanged reviewed SQL", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "dd56b80009c844c4720840df29f720b508374101736e1369b16b96a897a8e946"},
+    {"name": "final NOT NULL identity drift rolls back", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "21b159099d3f913bee73a981677ee4eccbb7fe68d8f1070198611eec334cb5e4"},
+    {"name": "final CLUSTER drift rolls back", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "87e563410ae697f4dc8b6a7e77243fd3bda4f773120e6cd60fb568811bc10d8e"},
+    {"name": "starting CHECK identity nonce/fingerprint name swap refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "a6fa2e48ff2d375b00b1d97fbb9f022a5dc108cb111f731ea0a7b2bf469176dd"},
+    {"name": "final CHECK identity nonce/fingerprint name swap rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "eb869cafd6fe6032e1377cb5b38582c4319af1409fa301a4924aedd41cc82b2e"},
+    {"name": "starting CHECK identity window_id/outcome name swap refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "1db3b86a9d700193efa97101b20909c4ddb0c7969443b3ec6987b49eb3df8727"},
+    {"name": "final CHECK identity window_id/outcome name swap rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "509fd3e9e928e89c510298aabee337c2912b1190e4f7f6046d480e76846234a0"},
+    {"name": "starting CHECK identity nonce rebound to fingerprint refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "8b6c75671560a1d70da31d803f6925d0cbc55aebf7e9cffcc420d17ae74aa261"},
+    {"name": "final CHECK identity nonce rebound to fingerprint rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "af2368426f0323a0e9d38a4cff9a6518e0d68dd6335aed911d0ea552c572accd"},
+    {"name": "starting CHECK identity window_id rebound to outcome refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "9b0db52fea8e70f6a89cc9071fa2371367d5eb795db88cd55bd15666994bc223"},
+    {"name": "final CHECK identity window_id rebound to outcome rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "a9209bf54e40b40d442a8ea103fc6567ee28ec971df7bad42b78a8062147ae9d"},
+    {"name": "starting CHECK identity additional CHECK refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "c1159eb69529d1cd85922bd48f42a18b9533fd75bb52826a50c397edbd81cb78"},
+    {"name": "final CHECK identity additional CHECK rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "a21756276f94c7923a082c6a0ad6a6d2b783f473fe3412dcb767a09ecd5e3467"},
+    {"name": "starting CHECK identity NO INHERIT CHECK refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "e469b82d2f7cc33a06740229151fc4a8677c4558fa907606ad329c2b7ac1b999"},
+    {"name": "final CHECK identity NO INHERIT CHECK rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "a19e935de9d567a8a0a489d84926bc634c91af1ef804ad0c4c5293a232f984be"},
+    {"name": "starting CHECK identity renamed nonce CHECK refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "48494ab55185710ddc8d6077138c7b9c83457a3ffef27305b538e9e87a7cf001"},
+    {"name": "final CHECK identity renamed nonce CHECK rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "b792183d7a6e87111a1fa7304cb5f7a189ba80df2969f143e59b439e9c6774bd"},
+    {"name": "starting CHECK identity renamed fingerprint CHECK refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "a8956dd1a97aa76e26d0f241b081769365a8326c7f23773b5b714cbb17b9dba8"},
+    {"name": "final CHECK identity renamed fingerprint CHECK rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "00f08f60ac8f70e65d33c3d9f78d7b177d6fdb7fd6eb8381f40a0f312812fb1b"},
+    {"name": "starting CHECK identity renamed window_id CHECK refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "7c5abb2019a31e91d4b21477615a7f23f09c95c25a255a25f30ebd165c8171be"},
+    {"name": "final CHECK identity renamed window_id CHECK rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "536086eba41636bd87222d773bd216638ebfd71db8a0c549905923a11a854fcd"},
+    {"name": "starting CHECK identity renamed outcome CHECK refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0eccbfac84891b014f42acd26eed9f0b3d3227c88753fe4d85d193123caa3493"},
+    {"name": "final CHECK identity renamed outcome CHECK rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "e44131b9e6b7b957f0d18c3d088559cd5804a3b159dae64f7793eca4b7dda813"},
+    {"name": "starting physical identity worker_id STORAGE PLAIN refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "dea1dd2bf846c14f5f10695b753401254f2b057f40e594041fbb4f9f70fd3091"},
+    {"name": "final physical identity worker_id STORAGE PLAIN rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "87c3aa770d08af214df5e4e23196e2a8c4875cfbff44a849171a22e9bdca4f56"},
+    {"name": "starting physical identity deployment_id COMPRESSION pglz refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "564a4a588faae1fa6276c3a76d53921610e66e1ea3259d657c4cd0caabcbe329"},
+    {"name": "final physical identity deployment_id COMPRESSION pglz rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "2a5e7df9e6bbc60b615e0fc8d7c3838970832793ca599b72ec90a266df4c6ba1"},
+    {"name": "starting physical identity created_at statistics target refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "83b3ee8026a14475e3284d57263f786b25e44846c35fde8e18e466fda2668403"},
+    {"name": "final physical identity created_at statistics target rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "74dfbc580b7172caef389eb0ddec453efa48fcd862395e31a825eddc8c9a980d"},
+    {"name": "starting physical identity completed_at n_distinct refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "9f775e77693d50dd85c55e8ebbb7299d0d087556c85330482baa8b961b6824c5"},
+    {"name": "final physical identity completed_at n_distinct rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "86a04f432fde93e879ba46178e43219b1fd7504e340338e1f6ec4c1cc3c747af"},
+    {"name": "starting physical identity created_at n_distinct_inherited refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "ab0f89c5dd438cd6f81409d68da023d6f3ef68fc50c159628e729e2e63c80e64"},
+    {"name": "final physical identity created_at n_distinct_inherited rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "3955196a79cb71e152d2b468cec25889f96a11539441eb6d8a915c913fbfab44"},
+    {"name": "starting physical identity nonce statistics target refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "0ebfaa9ca3903d38cc1c8b369dc61ffc73ed24261647512dd20704f5376161d4"},
+    {"name": "final physical identity nonce statistics target rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "7f6d9da6c4699661e45687b46acf5aa7fb46216b1834820f35dae09d9f9fffa9"},
+    {"name": "starting physical identity fingerprint attribute options refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "a9253e3c25ab970e53e7b4d4ff21dd3c88debcaf882c83781a51563cfba51844"},
+    {"name": "final physical identity fingerprint attribute options rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "3a8d31f64c76a302c2398aeeb66d70b6ec71e4e5377145a57b79792c0ad97b32"},
+    {"name": "starting physical identity receipt table tablespace refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "6f6fc65e4919a6d7255478608033ad85227c9ee79ed350dcd72e0abbca68a2d5"},
+    {"name": "final physical identity receipt table tablespace rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "777ed83b165d551aa0d4e92eb552f4e9532d1ff5be1a1aa10fd7f1ec6663cbae"},
+    {"name": "starting physical identity window index tablespace refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "cd0a524ceb706ec4b5865fbdb5141d4b0767229bab9e8f9c33fb7171d5f651a5"},
+    {"name": "final physical identity window index tablespace rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "5fdaba6e735f53a768404db0e1fce3076115912f63ebeb9984c4bdb6a07b36e4"},
+    {"name": "starting physical identity PK index tablespace refuses before mutation", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "dd2cbee6aa6683c0c8f9b72830e8ccbd80799c82088d67ece36d2d159929a084"},
+    {"name": "final physical identity PK index tablespace rolls back all six deltas", "passed": true, "error": "ERROR:  Catalogue does not match expected variant", "unchangedDumpSha256": "6a2e18cc5da849a36416ecb70d54d465f43be36277c92ceeff666dad475e8b58"},
+    {"name": "maintenance and effective defaults retain canonical physical identity", "passed": true}
+  ],
+  "validationLogs": {
+    "rehearsal": "4649a9a3708b146f66a6701a4cbdf37266738ef64d5674319a3338791af512f0",
+    "executor": "56c60b6e1df1e185b027ed0e7ed69e7afed8d5ec3b77a5293e3b419447d519b2",
+    "ai-db": "15dffa855dd45843192cf05bd3183a505cebf4e7ff366e59ec480478c5fc02fa",
+    "security": "720b8713232250681fea297e9bdc95c48d5c43e7448502987e8bee2448006754",
+    "counterexamples": "e475f936394c0a60f1ef57b15794a25f28dfd12a4c94a036db8b5d6506ae25f7",
+    "typescript": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "lint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "build": "111e174c25322001d838d9c6b75565c2e3a0b9ddee4c5b077630edfd8e2792e3"
+  },
+  "scopeCheck": "All five original ALTER statements (six semantic deltas), locks and timeouts are byte-identical to prior reviewed head; canonical SQL and Prisma schema unchanged.",
+  "validatedSourceBaseHead": "db1b62ad4089673d0fc58dffc4906454f4a4dfff",
+  "checkIdentityCorrection": {
+    "priorReviewedHead": "e6e43b5a21f5ef948f18790f55ac703ffd2c41fc",
+    "priorReviewedSqlSha256": "1c07112091af372cfad73488c822cd98fab271b05896458495369c3b0c8f1b6e",
+    "contract": "Both gates bind all CHECK/PK names, types, definitions, conkey, validated/enforced/deferrable/deferred/local/inheritance/no-inherit flags.",
+    "ordinaryFinalCatalogueEqualsFreshCanonical": true,
+    "originalNotNullAndClusterCounterexamplesStillRefuse": true,
+    "oldVersusNewIndependentReproducer": {
+      "passed": 7,
+      "failed": 0,
+      "cases": [
+        {
+          "name": "exact prior reviewed SQL commits independently reproduced CHECK-name swap; catalogue differs",
+          "passed": true
+        },
+        {
+          "name": "corrected SQL rolls back identical independent CHECK-name swap",
+          "passed": true,
+          "error": "ERROR:  Catalogue does not match expected variant",
+          "unchangedDumpSha256": "b7fbfeee3dca4049dddeebf0d9872d48fe6265ac72759698169901f1a46db9b3"
+        }
+      ],
+      "evidenceSha256": "bbe9511994fddb4fd49129d3122dc9470f3a77ede25a44ad96226d256c41b69d"
+    },
+    "newRegressionMatrix": "10 CHECK identity faults, each before mutation and after all six deltas: two name swaps, two column rebindings, four renames, extra CHECK and NO INHERIT.",
+    "warnings": [
+      "Node MODULE_TYPELESS_PACKAGE_JSON",
+      "middleware convention deprecated",
+      "custom Cache-Control",
+      "Prisma CommonJS export *",
+      "NFT tracing of next.config.ts",
+      "expected dynamic-render diagnostics and synthetic Prisma negative-test errors"
+    ],
+    "rawTranscriptsCommitted": false
+  },
+  "physicalIdentityCorrection": {
+    "priorReviewedHead": "db1b62ad4089673d0fc58dffc4906454f4a4dfff",
+    "priorReviewedSqlSha256": "c6ad8dbd875bd289eb82d7a37f041daff006b38a6ab9643fffc0711d1f4644f1",
+    "canonicalColumnPolicy": {
+      "allNineColumns": true,
+      "textStorage": "x",
+      "timestampStorage": "p",
+      "compression": "",
+      "statisticsTarget": null,
+      "attributeOptions": null
+    },
+    "receiptTableAndIndexesDatabaseDefaultTablespace": true,
+    "runtimeStatisticsAndRewriteIdentityAreNotCanonicalLiterals": true,
+    "boundaryDocument": "991-SIX-DELTA-REMEDIATION-REVIEW.md#physical-identity-boundary-postgresql-18",
+    "durableNewCases": "Ten physical-policy mutations at both starting/final boundaries plus maintenance/default-setting success in all three suites.",
+    "allFiveHostileMutationTypesRefuseInitiallyAndRollBackFinally": true,
+    "hostileReviewRerun": {
+      "attempts": 50,
+      "refusals": 50,
+      "contractFailures": 0,
+      "unsupported": 0
+    },
+    "hostileOrdinarySuccessMatchesExpandedFreshCanonical": true,
+    "hostileEvidenceSha256": "839e5e465e5ed32266ea302df3dccbd55d3acdfa102865f9bcf7b3473f1dec81",
+    "hostileReproducerSha256": "67e5ddd1ecd418fc629e11f0854913ab3a7b540c991f720a1c07c78277605db7",
+    "notNullClusterCheckNameProtectionsPreserved": true,
+    "semanticMutationDeltas": 6,
+    "fiveAlterStatementsByteIdentical": true,
+    "rawTranscriptsCommitted": false
+  }
+}

@@ -1,6 +1,6 @@
 /** Creates and destroys its own loopback PostgreSQL cluster; never loads env files. */
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync, existsSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
@@ -34,6 +34,8 @@ console.log(version.stdout.trim());
 env.PGPASSFILE = path.join(owned, "no-password-file");
 env.PGSERVICEFILE = path.join(owned, "no-service-file");
 const data = path.join(owned, "data");
+const tablespace = path.join(owned, "tablespace");
+mkdirSync(tablespace);
 const marker = randomUUID();
 let passed = false;
 try {
@@ -55,8 +57,11 @@ try {
     CREATE TABLE public.ai_local_recipient_approvals (id text PRIMARY KEY);
     CREATE TABLE public.ai_inference_jobs (id text PRIMARY KEY);
     CREATE TABLE public.ai_worker_claim_receipts (id text PRIMARY KEY);
+    CREATE TABLE public.ai_accounting_outbox (id text PRIMARY KEY);
   `);
   const psql = ["-X", "-h", "127.0.0.1", "-p", String(port), "-U", "physical_test", "-d", "dg_991_physical_test", "-v", "ON_ERROR_STOP=1"];
+  run(path.join(bin, "psql"), [...psql, "-c",
+    `CREATE TABLESPACE dg991_identity_test_space LOCATION '${tablespace.replaceAll("'", "''")}'`]);
   run(path.join(bin, "psql"), [...psql, "-f", fixture]);
   run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs",
     "--test", "--test-timeout=30000", "scripts/test-remediate-991-physical.mjs"], { env: { ...env,
