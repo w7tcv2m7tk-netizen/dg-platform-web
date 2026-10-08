@@ -1,10 +1,7 @@
 "use client";
 
-import {
-  AGENT_STARTER_TEMPLATES,
-  AGENT_TOOL_GROUPS,
-  type AgentBuilderConfig,
-} from "@dg/platform-core";
+import { AGENT_STARTER_TEMPLATES, AGENT_TOOL_GROUPS } from "@dg/platform-core/communications/templates";
+import type { AgentBuilderConfig } from "@dg/platform-core/communications/providers/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 

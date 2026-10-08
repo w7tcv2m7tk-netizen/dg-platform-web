@@ -694,6 +694,8 @@ model GrowthProspectReport {
   auditId         String?   @map("audit_id")
   shareToken      String    @unique @map("share_token")
   executiveSummary String?  @map("executive_summary")
+  prospectSnapshot Json?    @map("prospect_snapshot")
+  revokedAt       DateTime? @map("revoked_at")
   viewCount       Int       @default(0) @map("view_count")
   sentAt          DateTime? @map("sent_at")
   firstViewedAt   DateTime? @map("first_viewed_at")

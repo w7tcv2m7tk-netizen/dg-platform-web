@@ -1,0 +1,2766 @@
+
+> dg-platform-web@0.3.0 prebuild
+> npm run test:ai-gateway-policy && npm run test:ai-gateway && node scripts/test-launch-baseline.mjs && node scripts/test-marketing-trial-conversion.mjs && node scripts/test-founding-customer-view-entry.mjs && npm run test:custom-pricing-founding-separation && npm run test:custom-offer-experience && npm run test:founding-operator-customer-boundary && npm run test:industry-activation-core-app-safety && npm run test:team-invite-seat-reservation && npm run test:ai-entitlement-gates && npm run test:outbound-entitlement-gates && npm run test:industry-purchase-activation && npm run test:server-commercial-entitlements && npm run test:domain-callback-entitlement && npm run test:domain-industry-entitlements && npm run test:specialist-industry-entitlements && npm run test:command-revenue-tenant-scope && npm run test:unit && npm run test:marketing-commercial-consistency && npm run test:security-certification && npm run test:industry-onboarding-isolation && npm run test:accommodation-completeness && npm run test:finance-certification && npm run test:lend-finance-connector && npm run test:lend-connection-ui && npm run test:lend-finance-mapping && npm run test:illion-bankstatements-connector && npm run test:equifax-finance-connector && npm run test:vedacheck-finance-connector && npm run test:services-certification && npm run test:commercial-certification && npm run test:property-management-certification && npm run test:real-estate-certification && npm run test:command-completeness && npm run test:observability-operations && npm run test:customer-guidance && npm run test:launch-customer-journey && npm run test:ai-visibility-monitoring && npm run test:ai-visibility-model-observations && npm run test:business-brain-knowledge && npm run test:website-studio-save-isolation && npm run test:website-studio-publication && npm run test:website-studio-permissions && npm run test:website-studio-page-save-isolation && npm run test:website-studio-nested-routes && npm run test:website-studio-responsive && npm run test:aida-public-advisor && npm run test:aida-business-overview && npm run test:aida-business-brain-depth && npm run test:first-day-aida-experience && npm run test:connected-services-customer-experience && npm run test:services-finance-depth && npm run test:meta-connector-ui-errors && npm run test:social-connector-assignment-health && npm run test:connector-resource-assignment-health && npm run test:youtube-connector-ui-errors && npm run test:tiktok-connector-ui-errors && npm run test:connector-settings-authority && npm run test:google-connector-mutation-authority && npm run test:pricing-entitlements && npm run test:onboarding-plan-differentiators && npm run test:onboarding-support-step && npm run test:onboarding-checkout-verification && npm run test:operator-onboarding-rehearsal && npm run test:onboarding-ux-polish && npm run test:onboarding-primary-business-type && npm run test:operator-customer-control && npm run test:first-customer-observability && npm run test:client-intelligence-query-resilience && npm run test:partner-mobile-layout && npm run test:customer-intelligence-demo-wp-cleanup && npm run test:operator-demo-partner-cancel && npm run test:current-referral-commercial-model && npm run test:operator-business-overview-access && npm run test:business-overview-brain-order && npm run test:launch-preflight-demo-industry && npm run test:support-centre-ux && eslint packages/platform-core/src/websites/chrome.ts packages/platform-core/src/websites/page-patch.ts src/app/api/v1/websites/[id]/chrome/route.ts src/app/api/v1/websites/[id]/route.ts src/app/api/v1/websites/route.ts src/app/api/v1/websites/[id]/pages/route.ts src/app/api/v1/websites/[id]/pages/[pageId]/route.ts src/app/api/v1/websites/[id]/import-wordpress/route.ts src/app/api/v1/websites/[id]/assist/route.ts src/app/api/v1/websites/[id]/seo-suggest/route.ts src/app/api/v1/websites/[id]/pagespeed/route.ts src/app/api/v1/websites/[id]/default-footer/route.ts src/app/api/v1/websites/images/route.ts src/app/api/v1/websites/images/[id]/route.ts src/components/websites/StudioSeoPanel.tsx src/components/websites/StudioImagesPanel.tsx scripts/test-website-studio-save-isolation.mjs src/lib/website-studio-publication.ts src/lib/website-studio-preview.ts src/lib/website-studio-access.ts scripts/test-website-studio-publication.mjs scripts/test-website-studio-permissions.mjs scripts/test-website-studio-page-save-isolation.mjs scripts/test-website-studio-responsive.mjs && npm run test:connector-credential-encryption && npm run test:guided-setup && npm run test:customer-dashboard-landing && npm run test:onboarding-first-experience && npm run test:onboarding-industry-goals && npm run test:onboarding-support-recommendation && npm run test:onboarding-action-alignment && npm run test:growth-suite-reputation-default && npm run test:customer-shell-onboarding-handoff && npm run test:guided-connect-business && npm run test:growth-overview-app-sync && npm run test:onboarding-growth-entitlement-sync && npm run test:customer-sidebar-canonical-apps && npm run test:tenant-access-policy-invariants && npm run test:connector-secret-boundaries && npm run test:reputation-ai-fallback && npm run test:cvh-booking-email-routing && npm run test:customer-lifecycle-status && npm run test:operator-commercial-entitlement-truth && npm run test:page-hierarchy-contract && npm run test:operator-ia-readiness && npm run test:business-discovery-relevance
+
+
+> dg-platform-web@0.3.0 test:ai-gateway-policy
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-gateway-policy.mjs
+
+(node:95234) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/ai/gateway.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cross-tenant input makes zero inference calls (1.593ms)
+✔ cross-tenant evidence makes zero inference calls (0.22275ms)
+✔ unknown task fails closed (0.214709ms)
+✔ malformed and unknown policy classifications fail closed (0.743458ms)
+✔ public classification alone grants no cloud access (0.503125ms)
+✔ platform_internal classification alone grants no cloud access (0.150917ms)
+✔ tenant confidential only permits independently approved direct model (0.269666ms)
+✔ confidential denies alternate recipient gateway/openai/gpt-5.4-mini (0.131709ms)
+✔ confidential denies alternate recipient anthropic/claude-sonnet-4-20250514 (0.125916ms)
+✔ confidential denies alternate recipient openai/gpt-4o (0.207125ms)
+✔ restricted makes zero cloud calls (0.178ms)
+✔ local requirement makes zero cloud calls (0.147625ms)
+✔ restricted evidence overrides permissive request (0.132291ms)
+✔ restricted payload overrides permissive request (0.154375ms)
+✔ caller cannot lower registered CRM classification or remove grounding (0.261958ms)
+✔ empty disclosure intersection makes zero calls (0.105042ms)
+✔ Gateway transport cannot claim approved OpenAI upstream (0.11825ms)
+✔ reasoning cannot silently fall back to standard (0.117792ms)
+✔ specialist capability cannot silently use routine deployment (0.112042ms)
+✔ local routine requires explicit local permission and never falls back to cloud (0.146625ms)
+✔ restricted requests can route only to explicitly local-required routine (0.081916ms)
+✔ malformed local deployment hint fails closed (0.074042ms)
+✔ exact observation accepts only a single exact direct recipient (0.097125ms)
+✔ exact observation forbids provider/model substitution or additional fallback (0.083417ms)
+✔ exact observation forbids escalation (0.05425ms)
+✔ exact observation forbids added grounding (0.052375ms)
+✔ observation invariant is not a migrated task (0.090833ms)
+✔ context overflow rejects intact input and never escalates disclosure (0.215292ms)
+✔ cancellation after failed attempt prevents later eligible attempt (8.275584ms)
+✔ transport plan validates every candidate before first disclosure (0.090125ms)
+✔ local required remains terminal even for oversized input (0.102042ms)
+✔ deadline exhaustion prevents a second constrained transport attempt (10.967125ms)
+✔ null execution requirements and sparse envelopes fail closed (0.264125ms)
+✔ sparse recipient approval and constrained attempt plans are rejected before inference (0.139208ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 159.426459
+
+> dg-platform-web@0.3.0 test:ai-gateway
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-gateway.mjs
+
+(node:95252) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/ai/gateway.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ allowed lead_summary reaches only its eligible cloud transport (16.526375ms)
+✔ cross-tenant context is rejected before inference (0.302166ms)
+✔ local-only, unknown and malformed policies fail closed (0.420042ms)
+✔ confidential request strips caller transport widening and has no cloud fallback (0.430375ms)
+✔ exhausting an allowlist never falls through to disallowed providers (0.282625ms)
+✔ deadline exhaustion aborts the current transport and prevents further attempts (11.895917ms)
+✔ pre-aborted requests do not call transports (0.217875ms)
+✔ unresponsive injected transport is bounded by the deadline (11.419625ms)
+✔ invalid deadlines, task types and token limits are rejected before inference (0.343709ms)
+✔ OpenAI token usage is captured, including a reported zero (0.268458ms)
+✔ Anthropic reported usage is captured (0.250583ms)
+✔ missing or invalid usage stays unknown rather than zero (0.368666ms)
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_request
+[ai] LLM failed — using template fallback AI Gateway: policy_denied
+[ai] LLM failed — using template fallback AI Gateway: transport_failed
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+[ai] LLM failed — using template fallback AI Gateway: invalid_output
+✔ actor, correlation and task reach real ledger storage without raw content (1.962542ms)
+✔ accounting failure does not discard a valid summary or leak database errors (0.198625ms)
+✔ lead-summary pilot passes identity and preserves the existing prompt and token limit (0.502334ms)
+✔ empty, invalid and oversized lead-summary output retains exact deterministic fallback (0.501792ms)
+✔ blocked policy, missing identity and unavailable transports retain lead-summary fallback (0.283416ms)
+✔ existing non-lead-summary actions keep the legacy path and no-provider fallback (0.212959ms)
+✔ llmChat without new options retains original models and provider failover (0.449917ms)
+✔ lead_follow_up goes through the gateway and remains a draft with deterministic fallback (0.851083ms)
+✔ explicit execution plan never substitutes a configured model and prohibits redirects (0.303958ms)
+✔ safe accounting contains routing metadata and excludes arbitrary transport metadata (0.144041ms)
+✔ invalid text still accounts for reported usage without persisting the response (0.1575ms)
+✔ policy denial accounts for known effective restricted classification (0.115667ms)
+✔ legacy Gateway reported usage remains compatible (0.132542ms)
+✔ unapproved transport/model result is rejected and cannot contaminate accounting (0.1945ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 248.985416
+DigitalGate launch baseline regression checks passed
+marketing trial conversion journey: ok
+founding customer view entry: ok
+
+> dg-platform-web@0.3.0 test:custom-pricing-founding-separation
+> node scripts/test-custom-pricing-founding-separation.mjs
+
+custom pricing / Founding 10 separation: ok
+
+> dg-platform-web@0.3.0 test:custom-offer-experience
+> node scripts/test-custom-offer-experience.mjs
+
+custom offer experience and commercial integrity checks passed
+
+> dg-platform-web@0.3.0 test:founding-operator-customer-boundary
+> node scripts/test-founding-operator-customer-boundary.mjs
+
+founding operator/customer boundary: ok
+
+> dg-platform-web@0.3.0 test:industry-activation-core-app-safety
+> node scripts/test-industry-activation-core-app-safety.mjs
+
+industry activation core-app safety: ok (10 canonical core apps)
+
+> dg-platform-web@0.3.0 test:team-invite-seat-reservation
+> node scripts/test-team-invite-seat-reservation.mjs
+
+team invite seat reservation: ok
+
+> dg-platform-web@0.3.0 test:ai-entitlement-gates
+> node scripts/test-ai-entitlement-gates.mjs
+
+AI entitlement gates: ok
+
+> dg-platform-web@0.3.0 test:outbound-entitlement-gates
+> node scripts/test-outbound-entitlement-gates.mjs
+
+outbound entitlement gates: ok
+
+> dg-platform-web@0.3.0 test:industry-purchase-activation
+> node scripts/test-industry-purchase-activation.mjs
+
+Industry purchase activation guards: ok
+
+> dg-platform-web@0.3.0 test:server-commercial-entitlements
+> node scripts/test-server-commercial-entitlements.mjs
+
+Server user/business entitlement regression checks passed
+
+> dg-platform-web@0.3.0 test:domain-callback-entitlement
+> node scripts/test-domain-callback-entitlement.mjs
+
+Domain callback + Scale limit copy: ok
+
+> dg-platform-web@0.3.0 test:domain-industry-entitlements
+> node scripts/test-domain-industry-entitlements.mjs
+
+Domain specialist entitlements: ok
+
+> dg-platform-web@0.3.0 test:specialist-industry-entitlements
+> node scripts/test-specialist-industry-entitlements.mjs
+
+specialist industry entitlement gates: ok
+
+> dg-platform-web@0.3.0 test:command-revenue-tenant-scope
+> node scripts/test-command-revenue-tenant-scope.mjs
+
+Command revenue canonical-subscription regression checks passed
+
+> dg-platform-web@0.3.0 test:unit
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test packages/platform-core/src/connectors/meta/auth.test.ts scripts/test-middleware-public-routes.mjs scripts/test-cron-auth.mjs scripts/test-webhook-secrets.mjs scripts/test-platform-authority.mjs scripts/test-command-operator-capability.mjs scripts/test-command-centre-nav.mjs scripts/test-write-entitlement.mjs scripts/test-stripe-subscription-routing.mjs scripts/test-stripe-connect-tenant-trust.mjs scripts/test-growth-tenant-isolation.mjs scripts/test-dreamscape-auth.mjs scripts/test-rea-reaxml.mjs scripts/test-legacy-wp-form-post.mjs scripts/test-strategy-session-booking.mjs scripts/test-public-website-form-fields.mjs scripts/test-guest-identity.mjs scripts/test-public-host-slugs.mjs scripts/test-native-website-health.mjs scripts/test-team-invite.mjs scripts/test-subscription-lifecycle.mjs scripts/test-webhook-receipt-state.mjs scripts/test-support-staff-access.mjs scripts/test-api-key-authority.mjs scripts/test-tenant-write-entitlement-guard.mjs scripts/test-tenant-write-gaps.mjs scripts/test-organisation-lifecycle.mjs scripts/test-env-pairing.mjs scripts/test-verify-env.mjs scripts/test-ssrf-guard.mjs scripts/test-property-report-abuse-guard.mjs scripts/test-booking-overlap.mjs scripts/test-booking-unit-reassignment.mjs scripts/test-cron-followup-claim.mjs scripts/test-ota-fairness.mjs scripts/test-h6-billing-authority.mjs scripts/test-commerce-document-authority.mjs scripts/test-booking-platform-authority.mjs scripts/test-billing-channel-integrity.mjs scripts/test-wp-migration-boundary.mjs scripts/test-re-lead-wp-boundary.mjs scripts/test-business-brain-knowledge.mjs scripts/test-command-growth-engine-ownership.mjs scripts/test-command-branded-mutation-guards.mjs scripts/test-digitalgate-visual-storytelling.mjs scripts/test-homepage-scroll-scenes.mjs scripts/test-command-route-consolidation.mjs scripts/test-command-operator-context-boundary.mjs scripts/test-command-completeness.mjs scripts/test-command-centre-cockpit.mjs scripts/test-observability-operations.mjs scripts/test-customer-guidance.mjs scripts/test-launch-customer-journey.mjs scripts/test-ai-visibility-monitoring.mjs scripts/test-ai-visibility-model-observations.mjs scripts/test-website-studio-save-isolation.mjs scripts/test-seo-suggest.mjs scripts/test-website-studio-permissions.mjs scripts/test-contact-company-tenant-isolation.mjs scripts/test-studio-images.mjs scripts/test-website-studio-page-save-isolation.mjs scripts/test-website-studio-responsive.mjs scripts/test-aida-public-advisor.mjs scripts/test-business-audit-website-styling.mjs scripts/test-accommodation-dashboard-recovery.mjs scripts/test-finance-certification.mjs scripts/test-services-certification.mjs scripts/test-commercial-certification.mjs scripts/test-property-management-certification.mjs scripts/test-real-estate-certification.mjs
+
+(node:95496) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/connectors/meta/auth.test.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Meta OAuth authorisation
+  ✔ uses explicit Page and business scopes by default even when a config id exists (0.538959ms)
+  ✔ uses the Facebook Login for Business configuration only when explicitly enabled (0.15025ms)
+✔ Meta OAuth authorisation (1.056125ms)
+✔ accommodation load failures do not masquerade as empty onboarding (0.43675ms)
+✔ accommodation dashboard customer actions meet the native touch target floor (0.053334ms)
+✔ overview summary uses the organisation timezone (0.050959ms)
+✔ units page stays on native organisation context with no legacy site picker (0.051333ms)
+✔ bookings page uses the native platform page context (0.046291ms)
+✔ availability uses tenant-local date boundaries and native context (0.047709ms)
+✔ availability gives native-only units unique UI identities and native recovery (0.044333ms)
+✔ check-in windows use the organisation timezone instead of a Brisbane label (0.042833ms)
+✔ check-in guest actions meet the native touch target floor (0.039625ms)
+✔ housekeeping is tenant-local, turnover-aware and native-only (0.563458ms)
+✔ housekeeping can update native-only units and meets the touch target floor (0.043791ms)
+✔ housekeeping writes enforce organisation-scope Industry edit permission (0.032542ms)
+✔ payments use organisation locale and currency rather than hard-coded AUD (0.04075ms)
+✔ payment mutation controls meet the native touch target floor (0.026833ms)
+✔ accommodation review actions meet the native touch target floor (0.023416ms)
+✔ accommodation writes require organisation-scope Industry permission (0.039875ms)
+✔ model observations use a real configured LLM response and persist exact provenance (0.35475ms)
+✔ model observer does not invent citations, ranks or recommendation capture (0.070042ms)
+✔ run API is organisation scoped and records nothing when model transport is unavailable (0.052917ms)
+✔ customer UI labels API evidence truthfully and gives recovery actions (0.057084ms)
+✔ AI Visibility monitoring accepts only organisation-governed evidence (0.902541ms)
+✔ monitoring completeness remains explicit rather than inferred (0.160334ms)
+✔ monitoring API is authenticated, organisation-scoped and permission guarded (0.181209ms)
+✔ monitoring control plane does not fabricate or invoke answer engines (0.180292ms)
+✔ current AI Visibility scores use active prompts and only latest prompt-provider-model evidence (0.16975ms)
+✔ public AI Visibility snapshot consumers resolve to the current evidence implementation (0.107542ms)
+✔ manual observation batches advance coverage instead of repeating the first prompts forever (0.102375ms)
+✔ monitor runner exposes bounded batches and explicit coverage recovery (0.091792ms)
+✔ trend movement compares equivalent active prompt-provider-model evidence (0.113875ms)
+✔ model observation entity matching avoids substring false positives and checks governed brand names (0.185917ms)
+✔ recurring monitoring is explicit, weekly and hard bounded (0.111584ms)
+✔ recurring monitoring settings are org-admin controlled and cron authenticated (0.1195ms)
+✔ recurring monitoring UI makes opt-in, model calls and limits explicit (0.144542ms)
+(node:95500) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/aida/index.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Ask Aida public website advisor
+  ✔ issues high-entropy anonymous conversation tokens and stores only the hash (2.885917ms)
+  ✔ keeps Ask Aida on the DigitalGate public site only (0.215208ms)
+  ✔ never treats staff or customer-brain slugs as public Aida knowledge (0.746042ms)
+  ✔ isolates conversations by organisation and expiry (0.953333ms)
+  ✔ rate-limits public Aida traffic per IP (0.133209ms)
+  ✔ rejects invalid user input (0.065833ms)
+  ✔ hands off immediately when the visitor asks to talk to someone (0.264ms)
+  ✔ refuses prompt-injection without calling the model or exposing protected data (0.114542ms)
+  ✔ cannot retrieve customer Business Brain or staff docs even if they are passed in (0.598167ms)
+  ✔ surfaces model failure without inventing a reply from tools (0.168125ms)
+  ✔ parses model action markers without leaking them to the visitor (0.035625ms)
+  ✔ captures Aida leads through the existing enquiry CRM path with dedupe (8.090542ms)
+  ✔ never trusts a client-supplied organisation and never exposes model secrets (13.501ms)
+  ✔ mounts the launcher only for DigitalGate public pages (11.039ms)
+  ✔ does not introduce a WordPress runtime or a parallel Business Brain (2.972166ms)
+✔ Ask Aida public website advisor (42.906916ms)
+▶ API keys never hold platform authority
+  ✔ isApiKeyPrincipal recognises only api_key:* principals (70.339375ms)
+(node:95501) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ hasPlatformAuthority denies an api-key session in an allowlisted org (4.18ms)
+  ✔ hasPlatformAuthority denies an api-key session even with a dg:staff role (0.747792ms)
+  ✔ canAccessCommandCentre denies an api-key session in the operator org (14.270125ms)
+  ✔ toPlatformUserType returns null for an api-key principal, even if hasAuthority is forced (23.502125ms)
+  ✔ buildAccessContext gives an api-key session no operator grants (19.961958ms)
+  ✔ assertPlatformOperator refuses to mint a capability for an api-key session (C-3) (6.1885ms)
+✔ API keys never hold platform authority (139.872167ms)
+▶ producer / detector contract
+  ✔ apiKeyToPlatformSession mints an api_key:* principal the detector recognises (3.616459ms)
+✔ producer / detector contract (3.711375ms)
+✔ every paid app key has an explicit server-side price (1.040375ms)
+✔ Stripe checkout charges paid apps instead of trusting metadata alone (0.140375ms)
+✔ paid app selection is copied onto the Stripe subscription (0.154041ms)
+✔ webhook provisioning verifies paid app entitlement against Stripe subscription (0.121833ms)
+✔ org app mutation blocks paid app activation without a recorded purchase (0.108917ms)
+✔ app mutation authenticates the request and API keys cannot inherit operator authority (0.14675ms)
+▶ H-9 overlap semantics
+  ✔ allows adjacent same-day turnover (90.882458ms)
+(node:95503) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/accommodation/booking-conflicts.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ rejects overlapping dates (1.173833ms)
+  ✔ does not let cancelled or canceled stays block (0.966209ms)
+  ✔ treats pending, OTA and completed stays as blocking (4.404709ms)
+  ✔ scopes conflicts by organisation and unit (2.134708ms)
+  ✔ matches the legacy WordPress unit id (2.89ms)
+  ✔ can exclude the row being updated (1.762ms)
+✔ H-9 overlap semantics (104.873166ms)
+▶ H-9 lock key
+  ✔ isolates organisation and unit (2.532ms)
+✔ H-9 lock key (2.746666ms)
+▶ H-9 Gen 2 create
+  ✔ creates a non-overlapping booking (58.365167ms)
+  ✔ rejects an overlapping create with dates_unavailable (no row written) (2.304459ms)
+  ✔ concurrent creates for the same unit cannot both succeed (2.614083ms)
+  ✔ operator force bypasses the overlap check (5.1655ms)
+  ✔ does no network / pre-lock work while the advisory lock is held (0.513458ms)
+✔ H-9 Gen 2 create (69.231167ms)
+▶ H-9 Gen 2 update
+  ✔ cannot move a booking onto another active booking (1.022709ms)
+  ✔ allows moving onto free, non-overlapping dates (1.025375ms)
+  ✔ allows moving to a same-day turnover boundary (1.252167ms)
+  ✔ operator force skips the update overlap re-check (1.628583ms)
+  ✔ concurrent date-changing updates cannot create an overlap (1.082292ms)
+✔ H-9 Gen 2 update (6.334042ms)
+▶ H-9 WordPress import
+  ✔ resolves the legacy WordPress unit id and creates when free (3.3775ms)
+  ✔ cannot import a booking that overlaps an existing active booking (0.662166ms)
+  ✔ cannot move an existing mirror row onto another active booking (0.340375ms)
+✔ H-9 WordPress import (4.476208ms)
+▶ H-9 OTA import
+  ✔ imports a non-overlapping OTA event (25.147667ms)
+  ✔ cannot import an OTA event that overlaps an existing active booking (3.509ms)
+  ✔ allows a same-day turnover OTA event (0.645875ms)
+  ✔ does not treat a cancelled existing stay as a blocker (0.745125ms)
+✔ H-9 OTA import (30.206125ms)
+✔ WP booking webhook accepts canonical platform_id (0.754125ms)
+✔ canonical platform identity is checked before legacy WP identity (0.2635ms)
+✔ canonical identity mismatch fails closed (0.136583ms)
+✔ WordPress cannot silently reassign a canonical booking to another unit (0.090584ms)
+✔ legacy overlap conflict is rejected rather than acknowledged (0.154209ms)
+✔ webhook fails closed when authority sync throws (0.268834ms)
+✔ webhook returns canonical identity for connector persistence (0.2535ms)
+(node:95505) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/accommodation/bookings.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ same-unit booking edit succeeds (154.303584ms)
+✔ booking unit reassignment fails closed (1.736417ms)
+✔ H-9 overlap protection still rejects an overlapping date move (7.0455ms)
+Business Audit funnel matches current homepage purple styling.
+✔ scripts/test-business-audit-website-styling.mjs (64.164542ms)
+▶ Business Brain governed knowledge contract
+  ✔ keeps normal Brain retrieval approved-only and organisation-scoped (11.968709ms)
+  ✔ grounds free-text Advisor reasoning in approved organisational knowledge (11.244916ms)
+  ✔ creates extracted knowledge as proposed, never auto-approved (1.288709ms)
+  ✔ requires same-organisation records for explicit supersession (2.508791ms)
+  ✔ requires an explicit organisation for imports and forbids automatic approval (1.281292ms)
+  ✔ maps the production knowledge schema into the generated Prisma client (10.323417ms)
+  ✔ docs/business-brain/digitalgate-knowledge-seed.json is review-only and has unique durable keys (6.359584ms)
+  ✔ docs/business-brain/digitalgate-historical-context-seed.json is review-only and has unique durable keys (4.910542ms)
+  ✔ documents lifecycle, provenance and the Documents boundary (1.7005ms)
+✔ Business Brain governed knowledge contract (52.657875ms)
+✔ src/app/api/v1/admin/commissions/[id]/status/route.ts requires branded platform-operator authority (1.014291ms)
+✔ src/app/api/v1/founding/actions/route.ts requires branded platform-operator authority (0.279625ms)
+✔ src/app/api/v1/founding/invitations/route.ts requires branded platform-operator authority (0.220916ms)
+✔ opportunity task writes use neutral branded operator authority, not a read feature (0.27375ms)
+✔ Command Centre remains the canonical operator cockpit on /command (0.441542ms)
+✔ Command cockpit uses the operator summary IA (0.147916ms)
+✔ Command cockpit keeps live operator capabilities and scopes commercial CRM to DigitalGate (0.234708ms)
+✔ Command cockpit presentation is derived from live ops-home fields (0.037375ms)
+✔ primary Command cockpit actions keep the native touch-target floor (0.042958ms)
+(node:95509) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/command-centre/presentation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cockpit presentation never fabricates trial or health numbers (124.274917ms)
+✔ quiet cockpit recedes to a steady status from live empty queues (1.793167ms)
+✔ customer activation is the primary onboarding pulse (0.114083ms)
+✔ secondary command metrics stay compact on mobile (0.083375ms)
+(node:95510) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/access/evaluate.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Command Centre: SSR ≡ hydration parity
+  ✔ client boolean (no server env) yields the same platformUserType as the server env (102.099416ms)
+  ✔ reproduces the bug the fix addresses: no env AND no boolean => no authority on the client (2.153208ms)
+✔ Command Centre: SSR ≡ hydration parity (104.693959ms)
+▶ Command Centre: navigation visibility (no server env, client boolean)
+  ✔ operator keeps Command Centre; ordinary tenant does not (64.806667ms)
+✔ Command Centre: navigation visibility (no server env, client boolean) (64.902625ms)
+▶ toPlatformUserType: hasAuthority override
+  ✔ maps role → user type when authority is supplied, without reading env (7.01025ms)
+  ✔ returns null when authority is explicitly false, even for an owner (5.050167ms)
+  ✔ falls back to the server allowlist when hasAuthority is omitted (10.529833ms)
+✔ toPlatformUserType: hasAuthority override (22.899417ms)
+▶ server authority is independent and cannot be granted by a client value
+  ✔ canAccessCommandCentre ignores a fabricated client context / boolean (14.312041ms)
+  ✔ hasPlatformAuthority accepts only organisationId + role (no client override) (4.503208ms)
+✔ server authority is independent and cannot be granted by a client value (19.464375ms)
+▶ C-2 intact: organisation slug/name never grant authority
+  ✔ a DigitalGate-looking slug/name on a non-allowlisted org is denied (2.994875ms)
+✔ C-2 intact: organisation slug/name never grant authority (3.082125ms)
+▶ no browser exposure of the allowlist
+  ✔ client components never read process.env.DG_COMMAND_CENTRE_ORG_IDS and no NEXT_PUBLIC variant exists (3.663875ms)
+✔ no browser exposure of the allowlist (3.6995ms)
+✔ every declared Command Centre route resolves to a real page (0.600208ms)
+✔ unknown Command routes fail closed instead of rendering product placeholders (0.1235ms)
+✔ Command ops home never exposes deployment setup instructions to operators (0.071834ms)
+✔ core Command pages use operational recovery instead of developer database copy (0.49475ms)
+✔ Command operator status UI avoids source-code and deferred-route language (0.329416ms)
+✔ primary Command actions meet the native touch-target floor (0.87925ms)
+✔ Command Growth Engine redirects to canonical tenant Prospecting workspace (0.353583ms)
+✔ Command Growth pipeline redirects to canonical tenant Prospecting pipeline (0.304042ms)
+✔ tenant audits and proposals live under Prospecting, with Command compatibility redirects only (0.291625ms)
+(node:95513) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/access/platform-operator-context.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Command Centre operator capability
+  ✔ mints a branded capability only for a genuine platform operator (81.116875ms)
+  ✔ denies direct Command Centre routes to a signed-in non-operator (7.883875ms)
+  ✔ rejects an unbranded object at every cross-tenant operator wrapper (514.749209ms)
+  ✔ routes cross-tenant Command pages through operator capability services (0.412916ms)
+  ✔ requires platform operator authority for staff partner writes (0.181958ms)
+✔ Command Centre operator capability (604.846708ms)
+✔ Platform Intelligence uses branded operator context, not raw cross-tenant services (0.476875ms)
+✔ Platform health diagnostics routes alerts through the operator wrapper (0.059625ms)
+✔ Growth follow-up aggregate uses the branded operator wrapper (0.072917ms)
+✔ Growth conversion aggregate uses the branded operator wrapper (0.055959ms)
+✔ Static operator docs/intelligence/product pages require operator context (0.059833ms)
+✔ opportunities summary API uses branded operator guard + wrapper, not raw command-centre access (0.036584ms)
+✔ operator-services exposes branded Growth Engine aggregate wrappers (0.055125ms)
+✔ src/app/(shell)/command/commissions/pending/page.tsx is compatibility-only and redirects to its canonical owner (0.446834ms)
+✔ src/app/(shell)/command/commissions/approved/page.tsx is compatibility-only and redirects to its canonical owner (0.11475ms)
+✔ src/app/(shell)/command/commissions/paid/page.tsx is compatibility-only and redirects to its canonical owner (0.069791ms)
+✔ src/app/(shell)/command/referrals/pending/page.tsx is compatibility-only and redirects to its canonical owner (0.065667ms)
+✔ src/app/(shell)/command/referrals/converted/page.tsx is compatibility-only and redirects to its canonical owner (0.069125ms)
+✔ src/app/(shell)/command/partners/onboarding/page.tsx is compatibility-only and redirects to its canonical owner (0.062875ms)
+✔ commerce document pages require commerce.read before loading tenant data (0.931ms)
+✔ quote and invoice mutations stay behind commerce.manage (0.085666ms)
+✔ CRM contact hydration on commerce documents requires crm.contacts.read (0.083917ms)
+✔ commerce APIs keep the same feature IDs as the pages (0.048625ms)
+✔ commerce.read and commerce.manage map to the commerce module (0.068333ms)
+✔ Commercial customer pages use native shared platform context (0.385708ms)
+✔ Commercial writes require organisation-scope Industry edit authority (0.057167ms)
+✔ Commercial page mutation controls use the same locked authority (0.04975ms)
+✔ Commercial rent presentation follows organisation locale and currency (0.046375ms)
+✔ Commercial create controls meet native touch-target floor (0.04275ms)
+(node:95518) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/contacts/index.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ foreign company IDs are a named isolation error, not a silent attach (0.325167ms)
+✔ createContact and updateContact resolve company by id + organisationId before write (0.151084ms)
+✔ contact APIs map a foreign company id to 422 instead of writing it (0.062375ms)
+(node:95519) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/cron-auth.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ H-5: cron authentication
+  ✔ fails closed when CRON_SECRET is not configured (102.16275ms)
+  ✔ does not accept x-vercel-cron as authentication (3.141875ms)
+  ✔ rejects a wrong or absent secret (5.93875ms)
+  ✔ accepts the configured secret via bearer or header (1.328583ms)
+✔ H-5: cron authentication (113.234542ms)
+(node:95520) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/automation/followup-claim.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ two concurrent workers produce exactly one delivery (9.662708ms)
+✔ failed delivery releases the claim for an immediate retry (0.134792ms)
+✔ a thrown delivery releases the claim for retry (0.110583ms)
+✔ already-completed follow-up is never delivered again (0.068417ms)
+✔ stale claim can be recovered (0.093875ms)
+✔ claim scope includes organisation so tenants do not block each other (0.0465ms)
+✔ successful delivery with failed finalisation keeps the claim held (0.069375ms)
+✔ database claim SQL is tenant-scoped, conditional, token-owned and lease-aware (13.616709ms)
+✔ all four cron funnels use claimed follow-up orchestration (16.328917ms)
+✔ knowledge base covers the launch-critical customer journey (2.046ms)
+✔ customer-facing support copy does not expose internal build-stage language (0.443667ms)
+✔ knowledge base teaches native Gen 2 rather than normal WordPress runtime (0.338334ms)
+✔ knowledge base routes provide a clear support escalation path (0.114292ms)
+✔ native app setup is authoritative and never falls back to the historical catalogue (0.234083ms)
+✔ launch-critical apps have explicit native setup guides (0.156875ms)
+✔ disabled scaffold apps cannot receive customer setup guides (0.087333ms)
+✔ customer setup renderer never exposes deployment environment configuration (0.144875ms)
+✔ support, help and setup navigation meet the native touch-target floor (0.209042ms)
+✔ migration guidance keeps historical systems outside normal Gen 2 authority (0.291208ms)
+✔ shared resolution actions support automatic, guided and manual remediation (0.129167ms)
+✔ Business Health and Insights findings expose a resolution path (0.126791ms)
+✔ Digital Twin incompleteness gives customers direct repair choices (0.087708ms)
+✔ Benchmarks convert missing evidence and opportunities into guided actions (0.174542ms)
+✔ Command Centre growth performance never leaves stale or missing evidence passive (0.156625ms)
+✔ Analytics missing evidence routes users directly to data connection or Advisor (0.089792ms)
+✔ Automation empty activity state provides setup and guidance actions (0.064583ms)
+✔ Hosting routes DNS and SSL problems to the exact repair surfaces (0.096333ms)
+✔ Property Management open maintenance is a direct resolution path (0.065125ms)
+✔ AI Call Centre empty activity directs the customer to setup or help (0.06125ms)
+✔ Prospecting load failures provide retry and Advisor recovery paths (0.056416ms)
+✔ Connected Services failures provide reconnect, refresh and Advisor recovery (0.177333ms)
+✔ Support chat failures provide retry and human escalation without a dead end (0.073583ms)
+(node:95522) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/digitalgate-visual-storytelling.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ DigitalGate Insights — Website Studio is the source of truth (WYSIWYG)
+  ✔ (1) resolves the four Insights slugs; unrelated slugs are null (121.991208ms)
+  ✔ (2) each Insights page renders its Studio HTML verbatim (WYSIWYG) (2.453792ms)
+  ✔ (3) does NOT inject the retired renderer shell / signature diagrams (1.729583ms)
+  ✔ (4) arbitrary pasted HTML — custom markup, diagrams, styles — is reflected live (0.745958ms)
+  ✔ (5) idempotent — a second pass is byte-identical (1.086166ms)
+  ✔ (6) unrelated slugs and empty input pass through unchanged (1.179291ms)
+✔ DigitalGate Insights — Website Studio is the source of truth (WYSIWYG) (130.095625ms)
+(node:95523) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/infrastructure/providers/dreamscape/auth.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ dreamscapeSignature
+  ✔ matches Dreamscape REST docs example (76.966333ms)
+✔ dreamscapeSignature (77.3795ms)
+▶ buildDreamscapeAuthHeaders
+  ✔ defaults to official Accept + Api-Request-Id + Api-Signature only (1.815792ms)
+  ✔ sends Reseller ID headers only when sendResellerId is true (4.911541ms)
+  ✔ does not send Reseller ID when id present but sendResellerId false (4.693417ms)
+✔ buildDreamscapeAuthHeaders (11.698708ms)
+▶ SOAP DomainCheck envelope + parse
+  ✔ builds Authenticate header with ResellerID + APIKey (11.813791ms)
+  ✔ parses AvailabilityItem rows from SOAP XML (7.174292ms)
+  ✔ exports sandbox + prod SOAP endpoints (2.934041ms)
+  ✔ detects SecureAPI Authenticate Errors as auth failure (2.774833ms)
+✔ SOAP DomainCheck envelope + parse (24.982209ms)
+▶ client.ts policy (source contracts)
+  ✔ resolves API mode soap|rest with Reseller ID auto-soap (0.074083ms)
+  ✔ SOAP env resolves via DREAMSCAPE_SOAP_ENV / SOAP_URL / default sandbox (0.066709ms)
+  ✔ SOAP configured requires apiKey + resellerId (0.035167ms)
+  ✔ REST path still calls /domains/availability (0.03525ms)
+  ✔ Reseller ID send on REST is gated by DREAMSCAPE_SEND_RESELLER_ID (0.024334ms)
+✔ client.ts policy (source contracts) (0.301375ms)
+▶ classifyNeonHost
+  ✔ classifies production, development, and preview allowlisted hosts (1.420167ms)
+  ✔ normalises pooler and compute-binding hostnames (0.334292ms)
+  ✔ does not use the database name for classification (0.147708ms)
+  ✔ treats backup and unknown hosts as unknown (0.5795ms)
+  ✔ allows ephemeral preview endpoints via DG_NEON_PREVIEW_ENDPOINTS (0.204417ms)
+✔ classifyNeonHost (3.592916ms)
+▶ classifyClerkEnvironment
+  ✔ maps test keys to development and live keys to production (0.979584ms)
+  ✔ blocks mismatched publishable/secret environments (0.07475ms)
+✔ classifyClerkEnvironment (1.251ms)
+▶ isClerkNeonPairingAllowed matrix
+  ✔ allows approved combinations (0.11975ms)
+  ✔ blocks disallowed combinations (0.06975ms)
+✔ isClerkNeonPairingAllowed matrix (0.266375ms)
+▶ evaluateEnvironmentPairing — ALLOW
+  ✔ Clerk Development × Neon Development (0.734084ms)
+  ✔ Clerk Development × Neon Preview (0.054834ms)
+  ✔ Clerk Production × Neon Production (0.317208ms)
+✔ evaluateEnvironmentPairing — ALLOW (1.160125ms)
+▶ evaluateEnvironmentPairing — BLOCK
+  ✔ Production × Development (0.197875ms)
+  ✔ Production × Preview (0.053333ms)
+  ✔ Production × unknown/non-prod (backup host) (0.105ms)
+  ✔ Development × Production (0.034791ms)
+  ✔ Development × unknown/backup/other (0.03675ms)
+  ✔ missing DG_NEON_ENV (0.089334ms)
+  ✔ DG_NEON_ENV disagrees with host classification (0.061ms)
+  ✔ invalid DG_NEON_ENV value (0.12425ms)
+  ✔ unknown Neon host even when DG_NEON_ENV claims preview (1.147ms)
+  ✔ unparseable DATABASE_URL (0.318291ms)
+✔ evaluateEnvironmentPairing — BLOCK (2.361417ms)
+▶ assertEnvironmentPairingOrThrow
+  ✔ does not throw when skipped (empty env) (0.131333ms)
+  ✔ throws with safe message (no credentials) on block (0.251291ms)
+✔ assertEnvironmentPairingOrThrow (0.429333ms)
+▶ allowlist integrity
+  ✔ exports non-secret endpoint ids only (0.076583ms)
+✔ allowlist integrity (0.104833ms)
+✔ Finance customer pages use the native shared platform context (0.380625ms)
+✔ shared Industry beta layout has no legacy profile read (0.050375ms)
+✔ Finance writes require organisation-scope Industry edit authority (0.04675ms)
+✔ Finance page mutation controls use the same locked permission model (0.045916ms)
+✔ Finance money presentation follows organisation locale and currency (0.047458ms)
+✔ Finance interactive controls meet the native touch-target floor (0.035542ms)
+(node:95526) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/command-centre/growth-engine/scope.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ C-1: GrowthScope cannot be omitted or widened by a tenant
+  ✔ pins the tenant in the Prisma where fragment (108.31875ms)
+  ✔ scopes child records through the parent prospect (5.662625ms)
+  ✔ refuses to build a tenant scope without an organisation id (3.279167ms)
+  ✔ refuses a forged platform scope (0.845333ms)
+  ✔ rejects records belonging to another tenant (2.136416ms)
+  ✔ allows platform-wide reads only with a real operator capability (2.991958ms)
+✔ C-1: GrowthScope cannot be omitted or widened by a tenant (123.989292ms)
+▶ C-3: platform operator capability is unforgeable
+  ✔ denies the capability to an ordinary org owner (9.952291ms)
+  ✔ denies the capability to a self-named 'DigitalGate' org owner (1.827375ms)
+  ✔ does not accept a hand-built object as a capability (8.11275ms)
+  ✔ rejects a transition attempt without a real capability (94.021792ms)
+  ✔ grants the capability to a genuine allowlisted operator (6.596667ms)
+✔ C-3: platform operator capability is unforgeable (125.19825ms)
+▶ shouldCreateGuestContactFromStay
+  ✔ blocks Airbnb / Booking.com iCal placeholders without email or phone (72.746375ms)
+(node:95527) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/accommodation/guest-identity.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ allows a real guest when email or phone is present (2.8605ms)
+  ✔ still allows a staff-entered direct stay with a real name (4.239583ms)
+✔ shouldCreateGuestContactFromStay (80.501375ms)
+H-6 billing authority regression tests passed
+✔ scripts/test-h6-billing-authority.mjs (74.136ms)
+▶ DigitalGate homepage scroll scenes
+  ✔ exposes exactly three signature data-dg-scene tracks (0.640125ms)
+  ✔ keeps approved hero copy and OPEN gateway (0.1035ms)
+  ✔ defines the 14 DigitalGate Apps as one family (0.172ms)
+  ✔ uses exact intelligence terminology in crawlable HTML (0.204708ms)
+  ✔ includes reduced-motion settled states and real product assets (0.321ms)
+  ✔ wires progress CSS variable and mobile step mode (0.047083ms)
+(node:95529) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/digitalgate-visual-storytelling.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ does not alter Insights visual storytelling behaviour (139.16925ms)
+✔ DigitalGate homepage scroll scenes (141.146041ms)
+✔ public signup stays outside the authenticated platform shell (0.444083ms)
+✔ public plan submission hands signed-out customers to account creation or login (0.058333ms)
+✔ signup completion actions meet the native touch-target floor (0.087416ms)
+✔ public plan picker stays customer-facing and truthful about the next step (0.089959ms)
+✔ public signup only offers launch-ready native industry groups (0.077208ms)
+✔ plan picker controls meet the native touch-target floor (0.13275ms)
+✔ canonical onboarding remains native Gen 2 and organisation-aware (0.088875ms)
+✔ new-account onboarding can reach its own signed-out handoff (0.069708ms)
+✔ signed-out onboarding recovery does not render authenticated app chrome (0.783958ms)
+✔ onboarding sign-in and billing recovery meet the native touch-target floor (0.19675ms)
+✔ Start Your Business stays customer-facing rather than exposing implementation internals (0.139458ms)
+✔ Start Your Business provides accessible recovery and continuation paths (0.044167ms)
+✔ implementation handoff uses the canonical integration hub without overstating connection completion (0.067167ms)
+✔ onboarding completion is described as a platform hand-off, not delivery implementation (0.288708ms)
+✔ first-login Aida handover is available to every signed-in Gen 2 customer (0.096167ms)
+▶ isLegacyWordpressFormPath
+  ✔ matches leftover WP / PHP form handlers (75.198334ms)
+✔ isLegacyWordpressFormPath (82.229583ms)
+(node:95531) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/legacy-wp-form-post.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ shouldCaptureHtmlForm
+  ✔ captures POST and empty-action forms, not GET navigation (5.674709ms)
+✔ shouldCaptureHtmlForm (5.793708ms)
+(node:95532) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/ai/local-worker-auth.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Stage 0: claim reaches dedicated auth and rejects missing/invalid/revoked bearer (5.272541ms)
+✔ Stage 0: valid claim bearer reaches operation with machine identity only (0.577959ms)
+✔ Stage 0: heartbeat reaches dedicated auth and rejects missing/invalid/revoked bearer (1.353625ms)
+✔ Stage 0: valid heartbeat bearer reaches operation with machine identity only (1.25725ms)
+✔ Stage 0: complete reaches dedicated auth and rejects missing/invalid/revoked bearer (1.598833ms)
+✔ Stage 0: valid complete bearer reaches operation with machine identity only (0.254083ms)
+✔ Stage 0: worker HTTPS requirement survives Clerk exemption (0.193209ms)
+✔ Stage 0: maintenance fails closed for absent/wrong cron authentication (0.501208ms)
+✔ Stage 0: authenticated maintenance GET/POST reaches accounting and retention (0.222959ms)
+✔ Stage 0: neighbouring routes and ordinary tenant APIs still require Clerk (1.624291ms)
+▶ H-2: middleware public route allowlist
+  ✔ exempts every endpoint that authenticates itself or owns its signed-out handoff (5.00925ms)
+  ✔ does not exempt authenticated surface (1.614208ms)
+  ✔ keeps webhook exemptions to exact paths, not a subtree wildcard (13.086209ms)
+✔ H-2: middleware public route allowlist (25.954417ms)
+(node:95533) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/websites/native-health.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ buildNativeWebsiteHealth
+  ✔ passes Form → CRM for public HTML forms (268.399959ms)
+  ✔ passes Form → CRM and DNS for product funnel capture with live SSL (6.161791ms)
+  ✔ prefers a published site for the health probe (4.917125ms)
+✔ buildNativeWebsiteHealth (280.201291ms)
+✔ System Diagnostics is live rather than a planned-feature placeholder (0.439541ms)
+✔ Diagnostics renders only telemetry the platform can currently prove (0.1295ms)
+✔ Platform Alerts keeps real production service health checks (0.0485ms)
+✔ Stripe webhook diagnostics use durable receipt lifecycle state (0.093708ms)
+✔ Webhook observability returns lifecycle metadata only (0.130333ms)
+✔ Webhook observability is exported through Platform Core (0.03475ms)
+✔ Diagnostics operator actions meet the native touch-target floor (0.039916ms)
+▶ organisation creation is confined to the explicit allowlist
+  ✔ no prisma.organisation.create outside the four intentional boundaries (136.565291ms)
+  ✔ the removed provisionOrganisation primitive does not exist anywhere (47.713667ms)
+✔ organisation creation is confined to the explicit allowlist (184.874834ms)
+▶ authentication / session / routing never implicitly create a tenant
+  ✔ src/app/api/webhooks/clerk/route.ts does not create an organisation (0.2915ms)
+  ✔ src/lib/active-platform-session.ts does not create an organisation (0.334166ms)
+  ✔ packages/platform-core/src/session/index.ts does not create an organisation (0.268208ms)
+  ✔ src/middleware.ts does not create an organisation (0.14275ms)
+  ✔ src/app/api/v1/onboarding/gen2/route.ts does not create an organisation (0.214791ms)
+  ✔ src/app/api/onboarding/route.ts does not create an organisation (0.157291ms)
+  ✔ signup flow never creates an organisation (6.175584ms)
+✔ authentication / session / routing never implicitly create a tenant (7.915042ms)
+▶ invite claiming never creates an organisation
+  ✔ claimTeamInvitesForUser / team-invites module contains no organisation.create (0.137667ms)
+  ✔ claimTeamInvitesForUser with no invite context creates nothing (returns null) (240.580083ms)
+✔ invite claiming never creates an organisation (240.824416ms)
+▶ explicit onboarding start owns the first-tenant boundary
+  ✔ org/create uses the canonical createOrganisationForUser factory and permits memberless identity (10.428167ms)
+  ✔ onboarding presents explicit first-organisation setup for an authenticated memberless user (0.158708ms)
+✔ explicit onboarding start owns the first-tenant boundary (10.653667ms)
+(node:95535) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/org/team-invites.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:95536) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/accommodation/ota-cron-fairness.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+OTA fairness regression tests passed
+✔ scripts/test-ota-fairness.mjs (194.80775ms)
+▶ C-2: platform authority is server-controlled only
+  ✔ does not grant platform authority from a digitalgate-* slug or name (58.902333ms)
+(node:95537) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ does not infer digitalgate_owner for a self-named organisation (18.675583ms)
+  ✔ does not let a self-named organisation reach Command Centre (4.680208ms)
+  ✔ does not grant the digitalgate_owner permission bypass to a self-named org (33.0525ms)
+✔ C-2: platform authority is server-controlled only (116.587292ms)
+▶ C-2: genuine operators retain access
+  ✔ allows only the owner fallback inside an allowlisted operator organisation (2.569625ms)
+  ✔ grants platform authority via the dg:staff membership role (14.405292ms)
+  ✔ fails closed when no allowlist is configured and role is ordinary (1.132208ms)
+✔ C-2: genuine operators retain access (22.038792ms)
+✔ Property Management customer pages use native shared platform context (0.382083ms)
+✔ Property Management writes require organisation-scope Industry edit authority (0.159542ms)
+✔ Property Management page mutation controls use the locked authority model (0.051459ms)
+✔ Property Management rent presentation follows organisation locale and currency (0.049708ms)
+✔ Property Management create controls meet the native touch-target floor (0.054583ms)
+▶ public property report abuse guard
+  ✔ uses the shared spam guard for submit requests (3.0165ms)
+  ✔ passes contact fields needed for spam detection (0.631917ms)
+  ✔ returns immediately when the shared guard blocks (0.752667ms)
+(node:95539) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/websites/form-spam-guard.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ silently blocks a filled honeypot (79.122792ms)
+  ✔ blocks spam content (1.929541ms)
+  ✔ rate-limits repeated submissions from one IP and form bucket (3.654334ms)
+  ✔ allows a normal legitimate submission (1.256834ms)
+  ✔ uses the shared response adapter (0.677958ms)
+✔ public property report abuse guard (91.919292ms)
+(node:95540) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/public-host-slugs.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ knownSlugForPublicHost
+  ✔ maps DigitalGate apex hosts to the published website slug (76.62825ms)
+  ✔ maps Wantd hosts to the published website slug (1.8545ms)
+  ✔ returns null for unknown hosts so DB lookup can run (0.84575ms)
+✔ knownSlugForPublicHost (80.088708ms)
+▶ mapWebsiteFormFields
+  ✔ maps nameless-style ids and leftover extras into a Gen 2 payload (81.247292ms)
+(node:95541) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/public-website-form-fields.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✔ falls back to a name when the form only has contact details (3.415708ms)
+✔ mapWebsiteFormFields (85.664583ms)
+✔ normal leads API cannot invoke WordPress import (0.62975ms)
+✔ lead stage changes never write back to WordPress (0.121166ms)
+✔ legacy lead import is explicit, one-way and settings-managed (0.574125ms)
+(node:95543) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/connectors/rea/reaxml.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ REA address helpers
+  ✔ splits unit/street number (0.464958ms)
+  ✔ normalises AU states (0.052208ms)
+  ✔ strips HTML from description text (0.126042ms)
+  ✔ formats modTime (2.142959ms)
+✔ REA address helpers (3.258083ms)
+▶ buildReaListingXml residential
+  ✔ emits validated residential XML with required elements (2.364459ms)
+  ✔ hides price and sets Contact Agent priceView (0.455459ms)
+  ✔ sets underOffer when Gen 2 status is under_offer (0.243792ms)
+  ✔ emits auction authority + date (0.274042ms)
+  ✔ emits VIC statementOfInformation from disclosure PDF (0.495125ms)
+  ✔ emits soldDetails for sold status (0.1305ms)
+  ✔ fails closed when mandatory fields missing (0.327708ms)
+  ✔ fails closed for land/commercial roots (0.057083ms)
+✔ buildReaListingXml residential (8.997333ms)
+▶ buildReaListingXml rental
+  ✔ emits rental when listing_type=rent (0.159084ms)
+✔ buildReaListingXml rental (0.189458ms)
+✔ Real Estate customer pages use native shared platform context (0.457833ms)
+✔ Real Estate property mutations require organisation-wide authority (0.129334ms)
+✔ Lead mutations cannot promote assigned scope into organisation-wide writes (0.086667ms)
+✔ normal Real Estate customer journeys expose no WordPress sync or publish controls (0.162208ms)
+✔ unfinished vendor prospecting model is removed from live navigation (0.060625ms)
+✔ Real Estate listings use organisation money settings (0.042958ms)
+✔ Real Estate bookings require write authority and use organisation timezone (0.087417ms)
+✔ Real Estate interactive customer controls meet the native touch-target floor (0.05ms)
+(node:95545) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/websites/seo-suggest.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ parseSeoSuggestion
+  ✔ parses plain JSON with all fields (2.101125ms)
+  ✔ parses JSON inside a ```json fenced block (0.309958ms)
+  ✔ parses JSON embedded in prose (0.2475ms)
+  ✔ accepts keywords as a comma-separated string and og_ snake_case (0.141208ms)
+  ✔ returns null for junk / empty / no usable fields (0.116833ms)
+  ✔ trims blank strings to undefined (won't overwrite with empties) (0.096292ms)
+✔ parseSeoSuggestion (4.067375ms)
+✔ Services job writes require organisation-scope Industry edit authority (2.84875ms)
+✔ Services template changes require organisation-scope management authority (0.085625ms)
+✔ ServiceJob timeline writes use the same organisation-wide authority (0.049792ms)
+✔ Services pages render mutation controls from the locked permission model (0.058292ms)
+✔ Services create, edit and quick scheduling use organisation timezone conversion (0.08175ms)
+✔ Services customer controls meet the native touch-target floor (0.05125ms)
+✔ Services customer UI does not advertise unfinished checklist/photo/template work (0.095833ms)
+(node:95547) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/command-centre/growth-engine/ssrf-guard.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ SSRF guard: address classification
+  ✔ blocks loopback, metadata and unspecified (136.782458ms)
+  ✔ blocks RFC1918 and CGNAT ranges (5.244958ms)
+  ✔ blocks IPv6 link-local, ULA and IPv4-mapped private (3.886416ms)
+  ✔ allows ordinary public addresses (7.340917ms)
+  ✔ treats anything unparseable as blocked (fail closed) (2.843625ms)
+✔ SSRF guard: address classification (159.215833ms)
+▶ SSRF guard: URL target validation
+  ✔ allows a public HTTP URL (literal IP, no DNS) (1.568ms)
+  ✔ allows a public HTTPS URL (literal IP, no DNS) (9.878333ms)
+  ✔ allows a public hostname that resolves to a public address (2.08325ms)
+  ✔ rejects non-HTTP(S) schemes (0.696ms)
+  ✔ rejects localhost and internal hostnames by name (1.30275ms)
+  ✔ rejects literal loopback / metadata / RFC1918 / IPv6 without DNS (5.932459ms)
+  ✔ rejects a hostname that resolves to a private address (DNS rebinding) (1.259792ms)
+  ✔ fails closed on DNS resolution failure (7.535959ms)
+  ✔ rejects malformed URLs (0.87075ms)
+✔ SSRF guard: URL target validation (31.794458ms)
+▶ SSRF guard: redirect hops
+  ✔ re-validates a redirect from a public URL to a private address (10.502458ms)
+  ✔ rejects a chain where a LATER hop becomes private (5.223917ms)
+  ✔ follows ordinary public redirects to completion (2.545458ms)
+  ✔ stops rather than looping on a redirect cycle (1.367458ms)
+✔ SSRF guard: redirect hops (19.929417ms)
+▶ SSRF guard: wired call sites
+  ✔ fetchIcalFeed refuses a private/loopback URL and makes no real request (48.659458ms)
+  ✔ fetchIcalFeed refuses the cloud metadata endpoint (6.790708ms)
+  ✔ fetchIcalFeed still accepts a legitimate public feed (mocked network) (4.332417ms)
+  ✔ runPresenceAudit refuses a metadata/loopback website without a real request (9.072083ms)
+  ✔ runPresenceAudit still probes a legitimate public site (mocked network) (2.033375ms)
+✔ SSRF guard: wired call sites (71.077083ms)
+(node:95548) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/dg-legacy-urls.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ /strategy-session no longer redirects to /contact (0.671667ms)
+✔ strategy-session is a public DigitalGate booking page (0.182459ms)
+✔ Design Studio HTML is rendered when the strategy-session page has it (0.199875ms)
+✔ availability comes from the existing consultation slot engine (10.359292ms)
+✔ valid booking submits through captureDgEnquiry for DigitalGate only (0.154166ms)
+✔ invalid booking input is rejected before write (0.062375ms)
+✔ confirmation state is rendered after a successful booking (0.082375ms)
+(node:95549) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/referrals/stripe-connect.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ trusted mapping: resolveOrganisationIdByConnectAccount (fail-safe)
+  ✔ resolves a single owner from the mapping (263.22875ms)
+  ✔ unknown Connect account => null (no tenant) (1.234583ms)
+  ✔ ambiguous Connect account (>1 org) => null (fail safe, not arbitrary) (0.571875ms)
+  ✔ empty / missing account id => null (0.476ms)
+✔ trusted mapping: resolveOrganisationIdByConnectAccount (fail-safe) (266.448542ms)
+▶ commerce sync no longer selects a tenant from Stripe metadata
+  ✔ no trusted org supplied => missing_organisation_id even with metadata.organisation_id (29.973625ms)
+  ✔ non-commerce subscription => not_commerce_subscription (1.788583ms)
+✔ commerce sync no longer selects a tenant from Stripe metadata (31.922625ms)
+▶ connected-account subscription routing uses the trusted owner, never metadata
+  ✔ platform account + explicit marker => platform (H-8 preserved) (54.700458ms)
+  ✔ connected account with FORGED metadata.organisation_id => commerce for the ACCOUNT OWNER, not the metadata org (1.345958ms)
+  ✔ connected account that is UNKNOWN in the mapping => no mutation (skip); metadata org is not used (0.773208ms)
+  ✔ connected account that is AMBIGUOUS => no mutation (skip) (0.655917ms)
+  ✔ platform-account commerce subscription (server-set metadata) => commerce on platform account (0.651667ms)
+✔ connected-account subscription routing uses the trusted owner, never metadata (58.414042ms)
+▶ webhook route source: connect-account gating (F1/F4) and fail-safe lookups (F2)
+  ✔ connected-account invoices are skipped before referral/partner accrual (0.187666ms)
+  ✔ connected-account subscriptions resolve the owner from the trusted mapping, not metadata (0.056458ms)
+  ✔ H-8 platform gate is preserved (platform only on !onConnectedAccount + marker) (0.025208ms)
+  ✔ resolveOrgIdFromStripeCustomer fails safe on ambiguity (take: 2, single match) (0.049708ms)
+✔ webhook route source: connect-account gating (F1/F4) and fail-safe lookups (F2) (0.364ms)
+▶ platform store + schema: 1:1 external-id mappings
+  ✔ getPlatformSubscriptionByStripe* fail safe on ambiguity (0.181459ms)
+  ✔ schema enforces unique trusted mappings (1.009375ms)
+✔ platform store + schema: 1:1 external-id mappings (1.23025ms)
+(node:95550) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/billing/platform-stripe.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ H-8 discriminators
+  ✔ isPlatformSubscription requires an explicit platform marker (299.257875ms)
+  ✔ isCommerceCustomerSubscription: platform metadata is not commerce; org-tagged is (16.279958ms)
+✔ H-8 discriminators (315.990084ms)
+▶ H-8 routing invariant
+  ✔ platform account + explicit marker → platform state machine (5.866708ms)
+  ✔ Connect account + copied platform metadata + org id → COMMERCE, never platform (12.562833ms)
+  ✔ Connect account without platform metadata → commerce (1.37625ms)
+  ✔ platform account, no explicit marker → not platform (commerce/customer or none) (1.213375ms)
+✔ H-8 routing invariant (21.29925ms)
+(node:95552) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/assets/org-brand-storage.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ orgOwnedAssetUrl accepts this organisation's Blob and public paths (0.39675ms)
+✔ orgOwnedAssetUrl rejects other tenants, traversal, and platform Aida paths (0.078041ms)
+✔ parseStudioLibraryImages ignores junk and caps the library (1.158041ms)
+✔ mergeStudioLibraryImages preserves other organisation settings (0.091167ms)
+✔ mediaAbsoluteUrl leaves hosted URLs alone and prefixes app origin for relative paths (0.106416ms)
+✔ mediaImgSnippet omits zero dimensions (0.109041ms)
+▶ subscription entitlement matrix
+  ✔ maps commercial states to entitlement levels (143.309667ms)
+✔ subscription entitlement matrix (143.729541ms)
+(node:95553) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/billing/subscription-types.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ support staff access requires Command Centre authority (0.712583ms)
+✔ email-domain identity is not consulted by support access (0.150917ms)
+▶ team invite helpers
+  ✔ normalises invite roles and placeholder ids (97.510625ms)
+✔ team invite helpers (98.187625ms)
+(node:95555) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/org/team-invites.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:95556) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/tenant-write-entitlement.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ tenantWriteEntitlementBlock: permitted entitlement states keep writing
+  ✔ no subscription (pre-checkout / trial) allows the write (120.29775ms)
+  ✔ founding / platform-exempt organisations always allow the write (8.074041ms)
+✔ tenantWriteEntitlementBlock: permitted entitlement states keep writing (128.824708ms)
+▶ tenantWriteEntitlementBlock: read-only / suspended tenants are blocked
+  ✔ suspended subscription => 403 entitlement_write_blocked (7.203291ms)
+  ✔ works for the org-only actor form used by connector callbacks (3.034ms)
+✔ tenantWriteEntitlementBlock: read-only / suspended tenants are blocked (10.453417ms)
+▶ tenantWriteEntitlementBlock: entitlement lookup failure fails closed
+  ✔ subscription lookup throwing => 503 entitlement_unavailable (3.741041ms)
+✔ tenantWriteEntitlementBlock: entitlement lookup failure fails closed (3.826333ms)
+▶ tenantWriteEntitlementBlock: platform operators are never tenants (C-2)
+  ✔ operator org (allowlist) is exempt without consulting the subscription (0.7865ms)
+  ✔ dg:staff role is exempt without consulting the subscription (0.73775ms)
+  ✔ an API-key principal in the operator org does NOT inherit the exemption (0.824833ms)
+✔ tenantWriteEntitlementBlock: platform operators are never tenants (C-2) (2.477791ms)
+▶ H-3 /api/v1 policy unchanged: reads and exempt recovery paths
+  ✔ normal reads are never gated (0.819458ms)
+  ✔ billing / recovery / onboarding exemptions remain unaffected (0.632375ms)
+✔ H-3 /api/v1 policy unchanged: reads and exempt recovery paths (2.485833ms)
+(node:95557) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/tenant-write-entitlement.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ shared guard decision (applies identically to all five surfaces)
+  ✔ read-only/suspended tenant => 403 entitlement_write_blocked (106.236417ms)
+  ✔ normal entitled tenant behaviour is unchanged (allow) (1.466958ms)
+  ✔ operator behaviour is unchanged (allowlist + dg:staff exempt, no subscription lookup) (2.142042ms)
+  ✔ an API-key principal is not exempt merely because its org is permitted/operator (0.686333ms)
+✔ shared guard decision (applies identically to all five surfaces) (113.127959ms)
+▶ wiring: communications/signatures (POST/PATCH/DELETE, GET untouched)
+  ✔ guards all three mutations and not the read (0.219292ms)
+✔ wiring: communications/signatures (POST/PATCH/DELETE, GET untouched) (0.262084ms)
+▶ wiring: org/goals (POST/PATCH/DELETE, GET untouched)
+  ✔ guards all three mutations and not the read (0.116708ms)
+✔ wiring: org/goals (POST/PATCH/DELETE, GET untouched) (0.168ms)
+▶ wiring: org/apps PATCH keeps activatePaidApps as a separate control
+  ✔ guards the write and preserves the paid-app entitlement check (0.135667ms)
+✔ wiring: org/apps PATCH keeps activatePaidApps as a separate control (0.17225ms)
+▶ wiring: org/industry/templates PATCH keeps activatePaidApps as a separate control
+  ✔ guards the write and preserves the paid-app entitlement check (0.143375ms)
+✔ wiring: org/industry/templates PATCH keeps activatePaidApps as a separate control (0.166792ms)
+▶ wiring: platform/api-keys preserves requireOrgAdmin before the guard
+  ✔ POST guards creation after requireOrgAdmin (0.11925ms)
+  ✔ DELETE guards revocation after requireOrgAdmin (0.120209ms)
+  ✔ an API-key principal cannot manage keys even if its org is otherwise permitted (0.171833ms)
+✔ wiring: platform/api-keys preserves requireOrgAdmin before the guard (0.451542ms)
+▶ verify-env: safe production configuration passes
+  ✔ all required present, pairing ok, no prohibited => ok (0.558ms)
+✔ verify-env: safe production configuration passes (0.911083ms)
+▶ verify-env: unsafe production configuration fails
+  ✔ flags plaintext-secrets flag, test keys, and missing prod-required key (0.165542ms)
+  ✔ flags sandbox connector mode + Stripe test key in production (0.090708ms)
+✔ verify-env: unsafe production configuration fails (0.31725ms)
+▶ verify-env: feature-gated secrets
+  ✔ requires STRIPE_WEBHOOK_SECRET in production when STRIPE_SECRET_KEY is set (0.092ms)
+  ✔ no Stripe configured => no Stripe requirement (0.046625ms)
+✔ verify-env: feature-gated secrets (0.188542ms)
+▶ verify-env: local (non-production) is lenient about prod-only rules
+  ✔ test keys allowed and prod-required keys not enforced locally when pairing ok (1.547458ms)
+  ✔ base-required is enforced in every environment (0.174875ms)
+✔ verify-env: local (non-production) is lenient about prod-only rules (1.834459ms)
+▶ verify-env: Clerk↔Neon pairing gate
+  ✔ blocks production Clerk against development Neon (0.169375ms)
+  ✔ blocks when DG_NEON_ENV disagrees with host (0.110833ms)
+✔ verify-env: Clerk↔Neon pairing gate (0.333792ms)
+▶ H-7: first delivery and successful processing
+  ✔ processes an unseen event exactly once and marks it completed (75.725792ms)
+✔ H-7: first delivery and successful processing (76.13125ms)
+(node:95560) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/billing/webhook-receipt-state.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ H-7: duplicate delivery
+  ✔ does not re-run a completed event (4.414292ms)
+  ✔ does not re-run an event another worker is actively holding (20.706ms)
+✔ H-7: duplicate delivery (25.279417ms)
+▶ H-7: handler failure and retry
+  ✔ records failure and rethrows so the caller can return a retryable status (0.65225ms)
+  ✔ retries after a failure and succeeds, processing exactly once overall (0.934542ms)
+  ✔ stops retrying a permanently failing event instead of looping forever (3.469917ms)
+✔ H-7: handler failure and retry (5.303791ms)
+▶ H-7: abandoned claim (crash) recovery
+  ✔ recovers a claim whose owner died, once it is provably stale (0.759209ms)
+  ✔ does NOT steal a claim that is still within the stale window (1.14325ms)
+✔ H-7: abandoned claim (crash) recovery (2.126792ms)
+▶ H-7: existing historical receipts
+  ✔ treats migration-backfilled rows as completed and never reprocesses them (0.616375ms)
+  ✔ a NULL claimedAt on a processed row is never treated as stale (0.569417ms)
+✔ H-7: existing historical receipts (1.262166ms)
+▶ H-7: migration artefact safety
+  ✔ backfills history as processed but defaults new claims to processing (3.880584ms)
+✔ H-7: migration artefact safety (3.951416ms)
+▶ Deployment window: 'processing' rows with no claim timestamp
+  ✔ treats a NULL claim as already processed, never as a crash (1.003291ms)
+  ✔ stays a duplicate long after any stale threshold would have expired (0.604917ms)
+  ✔ does not rely on the store to reject a NULL claim (0.9175ms)
+✔ Deployment window: 'processing' rows with no claim timestamp (2.665334ms)
+(node:95562) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/webhook-auth.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ H-1: webhook secret verification
+  ✔ fails closed when no secret is configured (80.23675ms)
+  ✔ does not accept the general-purpose DG_API_KEY (1.158875ms)
+  ✔ rejects a wrong secret and a prefix of the right one (0.638417ms)
+✔ H-1: webhook secret verification (82.517875ms)
+▶ H-1: webhook organisation targeting
+  ✔ uses the server-resolved organisation when the body omits one (2.844125ms)
+  ✔ refuses a body organisationId the credential is not scoped to (0.702291ms)
+  ✔ accepts a body organisationId that confirms the server answer (1.615667ms)
+  ✔ honours an explicit multi-tenant allowlist for the credential (0.721416ms)
+  ✔ fails when nothing resolves (0.870042ms)
+✔ H-1: webhook organisation targeting (7.0705ms)
+▶ H-4: connector secret encryption
+  ✔ refuses to store a secret when no encryption key is configured (5.961083ms)
+[crypto] DG_SETTINGS_ENCRYPTION_KEY is not set and DG_ALLOW_PLAINTEXT_SECRETS is enabled — storing a connector secret in plaintext. Never do this outside local development.
+  ✔ allows plaintext only behind an explicit local-dev opt-in (0.779917ms)
+  ✔ round-trips an encrypted secret when the key is set (1.032834ms)
+  ✔ reports an explicit reason when the key is missing or wrong (1.404291ms)
+  ✔ still reads legacy plaintext values so existing credentials survive (0.679125ms)
+✔ H-4: connector secret encryption (10.00825ms)
+(node:95563) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/websites/page-patch.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ component patch changes only the targeted component (0.597583ms)
+✔ page SEO patch preserves unrelated current SEO fields (0.081833ms)
+✔ legacy full component snapshot isolates one intended component change (0.098917ms)
+✔ legacy snapshot refuses stale multi-component replay (0.065ms)
+✔ snapshot refuses structural component replacement (0.039042ms)
+(node:95564) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/website-studio-access.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ organisation owners and admins can operate Website Studio at organisation scope (0.813458ms)
+✔ ordinary members cannot use assigned-scope website grants as organisation-wide Studio authority (7.501334ms)
+✔ an explicit organisation-scope website grant can authorise the matching member action (0.093875ms)
+✔ DigitalGate staff retains server-resolved platform website authority (0.094917ms)
+✔ Studio API and preview entry points are wired through the access guard (3.064666ms)
+✔ Website Health keeps mutation controls off read-only sessions (0.267916ms)
+✔ legacy migration health does not expose connector plumbing to customers (0.230875ms)
+✔ Studio mutation APIs keep implementation details out of customer feedback (0.348167ms)
+✔ Design Studio home and create flow stay permission-truthful (0.336208ms)
+✔ Content overview keeps create and edit actions off read-only sessions (0.272542ms)
+✔ authenticated shell switches from fixed sidebar to a mobile drawer (2.911625ms)
+✔ authenticated mobile shell covers the visual viewport without a purple home-indicator strip (1.071458ms)
+✔ Website Studio collapses its desktop editor grid on narrow viewports (0.351667ms)
+✔ Studio image library uses responsive grids and wrapping upload controls (0.275833ms)
+✔ Studio SEO fields are fluid instead of fixed-width (0.259958ms)
+(node:95566) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/websites/chrome.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ normaliseWebsiteChromePatch accepts only editable chrome fields (0.538666ms)
+✔ header save preserves footer, CSS, other chrome settings and site metadata (0.066833ms)
+✔ footer and CSS patches are independently isolated (0.057416ms)
+✔ native accommodation reads cannot select WordPress as a runtime source (1.068958ms)
+✔ native accommodation writes do not mirror or fall back to WordPress (0.154625ms)
+✔ native bookings UI and loader never resolve or sync a WordPress runtime connector (0.077417ms)
+✔ native calendar, housekeeping and unit ops paths are Neon-only (0.137041ms)
+✔ legacy WordPress sync module has no Accommodation runtime sync machinery (0.066583ms)
+✔ native Platform Core units module has no WordPress runtime connector or fallback SoT switch (0.093ms)
+✔ native booking creation uses canonical Gen 2 unit identity (0.147959ms)
+✔ WordPress import is isolated behind the dedicated migration endpoint (0.127959ms)
+✔ native booking and OTA writes are explicitly Neon paths (0.060708ms)
+✔ native booking edits fail closed on unit reassignment until atomic move exists (0.097583ms)
+✔ fetchPortalMe fails closed instead of reading WordPress /portal/me (0.064625ms)
+✔ platform health ping does not round-trip to a leftover WordPress hub (0.047625ms)
+✔ WordPress site health API requires an explicit diagnostic view and org connector (0.110708ms)
+✔ authenticated platform context resolves profile from Neon without WordPress portal fallback (0.214458ms)
+✔ authenticated platform shell never triggers background WordPress onboarding sync (0.103042ms)
+✔ outbound property publishing is an inert compatibility shim (0.192334ms)
+✔ dead outbound agent publishing module stays removed (0.174083ms)
+✔ property WordPress capability remains inbound migration only (0.202833ms)
+(node:95568) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/write-entitlement-policy.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ H-3 policy: methods, exempt paths, block mapping
+  ✔ classifies write methods and leaves reads alone (68.803875ms)
+  ✔ exempts only the exact recovery/billing/onboarding paths (never /command or /admin) (5.020334ms)
+  ✔ shouldCheckTenantWriteEntitlement: skip reads/operators/exempt, gate tenant writes (0.517417ms)
+  ✔ maps entitlement results to fail-closed responses (1.2385ms)
+✔ H-3 policy: methods, exempt paths, block mapping (76.052875ms)
+▶ H-3 decision engine: writeEntitlementForSubscription (pure)
+  ✔ missing subscription (pre-checkout/trial) allows writes (15.692958ms)
+  ✔ suspended/read-only blocks; trialing allows (0.831125ms)
+  ✔ founding / platform-exempt orgs always allow writes (3.739333ms)
+✔ H-3 decision engine: writeEntitlementForSubscription (pure) (20.513875ms)
+▶ H-3 decision engine: checkTenantWriteEntitlement (fetch + fail closed)
+  ✔ no subscription => allow; suspended => block read_only; founding => allow (2.408ms)
+  ✔ database lookup FAILURE fails closed (lookup_failed), not open (1.241709ms)
+  ✔ with no DATABASE_URL the strict store returns null => allow (unconfigured is not a failure) (3.386375ms)
+✔ H-3 decision engine: checkTenantWriteEntitlement (fetch + fail closed) (7.265542ms)
+▶ H-3 operator exemption uses the unchanged platform-authority source (C-2 intact)
+  ✔ operator (allowlist or dg:staff) skips the tenant gate; ordinary tenant does not (4.12925ms)
+  ✔ slug/name never grant operator exemption (C-2 boundary unchanged) (0.44175ms)
+✔ H-3 operator exemption uses the unchanged platform-authority source (C-2 intact) (4.655375ms)
+ℹ tests 569
+ℹ suites 95
+ℹ pass 569
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 9124.388541
+
+> dg-platform-web@0.3.0 test:marketing-commercial-consistency
+> node --test scripts/test-marketing-commercial-consistency.mjs
+
+✔ public marketing never links directly to app onboarding (4.885458ms)
+✔ canonical public trial entry point remains signup/account (0.5045ms)
+✔ Industry App commercial pricing remains $149, not $99 (3.585459ms)
+✔ legitimate $99 products remain allowed (0.319209ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 46.893291
+
+> dg-platform-web@0.3.0 test:security-certification
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-platform-authority.mjs scripts/test-api-key-authority.mjs scripts/test-h6-billing-authority.mjs scripts/test-commerce-document-authority.mjs scripts/test-contact-company-tenant-isolation.mjs scripts/test-growth-mutation-authority.mjs scripts/test-feature-tail-authority.mjs scripts/test-residual-relationship-isolation.mjs scripts/test-review-request-contact-isolation.mjs scripts/test-notification-recipient-isolation.mjs scripts/test-onboarding-checkout-verification.mjs
+
+(node:95699) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ API keys never hold platform authority
+  ✔ isApiKeyPrincipal recognises only api_key:* principals (61.070792ms)
+  ✔ hasPlatformAuthority denies an api-key session in an allowlisted org (0.663ms)
+  ✔ hasPlatformAuthority denies an api-key session even with a dg:staff role (0.320833ms)
+  ✔ canAccessCommandCentre denies an api-key session in the operator org (5.500667ms)
+  ✔ toPlatformUserType returns null for an api-key principal, even if hasAuthority is forced (5.109166ms)
+  ✔ buildAccessContext gives an api-key session no operator grants (11.675292ms)
+  ✔ assertPlatformOperator refuses to mint a capability for an api-key session (C-3) (5.392625ms)
+✔ API keys never hold platform authority (90.387333ms)
+▶ producer / detector contract
+  ✔ apiKeyToPlatformSession mints an api_key:* principal the detector recognises (0.970542ms)
+✔ producer / detector contract (1.040458ms)
+✔ commerce document pages require commerce.read before loading tenant data (0.527458ms)
+✔ quote and invoice mutations stay behind commerce.manage (0.075958ms)
+✔ CRM contact hydration on commerce documents requires crm.contacts.read (0.075083ms)
+✔ commerce APIs keep the same feature IDs as the pages (0.052834ms)
+✔ commerce.read and commerce.manage map to the commerce module (0.069083ms)
+(node:95701) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/contacts/index.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ foreign company IDs are a named isolation error, not a silent attach (0.349584ms)
+✔ createContact and updateContact resolve company by id + organisationId before write (0.145416ms)
+✔ contact APIs map a foreign company id to 422 instead of writing it (0.06ms)
+✔ Command Centre heavy reads retain the bounded serial queue contract (4.242083ms)
+✔ serial queue survives a 100-job concurrent burst without overlapping work or deadlocking after failures (226.660625ms)
+(node:95702) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/access/evaluate.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ feature tail authority mapping
+  ✔ maps communications email send to organisation-scoped create authority (71.780625ms)
+  ✔ maps CRM contact import to organisation-scoped create authority (0.30025ms)
+  ✔ maps communications agent configure to organisation-scoped manage authority (0.618042ms)
+  ✔ denies default Members while retaining Admin authority (0.579125ms)
+✔ feature tail authority mapping (73.480667ms)
+✔ social drafts require organisation-scope Growth create before mutation (0.397083ms)
+✔ marketing campaigns require organisation-scope Growth create before mutation (0.040583ms)
+✔ review requests require organisation-scope Growth create before mutation (0.032833ms)
+✔ review reply generation can remain non-persistent without Growth write authority (0.043917ms)
+✔ all Growth mutation routes use the canonical permission helper (0.109084ms)
+H-6 billing authority regression tests passed
+✔ scripts/test-h6-billing-authority.mjs (72.939333ms)
+Onboarding checkout and implementation handoff regression tests passed
+✔ scripts/test-onboarding-checkout-verification.mjs (70.196875ms)
+(node:95706) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ C-2: platform authority is server-controlled only
+  ✔ does not grant platform authority from a digitalgate-* slug or name (60.255459ms)
+  ✔ does not infer digitalgate_owner for a self-named organisation (4.508459ms)
+  ✔ does not let a self-named organisation reach Command Centre (7.258708ms)
+  ✔ does not grant the digitalgate_owner permission bypass to a self-named org (17.888708ms)
+✔ C-2: platform authority is server-controlled only (90.477041ms)
+▶ C-2: genuine operators retain access
+  ✔ allows only the owner fallback inside an allowlisted operator organisation (1.10125ms)
+  ✔ grants platform authority via the dg:staff membership role (0.913917ms)
+  ✔ fails closed when no allowlist is configured and role is ordinary (0.359875ms)
+✔ C-2: genuine operators retain access (2.517917ms)
+(node:95707) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/finance/applications.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ named isolation errors distinguish residual relationship IDs (0.5165ms)
+✔ lookups are organisation-scoped, not global ID existence (0.130292ms)
+✔ finance rejects foreign contactId before write and keeps omitted contact unattached (0.082375ms)
+✔ PM lease rejects foreign property and contact IDs before write (0.061041ms)
+✔ PM maintenance rejects foreign propertyId and contactId before write (0.052583ms)
+✔ commercial lease rejects foreign property and contact IDs before write (0.067209ms)
+✔ property create rejects foreign ownerContactId and leadId before write (0.072167ms)
+✔ payment request reuses commerce relationship helpers before write (0.087375ms)
+✔ omitted and null optional relationships stay optional (0.052166ms)
+▶ review request contact tenant isolation
+  ✔ resolves supplied contactId inside the authenticated organisation before queueing (1.763667ms)
+✔ review request contact tenant isolation (2.154834ms)
+ℹ tests 46
+ℹ suites 6
+ℹ pass 46
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 382.7295
+
+> dg-platform-web@0.3.0 test:industry-onboarding-isolation
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-industry-onboarding-isolation.mjs
+
+✔ onboarding recognises canonical parent Industry ids and aliases (0.288833ms)
+✔ onboarding chooses one primary sub-industry per parent Industry (0.053792ms)
+✔ shared runtime app ids cannot implicitly activate every sibling template (0.077667ms)
+✔ Services runtime keys are mirrored from exact active child Apps (0.111584ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 53.764833
+
+> dg-platform-web@0.3.0 test:accommodation-completeness
+> node --test scripts/test-accommodation-dashboard-recovery.mjs
+
+✔ accommodation load failures do not masquerade as empty onboarding (0.353209ms)
+✔ accommodation dashboard customer actions meet the native touch target floor (0.047166ms)
+✔ overview summary uses the organisation timezone (0.053375ms)
+✔ units page stays on native organisation context with no legacy site picker (0.043208ms)
+✔ bookings page uses the native platform page context (0.051375ms)
+✔ availability uses tenant-local date boundaries and native context (0.054084ms)
+✔ availability gives native-only units unique UI identities and native recovery (0.039708ms)
+✔ check-in windows use the organisation timezone instead of a Brisbane label (0.039333ms)
+✔ check-in guest actions meet the native touch target floor (0.041125ms)
+✔ housekeeping is tenant-local, turnover-aware and native-only (0.074792ms)
+✔ housekeeping can update native-only units and meets the touch target floor (0.042584ms)
+✔ housekeeping writes enforce organisation-scope Industry edit permission (0.036875ms)
+✔ payments use organisation locale and currency rather than hard-coded AUD (0.042209ms)
+✔ payment mutation controls meet the native touch target floor (0.341ms)
+✔ accommodation review actions meet the native touch target floor (0.02675ms)
+✔ accommodation writes require organisation-scope Industry permission (0.043166ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.401958
+
+> dg-platform-web@0.3.0 test:finance-certification
+> node --test scripts/test-finance-certification.mjs
+
+✔ Finance customer pages use the native shared platform context (0.658458ms)
+✔ shared Industry beta layout has no legacy profile read (0.052667ms)
+✔ Finance writes require organisation-scope Industry edit authority (0.049333ms)
+✔ Finance page mutation controls use the same locked permission model (0.048083ms)
+✔ Finance money presentation follows organisation locale and currency (0.046708ms)
+✔ Finance interactive controls meet the native touch-target floor (0.038625ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35.908542
+
+> dg-platform-web@0.3.0 test:lend-finance-connector
+> node scripts/test-lend-finance-connector.mjs
+
+Lend finance connector foundation contract passed
+
+> dg-platform-web@0.3.0 test:lend-connection-ui
+> node scripts/test-lend-connection-ui.mjs
+
+Lend connection UI and entitlement contract passed
+
+> dg-platform-web@0.3.0 test:lend-finance-mapping
+> node scripts/test-lend-finance-mapping.mjs
+
+Lend finance mapping contract passed
+
+> dg-platform-web@0.3.0 test:illion-bankstatements-connector
+> node scripts/test-illion-bankstatements-connector.mjs
+
+illion BankStatements connector contract passed
+
+> dg-platform-web@0.3.0 test:equifax-finance-connector
+> node scripts/test-equifax-finance-connector.mjs
+
+Equifax Australia finance connector contract passed
+
+> dg-platform-web@0.3.0 test:vedacheck-finance-connector
+> node scripts/test-vedacheck-finance-connector.mjs
+
+Vedacheck finance connector contract passed
+
+> dg-platform-web@0.3.0 test:services-certification
+> node --test scripts/test-services-certification.mjs
+
+✔ Services job writes require organisation-scope Industry edit authority (0.318667ms)
+✔ Services template changes require organisation-scope management authority (0.048083ms)
+✔ ServiceJob timeline writes use the same organisation-wide authority (0.043708ms)
+✔ Services pages render mutation controls from the locked permission model (0.054917ms)
+✔ Services create, edit and quick scheduling use organisation timezone conversion (0.069917ms)
+✔ Services customer controls meet the native touch-target floor (0.047125ms)
+✔ Services customer UI does not advertise unfinished checklist/photo/template work (0.069875ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36.045833
+
+> dg-platform-web@0.3.0 test:commercial-certification
+> node --test scripts/test-commercial-certification.mjs
+
+✔ Commercial customer pages use native shared platform context (0.61275ms)
+✔ Commercial writes require organisation-scope Industry edit authority (0.064875ms)
+✔ Commercial page mutation controls use the same locked authority (0.0505ms)
+✔ Commercial rent presentation follows organisation locale and currency (0.047667ms)
+✔ Commercial create controls meet native touch-target floor (0.052083ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35.360958
+
+> dg-platform-web@0.3.0 test:property-management-certification
+> node --test scripts/test-property-management-certification.mjs
+
+✔ Property Management customer pages use native shared platform context (0.627667ms)
+✔ Property Management writes require organisation-scope Industry edit authority (0.157583ms)
+✔ Property Management page mutation controls use the locked authority model (0.047125ms)
+✔ Property Management rent presentation follows organisation locale and currency (0.047ms)
+✔ Property Management create controls meet the native touch-target floor (0.05675ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 35.846417
+
+> dg-platform-web@0.3.0 test:real-estate-certification
+> node --test scripts/test-real-estate-certification.mjs
+
+✔ Real Estate customer pages use native shared platform context (0.369208ms)
+✔ Real Estate property mutations require organisation-wide authority (0.114667ms)
+✔ Lead mutations cannot promote assigned scope into organisation-wide writes (0.080875ms)
+✔ normal Real Estate customer journeys expose no WordPress sync or publish controls (0.123083ms)
+✔ unfinished vendor prospecting model is removed from live navigation (0.055875ms)
+✔ Real Estate listings use organisation money settings (0.042917ms)
+✔ Real Estate bookings require write authority and use organisation timezone (0.044792ms)
+✔ Real Estate interactive customer controls meet the native touch-target floor (0.04125ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36.73725
+
+> dg-platform-web@0.3.0 test:command-completeness
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-command-completeness.mjs scripts/test-command-centre-cockpit.mjs
+
+✔ Command Centre remains the canonical operator cockpit on /command (0.427042ms)
+✔ Command cockpit uses the operator summary IA (0.140792ms)
+✔ Command cockpit keeps live operator capabilities and scopes commercial CRM to DigitalGate (0.24025ms)
+✔ Command cockpit presentation is derived from live ops-home fields (0.036875ms)
+✔ primary Command cockpit actions keep the native touch-target floor (0.045708ms)
+(node:95954) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/command-centre/presentation.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ cockpit presentation never fabricates trial or health numbers (83.60675ms)
+✔ quiet cockpit recedes to a steady status from live empty queues (0.473417ms)
+✔ customer activation is the primary onboarding pulse (0.092417ms)
+✔ secondary command metrics stay compact on mobile (0.082334ms)
+✔ every declared Command Centre route resolves to a real page (0.470708ms)
+✔ unknown Command routes fail closed instead of rendering product placeholders (0.095667ms)
+✔ Command ops home never exposes deployment setup instructions to operators (0.070584ms)
+✔ core Command pages use operational recovery instead of developer database copy (0.32925ms)
+✔ Command operator status UI avoids source-code and deferred-route language (0.077125ms)
+✔ primary Command actions meet the native touch-target floor (0.547166ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 140.912208
+
+> dg-platform-web@0.3.0 test:observability-operations
+> node --test scripts/test-observability-operations.mjs
+
+✔ System Diagnostics is live rather than a planned-feature placeholder (0.621417ms)
+✔ Diagnostics renders only telemetry the platform can currently prove (0.129167ms)
+✔ Platform Alerts keeps real production service health checks (0.047583ms)
+✔ Stripe webhook diagnostics use durable receipt lifecycle state (0.106541ms)
+✔ Webhook observability returns lifecycle metadata only (0.120333ms)
+✔ Webhook observability is exported through Platform Core (0.032125ms)
+✔ Diagnostics operator actions meet the native touch-target floor (0.035959ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.695083
+
+> dg-platform-web@0.3.0 test:customer-guidance
+> node --test scripts/test-customer-guidance.mjs
+
+✔ knowledge base covers the launch-critical customer journey (0.67575ms)
+✔ customer-facing support copy does not expose internal build-stage language (0.173666ms)
+✔ knowledge base teaches native Gen 2 rather than normal WordPress runtime (0.157584ms)
+✔ knowledge base routes provide a clear support escalation path (0.0385ms)
+✔ native app setup is authoritative and never falls back to the historical catalogue (0.103292ms)
+✔ launch-critical apps have explicit native setup guides (0.061791ms)
+✔ disabled scaffold apps cannot receive customer setup guides (0.035125ms)
+✔ customer setup renderer never exposes deployment environment configuration (0.053375ms)
+✔ support, help and setup navigation meet the native touch-target floor (0.051125ms)
+✔ migration guidance keeps historical systems outside normal Gen 2 authority (0.103667ms)
+✔ shared resolution actions support automatic, guided and manual remediation (0.049791ms)
+✔ Business Health and Insights findings expose a resolution path (0.044542ms)
+✔ Digital Twin incompleteness gives customers direct repair choices (0.030583ms)
+✔ Benchmarks convert missing evidence and opportunities into guided actions (0.034625ms)
+✔ Command Centre growth performance never leaves stale or missing evidence passive (0.031708ms)
+✔ Analytics missing evidence routes users directly to data connection or Advisor (0.032625ms)
+✔ Automation empty activity state provides setup and guidance actions (0.037917ms)
+✔ Hosting routes DNS and SSL problems to the exact repair surfaces (0.037167ms)
+✔ Property Management open maintenance is a direct resolution path (0.027708ms)
+✔ AI Call Centre empty activity directs the customer to setup or help (0.033166ms)
+✔ Prospecting load failures provide retry and Advisor recovery paths (0.020834ms)
+✔ Connected Services failures provide reconnect, refresh and Advisor recovery (0.051833ms)
+✔ Support chat failures provide retry and human escalation without a dead end (0.022334ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39.045041
+
+> dg-platform-web@0.3.0 test:launch-customer-journey
+> node --test scripts/test-launch-customer-journey.mjs
+
+✔ public signup stays outside the authenticated platform shell (0.372208ms)
+✔ public plan submission hands signed-out customers to account creation or login (0.0535ms)
+✔ signup completion actions meet the native touch-target floor (0.092ms)
+✔ public plan picker stays customer-facing and truthful about the next step (0.08275ms)
+✔ public signup only offers launch-ready native industry groups (0.073166ms)
+✔ plan picker controls meet the native touch-target floor (0.114208ms)
+✔ canonical onboarding remains native Gen 2 and organisation-aware (0.081375ms)
+✔ new-account onboarding can reach its own signed-out handoff (0.054125ms)
+✔ signed-out onboarding recovery does not render authenticated app chrome (0.061916ms)
+✔ onboarding sign-in and billing recovery meet the native touch-target floor (0.120375ms)
+✔ Start Your Business stays customer-facing rather than exposing implementation internals (0.105ms)
+✔ Start Your Business provides accessible recovery and continuation paths (0.335791ms)
+✔ implementation handoff uses the canonical integration hub without overstating connection completion (0.0875ms)
+✔ onboarding completion is described as a platform hand-off, not delivery implementation (0.129208ms)
+✔ first-login Aida handover is available to every signed-in Gen 2 customer (0.06475ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.220208
+
+> dg-platform-web@0.3.0 test:ai-visibility-monitoring
+> node --test scripts/test-ai-visibility-monitoring.mjs
+
+✔ AI Visibility monitoring accepts only organisation-governed evidence (0.385916ms)
+✔ monitoring completeness remains explicit rather than inferred (0.065375ms)
+✔ monitoring API is authenticated, organisation-scoped and permission guarded (0.092083ms)
+✔ monitoring control plane does not fabricate or invoke answer engines (0.093375ms)
+✔ current AI Visibility scores use active prompts and only latest prompt-provider-model evidence (0.070125ms)
+✔ public AI Visibility snapshot consumers resolve to the current evidence implementation (0.053084ms)
+✔ manual observation batches advance coverage instead of repeating the first prompts forever (0.050125ms)
+✔ monitor runner exposes bounded batches and explicit coverage recovery (0.042042ms)
+✔ trend movement compares equivalent active prompt-provider-model evidence (0.056958ms)
+✔ model observation entity matching avoids substring false positives and checks governed brand names (0.083791ms)
+✔ recurring monitoring is explicit, weekly and hard bounded (0.067791ms)
+✔ recurring monitoring settings are org-admin controlled and cron authenticated (0.045834ms)
+✔ recurring monitoring UI makes opt-in, model calls and limits explicit (0.037916ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 40.519416
+
+> dg-platform-web@0.3.0 test:ai-visibility-model-observations
+> node --test scripts/test-ai-visibility-model-observations.mjs
+
+✔ model observations use a real configured LLM response and persist exact provenance (0.295958ms)
+✔ model observer does not invent citations, ranks or recommendation capture (0.346125ms)
+✔ run API is organisation scoped and records nothing when model transport is unavailable (0.056833ms)
+✔ customer UI labels API evidence truthfully and gives recovery actions (0.056291ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37.708083
+
+> dg-platform-web@0.3.0 test:business-brain-knowledge
+> node --test scripts/test-business-brain-knowledge.mjs
+
+▶ Business Brain governed knowledge contract
+  ✔ keeps normal Brain retrieval approved-only and organisation-scoped (2.315375ms)
+  ✔ grounds free-text Advisor reasoning in approved organisational knowledge (0.964292ms)
+  ✔ creates extracted knowledge as proposed, never auto-approved (0.347041ms)
+  ✔ requires same-organisation records for explicit supersession (0.311666ms)
+  ✔ requires an explicit organisation for imports and forbids automatic approval (0.282792ms)
+  ✔ maps the production knowledge schema into the generated Prisma client (0.5345ms)
+  ✔ docs/business-brain/digitalgate-knowledge-seed.json is review-only and has unique durable keys (0.4115ms)
+  ✔ docs/business-brain/digitalgate-historical-context-seed.json is review-only and has unique durable keys (0.306792ms)
+  ✔ documents lifecycle, provenance and the Documents boundary (0.291583ms)
+✔ Business Brain governed knowledge contract (6.385583ms)
+ℹ tests 9
+ℹ suites 1
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 45.142
+
+> dg-platform-web@0.3.0 test:website-studio-save-isolation
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-website-studio-save-isolation.mjs
+
+(node:96081) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/websites/chrome.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ normaliseWebsiteChromePatch accepts only editable chrome fields (0.583375ms)
+✔ header save preserves footer, CSS, other chrome settings and site metadata (0.068875ms)
+✔ footer and CSS patches are independently isolated (0.056209ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 163.30325
+
+> dg-platform-web@0.3.0 test:website-studio-publication
+> node --experimental-strip-types --test scripts/test-website-studio-publication.mjs
+
+(node:96099) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/public-html.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ published site and published page render publicly (0.370292ms)
+✔ draft site never becomes public from an unauthorised preview query (0.04725ms)
+✔ draft page on a published site remains private (0.037834ms)
+✔ unauthorised preview does not expose a draft page on a published site (0.044583ms)
+✔ authorised Studio preview can render unpublished content (0.048708ms)
+✔ preview authorisation alone cannot expose drafts without an explicit preview request (0.035375ms)
+✔ unauthorised preview query still permits already-published content (0.059167ms)
+✔ public metadata uses the same publication gate and carries noindex (2.818042ms)
+✔ public sitemap never falls back to an unpublished site (0.258209ms)
+✔ public HTML sanitizer removes executable elements and event handlers (0.619958ms)
+✔ public HTML sanitizer blocks encoded and direct executable URL schemes (0.080541ms)
+✔ public HTML sanitizer removes imported form submission authority (0.047833ms)
+✔ public CSS sanitizer removes legacy executable CSS primitives (0.216459ms)
+✔ page and chrome public render boundaries are wired through sanitization (0.606834ms)
+✔ Website Studio guards dirty drafts before unload and destructive navigation (0.269209ms)
+✔ Website Studio normalises network failures into recoverable JSON errors (0.340166ms)
+✔ Website Studio page is wrapped in the unsaved-changes boundary (0.572916ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 86.650167
+
+> dg-platform-web@0.3.0 test:website-studio-permissions
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-website-studio-permissions.mjs scripts/test-studio-images.mjs
+
+(node:96117) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/assets/org-brand-storage.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ orgOwnedAssetUrl accepts this organisation's Blob and public paths (0.369875ms)
+✔ orgOwnedAssetUrl rejects other tenants, traversal, and platform Aida paths (0.060208ms)
+✔ parseStudioLibraryImages ignores junk and caps the library (0.842583ms)
+✔ mergeStudioLibraryImages preserves other organisation settings (0.07525ms)
+✔ mediaAbsoluteUrl leaves hosted URLs alone and prefixes app origin for relative paths (0.088667ms)
+✔ mediaImgSnippet omits zero dimensions (0.096041ms)
+(node:96118) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/website-studio-access.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ organisation owners and admins can operate Website Studio at organisation scope (0.839417ms)
+✔ ordinary members cannot use assigned-scope website grants as organisation-wide Studio authority (8.08425ms)
+✔ an explicit organisation-scope website grant can authorise the matching member action (0.097834ms)
+✔ DigitalGate staff retains server-resolved platform website authority (0.091792ms)
+✔ Studio API and preview entry points are wired through the access guard (3.197292ms)
+✔ Website Health keeps mutation controls off read-only sessions (0.231666ms)
+✔ legacy migration health does not expose connector plumbing to customers (0.216625ms)
+✔ Studio mutation APIs keep implementation details out of customer feedback (0.400875ms)
+✔ Design Studio home and create flow stay permission-truthful (0.357292ms)
+✔ Content overview keeps create and edit actions off read-only sessions (0.2735ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 522.686875
+
+> dg-platform-web@0.3.0 test:website-studio-page-save-isolation
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-website-studio-page-save-isolation.mjs
+
+(node:96136) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/websites/page-patch.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ component patch changes only the targeted component (0.541125ms)
+✔ page SEO patch preserves unrelated current SEO fields (0.063875ms)
+✔ legacy full component snapshot isolates one intended component change (0.072292ms)
+✔ legacy snapshot refuses stale multi-component replay (0.052709ms)
+✔ snapshot refuses structural component replacement (0.033375ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 135.034
+
+> dg-platform-web@0.3.0 test:website-studio-nested-routes
+> node scripts/test-website-studio-nested-routes.mjs
+
+Nested Website Studio route regression checks passed
+
+> dg-platform-web@0.3.0 test:website-studio-responsive
+> node --test scripts/test-website-studio-responsive.mjs
+
+✔ authenticated shell switches from fixed sidebar to a mobile drawer (2.151083ms)
+✔ authenticated mobile shell covers the visual viewport without a purple home-indicator strip (0.632959ms)
+✔ Website Studio collapses its desktop editor grid on narrow viewports (0.687875ms)
+✔ Studio image library uses responsive grids and wrapping upload controls (0.332583ms)
+✔ Studio SEO fields are fluid instead of fixed-width (0.343792ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41.78425
+
+> dg-platform-web@0.3.0 test:aida-public-advisor
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-aida-public-advisor.mjs
+
+(node:96193) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/aida/index.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ Ask Aida public website advisor
+  ✔ issues high-entropy anonymous conversation tokens and stores only the hash (2.663125ms)
+  ✔ keeps Ask Aida on the DigitalGate public site only (0.088292ms)
+  ✔ never treats staff or customer-brain slugs as public Aida knowledge (0.367917ms)
+  ✔ isolates conversations by organisation and expiry (0.10225ms)
+  ✔ rate-limits public Aida traffic per IP (0.118709ms)
+  ✔ rejects invalid user input (0.059083ms)
+  ✔ hands off immediately when the visitor asks to talk to someone (0.244875ms)
+  ✔ refuses prompt-injection without calling the model or exposing protected data (0.109458ms)
+  ✔ cannot retrieve customer Business Brain or staff docs even if they are passed in (0.570459ms)
+  ✔ surfaces model failure without inventing a reply from tools (0.214375ms)
+  ✔ parses model action markers without leaking them to the visitor (0.053833ms)
+  ✔ captures Aida leads through the existing enquiry CRM path with dedupe (1.286958ms)
+  ✔ never trusts a client-supplied organisation and never exposes model secrets (0.443583ms)
+  ✔ mounts the launcher only for DigitalGate public pages (0.971ms)
+  ✔ does not introduce a WordPress runtime or a parallel Business Brain (0.65925ms)
+✔ Ask Aida public website advisor (8.560833ms)
+ℹ tests 15
+ℹ suites 1
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 146.940416
+
+> dg-platform-web@0.3.0 test:aida-business-overview
+> node --test scripts/test-aida-business-overview.mjs
+
+✔ Business Overview always renders the Aida-led dashboard for signed-in organisations (1.828666ms)
+✔ Aida is the named intelligence layer and Command Centre links to the real command surface (0.480875ms)
+✔ Aida stays available across customer and Command Centre surfaces (0.710667ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 39.481083
+
+> dg-platform-web@0.3.0 test:aida-business-brain-depth
+> node scripts/test-aida-business-brain-depth.mjs
+
+Aida and Business Brain depth checks passed
+
+> dg-platform-web@0.3.0 test:first-day-aida-experience
+> node scripts/test-first-day-aida-experience.mjs
+
+first-day Aida experience checks passed
+
+> dg-platform-web@0.3.0 test:connected-services-customer-experience
+> node scripts/test-connected-services-customer-experience.mjs
+
+connected services customer experience checks passed
+
+> dg-platform-web@0.3.0 test:services-finance-depth
+> node scripts/test-services-finance-depth.mjs
+
+services and finance depth checks passed
+
+> dg-platform-web@0.3.0 test:meta-connector-ui-errors
+> node scripts/test-meta-connector-ui-errors.mjs
+
+Meta connector UI error handling regression checks passed
+
+> dg-platform-web@0.3.0 test:social-connector-assignment-health
+> node scripts/test-social-connector-assignment-health.mjs
+
+Social connector assignment health regression checks passed
+
+> dg-platform-web@0.3.0 test:connector-resource-assignment-health
+> node scripts/test-connector-resource-assignment-health.mjs
+
+connector resource assignment health checks passed
+
+> dg-platform-web@0.3.0 test:youtube-connector-ui-errors
+> node scripts/test-youtube-connector-ui-errors.mjs
+
+YouTube connector UI error handling regression checks passed
+
+> dg-platform-web@0.3.0 test:tiktok-connector-ui-errors
+> node scripts/test-tiktok-connector-ui-errors.mjs
+
+TikTok Ads connector UI error handling regression checks passed
+
+> dg-platform-web@0.3.0 test:connector-settings-authority
+> node scripts/test-connector-settings-authority.mjs
+
+Connector settings authority regression checks passed
+
+> dg-platform-web@0.3.0 test:google-connector-mutation-authority
+> node scripts/test-google-connector-mutation-authority.mjs
+
+Google connector mutation authority regression checks passed
+
+> dg-platform-web@0.3.0 test:pricing-entitlements
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/test-pricing-entitlements.mjs
+
+(node:96417) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/src/lib/plans.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+pricing entitlement regression checks passed
+canonical commercial catalogue regression checks passed
+commercial documentation lock regression checks passed
+enterprise pricing copy consistency checks passed
+Growth and Industry hierarchy consistency checks passed
+
+> dg-platform-web@0.3.0 test:onboarding-plan-differentiators
+> node scripts/test-onboarding-plan-differentiators.mjs
+
+Onboarding canonical plan differentiator regression checks passed
+
+> dg-platform-web@0.3.0 test:onboarding-support-step
+> node scripts/test-onboarding-support-step.mjs
+
+Onboarding Support step regression checks passed.
+
+> dg-platform-web@0.3.0 test:onboarding-checkout-verification
+> node scripts/test-onboarding-checkout-verification.mjs
+
+Onboarding checkout and implementation handoff regression tests passed
+
+> dg-platform-web@0.3.0 test:operator-onboarding-rehearsal
+> node scripts/test-operator-onboarding-rehearsal.mjs
+
+Operator onboarding rehearsal and mobile layout regression checks passed
+
+> dg-platform-web@0.3.0 test:onboarding-ux-polish
+> node scripts/test-onboarding-ux-polish.mjs
+
+onboarding UX polish regression checks passed
+
+> dg-platform-web@0.3.0 test:onboarding-primary-business-type
+> node scripts/test-onboarding-primary-business-type.mjs
+
+onboarding business-type, offer-lock and resume checks passed
+
+> dg-platform-web@0.3.0 test:operator-customer-control
+> node scripts/test-operator-customer-control.mjs
+
+operator customer control regression checks passed
+
+> dg-platform-web@0.3.0 test:first-customer-observability
+> node scripts/test-first-customer-observability.mjs
+
+first-customer observability checks passed
+
+> dg-platform-web@0.3.0 test:client-intelligence-query-resilience
+> node scripts/test-client-intelligence-query-resilience.mjs
+
+Client Intelligence aggregate resilience checks passed
+
+> dg-platform-web@0.3.0 test:partner-mobile-layout
+> node scripts/test-partner-mobile-layout.mjs
+
+partner mobile table and cancelled invitation checks passed
+
+> dg-platform-web@0.3.0 test:customer-intelligence-demo-wp-cleanup
+> node scripts/test-customer-intelligence-demo-wp-cleanup.mjs
+
+customer intelligence demo and WP notice cleanup checks passed
+
+> dg-platform-web@0.3.0 test:operator-demo-partner-cancel
+> node scripts/test-operator-demo-partner-cancel.mjs
+
+operator demo access and partner invitation cancellation checks passed
+
+> dg-platform-web@0.3.0 test:current-referral-commercial-model
+> node scripts/test-current-referral-commercial-model.mjs
+
+current referral commercial model checks passed
+
+> dg-platform-web@0.3.0 test:operator-business-overview-access
+> node scripts/test-operator-business-overview-access.mjs
+
+operator Business Overview access checks passed
+
+> dg-platform-web@0.3.0 test:business-overview-brain-order
+> node scripts/test-business-overview-brain-order.mjs
+
+Business Overview / Brain order regression checks passed
+
+> dg-platform-web@0.3.0 test:launch-preflight-demo-industry
+> node scripts/test-launch-preflight-demo-industry.mjs
+
+launch preflight demo and Industry taxonomy checks passed
+
+> dg-platform-web@0.3.0 test:support-centre-ux
+> node scripts/test-support-centre-ux.mjs
+
+support centre UX checks passed
+
+> dg-platform-web@0.3.0 test:connector-credential-encryption
+> node scripts/test-connector-credential-encryption.mjs
+
+connector credential encryption regression passed
+connector credential encryption round-trip passed
+(node:96724) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/connectors/framework/secrets.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> dg-platform-web@0.3.0 test:guided-setup
+> node scripts/test-guided-setup-funnel.mjs
+
+Guided Setup funnel regression: OK
+
+> dg-platform-web@0.3.0 test:customer-dashboard-landing
+> node scripts/test-customer-dashboard-landing.mjs
+
+role-aware dashboard landing regression passed
+
+> dg-platform-web@0.3.0 test:onboarding-first-experience
+> node scripts/test-onboarding-first-experience.mjs
+
+onboarding first-experience regression checks passed
+
+> dg-platform-web@0.3.0 test:onboarding-industry-goals
+> node scripts/test-onboarding-industry-goals.mjs
+
+industry-aware onboarding goal checks passed
+
+> dg-platform-web@0.3.0 test:onboarding-support-recommendation
+> node scripts/test-onboarding-support-recommendation.mjs
+
+onboarding support recommendation checks passed
+
+> dg-platform-web@0.3.0 test:onboarding-action-alignment
+> node scripts/test-onboarding-action-alignment.mjs
+
+onboarding action alignment checks passed
+
+> dg-platform-web@0.3.0 test:growth-suite-reputation-default
+> node scripts/test-growth-suite-reputation-default.mjs
+
+Growth Suite reputation inclusion checks passed
+
+> dg-platform-web@0.3.0 test:customer-shell-onboarding-handoff
+> node scripts/test-customer-shell-onboarding-handoff.mjs
+
+customer shell onboarding handoff checks passed
+
+> dg-platform-web@0.3.0 test:guided-connect-business
+> node scripts/test-guided-connect-business.mjs
+
+guided Connect Your Business checks passed
+
+> dg-platform-web@0.3.0 test:growth-overview-app-sync
+> node scripts/test-growth-overview-app-sync.mjs
+
+Growth App overview synchronisation checks passed
+
+> dg-platform-web@0.3.0 test:onboarding-growth-entitlement-sync
+> node scripts/test-onboarding-growth-entitlement-sync.mjs
+
+onboarding Growth entitlement synchronisation checks passed
+
+> dg-platform-web@0.3.0 test:customer-sidebar-canonical-apps
+> node scripts/test-customer-sidebar-canonical-apps.mjs
+
+customer sidebar canonical app checks passed
+
+> dg-platform-web@0.3.0 test:tenant-access-policy-invariants
+> node scripts/test-tenant-access-policy-invariants.mjs
+
+tenant access policy invariants passed
+
+> dg-platform-web@0.3.0 test:connector-secret-boundaries
+> node scripts/test-connector-secret-boundaries.mjs
+
+connector secret boundaries regression passed
+
+> dg-platform-web@0.3.0 test:reputation-ai-fallback
+> node scripts/test-reputation-ai-fallback.mjs
+
+Reputation AI fallback regression passed
+
+> dg-platform-web@0.3.0 test:cvh-booking-email-routing
+> node scripts/test-cvh-booking-email-routing.mjs
+
+CVH booking email routing and booking table contract OK.
+
+> dg-platform-web@0.3.0 test:customer-lifecycle-status
+> node scripts/test-customer-lifecycle-status.mjs
+
+Customer lifecycle status regression passed
+
+> dg-platform-web@0.3.0 test:operator-commercial-entitlement-truth
+> node scripts/test-operator-commercial-entitlement-truth.mjs
+
+Operator commercial entitlement truth regression passed
+
+> dg-platform-web@0.3.0 test:page-hierarchy-contract
+> node scripts/test-page-hierarchy-contract.mjs
+
+Platform page hierarchy contract checks passed
+
+> dg-platform-web@0.3.0 test:operator-ia-readiness
+> node scripts/test-operator-ia-readiness.mjs
+
+Operator IA readiness regression passed
+
+> dg-platform-web@0.3.0 test:business-discovery-relevance
+> node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/test-business-discovery-relevance.mjs
+
+(node:97081) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///private/tmp/dg991-executor-build-x8mgzi89/packages/platform-core/src/business-discovery/industry-packs.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /private/tmp/dg991-executor-build-x8mgzi89/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Business discovery relevance regression checks passed
+
+> dg-platform-web@0.3.0 build
+> node scripts/generate-remediate-991-sql.mjs --check && node --test scripts/test-enabled-apps-client-boundary.mjs && next build
+
+Reviewed #991 artifacts and generated binding verified (/private/tmp/dg991-executor-build-x8mgzi89/src/lib/remediate-991-sql-generated.ts)
+✔ EnabledAppsProvider runtime dependencies cannot reach Node/server modules (33.67575ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 211.135375
+Warning: Custom Cache-Control headers detected for the following routes:
+  - /_next/static/:path*
+
+Setting a custom Cache-Control header can break Next.js development behavior.
+▲ Next.js 16.2.12 (Turbopack)
+- Experiments (use with caution):
+  ✓ viewTransition
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Turbopack build encountered 2 warnings:
+[externals]/@prisma/client
+unexpected export *
+export * used with module [externals]/@prisma/client [external] (@prisma/client, cjs, [project]/node_modules/@prisma/client) which is a CommonJS module with exports only available at runtime
+List all export names manually (`export { a, b, c } from "...") or rewrite the module to ESM, to avoid the additional runtime code.`
+
+Import trace:
+  external:
+    [externals]/@prisma/client [external]
+    ./src/app/api/admin/reconcile-991/route.ts [App Route]
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./src/lib/load-platform-doc.ts
+    ./src/app/api/v1/command/intelligence/route.ts
+
+
+✓ Compiled successfully in 14.2s
+  Running TypeScript ...
+  Finished TypeScript in 14.2s ...
+  Collecting page data using 11 workers ...
+  Generating static pages using 11 workers (0/456) ...
+  Generating static pages using 11 workers (114/456)
+  Generating static pages using 11 workers (228/456)
+[reviews-feed] loadReviewsSessionAndFeed failed Error: Dynamic server usage: Route /apps/accommodation/reviews couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at async l (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:1:945)
+    at async (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:3:4570) {
+  description: "Route /apps/accommodation/reviews couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[reviews-feed] loadReviewsSessionAndFeed failed Error: Dynamic server usage: Route /apps/reviews/reputation couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at async l (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:1:945)
+    at async (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:3:4570) {
+  description: "Route /apps/reviews/reputation couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[reviews-feed] loadReviewsSessionAndFeed failed Error: Dynamic server usage: Route /apps/reviews couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at async l (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:1:945)
+    at async (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:3:4570) {
+  description: "Route /apps/reviews couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+  Generating static pages using 11 workers (342/456)
+[reviews-feed] loadReviewsSessionAndFeed failed Error: Dynamic server usage: Route /apps/reviews/inbox couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at async l (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:1:945)
+    at async (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:3:4570) {
+  description: "Route /apps/reviews/inbox couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[ai-visibility] page load failed Error: Dynamic server usage: Route /apps/ai-visibility couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at async l (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:1:945)
+    at async (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:3:4570) {
+  description: "Route /apps/ai-visibility couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[reviews-feed] loadReviewsSessionAndFeed failed Error: Dynamic server usage: Route /apps/reviews/requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at async l (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:1:945)
+    at async (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:3:4570) {
+  description: "Route /apps/reviews/requests couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[reviews-feed] loadReviewsSessionAndFeed failed Error: Dynamic server usage: Route /apps/reviews/sources couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at async l (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:1:945)
+    at async (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:3:4570) {
+  description: "Route /apps/reviews/sources couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[seo] page load failed Error: Dynamic server usage: Route /apps/seo couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at async l (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:1:945)
+    at async (.next/server/chunks/ssr/[root-of-the-server]__0u0i-mi._.js:3:4570) {
+  description: "Route /apps/seo couldn't be rendered statically because it used `headers`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+✓ Generating static pages using 11 workers (456/456) in 314ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /api/admin/reconcile-991
+├ ƒ /api/admin/remediate-991-physical
+├ ƒ /api/connectors/domain/callback
+├ ƒ /api/connectors/domain/connect
+├ ƒ /api/connectors/google-gmail/callback
+├ ƒ /api/connectors/google-gmail/connect
+├ ƒ /api/connectors/google/analytics/continue
+├ ƒ /api/connectors/google/callback
+├ ƒ /api/connectors/google/connect
+├ ƒ /api/connectors/linkedin/callback
+├ ƒ /api/connectors/linkedin/connect
+├ ƒ /api/connectors/meta/callback
+├ ƒ /api/connectors/meta/connect
+├ ƒ /api/connectors/microsoft-365/callback
+├ ƒ /api/connectors/microsoft-365/connect
+├ ƒ /api/connectors/microsoft-ads/callback
+├ ƒ /api/connectors/microsoft-ads/connect
+├ ƒ /api/connectors/rea/callback
+├ ƒ /api/connectors/rea/connect
+├ ƒ /api/connectors/tiktok-ads/callback
+├ ƒ /api/connectors/tiktok-ads/connect
+├ ƒ /api/cron/ai-gateway-maintenance
+├ ƒ /api/cron/ai-visibility-monitoring
+├ ƒ /api/cron/billing-dunning
+├ ƒ /api/cron/lead-followups
+├ ƒ /api/cron/ota-ical-sync
+├ ƒ /api/cron/pagespeed
+├ ƒ /api/cron/property-report-followups
+├ ƒ /api/cron/scheduled-emails
+├ ƒ /api/cron/seo-monitoring
+├ ƒ /api/health
+├ ƒ /api/health/db
+├ ƒ /api/indexnow
+├ ƒ /api/internal/ai-worker/claim
+├ ƒ /api/internal/ai-worker/complete
+├ ƒ /api/internal/ai-worker/heartbeat
+├ ƒ /api/internal/ai-worker/provisioning
+├ ƒ /api/onboarding
+├ ƒ /api/public/accommodation/ical/[slug]/[token].ics
+├ ƒ /api/public/accommodation/stay/[unitSlug]
+├ ƒ /api/public/aida
+├ ƒ /api/public/business-audit
+├ ƒ /api/public/consultation-slots
+├ ƒ /api/public/custom-offer
+├ ƒ /api/public/dg-enquiry
+├ ƒ /api/public/discovery
+├ ƒ /api/public/founding-invite/accept
+├ ƒ /api/public/hideaway-circle
+├ ƒ /api/public/partner-invite/accept
+├ ƒ /api/public/property-report
+├ ƒ /api/public/re-booking
+├ ƒ /api/public/website-form
+├ ƒ /api/v1/accommodation
+├ ƒ /api/v1/accommodation/housekeeping
+├ ƒ /api/v1/accommodation/media
+├ ƒ /api/v1/activities
+├ ƒ /api/v1/addresses/resolve
+├ ƒ /api/v1/admin/commissions/[id]/status
+├ ƒ /api/v1/admin/partners/[id]/approve
+├ ƒ /api/v1/admin/partners/[id]/invite
+├ ƒ /api/v1/admin/partners/[id]/suspend
+├ ƒ /api/v1/admin/partners/[id]/withdraw
+├ ƒ /api/v1/ai-visibility/competitors
+├ ƒ /api/v1/ai-visibility/intelligence
+├ ƒ /api/v1/ai-visibility/monitoring
+├ ƒ /api/v1/ai-visibility/monitoring/run
+├ ƒ /api/v1/ai-visibility/monitoring/schedule
+├ ƒ /api/v1/ai-visibility/prompts
+├ ƒ /api/v1/ai/advisor
+├ ƒ /api/v1/ai/assist
+├ ƒ /api/v1/ai/feedback
+├ ƒ /api/v1/ai/jobs/[id]
+├ ƒ /api/v1/ai/local-recipient-approvals
+├ ƒ /api/v1/ai/local-recipient-approvals/[id]
+├ ƒ /api/v1/ai/tools/execute
+├ ƒ /api/v1/audit
+├ ƒ /api/v1/automation/logs
+├ ƒ /api/v1/automation/rules
+├ ƒ /api/v1/billing/checkout
+├ ƒ /api/v1/billing/custom-offer
+├ ƒ /api/v1/billing/portal
+├ ƒ /api/v1/business-identity/abn
+├ ƒ /api/v1/business-identity/acn
+├ ƒ /api/v1/business-identity/name
+├ ƒ /api/v1/command/acc-beta
+├ ƒ /api/v1/command/advisor
+├ ƒ /api/v1/command/alerts/summary
+├ ƒ /api/v1/command/clients
+├ ƒ /api/v1/command/clients/[orgId]/apps
+├ ƒ /api/v1/command/clients/[orgId]/setup
+├ ƒ /api/v1/command/flags
+├ ƒ /api/v1/command/growth/audits
+├ ƒ /api/v1/command/growth/discovery/import
+├ ƒ /api/v1/command/growth/discovery/search
+├ ƒ /api/v1/command/growth/proposals
+├ ƒ /api/v1/command/growth/prospects
+├ ƒ /api/v1/command/growth/prospects/[id]
+├ ƒ /api/v1/command/growth/prospects/[id]/transition
+├ ƒ /api/v1/command/growth/reports
+├ ƒ /api/v1/command/infra-domains-beta
+├ ƒ /api/v1/command/intelligence
+├ ƒ /api/v1/command/opportunities/summary
+├ ƒ /api/v1/command/opportunities/task
+├ ƒ /api/v1/command/overview
+├ ƒ /api/v1/command/re-beta
+├ ƒ /api/v1/command/reports
+├ ƒ /api/v1/command/support/count
+├ ƒ /api/v1/command/support/status
+├ ƒ /api/v1/command/tasks
+├ ƒ /api/v1/command/websites-beta
+├ ƒ /api/v1/commerce/financial-snapshot
+├ ƒ /api/v1/commerce/invoices
+├ ƒ /api/v1/commerce/invoices/[id]
+├ ƒ /api/v1/commerce/invoices/[id]/send
+├ ƒ /api/v1/commerce/payment-requests
+├ ƒ /api/v1/commerce/products
+├ ƒ /api/v1/commerce/quotes
+├ ƒ /api/v1/commerce/quotes/[id]
+├ ƒ /api/v1/commerce/quotes/[id]/accept
+├ ƒ /api/v1/commerce/quotes/[id]/send
+├ ƒ /api/v1/commerce/reports
+├ ƒ /api/v1/commerce/stripe-status
+├ ƒ /api/v1/commerce/subscriptions
+├ ƒ /api/v1/commercial
+├ ƒ /api/v1/communications/agents
+├ ƒ /api/v1/communications/agents/[id]
+├ ƒ /api/v1/communications/agents/[id]/publish
+├ ƒ /api/v1/communications/attention/clear
+├ ƒ /api/v1/communications/attention/count
+├ ƒ /api/v1/communications/messages
+├ ƒ /api/v1/communications/metrics
+├ ƒ /api/v1/communications/sessions
+├ ƒ /api/v1/communications/sessions/[id]
+├ ƒ /api/v1/communications/signatures
+├ ƒ /api/v1/communications/voices
+├ ƒ /api/v1/companies
+├ ƒ /api/v1/companies/[id]
+├ ƒ /api/v1/connectors
+├ ƒ /api/v1/connectors/abr/abn
+├ ƒ /api/v1/connectors/abr/status
+├ ƒ /api/v1/connectors/apple-icloud/connect
+├ ƒ /api/v1/connectors/apple-icloud/disconnect
+├ ƒ /api/v1/connectors/apple-icloud/status
+├ ƒ /api/v1/connectors/apple-icloud/sync
+├ ƒ /api/v1/connectors/corelogic/address-match
+├ ƒ /api/v1/connectors/corelogic/status
+├ ƒ /api/v1/connectors/domain/disconnect
+├ ƒ /api/v1/connectors/domain/status
+├ ƒ /api/v1/connectors/google-gmail/disconnect
+├ ƒ /api/v1/connectors/google-gmail/status
+├ ƒ /api/v1/connectors/google-gmail/sync
+├ ƒ /api/v1/connectors/google/ads/accounts
+├ ƒ /api/v1/connectors/google/ads/evidence
+├ ƒ /api/v1/connectors/google/ads/selection
+├ ƒ /api/v1/connectors/google/analytics/config
+├ ƒ /api/v1/connectors/google/analytics/status
+├ ƒ /api/v1/connectors/google/disconnect
+├ ƒ /api/v1/connectors/google/locations
+├ ƒ /api/v1/connectors/google/status
+├ ƒ /api/v1/connectors/google/sync
+├ ƒ /api/v1/connectors/google/youtube/analytics
+├ ƒ /api/v1/connectors/google/youtube/channels
+├ ƒ /api/v1/connectors/google/youtube/evidence
+├ ƒ /api/v1/connectors/google/youtube/selection
+├ ƒ /api/v1/connectors/lend
+├ ƒ /api/v1/connectors/linkedin/disconnect
+├ ƒ /api/v1/connectors/linkedin/evidence
+├ ƒ /api/v1/connectors/linkedin/selection
+├ ƒ /api/v1/connectors/linkedin/status
+├ ƒ /api/v1/connectors/meta/ads/accounts
+├ ƒ /api/v1/connectors/meta/ads/evidence
+├ ƒ /api/v1/connectors/meta/ads/selection
+├ ƒ /api/v1/connectors/meta/disconnect
+├ ƒ /api/v1/connectors/meta/instagram/evidence
+├ ƒ /api/v1/connectors/meta/instagram/insights
+├ ƒ /api/v1/connectors/meta/selection
+├ ƒ /api/v1/connectors/meta/status
+├ ƒ /api/v1/connectors/microsoft-365/disconnect
+├ ƒ /api/v1/connectors/microsoft-365/status
+├ ƒ /api/v1/connectors/microsoft-365/sync
+├ ƒ /api/v1/connectors/microsoft-ads/accounts
+├ ƒ /api/v1/connectors/microsoft-ads/selection
+├ ƒ /api/v1/connectors/rea/activate
+├ ƒ /api/v1/connectors/rea/disconnect
+├ ƒ /api/v1/connectors/rea/status
+├ ƒ /api/v1/connectors/tiktok-ads/advertisers
+├ ƒ /api/v1/connectors/tiktok-ads/selection
+├ ƒ /api/v1/connectors/wordpress
+├ ƒ /api/v1/connectors/wordpress/status
+├ ƒ /api/v1/contacts
+├ ƒ /api/v1/contacts/[id]
+├ ƒ /api/v1/contacts/export
+├ ƒ /api/v1/contacts/import
+├ ƒ /api/v1/crm/attention/count
+├ ƒ /api/v1/demo/reset
+├ ƒ /api/v1/documents
+├ ƒ /api/v1/documents/[id]
+├ ƒ /api/v1/documents/[id]/knowledge
+├ ƒ /api/v1/documents/[id]/signing
+├ ƒ /api/v1/finance/applications
+├ ƒ /api/v1/founding/actions
+├ ƒ /api/v1/founding/agreement
+├ ƒ /api/v1/founding/commercial-offer
+├ ƒ /api/v1/founding/implementation
+├ ƒ /api/v1/founding/invitations
+├ ƒ /api/v1/founding/onboarding
+├ ƒ /api/v1/founding/onboarding/submit
+├ ƒ /api/v1/infrastructure/backup
+├ ƒ /api/v1/infrastructure/cloudflare
+├ ƒ /api/v1/infrastructure/customer
+├ ƒ /api/v1/infrastructure/domains
+├ ƒ /api/v1/infrastructure/domains/[id]/dns
+├ ƒ /api/v1/infrastructure/domains/availability
+├ ƒ /api/v1/infrastructure/email
+├ ƒ /api/v1/infrastructure/go-live
+├ ƒ /api/v1/leads
+├ ƒ /api/v1/marketing/campaigns
+├ ƒ /api/v1/migrations/wordpress/accommodation
+├ ƒ /api/v1/migrations/wordpress/real-estate/bookings
+├ ƒ /api/v1/migrations/wordpress/real-estate/leads
+├ ƒ /api/v1/migrations/wordpress/real-estate/properties
+├ ƒ /api/v1/network/referrals
+├ ƒ /api/v1/notifications
+├ ƒ /api/v1/onboarding/gen2
+├ ƒ /api/v1/onboarding/gen2/brand-asset
+├ ƒ /api/v1/onboarding/gen2/operator
+├ ƒ /api/v1/onboarding/gen2/state
+├ ƒ /api/v1/opportunities
+├ ƒ /api/v1/opportunities/[id]
+├ ƒ /api/v1/org/apps
+├ ƒ /api/v1/org/brand-asset
+├ ƒ /api/v1/org/create
+├ ƒ /api/v1/org/feature-flags
+├ ƒ /api/v1/org/goals
+├ ƒ /api/v1/org/industry/templates
+├ ƒ /api/v1/org/memberships
+├ ƒ /api/v1/org/profile
+├ ƒ /api/v1/org/switch
+├ ƒ /api/v1/org/team
+├ ƒ /api/v1/org/team/invite
+├ ƒ /api/v1/partner/referrals
+├ ƒ /api/v1/partner/terms/accept
+├ ƒ /api/v1/partners/invitations
+├ ƒ /api/v1/platform
+├ ƒ /api/v1/platform/api-keys
+├ ƒ /api/v1/platform/api-keys/[id]
+├ ƒ /api/v1/properties
+├ ƒ /api/v1/properties/[id]
+├ ƒ /api/v1/properties/[id]/agency-agreement
+├ ƒ /api/v1/properties/[id]/disclosure-statement
+├ ƒ /api/v1/properties/[id]/syndicate/domain
+├ ƒ /api/v1/properties/[id]/syndicate/rea
+├ ƒ /api/v1/property-management/leases
+├ ƒ /api/v1/property-management/maintenance
+├ ƒ /api/v1/property-management/properties
+├ ƒ /api/v1/prospecting/prospects/[id]
+├ ƒ /api/v1/prospecting/prospects/[id]/audit
+├ ƒ /api/v1/prospecting/prospects/[id]/call-outcome
+├ ƒ /api/v1/prospecting/prospects/[id]/convert-to-crm
+├ ƒ /api/v1/prospecting/prospects/[id]/decision-maker
+├ ƒ /api/v1/prospecting/prospects/[id]/qualification
+├ ƒ /api/v1/prospecting/prospects/[id]/report
+├ ƒ /api/v1/re/bookings
+├ ƒ /api/v1/re/listings/sync
+├ ƒ /api/v1/re/offers
+├ ƒ /api/v1/re/past-client
+├ ƒ /api/v1/re/reports
+├ ƒ /api/v1/referrals
+├ ƒ /api/v1/reviews/reply-draft
+├ ƒ /api/v1/reviews/requests
+├ ƒ /api/v1/reviews/themes
+├ ƒ /api/v1/seo/audit
+├ ƒ /api/v1/seo/fix
+├ ƒ /api/v1/seo/monitoring/schedule
+├ ƒ /api/v1/services/jobs
+├ ƒ /api/v1/services/jobs/[id]
+├ ƒ /api/v1/services/overview
+├ ƒ /api/v1/services/templates
+├ ƒ /api/v1/social/drafts
+├ ƒ /api/v1/support/conversation
+├ ƒ /api/v1/support/messages
+├ ƒ /api/v1/tasks
+├ ƒ /api/v1/wantd/property-want
+├ ƒ /api/v1/websites
+├ ƒ /api/v1/websites/[id]
+├ ƒ /api/v1/websites/[id]/ai-component
+├ ƒ /api/v1/websites/[id]/ai-markup
+├ ƒ /api/v1/websites/[id]/assist
+├ ƒ /api/v1/websites/[id]/chrome
+├ ƒ /api/v1/websites/[id]/default-footer
+├ ƒ /api/v1/websites/[id]/import-wordpress
+├ ƒ /api/v1/websites/[id]/pages
+├ ƒ /api/v1/websites/[id]/pages/[pageId]
+├ ƒ /api/v1/websites/[id]/pagespeed
+├ ƒ /api/v1/websites/[id]/seo-suggest
+├ ƒ /api/v1/websites/health
+├ ƒ /api/v1/websites/images
+├ ƒ /api/v1/websites/images/[id]
+├ ƒ /api/v1/websites/public/[slug]/form
+├ ƒ /api/webhooks/clerk
+├ ƒ /api/webhooks/dg-discovery
+├ ƒ /api/webhooks/dg-leads
+├ ƒ /api/webhooks/dg-onboarding-sync
+├ ƒ /api/webhooks/dg-stay-booking
+├ ƒ /api/webhooks/dreamscape
+├ ƒ /api/webhooks/dropbox-sign
+├ ƒ /api/webhooks/elevenlabs
+├ ƒ /api/webhooks/elevenlabs/tools
+├ ƒ /api/webhooks/stripe
+├ ƒ /apple-icon
+├ ƒ /apps/accommodation
+├ ƒ /apps/accommodation/bookings
+├ ƒ /apps/accommodation/calendar
+├ ƒ /apps/accommodation/check-ins
+├ ƒ /apps/accommodation/guests
+├ ƒ /apps/accommodation/guests/[contactId]
+├ ƒ /apps/accommodation/housekeeping
+├ ƒ /apps/accommodation/payments
+├ ƒ /apps/accommodation/reviews
+├ ƒ /apps/accommodation/units
+├ ƒ /apps/advertising
+├ ƒ /apps/ai-communications/agents
+├ ƒ /apps/ai-communications/call-centre
+├ ƒ /apps/ai-communications/call-centre/[id]
+├ ƒ /apps/ai-communications/inbox
+├ ƒ /apps/ai-communications/knowledge
+├ ƒ /apps/ai-communications/settings
+├ ƒ /apps/ai-communications/voice
+├ ƒ /apps/ai-visibility
+├ ƒ /apps/ai-visibility/[section]
+├ ƒ /apps/analytics
+├ ƒ /apps/analytics/connectors
+├ ƒ /apps/analytics/connectors/google
+├ ƒ /apps/analytics/dashboard
+├ ƒ /apps/analytics/reports
+├ ƒ /apps/automation
+├ ƒ /apps/automation/logs
+├ ƒ /apps/automation/rules
+├ ƒ /apps/automotive
+├ ƒ /apps/automotive/inventory
+├ ƒ /apps/automotive/leads
+├ ƒ /apps/automotive/test-drives
+├ ƒ /apps/commerce
+├ ƒ /apps/commerce/invoices
+├ ƒ /apps/commerce/invoices/[id]
+├ ƒ /apps/commerce/payments
+├ ƒ /apps/commerce/products
+├ ƒ /apps/commerce/quotes
+├ ƒ /apps/commerce/quotes/[id]
+├ ƒ /apps/commerce/reports
+├ ƒ /apps/commerce/reports/balance-sheet
+├ ƒ /apps/commerce/reports/cash-flow
+├ ƒ /apps/commerce/reports/gst
+├ ƒ /apps/commerce/reports/profit-loss
+├ ƒ /apps/commerce/subscriptions
+├ ƒ /apps/commercial
+├ ƒ /apps/commercial/leases
+├ ƒ /apps/commercial/properties
+├ ƒ /apps/commercial/tenants
+├ ƒ /apps/communications
+├ ƒ /apps/communications/ai
+├ ƒ /apps/communications/calls
+├ ƒ /apps/communications/compose
+├ ƒ /apps/communications/email
+├ ƒ /apps/communications/history
+├ ƒ /apps/communications/inbox
+├ ƒ /apps/communications/mailboxes
+├ ƒ /apps/communications/outreach
+├ ƒ /apps/communications/scheduled
+├ ƒ /apps/communications/sent
+├ ƒ /apps/communications/signatures
+├ ƒ /apps/communications/sms
+├ ƒ /apps/communications/templates
+├ ƒ /apps/creator
+├ ƒ /apps/creator/content
+├ ƒ /apps/creator/memberships
+├ ƒ /apps/creator/storefront
+├ ƒ /apps/crm
+├ ƒ /apps/crm/calendar
+├ ƒ /apps/crm/companies
+├ ƒ /apps/crm/companies/[id]
+├ ƒ /apps/crm/consultations
+├ ƒ /apps/crm/contacts
+├ ƒ /apps/crm/contacts/[id]
+├ ƒ /apps/crm/opportunities
+├ ƒ /apps/crm/opportunities/[id]
+├ ƒ /apps/crm/pipeline
+├ ƒ /apps/crm/tasks
+├ ƒ /apps/crm/tasks/[id]
+├ ƒ /apps/crm/timeline
+├ ƒ /apps/documents
+├ ƒ /apps/documents/library
+├ ƒ /apps/documents/library/[id]
+├ ƒ /apps/documents/signing
+├ ƒ /apps/documents/templates
+├ ƒ /apps/finance
+├ ƒ /apps/finance/applications
+├ ƒ /apps/finance/clients
+├ ƒ /apps/finance/integrations
+├ ƒ /apps/finance/pipeline
+├ ƒ /apps/industry/[industrySlug]/templates/[templateSlug]
+├ ƒ /apps/infrastructure/backup
+├ ƒ /apps/infrastructure/cloudflare
+├ ƒ /apps/infrastructure/deployments
+├ ƒ /apps/infrastructure/dns
+├ ƒ /apps/infrastructure/domains
+├ ƒ /apps/infrastructure/email
+├ ƒ /apps/infrastructure/hosting
+├ ƒ /apps/infrastructure/monitoring
+├ ƒ /apps/infrastructure/ssl
+├ ƒ /apps/marketing
+├ ƒ /apps/opportunities
+├ ƒ /apps/property-management
+├ ƒ /apps/property-management/leases
+├ ƒ /apps/property-management/maintenance
+├ ƒ /apps/property-management/owners
+├ ƒ /apps/property-management/properties
+├ ƒ /apps/property-management/tenants
+├ ƒ /apps/prospecting
+├ ƒ /apps/prospecting/activity
+├ ƒ /apps/prospecting/audits
+├ ƒ /apps/prospecting/discovery
+├ ƒ /apps/prospecting/pipeline
+├ ƒ /apps/prospecting/proposals
+├ ƒ /apps/prospecting/prospects
+├ ƒ /apps/prospecting/prospects/[prospectId]
+├ ƒ /apps/prospecting/reports
+├ ƒ /apps/prospecting/scores
+├ ƒ /apps/prospecting/today
+├ ƒ /apps/re
+├ ƒ /apps/re/bookings
+├ ƒ /apps/re/buyer-leads
+├ ƒ /apps/re/buyer-leads/[id]
+├ ƒ /apps/re/listings
+├ ƒ /apps/re/properties
+├ ƒ /apps/re/properties/[id]
+├ ƒ /apps/re/settlements
+├ ƒ /apps/re/vendor-leads
+├ ƒ /apps/re/vendor-leads/[id]
+├ ƒ /apps/re/vendor-prospecting
+├ ƒ /apps/reviews
+├ ƒ /apps/reviews/inbox
+├ ƒ /apps/reviews/reputation
+├ ƒ /apps/reviews/requests
+├ ƒ /apps/reviews/sources
+├ ƒ /apps/seo
+├ ƒ /apps/seo/[section]
+├ ƒ /apps/seo/audit
+├ ƒ /apps/services
+├ ƒ /apps/services/customers
+├ ƒ /apps/services/jobs
+├ ƒ /apps/services/jobs/[id]
+├ ƒ /apps/services/quotes
+├ ƒ /apps/services/scheduling
+├ ƒ /apps/services/teams
+├ ƒ /apps/social
+├ ƒ /apps/social/accounts
+├ ƒ /apps/social/calendar
+├ ƒ /apps/social/compose
+├ ƒ /apps/websites
+├ ƒ /apps/websites/content
+├ ƒ /apps/websites/domains
+├ ƒ /apps/websites/funnels
+├ ƒ /apps/websites/health
+├ ƒ /apps/websites/hosting
+├ ƒ /apps/websites/images
+├ ƒ /apps/websites/logo
+├ ƒ /apps/websites/sites
+├ ƒ /apps/websites/studio
+├ ƒ /apps/websites/studio/[id]
+├ ƒ /command/[[...segments]]
+├ ƒ /command/advisor
+├ ƒ /command/audit
+├ ƒ /command/benchmarks
+├ ƒ /command/clients
+├ ƒ /command/clients/[orgId]
+├ ƒ /command/commercial/subscriptions
+├ ƒ /command/commissions
+├ ƒ /command/commissions/approved
+├ ƒ /command/commissions/paid
+├ ƒ /command/commissions/pending
+├ ƒ /command/customer-intelligence/[section]
+├ ƒ /command/delivery
+├ ƒ /command/delivery/[section]
+├ ƒ /command/delivery/invitations
+├ ƒ /command/delivery/onboarding
+├ ƒ /command/delivery/projects
+├ ƒ /command/delivery/projects/[id]
+├ ƒ /command/delivery/tasks
+├ ƒ /command/docs
+├ ƒ /command/docs/[slug]
+├ ƒ /command/flags
+├ ƒ /command/founding
+├ ƒ /command/gate-1
+├ ƒ /command/growth-engine
+├ ƒ /command/growth-engine/audits
+├ ƒ /command/growth-engine/conversions
+├ ƒ /command/growth-engine/discovery
+├ ƒ /command/growth-engine/follow-ups
+├ ƒ /command/growth-engine/pipeline
+├ ƒ /command/growth-engine/proposals
+├ ƒ /command/growth-engine/reports
+├ ƒ /command/intelligence
+├ ƒ /command/opportunities
+├ ƒ /command/opportunities/expansion
+├ ƒ /command/partners
+├ ƒ /command/partners/[id]
+├ ƒ /command/partners/acquisition
+├ ƒ /command/partners/briefing
+├ ƒ /command/partners/delivery
+├ ƒ /command/partners/ecosystem
+├ ƒ /command/partners/implementation
+├ ƒ /command/partners/onboarding
+├ ƒ /command/partners/payouts
+├ ƒ /command/partners/resellers
+├ ƒ /command/platform-health
+├ ƒ /command/platform-health/diagnostics
+├ ƒ /command/platform-intelligence/[section]
+├ ƒ /command/product
+├ ƒ /command/product/[section]
+├ ƒ /command/referrals
+├ ƒ /command/referrals/converted
+├ ƒ /command/referrals/pending
+├ ƒ /command/reports
+├ ƒ /command/revenue
+├ ƒ /command/sales-week
+├ ƒ /command/support
+├ ƒ /command/tasks
+├ ƒ /commerce/checkout/[id]/cancel
+├ ƒ /commerce/checkout/[id]/success
+├ ƒ /custom-offer/[token]
+├ ƒ /dashboard
+├ ƒ /dashboard/advisor
+├ ƒ /dashboard/apps
+├ ƒ /dashboard/apps/[appId]/setup
+├ ƒ /dashboard/apps/beta
+├ ƒ /dashboard/apps/catalogue
+├ ƒ /dashboard/benchmarks
+├ ƒ /dashboard/brain
+├ ƒ /dashboard/brain/knowledge
+├ ƒ /dashboard/brain/sources
+├ ƒ /dashboard/business
+├ ƒ /dashboard/business-setup
+├ ƒ /dashboard/connect
+├ ƒ /dashboard/goals
+├ ƒ /dashboard/health
+├ ƒ /dashboard/implementation
+├ ƒ /dashboard/insights
+├ ƒ /dashboard/intelligence
+├ ƒ /dashboard/network
+├ ƒ /dashboard/network/commissions
+├ ƒ /dashboard/network/connections
+├ ƒ /dashboard/network/ecosystem
+├ ƒ /dashboard/network/organisations
+├ ƒ /dashboard/network/partners
+├ ƒ /dashboard/network/programme
+├ ƒ /dashboard/network/refer-earn
+├ ƒ /dashboard/network/referrals
+├ ƒ /dashboard/network/resellers
+├ ƒ /dashboard/reports
+├ ƒ /dashboard/reports/business-performance
+├ ƒ /dashboard/settings
+├ ƒ /dashboard/settings/api
+├ ƒ /dashboard/settings/appearance
+├ ƒ /dashboard/settings/audit
+├ ƒ /dashboard/settings/billing
+├ ƒ /dashboard/settings/connected-services
+├ ƒ /dashboard/settings/connected-services/platform
+├ ƒ /dashboard/settings/connections
+├ ƒ /dashboard/settings/connectors
+├ ƒ /dashboard/settings/notifications
+├ ƒ /dashboard/settings/organisation
+├ ƒ /dashboard/settings/referrals
+├ ƒ /dashboard/settings/roadmap
+├ ƒ /dashboard/settings/security
+├ ƒ /dashboard/settings/team
+├ ƒ /dashboard/team
+├ ƒ /dashboard/twin
+├ ƒ /delivery-partners/invite/[token]
+├ ƒ /demo
+├ ƒ /founding-customers/invite/[token]
+├ ƒ /founding-resellers/invite/[token]
+├ ƒ /founding/agreement
+├ ƒ /founding/setup
+├ ƒ /icon
+├ ƒ /implementation
+├ ƒ /login/[[...rest]]
+├ ƒ /manifest.webmanifest
+├ ƒ /marketing/preview/[scene]
+├ ƒ /marketing/preview/emails
+├ ○ /marketing/preview/homepage
+├ ƒ /onboarding
+├ ƒ /opportunity-report/[token]
+├ ƒ /opportunity/[token]
+├ ƒ /partner
+├ ƒ /partner/commissions
+├ ƒ /partner/dashboard
+├ ƒ /partner/delivery
+├ ƒ /partner/delivery/[section]
+├ ƒ /partner/delivery/projects
+├ ƒ /partner/delivery/projects/[id]
+├ ƒ /partner/demo
+├ ƒ /partner/playbook
+├ ƒ /partner/profile
+├ ƒ /partner/referrals
+├ ƒ /partner/resources
+├ ƒ /partner/terms
+├ ƒ /post-login
+├ ƒ /r/[code]
+├ ○ /robots.txt
+├ ○ /signup
+├ ƒ /signup/account/[[...rest]]
+├ ƒ /sites/[slug]
+├ ƒ /sites/[slug]/[pageSlug]
+├ ƒ /sites/by-host
+├ ƒ /sites/seo/robots
+├ ƒ /sites/seo/sitemap
+├ ƒ /support
+├ ƒ /support/escalations
+├ ƒ /support/help
+├ ƒ /support/help/[slug]
+├ ƒ /support/tickets
+├ ○ /wantd
+├ ○ /wantd/apple-icon.png
+├ ○ /wantd/icon.png
+└ ○ /wantd/property
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

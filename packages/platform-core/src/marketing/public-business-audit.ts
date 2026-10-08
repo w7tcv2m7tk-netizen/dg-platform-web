@@ -1,3 +1,4 @@
+import { prospectReportIdentity } from "../command-centre/growth-engine/report-snapshot";
 /**
  * Public Gen 2 free Business Audit funnel (DigitalGate):
  * probe website → preview DigitalGate Business Health Score™ → capture lead →
@@ -508,6 +509,7 @@ export async function submitPublicBusinessAudit(input: {
     data: {
       prospectId: prospect.id,
       auditId: prospectAudit.id,
+      prospectSnapshot: prospectReportIdentity(prospect),
       shareToken: randomBytes(24).toString("hex"),
       executiveSummary: `Digital opportunity report for ${businessName}, grounded in the DigitalGate public business audit.`,
     },

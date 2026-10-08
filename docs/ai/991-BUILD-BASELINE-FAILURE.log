@@ -1,0 +1,124 @@
+Warning: Custom Cache-Control headers detected for the following routes:
+  - /_next/static/:path*
+
+Setting a custom Cache-Control header can break Next.js development behavior.
+▲ Next.js 16.2.12 (webpack)
+- Experiments (use with caution):
+  ✓ viewTransition
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (270kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+Failed to compile.
+
+node:crypto
+Module build failed: UnhandledSchemeError: Reading from "node:crypto" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408361
+    at Hook.eval [as callAsync] (eval at create (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at Hook.CALL_ASYNC_DELEGATE [as _callAsync] (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:14:6378)
+    at Object.processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408286)
+    at processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5308)
+    at iteratePitchingLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:4667)
+    at runLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8590)
+    at NormalModule._doBuild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408148)
+    at NormalModule.build (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:410161)
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:82482
+
+Import trace for requested module:
+node:crypto
+./packages/platform-core/src/api-keys/index.ts
+./packages/platform-core/src/index.ts
+./src/components/platform/EnabledAppsProvider.tsx
+
+node:dns/promises
+Module build failed: UnhandledSchemeError: Reading from "node:dns/promises" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408361
+    at Hook.eval [as callAsync] (eval at create (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at Object.processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408286)
+    at processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5308)
+    at iteratePitchingLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:4667)
+    at runLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8590)
+    at NormalModule._doBuild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408148)
+    at NormalModule.build (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:410161)
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:82482
+    at NormalModule.needBuild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:414111)
+
+Import trace for requested module:
+node:dns/promises
+./packages/platform-core/src/command-centre/growth-engine/ssrf-guard.ts
+./packages/platform-core/src/accommodation/ical-import.ts
+./packages/platform-core/src/index.ts
+./src/components/platform/EnabledAppsProvider.tsx
+
+node:fs/promises
+Module build failed: UnhandledSchemeError: Reading from "node:fs/promises" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408361
+    at Hook.eval [as callAsync] (eval at create (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at Object.processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408286)
+    at processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5308)
+    at iteratePitchingLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:4667)
+    at runLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8590)
+    at NormalModule._doBuild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408148)
+    at NormalModule.build (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:410161)
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:82482
+    at NormalModule.needBuild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:414111)
+
+Import trace for requested module:
+node:fs/promises
+./packages/platform-core/src/documents-signing/knowledge-ingestion.ts
+./packages/platform-core/src/documents-signing/index.ts
+./packages/platform-core/src/index.ts
+./src/components/platform/EnabledAppsProvider.tsx
+
+node:net
+Module build failed: UnhandledSchemeError: Reading from "node:net" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408361
+    at Hook.eval [as callAsync] (eval at create (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at Object.processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408286)
+    at processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5308)
+    at iteratePitchingLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:4667)
+    at runLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8590)
+    at NormalModule._doBuild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408148)
+    at NormalModule.build (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:410161)
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:82482
+    at NormalModule.needBuild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:414111)
+
+Import trace for requested module:
+node:net
+./packages/platform-core/src/command-centre/growth-engine/ssrf-guard.ts
+./packages/platform-core/src/accommodation/ical-import.ts
+./packages/platform-core/src/index.ts
+./src/components/platform/EnabledAppsProvider.tsx
+
+node:path
+Module build failed: UnhandledSchemeError: Reading from "node:path" is not handled by plugins (Unhandled scheme).
+Webpack supports "data:" and "file:" URIs by default.
+You may need an additional plugin to handle "node:" URIs.
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408361
+    at Hook.eval [as callAsync] (eval at create (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:14:9224), <anonymous>:6:1)
+    at Object.processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408286)
+    at processResource (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:5308)
+    at iteratePitchingLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:4667)
+    at runLoaders (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/loader-runner/LoaderRunner.js:1:8590)
+    at NormalModule._doBuild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:408148)
+    at NormalModule.build (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:410161)
+    at /private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:82482
+    at NormalModule.needBuild (/private/tmp/dg991-executor-baseline-vtgtr2cj/node_modules/next/dist/compiled/webpack/bundle5.js:29:414111)
+
+Import trace for requested module:
+node:path
+./packages/platform-core/src/documents-signing/knowledge-ingestion.ts
+./packages/platform-core/src/documents-signing/index.ts
+./packages/platform-core/src/index.ts
+./src/components/platform/EnabledAppsProvider.tsx
+
+
+> Build failed because of webpack errors

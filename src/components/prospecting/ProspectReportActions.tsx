@@ -11,7 +11,8 @@ type Props = {
 };
 
 export function ProspectReportActions({ prospectId, canGenerate, recipientName, recipientEmail, businessName }: Props) {
-  const [shareUrl,setShareUrl]=useState<string|null>(null);
+  const [report,setReport]=useState<{ url: string; id: string }|null>(null);
+  const shareUrl=report?.url ?? null;
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState<string|null>(null);
   const [emailOpen,setEmailOpen]=useState(false);
@@ -35,17 +36,18 @@ Regards,
 Ben Roe
 DigitalGate`);
 
-  async function ensureReport() {
-    if(shareUrl) return shareUrl;
+  async function ensureReport(refresh = false) {
+    if(report && !refresh) return report;
     const res=await fetch(`/api/v1/prospecting/prospects/${prospectId}/report`,{method:"POST"});
     const json=await res.json().catch(()=>null);
     if(!res.ok) throw new Error(json?.error?.message || "Report generation failed.");
-    setShareUrl(json.data.shareUrl);
-    return json.data.shareUrl as string;
+    const snapshot = { url: json.data.shareUrl as string, id: json.data.id as string };
+    setReport(snapshot);
+    return snapshot;
   }
   async function generate() {
     setLoading(true); setError(null);
-    try { await ensureReport(); }
+    try { await ensureReport(true); }
     catch(e) { setError(e instanceof Error ? e.message : "Report generation failed."); }
     finally { setLoading(false); }
   }
@@ -53,8 +55,8 @@ DigitalGate`);
   async function exportPdf() {
     setLoading(true); setError(null);
     try {
-      const url=await ensureReport();
-      const win=window.open(url,"_blank");
+      const { url }=await ensureReport();
+      const win=window.open(`${url}?preview=1`,"_blank");
       if(!win) throw new Error("Allow pop-ups to open the report for PDF export.");
       window.setTimeout(()=>{ try { win.print(); } catch { /* user can still print from the opened report */ } },1200);
     } catch(e) { setError(e instanceof Error ? e.message : "Could not open PDF-ready report."); }
@@ -64,7 +66,7 @@ DigitalGate`);
     setSending(true); setError(null); setSent(false);
     try {
       if(!to.trim()) throw new Error("Recipient email is required.");
-      const url=await ensureReport();
+      const { url, id }=await ensureReport();
       const message=body.replace("REPORT_LINK",url);
       const res=await fetch("/api/v1/communications/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
         channel:"email",to:to.trim(),subject:subject.trim(),body:message,
@@ -72,7 +74,10 @@ DigitalGate`);
       })});
       const json=await res.json().catch(()=>null);
       if(!res.ok) throw new Error(json?.error?.message || "Email send failed.");
-      await fetch(`/api/v1/prospecting/prospects/${prospectId}/report`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"email_sent",to:to.trim(),subject:subject.trim()})});
+      const recordingFailure = "Email submitted, but report delivery recording failed. Confirm the record before resending.";
+      const recorded = await fetch(`/api/v1/prospecting/prospects/${prospectId}/report`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"email_sent",reportId:id,to:to.trim(),subject:subject.trim()})}).catch(() => { throw new Error(recordingFailure); });
+      const recording = await recorded.json().catch(() => null);
+      if (!recorded.ok || recording?.data?.recorded !== true) throw new Error(recordingFailure);
       setSent(true); setEmailOpen(false);
     } catch(e) { setError(e instanceof Error ? e.message : "Email send failed."); }
     finally { setSending(false); }
@@ -80,8 +85,8 @@ DigitalGate`);
 
   return <div className="mt-5">
     <div className="flex flex-wrap gap-2">
-      <button type="button" onClick={()=>void generate()} disabled={!canGenerate||loading} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40">{loading?"Generating…":shareUrl?"Refresh share link":"Generate share link"}</button>
-      {shareUrl ? <><a href={shareUrl} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500">Open report</a><button type="button" onClick={()=>void copy()} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500">Copy link</button></> : null}
+      <button type="button" onClick={()=>void generate()} disabled={!canGenerate||loading} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40">{loading?"Generating…":shareUrl?"Generate latest snapshot":"Generate share link"}</button>
+      {shareUrl ? <><a href={`${shareUrl}?preview=1`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500">Open report</a><button type="button" onClick={()=>void copy()} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500">Copy link</button></> : null}
       <button type="button" onClick={()=>void exportPdf()} disabled={!canGenerate||loading} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-40">Export PDF</button>
       <button type="button" onClick={()=>setEmailOpen(true)} disabled={!canGenerate} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-40">Email report</button>
     </div>

@@ -95,12 +95,12 @@ export default async function ProspectingReportsPage() {
                       Preview report →
                     </Link>
                     <Link
-                      href={report.sharePath}
+                      href={`${report.sharePath}?preview=1`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-slate-500 hover:text-sky-400 hover:underline"
                     >
-                      Open public report →
+                      Open report →
                     </Link>
                     <Link
                       href="/apps/prospecting/pipeline"

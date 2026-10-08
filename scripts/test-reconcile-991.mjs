@@ -231,6 +231,6 @@ test("route and middleware contain no redirect, logger, global database or sessi
   assert.match(route, /import "server-only"/);
   assert.match(core, /import "server-only"/);
   assert.doesNotMatch(route+core, /console\.|captureException|\$\w+RawUnsafe|child_process|resolveActivePlatformSession|requirePlatformAuth|@dg\/database|Response\.redirect/);
-  assert.match(middleware, /if \(req\.nextUrl\.pathname === "\/api\/admin\/reconcile-991"\) return;/);
+  assert.match(middleware, /req\.nextUrl\.pathname === "\/api\/admin\/reconcile-991" \|\| req\.nextUrl\.pathname === PHYSICAL_991_PATH/);
   assert.match(middleware, /if \(path === "\/api\/admin\/reconcile-991"\) \{\s*return \(await clerkHandler/);
 });

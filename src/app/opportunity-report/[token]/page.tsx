@@ -1,4 +1,9 @@
 import { notFound } from "next/navigation";
+import { loadGrowthReportSnapshot } from "@dg/platform-core/command-centre/growth-engine/report-snapshot";
+import { prospectReportAccess } from "@/lib/prospect-report-access";
+
+export const dynamic = "force-dynamic";
+export const metadata = { robots: { index: false, follow: false } };
 
 type Finding = { title?: string; detail?: string; observed?: string; interpretation?: string; recommendedAction?: string; category?: string; domain?: string; severity?: string };
 type SolutionMatch = { capability?: string; opportunity?: string; evidence?: string; benefit?: string; relevance?: string };
@@ -31,13 +36,16 @@ function businessMeaning(f: Finding) {
   return f.interpretation || "This finding represents a practical opportunity to strengthen digital visibility, customer experience or conversion.";
 }
 
-export default async function OpportunityReportPage({ params }: { params: Promise<{ token: string }> }) {
+export default async function OpportunityReportPage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ preview?: string }> }) {
   const { token } = await params;
+  const { preview } = await searchParams;
+  const access = await prospectReportAccess(preview);
   const { prisma } = await import("@dg/database");
-  const report = await prisma.growthProspectReport.findUnique({ where: { shareToken: token }, include: { prospect: { include: { audits: { orderBy: { auditedAt: "desc" }, take: 1 } } } } });
-  if (!report) notFound();
+  const loaded = await loadGrowthReportSnapshot(prisma, token, access);
+  if (!loaded) notFound();
+  const { audit, prospect } = loaded;
+  const report = { ...loaded.report, prospect };
 
-  const audit = report.prospect.audits[0];
   const payload = auditPayload(audit?.findings);
   const findings = findingsFrom(audit?.findings);
   const strengths = Array.isArray(payload.strengths) ? payload.strengths : [];
@@ -78,25 +86,24 @@ export default async function OpportunityReportPage({ params }: { params: Promis
     recommendedAction: customerSafeText(finding.recommendedAction),
   }));
   const rankedFindings = [...customerFindings].sort((a,b) => commercialRank(b) - commercialRank(a));
-  await prisma.growthProspectReport.update({ where: { id: report.id }, data: { viewCount: { increment: 1 }, firstViewedAt: report.firstViewedAt ?? new Date() } });
-  await prisma.growthProspectEngagement.create({ data: { prospectId: report.prospectId, reportId: report.id, type: "report_viewed" } });
 
   const scores = audit ? [["Business Health",audit.businessHealth,"Overall digital readiness"],["AI Visibility",audit.aiVisibility,"How clearly AI/search systems can understand the business"],["SEO",audit.seoScore,"Organic search foundations"],["Website Health",audit.websiteHealth,"Technical and on-page website foundations"]] as const : [];
 
   return (
     <main className="min-h-screen bg-[#05091a] text-slate-100">
       <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
+        {access.kind === "preview" ? <p className="mb-6 text-sm text-amber-200">Staff preview — this access does not record prospect engagement.</p> : null}
         <header className="border-b border-slate-700 pb-8">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-400">DigitalGate · Digital Opportunity Report</p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight text-white">{report.prospect.businessName}</h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">An evidence-based review of your current digital position, highlighting practical opportunities to improve visibility, customer acquisition and digital operations.</p>
-          <p className="mt-3 text-xs text-slate-500">Prepared {report.generatedAt.toLocaleDateString("en-AU",{day:"numeric",month:"long",year:"numeric"})} · Based on observable public digital signals · DigitalGate diagnostic scoring</p>
+          <p className="mt-3 text-xs text-slate-500">Prepared {report.generatedAt.toLocaleDateString("en-AU",{day:"numeric",month:"long",year:"numeric"})} · Evidence captured {audit.auditedAt.toLocaleDateString("en-AU")} · Based on observable public digital signals · DigitalGate diagnostic scoring</p>
         </header>
 
         {audit && (identity.abn || google.placeId) ? <section className="mt-8 rounded-2xl border border-violet-500/25 bg-slate-900/70 p-6">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Business intelligence profile</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">Verified business footprint</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Identity and local-presence details below are matched against independent public business data sources, separate from DigitalGate's interpretation.</p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Identity and local-presence details below are matched against independent public business data sources, separate from DigitalGate&apos;s interpretation.</p>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {identity.abn ? <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">ABN</p><p className="mt-2 font-semibold text-white">{identity.abn}</p><p className="mt-1 text-xs text-slate-400">{identity.registeredName || "ABR verified"}</p></div> : null}
             {google.category ? <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4"><p className="text-xs uppercase tracking-wide text-slate-500">Google category</p><p className="mt-2 font-semibold capitalize text-white">{google.category}</p><p className="mt-1 text-xs text-slate-400">Google Places</p></div> : null}
