@@ -12,6 +12,7 @@
     "lint": "eslint",
     "test:launch-baseline": "node scripts/test-launch-baseline.mjs",
     "test:support-centre-ux": "node scripts/test-support-centre-ux.mjs",
+    "test:ai-model-registry": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-model-registry.mjs",
     "test:ai-gateway-policy": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-gateway-policy.mjs",
     "test:ai-gateway": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-gateway.mjs",
     "test:ai-local-crypto": "node --experimental-strip-types --test scripts/test-ai-local-crypto.mjs",
