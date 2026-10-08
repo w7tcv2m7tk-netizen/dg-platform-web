@@ -52,7 +52,7 @@ beforeEach(async () => {
   await prisma.$executeRawUnsafe('DROP INDEX IF EXISTS public.ai_worker_pinned_name_unique');
   await prisma.$executeRawUnsafe('ALTER TABLE public._prisma_migrations DROP CONSTRAINT IF EXISTS reject_zero');
   await prisma.$executeRawUnsafe('DROP TRIGGER IF EXISTS history_mutator ON public._prisma_migrations');
-  await prisma.$executeRawUnsafe('TRUNCATE public._prisma_migrations, public.memberships, public.ai_worker_principals, public.ai_local_deployments, public.ai_local_recipient_approvals, public.ai_inference_jobs, public.ai_worker_claim_receipts');
+  await prisma.$executeRawUnsafe('TRUNCATE public._prisma_migrations, public.memberships, public.ai_accounting_outbox, public.ai_worker_principals, public.ai_local_deployments, public.ai_local_recipient_approvals, public.ai_inference_jobs, public.ai_worker_claim_receipts');
   for (const sql of ddl.replace(/^--.*$/gm, "").split(";").map(x => x.trim()).filter(Boolean)) await prisma.$executeRawUnsafe(sql);
   await prisma.$executeRaw`INSERT INTO public.memberships VALUES ('member1','operator_org','user_operator','owner','active')`;
   await prisma.$executeRaw`INSERT INTO public._prisma_migrations VALUES
@@ -162,6 +162,23 @@ for (const table of ["ai_worker_principals","ai_local_deployments","ai_local_rec
   const before = await history();
   await refused(await invoke());
   assert.equal(await history(), before);
+});
+
+test("accounting outbox activity refuses reconciliation", async () => {
+  const before = await history();
+  await prisma.$executeRaw`INSERT INTO public.ai_accounting_outbox (id) VALUES ('pending')`;
+  await refused(await invoke());
+  assert.equal(await history(), before);
+});
+
+test("unfinished and rolled-back migration rows refuse reconciliation", async () => {
+  const before = await history();
+  await prisma.$executeRaw`UPDATE public._prisma_migrations SET finished_at=NULL WHERE id='2cfc11d5-22c2-4151-bba2-9b707b03219a'`;
+  await refused(await invoke());
+  await prisma.$executeRaw`UPDATE public._prisma_migrations SET finished_at=started_at, rolled_back_at=started_at WHERE id='2cfc11d5-22c2-4151-bba2-9b707b03219a'`;
+  await refused(await invoke());
+  assert.notEqual(await history(), before);
+  assert.equal((await prisma.$queryRaw`SELECT count(*)::int AS n FROM public._prisma_migrations WHERE migration_name=${migration}`)[0].n, 0);
 });
 
 test("concurrent invocations permit exactly one insert", async () => {
