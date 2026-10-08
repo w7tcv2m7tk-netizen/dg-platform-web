@@ -15,7 +15,11 @@ type Database = Pick<PrismaClient, "$transaction">;
 type Transaction = Prisma.TransactionClient;
 type Snapshot = { history: string; targetCount: number; olderCount: number; empty: boolean };
 
-function refuse(): never { throw new Error("Reconciliation refused"); }
+export const RECONCILE_991_CONFIRMATION = "RECONCILE_991_MIGRATION_HISTORY";
+export type Reconcile991ActionResult = "success" | "refused" | "ambiguous";
+
+class RefusalError extends Error {}
+function refuse(): never { throw new RefusalError("Reconciliation refused"); }
 function fixed(status: number): Response {
   return Response.json({ ok: status === 200, operation: OPERATION }, {
     status, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" },
@@ -26,6 +30,10 @@ function enabled(): boolean {
   return process.env.NODE_ENV === "production" && process.env.VERCEL_ENV === "production"
     && process.env.DG_RECONCILE_991_OPERATION === OPERATION
     && process.env.AI_WORKER_PROVISIONING_ENABLED !== "true";
+}
+
+export function reconciliation991ActionEnabled(): boolean {
+  return enabled();
 }
 
 function validRequest(request: Request): boolean {
@@ -118,6 +126,46 @@ async function physicalSchema(tx: Transaction): Promise<void> {
     || JSON.stringify(catalog.indexes) !== JSON.stringify(indexes)) refuse();
 }
 
+async function executeReconciliation(userId: string, database: Database, invocationValid: () => boolean,
+  onTransactionStart: () => void = () => undefined): Promise<void> {
+  if (!invocationValid()) refuse();
+  onTransactionStart();
+  await database.$transaction(async tx => {
+    await operator(tx, userId);
+    await physicalSchema(tx);
+    const initial = await state(tx);
+    if (initial.targetCount !== 0) refuse();
+
+    // Transaction-scoped lock serializes this mechanism. Table locks also fence
+    // non-cooperating writers/DDL and preserve zero provisioning state.
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(991, 20261007)::text`;
+    await tx.$executeRaw`LOCK TABLE public._prisma_migrations IN SHARE ROW EXCLUSIVE MODE`;
+    await tx.$executeRaw`LOCK TABLE public.memberships, public.ai_accounting_outbox,
+      public.ai_worker_principals, public.ai_local_deployments, public.ai_local_recipient_approvals,
+      public.ai_inference_jobs, public.ai_worker_claim_receipts, public.ai_worker_provisioning_receipts IN SHARE MODE`;
+    if (!invocationValid()) refuse();
+    await operator(tx, userId);
+    await physicalSchema(tx);
+    const before = await state(tx);
+    if (before.targetCount !== 0 || before.history !== initial.history) refuse();
+
+    const id = randomUUID();
+    // Prisma 6.19.3 mark_migration_applied_impl: one UUID v4 and one UTC
+    // timestamp bound to both columns, empty logs, no rollback, zero steps.
+    const timestamp = new Date();
+    const inserted = await tx.$executeRaw`INSERT INTO public._prisma_migrations
+      (id, checksum, migration_name, started_at, finished_at, logs, rolled_back_at, applied_steps_count)
+      VALUES (${id}, ${CHECKSUM}, ${MIGRATION}, ${timestamp}, ${timestamp}, '', NULL, 0)`;
+    const after = await state(tx);
+    const [verified] = await tx.$queryRaw<{ valid: boolean }[]>`SELECT
+      count(*)=1 AND bool_and(id=${id} AND checksum=${CHECKSUM}
+        AND started_at=finished_at AND finished_at IS NOT NULL AND logs=''
+        AND rolled_back_at IS NULL AND applied_steps_count=0) AS valid
+      FROM public._prisma_migrations WHERE migration_name=${MIGRATION}`;
+    if (inserted !== 1 || after.targetCount !== 1 || after.history !== before.history || !verified?.valid) refuse();
+  }, { isolationLevel: "ReadCommitted", maxWait: 5000, timeout: 15000 });
+}
+
 export async function handleReconcile991(request: Request, dependencies: {
   userId: () => Promise<string | null>;
   database: () => Database;
@@ -126,43 +174,33 @@ export async function handleReconcile991(request: Request, dependencies: {
     if (!enabled() || !validRequest(request)) return fixed(403);
     const userId = await dependencies.userId();
     if (!userId || userId.startsWith("api_key:")) return fixed(403);
-    await dependencies.database().$transaction(async tx => {
-      await operator(tx, userId);
-      await physicalSchema(tx);
-      const initial = await state(tx);
-      if (initial.targetCount !== 0) refuse();
-
-      // Transaction-scoped lock serializes this mechanism. Table locks also fence
-      // non-cooperating writers/DDL and preserve zero provisioning state.
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(991, 20261007)::text`;
-      await tx.$executeRaw`LOCK TABLE public._prisma_migrations IN SHARE ROW EXCLUSIVE MODE`;
-      await tx.$executeRaw`LOCK TABLE public.memberships, public.ai_accounting_outbox,
-        public.ai_worker_principals, public.ai_local_deployments, public.ai_local_recipient_approvals,
-        public.ai_inference_jobs, public.ai_worker_claim_receipts, public.ai_worker_provisioning_receipts IN SHARE MODE`;
-      if (!enabled() || !validRequest(request)) refuse();
-      await operator(tx, userId);
-      await physicalSchema(tx);
-      const before = await state(tx);
-      if (before.targetCount !== 0 || before.history !== initial.history) refuse();
-
-      const id = randomUUID();
-      // Prisma 6.19.3 mark_migration_applied_impl: one UUID v4 and one UTC
-      // timestamp bound to both columns, empty logs, no rollback, zero steps.
-      const timestamp = new Date();
-      const inserted = await tx.$executeRaw`INSERT INTO public._prisma_migrations
-        (id, checksum, migration_name, started_at, finished_at, logs, rolled_back_at, applied_steps_count)
-        VALUES (${id}, ${CHECKSUM}, ${MIGRATION}, ${timestamp}, ${timestamp}, '', NULL, 0)`;
-      const after = await state(tx);
-      const [verified] = await tx.$queryRaw<{ valid: boolean }[]>`SELECT
-        count(*)=1 AND bool_and(id=${id} AND checksum=${CHECKSUM}
-          AND started_at=finished_at AND finished_at IS NOT NULL AND logs=''
-          AND rolled_back_at IS NULL AND applied_steps_count=0) AS valid
-        FROM public._prisma_migrations WHERE migration_name=${MIGRATION}`;
-      if (inserted !== 1 || after.targetCount !== 1 || after.history !== before.history || !verified?.valid) refuse();
-    }, { isolationLevel: "ReadCommitted", maxWait: 5000, timeout: 15000 });
+    await executeReconciliation(userId, dependencies.database(), () => enabled() && validRequest(request));
     return fixed(200);
   } catch {
     // Never return/log driver errors, requests, secrets, credentials or SQL.
     return fixed(403);
+  }
+}
+
+/** Clerk Server Action path: same locked transaction and checks as the HTTP route. */
+export async function handleReconcile991Action(confirmation: unknown, dependencies: {
+  userId: () => Promise<string | null>;
+  database: () => Database;
+  isCurrentPlatformOperator: (userId: string) => Promise<boolean>;
+}): Promise<Reconcile991ActionResult> {
+  if (confirmation !== RECONCILE_991_CONFIRMATION || !enabled()) return "refused";
+
+  let transactionStarted = false;
+  try {
+    const userId = await dependencies.userId();
+    if (!userId || !/^user_[A-Za-z0-9_]+$/.test(userId)) refuse();
+    if (!await dependencies.isCurrentPlatformOperator(userId)) refuse();
+    // Recheck the Production operation gate immediately before transaction entry.
+    if (!enabled()) refuse();
+    await executeReconciliation(userId, dependencies.database(), enabled, () => { transactionStarted = true; });
+    return "success";
+  } catch (error) {
+    // Ambiguous DB/commit failures are STOP conditions. The UI never offers retry.
+    return transactionStarted && !(error instanceof RefusalError) ? "ambiguous" : "refused";
   }
 }
