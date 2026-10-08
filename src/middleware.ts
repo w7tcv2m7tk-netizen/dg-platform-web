@@ -78,7 +78,7 @@ export default async function middleware(req: NextRequest, event: unknown) {
   const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
   const path = req.nextUrl.pathname;
   if (path === PHYSICAL_991_PATH) {
-    if (!physical991Envelope(req)) return refusePhysical991();
+    if (!await physical991Envelope(req)) return refusePhysical991();
     try { return physical991AuthResponse(await clerkHandler(req, event as never)) ?? NextResponse.next(); }
     catch { return refusePhysical991(); }
   }

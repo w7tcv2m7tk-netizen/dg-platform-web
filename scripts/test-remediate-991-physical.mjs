@@ -323,9 +323,13 @@ for (const [name,extra] of [
   ['wrong operation',()=>({headers:{...headers(),'X-DG-Operation':'reconcile_991'}})],
   ['wrong origin',()=>({headers:{...headers(),Origin:'https://evil.example'}})],
   ['API key',()=>({headers:{...headers(),'X-API-Key':'not-human'}})],
-  ['body',()=>({body:'{}'})], ['empty stream body',()=>({body:''})],
+  ['body',()=>({body:'{}'})],
 ]) test(`request ${name} refuses before auth/database`,async()=>{
   await refused(await handleRemediate991Physical(request(extra()), {userId:()=>assert.fail('auth accessed'),database:()=>assert.fail('database accessed'),audit:e=>events.push(e)}));
+});
+test('zero-byte stream reaches executor and survives repeated transaction validation', async () => {
+  assert.equal((await invoke(request({ body: '' }))).status, 200);
+  assert.deepEqual(events.map(e => e.outcome), ['attempt', 'success']);
 });
 for (const url of [origin+routePath+'?x=1',origin+routePath+'?',origin+routePath+'/',origin+'/api/admin/reconcile-991','https://preview.example'+routePath]) {
   test(`wrong URL ${url} refuses`,async()=>{
@@ -448,7 +452,7 @@ test('server-only route uses Clerk session, separate authority, fixed unsupporte
   assert.match(route,/auth\(\{ acceptsToken: "session_token" \}\)/);
   assert.doesNotMatch(route+core,/process\.env\.(DATABASE_URL|DIRECT_URL)|@dg\/database|resolveActivePlatformSession|requirePlatformAuth|Response\.redirect|reconcile_991|captureException/);
   for(const verb of ['GET','HEAD','OPTIONS','PUT','PATCH','DELETE'])assert.ok(route.includes(`export const ${verb} = refusePhysical991`));
-  assert.match(middleware,/if \(path === PHYSICAL_991_PATH\) \{\s*if \(!physical991Envelope\(req\)\) return refusePhysical991\(\)/);
+  assert.match(middleware,/if \(path === PHYSICAL_991_PATH\) \{\s*if \(!await physical991Envelope\(req\)\) return refusePhysical991\(\)/);
   assert.match(middleware,/if \(req\.nextUrl\.pathname === PHYSICAL_991_PATH\) return;/);
 });
 

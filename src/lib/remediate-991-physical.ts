@@ -12,10 +12,10 @@ function enabled(): boolean {
     && process.env.DG_REMEDIATE_991_PHYSICAL_OPERATION === PHYSICAL_991_OPERATION
     && process.env.AI_WORKER_PROVISIONING_ENABLED !== "true";
 }
-function validRequest(request: Request): boolean {
+async function validRequest(request: Request): Promise<boolean> {
   const expected = process.env.DG_REMEDIATE_991_PHYSICAL_SECRET_SHA256 ?? "";
   const secret = request.headers.get("X-DG-Remediate-991-Physical-Secret") ?? "";
-  if (!physical991Envelope(request) || request.headers.get("X-DG-Operation") !== PHYSICAL_991_OPERATION
+  if (!await physical991Envelope(request) || request.headers.get("X-DG-Operation") !== PHYSICAL_991_OPERATION
     || !/^[a-f0-9]{64}$/.test(expected) || !/^[a-f0-9]{64}$/.test(secret)) return false;
   return timingSafeEqual(createHash("sha256").update(secret).digest(), Buffer.from(expected, "hex"));
 }
@@ -37,7 +37,7 @@ export async function handleRemediate991Physical(request: Request, dependencies:
       timestamp: new Date().toISOString(), actor, outcome }); } catch { /* no error logging */ }
   };
   try {
-    if (!enabled() || !validRequest(request)) refuse();
+    if (!enabled() || !await validRequest(request)) refuse();
     const userId = await dependencies.userId();
     if (!userId || !/^user_[A-Za-z0-9_]+$/.test(userId)) refuse();
     actor = userId;
@@ -52,10 +52,10 @@ export async function handleRemediate991Physical(request: Request, dependencies:
       // Fence authority changes; recheck active membership after taking the lock.
       await tx.$executeRaw`LOCK TABLE public.memberships IN SHARE MODE`;
       await operator(tx, userId);
-      if (!enabled() || !validRequest(request)) refuse();
+      if (!enabled() || !await validRequest(request)) refuse();
       // Exact rehearsed DO block: locks, checks, six deltas, postconditions.
       await tx.$executeRawUnsafe(body);
-      if (!enabled() || !validRequest(request)) refuse();
+      if (!enabled() || !await validRequest(request)) refuse();
       await operator(tx, userId);
     }, { isolationLevel: "ReadCommitted", maxWait: 2000, timeout: 25000 });
     audit("success");
