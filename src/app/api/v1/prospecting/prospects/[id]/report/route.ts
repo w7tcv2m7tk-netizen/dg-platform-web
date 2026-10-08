@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { generateGrowthReportSnapshot } from "@dg/platform-core/command-centre/growth-engine/report-snapshot";
 import { buildFreeAuditSequenceStamp, organisationGrowthScope, getGrowthProspect } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
@@ -19,29 +19,14 @@ export async function POST(req: Request, { params }: RouteParams) {
   }
 
   const { prisma } = await import("@dg/database");
-  const audit = await prisma.growthProspectAudit.findFirst({
-    where: { prospectId: id, prospect: { organisationId: session.organisationId } },
-    orderBy: { auditedAt: "desc" },
-  });
-  if (!audit) {
-    return NextResponse.json({ error: { code: "audit_required", message: "Run the research audit before generating a report." } }, { status: 409 });
+  const snapshot = await generateGrowthReportSnapshot(prisma, id, session.organisationId);
+  if (!snapshot) {
+    return NextResponse.json({ error: { code: "audit_required", message: "An active prospect and research audit are required before generating a report." } }, { status: 409 });
   }
-
-  const existing = await prisma.growthProspectReport.findFirst({ where: { prospectId: id }, orderBy: { generatedAt: "desc" } });
-  const report = existing ?? await prisma.growthProspectReport.create({
-    data: {
-      prospectId: id,
-      auditId: audit.id,
-      shareToken: randomBytes(24).toString("hex"),
-      executiveSummary: `Digital opportunity report for ${prospect.businessName}, grounded in the latest verified DigitalGate research audit.`,
-    },
-  });
-  if (!existing) {
-    await prisma.growthProspectEngagement.create({ data: { prospectId: id, reportId: report.id, type: "report_generated", metadata: { actorId: session.clerkUserId } } });
-  }
+  const { report, created } = snapshot;
 
   const origin = new URL(req.url).origin;
-  return NextResponse.json({ data: { id: report.id, shareUrl: `${origin}/opportunity-report/${report.shareToken}` } }, { status: existing ? 200 : 201 });
+  return NextResponse.json({ data: { id: report.id, shareUrl: `${origin}/opportunity-report/${report.shareToken}` } }, { status: created ? 201 : 200 });
 }
 
 
@@ -55,14 +40,14 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   if (!prospect || prospect.archivedAt) return NextResponse.json({ error: { code: "not_found", message: "Prospect not found" } }, { status: 404 });
   const body = await req.json().catch(() => null);
   if (body?.action !== "email_sent") return NextResponse.json({ error: { code: "validation_error", message: "Unsupported report action" } }, { status: 422 });
+  if (typeof body.reportId !== "string" || !body.reportId.trim()) return NextResponse.json({ error: { code: "validation_error", message: "The delivered report snapshot is required" } }, { status: 422 });
   const { prisma } = await import("@dg/database");
+  const report = await prisma.growthProspectReport.findFirst({ where: { id: body.reportId, prospectId: id, revokedAt: null } });
+  if (!report?.auditId) return NextResponse.json({ error: { code: "report_required", message: "Active report snapshot not found" } }, { status: 409 });
   const audit = await prisma.growthProspectAudit.findFirst({
-    where: { prospectId: id, prospect: { organisationId: session.organisationId } },
-    orderBy: { auditedAt: "desc" },
+    where: { id: report.auditId, prospectId: id, prospect: { organisationId: session.organisationId } },
   });
   if (!audit) return NextResponse.json({ error: { code: "audit_required", message: "Research audit is required before recording report delivery." } }, { status: 409 });
-  const report = await prisma.growthProspectReport.findFirst({ where: { prospectId: id }, orderBy: { generatedAt: "desc" } });
-  if (!report) return NextResponse.json({ error: { code: "report_required", message: "Generate the report before recording delivery." } }, { status: 409 });
   const recipientEmail = String(body?.to || "").trim();
   await prisma.growthProspectEngagement.create({ data: { prospectId: id, reportId: report.id, type: "report_emailed", metadata: { actorId: session.clerkUserId, to: recipientEmail, subject: String(body?.subject || "") } } });
   await prisma.growthProspectReport.update({ where: { id: report.id }, data: { sentAt: report.sentAt ?? new Date() } });

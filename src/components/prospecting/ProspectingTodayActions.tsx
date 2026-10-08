@@ -106,9 +106,9 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
     ? `Explore whether DigitalGate can help ${opportunityParts.join(", ")} and connect captured intent to CRM follow-up and automation.`
     : "Use the verified research evidence to identify the highest-value acquisition or follow-up gap before recommending a DigitalGate capability.";
   const reportState = active.reportViewCount > 0
-    ? `Opportunity Report viewed ${active.reportViewCount} time${active.reportViewCount === 1 ? "" : "s"}`
+    ? `Public report URL accessed ${active.reportViewCount} time${active.reportViewCount === 1 ? "" : "s"}`
     : active.reportSent
-      ? "Opportunity Report sent — not yet viewed"
+      ? "Opportunity Report sent — no public URL access recorded"
       : active.hasReport
         ? "Opportunity Report prepared — not yet sent"
         : "Opportunity Report not yet prepared";
@@ -118,7 +118,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
       ? "some practical search and AI visibility opportunities"
       : "a couple of practical digital growth opportunities";
   const openingLine = active.reportViewCount > 0
-    ? `Hi ${firstName}, Ben Roe from DigitalGate. I saw you had a look at the Digital Opportunity Report for ${active.businessName}. The ${openingObservation} stood out as one of the clearest opportunities — have you got a minute to compare notes?`
+    ? `Hi ${firstName}, Ben Roe from DigitalGate. I prepared a Digital Opportunity Report for ${active.businessName}. The ${openingObservation} stood out as one of the clearest opportunities — have you got a minute to compare notes?`
     : active.reportSent
       ? `Hi ${firstName}, Ben Roe from DigitalGate. I sent through the Digital Opportunity Report for ${active.businessName}. One finding worth flagging is ${openingObservation}. Have you got a minute and I’ll give you the short version?`
       : `Hi ${firstName}, Ben Roe from DigitalGate. I was looking at ${active.businessName} and found ${openingObservation}. I’ve got the evidence behind it rather than a generic pitch — have you got a minute?`;

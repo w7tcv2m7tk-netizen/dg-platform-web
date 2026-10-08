@@ -16,7 +16,7 @@ import {
 import { ProspectStageSelect } from "@/components/command/ProspectStageSelect";
 import { requirePlatformOperatorContext } from "@/lib/platform-operator";
 
-const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding", "report_viewed"]);
+const CONVERT_STAGES = new Set(["proposal_sent", "won", "onboarding"]);
 
 export default async function GrowthFollowUpsPage() {
   const operator = await requirePlatformOperatorContext();
@@ -61,10 +61,10 @@ export default async function GrowthFollowUpsPage() {
                         ? ` · Health ${item.latestAuditScore}`
                         : ""}
                       {item.hasReport
-                        ? ` · ${item.reportViewCount} view${item.reportViewCount === 1 ? "" : "s"}`
+                        ? ` · ${item.reportViewCount} public URL access${item.reportViewCount === 1 ? "" : "es"}; reader unknown`
                         : ""}
                       {item.lastEngagementType
-                        ? ` · last ${item.lastEngagementType.replace(/_/g, " ")}`
+                        ? ` · last ${(item.lastEngagementType === "report_viewed" ? "public URL accessed; reader unknown" : item.lastEngagementType.replace(/_/g, " "))}`
                         : ""}
                     </p>
                     <p className="mt-2 text-sm text-amber-100/90">{item.reason}</p>

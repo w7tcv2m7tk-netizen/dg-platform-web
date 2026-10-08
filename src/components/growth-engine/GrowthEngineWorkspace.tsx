@@ -73,7 +73,6 @@ export function GrowthEngineWorkspace({
   const byStage = summary?.byStage ?? {};
   const qualified = stageCount(byStage, [
     "email_opened",
-    "report_viewed",
     "follow_up_due",
     "meeting_booked",
     "proposal_sent",
@@ -165,7 +164,7 @@ export function GrowthEngineWorkspace({
               </thead>
               <tbody className="text-slate-200">
                 <SnapshotRow label="Prospects" value={summary?.totalProspects ?? 0} />
-                <SnapshotRow label="Engaged · 7d" value={summary?.engagementsThisWeek ?? 0} />
+                <SnapshotRow label="Recorded activity · 7d" value={summary?.engagementsThisWeek ?? 0} />
                 <SnapshotRow label="Qualified" value={qualified} />
                 <SnapshotRow label="Opportunities" value={Math.max(0, opportunities)} />
                 <SnapshotRow label="Meetings" value={meetings} />
@@ -225,8 +224,7 @@ export function GrowthEngineWorkspace({
               </table>
             </div>
             <p className="mt-3 text-xs text-slate-500">
-              Ranked by Prospect Opportunity Score from audits, engagement, and fit — not an
-              autonomous AI SDR.
+              Ranked by Prospect Opportunity Score from research evidence, opportunity, and fit.
             </p>
           </section>
         ) : null}
@@ -341,7 +339,6 @@ function RecommendationCard({
             </Link>
             <CreateProposalQuoteButton prospectId={row.prospectId} label="Propose" />
             {(row.stage === "proposal_sent" ||
-              row.stage === "report_viewed" ||
               row.stage === "meeting_booked") && (
               <ConvertProspectToOrgButton prospectId={row.prospectId} label="Convert" />
             )}

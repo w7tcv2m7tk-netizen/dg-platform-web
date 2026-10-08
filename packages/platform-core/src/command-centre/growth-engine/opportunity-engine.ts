@@ -117,9 +117,9 @@ function approachFor(action: OpportunityRecommendedAction, businessName: string)
     case "call_today":
       return `Call today while the report is warm; keep the ask short.`;
     case "call_and_email":
-      return `They engaged the report — call and follow with a short email.`;
+      return `The public report URL was accessed; confirm receipt before discussing the findings.`;
     case "follow_up":
-      return `Report sent with limited engagement — a short follow-up is due.`;
+      return `Report sent — confirm receipt with a short follow-up.`;
     case "close_loop":
       return `Close the loop on the open proposal or meeting — confirm next step.`;
     default:
@@ -209,8 +209,8 @@ export function computeProspectOpportunityScore(
 
   if (input.stage === "qualified") positiveSignals.push("Qualified for outreach");
   const viewCount = input.report?.viewCount ?? 0;
-  if (viewCount > 0) positiveSignals.push(`${viewCount} report view${viewCount === 1 ? "" : "s"} — engagement signal`);
-  if (input.stage === "report_viewed") positiveSignals.push("Opportunity report viewed");
+  if (viewCount > 0) positiveSignals.push(`${viewCount} public report URL access${viewCount === 1 ? "" : "es"} — reader identity unknown`);
+  if (input.stage === "report_viewed") positiveSignals.push("Public report URL accessed");
   if (input.stage === "meeting_booked") positiveSignals.push("Meeting booked");
 
   const recommendedAction = recommendAction(input);
@@ -378,7 +378,7 @@ export async function getDailyOpportunityBriefing(options?: {
         where: {
           archivedAt: null,
           convertedOrganisationId: null,
-          stage: { in: ["email_opened", "report_viewed"] },
+          stage: { in: ["email_opened"] },
           ...(options?.organisationId ? { organisationId: options.organisationId } : {}),
         },
       }),

@@ -1,3 +1,4 @@
+import { loadGrowthReportSnapshot, prospectReportIdentity, savedProspectReportIdentity } from "./report-snapshot";
 import type { ProspectAuditFinding } from "./types";
 import { newShareToken } from "./audits";
 import { updateGrowthProspect } from "./prospects";
@@ -139,15 +140,36 @@ export async function createGrowthProspectReport(input: {
   });
 
   const sentAt = input.markSent ? new Date() : null;
-  const report = await prisma.growthProspectReport.create({
-    data: {
-      prospectId: prospect.id,
-      auditId: audit.id,
-      shareToken: newShareToken(),
-      executiveSummary,
-      sentAt,
-    },
+  const report = await prisma.$transaction(async (tx) => {
+    // Share the prospect-row lock with the Prospecting generator so both
+    // generation entry points reuse a single active snapshot for this audit.
+    const locked = await tx.$queryRaw<{ id: string }[]>`
+      SELECT id FROM growth_prospects WHERE id = ${prospect.id}
+        AND organisation_id IS NOT DISTINCT FROM ${prospect.organisationId}
+        AND archived_at IS NULL FOR UPDATE
+    `;
+    if (!locked.length) return null;
+    const existing = await tx.growthProspectReport.findFirst({
+      where: { prospectId: prospect.id, auditId: audit.id, revokedAt: null },
+      orderBy: { generatedAt: "desc" },
+    });
+    if (existing && savedProspectReportIdentity(existing.prospectSnapshot)) {
+      return sentAt && !existing.sentAt
+        ? tx.growthProspectReport.update({ where: { id: existing.id }, data: { sentAt } })
+        : existing;
+    }
+    return tx.growthProspectReport.create({
+      data: {
+        prospectId: prospect.id,
+        auditId: audit.id,
+        shareToken: newShareToken(),
+        executiveSummary,
+        prospectSnapshot: prospectReportIdentity(prospect),
+        sentAt,
+      },
+    });
   });
+  if (!report) return null;
 
   await prisma.growthProspectEngagement.create({
     data: {
@@ -271,93 +293,19 @@ export async function markGrowthReportSent(input: {
   };
 }
 
-const VIEW_STAGE_ADVANCE_FROM = new Set([
-  "prospect",
-  "audit_created",
-  "report_sent",
-  "email_opened",
-  "follow_up_due",
-]);
-
-/**
- * Load a shareable opportunity report by token and record the view.
- * Pass `recordView: false` (staff preview) to skip engagement / stage advance.
- * Safe for unauthenticated public pages — returns only prospect-facing fields.
- */
+/** Load an attached evidence snapshot. Anonymous URL access does not identify a reader. */
 export async function getPublicGrowthOpportunityReport(
   shareToken: string,
-  options?: { recordView?: boolean },
+  options?: { recordView?: boolean; previewOrganisationId?: string },
 ) {
-  const token = shareToken.trim();
-  if (!token) return null;
-  const recordView = options?.recordView !== false;
-
   const { prisma } = await import("@dg/database");
-
-  const report = await prisma.growthProspectReport.findUnique({
-    where: { shareToken: token },
-    include: {
-      prospect: {
-        select: {
-          id: true,
-          organisationId: true,
-          businessName: true,
-          websiteUrl: true,
-          industry: true,
-          location: true,
-          stage: true,
-          archivedAt: true,
-        },
-      },
-    },
-  });
-  // Soft-archived prospects: share tokens stay but public page is unavailable.
-  if (!report || report.prospect.archivedAt) return null;
-
-  const audit = report.auditId
-    ? await prisma.growthProspectAudit.findUnique({ where: { id: report.auditId } })
-    : await prisma.growthProspectAudit.findFirst({
-        where: { prospectId: report.prospectId },
-        orderBy: { auditedAt: "desc" },
-      });
-
-  const findings = findingItems(audit?.findings);
-  let viewCount = report.viewCount;
-  let firstViewedAt = report.firstViewedAt;
-
-  if (recordView) {
-    const now = new Date();
-    const isFirstView = !report.firstViewedAt;
-
-    const updated = await prisma.growthProspectReport.update({
-      where: { id: report.id },
-      data: {
-        viewCount: { increment: 1 },
-        firstViewedAt: report.firstViewedAt ?? now,
-      },
-    });
-    viewCount = updated.viewCount;
-    firstViewedAt = updated.firstViewedAt;
-
-    await prisma.growthProspectEngagement.create({
-      data: {
-        prospectId: report.prospectId,
-        reportId: report.id,
-        type: "report_viewed",
-        metadata: { firstView: isFirstView },
-      },
-    });
-
-    if (VIEW_STAGE_ADVANCE_FROM.has(report.prospect.stage)) {
-      if (report.prospect.organisationId) {
-        await updateGrowthProspect({
-          prospectId: report.prospectId,
-          organisationId: report.prospect.organisationId,
-          stage: "report_viewed",
-        });
-      }
-    }
-  }
+  const loaded = await loadGrowthReportSnapshot(prisma, shareToken, options?.previewOrganisationId !== undefined
+    ? { kind: "preview", organisationId: options.previewOrganisationId }
+    : { kind: "public", recordView: options?.recordView === true });
+  if (!loaded) return null;
+  const { report, audit, prospect } = loaded;
+  const findings = findingItems(audit.findings);
+  const { viewCount, firstViewedAt } = report;
 
   const scores = {
     businessHealth: audit?.businessHealth ?? null,
@@ -366,7 +314,6 @@ export async function getPublicGrowthOpportunityReport(
     aiVisibility: audit?.aiVisibility ?? null,
   };
 
-  const { archivedAt: _archivedAt, ...publicProspect } = report.prospect;
 
   return {
     id: report.id,
@@ -377,12 +324,12 @@ export async function getPublicGrowthOpportunityReport(
     firstViewedAt: firstViewedAt?.toISOString() ?? null,
     generatedAt: report.generatedAt.toISOString(),
     auditedAt: audit?.auditedAt.toISOString() ?? null,
-    prospect: publicProspect,
+    prospect,
     scores,
     findings,
     recommendedActions: recommendedActions(findings),
     howDigitalGateHelps:
       "DigitalGate connects Website Health, AI Visibility™, SEO, and industry apps into one operating system — so these gaps become a managed programme, not a spreadsheet.",
-    preview: !recordView,
+    preview: options?.previewOrganisationId !== undefined || options?.recordView !== true,
   };
 }

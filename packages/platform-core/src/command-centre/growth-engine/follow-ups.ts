@@ -61,7 +61,7 @@ export async function getGrowthFollowUpQueue(options?: {
           : row.stage === "report_sent" || row.stage === "email_opened"
             ? "Report outbound with no recent engagement logged"
             : row.stage === "report_viewed"
-              ? "High intent — schedule a call"
+              ? "Public report URL accessed; reader unknown — confirm receipt"
               : `Idle in ${row.stage.replace(/_/g, " ")}`;
 
     return {
