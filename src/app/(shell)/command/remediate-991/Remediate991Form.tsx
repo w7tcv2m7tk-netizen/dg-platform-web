@@ -9,7 +9,7 @@ export function Remediate991Form() {
   if (result) {
     return (
       <section className="mt-6 max-w-xl rounded-xl border border-rose-400/30 bg-rose-950/20 p-5">
-        {result === 'success' ? <p role="status" className="text-sm text-emerald-200">The transaction reported success. Independently verify the database state before shutdown. This form is now closed.</p> : null}
+        {result === 'success' ? <p role="status" className="rounded-lg border border-emerald-700 bg-emerald-950 px-3 py-2 text-sm font-medium text-emerald-100">The transaction reported success. Independently verify the database state before shutdown. This form is now closed.</p> : null}
         {result === 'refused' ? <p role="status" className="text-sm text-amber-200">The operation was refused. This form is now closed; do not submit again without a fresh preflight.</p> : null}
         {result === 'ambiguous' ? <p role="alert" className="text-sm font-semibold text-rose-100">STOP. Completion is ambiguous. Do not submit again. Independently verify database state using the approved read-only procedure.</p> : null}
       </section>

@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { before, beforeEach, after, test } from "node:test";
 import { createHash, randomBytes } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { setTimeout as delay } from "node:timers/promises";
 import { PrismaClient } from "@prisma/client";
-import { handleReconcile991, handleReconcile991Action, RECONCILE_991_CONFIRMATION } from "../src/lib/reconcile-991.ts";
+import { handleReconcile991, handleReconcile991Action, RECONCILE_991_CONFIRMATION } from "./fixtures/reconcile-991.ts";
 
 const prisma = new PrismaClient({ log: [] });
 const control = new PrismaClient({ log: [] });
@@ -250,7 +250,7 @@ test("operator action refuses missing activation, invalid confirmation, unauthen
   const previousVercel = process.env.VERCEL_ENV;
   const previousNode = process.env.NODE_ENV;
   const previousWorkers = process.env.AI_WORKER_PROVISIONING_ENABLED;
-  for (const [key, value] of [["DG_RECONCILE_991_OPERATION", undefined], ["VERCEL_ENV", "preview"],
+  for (const [key, value] of [["DG_RECONCILE_991_OPERATION", "disabled"], ["DG_RECONCILE_991_OPERATION", undefined], ["VERCEL_ENV", "preview"],
     ["NODE_ENV", "development"], ["AI_WORKER_PROVISIONING_ENABLED", "true"]]) {
     if (value === undefined) delete process.env[key]; else process.env[key] = value;
     assert.equal(await invokeAction(RECONCILE_991_CONFIRMATION, {
@@ -302,15 +302,10 @@ test("operator action surfaces ambiguous completion and never retries", async ()
   assert.equal(attempts, 1);
 });
 
-test("operator action keeps credentials server-side and does not call the HTTP route", async () => {
-  const action = readFileSync("src/app/(shell)/command/reconcile-991/actions.ts", "utf8");
-  const form = readFileSync("src/app/(shell)/command/reconcile-991/Reconcile991Form.tsx", "utf8");
-  const page = readFileSync("src/app/(shell)/command/reconcile-991/page.tsx", "utf8");
-  assert.match(action, /auth\(\{ acceptsToken: 'session_token' \}\)/);
-  assert.match(action, /handleReconcile991Action/);
-  assert.doesNotMatch(action, /fetch\s*\(|SECRET_SHA256|X-DG-Reconcile-991-Secret|process\.env\.DATABASE_URL/);
-  assert.doesNotMatch(form, /SECRET|DATABASE_URL|fetch\s*\(/);
-  assert.doesNotMatch(page, /runReconcile991Action\s*\(/);
+test("temporary operator page, form and Server Action are removed", () => {
+  for (const file of ["page.tsx", "actions.ts", "Reconcile991Form.tsx"]) {
+    assert.equal(existsSync(`src/app/(shell)/command/reconcile-991/${file}`), false);
+  }
 });
 test("schema is rechecked after locking", async () => {
   const before = await history();
@@ -328,13 +323,14 @@ test("insert failure rolls back and returns no driver error or credential", asyn
   assert.equal(await history(), before);
 });
 
-test("route and middleware contain no redirect, logger, global database or session provisioning path", () => {
-  const route = readFileSync("src/app/api/admin/reconcile-991/route.ts", "utf8");
-  const core = readFileSync("src/lib/reconcile-991.ts", "utf8");
+test("temporary HTTP route and runtime core are removed; isolated regression fixture remains", () => {
+  assert.equal(existsSync("src/app/api/admin/reconcile-991/route.ts"), false);
+  assert.equal(existsSync("src/lib/reconcile-991.ts"), false);
+  const core = readFileSync("scripts/fixtures/reconcile-991.ts", "utf8");
   const middleware = readFileSync("src/middleware.ts", "utf8");
-  assert.match(route, /import "server-only"/);
   assert.match(core, /import "server-only"/);
-  assert.doesNotMatch(route+core, /console\.|captureException|\$\w+RawUnsafe|child_process|resolveActivePlatformSession|requirePlatformAuth|@dg\/database|Response\.redirect/);
-  assert.match(middleware, /req\.nextUrl\.pathname === "\/api\/admin\/reconcile-991" \|\| req\.nextUrl\.pathname === PHYSICAL_991_PATH/);
-  assert.match(middleware, /if \(path === "\/api\/admin\/reconcile-991"\) \{\s*return \(await clerkHandler/);
+  assert.doesNotMatch(core, /console\.|captureException|\$\w+RawUnsafe|child_process|resolveActivePlatformSession|requirePlatformAuth|@dg\/database|Response\.redirect/);
+  assert.match(core, /fixtureUrl\.hostname !== "127\.0\.0\.1"/);
+  assert.match(core, /DG_RECONCILE_TEST_MARKER/);
+  assert.doesNotMatch(middleware, /reconcile-991/);
 });

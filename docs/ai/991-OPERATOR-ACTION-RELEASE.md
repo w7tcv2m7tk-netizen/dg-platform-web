@@ -1,5 +1,11 @@
 # #991 operator action release checkpoint
 
+> RETIRED: the one-time reconciliation completed and was independently verified on
+> 2026-10-09. Execution has been disabled and the temporary reconciliation routes
+> and runtime code are removed by the security clean-up. The remainder of this
+> document is historical release evidence, not an execution procedure to repeat.
+> See `991-SECURITY-CLEANUP.md` and the retained reconciliation JSON evidence.
+
 Branch: `fix/991-reconciliation-operator-action`.
 Base: `aeb1068a4a21914197021ed5449dcaf793df7d72` (PR #993).
 

@@ -1,3 +1,12 @@
+// Historical #991 regression fixture. Never import from application code.
+// The dedicated runner creates this marker and loopback database; Production is refused.
+const fixtureUrl = new URL(process.env.DATABASE_URL ?? "postgresql://invalid/invalid");
+if (process.env.VERCEL === "1" || fixtureUrl.hostname !== "127.0.0.1"
+  || fixtureUrl.pathname !== "/dg_991_test"
+  || !/^[a-f0-9-]{36}$/.test(process.env.DG_RECONCILE_TEST_MARKER ?? "")) {
+  throw new Error("Historical reconciliation fixture requires an isolated test database");
+}
+
 import "server-only";
 
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
