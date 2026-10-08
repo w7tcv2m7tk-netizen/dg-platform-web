@@ -136,9 +136,9 @@ export async function handleReconcile991(request: Request, dependencies: {
       // non-cooperating writers/DDL and preserve zero provisioning state.
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(991, 20261007)::text`;
       await tx.$executeRaw`LOCK TABLE public._prisma_migrations IN SHARE ROW EXCLUSIVE MODE`;
-      await tx.$executeRaw`LOCK TABLE public.memberships, public.ai_worker_principals,
-        public.ai_local_deployments, public.ai_local_recipient_approvals, public.ai_inference_jobs,
-        public.ai_worker_claim_receipts, public.ai_worker_provisioning_receipts IN SHARE MODE`;
+      await tx.$executeRaw`LOCK TABLE public.memberships, public.ai_accounting_outbox,
+        public.ai_worker_principals, public.ai_local_deployments, public.ai_local_recipient_approvals,
+        public.ai_inference_jobs, public.ai_worker_claim_receipts, public.ai_worker_provisioning_receipts IN SHARE MODE`;
       if (!enabled() || !validRequest(request)) refuse();
       await operator(tx, userId);
       await physicalSchema(tx);

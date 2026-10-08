@@ -171,6 +171,26 @@ test("accounting outbox activity refuses reconciliation", async () => {
   assert.equal(await history(), before);
 });
 
+test("outbox writes racing reconciliation are fenced by the table lock", async () => {
+  let response;
+  let waiting = false;
+  await control.$transaction(async tx => {
+    await tx.$executeRaw`LOCK TABLE public.ai_accounting_outbox IN SHARE ROW EXCLUSIVE MODE`;
+    response = invoke();
+    for (let i=0; i<200; i++) {
+      const [lock] = await tx.$queryRaw`SELECT EXISTS (
+        SELECT 1 FROM pg_locks WHERE relation='public.ai_accounting_outbox'::regclass
+          AND mode='ShareLock' AND NOT granted) AS waiting`;
+      if (lock.waiting) { waiting = true; break; }
+      await delay(10);
+    }
+    assert.ok(waiting, "reconciliation must wait on the accounting outbox lock");
+    await tx.$executeRaw`INSERT INTO public.ai_accounting_outbox (id) VALUES ('racing-write')`;
+  }, { timeout: 10000 });
+  await refused(await response);
+  assert.equal((await prisma.$queryRaw`SELECT count(*)::int AS n FROM public._prisma_migrations WHERE migration_name=${migration}`)[0].n, 0);
+});
+
 test("unfinished and rolled-back migration rows refuse reconciliation", async () => {
   const before = await history();
   await prisma.$executeRaw`UPDATE public._prisma_migrations SET finished_at=NULL WHERE id='2cfc11d5-22c2-4151-bba2-9b707b03219a'`;
