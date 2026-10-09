@@ -1,4 +1,5 @@
-import { createPlatformCheckoutSession } from "@dg/platform-core";
+import { CheckoutTemporarilyUnavailable } from "@dg/platform-core/billing/checkout-creation-gate";
+import { createPlatformCheckoutSession } from "@dg/platform-core/billing/platform-checkout";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, rejectDemoLiveAction, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
@@ -35,6 +36,12 @@ export async function POST(req: Request) {
     });
     return NextResponse.json({ data: checkout });
   } catch (err) {
+    if (err instanceof CheckoutTemporarilyUnavailable) {
+      return NextResponse.json(
+        { error: { code: "checkout_temporarily_unavailable", message: err.message } },
+        { status: 503, headers: { "Retry-After": "60", "Cache-Control": "no-store" } },
+      );
+    }
     const message = err instanceof Error ? err.message : "Checkout failed";
     return NextResponse.json(
       { error: { code: "checkout_failed", message } },

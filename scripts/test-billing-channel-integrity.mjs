@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 
-const stripe = fs.readFileSync(
+const stripe = fs.readFileSync("packages/platform-core/src/billing/platform-checkout.ts", "utf8") + fs.readFileSync(
   "packages/platform-core/src/billing/platform-stripe.ts",
   "utf8",
 );

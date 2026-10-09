@@ -50,7 +50,7 @@ const commercialCatalogue = fs.readFileSync(
   "utf8",
 );
 const stripeBilling = fs.readFileSync(
-  "packages/platform-core/src/billing/platform-stripe.ts",
+  "packages/platform-core/src/billing/platform-checkout.ts",
   "utf8",
 );
 const commandOverview = fs.readFileSync(
