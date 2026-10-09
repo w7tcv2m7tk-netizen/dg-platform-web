@@ -1,3 +1,7 @@
+import { Suspense } from "react";
+import { BusinessBriefing } from "@/components/overview/BusinessBriefing";
+import { getBusinessBriefing } from "@/lib/business-briefing/server";
+import { briefingEnabled } from "@/lib/business-briefing/contract";
 import Link from "next/link";
 import {
   buildBusinessOverview,
@@ -154,6 +158,10 @@ function buildDigitalPerformanceSignals(input: {
       state: analyticsAvailable || searchAvailable ? "live" : "unavailable",
     },
   ];
+}
+
+async function BusinessBriefingSection() {
+  return <BusinessBriefing state={await getBusinessBriefing()} />;
 }
 
 export default async function DashboardPage() {
@@ -323,6 +331,10 @@ export default async function DashboardPage() {
         ) : (
           <BusinessOverviewDashboard
             overview={overview}
+            businessBriefing={briefingEnabled(process.env.AIDA_BUSINESS_BRIEFING_ENABLED) ?
+              <Suspense fallback={<BusinessBriefing state={{ status: "loading" }} />}>
+                <BusinessBriefingSection />
+              </Suspense> : undefined}
             growthScorecard={<DigitalPerformanceStrip
               signals={digitalPerformanceSignals}
               reputation={liveMetrics ? { score: liveMetrics.reputationScore, reviewCount: liveMetrics.reputationReviewCount } : undefined}
