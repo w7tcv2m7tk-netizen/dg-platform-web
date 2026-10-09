@@ -1,6 +1,7 @@
 import "server-only";
 import Stripe from "stripe";
 import { admitPlatformCheckout } from "./checkout-creation-gate";
+import { createAdmittedPlatformSession } from "./checkout-session-create";
 import { parseCustomCommercialOffer, type CustomCommercialOffer } from "./commercial-offer";
 import { annualPriceFromMonthlyCents, BILLING_COMMERCIAL_CONFIG } from "./subscription-types";
 import { industryCheckoutLines } from "../industry/platform";
@@ -256,7 +257,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   // delayed/unknown creates after closure; never retry with a refreshed expiry.
   const admission = await admitPlatformCheckout();
   sessionParams.expires_at = admission.expiresAt;
-  const session = await stripe.checkout.sessions.create(sessionParams);
+  const session = await createAdmittedPlatformSession(stripe, sessionParams);
 
   return { url: session.url, sessionId: session.id };
 }
@@ -367,7 +368,7 @@ export async function createCustomCommercialCheckoutSession(input: {
   // delayed/unknown creates after closure; never retry with a refreshed expiry.
   const admission = await admitPlatformCheckout();
   sessionParams.expires_at = admission.expiresAt;
-  const session = await stripe.checkout.sessions.create(sessionParams);
+  const session = await createAdmittedPlatformSession(stripe, sessionParams);
   return { url: session.url, sessionId: session.id, offer };
 }
 

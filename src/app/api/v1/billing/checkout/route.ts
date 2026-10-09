@@ -38,8 +38,8 @@ export async function POST(req: Request) {
   } catch (err) {
     if (err instanceof CheckoutTemporarilyUnavailable) {
       return NextResponse.json(
-        { error: { code: "checkout_temporarily_unavailable", message: err.message } },
-        { status: 503, headers: { "Retry-After": "60", "Cache-Control": "no-store" } },
+        { error: { code: err.outcome === "unknown" ? "checkout_outcome_unknown" : "checkout_temporarily_unavailable", message: err.message } },
+        { status: 503, headers: { ...(err.outcome === "unknown" ? {} : { "Retry-After": "60" }), "Cache-Control": "no-store" } },
       );
     }
     const message = err instanceof Error ? err.message : "Checkout failed";

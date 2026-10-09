@@ -28,12 +28,49 @@ The permit supplies `expires_at` to Stripe, fixed to the maximum recorded
 admission expiry, normally database time plus 35 minutes. Stripe's installed SDK
 contract permits absolute expiry between 30 minutes and 24 hours from creation.
 A worker delayed beyond the permitted creation window fails rather than getting
-a fresh expiry; SDK retries reuse the same body. Closure cannot undo requests
-already admitted. The recorded horizon survives crashes, lost provider responses
+a fresh expiry; SDK replays retain the same body and invocation idempotency key.
+Closure cannot undo requests already admitted. The recorded horizon survives crashes, lost provider responses
 and database commit uncertainty. Do not clear it on close/open. Wait until database
 time exceeds that horizon by 60 seconds, then inspect actual Stripe statuses.
 A future timestamp caused by clock movement lengthens the hold; never shorten it.
 Database and provider clock accuracy must be checked operationally.
+
+### Delayed creation and uncertain outcomes
+
+Stripe requires `expires_at` to be **at least 30 minutes and at most 24 hours
+after session creation**, not after admission. A normal 35-minute permit therefore
+leaves approximately five minutes for a new session to be accepted. Immediately
+before the minimum boundary it remains valid; exactly 30 minutes remaining is
+permitted; below that Stripe rejects it. Second rounding, clock skew and provider
+processing consume that margin. A local elapsed-time check cannot establish
+whether Stripe previously accepted the request.
+
+Both standard and custom-offer creators use the same server-only send helper.
+An explicit Stripe HTTP 400 `StripeInvalidRequestError` with `param=expires_at`
+is a confirmed rejection of this send and becomes a customer-safe HTTP 503,
+`checkout_temporarily_unavailable`, Retry-After 60 and Cache-Control no-store.
+The response contains no raw Stripe error. The helper neither obtains another
+permit nor changes expiry, and the committed database horizon remains intact.
+Never renew expiry automatically: a paused worker could otherwise create a
+session beyond the horizon that operators already used to drain checkout.
+
+Other create failures are conservatively **uncertain**, including a connection
+failure or a lost response after acceptance. They become a safe HTTP 503 with
+`checkout_outcome_unknown`, no Retry-After instruction, and a message asking the
+customer to contact DigitalGate before starting another checkout. Do not infer
+non-acceptance from a stale expiry, failure message or local timeout. An accepted
+session remains valid even if its response arrives after the minimum creation
+window. Existing Stripe URLs and webhook processing remain available.
+
+Normal SDK network retries are disabled for these sends. The installed SDK still
+allows a connection-closed replay, so each invocation supplies a random
+idempotency key. That replay uses the same key and body and can return an already
+accepted session without creating another. The key is not persisted across
+separate HTTP requests: this compatibility release still does not deduplicate
+independent requests, manual retries or restarts. Never automatically retry an
+uncertain outcome with a new key. Durable recovery requires integrated #1006.
+
+Reference: [Stripe Checkout session expiry](https://docs.stripe.com/api/checkout/sessions/create#checkout_session_create-expires_at).
 
 This compatibility release does **not** coordinate or deduplicate purchases while
 open. Opening it before #1006 retains legacy duplicate-session risks. Its purpose
@@ -123,6 +160,15 @@ migration workflow; `db:push` is a development convenience, not this procedure.
    hosted checkout URLs. If universal coverage cannot be proved, STOP/HOLD and
    isolate/decommission the uncovered deployment by a separately approved mechanism.
    Record the last possible ungated admission time as T0.
+   Keep a deployment-ID/hostname evidence matrix: probe custom domains, immutable
+   URLs and branch aliases in every environment with live credentials; record the
+   matching firewall rule and confirm no checkout application invocation occurred.
+   An application 401/403 does not prove edge isolation. Review earlier bypass
+   rules and rewritten entry paths. When opening integrated traffic, allow only
+   explicitly inventoried coordinator hosts; keep every old immutable URL and
+   alias denied or decommissioned. Reprobe after routing changes. If coverage
+   cannot be demonstrated, remain HOLD. Alias promotion or DNS changes alone do
+   not isolate old deployments.
 2. **Drain old execution.** Verify maximum execution duration and every retry,
    queue, waitUntil or delayed-work path of old deployments. Wait for all ungated
    workers to terminate; record completion as T1. This implementation's old
@@ -190,6 +236,16 @@ migration workflow; `db:push` is a development convenience, not this procedure.
    follow-up/rebase integrating this same database admission gate **before every
    provider create/replay**. Its current code does not consult this table. Also
    review how its immutable replay expiry participates in the drain bound. This
+   means recording at least the actual immutable expiry being submitted: #1006
+   currently persists a one-hour expiry, which a fresh 35-minute compatibility
+   permit cannot cover. Never replace a stored replay body/key/expiry with a new
+   permit's timestamp. Gate initial sends and every replay, preserve provider
+   account/mode/API version and fencing, and test closure, delayed initial sends,
+   the 30-minute boundary, existing accepted sessions and lost responses. Only a
+   provably never-submitted reservation may be safely retired without resolving
+   a provider outcome; stale expiry does not prove an uncertain send was rejected.
+   Preserve both additive migrations and direct server-only route imports when
+   rebasing the overlapping creator/schema changes. This
    compatibility PR intentionally leaves #1006 untouched. Until that integration
    and tests exist, HOLD coordinator traffic. Apply only the approved coordinator
    migration after compatibility is proven and the inventory is clean; verify
@@ -230,7 +286,7 @@ reservation slots/delete history, and never reopen a legacy creator alongside th
 coordinator. Routing to old code is not safe merely because the new gate is closed.
 If a failed integrated release ignores the gate, ingress isolation is mandatory.
 
-Current recommendation: **HOLD production merge/release activation**, pending an
+Current recommendation: **HOLD production release/activation**, pending an
 independently reviewed compatibility release, verified ingress isolation and
 in-flight bounds, approved migration execution, real restricted-key sandbox
 permission tests, a complete read-only inventory, and the separately reviewed
@@ -279,3 +335,25 @@ the successful retry ran locally with process permissions. Logs are in
 `/private/tmp/dg-compat-*.log`; the DB runner writes `dg-compat-db-evidence.json`
 under Node's operating-system temporary directory. No production credentials were
 loaded for these checks.
+
+The interrupted independent review log `dg-independent-1008-db.log` contains a
+localhost `listen EPERM` failure before PostgreSQL tests; it is not a passing
+run. Remediation validation uses separately named `dg-1008-remediation-*.log`
+files. Tests model provider acceptance time independently from response delivery,
+exercise both real creators and HTTP route exports against disposable PostgreSQL,
+and run the installed Stripe SDK against an isolated fake transport for
+connection-closed/idempotent replay. They make no real Stripe calls.
+
+Remediation results on 2026-10-09: **49 focused tests, 30 disposable PostgreSQL
+tests and 46 security tests passed**, along with the full prebuild regression
+pipeline, TypeScript and targeted ESLint on every changed TS/JS file. The exact
+gate migration applied over pinned main `331b96e1`; Prisma schema parity passed;
+the owned cluster was stopped and destroyed. The sandbox again denied localhost
+binding; the explicitly approved local rerun passed rather than counting EPERM
+as success. Standard Turbopack production build completed with exit 0 after an
+approved process-permission retry of a stalled sandbox build. Actual browser/server
+bundle inspection passed, including the new send helper's idempotency marker.
+Existing Prisma export/file-tracing, cache-header and middleware-deprecation
+warnings and unrelated dynamic-render diagnostics remain. Code merge recommendation:
+PASS for this compatibility correction; deployment and activation remain HOLD
+until the production procedure and separately reviewed #1006 integration are proven.

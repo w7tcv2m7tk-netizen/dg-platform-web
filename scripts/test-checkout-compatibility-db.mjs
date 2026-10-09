@@ -6,9 +6,10 @@ import { prisma, PrismaClient } from "@dg/database";
 import { admitPlatformCheckout, CheckoutTemporarilyUnavailable } from "../packages/platform-core/src/billing/checkout-creation-gate.ts";
 import { createPlatformCheckoutSession, createCustomCommercialCheckoutSession, createNegotiatedCommercialCheckoutSession } from "../packages/platform-core/src/billing/platform-checkout.ts";
 import { provisionFromPlatformCheckout } from "../packages/platform-core/src/billing/platform-stripe.ts";
+import { checkoutPost } from "./checkout-test-http.mjs";
 
 const control = new PrismaClient();
-let org, requests, createWait, loseResponse;
+let org, requests, createWait, loseResponse, beforeAcceptance, remainingAtAcceptance, acceptedSessions;
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const standard = () => createPlatformCheckoutSession({ organisationId: org.id, email: "fixture@example.test", platformTier: "professional" });
 const offer = { version: 1, id: "fixture", label: "Fixture", status: "agreed", currency: "aud", amountCents: 24900, cadence: "monthly", platformTier: "professional", industryApps: [], industryTemplates: [], premiumApps: [], trialDays: 14 };
@@ -24,17 +25,29 @@ before(async () => {
   org = await prisma.organisation.create({ data: { name: "Compatibility fixture", slug: `compat-${randomUUID()}` } });
   process.env.STRIPE_SECRET_KEY = "sk_test_no_network_allowed";
   const sdk = new Stripe(process.env.STRIPE_SECRET_KEY);
-  mock.method(Object.getPrototypeOf(sdk.checkout.sessions), "create", async parameters => {
-    requests.push(structuredClone(parameters)); if (createWait) await createWait.promise;
+  mock.method(Object.getPrototypeOf(sdk.checkout.sessions), "create", async (parameters, options) => {
+    requests.push(structuredClone(parameters));
+    assert.equal(options.maxNetworkRetries, 0);
+    assert.match(options.idempotencyKey, /^platform-checkout-admission-/);
+    if (beforeAcceptance) await beforeAcceptance(parameters);
+    // Provider acceptance time is independent of local time / response delivery.
+    const providerNow = parameters.expires_at - remainingAtAcceptance;
+    if (parameters.expires_at < providerNow + 1800) throw new Stripe.errors.StripeInvalidRequestError({
+      message: "RAW_STRIPE_EXPIRY_ERROR", statusCode: 400, param: "expires_at",
+    });
+    const accepted = { id: `cs_fixture_${requests.length}`, url: "https://checkout.example.test", expires_at: parameters.expires_at };
+    acceptedSessions.push(accepted);
+    if (createWait) await createWait.promise;
     if (loseResponse) throw new Error("Simulated response lost after provider accepted request");
-    return { id: `cs_fixture_${requests.length}`, url: "https://checkout.example.test", expires_at: parameters.expires_at };
+    return accepted;
   });
   // Any unexpected provider read fails locally rather than touching the network.
   mock.method(Object.getPrototypeOf(sdk.customers), "retrieve", async () => { throw new Error("Unexpected customer read"); });
   mock.method(Object.getPrototypeOf(sdk.subscriptions), "retrieve", async () => { throw new Error("Unexpected subscription read"); });
 });
 beforeEach(async () => {
-  requests = []; createWait = null; loseResponse = false;
+  requests = []; createWait = null; loseResponse = false; beforeAcceptance = null;
+  remainingAtAcceptance = 2100; acceptedSessions = [];
   await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = false, revision = revision + 1, changed_at = clock_timestamp(), last_admission_expires_at = NULL WHERE id = 1`;
 });
 after(async () => { mock.restoreAll(); await prisma.$disconnect(); await control.$disconnect(); });
@@ -108,10 +121,73 @@ test("existing completed checkout provisions through webhook authority while gat
 
 test("lost provider response retains committed expiry through closure", async () => {
   loseResponse = true;
-  await assert.rejects(custom(), /Simulated response lost/);
+  await assert.rejects(custom(), error => error instanceof CheckoutTemporarilyUnavailable && error.outcome === "unknown");
   const sentExpiry = requests[0].expires_at;
   await close();
   const [row] = await control.$queryRaw`SELECT EXTRACT(EPOCH FROM last_admission_expires_at)::bigint AS expires FROM platform_checkout_creation_gate`;
   assert.equal(Number(row.expires), sentExpiry);
   await assert.rejects(custom(), CheckoutTemporarilyUnavailable); assert.equal(requests.length, 1);
 });
+
+const horizon = async () => {
+  const [row] = await control.$queryRaw`SELECT EXTRACT(EPOCH FROM last_admission_expires_at)::bigint AS expires FROM platform_checkout_creation_gate WHERE id = 1`;
+  return Number(row.expires);
+};
+for (const [label, entry, route] of [["standard billing", standard, "billing"], ["custom-offer onboarding", custom, "custom"]]) {
+  for (const [boundary, remaining, valid] of [
+    ["valid window", 2100, true], ["immediately before minimum", 1801, true],
+    ["at minimum", 1800, true], ["after minimum", 1799, false],
+  ]) {
+    test(`${label}: ${boundary} uses original committed expiry without duplicate creation`, async () => {
+      remainingAtAcceptance = remaining;
+      let committed;
+      beforeAcceptance = async parameters => {
+        committed = await horizon(); assert.equal(parameters.expires_at, committed);
+      };
+      const response = await checkoutPost(route, entry)();
+      assert.equal(response.status, valid ? 200 : 503);
+      const body = await response.json();
+      if (!valid) {
+        assert.equal(body.error.code, "checkout_temporarily_unavailable");
+        assert.equal(response.headers.get("Retry-After"), "60");
+        assert.ok(!JSON.stringify(body).includes("RAW_STRIPE"));
+      }
+      assert.equal(requests.length, 1); assert.equal(acceptedSessions.length, valid ? 1 : 0);
+      assert.equal(await horizon(), committed); assert.equal(requests[0].expires_at, committed);
+    });
+  }
+  test(`${label}: closure before delayed acceptance rejects safely without extending drain`, async () => {
+    remainingAtAcceptance = 1799;
+    let committed;
+    beforeAcceptance = async () => { committed = await horizon(); await close(); };
+    const response = await checkoutPost(route, entry)();
+    assert.equal(response.status, 503); assert.equal(response.headers.get("Retry-After"), "60");
+    assert.equal((await response.json()).error.code, "checkout_temporarily_unavailable");
+    await assert.rejects(entry(), error => error.outcome === "gate_denied");
+    assert.equal(requests.length, 1); assert.equal(acceptedSessions.length, 0);
+    assert.equal(await horizon(), committed);
+  });
+  test(`${label}: accepted session survives closure and delayed response beyond minimum`, async () => {
+    createWait = deferred();
+    const started = entry();
+    while (acceptedSessions.length === 0) await new Promise(resolve => setTimeout(resolve, 5));
+    const accepted = structuredClone(acceptedSessions[0]);
+    await close(); remainingAtAcceptance = 0; createWait.resolve();
+    assert.equal((await started).sessionId, accepted.id);
+    await assert.rejects(entry(), error => error.outcome === "gate_denied");
+    assert.deepEqual(acceptedSessions, [accepted]); assert.equal(requests.length, 1);
+    assert.equal(await horizon(), accepted.expires_at);
+  });
+  test(`${label}: lost response is uncertain, never resubmitted, accepted expiry retained`, async () => {
+    loseResponse = true;
+    const response = await checkoutPost(route, entry)();
+    assert.equal(response.status, 503); assert.equal(response.headers.get("Retry-After"), null);
+    const body = await response.json();
+    assert.equal(body.error.code, "checkout_outcome_unknown"); assert.ok(!JSON.stringify(body).includes("Simulated"));
+    assert.equal(acceptedSessions.length, 1);
+    const accepted = structuredClone(acceptedSessions[0]);
+    await close(); await assert.rejects(entry(), error => error.outcome === "gate_denied");
+    assert.equal(requests.length, 1); assert.deepEqual(acceptedSessions, [accepted]);
+    assert.equal(await horizon(), accepted.expires_at);
+  });
+}

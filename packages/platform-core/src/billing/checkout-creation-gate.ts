@@ -1,9 +1,14 @@
 import "server-only";
 
 export class CheckoutTemporarilyUnavailable extends Error {
-  constructor() {
-    super("Subscription checkout is temporarily unavailable. Please try again shortly.");
+  readonly outcome: "gate_denied" | "expiry_rejected" | "unknown";
+
+  constructor(outcome: "gate_denied" | "expiry_rejected" | "unknown" = "gate_denied") {
+    super(outcome === "unknown"
+      ? "We couldn't confirm whether subscription checkout started. Contact DigitalGate before starting another checkout."
+      : "Subscription checkout is temporarily unavailable. Please try again shortly.");
     this.name = "CheckoutTemporarilyUnavailable";
+    this.outcome = outcome;
   }
 }
 
