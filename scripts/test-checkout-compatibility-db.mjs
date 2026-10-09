@@ -5,7 +5,9 @@ import Stripe from "stripe";
 import { prisma, PrismaClient } from "@dg/database";
 import { admitPlatformCheckout, CheckoutTemporarilyUnavailable } from "../packages/platform-core/src/billing/checkout-creation-gate.ts";
 import { createPlatformCheckoutSession, createCustomCommercialCheckoutSession, createNegotiatedCommercialCheckoutSession } from "../packages/platform-core/src/billing/platform-checkout.ts";
-import { provisionFromPlatformCheckout } from "../packages/platform-core/src/billing/platform-stripe.ts";
+import { provisionFromPlatformCheckout, handlePlatformSubscriptionLifecycle } from "../packages/platform-core/src/billing/platform-stripe.ts";
+import { StripePaymentConnector } from "../packages/platform-core/src/commerce/connectors/stripe/index.ts";
+import { processPaymentWebhookEvent } from "../packages/platform-core/src/commerce/payment-engine.ts";
 import { checkoutPost } from "./checkout-test-http.mjs";
 
 const control = new PrismaClient();
@@ -54,7 +56,10 @@ before(async () => {
     return accepted;
   });
   // Any unexpected provider read fails locally rather than touching the network.
-  mock.method(Object.getPrototypeOf(sdk.customers), "retrieve", async () => { throw new Error("Unexpected customer read"); });
+  mock.method(Object.getPrototypeOf(sdk.customers), "retrieve", async id => {
+    if (id !== providerSubscription.customer) throw new Error("Unexpected customer read");
+    return { id, deleted: false };
+  });
   mock.method(Object.getPrototypeOf(sdk.subscriptions), "retrieve", async id => {
     if (id !== providerSubscription.id) throw new Error("Unexpected subscription read");
     return structuredClone(providerSubscription);
@@ -159,6 +164,128 @@ test("custom trial uses provider dates instead of a new default trial", async ()
   assert.equal(canonical.trialStart.getTime(), providerSubscription.trial_start * 1000);
   assert.equal(canonical.trialEnd.getTime(), providerSubscription.trial_end * 1000);
 });
+
+test("cancellation delivered before completion records terminal evidence and permits gated, deduplicated restart", async () => {
+  const first = await custom();
+  Object.assign(acceptedSessions[0], completedSession(), { id: first.sessionId, status: "complete" });
+  Object.assign(providerSubscription, { status: "canceled", trial_start: null, trial_end: null });
+  await close();
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_cancel_before_complete");
+  const completion = await provisionFromPlatformCheckout(acceptedSessions[0]);
+  assert.equal(completion.outcome, "terminal_subscription");
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(canonical.status, "CANCELLED"); assert.equal(canonical.entitlement, "NONE");
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { organisationId: org.id, type: "checkout.provisioned" } }), 0);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { organisationId: org.id, type: "checkout.terminal_observed" } }), 1);
+  await assert.rejects(custom(), error => error.outcome === "gate_denied");
+  assert.equal(requests.length, 1);
+  await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = false WHERE id = 1`;
+  const next = await custom(); const replay = await custom();
+  assert.notEqual(next.sessionId, first.sessionId); assert.equal(replay.sessionId, next.sessionId);
+  assert.equal(requests.length, 2);
+  assert.equal((await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } })).entitlement, "NONE");
+});
+
+test("scheduled cancellation arriving before checkout completion preserves cancellation and period dates", async () => {
+  Object.assign(providerSubscription, { status: "active", trial_start: null, trial_end: null, cancel_at_period_end: true });
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_schedule_before_complete");
+  await provisionFromPlatformCheckout(completedSession());
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(canonical.status, "CANCEL_AT_PERIOD_END"); assert.equal(canonical.cancelAtPeriodEnd, true);
+  assert.equal(canonical.currentPeriodStart.getTime(), providerSubscription.current_period_start * 1000);
+  assert.equal(canonical.currentPeriodEnd.getTime(), providerSubscription.current_period_end * 1000);
+});
+
+test("terminal checkout cannot invent cancellation evidence or provisioning", async () => {
+  Object.assign(providerSubscription, { status: "canceled" });
+  const canonical = await prisma.platformSubscription.create({ data: { organisationId: org.id, status: "CANCELLED", entitlement: "NONE",
+    stripeCustomerId: providerSubscription.customer, stripeSubscriptionId: providerSubscription.id, stripeStatus: "canceled" } });
+  await assert.rejects(provisionFromPlatformCheckout(completedSession()), /webhook evidence is missing/);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { subscriptionId: canonical.id } }), 0);
+  assert.equal((await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } })).entitlement, "NONE");
+});
+
+test("older compatibility cancellation evidence remains usable with exact provider and canonical identity", async () => {
+  Object.assign(providerSubscription, { status: "canceled" });
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_compat_cancel");
+  await prisma.platformSubscriptionEvent.update({ where: { stripeEventId: "evt_compat_cancel:subscription" }, data: {
+    payload: { stripeStatus: "canceled", commercialStatus: "CANCELLED", entitlement: "NONE" },
+  } });
+  const completion = await provisionFromPlatformCheckout(completedSession());
+  assert.equal(completion.outcome, "terminal_subscription");
+  assert.equal((await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } })).entitlement, "NONE");
+});
+
+for (const defect of ["active_event", "foreign_subscription", "foreign_customer"]) {
+  test(`terminal observation rejects ${defect} cancellation evidence`, async () => {
+    Object.assign(providerSubscription, { status: "canceled" });
+    await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_conflicting_cancel");
+    await prisma.platformSubscriptionEvent.update({ where: { stripeEventId: "evt_conflicting_cancel:subscription" }, data: {
+      payload: { stripeStatus: defect === "active_event" ? "active" : "canceled",
+        stripeSubscriptionId: defect === "foreign_subscription" ? "sub_foreign" : providerSubscription.id,
+        stripeCustomerId: defect === "foreign_customer" ? "cus_foreign" : providerSubscription.customer },
+    } });
+    await assert.rejects(provisionFromPlatformCheckout(completedSession()), /webhook evidence is missing/);
+    assert.equal(await prisma.platformSubscriptionEvent.count({ where: { organisationId: org.id, type: "checkout.terminal_observed" } }), 0);
+  });
+}
+
+test("completion followed by scheduled cancellation retains the same authoritative projection", async () => {
+  Object.assign(providerSubscription, { status: "active", trial_start: null, trial_end: null, cancel_at_period_end: true });
+  await provisionFromPlatformCheckout(completedSession());
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_schedule_after_complete");
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(canonical.status, "CANCEL_AT_PERIOD_END"); assert.equal(canonical.cancelAtPeriodEnd, true);
+  assert.equal(canonical.currentPeriodEnd.getTime(), providerSubscription.current_period_end * 1000);
+});
+
+test("completion then cancellation then completion retry never restores access", async () => {
+  Object.assign(providerSubscription, { status: "active", trial_start: null, trial_end: null });
+  await provisionFromPlatformCheckout(completedSession());
+  Object.assign(providerSubscription, { status: "canceled" });
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_cancel_after_complete");
+  await provisionFromPlatformCheckout(completedSession()); await provisionFromPlatformCheckout(completedSession());
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(canonical.status, "CANCELLED"); assert.equal(canonical.entitlement, "NONE");
+  const owner = await prisma.organisation.findUnique({ where: { id: org.id } });
+  assert.equal(owner.status, "suspended"); assert.equal(owner.settings.apps.entitlementsSuspended, true);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { organisationId: org.id, type: "checkout.terminal_observed" } }), 1);
+});
+
+for (const type of ["checkout.session.expired", "payment_intent.payment_failed"]) {
+  test(`signed connected-account ${type} cannot mutate another tenant payment request`, async () => {
+    const victim = await prisma.commercePaymentRequest.create({ data: { organisationId: org.id, sourceApp: "commerce", providerId: "stripe",
+      status: "checkout_open", currency: "AUD", subtotalCents: 100, totalCents: 100, providerSessionId: "cs_victim" } });
+    const payload = JSON.stringify({ id: `evt_malicious_${type}`, type, account: "acct_attacker", created: 1700000000,
+      data: { object: { id: type.startsWith("checkout.") ? "cs_attacker" : "pi_attacker", created: 1700000000,
+        metadata: { organisationId: org.id, paymentRequestId: victim.id } } } });
+    const oldSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    process.env.STRIPE_WEBHOOK_SECRET = "whsec_isolated_fixture";
+    try {
+      const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_WEBHOOK_SECRET });
+      const event = await new StripePaymentConnector().parseWebhook(payload, { "stripe-signature": signature });
+      const result = await processPaymentWebhookEvent(event);
+      assert.equal((await prisma.commercePaymentRequest.findUnique({ where: { id: victim.id } })).status, "checkout_open");
+      assert.equal(result.ok, false);
+    } finally {
+      if (oldSecret === undefined) delete process.env.STRIPE_WEBHOOK_SECRET; else process.env.STRIPE_WEBHOOK_SECRET = oldSecret;
+      await prisma.commercePaymentRequest.delete({ where: { id: victim.id } });
+    }
+  });
+}
+
+for (const type of ["checkout.expired", "payment.failed"]) {
+  test(`legitimate platform-account ${type} keeps payment request behaviour`, async () => {
+    const payment = await prisma.commercePaymentRequest.create({ data: { organisationId: org.id, sourceApp: "commerce", providerId: "stripe",
+      status: "checkout_open", currency: "AUD", subtotalCents: 100, totalCents: 100, providerSessionId: "cs_owned" } });
+    try {
+      const result = await processPaymentWebhookEvent({ type, providerId: "stripe", providerEventId: `evt_platform_${type}`,
+        organisationId: org.id, paymentRequestId: payment.id, providerPaymentId: "pi_owned", occurredAt: new Date() });
+      assert.equal(result.ok, true);
+      assert.equal((await prisma.commercePaymentRequest.findUnique({ where: { id: payment.id } })).status, type === "checkout.expired" ? "expired" : "failed");
+    } finally { await prisma.commercePaymentRequest.delete({ where: { id: payment.id } }); }
+  });
+}
 
 test("lost provider response retains committed expiry through closure", async () => {
   loseResponse = true;

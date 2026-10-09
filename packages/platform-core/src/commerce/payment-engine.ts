@@ -290,6 +290,11 @@ export async function listPaymentRequestsForEntity(
 export async function processPaymentWebhookEvent(
   event: import("./connectors/types").PaymentWebhookEvent,
 ) {
+  // Defence in depth for direct consumers as well as the HTTP webhook.
+  // These payment requests belong to the platform account, never a Connect account.
+  if (event.connectAccountId && ["checkout.completed", "checkout.expired", "payment.failed"].includes(event.type)) {
+    return { ok: false as const, reason: "connected_account_payment_event" };
+  }
   const { prisma } = await import("@dg/database");
 
   if (event.type === "ignored") {

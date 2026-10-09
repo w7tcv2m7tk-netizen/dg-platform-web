@@ -344,6 +344,13 @@ export async function POST(req: Request) {
     const connector = requirePaymentConnector("stripe");
     const event = await connector.parseWebhook(rawBody, headers);
 
+    // Local payment requests are created on the platform account. Connected
+    // account metadata cannot authorize any receipt or tenant payment mutation.
+    if (event.connectAccountId && ["checkout.completed", "checkout.expired", "payment.failed"].includes(event.type)) {
+      return NextResponse.json({ received: true, skipped: event.type.startsWith("checkout.")
+        ? "connected_account_checkout" : "connected_account_payment_event" });
+    }
+
     // H-7: atomic claim → processing → processed / failed, with stale-claim
     // recovery. A handler that throws leaves the receipt `failed` and rethrows
     // so Stripe retries; a crash leaves it `processing` until the stale

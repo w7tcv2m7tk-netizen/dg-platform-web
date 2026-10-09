@@ -163,7 +163,10 @@ export async function coordinatePlatformCheckout(input: {
         canonical.stripeStatus !== subscription.status || canonical.status !== "CANCELLED") return false;
       return Boolean(await db.platformSubscriptionEvent.findFirst({ where: {
         organisationId: input.organisationId, subscriptionId: canonical.id,
-        source: "stripe", type: "checkout.provisioned", stripeEventId: `${session.id}:checkout`,
+        source: "stripe", OR: [
+          { type: "checkout.provisioned", stripeEventId: `${session.id}:checkout` },
+          { type: "checkout.terminal_observed", stripeEventId: `${session.id}:checkout-terminal` },
+        ],
       } }));
     };
     const awaitWebhook = () => blocked("checkout_awaiting_webhook", "Your checkout is complete. Waiting for subscription confirmation.");

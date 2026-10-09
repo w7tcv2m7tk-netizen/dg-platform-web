@@ -162,6 +162,7 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "checkout.expired",
         providerId: "stripe",
+        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId: session.metadata?.organisationId,
         paymentRequestId: session.metadata?.paymentRequestId,
@@ -175,6 +176,7 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "payment.failed",
         providerId: "stripe",
+        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId: intent.metadata?.organisationId,
         paymentRequestId: intent.metadata?.paymentRequestId,
@@ -263,6 +265,7 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "customer.updated",
         providerId: "stripe",
+        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId:
           customer.metadata?.organisation_id ||
@@ -399,6 +402,7 @@ export class StripePaymentConnector implements PaymentConnector {
     return {
       type: "ignored",
       providerId: "stripe",
+      connectAccountId: event.account ?? undefined,
       providerEventId: event.id,
       occurredAt: new Date(event.created * 1000),
       raw: { ignoredStripeType: event.type, stripeEventId: event.id },

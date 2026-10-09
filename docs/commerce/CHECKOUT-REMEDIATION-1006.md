@@ -90,6 +90,10 @@ remediation, corrected before final validation.
 
 ## Readiness and remaining risks
 
+The subsequent [round 2 remediation](CHECKOUT-REMEDIATION-ROUND-2.md) supersedes
+this report's readiness and validation results, including cancellation-first
+terminal handling, connected-account expiry/failure and scheduled cancellation.
+
 The three reported defects are corrected and regression covered. Code readiness
 is ready for renewed independent review;
 full repository lint remains a disclosed baseline limitation. Production release,

@@ -160,10 +160,42 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
   }
   const subscription = await getStripeClient().subscriptions.retrieve(stripeSubscriptionId);
   if (subscription.id !== stripeSubscriptionId || stripeCustomerId(subscription.customer) !== customerId ||
-    subscription.livemode !== session.livemode || subscription.metadata.organisation_id !== metadata.organisation_id ||
-    subscription.metadata.dg_platform_subscription !== "true" ||
-    !["active", "trialing"].includes(subscription.status)) {
+    subscription.livemode !== session.livemode || !metadata.organisation_id ||
+    subscription.metadata.organisation_id !== metadata.organisation_id || subscription.metadata.dg_platform_subscription !== "true") {
     throw new Error("Platform checkout subscription ownership or activation is unconfirmed");
+  }
+  if (["canceled", "incomplete_expired"].includes(subscription.status)) {
+    // Delivery order is not payment evidence. A terminal provider subscription
+    // can be observed without ever provisioning this checkout. Require the exact
+    // cancellation projection and its Stripe webhook evidence before recording it.
+    const { prisma } = await import("@dg/database");
+    const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: metadata.organisation_id } });
+    if (!canonical || canonical.stripeSubscriptionId !== subscription.id || canonical.stripeCustomerId !== customerId ||
+      canonical.status !== "CANCELLED" || canonical.stripeStatus !== subscription.status) {
+      throw new Error("Checkout cancellation webhook confirmation is pending");
+    }
+    const cancellations = await prisma.platformSubscriptionEvent.findMany({ where: {
+      organisationId: metadata.organisation_id, subscriptionId: canonical.id, source: "stripe",
+      type: { in: ["stripe.subscription.deleted", "stripe.subscription.updated", "stripe.subscription.created"] },
+      payload: { path: ["stripeStatus"], equals: subscription.status },
+    }, orderBy: { createdAt: "desc" }, take: 100 });
+    // Older compatibility releases recorded status without provider IDs. Their
+    // cancellation record is usable only with the exact canonical/provider
+    // identity checked above; new records must also match their recorded IDs.
+    const cancellation = cancellations.some(event => {
+      const payload = event.payload as { stripeSubscriptionId?: string; stripeCustomerId?: string } | null;
+      return (!payload?.stripeSubscriptionId || payload.stripeSubscriptionId === subscription.id) &&
+        (!payload?.stripeCustomerId || payload.stripeCustomerId === customerId);
+    });
+    if (!cancellation) throw new Error("Checkout cancellation webhook evidence is missing");
+    const { appendSubscriptionEvent } = await import("./subscription-store");
+    await appendSubscriptionEvent({ organisationId: metadata.organisation_id, subscriptionId: canonical.id,
+      type: "checkout.terminal_observed", source: "stripe", stripeEventId: `${session.id}:checkout-terminal`,
+      payload: { stripeSubscriptionId: subscription.id, stripeCustomerId: customerId, stripeStatus: subscription.status } });
+    return { handled: true as const, ok: true as const, outcome: "terminal_subscription" as const, organisationId: metadata.organisation_id };
+  }
+  if (!["active", "trialing"].includes(subscription.status)) {
+    throw new Error("Platform checkout subscription activation is unconfirmed");
   }
   const premiumApps = await paidAppsFromAuthoritativeSubscription({
     stripe: getStripeClient(),
@@ -188,6 +220,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
 
   const { prisma } = await import("@dg/database");
   const org = resolved.org;
+  if (org.id !== metadata.organisation_id) throw new Error("Platform checkout organisation ownership is unconfirmed");
   const settings = (org.settings as Record<string, unknown> | null) ?? {};
   const profile = applyBrandPresetToProfile(
     {
@@ -229,6 +262,9 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     stripeStatus: subscription.status as "active" | "trialing",
     trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
     trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+    cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+    currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : null,
+    currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
   });
 
   // Derived projection for UI and legacy consumers. PlatformSubscription above
@@ -243,6 +279,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
         billing: {
           ...billing,
           subscriptionStatus: founding || exempt ? "active" : subscription.status,
+          cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
           entitlementsSuspended: false,
           lastCheckoutSessionId: session.id,
           lastCheckoutAt: new Date().toISOString(),

@@ -110,7 +110,11 @@ or network behaviour.
 Unknown outcomes after the replay cutoff and unconfirmed completed historic
 sessions fail closed. A completed session can retire only when its exact
 subscription is terminal in the original Stripe mode, ownership matches, and
-the canonical subscription and checkout webhook event confirm that purchase.
+the canonical subscription and checkout webhook evidence confirm its identity.
+Cancellation-first delivery may record `checkout.terminal_observed` instead of
+`checkout.provisioned`, but only after exact canonical cancellation and recorded
+Stripe lifecycle evidence match the retrieved terminal subscription. This does
+not infer payment or grant access. See [round 2 remediation](CHECKOUT-REMEDIATION-ROUND-2.md).
 Retirement uses the existing fenced EXPIRED state and keeps the session/key
 history with reason `completed_subscription_terminal`; it does not claim that
 Stripe expired a completed session. Recorded retirement remains evidence for

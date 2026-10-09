@@ -235,6 +235,8 @@ export async function applyStripeSubscriptionProjection(input: {
       ? `${input.stripeEventId}:subscription`
       : null,
     payload: {
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId: customerId,
       stripeStatus: subscription.status,
       commercialStatus: status,
       entitlement,
@@ -530,12 +532,16 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
   trialStart: Date | null;
   trialEnd: Date | null;
   stripeStatus: "active" | "trialing";
+  cancelAtPeriodEnd: boolean;
+  currentPeriodStart: Date | null;
+  currentPeriodEnd: Date | null;
   stripeEventId?: string | null;
 }): Promise<PlatformSubscriptionRow> {
   const founding = input.foundingCustomer ?? false;
   const exempt = input.platformExempt ?? false;
   const status: PlatformCommercialStatus =
-    founding || exempt || input.stripeStatus === "active" ? "ACTIVE" : "TRIALING";
+    input.cancelAtPeriodEnd ? "CANCEL_AT_PERIOD_END" :
+      founding || exempt || input.stripeStatus === "active" ? "ACTIVE" : "TRIALING";
   const entitlement = entitlementFromCommercialStatus(status, {
     foundingOrExempt: founding || exempt,
   });
@@ -550,6 +556,9 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
     stripeStatus: input.stripeStatus,
     trialStart: founding || exempt ? null : input.trialStart,
     trialEnd: founding || exempt ? null : input.trialEnd,
+    cancelAtPeriodEnd: input.cancelAtPeriodEnd,
+    currentPeriodStart: input.currentPeriodStart,
+    currentPeriodEnd: input.currentPeriodEnd,
     paymentFailedAt: null,
     foundingCustomer: founding,
     platformExempt: exempt,
