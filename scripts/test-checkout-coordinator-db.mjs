@@ -137,6 +137,36 @@ test("Stripe-confirmed expired session releases current uniqueness and keeps his
   assert.equal(await prisma.platformCheckoutAttempt.count({ where: { currentOrganisationId: org.id } }), 1);
 });
 
+async function confirmedCompletedPurchase(session) {
+  Object.assign(session, { status: "complete", customer: "cus_confirmed", subscription: "sub_confirmed", livemode: false });
+  subscriptions.set("sub_confirmed", { id: "sub_confirmed", customer: "cus_confirmed", status: "canceled", livemode: false,
+    metadata: { organisation_id: org.id, dg_platform_subscription: "true" } });
+  await prisma.organisation.update({ where: { id: org.id }, data: { billingCustomerId: "cus_confirmed" } });
+  const sub = await prisma.platformSubscription.create({ data: { organisationId: org.id, status: "CANCELLED", entitlement: "NONE",
+    stripeSubscriptionId: "sub_confirmed", stripeCustomerId: "cus_confirmed", stripeStatus: "canceled" } });
+  await prisma.platformSubscriptionEvent.create({ data: { organisationId: org.id, subscriptionId: sub.id,
+    type: "checkout.provisioned", source: "stripe", stripeEventId: `${session.id}:checkout` } });
+}
+
+test("confirmed completed attempt can retire after provider cancellation and customer can resubscribe", async () => {
+  const first = await checkout();
+  await confirmedCompletedPurchase(remote.get(first.sessionId));
+  const row = await current();
+  await prisma.platformCheckoutAttempt.update({ where: { id: row.id }, data: { state: "AWAITING_WEBHOOK" } });
+  const next = await checkout();
+  assert.notEqual(next.sessionId, first.sessionId); assert.equal(calls, 2);
+  const retired = await prisma.platformCheckoutAttempt.findUnique({ where: { id: row.id } });
+  assert.equal(retired.currentOrganisationId, null); assert.equal(retired.sessionId, first.sessionId);
+  assert.equal(retired.recoveryReason, "completed_subscription_terminal");
+});
+
+test("confirmed completed legacy purchase does not permanently block returning customer", async () => {
+  const legacy = { id: "cs_legacy_confirmed", mode: "subscription", metadata: parameters().metadata, expires_at: Math.floor(clock / 1000) + 3600 };
+  remote.set(legacy.id, legacy); await confirmedCompletedPurchase(legacy);
+  await prisma.organisation.update({ where: { id: org.id }, data: { settings: { billing: { lastCheckoutSessionId: legacy.id } } } });
+  const next = await checkout(); assert.notEqual(next.sessionId, legacy.id); assert.equal(calls, 1);
+});
+
 test("changed purchase expires an open session, but unknown expiry blocks replacement", async () => {
   await checkout(); const params = parameters(org.id, { line_items: [{ price: "price_scale", quantity: 1 }] });
   failExpire = true; await assert.rejects(checkout({ parameters: params }), /Expiry outcome/); assert.equal(calls, 1);
@@ -361,4 +391,47 @@ test("an unresolved request with missing immutable expiry cannot obtain a defaul
   await assert.rejects(checkout(), { code: "checkout_recovery_required" });
   assert.equal(calls, 1); assert.equal((await current()).idempotencyKey, row.idempotencyKey);
   assert.equal((await current()).recoveryReason, "immutable_expiry_missing");
+});
+
+
+for (const defect of ["missing_receipt", "wrong_customer", "wrong_tenant", "wrong_mode", "local_status", "canonical_status"]) {
+  test(`completed purchase with ${defect} cannot release the current slot`, async () => {
+    const first = await checkout();
+    await confirmedCompletedPurchase(remote.get(first.sessionId));
+    const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+    if (defect === "missing_receipt") await prisma.platformSubscriptionEvent.deleteMany();
+    if (defect === "wrong_customer") remote.get(first.sessionId).customer = "cus_other";
+    if (defect === "wrong_tenant") subscriptions.get("sub_confirmed").metadata.organisation_id = other.id;
+    if (defect === "wrong_mode") remote.get(first.sessionId).livemode = true;
+    if (defect === "local_status") await prisma.platformSubscription.update({ where: { id: canonical.id }, data: { status: "ACTIVE" } });
+    if (defect === "canonical_status") await prisma.platformSubscription.update({ where: { id: canonical.id }, data: { stripeStatus: "active" } });
+    await assert.rejects(checkout(), { code: "checkout_awaiting_webhook" });
+    assert.equal(calls, 1); assert.equal((await current()).sessionId, first.sessionId);
+  });
+}
+test("confirmed terminal completion still cannot create a replacement while gate closed", async () => {
+  const first = await checkout(); await confirmedCompletedPurchase(remote.get(first.sessionId));
+  await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = true WHERE id = 1`;
+  await assert.rejects(checkout(), error => error.name === "CheckoutTemporarilyUnavailable");
+  assert.equal(calls, 1);
+});
+
+
+test("confirmed legacy retirement remains usable after canonical billing moves to another purchase", async () => {
+  const legacy = { id: "cs_legacy_history", mode: "subscription", metadata: parameters().metadata,
+    expires_at: Math.floor(clock / 1000) + 3600 };
+  remote.set(legacy.id, legacy); await confirmedCompletedPurchase(legacy);
+  await prisma.organisation.update({ where: { id: org.id }, data: { settings: { gen2Onboarding: { stripeCheckoutSessionId: legacy.id } } } });
+  const next = await checkout();
+  await prisma.platformSubscription.update({ where: { organisationId: org.id }, data: {
+    stripeSubscriptionId: "sub_later", stripeCustomerId: "cus_later", stripeStatus: "canceled",
+  } });
+  subscriptions.set("sub_later", { id: "sub_later", customer: "cus_later", status: "canceled" });
+  await prisma.organisation.update({ where: { id: org.id }, data: { billingCustomerId: "cus_later" } });
+  assert.equal((await checkout()).sessionId, next.sessionId);
+  assert.equal(calls, 1);
+  assert.ok(await prisma.platformCheckoutAttempt.findFirst({ where: {
+    organisationId: org.id, sessionId: legacy.id, currentOrganisationId: null,
+    recoveryReason: "completed_subscription_terminal",
+  } }));
 });

@@ -14,7 +14,6 @@ import {
 import {
   DUNNING_DAYS,
   RETENTION_DAYS_AFTER_CANCEL,
-  TRIAL_PERIOD_DAYS,
   daysBetween,
   dunningStatusForAgeDays,
   entitlementFromCommercialStatus,
@@ -528,18 +527,15 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
   planTier: string;
   foundingCustomer?: boolean;
   platformExempt?: boolean;
-  trialStart?: Date | null;
-  trialEnd?: Date | null;
+  trialStart: Date | null;
+  trialEnd: Date | null;
+  stripeStatus: "active" | "trialing";
   stripeEventId?: string | null;
 }): Promise<PlatformSubscriptionRow> {
-  const trialEnd =
-    input.trialEnd ??
-    new Date(Date.now() + TRIAL_PERIOD_DAYS * 86400000);
-  const trialStart = input.trialStart ?? new Date();
   const founding = input.foundingCustomer ?? false;
   const exempt = input.platformExempt ?? false;
   const status: PlatformCommercialStatus =
-    founding || exempt ? "ACTIVE" : "TRIALING";
+    founding || exempt || input.stripeStatus === "active" ? "ACTIVE" : "TRIALING";
   const entitlement = entitlementFromCommercialStatus(status, {
     foundingOrExempt: founding || exempt,
   });
@@ -551,9 +547,9 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
     planTier: input.planTier,
     stripeCustomerId: input.stripeCustomerId,
     stripeSubscriptionId: input.stripeSubscriptionId ?? null,
-    stripeStatus: founding || exempt ? "active" : "trialing",
-    trialStart: founding || exempt ? null : trialStart,
-    trialEnd: founding || exempt ? null : trialEnd,
+    stripeStatus: input.stripeStatus,
+    trialStart: founding || exempt ? null : input.trialStart,
+    trialEnd: founding || exempt ? null : input.trialEnd,
     paymentFailedAt: null,
     foundingCustomer: founding,
     platformExempt: exempt,

@@ -38,7 +38,7 @@ the durable request and a lease that another request can reclaim.
 | PREPARED | Request persisted; no create call has been authorised yet. Reconcile legacy sessions and authoritative subscription IDs before sending. |
 | UNCERTAIN | Send marker committed before Stripe I/O. Retry exactly the stored body, API version and key within the replay window. Never replace merely because a call failed. |
 | OPEN | Stripe returned an owned open session. Matching commercial terms resume it. Different terms require Stripe-confirmed expiry before replacement. |
-| AWAITING_WEBHOOK | Stripe reports completion, including a legacy session. Block new checkout; activation still requires existing webhook processing. |
+| AWAITING_WEBHOOK | Stripe reports completion, including a legacy session. Reconcile on retry; block until exact webhook and terminal provider evidence permits retirement. Activation still requires webhook processing. |
 | EXPIRED | Stripe confirmed expiry, explicitly rejected the initial send for expiry, or a fenced PREPARED reservation was provably never sent and became stale/mismatched. Release the current slot and preserve history. |
 | RECOVERY_REQUIRED | Outcome remains unknown past the replay window, or a session cannot safely resume. Block automated replacement pending separately authorised investigation. |
 
@@ -107,15 +107,22 @@ Verify those permissions in an isolated Stripe sandbox before rollout. The
 behavioural suite simulates Stripe; it does not certify real account permissions
 or network behaviour.
 
-Unknown outcomes after the replay cutoff and completed historic sessions fail
-closed. There is deliberately no automatic unlock or recovery administration
-endpoint in this bounded change. Support must investigate Stripe and webhook
-evidence through a separately approved procedure; deleting attempts or changing
-keys is not a safe recovery action. This conservative policy can block a
-returning customer with an old completed session after cancellation, and should
-be addressed by a separately reviewed recovery lifecycle before that flow is
-enabled. Legacy sessions not recorded by either existing server-owned field
-cannot be discovered when there is no known Stripe customer ID.
+Unknown outcomes after the replay cutoff and unconfirmed completed historic
+sessions fail closed. A completed session can retire only when its exact
+subscription is terminal in the original Stripe mode, ownership matches, and
+the canonical subscription and checkout webhook event confirm that purchase.
+Retirement uses the existing fenced EXPIRED state and keeps the session/key
+history with reason `completed_subscription_terminal`; it does not claim that
+Stripe expired a completed session. Recorded retirement remains evidence for
+older legacy pointers after a later purchase updates the canonical row, while
+provider terminal status and ownership are checked again. Customer subscription
+inventory still blocks live subscriptions, and every replacement requires gate
+admission. The coordinator never grants entitlements.
+
+There is no administrative unlock endpoint. Unconfirmed records require a
+separately approved recovery procedure; deleting attempts or changing keys is
+not safe. Legacy sessions absent from both server-owned fields cannot be
+discovered without a known Stripe customer ID.
 
 ## Verification
 

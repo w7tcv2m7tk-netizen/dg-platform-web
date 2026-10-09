@@ -154,7 +154,7 @@ export class StripePaymentConnector implements PaymentConnector {
       event.type === "checkout.session.completed" ||
       event.type === "checkout.session.async_payment_succeeded"
     ) {
-      return mapCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+      return { ...mapCheckoutCompleted(event.data.object as Stripe.Checkout.Session), connectAccountId: event.account ?? undefined };
     }
 
     if (event.type === "checkout.session.expired") {

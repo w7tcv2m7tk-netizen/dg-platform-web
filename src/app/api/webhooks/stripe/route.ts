@@ -61,6 +61,9 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
   }
 
   if (event.type === "checkout.completed" && event.raw) {
+    if (event.connectAccountId) {
+      return NextResponse.json({ received: true, skipped: "connected_account_checkout" });
+    }
     const session = event.raw as Stripe.Checkout.Session;
     if (isPlatformCheckoutSession(session)) {
       const platformResult = await provisionFromPlatformCheckout(session);

@@ -143,7 +143,7 @@
     "test:page-hierarchy-contract": "node scripts/test-page-hierarchy-contract.mjs",
     "test:prospecting-report-integrity": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-prospecting-report-integrity.mjs",
     "test:business-discovery-relevance": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/test-business-discovery-relevance.mjs",
-    "test:checkout-compatibility": "node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-legacy-checkout-inventory.mjs scripts/test-checkout-compatibility-boundaries.mjs scripts/test-checkout-delayed-create.mjs",
+    "test:checkout-compatibility": "node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-legacy-checkout-inventory.mjs scripts/test-checkout-compatibility-boundaries.mjs scripts/test-checkout-delayed-create.mjs scripts/test-checkout-webhook-origin.mjs",
     "test:checkout-compatibility-db": "node scripts/run-checkout-compatibility-db-tests.mjs",
     "checkout:inventory": "node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/reconcile-legacy-checkouts.mjs",
     "test:checkout-compatibility-artifacts": "node --test scripts/test-checkout-compatibility-artifacts.mjs"

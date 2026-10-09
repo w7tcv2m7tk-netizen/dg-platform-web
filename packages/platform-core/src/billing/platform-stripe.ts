@@ -155,6 +155,16 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     typeof session.subscription === "string"
       ? session.subscription
       : session.subscription?.id ?? null;
+  if (session.mode !== "subscription" || session.status !== "complete" || !stripeSubscriptionId) {
+    throw new Error("Platform checkout requires a completed subscription session");
+  }
+  const subscription = await getStripeClient().subscriptions.retrieve(stripeSubscriptionId);
+  if (subscription.id !== stripeSubscriptionId || stripeCustomerId(subscription.customer) !== customerId ||
+    subscription.livemode !== session.livemode || subscription.metadata.organisation_id !== metadata.organisation_id ||
+    subscription.metadata.dg_platform_subscription !== "true" ||
+    !["active", "trialing"].includes(subscription.status)) {
+    throw new Error("Platform checkout subscription ownership or activation is unconfirmed");
+  }
   const premiumApps = await paidAppsFromAuthoritativeSubscription({
     stripe: getStripeClient(),
     subscriptionId: stripeSubscriptionId,
@@ -216,6 +226,9 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     foundingCustomer: founding,
     platformExempt: exempt,
     stripeEventId: session.id,
+    stripeStatus: subscription.status as "active" | "trialing",
+    trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+    trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
   });
 
   // Derived projection for UI and legacy consumers. PlatformSubscription above
@@ -223,13 +236,13 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
   await prisma.organisation.update({
     where: { id: org.id },
     data: {
-      status: founding || exempt ? "active" : "trial",
+      status: founding || exempt || subscription.status === "active" ? "active" : "trial",
       billingCustomerId: customerId,
       settings: {
         ...settings,
         billing: {
           ...billing,
-          subscriptionStatus: founding || exempt ? "active" : "trialing",
+          subscriptionStatus: founding || exempt ? "active" : subscription.status,
           entitlementsSuspended: false,
           lastCheckoutSessionId: session.id,
           lastCheckoutAt: new Date().toISOString(),

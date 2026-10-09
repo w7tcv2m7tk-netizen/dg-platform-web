@@ -9,7 +9,7 @@ import { provisionFromPlatformCheckout } from "../packages/platform-core/src/bil
 import { checkoutPost } from "./checkout-test-http.mjs";
 
 const control = new PrismaClient();
-let org, requests, createWait, loseResponse, beforeAcceptance, remainingAtAcceptance, acceptedSessions;
+let org, requests, createWait, loseResponse, beforeAcceptance, remainingAtAcceptance, acceptedSessions, providerSubscription;
 const waitFor = async predicate => {
   const deadline = Date.now() + 2000;
   while (!predicate()) { if (Date.now() > deadline) throw new Error("Provider fixture did not reach expected state"); await new Promise(r => setTimeout(r, 5)); }
@@ -55,13 +55,19 @@ before(async () => {
   });
   // Any unexpected provider read fails locally rather than touching the network.
   mock.method(Object.getPrototypeOf(sdk.customers), "retrieve", async () => { throw new Error("Unexpected customer read"); });
-  mock.method(Object.getPrototypeOf(sdk.subscriptions), "retrieve", async () => { throw new Error("Unexpected subscription read"); });
+  mock.method(Object.getPrototypeOf(sdk.subscriptions), "retrieve", async id => {
+    if (id !== providerSubscription.id) throw new Error("Unexpected subscription read");
+    return structuredClone(providerSubscription);
+  });
 });
 beforeEach(async () => {
   await prisma.platformCheckoutAttempt.deleteMany();
   await prisma.platformSubscription.deleteMany();
   await prisma.organisation.update({ where: { id: org.id }, data: { billingCustomerId: null, settings: {} } });
   requests = []; createWait = null; loseResponse = false; beforeAcceptance = null;
+  providerSubscription = { id: "sub_completed_fixture", customer: "cus_completed_fixture", livemode: false, status: "trialing",
+    trial_start: 1700000000, trial_end: 1700604800, current_period_start: 1700000000, current_period_end: 1700604800,
+    metadata: { organisation_id: org.id, dg_platform_subscription: "true", dg_platform_tier: "professional" } };
   remainingAtAcceptance = 2100; acceptedSessions = [];
   await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = false, revision = revision + 1, changed_at = clock_timestamp(), last_admission_expires_at = NULL WHERE id = 1`;
 });
@@ -126,12 +132,32 @@ test("read-only report transaction cannot mutate even with privileged test role"
 });
 test("existing completed checkout provisions through webhook authority while gate closed", async () => {
   await close();
-  const result = await provisionFromPlatformCheckout({ id: "cs_completed_fixture", customer: "cus_completed_fixture", subscription: "sub_completed_fixture",
+  const result = await provisionFromPlatformCheckout({ id: "cs_completed_fixture", mode: "subscription", status: "complete", payment_status: "no_payment_required", livemode: false, customer: "cus_completed_fixture", subscription: "sub_completed_fixture",
     customer_email: "fixture@example.test", metadata: { dg_platform_checkout: "true", organisation_id: org.id, dg_platform_tier: "professional" } });
   assert.equal(result.ok, true);
   const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
   assert.equal(canonical.stripeSubscriptionId, "sub_completed_fixture"); assert.equal(canonical.entitlement, "FULL");
   assert.equal(requests.length, 0);
+});
+
+const completedSession = () => ({ id: "cs_paid_fixture", mode: "subscription", status: "complete", payment_status: "paid", livemode: false,
+  customer: providerSubscription.customer, subscription: providerSubscription.id,
+  metadata: { dg_platform_checkout: "true", organisation_id: org.id, dg_platform_tier: "professional" } });
+
+test("paid zero-trial custom checkout projects ACTIVE without fabricating a trial", async () => {
+  Object.assign(providerSubscription, { status: "active", trial_start: null, trial_end: null });
+  await close(); await provisionFromPlatformCheckout(completedSession());
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(canonical.status, "ACTIVE"); assert.equal(canonical.stripeStatus, "active"); assert.equal(canonical.trialEnd, null);
+  const owner = await prisma.organisation.findUnique({ where: { id: org.id } });
+  assert.equal(owner.status, "active"); assert.equal(owner.settings.billing.subscriptionStatus, "active");
+});
+
+test("custom trial uses provider dates instead of a new default trial", async () => {
+  await provisionFromPlatformCheckout(completedSession());
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(canonical.trialStart.getTime(), providerSubscription.trial_start * 1000);
+  assert.equal(canonical.trialEnd.getTime(), providerSubscription.trial_end * 1000);
 });
 
 test("lost provider response retains committed expiry through closure", async () => {
@@ -204,5 +230,21 @@ for (const [label, entry, route] of [["standard billing", standard, "billing"], 
     await close(); await assert.rejects(entry(), error => error.outcome === "gate_denied");
     assert.equal(requests.length, 1); assert.deepEqual(acceptedSessions, [accepted]);
     assert.equal(await horizon(), accepted.expires_at);
+  });
+}
+
+
+for (const conflict of ["customer", "organisation", "mode", "marker", "status"]) {
+  test(`checkout projection refuses unconfirmed provider ${conflict} without granting entitlement`, async () => {
+    if (conflict === "customer") providerSubscription.customer = "cus_other";
+    if (conflict === "organisation") providerSubscription.metadata.organisation_id = "other_org";
+    if (conflict === "mode") providerSubscription.livemode = true;
+    if (conflict === "marker") providerSubscription.metadata.dg_platform_subscription = "false";
+    if (conflict === "status") providerSubscription.status = "incomplete";
+    const session = { ...completedSession(), customer: "cus_completed_fixture" };
+    await assert.rejects(provisionFromPlatformCheckout(session), /unconfirmed/);
+    assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+    const owner = await prisma.organisation.findUnique({ where: { id: org.id } });
+    assert.equal(owner.billingCustomerId, null); assert.deepEqual(owner.settings, {});
   });
 }

@@ -83,7 +83,7 @@ export async function coordinatePlatformCheckout(input: {
   const balance = await stripe.balance.retrieve();
   const scope = `${account.id}:${balance.livemode ? "live" : "test"}:${API_VERSION}`;
 
-  for (let pass = 0; pass < 3; pass++) {
+  recovery: for (let pass = 0; pass < 3; pass++) {
     const token = randomUUID();
     const reserved = await db.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM organisations WHERE id = ${input.organisationId} FOR UPDATE`;
@@ -134,14 +134,41 @@ export async function coordinatePlatformCheckout(input: {
       assertOwned(session, input.organisationId);
       await save({ sessionId: session.id, expiresAt: new Date(session.expires_at * 1000),
         state: session.status === "complete" ? "AWAITING_WEBHOOK" : session.status === "open" ? "OPEN" : "UNCERTAIN" });
-      if (session.status === "complete") blocked("checkout_awaiting_webhook", "Your checkout is complete. Waiting for subscription confirmation.");
       return session;
     };
+    // A completed session is never expiry evidence. Only its exact, terminal
+    // provider subscription plus canonical webhook evidence permits replacement.
+    const completedIsTerminal = async (session: Stripe.Checkout.Session) => {
+      assertOwned(session, input.organisationId);
+      const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+      const subscriptionId = typeof session.subscription === "string" ? session.subscription : session.subscription?.id;
+      if (!customerId || !subscriptionId || session.livemode !== balance.livemode) return false;
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      if (subscription.id !== subscriptionId || subscription.livemode !== balance.livemode ||
+        subscription.metadata?.organisation_id !== input.organisationId ||
+        subscription.metadata?.dg_platform_subscription !== "true" ||
+        (typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id) !== customerId ||
+        !TERMINAL_SUBSCRIPTIONS.has(subscription.status)) return false;
+      // Preserve confirmed completion evidence after the canonical row moves to
+      // a later purchase. Provider ownership and terminal status were checked above.
+      const retired = await db.platformCheckoutAttempt.findFirst({ where: {
+        organisationId: input.organisationId, providerScope: scope, sessionId: session.id,
+        currentOrganisationId: null, state: "EXPIRED", recoveryReason: "completed_subscription_terminal",
+      } });
+      if (retired) return true;
+      const org = await db.organisation.findUniqueOrThrow({ where: { id: input.organisationId } });
+      const canonical = await db.platformSubscription.findUnique({ where: { organisationId: input.organisationId } });
+      if (org.billingCustomerId !== customerId || !canonical ||
+        canonical.stripeSubscriptionId !== subscriptionId || canonical.stripeCustomerId !== customerId ||
+        canonical.stripeStatus !== subscription.status || canonical.status !== "CANCELLED") return false;
+      return Boolean(await db.platformSubscriptionEvent.findFirst({ where: {
+        organisationId: input.organisationId, subscriptionId: canonical.id,
+        source: "stripe", type: "checkout.provisioned", stripeEventId: `${session.id}:checkout`,
+      } }));
+    };
+    const awaitWebhook = () => blocked("checkout_awaiting_webhook", "Your checkout is complete. Waiting for subscription confirmation.");
     try {
       if (attempt.state === "RECOVERY_REQUIRED") await requireRecovery(attempt.recoveryReason ?? "unresolved");
-      if (attempt.state === "AWAITING_WEBHOOK") {
-        blocked("checkout_awaiting_webhook", "Your checkout is complete. Waiting for subscription confirmation.");
-      }
       if (reserved.subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(reserved.subscriptionId);
         if (!TERMINAL_SUBSCRIPTIONS.has(subscription.status)) blocked("subscription_exists", "An existing subscription must be managed through billing settings.");
@@ -157,8 +184,15 @@ export async function coordinatePlatformCheckout(input: {
         let legacy = await stripe.checkout.sessions.retrieve(id);
         assertOwned(legacy, input.organisationId);
         if (legacy.status === "complete") {
+          if (await completedIsTerminal(legacy)) {
+            const recorded = await db.platformCheckoutAttempt.findUnique({ where: { sessionId: legacy.id } });
+            if (recorded?.currentOrganisationId === null) continue;
+            await save({ state: "EXPIRED", sessionId: legacy.id, currentOrganisationId: null,
+              leaseToken: null, leaseUntil: null, recoveryReason: "completed_subscription_terminal" });
+            continue recovery;
+          }
           await save({ state: "AWAITING_WEBHOOK", recoveryReason: "legacy_checkout_complete" });
-          blocked("checkout_awaiting_webhook", "Your checkout is complete. Waiting for subscription confirmation.");
+          awaitWebhook();
         }
         if (legacy.status === "open") legacy = await stripe.checkout.sessions.expire(id);
         assertOwned(legacy, input.organisationId);
@@ -214,6 +248,12 @@ export async function coordinatePlatformCheckout(input: {
       if (session.status === "open" && attempt.purchaseFingerprint !== fingerprint) {
         session = await stripe.checkout.sessions.expire(session.id);
         await observe(session);
+      }
+      if (session.status === "complete") {
+        if (!(await completedIsTerminal(session))) awaitWebhook();
+        await save({ state: "EXPIRED", currentOrganisationId: null, leaseToken: null, leaseUntil: null,
+          recoveryReason: "completed_subscription_terminal" });
+        continue;
       }
       if (session.status === "expired") {
         await save({ state: "EXPIRED", currentOrganisationId: null, leaseToken: null, leaseUntil: null, recoveryReason: null });
