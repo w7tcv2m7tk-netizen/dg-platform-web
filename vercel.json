@@ -32,5 +32,10 @@
       "path": "/api/cron/ai-gateway-maintenance",
       "schedule": "*/5 * * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "work/commercial-checkout-compatibility": false
+    }
+  }
 }

@@ -1,7 +1,7 @@
+import { CheckoutTemporarilyUnavailable } from "@dg/platform-core/billing/checkout-creation-gate";
+import { createCustomCommercialCheckoutSession, createPlatformCheckoutSession } from "@dg/platform-core/billing/platform-checkout";
 import {
-  createCustomCommercialCheckoutSession,
   createOrganisationGoal,
-  createPlatformCheckoutSession,
   getGen2OnboardingProgress,
   getOrganisationBillingStatus,
   getOrganisationBusinessProfile,
@@ -240,6 +240,12 @@ export async function POST(req: Request) {
     if (!operatorPreview) await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
     return NextResponse.json({ data: checkout });
   } catch (error) {
+    if (error instanceof CheckoutTemporarilyUnavailable) {
+      return NextResponse.json(
+        { error: { code: error.outcome === "unknown" ? "checkout_outcome_unknown" : "checkout_temporarily_unavailable", message: error.message } },
+        { status: 503, headers: { ...(error.outcome === "unknown" ? {} : { "Retry-After": "60" }), "Cache-Control": "no-store" } },
+      );
+    }
     const message = error instanceof Error ? error.message : "Unknown checkout error";
     console.error("[onboarding.checkout] Stripe checkout failed", {
       organisationId: resolvedOrganisationId,
