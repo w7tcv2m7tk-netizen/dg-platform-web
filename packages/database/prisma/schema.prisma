@@ -86,6 +86,7 @@ model Organisation {
   platformReferralsAsReferred PlatformReferral[] @relation("ReferralReferred")
   referralLedgerEntries       PlatformReferralLedger[]
   platformSubscription        PlatformSubscription?
+  platformCheckoutAttempts    PlatformCheckoutAttempt[]
   platformSubscriptionEvents  PlatformSubscriptionEvent[]
   stripeWebhookReceipts       StripeWebhookReceipt[]
   aidaConversations           AidaConversation[]
@@ -886,6 +887,34 @@ model CommerceSubscription {
   @@unique([organisationId, providerSubscriptionId])
   @@index([organisationId, status])
   @@map("commerce_subscriptions")
+}
+
+/// Checkout recovery only. Never an entitlement or activation authority.
+model PlatformCheckoutAttempt {
+  id                    String    @id @default(cuid())
+  organisationId        String    @map("organisation_id")
+  /// NULL only after confirmed expiry or retirement of a provably unsent reservation.
+  currentOrganisationId String?   @unique @map("current_organisation_id")
+  purchaseFingerprint   String    @map("purchase_fingerprint")
+  requestParameters     Json      @map("request_parameters")
+  idempotencyKey        String    @unique @map("idempotency_key")
+  providerScope         String    @map("provider_scope")
+  state                 String    @default("PREPARED")
+  sessionId             String?   @unique @map("session_id")
+  expiresAt             DateTime? @map("expires_at")
+  firstRequestedAt      DateTime? @map("first_requested_at")
+  replayUntil           DateTime  @map("replay_until")
+  legacySessionIds       Json      @map("legacy_session_ids")
+  leaseToken            String?   @map("lease_token")
+  leaseUntil            DateTime? @map("lease_until")
+  recoveryReason        String?   @map("recovery_reason")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, createdAt])
+  @@map("platform_checkout_attempts")
 }
 
 /**

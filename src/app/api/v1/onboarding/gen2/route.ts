@@ -1,7 +1,7 @@
+import { createCustomCommercialCheckoutSession, createPlatformCheckoutSession } from "@dg/platform-core/billing/platform-checkout";
+import { CheckoutCoordinationError } from "@dg/platform-core/billing/checkout-coordinator";
 import {
-  createCustomCommercialCheckoutSession,
   createOrganisationGoal,
-  createPlatformCheckoutSession,
   getGen2OnboardingProgress,
   getOrganisationBillingStatus,
   getOrganisationBusinessProfile,
@@ -240,6 +240,9 @@ export async function POST(req: Request) {
     if (!operatorPreview) await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
     return NextResponse.json({ data: checkout });
   } catch (error) {
+    if (error instanceof CheckoutCoordinationError) {
+      return NextResponse.json({ error: { code: error.code, message: error.message } }, { status: 409 });
+    }
     const message = error instanceof Error ? error.message : "Unknown checkout error";
     console.error("[onboarding.checkout] Stripe checkout failed", {
       organisationId: resolvedOrganisationId,

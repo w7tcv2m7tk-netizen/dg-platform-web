@@ -6,6 +6,7 @@ const stripe = fs.readFileSync(
   "packages/platform-core/src/billing/platform-stripe.ts",
   "utf8",
 );
+const checkout = fs.readFileSync("packages/platform-core/src/billing/platform-checkout.ts", "utf8");
 const paidApps = fs.readFileSync(
   "packages/platform-core/src/billing/paid-apps.ts",
   "utf8",
@@ -27,15 +28,15 @@ test("every paid app key has an explicit server-side price", () => {
 });
 
 test("Stripe checkout charges paid apps instead of trusting metadata alone", () => {
-  assert.match(stripe, /for \(const line of paidAppCheckoutLines\(premiumApps\)\)/);
-  assert.match(stripe, /unit_amount: lineAmount/);
-  assert.match(stripe, /dg_premium_apps: premiumApps\.join\(","\)/);
+  assert.match(checkout, /for \(const line of paidAppCheckoutLines\(premiumApps\)\)/);
+  assert.match(checkout, /unit_amount: lineAmount/);
+  assert.match(checkout, /dg_premium_apps: premiumApps\.join\(","\)/);
 });
 
 test("paid app selection is copied onto the Stripe subscription", () => {
-  const subscriptionData = stripe.indexOf("subscription_data:");
+  const subscriptionData = checkout.indexOf("subscription_data:");
   assert.ok(subscriptionData >= 0);
-  assert.match(stripe.slice(subscriptionData), /dg_premium_apps: premiumApps\.join\(","\)/);
+  assert.match(checkout.slice(subscriptionData), /dg_premium_apps: premiumApps\.join\(","\)/);
 });
 
 test("webhook provisioning verifies paid app entitlement against Stripe subscription", () => {

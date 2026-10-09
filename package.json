@@ -3,6 +3,8 @@
   "version": "0.3.0",
   "private": true,
   "scripts": {
+    "test:checkout-coordinator-db": "node scripts/run-checkout-coordinator-db-tests.mjs",
+    "test:checkout-client-boundary": "node --test scripts/test-checkout-client-boundary.mjs",
     "test:991-envelope": "node --experimental-strip-types --test scripts/test-remediate-991-envelope.mjs",
     "test:991-action": "node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-remediate-991-action.mjs",
     "dev": "next dev",

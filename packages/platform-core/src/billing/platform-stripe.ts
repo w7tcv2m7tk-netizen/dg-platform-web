@@ -3,18 +3,11 @@ import Stripe from "stripe";
 
 import { appIdsFromPlanSelection } from "../apps/org-apps";
 import type { PlanSelectionInput } from "../apps/org-apps";
-import {
-  annualPriceFromMonthlyCents,
-  BILLING_COMMERCIAL_CONFIG,
-} from "./subscription-types";
-import { industryCheckoutLines } from "../industry/platform";
-import { PLATFORM_COMMERCIAL_PLANS, SUPPORT_COMMERCIAL_PLANS } from "./commercial-catalogue";
+import { PLATFORM_COMMERCIAL_PLANS } from "./commercial-catalogue";
 import { applyBrandPresetToProfile } from "../org/brand-presets";
 import type { OrganisationBusinessProfile } from "../org/business-profile-types";
 import {
   normalisePaidAppKeys,
-  paidAppCheckoutLines,
-  GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS,
   type PaidAppKey,
 } from "./paid-apps";
 
@@ -22,25 +15,13 @@ const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
   PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
 );
 
-export type PlatformBillingCadence = "monthly" | "annual";
+export type { PlatformBillingCadence, PlatformCheckoutInput } from "./platform-checkout";
 
 const TIER_LABELS: Record<string, string> = {
   starter: "DigitalGate Starter",
   professional: "DigitalGate Growth",
   business: "DigitalGate Scale",
 };
-
-/** Prefer Dashboard Price IDs when set; otherwise inline price_data still works. */
-function stripePriceIdForTier(tier: string): string | null {
-  const envMap: Record<string, string | undefined> = {
-    starter: process.env.STRIPE_PRICE_STARTER,
-    professional:
-      process.env.STRIPE_PRICE_PROFESSIONAL ?? process.env.STRIPE_PRICE_GROWTH,
-    business: process.env.STRIPE_PRICE_BUSINESS ?? process.env.STRIPE_PRICE_SCALE,
-  };
-  const id = envMap[tier]?.trim();
-  return id || null;
-}
 
 function getStripeClient() {
   const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
@@ -68,219 +49,6 @@ function metadataList(value: string | null | undefined): string[] {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
-}
-
-export interface PlatformCheckoutInput {
-  organisationId: string;
-  email: string;
-  platformTier: string;
-  industryApps?: string[];
-  premiumApps?: string[];
-  businessName?: string;
-  supportPlan?: "standard" | "priority" | "success_partner" | "enterprise_success";
-  /** monthly (default) or annual — annual uses BILLING_COMMERCIAL_CONFIG months-equivalent. */
-  billingCadence?: PlatformBillingCadence;
-  /** Where Stripe returns after success (defaults to apps catalog). */
-  successPath?: string;
-  cancelPath?: string;
-}
-
-export async function createPlatformCheckoutSession(input: PlatformCheckoutInput) {
-  const stripe = getStripeClient();
-  const tier = input.platformTier;
-  const monthlyAmount = TIER_AMOUNTS_CENTS[tier];
-  if (!monthlyAmount) {
-    throw new Error(`Unsupported platform tier: ${tier}`);
-  }
-
-  const cadence: PlatformBillingCadence =
-    input.billingCadence === "annual" ? "annual" : "monthly";
-  const annual = cadence === "annual";
-  const amount = annual
-    ? annualPriceFromMonthlyCents(monthlyAmount)
-    : monthlyAmount;
-  const recurring: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.Recurring =
-    annual ? { interval: "year" } : { interval: "month" };
-
-  const industryApps = Array.isArray(input.industryApps)
-    ? input.industryApps.filter((id): id is string => typeof id === "string" && Boolean(id.trim()))
-    : [];
-  const premiumApps = normalisePaidAppKeys(input.premiumApps);
-
-  const { prisma } = await import("@dg/database");
-  const org = await prisma.organisation.findUnique({
-    where: { id: input.organisationId },
-    select: { billingCustomerId: true, settings: true },
-  });
-
-  const priceId = annual ? null : stripePriceIdForTier(tier);
-  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priceId
-    ? [{ quantity: 1, price: priceId }]
-    : [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "aud",
-            unit_amount: amount,
-            recurring,
-            product_data: {
-              name: `${TIER_LABELS[tier] ?? `DigitalGate ${tier}`}${
-                annual ? " (Annual)" : ""
-              }`,
-            },
-          },
-        },
-      ];
-
-  const growthSuiteSelected = premiumApps.includes("growth_suite");
-  const industryLines = industryCheckoutLines(industryApps);
-  const primaryIndustryLine = industryLines.find((line) => line.kind === "industry") ?? null;
-  const bundledPrimaryIndustry = growthSuiteSelected && primaryIndustryLine
-    ? primaryIndustryLine
-    : null;
-
-  if (bundledPrimaryIndustry) {
-    const bundleAmount = annual
-      ? annualPriceFromMonthlyCents(GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS)
-      : GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS;
-    lineItems.push({
-      quantity: 1,
-      price_data: {
-        currency: "aud",
-        unit_amount: bundleAmount,
-        recurring,
-        product_data: {
-          name: annual
-            ? `DigitalGate Growth Suite + ${bundledPrimaryIndustry.industryLabel} Industry App (Annual)`
-            : `DigitalGate Growth Suite + ${bundledPrimaryIndustry.industryLabel} Industry App`,
-        },
-      },
-    });
-  }
-
-  for (const line of industryLines) {
-    if (bundledPrimaryIndustry === line) continue;
-    const lineAmount = annual
-      ? annualPriceFromMonthlyCents(line.amountCents)
-      : line.amountCents;
-    lineItems.push({
-      quantity: 1,
-      price_data: {
-        currency: "aud",
-        unit_amount: lineAmount,
-        recurring,
-        product_data: {
-          name: annual ? `${line.name} (Annual)` : line.name,
-        },
-      },
-    });
-  }
-
-  for (const line of paidAppCheckoutLines(premiumApps)) {
-    if (bundledPrimaryIndustry && line.key === "growth_suite") continue;
-    const lineAmount = annual
-      ? annualPriceFromMonthlyCents(line.amountCents)
-      : line.amountCents;
-    lineItems.push({
-      quantity: 1,
-      price_data: {
-        currency: "aud",
-        unit_amount: lineAmount,
-        recurring,
-        product_data: {
-          name: annual ? `${line.name} (Annual)` : line.name,
-        },
-      },
-    });
-  }
-
-  const supportPlan = input.supportPlan ?? "standard";
-  const canonicalSupportPlan = SUPPORT_COMMERCIAL_PLANS.find((plan) => plan.id === supportPlan);
-  const supportOption = canonicalSupportPlan?.monthlyCents
-    ? { monthlyCents: canonicalSupportPlan.monthlyCents, label: `DigitalGate ${canonicalSupportPlan.name}` }
-    : null;
-  if (supportOption) {
-    const supportAmount = annual ? annualPriceFromMonthlyCents(supportOption.monthlyCents) : supportOption.monthlyCents;
-    lineItems.push({
-      quantity: 1,
-      price_data: {
-        currency: "aud",
-        unit_amount: supportAmount,
-        recurring,
-        product_data: { name: annual ? `${supportOption.label} (Annual)` : supportOption.label },
-      },
-    });
-  }
-
-  const base = appBaseUrl();
-  const successPath = input.successPath ?? "/dashboard/apps?sync=1&checkout=success";
-  const cancelPath =
-    input.cancelPath ?? "/dashboard/settings/billing?checkout=cancelled";
-  const sessionParams: Stripe.Checkout.SessionCreateParams = {
-    mode: "subscription",
-    line_items: lineItems,
-    success_url: `${base}${successPath.startsWith("/") ? successPath : `/${successPath}`}`,
-    cancel_url: `${base}${cancelPath.startsWith("/") ? cancelPath : `/${cancelPath}`}`,
-    payment_method_collection: "always",
-    metadata: {
-      dg_platform_checkout: "true",
-      dg_platform_tier: tier,
-      dg_billing_cadence: cadence,
-      dg_industry_apps: industryApps.join(","),
-      dg_premium_apps: premiumApps.join(","),
-      organisation_id: input.organisationId,
-      contact_email: input.email,
-      business_name: input.businessName ?? "",
-      dg_support_plan: supportPlan,
-    },
-    subscription_data: {
-      metadata: {
-        dg_platform_tier: tier,
-        dg_billing_cadence: cadence,
-        dg_industry_apps: industryApps.join(","),
-        dg_premium_apps: premiumApps.join(","),
-        dg_support_plan: supportPlan,
-        organisation_id: input.organisationId,
-        dg_platform_subscription: "true",
-      },
-    },
-  };
-
-  if (org?.billingCustomerId) {
-    try {
-      const customer = await stripe.customers.retrieve(org.billingCustomerId);
-      if (!customer.deleted) sessionParams.customer = customer.id;
-      else sessionParams.customer_email = input.email;
-    } catch {
-      sessionParams.customer_email = input.email;
-    }
-  } else {
-    sessionParams.customer_email = input.email;
-  }
-
-  const { getPlatformSubscription } = await import("./subscription-store");
-  const existingSub = await getPlatformSubscription(input.organisationId);
-  const settingsBilling =
-    ((org?.settings as {
-      billing?: {
-        foundingCustomer?: boolean;
-        platformExempt?: boolean;
-        programme?: string;
-      };
-    } | null)?.billing) ?? {};
-  const exempt =
-    existingSub?.platformExempt === true || settingsBilling.platformExempt === true;
-
-  if (!exempt) {
-    sessionParams.subscription_data = {
-      ...sessionParams.subscription_data,
-      trial_period_days: BILLING_COMMERCIAL_CONFIG.trialDays,
-    };
-  }
-
-  const session = await stripe.checkout.sessions.create(sessionParams);
-
-  return { url: session.url, sessionId: session.id };
 }
 
 export async function createBillingPortalSession(
