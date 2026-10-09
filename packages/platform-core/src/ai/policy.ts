@@ -1,3 +1,4 @@
+import { observeRouting, evidenceModel, type RoutingTraceObserver } from "./routing-trace";
 import type { LlmChatMessage, LlmProvider, LlmTransportPlanEntry } from "./llm";
 
 export type AiTask = "lead_summary" | "lead_follow_up";
@@ -116,26 +117,53 @@ export function validateExactObservation(input: { target: AiRecipient; plan: rea
 }
 export type AiDeployment = AiRecipient & { lane: "cloud_standard" | "cloud_reasoning"; capability: AiCapability };
 /** Unknown configured models are not capability-certified. Legacy callers keep their existing chain. */
-export function describeAiDeployments(configured: readonly LlmTransportPlanEntry[]): AiDeployment[] {
-  return configured.flatMap(({ provider, model }): AiDeployment[] => {
-    if (provider === "openai" && model === CRM_APPROVED_RECIPIENT.model) return [{ transport: provider, upstream: "openai", model, lane: "cloud_standard", capability: "routine" }];
-    if (provider === "gateway" && model === "openai/gpt-5.4-mini") return [{ transport: provider, upstream: "gateway_managed", model, lane: "cloud_standard", capability: "routine" }];
-    if (provider === "anthropic" && model === "claude-sonnet-4-20250514") return [{ transport: provider, upstream: "anthropic", model, lane: "cloud_standard", capability: "routine" }];
-    return [];
+export function describeAiDeployments(configured: readonly LlmTransportPlanEntry[], observer?: RoutingTraceObserver): AiDeployment[] {
+  return configured.flatMap(({ provider, model }, index): AiDeployment[] => {
+    const deployments = describeAiDeployment(provider, model);
+    observeRouting(observer, () => ({ stage: "certification", index, transport: provider, model: evidenceModel(model),
+      reason: deployments.length ? "policy_certified" : "uncertified_candidate" }));
+    return deployments;
   });
 }
+function describeAiDeployment(provider: LlmProvider, model: string): AiDeployment[] {
+  if (provider === "openai" && model === CRM_APPROVED_RECIPIENT.model) return [{ transport: provider, upstream: "openai", model, lane: "cloud_standard", capability: "routine" }];
+  if (provider === "gateway" && model === "openai/gpt-5.4-mini") return [{ transport: provider, upstream: "gateway_managed", model, lane: "cloud_standard", capability: "routine" }];
+  if (provider === "anthropic" && model === "claude-sonnet-4-20250514") return [{ transport: provider, upstream: "anthropic", model, lane: "cloud_standard", capability: "routine" }];
+  return [];
+}
+
 export type AiRoutingDecision = {
   task: AiTask; definition: AiTaskDefinition; disclosure: AiDisclosurePolicy;
   requirements: AiExecutionRequirements; plan: AiDeployment[]; reason: "approved_cloud_plan" | "approved_cloud_fallback" | "approved_local_plan";
   localDeploymentId?: string;
 };
-export function resolveAiRouting(input: {
+type AiRoutingInput = {
   organisationId: string; task: AiTask; authorisedInput: AiAuthorisedInput;
   disclosurePolicy: AiDisclosurePolicy; executionPolicy: AiExecutionPolicy;
   maxTokens: number; deployments: readonly AiDeployment[];
-}): AiRoutingDecision {
+};
+/** Optional internal observation; returned decisions and existing errors are unchanged. */
+export function resolveAiRouting(input: AiRoutingInput, observer?: RoutingTraceObserver): AiRoutingDecision {
+  let outcomeObserved = false;
+  const trace: RoutingTraceObserver | undefined = observer ? (event) => {
+    if (event.stage === "outcome") outcomeObserved = true;
+    return observer(event);
+  } : undefined;
+  try {
+    const decision = resolveAiRoutingInternal(input, trace);
+    observeRouting(trace, () => ({ stage: "outcome", category: "allowed", reason: decision.reason === "approved_local_plan" ? "approved_local_plan" : "approved_cloud_plan" }));
+    return decision;
+  } catch (error) {
+    if (!outcomeObserved && error instanceof AiPolicyError) observeRouting(trace, () => ({ stage: "outcome",
+      category: error.code === "invalid_request" || error.code === "tenant_mismatch" ? "invalid_request" :
+        error.code === "capability_unavailable" ? "technical_unavailability" : "policy_rejection", reason: error.code === "local_transport_unavailable" ? "local_required_lane_mismatch" : error.code }));
+    throw error;
+  }
+}
+function resolveAiRoutingInternal(input: AiRoutingInput, observer?: RoutingTraceObserver): AiRoutingDecision {
   const task = Object.hasOwn(AI_TASK_DEFINITIONS, input.task) ? AI_TASK_DEFINITIONS[input.task] : undefined;
   if (!task) throw new AiPolicyError("invalid_request");
+  observeRouting(observer, () => ({ stage: "task", task: input.task, taskVersion: task.version }));
   const envelope = input.authorisedInput;
   if (!envelope || envelope.organisationId !== input.organisationId || !Array.isArray(envelope.evidence) ||
     Array.from(envelope.evidence).some((e) => !e || e.organisationId !== input.organisationId)) throw new AiPolicyError("tenant_mismatch");
@@ -145,6 +173,10 @@ export function resolveAiRouting(input: {
   // Source classification floors prevent mislabeled CRM/operational evidence from becoming public.
   const floor = envelope.evidence.length ? "tenant_confidential" : task.minimumClassification;
   const disclosure = intersectDisclosure([input.disclosurePolicy, envelope.disclosure, ...envelope.evidence.map((e) => e.disclosure)], floor);
+  observeRouting(observer, () => ({ stage: "disclosure", classification: disclosure.classification,
+    cloudPermitted: disclosure.cloudPermitted, localRequired: disclosure.localRequired, localPermitted: disclosure.localPermitted === true,
+    cloudFallbackPermitted: disclosure.cloudFallbackPermitted,
+    recipients: disclosure.approvedRecipients.map((r) => ({ transport: r.transport, upstream: r.upstream, model: evidenceModel(r.model) })) }));
   try {
     const execution = input.executionPolicy;
     if (!object(execution) || !keys(execution, ["preferredLane", "fallbackPermitted", "escalationPermitted", "maxAttempts", "requirements", "exactTarget", "localDeploymentId"]) ||
@@ -157,17 +189,27 @@ export function resolveAiRouting(input: {
     if (!CAPABILITIES.includes(req.capability) || req.grounding !== task.requirements.grounding || req.output !== task.requirements.output ||
       req.latencyClass !== task.requirements.latencyClass || !Number.isSafeInteger(req.contextBudgetTokens) || req.contextBudgetTokens < 1 ||
       req.contextBudgetTokens > task.requirements.contextBudgetTokens) deny();
+    observeRouting(observer, () => ({ stage: "constraints", preferredLane: execution.preferredLane,
+      fallbackPermitted: execution.fallbackPermitted, escalationPermitted: execution.escalationPermitted, maxAttempts: execution.maxAttempts,
+      capability: req.capability, grounding: req.grounding, output: req.output, latencyClass: req.latencyClass, contextBudgetTokens: req.contextBudgetTokens }));
     if (execution.preferredLane === "exact_observation" || execution.exactTarget !== undefined) deny();
     if (disclosure.localRequired && execution.preferredLane !== "local_routine") throw new AiPolicyError("local_transport_unavailable", disclosure.classification);
     if (!Number.isSafeInteger(input.maxTokens) || input.maxTokens < 1 || input.maxTokens > task.maxOutputTokens) throw new AiPolicyError("invalid_request");
-    if (execution.preferredLane === "local_specialist") throw new AiPolicyError("capability_unavailable", disclosure.classification);
+    observeRouting(observer, () => ({ stage: "output_budget", maxOutputTokens: input.maxTokens }));
+    if (execution.preferredLane === "local_specialist") {
+      observeRouting(observer, () => ({ stage: "outcome", category: "technical_unavailability", reason: "specialist_unavailable" }));
+      throw new AiPolicyError("capability_unavailable", disclosure.classification);
+    }
     // UTF-8 bytes conservatively upper-bound byte-level text tokens; allow framing margin.
     // This is deliberately an upper bound, not a claim to measure provider token usage.
     const contextUpperBound = envelope.messages.reduce((n, m) => n + new TextEncoder().encode(m.content).length + 64, 64) + input.maxTokens;
     if (contextUpperBound > req.contextBudgetTokens) throw new AiPolicyError("context_exceeded");
     if (execution.preferredLane === "cloud_reasoning" && req.capability !== "reasoning") deny();
     if (execution.preferredLane === "local_routine") {
-      if (execution.fallbackPermitted || execution.escalationPermitted) throw new AiPolicyError("local_transport_unavailable", disclosure.classification);
+      if (execution.fallbackPermitted || execution.escalationPermitted) {
+        observeRouting(observer, () => ({ stage: "outcome", category: "policy_rejection", reason: "local_fallback_forbidden" }));
+        throw new AiPolicyError("local_transport_unavailable", disclosure.classification);
+      }
       if (!disclosure.localPermitted || req.capability !== "routine" ||
           typeof execution.localDeploymentId !== "string" || !/^[A-Za-z0-9_-]{1,120}$/.test(execution.localDeploymentId)) deny();
       return { task: input.task, definition: task, disclosure, requirements: req, plan: [],
@@ -176,9 +218,29 @@ export function resolveAiRouting(input: {
     if (!disclosure.cloudPermitted || !disclosure.approvedRecipients.length) deny();
     const permitted = input.deployments.filter((d) => disclosure.approvedRecipients.some((r) => sameRecipient(r, d)));
     const capable = permitted.filter((d) => d.capability === req.capability);
-    if (permitted.length && !capable.length) throw new AiPolicyError("capability_unavailable");
+    const traceCandidates = (plan: readonly AiDeployment[]) => {
+      if (!observer) return;
+      let nextEligiblePosition = 0;
+      try { input.deployments.forEach((d, index) => observeRouting(observer, () => {
+        const position = plan.includes(d) ? nextEligiblePosition++ : -1;
+        const limit = execution.fallbackPermitted && disclosure.cloudFallbackPermitted ? execution.maxAttempts : 1;
+        return { stage: "candidate", index, transport: d.transport, model: evidenceModel(d.model),
+          reason: !permitted.includes(d) ? "recipient_not_permitted" : !capable.includes(d) ? "capability_mismatch" :
+            position < 0 ? "lane_not_permitted" : position >= limit ? "eligible_attempt_limit" : position === 0 ? "eligible_primary" : "eligible_fallback" };
+      })); } catch { /* Candidate observation cannot affect the plan. */ }
+    };
+    if (permitted.length && !capable.length) {
+      traceCandidates([]);
+      throw new AiPolicyError("capability_unavailable");
+    }
     const plan = capable.filter((d) => d.lane === execution.preferredLane || execution.escalationPermitted);
-    if (!plan.length) deny();
+    traceCandidates(plan);
+    if (!plan.length) {
+      observeRouting(observer, () => ({ stage: "outcome",
+        category: !input.deployments.length ? "technical_unavailability" : "policy_rejection",
+        reason: !input.deployments.length ? "no_available_certified_deployments" : !permitted.length ? "no_permitted_deployments" : "lane_not_permitted" }));
+      deny();
+    }
     return { task: input.task, definition: task, disclosure, requirements: req,
       plan: plan.slice(0, execution.fallbackPermitted && disclosure.cloudFallbackPermitted ? execution.maxAttempts : 1),
       reason: "approved_cloud_plan" };

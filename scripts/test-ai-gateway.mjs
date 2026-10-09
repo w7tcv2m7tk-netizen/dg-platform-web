@@ -422,3 +422,90 @@ test("unapproved transport/model result is rejected and cannot contaminate accou
     assert.doesNotMatch(JSON.stringify(ledger.events), /PRIVATE_PROMPT|PRIVATE_MODEL_RESPONSE|contact@example/);
   }
 });
+
+
+test("routing evidence is observational, internal and isolated from observer failure", async () => {
+  const events = [];
+  let calls = 0;
+  const input = request();
+  const baseline = await aiGatewayGenerate(input, { ...recorder(), chat: async () => { calls++; return fakeResult(); } });
+  const result = await aiGatewayGenerate(input, { ...recorder(), routingObserver: (event) => {
+    events.push(event);
+    throw new Error(PRIVATE_INPUT);
+  }, chat: async () => { calls++; return fakeResult(); } });
+  assert.equal(calls, 2);
+  assert.deepEqual(result.routing, baseline.routing);
+  assert.deepEqual(Object.keys(result), Object.keys(baseline));
+  assert.deepEqual(events.find((e) => e.stage === "selection"), { stage: "selection", index: 0, reason: "transport_selected" });
+  assert.doesNotMatch(JSON.stringify(events), /PRIVATE_PROMPT|contact@example|test-openai-key|PRIVATE_MODEL_RESPONSE|org_a|user_actor/);
+});
+
+test("evidence formatter failure and rejected async observer do not block inference", async () => {
+  const { buildRoutingDecisionEvidence } = await import("../packages/platform-core/src/ai/routing-evidence.ts");
+  let calls = 0;
+  const deps = { ...recorder(), chat: async () => { calls++; return fakeResult(); } };
+  const result = await aiGatewayGenerate(request(), { ...deps,
+    routingObserver: () => buildRoutingDecisionEvidence([{ prompt: PRIVATE_INPUT }], "bad") });
+  assert.equal(result.text, "A useful lead summary");
+  const second = await aiGatewayGenerate(request(), { ...deps,
+    routingObserver: async () => { throw new Error(PRIVATE_INPUT); } });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(second.text, result.text);
+  assert.equal(calls, 2);
+});
+
+test("local approval policy version is observed without disclosing deployment or tenant identity", async (t) => {
+  process.env.DATABASE_URL = "postgresql://test:test@localhost:1/test";
+  const original = prisma.aiLocalRecipientApproval.findFirst;
+  t.after(() => { prisma.aiLocalRecipientApproval.findFirst = original; });
+  prisma.aiLocalRecipientApproval.findFirst = async () => ({ deploymentId: "synthetic_local", policyVersion: 7, classificationCeiling: "restricted" });
+  const events = [];
+  let calls = 0;
+  await assert.rejects(aiGatewayGenerate(request({ executionPolicy: { ...crmExecutionPolicy(), preferredLane: "local_routine" } }), {
+    ...recorder(), routingObserver: (event) => events.push(event), chat: async () => { calls++; return fakeResult(); },
+  }), { code: "invalid_request" }); // Missing idempotency key: no enqueue, database write or provider call.
+  assert.equal(calls, 0);
+  assert.deepEqual(events.find((e) => e.stage === "local_approval"), { stage: "local_approval", policyVersion: 7 });
+  assert.equal(events.find((e) => e.stage === "outcome").reason, "approved_local_plan");
+  assert.doesNotMatch(JSON.stringify(events), /synthetic_local|org_a|PRIVATE_PROMPT/);
+});
+
+test("local approval rejection and lookup failure retain errors and separate evidence categories", async (t) => {
+  process.env.DATABASE_URL = "postgresql://test:test@localhost:1/test";
+  const original = prisma.aiLocalRecipientApproval.findFirst;
+  t.after(() => { prisma.aiLocalRecipientApproval.findFirst = original; });
+  for (const unavailable of [false, true]) {
+    prisma.aiLocalRecipientApproval.findFirst = async () => { if (unavailable) throw new Error(PRIVATE_INPUT); return null; };
+    const events = [];
+    await assert.rejects(aiGatewayGenerate(request({ executionPolicy: { ...crmExecutionPolicy(), preferredLane: "local_routine" } }), {
+      ...recorder(), routingObserver: (event) => events.push(event), chat: async () => assert.fail("no inference"),
+    }), { code: unavailable ? "transport_failed" : "local_recipient_not_approved" });
+    assert.equal(events.find((e) => e.stage === "outcome").category, unavailable ? "technical_unavailability" : "policy_rejection");
+    assert.doesNotMatch(JSON.stringify(events), /PRIVATE_PROMPT|contact@example/);
+  }
+});
+
+test("expired evidence certification cannot disable Gateway inference", async () => {
+  const { buildRoutingDecisionEvidence } = await import("../packages/platform-core/src/ai/routing-evidence.ts");
+  const events = [];
+  let evidence, calls = 0;
+  const result = await aiGatewayGenerate(request(), { ...recorder(), routingObserver: (event) => {
+    events.push(event);
+    if (event.stage === "outcome") evidence = buildRoutingDecisionEvidence(events, "2027-01-07T00:00:00.000Z");
+  }, chat: async () => { calls++; return fakeResult(); } });
+  assert.equal(calls, 1);
+  assert.equal(result.text, "A useful lead summary");
+  assert.equal(evidence.provenance.registryCertification, "unavailable");
+});
+
+test("failing observation preserves confidential provider order and terminal failure", async (t) => {
+  const urls = [];
+  t.mock.method(globalThis, "fetch", async (url) => { urls.push(url); return failureResponse(); });
+  const input = request();
+  input.executionPolicy = { ...crmExecutionPolicy(), fallbackPermitted: true, maxAttempts: 3 };
+  input.disclosurePolicy.cloudFallbackPermitted = input.authorisedInput.disclosure.cloudFallbackPermitted = true;
+  for (const routingObserver of [undefined, () => { throw new Error(PRIVATE_INPUT); }]) {
+    await assert.rejects(aiGatewayGenerate(input, { ...recorder(), routingObserver }), { code: "transport_failed" });
+  }
+  assert.deepEqual(urls, ["https://api.openai.com/v1/chat/completions", "https://api.openai.com/v1/chat/completions"]);
+});
