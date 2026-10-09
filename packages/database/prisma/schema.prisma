@@ -2111,3 +2111,14 @@ model AiWorkerProvisioningReceipt {
   @@index([windowId, createdAt], map: "ai_worker_provisioning_window_idx")
   @@map("ai_worker_provisioning_receipts")
 }
+
+/** Shared checkout admission barrier, deployed before the persistent coordinator. */
+model PlatformCheckoutCreationGate {
+  id                     Int       @id @default(1)
+  blocked                Boolean   @default(true)
+  revision               Int       @default(0)
+  changedAt              DateTime  @default(now()) @map("changed_at") @db.Timestamptz(6)
+  lastAdmissionExpiresAt DateTime? @map("last_admission_expires_at") @db.Timestamptz(6)
+
+  @@map("platform_checkout_creation_gate")
+}

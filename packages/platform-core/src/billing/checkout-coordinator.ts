@@ -1,6 +1,9 @@
+import "server-only";
 import { createHash, randomUUID } from "node:crypto";
 import type { Prisma, PrismaClient } from "@dg/database";
 import type Stripe from "stripe";
+import { admitPlatformCheckout, CheckoutTemporarilyUnavailable } from "./checkout-creation-gate";
+import { createAdmittedPlatformSession } from "./checkout-session-create";
 
 // Keep the existing SDK/API contract; retries must retain this version as well as the body.
 const API_VERSION = "2025-02-24.acacia";
@@ -167,6 +170,9 @@ export async function coordinatePlatformCheckout(input: {
       } else {
         if (attempt.firstRequestedAt && now() >= attempt.replayUntil) await requireRecovery("idempotency_window_elapsed");
         const storedParams = attempt.requestParameters as unknown as Stripe.Checkout.SessionCreateParams;
+        if (!Number.isSafeInteger(storedParams.expires_at) || (storedParams.expires_at ?? 0) <= 0) {
+          await requireRecovery("immutable_expiry_missing");
+        }
         if (!attempt.firstRequestedAt && (attempt.purchaseFingerprint !== fingerprint ||
           (storedParams.expires_at ?? 0) * 1000 <= now().getTime() + 30 * 60_000)) {
           // The send marker is committed before I/O and fenced by this lease, so
@@ -174,10 +180,35 @@ export async function coordinatePlatformCheckout(input: {
           await save({ state: "EXPIRED", currentOrganisationId: null, leaseToken: null, leaseUntil: null, recoveryReason: "never_submitted" });
           continue;
         }
-        await save({ firstRequestedAt: attempt.firstRequestedAt ?? now(), state: "UNCERTAIN", recoveryReason: "stripe_outcome_unknown" });
-        attempt = { ...attempt, firstRequestedAt: attempt.firstRequestedAt ?? now() };
-        session = await stripe.checkout.sessions.create(attempt.requestParameters as unknown as Stripe.Checkout.SessionCreateParams,
-          { idempotencyKey: attempt.idempotencyKey, apiVersion: API_VERSION });
+        const previouslyUncertain = attempt.firstRequestedAt !== null;
+        const firstRequestedAt = attempt.firstRequestedAt ?? now();
+        // Fence the send marker and gate admission in one transaction. Closure
+        // serializes with the gate UPDATE; no transaction spans provider I/O.
+        await db.$transaction(async (tx) => {
+          const claimed = await tx.platformCheckoutAttempt.updateMany({
+            where: { id: attempt.id, organisationId: input.organisationId,
+              currentOrganisationId: input.organisationId, leaseToken: token },
+            data: { firstRequestedAt, state: "UNCERTAIN", recoveryReason: "stripe_outcome_unknown" },
+          });
+          if (claimed.count !== 1) blocked("checkout_lease_lost", "Checkout recovery is already in progress. Please try again shortly.");
+          await admitPlatformCheckout({ expiresAt: storedParams.expires_at, database: tx });
+        });
+        attempt = { ...attempt, firstRequestedAt };
+        try {
+          session = await createAdmittedPlatformSession(stripe, storedParams,
+            { idempotencyKey: attempt.idempotencyKey, apiVersion: API_VERSION });
+        } catch (error) {
+          if (error instanceof CheckoutTemporarilyUnavailable && error.outcome === "expiry_rejected") {
+            if (previouslyUncertain) {
+              // Validation on this replay cannot disprove acceptance of an earlier
+              // send whose response was lost. Preserve its key and current slot.
+              await requireRecovery("uncertain_replay_expiry_rejected");
+            }
+            await save({ state: "EXPIRED", currentOrganisationId: null,
+              leaseToken: null, leaseUntil: null, recoveryReason: "provider_expiry_rejected" });
+          }
+          throw error;
+        }
       }
       await observe(session);
       if (session.status === "open" && attempt.purchaseFingerprint !== fingerprint) {

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { before, beforeEach, after, test } from "node:test";
 import { randomUUID } from "node:crypto";
+import Stripe from "stripe";
 import { prisma, PrismaClient } from "@dg/database";
 import { coordinatePlatformCheckout, checkoutPurchaseFingerprint } from "../packages/platform-core/src/billing/checkout-coordinator.ts";
 
@@ -58,6 +59,7 @@ before(async () => {
   assert.equal(identity.db, "dg_checkout_test"); assert.equal(identity.marker, process.env.DG_CHECKOUT_DB_MARKER); assert.equal(identity.host, "127.0.0.1");
 });
 beforeEach(async () => {
+  await prisma.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = false, last_admission_expires_at = NULL WHERE id = 1`;
   await prisma.platformCheckoutAttempt.deleteMany();
   await prisma.platformSubscription.deleteMany();
   await prisma.organisation.deleteMany();
@@ -88,7 +90,7 @@ test("database uniqueness and owner/release checks cannot be bypassed", async ()
 });
 
 test("unknown Stripe outcome replays exactly the persisted body/key after caller changes", async () => {
-  failCreate = true; await assert.rejects(checkout(), /response lost/);
+  failCreate = true; await assert.rejects(checkout(), error => error.outcome === "unknown");
   const pending = await current(); assert.equal(pending.state, "UNCERTAIN"); assert.ok(pending.firstRequestedAt);
   failCreate = false;
   const params = parameters(); params.customer_email = "different-user@example.test"; params.success_url = "https://example.test/apps";
@@ -254,4 +256,109 @@ test("session lookup still works beyond idempotency retention when identity was 
   const result = await checkout(); clock += 25 * 60 * 60_000;
   remote.get(result.sessionId).status = "expired";
   await checkout(); assert.equal(calls, 2); assert.notEqual(keys[0], keys[1]);
+});
+
+const closeGate = () => control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = true WHERE id = 1`;
+const openGate = () => control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = false WHERE id = 1`;
+const drainExpiry = async () => {
+  const [row] = await control.$queryRaw`SELECT EXTRACT(EPOCH FROM last_admission_expires_at)::bigint AS expiry FROM platform_checkout_creation_gate WHERE id = 1`;
+  return row.expiry === null ? null : Number(row.expiry);
+};
+
+test("closed gate denies initial create and rolls back the send marker", async () => {
+  await closeGate();
+  await assert.rejects(checkout(), error => error.outcome === "gate_denied");
+  assert.equal(calls, 0); assert.equal((await current()).firstRequestedAt, null);
+  assert.equal((await current()).state, "PREPARED"); assert.equal(await drainExpiry(), null);
+  await openGate(); await checkout(); assert.equal(calls, 1);
+});
+
+test("closure during provider I/O retains a horizon covering the immutable one-hour expiry", async () => {
+  createGate = deferred(); const started = checkout();
+  while (!calls) await new Promise(r => setTimeout(r, 5));
+  const expiry = requests[0].expires_at;
+  assert.ok(expiry * 1000 - clock > 59 * 60_000);
+  assert.equal(await drainExpiry(), expiry);
+  await closeGate(); createGate.resolve(); const result = await started;
+  assert.equal((await checkout()).sessionId, result.sessionId, "known session retrieval remains permitted");
+  assert.equal(calls, 1); assert.equal(await drainExpiry(), expiry);
+});
+
+test("closed gate denies uncertain replay without altering request, key or original send marker", async () => {
+  failCreate = true; await assert.rejects(checkout(), error => error.outcome === "unknown");
+  const row = await current(); await closeGate(); clock += 40 * 60_000;
+  await assert.rejects(checkout(), error => error.outcome === "gate_denied");
+  const held = await current();
+  assert.equal(calls, 1); assert.equal(held.idempotencyKey, row.idempotencyKey);
+  assert.deepEqual(held.requestParameters, row.requestParameters);
+  assert.deepEqual(held.firstRequestedAt, row.firstRequestedAt);
+  assert.equal(await drainExpiry(), requests[0].expires_at);
+  failCreate = false; await openGate(); await checkout();
+  assert.equal(remote.size, 1); assert.equal(keys[0], keys[1]); assert.deepEqual(requests[0], requests[1]);
+});
+
+for (const remaining of [1801, 1800, 1799]) {
+  test(`initial provider expiry boundary ${remaining}s: rejection releases only a confirmed failed send`, async () => {
+    const provider = { ...stripe, checkout: { sessions: { ...stripe.checkout.sessions, create: async (params, options) => {
+      assert.equal(await drainExpiry(), params.expires_at);
+      if (remaining < 1800) {
+        calls++; requests.push(structuredClone(params)); keys.push(options.idempotencyKey);
+        throw new Stripe.errors.StripeInvalidRequestError({ message: "private error", statusCode: 400, param: "expires_at" });
+      }
+      return stripe.checkout.sessions.create(params, options);
+    } } } };
+    if (remaining < 1800) {
+      await assert.rejects(checkout({ stripe: provider }), error => error.outcome === "expiry_rejected");
+      assert.equal(await current(), null); assert.equal(remote.size, 0);
+      const row = await prisma.platformCheckoutAttempt.findFirst();
+      assert.equal(row.state, "EXPIRED"); assert.equal(row.recoveryReason, "provider_expiry_rejected");
+    } else { await checkout({ stripe: provider }); assert.equal(remote.size, 1); }
+    assert.equal(calls, 1); assert.equal(await drainExpiry(), requests[0].expires_at);
+  });
+}
+
+test("expiry rejection on an uncertain replay preserves the unresolved purchase and key", async () => {
+  failCreate = true; await assert.rejects(checkout()); const row = await current(); clock += 2 * 60 * 60_000;
+  const provider = { ...stripe, checkout: { sessions: { ...stripe.checkout.sessions, create: async (params, options) => {
+    calls++; assert.deepEqual(params, row.requestParameters); assert.equal(options.idempotencyKey, row.idempotencyKey);
+    throw new Stripe.errors.StripeInvalidRequestError({ message: "expiry stale", statusCode: 400, param: "expires_at" });
+  } } } };
+  await assert.rejects(checkout({ stripe: provider }), { code: "checkout_recovery_required" });
+  assert.equal((await current()).id, row.id); assert.equal((await current()).idempotencyKey, row.idempotencyKey);
+  assert.equal((await current()).state, "RECOVERY_REQUIRED"); assert.equal(remote.size, 1);
+  await assert.rejects(checkout(), { code: "checkout_recovery_required" }); assert.equal(calls, 2);
+});
+
+test("a stale worker fenced before admission cannot extend the drain horizon or send", async () => {
+  let paused = false; const waiting = deferred(), reached = deferred();
+  const stalledProvider = { ...stripe, subscriptions: { ...stripe.subscriptions, retrieve: async () => {
+    if (!paused) { paused = true; reached.resolve(); await waiting.promise; }
+    return { status: "canceled" };
+  } } };
+  await prisma.platformSubscription.create({ data: { organisationId: org.id, stripeSubscriptionId: "sub_terminal", status: "CANCELLED" } });
+  subscriptions.set("sub_terminal", { status: "canceled" });
+  const started = checkout({ stripe: stalledProvider }); await reached.promise;
+  clock += 61_000; await checkout({ database: control }); const expiry = await drainExpiry();
+  const rejected = assert.rejects(started, { code: "checkout_lease_lost" });
+  waiting.resolve(); await rejected;
+  assert.equal(calls, 1); assert.equal(await drainExpiry(), expiry);
+});
+
+test("shorter admission never reduces a previously recorded long drain horizon", async () => {
+  await checkout(); const expiry = await drainExpiry();
+  await control.$executeRaw`UPDATE platform_checkout_creation_gate SET last_admission_expires_at = to_timestamp(${expiry + 3600}::double precision) WHERE id = 1`;
+  failCreate = true;
+  await assert.rejects(checkout({ organisationId: other.id, parameters: parameters(other.id) }));
+  assert.equal(await drainExpiry(), expiry + 3600);
+  assert.ok(requests[1].expires_at <= await drainExpiry());
+});
+
+
+test("an unresolved request with missing immutable expiry cannot obtain a default permit", async () => {
+  failCreate = true; await assert.rejects(checkout()); const row = await current();
+  const body = structuredClone(row.requestParameters); delete body.expires_at;
+  await prisma.platformCheckoutAttempt.update({ where: { id: row.id }, data: { requestParameters: body } });
+  await assert.rejects(checkout(), { code: "checkout_recovery_required" });
+  assert.equal(calls, 1); assert.equal((await current()).idempotencyKey, row.idempotencyKey);
+  assert.equal((await current()).recoveryReason, "immutable_expiry_missing");
 });
