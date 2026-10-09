@@ -1,3 +1,4 @@
+import { observeRouting, type RoutingTraceObserver } from "./routing-trace";
 import type { BusinessContext } from "../org/business-context";
 import { llmChat, describeLlmTransportPlan, LlmChatError, type LlmGenerateResult, type LlmTokenUsage, type LlmTransportAttempt } from "./llm";
 import { recordAiLedgerEvent, type RecordAiLedgerEventInput } from "./usage";
@@ -30,7 +31,12 @@ export class AiGatewayError extends Error {
   readonly code: AiGatewayErrorCode;
   constructor(code: AiGatewayErrorCode) { super(`AI Gateway: ${code}`); this.name = "AiGatewayError"; this.code = code; }
 }
-type GatewayDependencies = { chat?: typeof llmChat; record?: (input: RecordAiLedgerEventInput) => Promise<unknown> };
+type GatewayDependencies = {
+  /** Internal metadata observer; never awaited, returned or persisted. */
+  routingObserver?: RoutingTraceObserver;
+  chat?: typeof llmChat;
+  record?: (input: RecordAiLedgerEventInput) => Promise<unknown>;
+};
 const identifier = (value: unknown): value is string => typeof value === "string" && /^[A-Za-z0-9_:.-]{1,200}$/.test(value);
 const reportedToken = (value: unknown): number | null => typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : null;
 const safeUsage = (value?: LlmTokenUsage): LlmTokenUsage => ({ tokensIn: reportedToken(value?.tokensIn), tokensOut: reportedToken(value?.tokensOut) });
@@ -79,14 +85,22 @@ export async function aiGatewayGenerate(input: AiGatewayRequest, deps: GatewayDe
         ...(input.authorisedInput?.evidence ?? []).map((e) => e.disclosure)].filter(Boolean);
       const floor = input.authorisedInput?.evidence?.length ? "tenant_confidential" : AI_TASK_DEFINITIONS[input.task]?.minimumClassification ?? "tenant_confidential";
       const classification = policies.reduce((best, policy) => (ranks[policy.classification] ?? 99) > (ranks[best] ?? -1) ? policy.classification : best, floor);
-      const approval = await resolveApprovedAiLocalDeployment({ organisationId: identity.organisationId,
-        classification });
+      let approval: Awaited<ReturnType<typeof resolveApprovedAiLocalDeployment>>;
+      try {
+        approval = await resolveApprovedAiLocalDeployment({ organisationId: identity.organisationId, classification });
+      } catch (error) {
+        observeRouting(deps.routingObserver, () => ({ stage: "outcome",
+          category: error instanceof AiLocalJobError && error.code === "local_recipient_not_approved" ? "policy_rejection" : "technical_unavailability",
+          reason: error instanceof AiLocalJobError && error.code === "local_recipient_not_approved" ? "local_recipient_not_approved" : "local_approval_unavailable" }));
+        throw error;
+      }
+      observeRouting(deps.routingObserver, () => ({ stage: "local_approval", policyVersion: approval.policyVersion }));
       executionPolicy = { ...executionPolicy, localDeploymentId: approval.deploymentId };
       localPolicyVersion = approval.policyVersion;
     }
     routing = resolveAiRouting({ organisationId: identity.organisationId, task: input.task, authorisedInput: input.authorisedInput,
       disclosurePolicy: input.disclosurePolicy, executionPolicy, maxTokens: input.maxTokens,
-      deployments: describeAiDeployments(describeLlmTransportPlan("standard")) });
+      deployments: describeAiDeployments(describeLlmTransportPlan("standard"), deps.routingObserver) }, deps.routingObserver);
     deadline = new AbortController();
     timer = setTimeout(() => deadline?.abort(), Math.max(0, deadlineMs - (Date.now() - started)));
     signal = input.signal ? AbortSignal.any([input.signal, deadline.signal]) : deadline.signal;
@@ -114,6 +128,8 @@ export async function aiGatewayGenerate(input: AiGatewayRequest, deps: GatewayDe
     attempts = safeAttempts(result.attempts ?? [], routing);
     if (!routing.plan.some((d) => d.transport === result!.provider && d.model === result!.model)) throw new AiGatewayError("policy_denied");
     if (!validateAiTextResult(result.text)) throw new AiGatewayError("invalid_output");
+    observeRouting(deps.routingObserver, () => ({ stage: "selection",
+      index: routing!.plan.findIndex((d) => d.transport === result!.provider && d.model === result!.model), reason: "transport_selected" }));
     accepted = true;
   } catch (error) {
     if (error instanceof AiPolicyError) deniedClassification = error.classification;
