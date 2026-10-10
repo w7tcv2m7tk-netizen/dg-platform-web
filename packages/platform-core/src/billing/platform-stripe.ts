@@ -1,3 +1,4 @@
+import { withProjectionTransaction, type ProjectionRead } from "./projection-transaction";
 import type { Prisma } from "@dg/database";
 import Stripe from "stripe";
 
@@ -82,8 +83,8 @@ type InputJsonValue = Prisma.InputJsonValue;
 async function resolveOrganisationForCheckout(input: {
   organisationId?: string | null;
   email?: string | null;
-}) {
-  const { prisma } = await import("@dg/database");
+}, database?: Prisma.TransactionClient) {
+  const prisma = database ?? (await import("@dg/database")).prisma;
   const orgId = input.organisationId?.trim() || null;
 
   if (orgId) {
@@ -105,16 +106,11 @@ async function resolveOrganisationForCheckout(input: {
 }
 
 async function paidAppsFromAuthoritativeSubscription(input: {
-  stripe: Stripe;
-  subscriptionId: string | null;
+  subscription: Stripe.Subscription;
   sessionPremiumApps: PaidAppKey[];
 }): Promise<PaidAppKey[]> {
   if (input.sessionPremiumApps.length === 0) return [];
-  if (!input.subscriptionId) {
-    throw new Error("Paid app provisioning requires a Stripe subscription");
-  }
-
-  const subscription = await input.stripe.subscriptions.retrieve(input.subscriptionId);
+  const subscription = input.subscription;
   const subscriptionPremiumApps = normalisePaidAppKeys(
     metadataList(subscription.metadata?.dg_premium_apps),
   );
@@ -128,6 +124,21 @@ async function paidAppsFromAuthoritativeSubscription(input: {
 }
 
 export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Session) {
+  const organisationId = session.metadata?.organisation_id;
+  if (!organisationId) throw new Error("Platform checkout organisation ownership is unconfirmed");
+  const result = await withProjectionTransaction(organisationId, (database, read) => provisionLockedCheckout(session, database, read));
+  if (!("resolvedVia" in result) || !result.organisationId) return result;
+  let referralReward: unknown = null;
+  try {
+    const { markReferralPaidAndAccrue } = await import("../referrals");
+    const platformTier = session.metadata?.dg_platform_tier ?? "professional";
+    referralReward = await markReferralPaidAndAccrue({ referredOrganisationId: result.organisationId,
+      platformTier, stripeSessionId: session.id, subscriptionAmountCents: TIER_AMOUNTS_CENTS[platformTier] });
+  } catch (err) { console.warn("[billing] referral reward accrual failed", err); }
+  return { ...result, referralReward };
+}
+
+async function provisionLockedCheckout(session: Stripe.Checkout.Session, database: Prisma.TransactionClient, read: ProjectionRead) {
   const metadata = session.metadata ?? {};
   if (metadata.dg_platform_checkout !== "true") {
     return { handled: false as const };
@@ -158,7 +169,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
   if (session.mode !== "subscription" || session.status !== "complete" || !stripeSubscriptionId) {
     throw new Error("Platform checkout requires a completed subscription session");
   }
-  const subscription = await getStripeClient().subscriptions.retrieve(stripeSubscriptionId);
+  const subscription = await read(timeout => getStripeClient().subscriptions.retrieve(stripeSubscriptionId, { timeout, maxNetworkRetries: 0 }));
   if (subscription.id !== stripeSubscriptionId || stripeCustomerId(subscription.customer) !== customerId ||
     subscription.livemode !== session.livemode || !metadata.organisation_id ||
     subscription.metadata.organisation_id !== metadata.organisation_id || subscription.metadata.dg_platform_subscription !== "true") {
@@ -168,7 +179,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     // Delivery order is not payment evidence. A terminal provider subscription
     // can be observed without ever provisioning this checkout. Require the exact
     // cancellation projection and its Stripe webhook evidence before recording it.
-    const { prisma } = await import("@dg/database");
+    const prisma = database;
     const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: metadata.organisation_id } });
     if (!canonical || canonical.stripeSubscriptionId !== subscription.id || canonical.stripeCustomerId !== customerId ||
       canonical.status !== "CANCELLED" || canonical.stripeStatus !== subscription.status) {
@@ -191,22 +202,21 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     const { appendSubscriptionEvent } = await import("./subscription-store");
     await appendSubscriptionEvent({ organisationId: metadata.organisation_id, subscriptionId: canonical.id,
       type: "checkout.terminal_observed", source: "stripe", stripeEventId: `${session.id}:checkout-terminal`,
-      payload: { stripeSubscriptionId: subscription.id, stripeCustomerId: customerId, stripeStatus: subscription.status } });
+      payload: { stripeSubscriptionId: subscription.id, stripeCustomerId: customerId, stripeStatus: subscription.status } }, database);
     return { handled: true as const, ok: true as const, outcome: "terminal_subscription" as const, organisationId: metadata.organisation_id };
   }
   if (!["active", "trialing"].includes(subscription.status)) {
     throw new Error("Platform checkout subscription activation is unconfirmed");
   }
   const premiumApps = await paidAppsFromAuthoritativeSubscription({
-    stripe: getStripeClient(),
-    subscriptionId: stripeSubscriptionId,
+    subscription,
     sessionPremiumApps: requestedPremiumApps,
   });
 
   const resolved = await resolveOrganisationForCheckout({
     organisationId: metadata.organisation_id,
     email,
-  });
+  }, database);
 
   if (!resolved) {
     return {
@@ -218,7 +228,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     };
   }
 
-  const { prisma } = await import("@dg/database");
+  const prisma = database;
   const org = resolved.org;
   if (org.id !== metadata.organisation_id) throw new Error("Platform checkout organisation ownership is unconfirmed");
   const settings = (org.settings as Record<string, unknown> | null) ?? {};
@@ -265,7 +275,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
     currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : null,
     currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
-  });
+  }, database);
 
   // Derived projection for UI and legacy consumers. PlatformSubscription above
   // remains authoritative for commercial state and entitlement.
@@ -312,19 +322,6 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     },
   });
 
-  let referralReward: unknown = null;
-  try {
-    const { markReferralPaidAndAccrue } = await import("../referrals");
-    referralReward = await markReferralPaidAndAccrue({
-      referredOrganisationId: org.id,
-      platformTier,
-      stripeSessionId: session.id,
-      subscriptionAmountCents: TIER_AMOUNTS_CENTS[platformTier],
-    });
-  } catch (err) {
-    console.warn("[billing] referral reward accrual failed", err);
-  }
-
   return {
     handled: true as const,
     ok: true,
@@ -332,7 +329,7 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     email: email || undefined,
     resolvedVia: resolved.via,
     billingCustomerId: customerId,
-    referralReward,
+    referralReward: null,
   };
 }
 

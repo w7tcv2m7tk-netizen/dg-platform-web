@@ -259,14 +259,12 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
     // platform-account invoice; the H-8 !connectAccountId gate is preserved by
     // the early return.
     if (organisationId) {
-      try {
-        await applyInvoicePaidRecovery({
-          organisationId,
-          stripeEventId: event.providerEventId,
-        });
-      } catch (err) {
-        console.warn("[stripe webhook] invoice paid recovery failed", err);
-      }
+      await applyInvoicePaidRecovery({
+        organisationId,
+        stripeSubscriptionId: event.stripeSubscriptionId,
+        stripeCustomerId: event.providerCustomerId,
+        stripeEventId: event.providerEventId,
+      });
     }
 
     let referralReward: unknown = null;

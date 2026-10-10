@@ -8,10 +8,12 @@ import { createPlatformCheckoutSession, createCustomCommercialCheckoutSession, c
 import { provisionFromPlatformCheckout, handlePlatformSubscriptionLifecycle } from "../packages/platform-core/src/billing/platform-stripe.ts";
 import { StripePaymentConnector } from "../packages/platform-core/src/commerce/connectors/stripe/index.ts";
 import { processPaymentWebhookEvent } from "../packages/platform-core/src/commerce/payment-engine.ts";
+import { applyInvoicePaymentFailed as processInvoiceFailure, applyInvoicePaidRecovery, advanceDunningForSubscription } from "../packages/platform-core/src/billing/billing-service.ts";
 import { checkoutPost } from "./checkout-test-http.mjs";
 
+const applyInvoicePaymentFailed = input => processInvoiceFailure({ stripeInvoiceId: "in_fixture", ...input });
 const control = new PrismaClient();
-let org, requests, createWait, loseResponse, beforeAcceptance, remainingAtAcceptance, acceptedSessions, providerSubscription;
+let org, requests, createWait, loseResponse, beforeAcceptance, remainingAtAcceptance, acceptedSessions, providerSubscription, subscriptionReadHook, providerInvoice, invoiceReadHook;
 const waitFor = async predicate => {
   const deadline = Date.now() + 2000;
   while (!predicate()) { if (Date.now() > deadline) throw new Error("Provider fixture did not reach expected state"); await new Promise(r => setTimeout(r, 5)); }
@@ -60,19 +62,30 @@ before(async () => {
     if (id !== providerSubscription.customer) throw new Error("Unexpected customer read");
     return { id, deleted: false };
   });
+  mock.method(Object.getPrototypeOf(sdk.invoices), "retrieve", async id => {
+    if (!["in_fixture", "in_review_paid"].includes(id)) throw new Error("Unexpected invoice lookup");
+    const snapshot = structuredClone({ ...providerInvoice, id });
+    if (invoiceReadHook) await invoiceReadHook();
+    return snapshot;
+  });
   mock.method(Object.getPrototypeOf(sdk.subscriptions), "retrieve", async id => {
     if (id !== providerSubscription.id) throw new Error("Unexpected subscription read");
-    return structuredClone(providerSubscription);
+    const snapshot = structuredClone(providerSubscription);
+    if (subscriptionReadHook) await subscriptionReadHook();
+    return snapshot;
   });
 });
 beforeEach(async () => {
   await prisma.platformCheckoutAttempt.deleteMany();
   await prisma.platformSubscription.deleteMany();
   await prisma.organisation.update({ where: { id: org.id }, data: { billingCustomerId: null, settings: {} } });
+  subscriptionReadHook = null; invoiceReadHook = null;
   requests = []; createWait = null; loseResponse = false; beforeAcceptance = null;
   providerSubscription = { id: "sub_completed_fixture", customer: "cus_completed_fixture", livemode: false, status: "trialing",
     trial_start: 1700000000, trial_end: 1700604800, current_period_start: 1700000000, current_period_end: 1700604800,
-    metadata: { organisation_id: org.id, dg_platform_subscription: "true", dg_platform_tier: "professional" } };
+    metadata: { organisation_id: org.id, dg_platform_subscription: "true", dg_platform_tier: "professional" }, latest_invoice: "in_fixture" };
+  providerInvoice = { id: "in_fixture", subscription: providerSubscription.id, customer: providerSubscription.customer,
+    livemode: false, status: "open", paid: false, amount_remaining: 24900 };
   remainingAtAcceptance = 2100; acceptedSessions = [];
   await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = false, revision = revision + 1, changed_at = clock_timestamp(), last_admission_expires_at = NULL WHERE id = 1`;
 });
@@ -375,3 +388,370 @@ for (const conflict of ["customer", "organisation", "mode", "marker", "status"])
     assert.equal(owner.billingCustomerId, null); assert.deepEqual(owner.settings, {});
   });
 }
+
+
+test("stale ACTIVE lifecycle delivery cannot restore cancelled access", async () => {
+  providerSubscription.status = "active";
+  const stale = structuredClone(providerSubscription);
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "canceled";
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_terminal_new");
+  await handlePlatformSubscriptionLifecycle(stale, "updated", "evt_active_old");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "CANCELLED"); assert.equal(row.entitlement, "NONE");
+});
+
+test("stale unscheduled lifecycle delivery cannot undo current scheduled cancellation", async () => {
+  providerSubscription.status = "active";
+  const stale = structuredClone(providerSubscription);
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.cancel_at_period_end = true;
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_schedule_new");
+  await handlePlatformSubscriptionLifecycle(stale, "updated", "evt_schedule_old");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "CANCEL_AT_PERIOD_END"); assert.equal(row.cancelAtPeriodEnd, true);
+});
+
+for (const kind of ["deleted", "updated"]) test(`replaced subscription ${kind} cannot change current identity or access`, async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  const old = { ...structuredClone(providerSubscription), id: "sub_replaced", status: kind === "deleted" ? "canceled" : "active" };
+  await handlePlatformSubscriptionLifecycle(old, kind, `evt_replaced_${kind}`);
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.stripeSubscriptionId, providerSubscription.id); assert.equal(row.status, "ACTIVE"); assert.equal(row.entitlement, "FULL");
+});
+
+for (const status of ["incomplete", "paused"]) test(`${status} lifecycle never grants active access`, async () => {
+  providerSubscription.status = status;
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "created", `evt_nonactive_${status}`);
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.entitlement, "NONE"); assert.notEqual(row.status, "ACTIVE"); assert.notEqual(row.status, "TRIALING");
+});
+
+for (const mismatch of ["subscription", "customer", "missing_subscription"]) test(`invoice failure ${mismatch} mismatch preserves canonical state`, async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  const before = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  await applyInvoicePaymentFailed({ organisationId: org.id,
+    stripeSubscriptionId: mismatch === "missing_subscription" ? undefined : mismatch === "subscription" ? "sub_old" : providerSubscription.id,
+    stripeCustomerId: mismatch === "customer" ? "cus_foreign" : providerSubscription.customer, stripeEventId: `evt_invoice_${mismatch}` });
+  const after = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(after.status, before.status); assert.equal(after.stripeSubscriptionId, before.stripeSubscriptionId);
+  assert.equal(after.stripeCustomerId, before.stripeCustomerId); assert.equal(after.entitlement, before.entitlement);
+});
+
+test("invoice failure cannot invent an unconfirmed canonical subscription", async () => {
+  await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_invoice_unconfirmed" });
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});
+
+test("late invoice failure cannot reactivate a cancelled subscription", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "canceled";
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_cancel_before_invoice");
+  await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_invoice_late" });
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "CANCELLED"); assert.equal(row.entitlement, "NONE");
+});
+
+
+test("matching invoice failure preserves dunning and event idempotency", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  const input = { organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_matching_invoice" };
+  const first = await applyInvoicePaymentFailed(input); const second = await applyInvoicePaymentFailed(input);
+  assert.equal(first.status, "PAYMENT_FAILED"); assert.equal(first.entitlement, "FULL_WITH_WARNING");
+  assert.equal(second.paymentFailedAt.getTime(), first.paymentFailedAt.getTime());
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: input.stripeEventId } }), 1);
+});
+
+test("duplicate lifecycle event cannot overwrite subsequent cancellation", async () => {
+  providerSubscription.status = "active";
+  const stale = structuredClone(providerSubscription);
+  await handlePlatformSubscriptionLifecycle(stale, "created", "evt_initial_active");
+  providerSubscription.status = "canceled";
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_new_cancel");
+  await handlePlatformSubscriptionLifecycle(stale, "created", "evt_initial_active");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "CANCELLED"); assert.equal(row.entitlement, "NONE");
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: "evt_initial_active:subscription" } }), 1);
+});
+
+test("concurrent completion and cancellation serialize provider reads and derived access", async () => {
+  providerSubscription.status = "active";
+  const entered = deferred(); const release = deferred(); let reads = 0;
+  subscriptionReadHook = async () => { if (++reads === 1) { entered.resolve(); await release.promise; } };
+  const completion = provisionFromPlatformCheckout(completedSession());
+  await entered.promise;
+  providerSubscription.status = "canceled";
+  const cancellation = handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_concurrent_cancel");
+  release.resolve();
+  await Promise.all([completion, cancellation]);
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  const organisation = await prisma.organisation.findUnique({ where: { id: org.id } });
+  assert.equal(row.status, "CANCELLED"); assert.equal(row.entitlement, "NONE");
+  assert.equal(organisation.settings.apps.entitlementsSuspended, true);
+});
+
+
+test("late checkout completion cannot replace a newer active canonical purchase", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  await prisma.platformSubscription.update({ where: { organisationId: org.id }, data: { stripeSubscriptionId: "sub_newer" } });
+  await assert.rejects(provisionFromPlatformCheckout(completedSession()), /current subscription/);
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.stripeSubscriptionId, "sub_newer"); assert.equal(row.entitlement, "FULL");
+});
+
+
+test("stale lifecycle metadata cannot overwrite the authoritative current tier", async () => {
+  providerSubscription.status = "active";
+  const stale = structuredClone(providerSubscription); stale.metadata.dg_platform_tier = "starter";
+  providerSubscription.metadata.dg_platform_tier = "business";
+  await provisionFromPlatformCheckout(completedSession());
+  await handlePlatformSubscriptionLifecycle(stale, "updated", "evt_stale_plan");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.planTier, "business");
+});
+
+
+test("provider refresh failure rolls back and remains retryable without granting access", async () => {
+  providerSubscription.status = "active";
+  const event = structuredClone(providerSubscription);
+  subscriptionReadHook = async () => { throw new Error("provider temporarily unavailable"); };
+  await assert.rejects(handlePlatformSubscriptionLifecycle(event, "created", "evt_retryable_refresh"), /temporarily unavailable/);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: "evt_retryable_refresh:subscription" } }), 0);
+  subscriptionReadHook = null;
+  await handlePlatformSubscriptionLifecycle(event, "created", "evt_retryable_refresh");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "ACTIVE"); assert.equal(row.entitlement, "FULL");
+});
+
+test("authoritative foreign tenant metadata rejects lifecycle projection before writes", async () => {
+  providerSubscription.status = "active";
+  const event = structuredClone(providerSubscription);
+  providerSubscription.metadata.organisation_id = "foreign_organisation";
+  await assert.rejects(handlePlatformSubscriptionLifecycle(event, "created", "evt_foreign_provider"), /ownership is unconfirmed/);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: "evt_foreign_provider:subscription" } }), 0);
+});
+
+
+test("paused subscription clears the dunning clock so cron cannot restore paid access", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_before_pause" });
+  providerSubscription.status = "paused";
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_pause_after_failure");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.entitlement, "NONE"); assert.equal(row.paymentFailedAt, null);
+});
+
+
+test("old invoice-paid event cannot recover the current subscription", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_current_failure" });
+  await applyInvoicePaidRecovery({ organisationId: org.id, stripeSubscriptionId: "sub_old", stripeCustomerId: providerSubscription.customer,
+    stripeEventId: "evt_old_paid" });
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "PAYMENT_FAILED"); assert.equal(row.entitlement, "FULL_WITH_WARNING");
+});
+
+test("invoice-paid recovery cannot activate a paused subscription", async () => {
+  providerSubscription.status = "paused";
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_paused_before_paid");
+  await applyInvoicePaidRecovery({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_paid_while_paused" });
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.entitlement, "NONE"); assert.equal(row.stripeStatus, "paused");
+});
+
+test("stale dunning snapshot cannot overwrite a subsequent cancellation", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  const stale = await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_dunning_stale" });
+  providerSubscription.status = "canceled";
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_dunning_cancel" );
+  await advanceDunningForSubscription(stale, new Date(stale.paymentFailedAt.getTime() + 10 * 86400000));
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.entitlement, "NONE"); assert.equal(row.status, "CANCELLED");
+});
+
+
+test("matching invoice-paid recovery uses current provider health and remains idempotent", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_valid_failure" });
+  const input = { organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_valid_recovery" };
+  providerSubscription.status = "active"; providerInvoice.status = "paid"; providerInvoice.paid = true; providerInvoice.amount_remaining = 0;
+  const first = await applyInvoicePaidRecovery(input); const second = await applyInvoicePaidRecovery(input);
+  assert.equal(first.status, "ACTIVE"); assert.equal(first.entitlement, "FULL"); assert.equal(first.paymentFailedAt, null);
+  assert.equal(second.entitlement, "FULL");
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: `${input.stripeEventId}:recovery` } }), 1);
+});
+
+test("stale dunning snapshot cannot replace a newer subscription", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  const stale = await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_replaced_dunning" });
+  await prisma.platformSubscription.update({ where: { organisationId: org.id }, data: {
+    stripeSubscriptionId: "sub_replacement", status: "ACTIVE", entitlement: "FULL", stripeStatus: "active", paymentFailedAt: null } });
+  await advanceDunningForSubscription(stale, new Date(stale.paymentFailedAt.getTime() + 10 * 86400000));
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.stripeSubscriptionId, "sub_replacement"); assert.equal(row.status, "ACTIVE"); assert.equal(row.entitlement, "FULL");
+});
+
+test("independent: delayed failure after paid recovery must preserve healthy state", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  await applyInvoicePaidRecovery({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_review_paid_first" });
+  await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeInvoiceId: "in_review_paid", stripeEventId: "evt_review_old_failure_late" });
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "ACTIVE"); assert.equal(row.paymentFailedAt, null);
+});
+
+test("independent: scheduled cancellation plus successful recovery must clear dunning", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_review_failure" });
+  providerSubscription.status = "active"; providerInvoice.status = "paid"; providerInvoice.paid = true; providerInvoice.amount_remaining = 0;
+  providerSubscription.cancel_at_period_end = true;
+  await applyInvoicePaidRecovery({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_review_recovery" });
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  await advanceDunningForSubscription(row, new Date((row.paymentFailedAt?.getTime() ?? Date.now()) + 10 * 86400000));
+  const after = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(after.status, "CANCEL_AT_PERIOD_END"); assert.equal(after.paymentFailedAt, null);
+});
+
+
+test("provisioning provider timeout rolls back and a retry can succeed", async () => {
+  providerSubscription.status = "active";
+  const stuck = deferred(); let entered = false;
+  subscriptionReadHook = async () => { entered = true; await stuck.promise; };
+  const started = Date.now();
+  const pending = provisionFromPlatformCheckout(completedSession());
+  await waitFor(() => entered);
+  try {
+    await assert.rejects(Promise.race([pending, new Promise((_, reject) => setTimeout(() => reject(new Error("Review deadline exceeded")), 6500))]), /provider read.*timed out/i);
+    assert.ok(Date.now() - started < 6500);
+    assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+    assert.equal(await prisma.platformSubscriptionEvent.count({ where: { organisationId: org.id } }), 0);
+  } finally { stuck.resolve(); await pending.catch(() => {}); subscriptionReadHook = null; }
+  const result = await provisionFromPlatformCheckout(completedSession());
+  assert.equal(result.ok, true);
+});
+
+
+for (const health of ["active", "trialing"]) test(`${health} recovery with scheduled cancellation clears dunning and remains scheduled after cron`, async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: `evt_schedule_failure_${health}` });
+  providerSubscription.status = health; providerSubscription.cancel_at_period_end = true;
+  providerInvoice.status = "paid"; providerInvoice.paid = true; providerInvoice.amount_remaining = 0;
+  const row = await applyInvoicePaidRecovery({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: `evt_schedule_recovery_${health}` });
+  assert.equal(row.status, "CANCEL_AT_PERIOD_END"); assert.equal(row.paymentFailedAt, null); assert.equal(row.gracePeriodEndsAt, null);
+  await advanceDunningForSubscription(row, new Date(Date.now() + 10 * 86400000));
+  const after = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(after.status, "CANCEL_AT_PERIOD_END"); assert.equal(after.cancelAtPeriodEnd, true); assert.equal(after.entitlement, "FULL");
+});
+
+test("genuinely unpaid scheduled cancellation retains dunning protection", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due"; providerSubscription.cancel_at_period_end = true;
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_unpaid_scheduled");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "PAYMENT_FAILED"); assert.ok(row.paymentFailedAt); assert.equal(row.cancelAtPeriodEnd, true);
+  await advanceDunningForSubscription(row, new Date(row.paymentFailedAt.getTime() + 10 * 86400000));
+  const after = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(after.status, "PAST_DUE"); assert.notEqual(after.entitlement, "FULL");
+});
+
+test("concurrent delayed failure and recovery serialize and retain healthy access", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  const entered = deferred(); const release = deferred();
+  invoiceReadHook = async () => { entered.resolve(); await release.promise; };
+  const failure = applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_concurrent_failure" });
+  await entered.promise;
+  providerSubscription.status = "active"; providerInvoice.status = "paid"; providerInvoice.paid = true; providerInvoice.amount_remaining = 0;
+  const recovery = applyInvoicePaidRecovery({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_concurrent_recovery" });
+  release.resolve(); await Promise.all([failure, recovery]);
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "ACTIVE"); assert.equal(row.paymentFailedAt, null);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: "evt_concurrent_failure" } }), 1);
+});
+
+for (const conflict of ["customer", "subscription", "mode"]) test(`invoice ${conflict} ownership conflict performs no mutation`, async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  if (conflict === "customer") providerInvoice.customer = "cus_foreign";
+  if (conflict === "subscription") providerInvoice.subscription = "sub_foreign";
+  if (conflict === "mode") providerInvoice.livemode = true;
+  await assert.rejects(applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: `evt_conflict_${conflict}` }), /ownership is unconfirmed/);
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "ACTIVE"); assert.equal(row.paymentFailedAt, null);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: `evt_conflict_${conflict}` } }), 0);
+});
+
+test("invoice provider timeout preserves canonical state and permits retry", async () => {
+  providerSubscription.status = "active";
+  await provisionFromPlatformCheckout(completedSession()); providerSubscription.status = "past_due";
+  const stuck = deferred(); invoiceReadHook = () => stuck.promise;
+  const input = { organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: "evt_invoice_timeout" };
+  try { await assert.rejects(applyInvoicePaymentFailed(input), /provider read.*timed out/i); }
+  finally { stuck.resolve(); invoiceReadHook = null; }
+  const before = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(before.status, "ACTIVE"); assert.equal(before.paymentFailedAt, null);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: input.stripeEventId } }), 0);
+  const recovered = await applyInvoicePaymentFailed(input); assert.equal(recovered.status, "PAYMENT_FAILED");
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: input.stripeEventId } }), 1);
+});
+
+
+test("paid-app provisioning reuses the verified subscription snapshot", async () => {
+  providerSubscription.status = "active"; providerSubscription.metadata.dg_premium_apps = "growth_suite";
+  const session = completedSession(); session.metadata.dg_premium_apps = "growth_suite";
+  let reads = 0; subscriptionReadHook = async () => { reads++; };
+  await provisionFromPlatformCheckout(session);
+  assert.equal(reads, 1);
+});
+
+test("reused provider snapshot rejects unpaid app metadata before provisioning", async () => {
+  providerSubscription.status = "active"; providerSubscription.metadata.dg_premium_apps = "";
+  const session = completedSession(); session.metadata.dg_premium_apps = "growth_suite";
+  await assert.rejects(provisionFromPlatformCheckout(session), /Paid app entitlement missing/);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});

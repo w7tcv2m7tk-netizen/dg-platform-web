@@ -93,3 +93,21 @@ for (const replayLost of [false, true]) {
     assert.equal(accepted.size, 1); assert.equal([...accepted.values()][0].expires_at, expiry);
   });
 }
+
+
+test("Stripe SDK read timeout options reach the transport without retries", async () => {
+  let calls = 0, fail = false;
+  const stripe = new Stripe("sk_test_transport_fixture", { httpClient: {
+    getClientName: () => "isolated-read-fixture",
+    makeRequest: async (_host, _port, path, method, _headers, _body, _protocol, timeout) => {
+      calls++; assert.equal(method, "GET"); assert.match(path, /sub_read_budget/); assert.equal(timeout, 5000);
+      if (fail) throw Object.assign(new Error("mock transport timeout"), { code: "ETIMEDOUT" });
+      return { getStatusCode: () => 200, getHeaders: () => ({}), getRawResponse: () => ({}), toJSON: async () => ({ id: "sub_read_budget", object: "subscription" }) };
+    },
+  } });
+  const subscription = await stripe.subscriptions.retrieve("sub_read_budget", { timeout: 5000, maxNetworkRetries: 0 });
+  assert.equal(subscription.id, "sub_read_budget"); assert.equal(calls, 1);
+  fail = true; calls = 0;
+  await assert.rejects(stripe.subscriptions.retrieve("sub_read_budget", { timeout: 5000, maxNetworkRetries: 0 }), error => error.type === "StripeConnectionError");
+  assert.equal(calls, 1); // A timeout is retried by webhook delivery, never inside the transaction.
+});

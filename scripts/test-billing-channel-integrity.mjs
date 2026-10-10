@@ -40,7 +40,8 @@ test("paid app selection is copied onto the Stripe subscription", () => {
 });
 
 test("webhook provisioning verifies paid app entitlement against Stripe subscription", () => {
-  assert.match(stripe, /stripe\.subscriptions\.retrieve\(input\.subscriptionId\)/);
+  assert.match(stripe, /subscriptions\.retrieve\(stripeSubscriptionId,/);
+  assert.match(stripe, /const subscription = input\.subscription/);
   assert.match(stripe, /Paid app entitlement missing from Stripe subscription/);
   const verify = stripe.indexOf("paidAppsFromAuthoritativeSubscription");
   const selection = stripe.indexOf("const selection: PlanSelectionInput");
