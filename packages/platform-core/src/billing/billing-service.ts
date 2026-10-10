@@ -3,7 +3,9 @@
  * Never: Stripe failed → wipe organisation.
  */
 
-import type Stripe from "stripe";
+import Stripe from "stripe";
+import type { Prisma } from "@dg/database";
+import { withProjectionTransaction, type ProjectionRead } from "./projection-transaction";
 
 import {
   appendSubscriptionEvent,
@@ -14,7 +16,6 @@ import {
 import {
   DUNNING_DAYS,
   RETENTION_DAYS_AFTER_CANCEL,
-  TRIAL_PERIOD_DAYS,
   daysBetween,
   dunningStatusForAgeDays,
   entitlementFromCommercialStatus,
@@ -84,8 +85,8 @@ async function mirrorToOrganisation(input: {
   stripeSubscriptionId?: string | null;
   entitlementsSuspended: boolean;
   suspendedAt?: string | null;
-}) {
-  const { prisma } = await import("@dg/database");
+}, database?: Prisma.TransactionClient) {
+  const prisma = database ?? (await import("@dg/database")).prisma;
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
     select: { settings: true },
@@ -128,18 +129,18 @@ export function commercialStatusFromStripeSubscription(
   ) {
     return "CANCELLED";
   }
+  if (!["active", "trialing", "past_due"].includes(subscription.status)) return "SUSPENDED";
+  if (subscription.status === "past_due") return "PAYMENT_FAILED";
   if (subscription.cancel_at_period_end) {
     return "CANCEL_AT_PERIOD_END";
   }
   if (subscription.status === "trialing") return "TRIALING";
-  if (subscription.status === "past_due") return "PAYMENT_FAILED";
   if (subscription.status === "active") return "ACTIVE";
-  // incomplete / paused — keep collecting; treat as trialing-like warning
-  if (subscription.status === "incomplete") return "TRIALING";
-  return "ACTIVE";
+  // Incomplete, paused and unknown provider states do not establish active access.
+  return "SUSPENDED";
 }
 
-export async function applyStripeSubscriptionProjection(input: {
+type SubscriptionProjectionInput = {
   organisationId: string;
   subscription: Stripe.Subscription;
   eventKind: "created" | "updated" | "deleted";
@@ -147,17 +148,40 @@ export async function applyStripeSubscriptionProjection(input: {
   foundingCustomer?: boolean;
   platformExempt?: boolean;
   planTier?: string | null;
-}): Promise<PlatformSubscriptionRow> {
-  const { subscription, organisationId } = input;
+};
+
+export async function applyStripeSubscriptionProjection(input: SubscriptionProjectionInput): Promise<PlatformSubscriptionRow> {
+  return withProjectionTransaction(input.organisationId, (database, read) => projectStripeSubscription(input, database, read));
+}
+
+async function projectStripeSubscription(input: SubscriptionProjectionInput, database: Prisma.TransactionClient, read: ProjectionRead, authoritativeSubscription?: Stripe.Subscription): Promise<PlatformSubscriptionRow> {
+  const { organisationId } = input;
+  const existing = await getPlatformSubscription(organisationId, database);
+  const customer = typeof input.subscription.customer === "string" ? input.subscription.customer : input.subscription.customer?.id;
+  if (existing && (existing.stripeSubscriptionId !== input.subscription.id || existing.stripeCustomerId !== customer)) return existing;
+  const prisma = database;
+  if (existing && input.stripeEventId && await prisma.platformSubscriptionEvent.findUnique({
+    where: { stripeEventId: `${input.stripeEventId}:subscription` },
+  })) return existing;
+  const subscription = authoritativeSubscription ?? await read(timeout => new Stripe(process.env.STRIPE_SECRET_KEY ?? "").subscriptions.retrieve(input.subscription.id, { timeout, maxNetworkRetries: 0 }));
+  const authoritativeCustomer = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+  const org = await prisma.organisation.findUniqueOrThrow({ where: { id: organisationId } });
+  if (subscription.id !== input.subscription.id || authoritativeCustomer !== customer ||
+    subscription.livemode !== input.subscription.livemode || subscription.metadata.organisation_id !== organisationId ||
+    subscription.metadata.dg_platform_subscription !== "true" ||
+    (org.billingCustomerId && org.billingCustomerId !== authoritativeCustomer)) {
+    throw new Error("Subscription projection ownership is unconfirmed");
+  }
   const periods = stripeSubPeriods(subscription);
-  const existing = await getPlatformSubscription(organisationId);
+  const eventKind = ["canceled", "incomplete_expired"].includes(subscription.status) ? "deleted" :
+    input.eventKind === "deleted" ? "updated" : input.eventKind;
   const founding =
     input.foundingCustomer ?? existing?.foundingCustomer ?? false;
   const exempt = input.platformExempt ?? existing?.platformExempt ?? false;
 
   let status = commercialStatusFromStripeSubscription(
     subscription,
-    input.eventKind,
+    eventKind,
   );
 
   // Preserve / continue dunning ladder when Stripe reports past_due
@@ -167,11 +191,11 @@ export async function applyStripeSubscriptionProjection(input: {
     if (!founding && !exempt) {
       status = dunningStatusForAgeDays(daysBetween(paymentFailedAt, new Date()));
     }
-  } else if (status === "ACTIVE" || status === "TRIALING") {
+  } else if (["active", "trialing", "incomplete", "paused"].includes(subscription.status)) {
     paymentFailedAt = null;
   }
 
-  if (founding || exempt) {
+  if ((founding || exempt) && ["active", "trialing", "past_due", "unpaid", "canceled", "incomplete_expired"].includes(subscription.status)) {
     if (status === "CANCELLED") {
       // still cancelled
     } else if (status !== "CANCEL_AT_PERIOD_END") {
@@ -179,7 +203,7 @@ export async function applyStripeSubscriptionProjection(input: {
     }
   }
 
-  const entitlement = entitlementFromCommercialStatus(status, {
+  const entitlement = !["active", "trialing", "past_due", "unpaid", "canceled", "incomplete_expired"].includes(subscription.status) ? "NONE" : entitlementFromCommercialStatus(status, {
     foundingOrExempt: founding || exempt,
   });
 
@@ -201,7 +225,7 @@ export async function applyStripeSubscriptionProjection(input: {
     organisationId,
     status,
     entitlement,
-    planTier: input.planTier ?? existing?.planTier ?? null,
+    planTier: subscription.metadata.dg_platform_tier ?? existing?.planTier ?? null,
     stripeCustomerId: customerId,
     stripeSubscriptionId: subscription.id,
     stripeStatus: subscription.status,
@@ -225,7 +249,7 @@ export async function applyStripeSubscriptionProjection(input: {
     platformExempt: exempt,
     day3ReminderAt: paymentFailedAt ? existing?.day3ReminderAt ?? null : null,
     day7ReminderAt: paymentFailedAt ? existing?.day7ReminderAt ?? null : null,
-  });
+  }, database);
 
   await appendSubscriptionEvent({
     organisationId,
@@ -236,11 +260,13 @@ export async function applyStripeSubscriptionProjection(input: {
       ? `${input.stripeEventId}:subscription`
       : null,
     payload: {
+      stripeSubscriptionId: subscription.id,
+      stripeCustomerId: customerId,
       stripeStatus: subscription.status,
       commercialStatus: status,
       entitlement,
     },
-  });
+  }, database);
 
   const entitlementsSuspended =
     entitlement === "READ_ONLY" || entitlement === "NONE";
@@ -256,72 +282,67 @@ export async function applyStripeSubscriptionProjection(input: {
     billingCustomerId: customerId,
     orgStatus,
     subscriptionStatus:
-      input.eventKind === "deleted" ? "cancelled" : subscription.status,
+      eventKind === "deleted" ? "cancelled" : subscription.status,
     stripeSubscriptionId: subscription.id,
     entitlementsSuspended,
     suspendedAt: entitlementsSuspended ? now.toISOString() : null,
-  });
+  }, database);
 
   return row;
 }
 
 /** invoice.payment_failed — enter / refresh payment-failed ladder without hard suspend. */
-export async function applyInvoicePaymentFailed(input: {
+type InvoiceFailureInput = {
   organisationId: string;
   stripeSubscriptionId?: string | null;
   stripeCustomerId?: string | null;
   stripeEventId?: string | null;
   stripeInvoiceId?: string | null;
-}): Promise<PlatformSubscriptionRow | null> {
-  const existing =
-    (await getPlatformSubscription(input.organisationId)) ??
-    null;
-  if (!existing) {
-    // Create minimal row so dunning can start
-    const paymentFailedAt = new Date();
-    const status = dunningStatusForAgeDays(0);
-    const entitlement = entitlementFromCommercialStatus(status);
-    const row = await upsertPlatformSubscription({
-      organisationId: input.organisationId,
-      status,
-      entitlement,
-      stripeCustomerId: input.stripeCustomerId ?? null,
-      stripeSubscriptionId: input.stripeSubscriptionId ?? null,
-      stripeStatus: "past_due",
-      paymentFailedAt,
-      gracePeriodEndsAt: new Date(
-        paymentFailedAt.getTime() + DUNNING_DAYS.restrictedFrom * 86400000,
-      ),
-    });
-    await appendSubscriptionEvent({
-      organisationId: input.organisationId,
-      subscriptionId: row.id,
-      type: "invoice.payment_failed",
-      source: "stripe",
-      stripeEventId: input.stripeEventId ?? null,
-      payload: { stripeInvoiceId: input.stripeInvoiceId },
-    });
-    await mirrorToOrganisation({
-      organisationId: input.organisationId,
-      billingCustomerId: input.stripeCustomerId,
-      orgStatus: "active",
-      subscriptionStatus: "past_due",
-      stripeSubscriptionId: input.stripeSubscriptionId,
-      entitlementsSuspended: false,
-      suspendedAt: null,
-    });
-    return row;
-  }
+};
 
-  if (existing.foundingCustomer || existing.platformExempt) {
-    await appendSubscriptionEvent({
-      organisationId: input.organisationId,
-      subscriptionId: existing.id,
-      type: "invoice.payment_failed.skipped_exempt",
-      source: "stripe",
-      stripeEventId: input.stripeEventId ?? null,
-    });
-    return existing;
+export async function applyInvoicePaymentFailed(input: InvoiceFailureInput): Promise<PlatformSubscriptionRow | null> {
+  return withProjectionTransaction(input.organisationId, (database, read) => projectInvoiceFailure(input, database, read));
+}
+
+async function projectInvoiceFailure(input: InvoiceFailureInput, database: Prisma.TransactionClient, read: ProjectionRead): Promise<PlatformSubscriptionRow | null> {
+  const existing =
+    (await getPlatformSubscription(input.organisationId, database)) ??
+    null;
+  // An invoice cannot establish ownership, create a subscription, resurrect a
+  // terminal purchase, or replace the current subscription with historical IDs.
+  if (!existing || !input.stripeSubscriptionId || !input.stripeCustomerId ||
+    existing.stripeSubscriptionId !== input.stripeSubscriptionId || existing.stripeCustomerId !== input.stripeCustomerId ||
+    ["canceled", "incomplete_expired", "incomplete", "paused"].includes(existing.stripeStatus ?? "") ||
+    existing.status === "CANCELLED") return existing;
+  const prisma = database;
+  if (input.stripeEventId && await prisma.platformSubscriptionEvent.findUnique({ where: { stripeEventId: input.stripeEventId } })) return existing;
+
+  if (!input.stripeInvoiceId) return existing;
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "");
+  const invoice = await read(timeout => stripe.invoices.retrieve(input.stripeInvoiceId!, { timeout, maxNetworkRetries: 0 }));
+  const subscription = await read(timeout => stripe.subscriptions.retrieve(input.stripeSubscriptionId!, { timeout, maxNetworkRetries: 0 }));
+  const invoiceCustomer = typeof invoice.customer === "string" ? invoice.customer : invoice.customer?.id;
+  const invoiceSubscription = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  const subscriptionCustomer = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
+  if (invoice.id !== input.stripeInvoiceId || invoiceCustomer !== existing.stripeCustomerId ||
+    invoiceSubscription !== existing.stripeSubscriptionId || subscription.id !== existing.stripeSubscriptionId ||
+    subscriptionCustomer !== existing.stripeCustomerId || invoice.livemode !== subscription.livemode ||
+    subscription.metadata.organisation_id !== input.organisationId || subscription.metadata.dg_platform_subscription !== "true") {
+    throw new Error("Invoice failure ownership is unconfirmed");
+  }
+  const latestInvoice = typeof subscription.latest_invoice === "string" ? subscription.latest_invoice : subscription.latest_invoice?.id;
+  const genuinelyFailed = invoice.status === "open" && !invoice.paid && invoice.amount_remaining > 0 &&
+    latestInvoice === invoice.id && subscription.status === "past_due";
+  if (!genuinelyFailed || existing.foundingCustomer || existing.platformExempt) {
+    const row = existing.foundingCustomer || existing.platformExempt ? existing : await projectStripeSubscription({
+      organisationId: input.organisationId, subscription: { ...subscription, id: input.stripeSubscriptionId, customer: input.stripeCustomerId },
+      eventKind: "updated", stripeEventId: input.stripeEventId,
+    }, database, read, subscription);
+    await appendSubscriptionEvent({ organisationId: input.organisationId, subscriptionId: row.id,
+      type: "invoice.payment_failed.ignored", source: "stripe", stripeEventId: input.stripeEventId,
+      payload: { stripeInvoiceId: invoice.id, stripeSubscriptionId: subscription.id, invoiceStatus: invoice.status, stripeStatus: subscription.status },
+    }, database);
+    return row;
   }
 
   const paymentFailedAt = existing.paymentFailedAt ?? new Date();
@@ -350,7 +371,7 @@ export async function applyInvoicePaymentFailed(input: {
     trialEnd: existing.trialEnd,
     currentPeriodStart: existing.currentPeriodStart,
     currentPeriodEnd: existing.currentPeriodEnd,
-  });
+  }, database);
 
   await appendSubscriptionEvent({
     organisationId: input.organisationId,
@@ -359,7 +380,7 @@ export async function applyInvoicePaymentFailed(input: {
     source: "stripe",
     stripeEventId: input.stripeEventId ?? null,
     payload: { stripeInvoiceId: input.stripeInvoiceId, commercialStatus: status },
-  });
+  }, database);
 
   await mirrorToOrganisation({
     organisationId: input.organisationId,
@@ -372,7 +393,7 @@ export async function applyInvoicePaymentFailed(input: {
       entitlement === "READ_ONLY" || entitlement === "NONE"
         ? new Date().toISOString()
         : null,
-  });
+  }, database);
 
   return row;
 }
@@ -380,75 +401,46 @@ export async function applyInvoicePaymentFailed(input: {
 /** invoice.paid recovery — clear dunning when subscription is healthy. */
 export async function applyInvoicePaidRecovery(input: {
   organisationId: string;
+  stripeSubscriptionId?: string | null;
+  stripeCustomerId?: string | null;
   stripeEventId?: string | null;
 }): Promise<PlatformSubscriptionRow | null> {
-  const existing = await getPlatformSubscription(input.organisationId);
-  if (!existing) return null;
-  if (
-    existing.status !== "PAYMENT_FAILED" &&
-    existing.status !== "PAST_DUE" &&
-    existing.status !== "RESTRICTED" &&
-    existing.status !== "SUSPENDED"
-  ) {
-    return existing;
-  }
-
-  const status: PlatformCommercialStatus = existing.cancelAtPeriodEnd
-    ? "CANCEL_AT_PERIOD_END"
-    : "ACTIVE";
-  const entitlement = entitlementFromCommercialStatus(status, {
-    foundingOrExempt: existing.foundingCustomer || existing.platformExempt,
+  return withProjectionTransaction(input.organisationId, async (database, read) => {
+    const existing = await getPlatformSubscription(input.organisationId, database);
+    if (!existing || !input.stripeSubscriptionId || !input.stripeCustomerId ||
+      existing.stripeSubscriptionId !== input.stripeSubscriptionId || existing.stripeCustomerId !== input.stripeCustomerId) return existing;
+    if (input.stripeEventId && await database.platformSubscriptionEvent.findUnique({
+      where: { stripeEventId: `${input.stripeEventId}:recovery` },
+    })) return existing;
+    // Payment of a historical invoice is not current subscription health.
+    const subscription = await read(timeout => new Stripe(process.env.STRIPE_SECRET_KEY ?? "").subscriptions.retrieve(input.stripeSubscriptionId!, { timeout, maxNetworkRetries: 0 }));
+    const row = await projectStripeSubscription({ organisationId: input.organisationId, subscription: {
+      ...subscription, id: input.stripeSubscriptionId, customer: input.stripeCustomerId,
+    }, eventKind: "updated", stripeEventId: input.stripeEventId }, database, read, subscription);
+    await appendSubscriptionEvent({ organisationId: input.organisationId, subscriptionId: row.id,
+      type: ["active", "trialing"].includes(row.stripeStatus ?? "") ? "invoice.paid.recovered" : "invoice.paid.observed", source: "stripe",
+      stripeEventId: input.stripeEventId ? `${input.stripeEventId}:recovery` : null,
+      payload: { stripeSubscriptionId: row.stripeSubscriptionId, stripeStatus: row.stripeStatus, entitlement: row.entitlement },
+    }, database);
+    return row;
   });
-
-  const row = await upsertPlatformSubscription({
-    organisationId: input.organisationId,
-    status,
-    entitlement,
-    paymentFailedAt: null,
-    gracePeriodEndsAt: null,
-    restrictedAt: null,
-    suspendedAt: null,
-    day3ReminderAt: null,
-    day7ReminderAt: null,
-    stripeStatus: "active",
-    foundingCustomer: existing.foundingCustomer,
-    platformExempt: existing.platformExempt,
-    planTier: existing.planTier,
-    stripeCustomerId: existing.stripeCustomerId,
-    stripeSubscriptionId: existing.stripeSubscriptionId,
-    cancelAtPeriodEnd: existing.cancelAtPeriodEnd,
-    trialStart: existing.trialStart,
-    trialEnd: existing.trialEnd,
-    currentPeriodStart: existing.currentPeriodStart,
-    currentPeriodEnd: existing.currentPeriodEnd,
-  });
-
-  await appendSubscriptionEvent({
-    organisationId: input.organisationId,
-    subscriptionId: row.id,
-    type: "invoice.paid.recovered",
-    source: "stripe",
-    stripeEventId: input.stripeEventId
-      ? `${input.stripeEventId}:recovery`
-      : null,
-  });
-
-  await mirrorToOrganisation({
-    organisationId: input.organisationId,
-    orgStatus: "active",
-    subscriptionStatus: "active",
-    stripeSubscriptionId: row.stripeSubscriptionId,
-    entitlementsSuspended: false,
-    suspendedAt: null,
-  });
-
-  return row;
 }
 
 /** Cron: advance dunning stages + set reminder flags (no email send). */
-export async function advanceDunningForSubscription(
+export async function advanceDunningForSubscription(row: PlatformSubscriptionRow, now = new Date()): Promise<PlatformSubscriptionRow | null> {
+  return withProjectionTransaction(row.organisationId, async database => {
+    const current = await getPlatformSubscription(row.organisationId, database);
+    if (!current || current.stripeSubscriptionId !== row.stripeSubscriptionId ||
+      current.stripeCustomerId !== row.stripeCustomerId || current.status === "CANCELLED" ||
+      ["canceled", "incomplete_expired", "incomplete", "paused"].includes(current.stripeStatus ?? "")) return current;
+    return advanceCurrentDunning(current, now, database);
+  });
+}
+
+async function advanceCurrentDunning(
   row: PlatformSubscriptionRow,
-  now = new Date(),
+  now: Date,
+  database: Prisma.TransactionClient,
 ): Promise<PlatformSubscriptionRow | null> {
   if (row.foundingCustomer || row.platformExempt || !row.paymentFailedAt) {
     return row;
@@ -494,7 +486,7 @@ export async function advanceDunningForSubscription(
     trialEnd: row.trialEnd,
     currentPeriodStart: row.currentPeriodStart,
     currentPeriodEnd: row.currentPeriodEnd,
-  });
+  }, database);
 
   if (nextStatus !== row.status) {
     await appendSubscriptionEvent({
@@ -503,7 +495,7 @@ export async function advanceDunningForSubscription(
       type: `dunning.${nextStatus.toLowerCase()}`,
       source: "system",
       payload: { ageDays: age, from: row.status, to: nextStatus },
-    });
+    }, database);
   }
 
   await mirrorToOrganisation({
@@ -516,7 +508,7 @@ export async function advanceDunningForSubscription(
       entitlement === "READ_ONLY" || entitlement === "NONE"
         ? now.toISOString()
         : null,
-  });
+  }, database);
 
   return updated;
 }
@@ -528,18 +520,24 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
   planTier: string;
   foundingCustomer?: boolean;
   platformExempt?: boolean;
-  trialStart?: Date | null;
-  trialEnd?: Date | null;
+  trialStart: Date | null;
+  trialEnd: Date | null;
+  stripeStatus: "active" | "trialing";
+  cancelAtPeriodEnd: boolean;
+  currentPeriodStart: Date | null;
+  currentPeriodEnd: Date | null;
   stripeEventId?: string | null;
-}): Promise<PlatformSubscriptionRow> {
-  const trialEnd =
-    input.trialEnd ??
-    new Date(Date.now() + TRIAL_PERIOD_DAYS * 86400000);
-  const trialStart = input.trialStart ?? new Date();
+}, database?: Prisma.TransactionClient): Promise<PlatformSubscriptionRow> {
+  const existing = await getPlatformSubscription(input.organisationId, database);
+  if (existing?.stripeSubscriptionId && existing.stripeSubscriptionId !== input.stripeSubscriptionId &&
+    !(existing.status === "CANCELLED" && ["canceled", "incomplete_expired"].includes(existing.stripeStatus ?? ""))) {
+    throw new Error("Checkout cannot replace the current subscription");
+  }
   const founding = input.foundingCustomer ?? false;
   const exempt = input.platformExempt ?? false;
   const status: PlatformCommercialStatus =
-    founding || exempt ? "ACTIVE" : "TRIALING";
+    input.cancelAtPeriodEnd ? "CANCEL_AT_PERIOD_END" :
+      founding || exempt || input.stripeStatus === "active" ? "ACTIVE" : "TRIALING";
   const entitlement = entitlementFromCommercialStatus(status, {
     foundingOrExempt: founding || exempt,
   });
@@ -551,13 +549,16 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
     planTier: input.planTier,
     stripeCustomerId: input.stripeCustomerId,
     stripeSubscriptionId: input.stripeSubscriptionId ?? null,
-    stripeStatus: founding || exempt ? "active" : "trialing",
-    trialStart: founding || exempt ? null : trialStart,
-    trialEnd: founding || exempt ? null : trialEnd,
+    stripeStatus: input.stripeStatus,
+    trialStart: founding || exempt ? null : input.trialStart,
+    trialEnd: founding || exempt ? null : input.trialEnd,
+    cancelAtPeriodEnd: input.cancelAtPeriodEnd,
+    currentPeriodStart: input.currentPeriodStart,
+    currentPeriodEnd: input.currentPeriodEnd,
     paymentFailedAt: null,
     foundingCustomer: founding,
     platformExempt: exempt,
-  });
+  }, database);
 
   await appendSubscriptionEvent({
     organisationId: input.organisationId,
@@ -568,7 +569,7 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
       ? `${input.stripeEventId}:checkout`
       : null,
     payload: { planTier: input.planTier, status },
-  });
+  }, database);
 
   return row;
 }
