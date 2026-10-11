@@ -9,9 +9,9 @@ import type { RoadmapItem, RoadmapStatus } from "./index";
  * This deliberately does not infer "done" merely because a route exists.
  */
 export const CERTIFIED_ROADMAP_STATUS: Record<string, RoadmapStatus> = {
-  // Native Gen 2 is now the normal runtime; the former WordPress detachment programme is closed.
+  // Preserve historical native-runtime milestones; billing release verification remains open.
   "detach.roe_sot": "done",
-  "detach.portal_billing": "done",
+  "detach.portal_billing": "in_progress",
   "detach.support_health": "done",
   "detach.cvh_bookings": "done",
   "detach.public_headless": "done",
@@ -30,6 +30,12 @@ export const CERTIFIED_ROADMAP_STATUS: Record<string, RoadmapStatus> = {
   "command.clients.detail": "done",
   "command.revenue": "done",
   "platform.roadmap": "done",
+
+  // 12 October 2026: code/records exist, but operational completion is not verified.
+  // The six-state verification register and evidence live in docs/ROADMAP.md.
+  "growth.reports": "in_progress",
+  "comms.voice": "in_progress",
+  "comms.agents": "in_progress",
 };
 
 const DESCRIPTION_OVERRIDES: Record<string, string> = {
@@ -52,7 +58,13 @@ const DESCRIPTION_OVERRIDES: Record<string, string> = {
   "detach.roe_sot":
     "Native Gen 2 is authoritative for normal Real Estate customer journeys; WordPress is not normal runtime authority.",
   "detach.portal_billing":
-    "Native Gen 2 billing, entitlements and onboarding checkout own the customer subscription path.",
+    "PR #1006 is the sole checkout release candidate. Native billing implementation exists; migrations, legacy isolation, hosted test-mode signup/payment and production release remain gated. See docs/ROADMAP.md.",
+  "growth.reports":
+    "Report snapshots and tenant-safe access merged in #997; production prospect_snapshot/revoked_at columns were absent in the 11 October read-only audit. Schema alignment and deployed workflow verification remain blocked.",
+  "comms.voice":
+    "ElevenLabs adapter and three published agent records exist; current telephony, tool/webhook continuity and deeper Brain context are not operationally verified. See docs/ROADMAP.md.",
+  "comms.agents":
+    "Agent Builder and receptionist configuration exist. Published provider IDs are implementation evidence, not proof of end-to-end qualification or production readiness.",
   "detach.support_health":
     "Native support and health surfaces operate without WordPress as normal runtime authority.",
   "detach.cvh_bookings":
@@ -77,7 +89,7 @@ export function reconcileRoadmapItems(items: RoadmapItem[]): RoadmapItem[] {
 }
 
 
-/** IDs whose displayed status is backed by explicit remediation/certification evidence. */
+/** Historical API name: IDs with explicit reconciliation overrides, including open verification work. */
 export function certifiedRoadmapIds(): string[] {
   return Object.keys(CERTIFIED_ROADMAP_STATUS);
 }
