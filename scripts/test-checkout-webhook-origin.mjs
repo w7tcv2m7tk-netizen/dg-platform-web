@@ -85,3 +85,115 @@ for (const type of ["checkout.session.expired", "payment_intent.payment_failed"]
     }
   });
 }
+
+for (const type of ["invoice.paid", "invoice.payment_failed", "invoice.payment_action_required"]) {
+  for (const version of ["2025-02-24.acacia", "2026-05-27.dahlia"]) {
+    for (const expanded of [false, true]) test(`${version} ${type} resolves signed canonical invoice identities; expanded=${expanded}`, async () => {
+      const previous = { key: process.env.STRIPE_SECRET_KEY, secret: process.env.STRIPE_WEBHOOK_SECRET };
+      process.env.STRIPE_SECRET_KEY = "sk_test_no_network"; process.env.STRIPE_WEBHOOK_SECRET = "whsec_isolated_fixture";
+      try {
+        const subscription = expanded ? { id: "sub_canonical" } : "sub_canonical";
+        const metadata = { organisation_id: "owner", dg_platform_tier: "professional" };
+        const invoice = { id: "in_fixture", customer: expanded ? { id: "cus_canonical" } : "cus_canonical",
+          metadata: { organisation_id: "wrong_fallback" }, currency: "aud", amount_paid: 24900, amount_due: 24900,
+          ...(version.includes("dahlia") ? { parent: { type: "subscription_details", subscription_details: { subscription, metadata } } }
+            : { subscription, subscription_details: { metadata } }) };
+        const payload = JSON.stringify({ id: "evt_invoice", type, api_version: version, created: 1700000000,
+          account: "acct_connected", data: { object: invoice } });
+        const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_WEBHOOK_SECRET });
+        const event = await new StripePaymentConnector().parseWebhook(payload, { "stripe-signature": signature });
+        assert.equal(event.stripeSubscriptionId, "sub_canonical"); assert.equal(event.providerCustomerId, "cus_canonical");
+        assert.equal(event.organisationId, "owner"); assert.equal(event.connectAccountId, "acct_connected");
+        assert.equal(event.providerEventId, "evt_invoice"); assert.equal(event.stripeInvoiceId, "in_fixture");
+      } finally {
+        for (const [name, value] of [["STRIPE_SECRET_KEY", previous.key], ["STRIPE_WEBHOOK_SECRET", previous.secret]]) {
+          if (value === undefined) delete process.env[name]; else process.env[name] = value;
+        }
+      }
+    });
+  }
+}
+
+test("Dahlia commerce subscription projects common item billing periods", async () => {
+  const source = ts.transpileModule(readFileSync("packages/platform-core/src/commerce/subscription-sync.ts", "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const exports = {}; let captured;
+  vm.runInNewContext(source, { exports, require: () => ({ upsertCommerceSubscription: async input => { captured = input; return { id: "commerce" }; } }), Date });
+  await exports.syncCommerceSubscriptionFromStripe({ organisationId: "trusted_owner", subscription: {
+    id: "sub_commerce", status: "active", customer: "cus_commerce", currency: "aud", metadata: { dg_commerce_subscription: "true", organisation_id: "untrusted_owner" },
+    items: { data: [{ current_period_start: 1700000000, current_period_end: 1700604800, price: { unit_amount: 100, recurring: { interval: "month" } } }] },
+  } });
+  assert.equal(captured.organisationId, "trusted_owner");
+  assert.equal(captured.currentPeriodStart?.getTime(), 1700000000000); assert.equal(captured.currentPeriodEnd?.getTime(), 1700604800000);
+});
+
+for (const conflict of ["different_ids", "missing_parent_id", "non_subscription_parent"]) test(`invoice parent ${conflict} cannot supply an unverified subscription identity`, async () => {
+  const key = process.env.STRIPE_SECRET_KEY, secret = process.env.STRIPE_WEBHOOK_SECRET;
+  process.env.STRIPE_SECRET_KEY = "sk_test_no_network"; process.env.STRIPE_WEBHOOK_SECRET = "whsec_fixture";
+  try {
+    const invoice = { id: "in_conflict", customer: "cus_fixture", subscription: "sub_legacy",
+      parent: { type: conflict === "non_subscription_parent" ? "quote_details" : "subscription_details",
+        subscription_details: { subscription: conflict === "missing_parent_id" ? null : "sub_current" } } };
+    const payload = JSON.stringify({ id: "evt_conflict", type: "invoice.paid", created: 1700000000, data: { object: invoice } });
+    const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_WEBHOOK_SECRET });
+    const parse = () => new StripePaymentConnector().parseWebhook(payload, { "stripe-signature": signature });
+    if (conflict === "non_subscription_parent") assert.equal((await parse()).stripeSubscriptionId, undefined);
+    else await assert.rejects(parse(), /identity is unconfirmed/);
+  } finally {
+    if (key === undefined) delete process.env.STRIPE_SECRET_KEY; else process.env.STRIPE_SECRET_KEY = key;
+    if (secret === undefined) delete process.env.STRIPE_WEBHOOK_SECRET; else process.env.STRIPE_WEBHOOK_SECRET = secret;
+  }
+});
+
+for (const type of ["customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted", "customer.subscription.paused", "customer.subscription.resumed"]) test(`Dahlia ${type} retains identity and account provenance`, async () => {
+  const key = process.env.STRIPE_SECRET_KEY, secret = process.env.STRIPE_WEBHOOK_SECRET;
+  process.env.STRIPE_SECRET_KEY = "sk_test_no_network"; process.env.STRIPE_WEBHOOK_SECRET = "whsec_fixture";
+  try {
+    const payload = JSON.stringify({ id: `evt_${type}`, type, api_version: "2026-05-27.dahlia", account: "acct_owner", created: 1700000000,
+      data: { object: { id: "sub_current", customer: { id: "cus_current" }, status: type.endsWith("deleted") ? "canceled" : "active",
+        metadata: { organisation_id: "metadata_hint" }, items: { data: [{ current_period_start: 1700000000, current_period_end: 1700604800 }] } } } });
+    const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_WEBHOOK_SECRET });
+    const event = await new StripePaymentConnector().parseWebhook(payload, { "stripe-signature": signature });
+    assert.equal(event.type, type.endsWith("created") ? "subscription.created" : type.endsWith("deleted") ? "subscription.cancelled" : "subscription.updated");
+    assert.equal(event.stripeSubscriptionId, "sub_current"); assert.equal(event.providerCustomerId, "cus_current");
+    assert.equal(event.connectAccountId, "acct_owner"); assert.equal(event.providerEventId, `evt_${type}`);
+  } finally {
+    if (key === undefined) delete process.env.STRIPE_SECRET_KEY; else process.env.STRIPE_SECRET_KEY = key;
+    if (secret === undefined) delete process.env.STRIPE_WEBHOOK_SECRET; else process.env.STRIPE_WEBHOOK_SECRET = secret;
+  }
+});
+
+for (const type of ["invoice.paid", "invoice.payment_failed", "invoice.payment_action_required"]) test(`actual POST cannot apply connected-account ${type} to platform billing`, async () => {
+  let billingWrites = 0;
+  const event = { type, providerEventId: `evt_${type}`, connectAccountId: "acct_attacker", organisationId: "victim",
+    providerCustomerId: "cus_victim", stripeSubscriptionId: "sub_victim", raw: { metadata: {} } };
+  const platform = { bootPaymentConnectors() {}, requirePaymentConnector: () => ({ parseWebhook: async () => event }),
+    prismaReceiptStore: () => ({}), withWebhookReceiptState: async ({ handle }) => ({ result: await handle() }),
+    applyInvoicePaymentFailed: async () => { billingWrites++; }, applyInvoicePaidRecovery: async () => { billingWrites++; },
+    processPaymentWebhookEvent: async () => ({ ok: false, reason: "ignored" }) };
+  const source = ts.transpileModule(readFileSync("src/app/api/webhooks/stripe/route.ts", "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const exports = {};
+  vm.runInNewContext(source, { exports, require: name => name === "@dg/platform-core" ? platform : { NextResponse: { json: Response.json } },
+    Response, process: { env: { STRIPE_SECRET_KEY: "sk_test_fixture", STRIPE_WEBHOOK_SECRET: "whsec_fixture" } }, console: { info() {}, error() {} } });
+  const response = await exports.POST(new Request("https://fixture.test/webhook", { method: "POST", body: "fixture" }));
+  assert.equal(response.status, 200); assert.equal(billingWrites, 0);
+});
+
+for (const version of ["legacy", "different_item_periods"]) test(`commerce billing periods preserve ${version} semantics`, async () => {
+  const source = ts.transpileModule(readFileSync("packages/platform-core/src/commerce/subscription-sync.ts", "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const exports = {}; let captured;
+  vm.runInNewContext(source, { exports, require: () => ({ upsertCommerceSubscription: async input => { captured = input; return { id: "fixture" }; } }), Date });
+  await exports.syncCommerceSubscriptionFromStripe({ organisationId: "trusted_owner", subscription: {
+    id: "sub_fixture", status: "active", customer: "cus_fixture", metadata: { dg_commerce_subscription: "true" },
+    ...(version === "legacy" ? { current_period_start: 1700000000, current_period_end: 1700604800 } : {}),
+    items: { data: [{ current_period_start: 1700000100, current_period_end: 1700604900, price: {} },
+      { current_period_start: 1700000200, current_period_end: 1700605000, price: {} }] },
+  } });
+  assert.equal(captured.currentPeriodStart?.getTime() ?? null, version === "legacy" ? 1700000000000 : null);
+  assert.equal(captured.currentPeriodEnd?.getTime() ?? null, version === "legacy" ? 1700604800000 : null);
+});

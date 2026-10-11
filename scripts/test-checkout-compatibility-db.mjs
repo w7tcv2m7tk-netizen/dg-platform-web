@@ -755,3 +755,49 @@ test("reused provider snapshot rejects unpaid app metadata before provisioning",
   await assert.rejects(provisionFromPlatformCheckout(session), /Paid app entitlement missing/);
   assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
 });
+
+for (const kind of ["invoice.payment_failed", "invoice.paid", "invoice.payment_action_required"]) test(`signed Dahlia ${kind} reaches canonical production projection`, async () => {
+  providerSubscription.status = "active"; await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = "past_due";
+  await applyInvoicePaymentFailed({ organisationId: org.id, stripeSubscriptionId: providerSubscription.id,
+    stripeCustomerId: providerSubscription.customer, stripeEventId: `evt_dahlia_initial_${kind}` });
+  if (kind === "invoice.paid") { providerSubscription.status = "active"; providerInvoice.status = "paid"; providerInvoice.paid = true; providerInvoice.amount_remaining = 0; }
+  const previousSecret = process.env.STRIPE_WEBHOOK_SECRET; process.env.STRIPE_WEBHOOK_SECRET = "whsec_local_fixture";
+  try {
+    const payload = JSON.stringify({ id: `evt_dahlia_${kind}`, type: kind, api_version: "2026-05-27.dahlia", created: 1700000000,
+      data: { object: { ...providerInvoice, subscription: undefined,
+        parent: { type: "subscription_details", subscription_details: { subscription: providerSubscription.id, metadata: providerSubscription.metadata } } } } });
+    const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_WEBHOOK_SECRET });
+    const event = await new StripePaymentConnector().parseWebhook(payload, { "stripe-signature": signature });
+    const input = { organisationId: event.organisationId, stripeSubscriptionId: event.stripeSubscriptionId,
+      stripeCustomerId: event.providerCustomerId, stripeEventId: event.providerEventId, stripeInvoiceId: event.stripeInvoiceId };
+    const project = kind === "invoice.paid" ? applyInvoicePaidRecovery : applyInvoicePaymentFailed;
+    await project(input); await project(input);
+    const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+    assert.equal(row.status, kind === "invoice.paid" ? "ACTIVE" : "PAYMENT_FAILED");
+    assert.equal(row.stripeSubscriptionId, providerSubscription.id); assert.equal(row.stripeCustomerId, providerSubscription.customer);
+    assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: kind === "invoice.paid" ? `${input.stripeEventId}:recovery` : input.stripeEventId } }), 1);
+  } finally { if (previousSecret === undefined) delete process.env.STRIPE_WEBHOOK_SECRET; else process.env.STRIPE_WEBHOOK_SECRET = previousSecret; }
+});
+
+for (const state of ["paused", "resumed"]) test(`signed Dahlia subscription ${state} projects authoritative access`, async () => {
+  providerSubscription.status = "active"; await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.status = state === "paused" ? "paused" : "active";
+  if (state === "resumed") {
+    await prisma.platformSubscription.update({ where: { organisationId: org.id }, data: { status: "SUSPENDED", entitlement: "NONE", stripeStatus: "paused" } });
+  }
+  const previousSecret = process.env.STRIPE_WEBHOOK_SECRET; process.env.STRIPE_WEBHOOK_SECRET = "whsec_local_fixture";
+  try {
+    const payload = JSON.stringify({ id: `evt_dahlia_${state}`, type: `customer.subscription.${state}`, api_version: "2026-05-27.dahlia", created: 1700000000,
+      data: { object: { ...providerSubscription, current_period_start: undefined, current_period_end: undefined,
+        items: { data: [{ current_period_start: 1700000000, current_period_end: 1700604800 }] } } } });
+    const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_WEBHOOK_SECRET });
+    const event = await new StripePaymentConnector().parseWebhook(payload, { "stripe-signature": signature });
+    assert.equal(event.type, "subscription.updated");
+    await handlePlatformSubscriptionLifecycle(event.raw, "updated", event.providerEventId);
+    await handlePlatformSubscriptionLifecycle(event.raw, "updated", event.providerEventId);
+    const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+    assert.equal(row.entitlement, state === "paused" ? "NONE" : "FULL"); assert.equal(row.stripeStatus, providerSubscription.status);
+    assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: `${event.providerEventId}:subscription` } }), 1);
+  } finally { if (previousSecret === undefined) delete process.env.STRIPE_WEBHOOK_SECRET; else process.env.STRIPE_WEBHOOK_SECRET = previousSecret; }
+});

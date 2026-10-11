@@ -21,6 +21,25 @@ function getStripeClient() {
   return new Stripe(secretKey);
 }
 
+/** Signed invoice events use either Acacia top-level or Basil/Dahlia parent fields.
+ * Metadata is a routing hint; billing handlers still validate canonical ownership.
+ */
+function invoiceSubscriptionDetails(invoice: Stripe.Invoice) {
+  const parent = (invoice as Stripe.Invoice & { parent?: {
+    type?: string;
+    subscription_details?: { subscription?: string | { id: string } | null; metadata?: Stripe.Metadata | null } | null;
+  } | null }).parent;
+  const legacy = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
+  if (parent) {
+    if (parent.type !== "subscription_details") return { subscriptionId: undefined, metadata: invoice.metadata ?? {} };
+    const details = parent.subscription_details;
+    const subscriptionId = typeof details?.subscription === "string" ? details.subscription : details?.subscription?.id;
+    if (!subscriptionId || (legacy && legacy !== subscriptionId)) throw new Error("Invoice subscription identity is unconfirmed");
+    return { subscriptionId, metadata: details?.metadata ?? invoice.metadata ?? {} };
+  }
+  return { subscriptionId: legacy, metadata: invoice.subscription_details?.metadata ?? invoice.metadata ?? {} };
+}
+
 function stripeLineItems(input: CreateCheckoutSessionInput | CreatePaymentLinkInput) {
   return input.lineItems.map((item) => ({
     quantity: Math.max(1, item.quantity),
@@ -188,13 +207,7 @@ export class StripePaymentConnector implements PaymentConnector {
 
     if (event.type === "invoice.paid") {
       const invoice = event.data.object as Stripe.Invoice;
-      const sub =
-        typeof invoice.subscription === "string"
-          ? invoice.subscription
-          : invoice.subscription?.id;
-      const meta = (invoice.subscription_details?.metadata ??
-        invoice.metadata ??
-        {}) as Record<string, string>;
+      const { subscriptionId: sub, metadata: meta } = invoiceSubscriptionDetails(invoice);
       const organisationId =
         meta.organisation_id ||
         meta.organisationId ||
@@ -227,13 +240,7 @@ export class StripePaymentConnector implements PaymentConnector {
       event.type === "invoice.payment_action_required"
     ) {
       const invoice = event.data.object as Stripe.Invoice;
-      const sub =
-        typeof invoice.subscription === "string"
-          ? invoice.subscription
-          : invoice.subscription?.id;
-      const meta = (invoice.subscription_details?.metadata ??
-        invoice.metadata ??
-        {}) as Record<string, string>;
+      const { subscriptionId: sub, metadata: meta } = invoiceSubscriptionDetails(invoice);
       const customerId =
         typeof invoice.customer === "string"
           ? invoice.customer
@@ -323,7 +330,8 @@ export class StripePaymentConnector implements PaymentConnector {
       };
     }
 
-    if (event.type === "customer.subscription.updated") {
+    if (event.type === "customer.subscription.updated" ||
+      event.type === "customer.subscription.paused" || event.type === "customer.subscription.resumed") {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId =
         typeof subscription.customer === "string"
