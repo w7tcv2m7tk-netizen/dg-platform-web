@@ -9,6 +9,10 @@ These documents capture **why** the platform is built the way it is. They are as
 
 ---
 
+## Development, knowledge and documentation authority
+
+The existing [Roadmap](ROADMAP.md#current-development-register-and-governance--12-october-2026) owns development requirements, approval, six-state verification, remaining work and blockers. Update the affected requirement before task closure; passing tests are not production certification. Business Brain stores explicitly approved business knowledge/rules/strategy, not another task backlog. Platform Docs record supported architecture and verified implementation behaviour, with proposed or undeployed scope labelled. No new system or duplicate register is introduced.
+
 ## Strategy & vision
 
 | Document | Purpose |

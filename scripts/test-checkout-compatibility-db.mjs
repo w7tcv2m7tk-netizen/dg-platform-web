@@ -162,6 +162,37 @@ const completedSession = () => ({ id: "cs_paid_fixture", mode: "subscription", s
   customer: providerSubscription.customer, subscription: providerSubscription.id,
   metadata: { dg_platform_checkout: "true", organisation_id: org.id, dg_platform_tier: "professional" } });
 
+// Production creators and provisioning against disposable PostgreSQL; provider
+// calls remain mocked. These cases do not certify hosted signup or Stripe Prices.
+for (const [tier, cents] of [["starter", 9900], ["professional", 24900], ["business", 49900]]) {
+  test(`current ${tier} catalogue: coordinated checkout, canonical trial and duplicate provisioning`, async () => {
+    await close();
+    await assert.rejects(createPlatformCheckoutSession({ organisationId: org.id, email: "fixture@example.test", platformTier: tier }), CheckoutTemporarilyUnavailable);
+    assert.equal(requests.length, 0);
+    await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = false, revision = revision + 1 WHERE id = 1`;
+    const result = await createPlatformCheckoutSession({ organisationId: org.id, email: "fixture@example.test", platformTier: tier });
+    assert.equal(requests.length, 1);
+    assert.equal(requests[0].line_items[0].price_data.currency, "aud");
+    assert.equal(requests[0].line_items[0].price_data.unit_amount, cents);
+    assert.equal(requests[0].subscription_data.trial_period_days, 14);
+    assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0, "checkout creation cannot activate access");
+    providerSubscription.metadata.dg_platform_tier = tier;
+    const session = { ...completedSession(), id: result.sessionId, metadata: acceptedSessions[0].metadata };
+    Object.assign(acceptedSessions[0], session);
+    await close();
+    await assert.rejects(createPlatformCheckoutSession({ organisationId: org.id, email: "fixture@example.test", platformTier: tier }), /Waiting for subscription confirmation/);
+    await provisionFromPlatformCheckout(session);
+    await provisionFromPlatformCheckout(session);
+    const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+    assert.equal(canonical.stripeSubscriptionId, providerSubscription.id);
+    assert.equal(canonical.stripeCustomerId, providerSubscription.customer);
+    assert.equal(canonical.status, "TRIALING");
+    assert.equal(canonical.entitlement, "FULL");
+    assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 1);
+    assert.equal(requests.length, 1, "closed-gate replay and duplicate completion cannot create another session");
+  });
+}
+
 test("paid zero-trial custom checkout projects ACTIVE without fabricating a trial", async () => {
   Object.assign(providerSubscription, { status: "active", trial_start: null, trial_end: null });
   await close(); await provisionFromPlatformCheckout(completedSession());

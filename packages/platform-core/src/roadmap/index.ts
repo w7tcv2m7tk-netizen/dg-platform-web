@@ -1,6 +1,8 @@
 /**
- * Platform Gen 2 roadmap — single source for progress UI and coming-soon placeholders.
- * Update status here as features ship.
+ * Existing requirement catalogue for progress UI and coming-soon placeholders.
+ * Use the evidence-backed reconciliation layer for current displayed status.
+ * docs/ROADMAP.md records approval, verification, remaining work and blockers;
+ * catalogue progress alone is not production certification or implementation approval.
  */
 
 export type RoadmapStatus = "done" | "in_progress" | "scaffold" | "planned";
