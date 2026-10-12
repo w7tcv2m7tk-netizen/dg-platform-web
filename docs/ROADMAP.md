@@ -349,6 +349,6 @@ You wear several today — that's fine. Document so roles can split later.
 - Scope: reorder existing manifest and shared navigation; preserve routes, permissions, aliases, responsive rendering and highlighting.
 - Implementation: `packages/platform-core/src/apps/navigation.ts` and `packages/platform-core/src/apps/builtins/prospecting.ts`; isolated branch `fix/prospecting-navigation-order`, based on production/main `6793e372`.
 - Verification: regression tests in `scripts/test-prospecting-navigation-order.mjs`; 11/11 navigation tests passed (390px mobile and 1440px desktop, all six active tabs); TypeScript, page hierarchy, full prebuild (886 passing TAP assertions plus script checks), production build and diff checks passed. Changed-file lint: zero errors, three existing warnings. Browser fixture tests are not authenticated production verification.
-- Release evidence: commit, PR, CI and deployment pending.
+- Release evidence: implementation commit `216e4499`; [PR #1012](https://github.com/w7tcv2m7tk-netizen/dg-platform-web/pull/1012). CI and production deployment pending; authenticated production verification remains required.
 - Status: implemented; production verification pending. Not VERIFIED COMPLETE. This navigation correction does not complete the wider Prospecting requirement.
 - Next action: validate the isolated diff, review PR checks, release only the navigation correction, then verify authenticated desktop/mobile navigation and all six routes.
