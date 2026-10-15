@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { runInNewContext } from 'node:vm';
 import { retrieveBriefing } from '../src/lib/business-briefing/retrieval.ts';
 import { briefingEnabled, safeSourceUrl } from '../src/lib/business-briefing/contract.ts';
 import { buildAccessContext, hasPermission } from '../packages/platform-core/src/access/index.ts';
@@ -8,6 +10,94 @@ const scope = { organisationId: 'org-a', businessId: 'org-a' };
 const now = Date.parse('2026-10-09T00:00:00Z');
 const fixture = () => ({ ...scope, version: 1, id: 'test-only', industry: 'real-estate', geography: 'Brisbane', headline: 'Test evidence', generatedAt: '2026-10-08T00:00:00Z', expiresAt: '2026-10-10T00:00:00Z', sources: [{ id: 's', kind: 'external', label: 'Test source', reference: 'Test reference', url: 'https://example.com/evidence', observedAt: '2026-10-08T00:00:00Z' }], insights: [1,2,3].map(n => ({ id: String(n), category: 'industry', title: 'Test', whyItMatters: 'Test rationale', nextAction: 'Review evidence', uncertainty: 'Test uncertainty', sourceIds: ['s'] })) });
 const get = (read, overrides = {}) => retrieveBriefing({ enabled: true, authorisedScope: scope, canView: true, now, read, ...overrides });
+
+async function loadComponent(path, dependencies = {}, globals = {}) {
+  const { default: ts } = await import('typescript');
+  const require = createRequire(import.meta.url);
+  const testModule = { exports: {} };
+  const code = ts.transpileModule(readFileSync(path, 'utf8'), {
+    compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS },
+  }).outputText;
+  runInNewContext(code, { ...globals, module: testModule, exports: testModule.exports,
+    require: id => Object.hasOwn(dependencies, id) ? dependencies[id] : require(id) });
+  return testModule.exports;
+}
+
+test('server boundary skips authentication when OFF and re-resolves scope after organisation switching', async () => {
+  const env = {};
+  let session = null, contextReads = 0;
+  const requests = [];
+  const server = await loadComponent('src/lib/business-briefing/server.ts', {
+    'server-only': {},
+    '@dg/platform-core/access': { buildAccessContext, hasPermission },
+    '@/lib/platform-page-context': { getPlatformPageContext: async () => { contextReads++; return { session }; } },
+    './contract': { briefingEnabled },
+    './retrieval': { retrieveBriefing: input => { requests.push(input); return retrieveBriefing(input); } },
+  }, { process: { env } });
+  assert.equal((await server.getBusinessBriefing()).status, 'disabled');
+  assert.equal(contextReads, 0);
+  env.AIDA_BUSINESS_BRIEFING_ENABLED = 'true';
+  assert.equal((await server.getBusinessBriefing()).status, 'forbidden');
+  for (const organisationId of ['org-a', 'org-b', 'org-a']) {
+    session = { organisationId, role: 'member', clerkUserId: 'user-a', permissionGrants: [] };
+    assert.equal((await server.getBusinessBriefing()).status, 'empty');
+    const request = requests.at(-1);
+    assert.equal(request.authorisedScope.organisationId, organisationId);
+    assert.equal(request.authorisedScope.businessId, organisationId);
+    assert.equal(request.canView, true);
+  }
+  session = null;
+  assert.equal((await server.getBusinessBriefing()).status, 'forbidden');
+  assert.equal(contextReads, 5);
+});
+
+test('Ask Aida only drafts chat; playback and microphone APIs are never invoked', async () => {
+  const drafts = [];
+  const unexpected = () => assert.fail('media activation is outside this feature');
+  const { BusinessBriefing } = await loadComponent('src/components/overview/BusinessBriefing.tsx', {
+    '@/components/platform/ChatWidgetProvider': { useChatWidget: () => ({ openSupportChat: draft => drafts.push(draft) }) },
+    '@/lib/business-briefing/contract': { safeSourceUrl },
+  }, { navigator: { mediaDevices: { getUserMedia: unexpected } },
+    speechSynthesis: { speak: unexpected }, Audio: unexpected, MediaRecorder: unexpected });
+  const flatten = node => Array.isArray(node) ? node.flatMap(flatten) : node?.props ? [node, ...flatten(node.props.children)] : [];
+  for (const state of [{ status: 'empty' }, { status: 'ready', briefing: fixture() }]) {
+    const nodes = flatten(BusinessBriefing({ state }));
+    const buttons = nodes.filter(n => n.type === 'button');
+    assert.equal(buttons[0].props.disabled, true);
+    assert.equal(buttons[0].props.onClick, undefined);
+    assert.equal(drafts.length, state.status === 'empty' ? 0 : 1);
+    buttons[1].props.onClick();
+    assert.equal(nodes.find(n => n.type === 'a' && n.props.href === '#growth-opportunities').props.href, '#growth-opportunities');
+  }
+  assert.equal(drafts.length, 2);
+  assert.match(drafts[0], /business evidence and industry sources/);
+  assert.match(drafts[1], /2026-10-08/);
+});
+
+test('rendered dashboard preserves Growth Performance with OFF, empty and forbidden briefing states', async () => {
+  const { createElement } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { BusinessBriefing } = await loadComponent('src/components/overview/BusinessBriefing.tsx', {
+    '@/components/platform/ChatWidgetProvider': { useChatWidget: () => ({ openSupportChat: () => {} }) },
+    '@/lib/business-briefing/contract': { safeSourceUrl },
+  });
+  const { BusinessOverviewDashboard } = await loadComponent('src/components/overview/BusinessOverviewDashboard.tsx', {
+    'next/link': { default: ({ children, ...props }) => createElement('a', props, children) },
+  });
+  const overview = { priorities: [], insights: [], timeline: [], snapshot: [], goals: [],
+    recommendedActions: [], growthOpportunities: [], connectedSystems: [], scoreBreakdown: [],
+    healthTrend: [], scoresLive: false, greeting: 'Hello', organisationName: 'Synthetic test organisation' };
+  for (const status of ['disabled', 'forbidden', 'empty']) {
+    const html = renderToStaticMarkup(createElement(BusinessOverviewDashboard, { overview,
+      growthScorecard: createElement('section', null, 'Growth Performance'),
+      businessBriefing: createElement(BusinessBriefing, { state: { status } }) }));
+    assert.match(html, /Growth Performance/);
+    if (status === 'empty') {
+      assert.match(html, /No verified business briefing/);
+      assert.ok(html.indexOf('Your Business Briefing') < html.indexOf('Growth Performance'));
+    } else assert.doesNotMatch(html, /Your Business Briefing|Listen to Briefing/);
+  }
+});
 test('flag defaults OFF and accepts only explicit true', async () => {
   for (const v of [undefined, '', 'false', '1', 'TRUE']) assert.equal(briefingEnabled(v), false);
   assert.equal(briefingEnabled('true'), true);
