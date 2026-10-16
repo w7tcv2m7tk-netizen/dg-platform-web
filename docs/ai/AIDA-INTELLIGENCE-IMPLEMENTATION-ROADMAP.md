@@ -1,6 +1,8 @@
 # Aida Intelligence implementation roadmap
 
-Planning only — 2026-10-09, main baseline `5a08e2f76b786d5a45c03565b3816bcf9574971c`. No phase is authorised for implementation by this documentation task. See [Architecture](AIDA-INTELLIGENCE-ARCHITECTURE.md) for contracts/approval decisions and [Capability matrix](AIDA-INTELLIGENCE-CAPABILITY-MATRIX.md) for concrete source evidence and PR status.
+Planning only — originally 2026-10-09; reconciled 2026-10-16 against main `b39ae16528da55162934da11c1411590763ac27c`. No phase is authorised for implementation by this documentation task. See [Architecture](AIDA-INTELLIGENCE-ARCHITECTURE.md) for contracts/approval decisions and [Capability matrix](AIDA-INTELLIGENCE-CAPABILITY-MATRIX.md) for concrete source evidence and PR status.
+
+These phases elaborate the existing approved Slice 5 workstreams under [the canonical roadmap](../ROADMAP.md#ai-gateway-slice-roadmap) and #1002. They do not renumber Gateway slices, duplicate model-routing/governance work, displace Slice 4 or override founding-customer/commercial priorities. [Architecture alignment](AIDA-INTELLIGENCE-ARCHITECTURE.md#relationship-to-approved-architecture-and-priorities) preserves the completed #985 disclosure and exact-observation contracts.
 
 ## Dependency graph
 
@@ -14,7 +16,7 @@ flowchart TD
     P4 --> P5[P5: conversational intelligence]
     P5 --> P6[P6: voice and proactive intelligence]
     U[Optional unmerged PR 1009: briefing presentation] -.-> P4
-    D[Optional unmerged PR 1005: diagnostics validator lessons] -.-> P1
+    D[Merged PR 1005: optional validator lessons] -.-> P1
     C[Unmerged PRs 1008 and 1006: commercial release gates] -.-> P0
 ```
 
@@ -43,7 +45,7 @@ AIM Financial and My Venue Clean adapter implementation/data validation is a sep
 
 **Required work:** independently review current main and relevant PR heads for release readiness; establish reproducible build/test baseline and record unresolved whole-repository lint/build limitations without disabling checks. Resolve tenant-before-collection boundaries for customer intelligence; prevent legacy Advisor/support routes from becoming the new pipeline's disclosure path. Inventory actual production deployment/schema/provider state read-only in a separately authorised release review. Establish fail-closed generation kill switch and ownership. Keep technical diagnostics platform-only.
 
-**Dependencies:** #1008 compatibility/legacy-producer isolation, inventory and drain sequence and #1006 durable coordinator integration are commercial release dependencies, not feature prerequisites for offline planning. Both are OPEN/unmerged and report activation HOLD. #1005 standalone validators are OPEN/unmerged with reported build readiness HOLD; do not wait on diagnostics for customer evidence unless a concrete reusable contract is separately approved. #1009 is OPEN/unmerged and not live intelligence. No merge recommendation is made here.
+**Dependencies:** #1008 compatibility/legacy-producer isolation, inventory and drain sequence and #1006 durable coordinator integration are commercial release dependencies, not feature prerequisites for offline planning. Both are OPEN/unmerged and report activation HOLD. #1005 standalone validators are MERGED; its former code/build hold is superseded, while specialist integration/activation remains unapproved; do not wait on diagnostics for customer evidence unless a concrete reusable contract is separately approved. #1009 is OPEN/unmerged and not live intelligence. No merge recommendation is made here.
 
 **Risks:** stale PR body references, overlapping checkout changes, baseline lint/build problems, unverified deployment drift, legacy provider fallback and cross-tenant operator collection. Current evidence does not prove a production vulnerability or approved rollout; treat identified boundaries as review blockers for this pipeline.
 
@@ -157,6 +159,22 @@ Every future phase must deliver: independently reviewed evidence, meaningful pos
 
 ## Documentation delivery validation
 
-This branch contains only the three requested Markdown documents. Validation checks local Markdown links against actual files on the pinned main worktree, document cross-links, balanced Mermaid fences, phase/decision consistency, required industry/checkpoint topics and whitespace. PR #1009's relevant branch code was reviewed read-only; PR status for #1005/#1006/#1008/#1009 was queried, all OPEN/unmerged at audit time. PR-reported runtime checks were not repeated or presented as current production proof.
+This branch contains only the three requested Markdown documents. Validation checks local Markdown links against actual files on the pinned main worktree, document cross-links, balanced Mermaid fences, phase/decision consistency, required industry/checkpoint topics and whitespace. PR #1009's relevant branch code was reviewed read-only; All four dependencies were OPEN/unmerged at the original 9 October audit. The 16 October reconciliation records #1005 as MERGED and #1006/#1008/#1009 as still OPEN; updated head identities and scope are in the capability matrix. PR-reported runtime checks were not repeated or presented as current production proof.
 
-No application tests/build are needed for this Markdown-only diff; running them would not establish the proposed architecture's correctness. No application code, migration, production configuration, paid AI invocation, deployment or merge is part of this task. The dedicated documentation branch is committed/pushed and submitted as a draft for architecture review only; the final report supplies its PR URL.
+No application tests/build are needed for this Markdown-only diff; running them would not establish the proposed architecture's correctness. No application code, migration, production configuration, paid AI invocation, deployment or merge is part of this task. The existing documentation PR is for architecture review only; implementation, procurement and rollout remain separately gated. Completion evidence below records this review without authorising a merge.
+
+## PR #1010 completion review — 16 October 2026
+
+Permanent review evidence for [PR #1010](https://github.com/w7tcv2m7tk-netizen/dg-platform-web/pull/1010), targeting `main` from existing branch `docs/aida-intelligence-architecture`.
+
+- Original PR commit: `8a7f6b57cf3dc2c412543e27d7ffb3fd733345ce` (three new Markdown documents, 506 lines). Original design and commit history are retained; this review is additive follow-up, not a rebase or a merge of another workstream.
+- Compared against freshly fetched/remote-confirmed `origin/main` `b39ae16528da55162934da11c1411590763ac27c`. Its delta from the original audit baseline `5a08e2f76b786d5a45c03565b3816bcf9574971c` comprises eight files: roadmap updates, Prospecting navigation/tests and standalone diagnostics validation/test registration. Existing Aida/Gateway runtime paths were not changed by that delta. Source links were checked against the current main Git tree rather than assumed from the older checkout.
+- Requirements review: all original P0–P6 phases, D1–D9 decisions, four Roe campaign checkpoints, AIM/My Venue/SME extensions, evidence/rights/metric/approval/outcome contracts, cached briefing placement, conversation/voice boundaries and permission/budget/retention gates remain. Proposed phases do not become approved implementation or a new parallel workstream.
+- Genuine issues resolved: stale #1005 OPEN/build-HOLD claims corrected to merged standalone validation; #1009 scope reconfirmed at current head; explicit alignment with #1002's canonical Slice 5 routing workstream and #985's confidential direct-OpenAI and exact-observation restrictions; founding-customer and Slice 4 priorities made explicit. No new runtime capabilities or procurement commitments are approved.
+- Dependency verification: #1005 MERGED at `6793e37283b8597d26679442e5adae3c9393e3f6`; #1006 OPEN at `2d04d58f75dc12ed50015176939e31bc5af31767`; #1008 OPEN at `1d010d151fb5c54aeccdf4c479227f44d006969f`; #1009 OPEN at `e48edb44297cd0c5379d5e03e2d424ddec3310e6`. Current #1009 server/retrieval source was read through GitHub: repository still returns null, no live briefing generator. Separate implementation/activation holds are not blockers to merging this documentation proposal, and are not lifted by it.
+- Local documentation validation PASS: 90 local/source references resolve; three documents cross-link; code fences balance; P0–P6 and D1–D9 agree; required industry/checkpoint and routing/priority invariants remain. Git whitespace validation uses the existing CRLF convention. No application tests/build were rerun for Markdown-only corrections; this does not certify runtime availability.
+- Original-head remote evidence: Vercel SUCCESS and Vercel Preview Comments SUCCESS at `8a7f6b57cf3dc2c412543e27d7ffb3fd733345ce`; [retained preview check](https://vercel.com/digitalgate-projects/dg-platform-web/FCPJ1L3qjdhXRu629KMre6wurk2p). Corrected-head check results must be read from the PR after push; earlier-head success is not represented as validation of a later commit.
+- Separate completion-preservation commit `3161b6525daa41c5124de028c025bd982725bd7b` remains unchanged on `docs/roadmap-governance`; its #1002/#985 records are neither duplicated nor imported. Only these three Aida Markdown files belong in #1010. Existing worktrees/branches are preserved.
+- Infrastructure boundary: no Neon branch, Vercel Preview configuration, production configuration, credentials, billing, migrations or runtime files changed; no database/provider calls or manual deployment performed. A normal PR push may invoke existing preview checks without changing their configuration. No production activation is implied.
+
+Review evidence is saved in this existing project document outside `/private/tmp/`. The commit that adds this section identifies the reviewed documentation revision. The final remote check summary is reported on the existing PR; merge still requires separate owner authorisation. Implementation, procurement, migrations, rollout and all D1–D9 activation decisions remain deferred. Stop before merging.

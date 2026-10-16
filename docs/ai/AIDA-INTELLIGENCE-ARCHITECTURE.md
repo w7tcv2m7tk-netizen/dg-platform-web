@@ -1,12 +1,22 @@
 # DigitalGate Aida Intelligence architecture
 
-Design only — 2026-10-09. Baseline `5a08e2f76b786d5a45c03565b3816bcf9574971c`. This document proposes the complete target; it does not claim deployment or implement any feature. The [capability matrix](AIDA-INTELLIGENCE-CAPABILITY-MATRIX.md) is the authority for inspected implementation status. The [roadmap](AIDA-INTELLIGENCE-IMPLEMENTATION-ROADMAP.md) defines dependencies and activation gates.
+Design only — originally 2026-10-09; reconciled 2026-10-16 against current `origin/main` `b39ae16528da55162934da11c1411590763ac27c`. This document proposes the complete target; it does not claim deployment or implement any feature. The [capability matrix](AIDA-INTELLIGENCE-CAPABILITY-MATRIX.md) is the authority for inspected implementation status. The [roadmap](AIDA-INTELLIGENCE-IMPLEMENTATION-ROADMAP.md) defines dependencies and activation gates.
 
 ## Purpose and invariants
 
 Aida understands an authorised business, explains measured performance, monitors permitted relevant developments, identifies opportunities, proposes actions and measures their outcomes. Every material statement must have inspectable evidence or be visibly labelled as an assumption, hypothesis or uncertainty. Unknown metrics remain unknown. Models cannot grant access, approve their own output, update trusted memory or execute business actions.
 
 Reuse Platform Core, canonical organisation profile/goals, Business Brain knowledge, Digital Twin, connectors, CRM, tasks, opportunity engine, communications, shared AI transport/gateway, Activity/AuditLog and existing conversation interfaces. New components below are bounded responsibilities within that infrastructure, not new independent AI engines or parallel stores. Additive persistence contracts require separate schema approval; no schema is added by this task.
+
+## Relationship to approved architecture and priorities
+
+This is a design elaboration of the existing [AI Gateway slice roadmap](../ROADMAP.md#ai-gateway-slice-roadmap), [AI governance](../foundations/AI-GOVERNANCE.md), [Business Brain](../foundations/BUSINESS-BRAIN.md), [Platform Intelligence](PLATFORM-INTELLIGENCE.md) and [AI Architecture](AI-ARCHITECTURE.md), not a replacement roadmap or second orchestration service. P0–P6 are proposed dependency phases for this Aida design, not new Gateway slices or an implementation authorisation.
+
+[PR #1002](https://github.com/w7tcv2m7tk-netizen/dg-platform-web/pull/1002), merged as `b39ae16528da55162934da11c1411590763ac27c`, places Model Intelligence & Routing within existing Slice 5. Reuse its capability registry, policy-first eligibility, evaluation and accounting work; do not create a second model registry, router, scheduler or Action Ledger. Founding-customer readiness, reliable Brain/CRM workflows, onboarding and recurring revenue remain higher priority. Slice 4 remains Local Specialist Execution; this design neither displaces it nor activates specialists.
+
+[PR #985](https://github.com/w7tcv2m7tk-netizen/dg-platform-web/pull/985), merged as `7301af172417c07773db935f6e10b7c7dc7fd937`, supplies the completed Slice 2 policy seam. Preserve `lead_summary` / `lead_follow_up`, direct OpenAI requested model `gpt-4o-mini` for confidential CRM cloud disclosure, and no Vercel/Anthropic/alternate-model widening. Restricted/local-required work cannot fall back to cloud. AI Visibility exact-provider/model observations retain no substitution, escalation or added grounding. New Aida task approvals must not silently amend these existing contracts. Later local-job availability does not imply production activation or change these disclosure invariants.
+
+The separate preservation commit `3161b6525daa41c5124de028c025bd982725bd7b` remains on `docs/roadmap-governance`. It records #1002/#985 completion evidence in existing `docs/ROADMAP.md` and `docs/ai/AI-ARCHITECTURE.md`. This PR does not merge, cherry-pick, overwrite or reproduce those records; the references above establish design dependencies only.
 
 ## Unified flow and trust boundaries
 
@@ -285,4 +295,4 @@ Live-generation gate: verified tenant/source permission tests, approved identity
 | D8 | Release and pilot activation | Independently resolve P0 and existing PR release holds; approve staged synthetic/read-only pilot and explicit production activation later. |
 | D9 | Voice/recording | Approve STT/TTS recipients and separate recording/transcript policies after reliable text intelligence; recording remains opt-in. |
 
-Approval of this architecture is not approval to implement, merge, procure, migrate, activate providers or deploy. This task stops at the documentation draft PR.
+Approval of this architecture is not approval to implement, merge, procure, migrate, activate providers or deploy. This task stops at the reviewed documentation PR, before merging.
