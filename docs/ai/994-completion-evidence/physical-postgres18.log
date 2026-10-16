@@ -1,0 +1,197 @@
+postgres (PostgreSQL) 18.6 (Homebrew)
+The files belonging to this database system will be owned by user "okcomputers".
+This user must also own the server process.
+
+The database cluster will be initialized with locale "C".
+The default text search configuration will be set to "english".
+
+Data page checksums are enabled.
+
+creating directory /var/folders/m9/8ynzhmdj1bx7w62v4n25dpdh0000gn/T/dg-991-physical-pg-DfCLCD/data ... ok
+creating subdirectories ... ok
+selecting dynamic shared memory implementation ... posix
+selecting default "max_connections" ... 100
+selecting default "shared_buffers" ... 128MB
+selecting default time zone ... Australia/Brisbane
+creating configuration files ... ok
+running bootstrap script ... ok
+performing post-bootstrap initialization ... ok
+syncing data to disk ... ok
+
+Success. You can now start the database server using:
+
+    '/opt/homebrew/opt/postgresql@18/bin/pg_ctl' -D /var/folders/m9/8ynzhmdj1bx7w62v4n25dpdh0000gn/T/dg-991-physical-pg-DfCLCD/data -l logfile start
+
+waiting for server to start.... done
+server started
+CREATE TABLESPACE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+(node:99754) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-994-main-validation/src/lib/remediate-991-physical.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-994-main-validation/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ exact artifact mechanically bound; all rehearsed settings/DO retained (65.144458ms)
+✔ variant converges exactly; six deltas only; operation/PK/index/table/rows/history/unrelated unchanged; replay refuses (63.31025ms)
+✔ incompatible nonce/xxxxxxxx refuses before DDL and preserves exact state (19.779917ms)
+✔ incompatible fingerprint/ZZZZZZZZ refuses before DDL and preserves exact state (20.595ms)
+✔ incompatible window_id/x refuses before DDL and preserves exact state (19.71075ms)
+✔ incompatible outcome/verified refuses before DDL and preserves exact state (19.542542ms)
+✔ incompatible outcome/rejected refuses before DDL and preserves exact state (18.778291ms)
+✔ catalogue drift timestamp type refuses and preserves exact state (20.647292ms)
+✔ catalogue drift timestamp precision refuses and preserves exact state (20.212708ms)
+✔ catalogue drift nullability refuses and preserves exact state (22.030875ms)
+✔ catalogue drift extra column refuses and preserves exact state (19.271ms)
+✔ catalogue drift extra index refuses and preserves exact state (20.065917ms)
+✔ catalogue drift operation refuses and preserves exact state (19.455208ms)
+✔ catalogue drift rule refuses and preserves exact state (20.870917ms)
+✔ catalogue drift inheritance refuses and preserves exact state (21.731875ms)
+✔ catalogue drift forced RLS refuses and preserves exact state (19.087041ms)
+✔ catalogue drift policy refuses and preserves exact state (20.685667ms)
+✔ catalogue drift text collation refuses and preserves exact state (21.625208ms)
+✔ catalogue drift PK refuses and preserves exact state (20.472209ms)
+✔ catalogue drift name refuses and preserves exact state (20.487ms)
+✔ catalogue drift definition refuses and preserves exact state (21.109084ms)
+✔ catalogue drift index refuses and preserves exact state (21.255ms)
+✔ catalogue drift default refuses and preserves exact state (20.62525ms)
+✔ catalogue drift RLS refuses and preserves exact state (18.2395ms)
+✔ catalogue drift validation refuses and preserves exact state (19.351916ms)
+✔ catalogue drift extra constraint refuses and preserves exact state (19.687292ms)
+✔ starting NOT NULL identity nonce refuses before mutation (22.531708ms)
+✔ starting NOT NULL identity fingerprint refuses before mutation (21.369291ms)
+✔ starting NOT NULL identity window_id refuses before mutation (21.2465ms)
+✔ starting NOT NULL identity operation refuses before mutation (22.545959ms)
+✔ starting NOT NULL identity outcome refuses before mutation (19.073875ms)
+✔ starting NOT NULL identity created_at refuses before mutation (21.288291ms)
+✔ additional NOT NULL identity refuses before mutation (18.888042ms)
+✔ starting CLUSTER marker ai_worker_provisioning_window_idx refuses before mutation (19.150291ms)
+✔ starting CLUSTER marker ai_worker_provisioning_receipts_pkey refuses before mutation (19.083792ms)
+✔ starting CHECK identity nonce/fingerprint swap refuses before mutation (20.299541ms)
+✔ final CHECK identity nonce/fingerprint swap rolls back all six deltas (22.750708ms)
+✔ starting CHECK identity window_id/outcome swap refuses before mutation (20.252834ms)
+✔ final CHECK identity window_id/outcome swap rolls back all six deltas (21.961583ms)
+✔ starting CHECK identity nonce rebound refuses before mutation (22.479375ms)
+✔ final CHECK identity nonce rebound rolls back all six deltas (23.781667ms)
+✔ starting CHECK identity window_id rebound refuses before mutation (19.960959ms)
+✔ final CHECK identity window_id rebound rolls back all six deltas (21.949ms)
+✔ starting CHECK identity additional CHECK refuses before mutation (19.08775ms)
+✔ final CHECK identity additional CHECK rolls back all six deltas (22.370083ms)
+✔ starting CHECK identity NO INHERIT refuses before mutation (19.886ms)
+✔ final CHECK identity NO INHERIT rolls back all six deltas (22.249417ms)
+✔ starting CHECK identity worker_id STORAGE PLAIN refuses before mutation (19.040667ms)
+✔ final CHECK identity worker_id STORAGE PLAIN rolls back all six deltas (23.286666ms)
+✔ starting CHECK identity deployment_id COMPRESSION pglz refuses before mutation (21.259125ms)
+✔ final CHECK identity deployment_id COMPRESSION pglz rolls back all six deltas (23.425083ms)
+✔ starting CHECK identity created_at statistics target refuses before mutation (31.690042ms)
+✔ final CHECK identity created_at statistics target rolls back all six deltas (22.666958ms)
+✔ starting CHECK identity completed_at n_distinct refuses before mutation (22.627958ms)
+✔ final CHECK identity completed_at n_distinct rolls back all six deltas (22.508708ms)
+✔ starting CHECK identity created_at n_distinct_inherited refuses before mutation (20.034208ms)
+✔ final CHECK identity created_at n_distinct_inherited rolls back all six deltas (23.14825ms)
+✔ starting CHECK identity nonce statistics target refuses before mutation (19.522417ms)
+✔ final CHECK identity nonce statistics target rolls back all six deltas (24.603584ms)
+✔ starting CHECK identity fingerprint attribute options refuses before mutation (19.773833ms)
+✔ final CHECK identity fingerprint attribute options rolls back all six deltas (21.94125ms)
+✔ starting CHECK identity receipt table tablespace refuses before mutation (20.325875ms)
+✔ final CHECK identity receipt table tablespace rolls back all six deltas (22.540209ms)
+✔ starting CHECK identity window index tablespace refuses before mutation (20.506834ms)
+✔ final CHECK identity window index tablespace rolls back all six deltas (22.254208ms)
+✔ starting CHECK identity PK index tablespace refuses before mutation (19.574208ms)
+✔ final CHECK identity PK index tablespace rolls back all six deltas (22.348833ms)
+✔ starting CHECK identity rename nonce refuses before mutation (20.905709ms)
+✔ final CHECK identity rename nonce rolls back all six deltas (22.66725ms)
+✔ starting CHECK identity rename fingerprint refuses before mutation (19.896667ms)
+✔ final CHECK identity rename fingerprint rolls back all six deltas (22.021916ms)
+✔ starting CHECK identity rename window_id refuses before mutation (19.312958ms)
+✔ final CHECK identity rename window_id rolls back all six deltas (23.086667ms)
+✔ starting CHECK identity rename outcome refuses before mutation (19.623167ms)
+✔ final CHECK identity rename outcome rolls back all six deltas (22.589792ms)
+✔ maintenance and effective defaults retain canonical physical identity (21.0265ms)
+✔ nonempty compatible receipts refuse; no timestamp value converted (22.983ms)
+✔ nonzero safety state ai_worker_principals refuses (18.86075ms)
+✔ nonzero safety state ai_local_deployments refuses (20.535292ms)
+✔ nonzero safety state ai_local_recipient_approvals refuses (18.589167ms)
+✔ nonzero safety state ai_inference_jobs refuses (18.149041ms)
+✔ nonzero safety state ai_worker_claim_receipts refuses (18.730458ms)
+✔ nonzero safety state ai_accounting_outbox refuses (19.080458ms)
+✔ unexpected history 20261007_ai_worker_provisioning_boundary refuses (18.559625ms)
+✔ unexpected history 20260901_stripe_connect_tenant_trust refuses (18.9835ms)
+✔ unexpected history 20260904_business_brain_knowledge refuses (19.091375ms)
+✔ unexpected history 20260910_aida_public_conversations refuses (18.719125ms)
+✔ unexpected history 20260913_ai_visibility_intelligence refuses (19.394042ms)
+✔ unfinished history refuses (20.637708ms)
+✔ timezone-independent precision six final catalogue (20.595291ms)
+✔ activation refuses DG_REMEDIATE_991_PHYSICAL_OPERATION=undefined before auth/database (13.707791ms)
+✔ activation refuses DG_REMEDIATE_991_PHYSICAL_OPERATION=reconcile_991 before auth/database (14.234834ms)
+✔ activation refuses NODE_ENV=development before auth/database (11.386542ms)
+✔ activation refuses VERCEL_ENV=preview before auth/database (12.459834ms)
+✔ activation refuses VERCEL_ENV=undefined before auth/database (10.451375ms)
+✔ activation refuses AI_WORKER_PROVISIONING_ENABLED=true before auth/database (10.771208ms)
+✔ insufficient identity null (16.441417ms)
+✔ insufficient identity api_key:operator (16.330334ms)
+✔ insufficient identity user_other (17.881959ms)
+✔ insufficient authority admin/active/operator_org (17.050875ms)
+✔ insufficient authority owner/inactive/operator_org (18.141625ms)
+✔ insufficient authority owner/active/tenant (18.102667ms)
+✔ existing staff authority accepted without #993 enablement or session provisioning (22.917333ms)
+✔ request wrong secret refuses before auth/database (11.265333ms)
+✔ request malformed secret refuses before auth/database (10.583542ms)
+✔ request missing secret refuses before auth/database (10.250875ms)
+✔ request wrong operation refuses before auth/database (10.091541ms)
+✔ request wrong origin refuses before auth/database (10.477458ms)
+✔ request API key refuses before auth/database (10.472209ms)
+✔ request body refuses before auth/database (11.036459ms)
+✔ zero-byte stream reaches executor and survives repeated transaction validation (18.671042ms)
+✔ wrong URL https://app.digitalgate.com.au/api/admin/remediate-991-physical?x=1 refuses (11.040916ms)
+✔ wrong URL https://app.digitalgate.com.au/api/admin/remediate-991-physical? refuses (10.920917ms)
+✔ wrong URL https://app.digitalgate.com.au/api/admin/remediate-991-physical/ refuses (10.693ms)
+✔ wrong URL https://app.digitalgate.com.au/api/admin/reconcile-991 refuses (11.443959ms)
+✔ wrong URL https://preview.example/api/admin/remediate-991-physical refuses (10.825792ms)
+✔ unsupported GET fixed refusal (10.527959ms)
+✔ unsupported HEAD fixed refusal (10.686459ms)
+✔ unsupported OPTIONS fixed refusal (10.176041ms)
+✔ unsupported PUT fixed refusal (10.691917ms)
+✔ unsupported PATCH fixed refusal (11.250333ms)
+✔ unsupported DELETE fixed refusal (10.811125ms)
+✔ unsupported TRACE fixed refusal (10.294959ms)
+✔ bad configured secret hash  refuses (15.6905ms)
+✔ bad configured secret hash not-a-ha refuses (16.456458ms)
+✔ bad configured secret hash AAAAAAAA refuses (15.999166ms)
+✔ concurrent invocation fails try-lock; exactly one succeeds; replay refuses (30.333917ms)
+✔ bounded receipt lock contention refuses and preserves original state (2022.661792ms)
+✔ forced failure after first DDL rolls back exact original state (25.0165ms)
+✔ forced final postcondition failure rolls back all six changes (26.63125ms)
+✔ final NOT NULL identity nonce drift rolls back all six changes (26.018833ms)
+✔ final NOT NULL identity fingerprint drift rolls back all six changes (24.314ms)
+✔ final NOT NULL identity window_id drift rolls back all six changes (26.144583ms)
+✔ final NOT NULL identity operation drift rolls back all six changes (24.848917ms)
+✔ final NOT NULL identity outcome drift rolls back all six changes (32.188625ms)
+✔ final NOT NULL identity created_at drift rolls back all six changes (24.971792ms)
+✔ final CLUSTER state ai_worker_provisioning_window_idx drift rolls back all six changes (25.556125ms)
+✔ final CLUSTER state ai_worker_provisioning_receipts_pkey drift rolls back all six changes (25.539ms)
+✔ kill switch changed after DDL rolls back before commit (26.773333ms)
+✔ authority revoked before membership lock is rechecked (20.892417ms)
+✔ safe responses/audit never leak secret, SQL, credentials or driver errors (12.587041ms)
+✔ audit transport failure cannot turn committed success into refusal (19.740209ms)
+✔ wrong remediation artifact fails build/test binding (42.241458ms)
+✔ wrong canonical artifact fails build/test binding (50.252542ms)
+✔ wrong generated artifact fails build/test binding (43.680042ms)
+✔ server-only route uses Clerk session, separate authority, fixed unsupported verbs and no global connector/redirect/credential access (14.5195ms)
+✔ Clerk handshake redirects/errors/rewrites become fixed safe middleware refusals (13.980417ms)
+ℹ tests 147
+ℹ suites 0
+ℹ pass 147
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5118.646125
+waiting for server to shut down.... done
+server stopped
+Owned #991 physical-remediation test cluster stopped and destroyed

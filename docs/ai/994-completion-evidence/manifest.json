@@ -1,0 +1,71 @@
+{
+  "validationSource": "d5b24a718f98dd5fb56e660ccec04c5571b067c1",
+  "originalRemotePrHead": "5b5a5f5d009c480161790ec60652062415f58189",
+  "proposedChange": "documentation and retained evidence only; no application changes",
+  "remoteWrites": false,
+  "productionAccess": false,
+  "previewInfrastructureChanges": false,
+  "validation": {
+    "physicalPostgres18": {
+      "passed": 147,
+      "failed": 0
+    },
+    "workerPostgres18": {
+      "passed": 57,
+      "failed": 0
+    },
+    "provisioningPostgres18": {
+      "passed": 13,
+      "failed": 0
+    },
+    "historicalReconciliationPostgres18": {
+      "passed": 36,
+      "failed": 0
+    },
+    "focusedSecurity": {
+      "passed": 37,
+      "failed": 0
+    },
+    "standaloneTypescriptExit": 0,
+    "generatedSqlBindingExit": 0,
+    "standardBuildUnsandboxedExit": 0,
+    "staticPagesGenerated": 456,
+    "earlierBuilds": {
+      "externalDependencySymlink": "failed Turbopack root restriction",
+      "webpackDiagnostic": "failed existing DocumentBrandMark barrel server imports",
+      "standardSandboxedLocalDependenciesExit": 143
+    }
+  },
+  "originalHostedDiffSha256": "973ab4de59f1be245833d29b6d5e4a061b922885df30d366b8897bfbf8bf1cdc",
+  "artifacts": {
+    "ai-postgres18.log.gz": "5ad100dfc4f06a2bc935666cdfc381fbe9786dd85a521f2db00cf21dd1e9d25b",
+    "build-standard-local-dependencies.log.gz": "56b255288b6d04309deb4d1b4ceff47d16669a7cba21c4cb89ca10e30e86cf7f",
+    "build-standard-unsandboxed.log.gz": "fd3c88f7de0421509cdcba800cfa536c1c12a2f0f55aeddfc67661381b9c24b7",
+    "build-webpack.log.gz": "f960fe6731804929dd0b69a01167d89d6329010c7714e9b274fa7ca200f19dc7",
+    "build.log.gz": "64c12fbe8a78af2a240f7c140a138cb3515dd050b83b7fc719406bc6dba4766b",
+    "commands.txt": "abd70c28e8a684a80af5d88cd4937955fd2822fc33c1bbfbd839eec44313f264",
+    "comparison.json": "56fc23a1496c6bca812cdf1308cae88d81c5151e514311cc433476f6c0457e92",
+    "current-main-vs-pr994.stat": "36008ee03d4e83b50bbb3b835691388bde7247be8571621fb7ebcdc49ed41dcb",
+    "github-pr-1001.json": "125f6cab4c3985d0d16c017604b52068a9667e2bdd069048e175452dc613cd3e",
+    "github-pr-993.json": "3c74fc2e7a208eef82debeef1a7aff366922443b77290bfa0cc0ef3c09fb6d65",
+    "github-pr-994.diff.gz": "a0609343d79be0cce302a1b65b3301d3c0db9efef281168ad697d4b7f02c8726",
+    "github-pr-994.json": "82229a95fd5149cdf3a73bc1560d2884e1bf3988ec5d0c62d2b014adaa5c17d4",
+    "github-pr-995.json": "72a47919a405d09cd37b608ee6cecd8c90f5037f6c3551f30c947b5b367e24a3",
+    "github-pr-996.json": "f37256a6d93ff6eca0caf60efe8579071f56e94c4c178799ffe522c95fd6a753",
+    "github-pr-998.json": "303d9d5ba69e92e2d83372b47d1152d53daa9b776412db26442ce6b55a092d0e",
+    "physical-postgres18.log": "5705ee3987d5a9dd4b2a34c73e60a179ca51524a35632c1dd2011b8a3004be31",
+    "reconciliation-postgres18.log": "09a95b799b1d71be3e1e59f6d07e16b87a72b482561ee93b65946ba98eccfa06",
+    "retained-database-verification-20261008.json": "03cec5954c282c7da770c054caaef5593088be480fa798dac9d242fd87a4a37a",
+    "security-tests.log": "b154859f856a522fb228aac9d78f3fecfc2d8820205c4ebfb8b83b4bdd64d4c8",
+    "typescript.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "completionReviewSha256": "660eb52df970ec288975dd11d17280a7906166c9b358ec3f42aa95cafc6d9f39",
+  "rawCompressedTranscriptSha256": {
+    "build-webpack.log": "084de981de06e506a34e20cf17d7534ca22f78aad9be8ae1c762caf194706947",
+    "build-standard-local-dependencies.log": "e0fd9988ac1ee4ce90e15c9002ada1532897a2221d93afe3ea3415f43591b1b9",
+    "build-standard-unsandboxed.log": "421d22ce02211f0b9ed225df64e61a3d2df482aade3b69c7c8afa3e58613b024",
+    "build.log": "88d40f47f69716f9f1d762b3e069d30a6071ad8fc052a7b009dfad4bb1cb99b9",
+    "ai-postgres18.log": "40c829a0f242131460020c56cef1f16a0ec31e79d7aabf5690d75a6bfcd9d16d"
+  },
+  "diffWhitespaceCheck": "passed; raw build/AI transcripts compressed losslessly to preserve original whitespace"
+}

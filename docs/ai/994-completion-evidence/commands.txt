@@ -1,0 +1,23 @@
+Validation source: d5b24a718f98dd5fb56e660ccec04c5571b067c1 (detached origin/main)
+
+node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-remediate-991-envelope.mjs scripts/test-remediate-991-action.mjs scripts/test-991-retired.mjs scripts/test-platform-authority.mjs scripts/test-api-key-authority.mjs scripts/test-tenant-access-policy-invariants.mjs scripts/test-enabled-apps-client-boundary.mjs
+node scripts/generate-remediate-991-sql.mjs --check
+node scripts/run-remediate-991-physical-tests.mjs /opt/homebrew/opt/postgresql@18/bin
+node scripts/run-ai-local-db-tests.mjs /opt/homebrew/opt/postgresql@18/bin
+node scripts/run-reconcile-991-tests.mjs /opt/homebrew/opt/postgresql@18/bin
+./node_modules/.bin/tsc --noEmit
+npm run build
+npm run build -- --webpack (diagnostic after initial symlink failure)
+npm run build (retry with dependency directory inside validation checkout)
+
+Standalone TypeScript/build: scrubbed environment, NODE_OPTIONS=--max-old-space-size=8192.
+Build DATABASE_URL is synthetic unreachable loopback; Clerk keys are dummy validation values.
+The first build failed because Turbopack disallows dependencies symlinked outside its root.
+The webpack diagnostic failed on pre-existing server-module imports through DocumentBrandMark.
+The standard retry uses a copied dependency directory, without configuration/source edits.
+That sandboxed compiler became idle without producing a result and was stopped (exit 143).
+A further standard npm run build uses the same scrubbed dummy environment outside the sandbox.
+The stopped sandbox attempt is not reported as a successful build.
+All PostgreSQL invocations used the existing runners owning their disposable local fixtures.
+GitHub reads: gh pr view 994, gh pr checks 994, gh pr diff 994; merged-PR metadata reads.
+No remote writes or Production/Preview infrastructure calls.

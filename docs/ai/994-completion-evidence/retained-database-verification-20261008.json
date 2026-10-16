@@ -1,0 +1,141 @@
+{
+  "checkedAt": "2026-10-08T21:33:52.022Z",
+  "baselinePath": "/private/tmp/991-production-preflight-20261009.json",
+  "neon": {
+    "project": "gentle-sky-35028642",
+    "branch": "br-old-shadow-a7ffezls",
+    "endpoint": "ep-bold-tree-a7bny92m",
+    "database": "neondb"
+  },
+  "productionDeployment": {
+    "id": "dpl_68rMRpniSXKGEcDfs7RTLa7N2ujz",
+    "state": "READY",
+    "alias": "app.digitalgate.com.au",
+    "sha": "0bca41dc3a9371df02ae951ade4667362f511e4f"
+  },
+  "canonicalChecksum": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
+  "checks": {
+    "identityMatchesBaseline": true,
+    "readOnly": true,
+    "exactly13Completed": true,
+    "exactlyOneTarget": true,
+    "canonicalChecksumMatches": true,
+    "newRecordValid": true,
+    "original12AllMetadataUnchanged": true,
+    "protectedTablesUnchangedAndEmpty": true,
+    "schemaCatalogueUnchanged": true,
+    "workerProvisioningDisabled": true,
+    "health200": true
+  },
+  "readOnlyTransactionResults": [
+    [],
+    [
+      {
+        "database": "neondb",
+        "role": "neondb_owner",
+        "read_only": "on",
+        "isolation": "repeatable read",
+        "server_version": "18.6 (c021049)",
+        "checked_at": "2026-10-08T21:33:52.022Z"
+      }
+    ],
+    [
+      {
+        "columns": [
+          "nonce:text:true:",
+          "fingerprint:text:true:",
+          "window_id:text:true:",
+          "operation:text:true:",
+          "outcome:text:true:",
+          "worker_id:text:false:",
+          "deployment_id:text:false:",
+          "created_at:timestamp with time zone:true:clock_timestamp()",
+          "completed_at:timestamp with time zone:false:"
+        ],
+        "constraints": [
+          "CHECK ((fingerprint ~ '^[a-f0-9]{64}$'::text))",
+          "CHECK ((nonce ~ '^[a-f0-9]{64}$'::text))",
+          "CHECK ((operation = ANY (ARRAY['provision'::text, 'recover'::text])))",
+          "CHECK ((outcome = ANY (ARRAY['attempt'::text, 'succeeded'::text, 'duplicate'::text, 'identity_mismatch'::text, 'mutation_failed'::text, 'window_closed'::text])))",
+          "CHECK ((window_id ~ '^[a-f0-9]{32}$'::text))",
+          "PRIMARY KEY (nonce)"
+        ],
+        "indexes": [
+          "CREATE INDEX ai_worker_provisioning_window_idx ON public.ai_worker_provisioning_receipts USING btree (window_id, created_at)",
+          "CREATE UNIQUE INDEX ai_worker_pinned_name_unique ON public.ai_worker_principals USING btree (name) WHERE (name = 'dg-mac-1'::text)",
+          "CREATE UNIQUE INDEX ai_worker_provisioning_receipts_pkey ON public.ai_worker_provisioning_receipts USING btree (nonce)"
+        ],
+        "safe": true
+      }
+    ],
+    [
+      {
+        "table_name": "ai_accounting_outbox",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_worker_principals",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_local_deployments",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_local_recipient_approvals",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_inference_jobs",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_worker_claim_receipts",
+        "rows": 0
+      },
+      {
+        "table_name": "ai_worker_provisioning_receipts",
+        "rows": 0
+      }
+    ],
+    [
+      {
+        "total": 13,
+        "completed_count": 13,
+        "target_count": 1,
+        "invalid_count": 0
+      }
+    ],
+    [
+      {
+        "original_count": 12,
+        "original_history_sha256": "f57059be8b625e31d8504805c22af61fd8b9b51d343c9efb0757ecfdef471693"
+      }
+    ],
+    [
+      {
+        "id": "7f305c2b-6853-4762-b019-2a39220b63fc",
+        "checksum": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
+        "finished_at": "2026-10-08T21:31:43.611Z",
+        "migration_name": "20261007_ai_worker_provisioning_boundary",
+        "logs": "",
+        "rolled_back_at": null,
+        "started_at": "2026-10-08T21:31:43.611Z",
+        "applied_steps_count": 0,
+        "uuid_v4": true,
+        "timestamps_equal": true,
+        "completion_valid": true
+      }
+    ]
+  ],
+  "workerProvisioning": "ABSENT in serving deployment runtime/build keys and project configuration",
+  "health": {
+    "/api/health": 200,
+    "/api/health/db": 200
+  },
+  "reconciliationSubmissionsByAgent": 0,
+  "productionRecordsModifiedByAgent": false,
+  "configurationChanged": false,
+  "temporaryMechanismRemoved": false,
+  "scope": "Schema comparison covers the columns, constraints, indexes and safety checks recorded in the saved baseline."
+}

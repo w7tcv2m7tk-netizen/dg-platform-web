@@ -1,0 +1,70 @@
+✔ retired reconciliation has no application route, core or fixture import (48.474791ms)
+✔ historical fixture refuses imports outside the owned test runner and on Vercel (246.914459ms)
+(node:2105) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-994-main-validation/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-994-main-validation/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ API keys never hold platform authority
+  ✔ isApiKeyPrincipal recognises only api_key:* principals (54.454417ms)
+  ✔ hasPlatformAuthority denies an api-key session in an allowlisted org (0.541375ms)
+  ✔ hasPlatformAuthority denies an api-key session even with a dg:staff role (0.35025ms)
+  ✔ canAccessCommandCentre denies an api-key session in the operator org (4.067958ms)
+  ✔ toPlatformUserType returns null for an api-key principal, even if hasAuthority is forced (2.015208ms)
+  ✔ buildAccessContext gives an api-key session no operator grants (13.280125ms)
+  ✔ assertPlatformOperator refuses to mint a capability for an api-key session (C-3) (3.581959ms)
+✔ API keys never hold platform authority (78.983166ms)
+▶ producer / detector contract
+  ✔ apiKeyToPlatformSession mints an api_key:* principal the detector recognises (1.613541ms)
+✔ producer / detector contract (1.73125ms)
+✔ EnabledAppsProvider runtime dependencies cannot reach Node/server modules (34.247125ms)
+(node:2108) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-994-main-validation/packages/platform-core/src/access/platform-authority.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-994-main-validation/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+▶ C-2: platform authority is server-controlled only
+  ✔ does not grant platform authority from a digitalgate-* slug or name (69.938375ms)
+  ✔ does not infer digitalgate_owner for a self-named organisation (8.953542ms)
+  ✔ does not let a self-named organisation reach Command Centre (3.48775ms)
+  ✔ does not grant the digitalgate_owner permission bypass to a self-named org (9.728875ms)
+✔ C-2: platform authority is server-controlled only (92.691375ms)
+▶ C-2: genuine operators retain access
+  ✔ allows only the owner fallback inside an allowlisted operator organisation (0.74875ms)
+  ✔ grants platform authority via the dg:staff membership role (0.574583ms)
+  ✔ fails closed when no allowlist is configured and role is ordinary (0.249792ms)
+✔ C-2: genuine operators retain access (1.699084ms)
+(node:2109) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-994-main-validation/src/lib/remediate-991-physical.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-994-main-validation/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ unauthenticated access is refused before database creation or transaction (2.473042ms)
+✔ non-operator access is refused before executor transaction (0.418542ms)
+✔ operator authority revoked between preflight and transaction is refused (0.362958ms)
+✔ missing operation activation flag fails closed before authentication or database access (0.097292ms)
+✔ worker activation disables the action even when operation flag is present (0.104667ms)
+✔ missing and incorrect fixed confirmations are refused before auth or database access (0.132416ms)
+✔ action returns only fixed status and logs no credential or request input (0.801292ms)
+✔ concurrent submissions cannot acquire the transaction lock twice (0.336542ms)
+✔ replay after success cannot apply the reviewed body a second time (0.302083ms)
+✔ ambiguous completion is surfaced as STOP and no retry is performed (0.2075ms)
+✔ server action never invokes the public HTTP route (0.1505ms)
+(node:2113) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/okcomputers/Documents/dg-994-main-validation/src/lib/remediate-991-request.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/okcomputers/Documents/dg-994-main-validation/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Next.js adapted zero-byte network POST passes, including repeated checks (4.127083ms)
+✔ absent body and zero-byte streams pass (0.675792ms)
+✔ non-empty and oversized bodies fail at the first non-empty chunk (0.673583ms)
+✔ unreadable, locked, consumed and aborted bodies fail closed (1.002ms)
+✔ stalled body and stalled cancellation cannot bypass the deadline (1002.148916ms)
+✔ method, exact URL, Origin and API-key restrictions remain enforced (0.334291ms)
+✔ endless empty chunks cannot starve the timeout (0.412625ms)
+tenant access policy invariants passed
+✔ scripts/test-tenant-access-policy-invariants.mjs (50.056167ms)
+ℹ tests 37
+ℹ suites 4
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1155.389625
