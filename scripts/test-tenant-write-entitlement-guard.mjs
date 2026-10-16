@@ -55,10 +55,10 @@ afterEach(() => {
   else process.env[ENV] = saved;
 });
 
-describe("tenantWriteEntitlementBlock: permitted entitlement states keep writing", () => {
-  it("no subscription (pre-checkout / trial) allows the write", async () => {
+describe("tenantWriteEntitlementBlock: verified trial and explicit exemptions remain writable", () => {
+  it("verified trial allows the write; no subscription is blocked", async () => {
     const { tenantWriteEntitlementBlock } = await loadLib("tenant-write-entitlement.ts");
-    assert.equal(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(null)), null);
+    assert.deepEqual(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(null)), BLOCK_READ_ONLY);
     assert.equal(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(trialing)), null);
   });
 
@@ -85,7 +85,7 @@ describe("tenantWriteEntitlementBlock: read-only / suspended tenants are blocked
       await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(suspended)),
       BLOCK_READ_ONLY,
     );
-    assert.equal(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(null)), null);
+    assert.deepEqual(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(null)), BLOCK_READ_ONLY);
   });
 });
 

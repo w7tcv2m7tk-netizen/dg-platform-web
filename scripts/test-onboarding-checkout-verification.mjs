@@ -20,6 +20,10 @@ const pending = fs.readFileSync(
   path.join(root, "src/components/onboarding/OnboardingCheckoutPending.tsx"),
   "utf8",
 );
+const progress = fs.readFileSync(
+  path.join(root, "packages/platform-core/src/onboarding/gen2-progress.ts"),
+  "utf8",
+);
 
 assert.match(
   route,
@@ -38,8 +42,13 @@ assert.match(
 );
 assert.match(
   route,
-  /markStepComplete === "stripe"[\s\S]*billing\.hasStripeCustomer[\s\S]*VERIFIED_CHECKOUT_KINDS\.has\(billing\.kind\)/,
+  /markStepComplete === "stripe"[\s\S]*isVerifiedStripeBilling\(billing\)/,
   "Stripe onboarding completion must require a Stripe customer and verified billing kind",
+);
+assert.match(
+  progress,
+  /markGen2SubscriptionActivated[\s\S]*isVerifiedStripeBilling\(billing\)/,
+  "the onboarding activation helper must verify billing before writing activation state",
 );
 assert.match(
   route,
@@ -103,8 +112,18 @@ assert.match(
 );
 assert.match(
   page,
-  /checkoutConfirmed[\s\S]*billing\.hasStripeCustomer[\s\S]*VERIFIED_CHECKOUT_KINDS\.has\(billing\.kind\)/,
+  /checkoutConfirmed\s*=\s*isVerifiedStripeBilling\(billing\)/,
   "success UX must require a Stripe customer and verified billing kind",
+);
+assert.doesNotMatch(
+  page,
+  /checkoutConfirmed[^\n]*platform_exempt/,
+  "an exemption must not turn a Stripe success redirect into payment confirmation",
+);
+assert.match(
+  page,
+  /hasUnverifiedCheckoutProgress[\s\S]*subscriptionActivatedAt[\s\S]*safeProgress/,
+  "unverified persisted onboarding completion must not be presented as complete",
 );
 assert.match(
   page,
@@ -116,6 +135,12 @@ assert.match(
   /OnboardingCheckoutPending/,
   "unconfirmed Stripe returns must render the dedicated pending confirmation recovery",
 );
+const exemptCheckout = route.slice(
+  route.indexOf('if (billing?.kind === "platform_exempt")'),
+  route.indexOf("\n  try {", route.indexOf('if (billing?.kind === "platform_exempt")')),
+);
+assert.match(exemptCheckout, /url: "\/dashboard\?welcome=1"/);
+assert.doesNotMatch(exemptCheckout, /subscriptionActivatedAt|markStepComplete: "stripe"|checkout=success/);
 assert.match(
   pending,
   /Confirming your subscription/,

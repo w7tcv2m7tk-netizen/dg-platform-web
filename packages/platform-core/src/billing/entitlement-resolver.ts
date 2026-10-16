@@ -27,13 +27,13 @@ export type ResolvedEntitlement = {
   banner: ReturnType<typeof buildBillingBanner>;
 };
 
-export async function resolveEntitlement(
+/** Resolve a loaded subscription row without granting paid access by default. */
+export function resolveEntitlementForSubscription(
   organisationId: string,
-): Promise<ResolvedEntitlement> {
-  const sub = await getPlatformSubscription(organisationId);
-
+  sub: PlatformSubscriptionRow | null,
+): ResolvedEntitlement {
   if (!sub) {
-    const level: PlatformEntitlementLevel = "FULL";
+    const level: PlatformEntitlementLevel = "NONE";
     return {
       organisationId,
       level,
@@ -79,6 +79,13 @@ export async function resolveEntitlement(
   };
 }
 
+export async function resolveEntitlement(
+  organisationId: string,
+): Promise<ResolvedEntitlement> {
+  const sub = await getPlatformSubscription(organisationId);
+  return resolveEntitlementForSubscription(organisationId, sub);
+}
+
 export async function assertEntitlement(
   organisationId: string,
   capability: PlatformEntitlementCapability,
@@ -117,7 +124,7 @@ export type TenantWriteEntitlement =
 /**
  * Pure write decision for a loaded subscription row (no I/O).
  *
- * - null (no subscription: pre-checkout / trial) => allow (FULL).
+ * - null (no subscription)                       => block (NONE).
  * - founding / platform-exempt                   => allow (FULL).
  * - suspended / read-only (canWrite=false)       => block "read_only".
  *
@@ -127,7 +134,7 @@ export type TenantWriteEntitlement =
 export function writeEntitlementForSubscription(
   sub: PlatformSubscriptionRow | null,
 ): TenantWriteEntitlement {
-  if (!sub) return { decision: "allow" };
+  if (!sub) return { decision: "block", reason: "read_only", level: "NONE" };
   const foundingOrExempt = sub.foundingCustomer || sub.platformExempt;
   const level = foundingOrExempt
     ? "FULL"

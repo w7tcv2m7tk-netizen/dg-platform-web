@@ -5,6 +5,7 @@ import {
   createOrganisationGoal,
   getGen2OnboardingProgress,
   getOrganisationBillingStatus,
+  isVerifiedStripeBilling,
   getOrganisationBusinessProfile,
   getOrganisationCommercialOffer,
   getOrganisationGoals,
@@ -28,7 +29,6 @@ const GOAL_METRIC_HINTS: Record<string, { metric: "custom" | "active_leads" | "s
   ai_visibility: { metric: "ai_visibility", target: 80 },
   website_performance: { metric: "business_health", target: 80 },
 };
-const VERIFIED_CHECKOUT_KINDS = new Set(["trial", "subscribed", "cancel_at_period_end"]);
 const CLIENT_CHECKLIST_KEYS = new Set(["business_identity", "business_profile", "goals", "plan", "apps", "implementation"]);
 const APPEARANCES = new Set(["system", "dark", "light"]);
 const MIGRATION_INTENTS = new Set(["migrate", "replace", "connect", "none"]);
@@ -167,8 +167,7 @@ export async function PATCH(req: Request) {
   const markStepComplete = isGen2OnboardingStep(body.markStepComplete) ? (body.markStepComplete as Gen2OnboardingStep) : undefined;
   if (markStepComplete === "stripe") {
     const billing = await getOrganisationBillingStatus(resolvedOrganisationId);
-    const exempt = billing?.kind === "platform_exempt";
-    if (!exempt && (!billing || !billing.hasStripeCustomer || !VERIFIED_CHECKOUT_KINDS.has(billing.kind))) {
+    if (!isVerifiedStripeBilling(billing)) {
       return NextResponse.json({ error: { code: "checkout_not_confirmed", message: "Your Stripe checkout has not been confirmed yet. Please try again in a moment." } }, { status: 409 });
     }
   }
@@ -228,9 +227,8 @@ export async function POST(req: Request) {
   if (billing?.kind === "platform_exempt") {
     await saveGen2OnboardingProgress(resolvedOrganisationId, {
       platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan,
-      subscriptionActivatedAt: new Date().toISOString(), markStepComplete: "stripe",
     });
-    return NextResponse.json({ data: { exempt: true, url: "/onboarding?checkout=success" } });
+    return NextResponse.json({ data: { exempt: true, url: "/dashboard?welcome=1" } });
   }
   try {
     const targetProfile = operatorPreview ? await getOrganisationBusinessProfile(resolvedOrganisationId) : null;
