@@ -35,6 +35,24 @@ Slice 3 production migration, encryption key, worker credentials, deployment and
 
 When Slice 5 approaches, produce and approve a staged implementation plan with bounded capabilities, dependencies, acceptance tests and rollout gates. A proposed sequencing basis is: (1) structured provenance, ledger coverage and verification contracts; (2) capability-specific autonomy/approval boundaries and one bounded persistent responsibility; (3) incident reconstruction and defensible value measurement; (4) evidence-based operational/routing/cost/latency improvements. Content governance and broader reputation capabilities need separately scoped increments. This is planning direction, not permission to implement every item together. Routing optimisation must never override disclosure, tenant isolation, specialist contracts or exact observations.
 
+### Intelligent Model Routing & Optimisation — Slice 5 workstream (approved 9 October 2026)
+
+**Decision:** Add a bounded **Model Intelligence & Routing** workstream within the existing AI Gateway Slice 5; do not create a second orchestration service or displace Slice 4. The existing `packages/platform-core/src/ai/` Gateway, `llm.ts` router, task/disclosure policies, usage ledger and Business Brain context remain authoritative. This is roadmap approval, **not** approval for production activation, model substitution, database migration or autonomous tool execution.
+
+**Sequence and gates:**
+
+1. **Now — read-only architecture and gap audit.** Inventory existing providers, routing/failover, task/model contracts, tenant/disclosure controls, local worker boundaries, usage/cost records and test coverage. Produce a gap analysis with evidence and a bounded implementation proposal. No runtime or production changes.
+2. **Design — provider/model capability registry.** Specify versioned provider/model identity, execution lane, supported task and output contracts, locality/disclosure eligibility, context and latency budgets, cost metadata, health and evaluation provenance. Treat provider prices and model aliases as changeable, verified data, not hard-coded truth.
+3. **Slice 5 staged implementation — governed task routing.** Evaluate eligible models only **after** tenant, actor, classification, recipient, model, exact-observation and specialist policy constraints. Add bounded fallback and explicit failure when no approved recipient/model qualifies. Preserve the existing confidential CRM direct-OpenAI approval and the exact-observation no-substitution contract unless separately authorised through their policy change process.
+4. **Evidence before optimisation.** Compare task success/quality, validation, latency, availability, reported usage and estimated cost against approved test sets; account for missing usage and failed attempts without treating unknown as zero. Add per-tenant visibility only within existing authorisation boundaries. No automatic learning or model switching from unverified benchmark claims.
+5. **Activation gate.** Require separate review of threat model, tenant isolation, disclosure policy, cost ceilings, fallback behaviour, auditability, regressions, rollback and staged rollout before any production change.
+
+**Dependencies and priorities:** Founding-customer readiness, reliable Brain/CRM workflows, onboarding and recurring revenue remain higher priority. Slice 3 worker provisioning and physical remediation stay disabled under the verified PR #1001 production baseline until separately authorised. Slice 4 remains Local Specialist Execution. The weekly AI model intelligence review may recommend changes, but cannot independently amend approved knowledge, roadmap or runtime policy.
+
+**Acceptance criteria for the audit:** a code-referenced inventory; implemented/partial/missing matrix; risk and cost assessment; proposed small PR sequence; explicit no-change list for Slice 1–3, tenant security and AI Visibility; and a decision gate before implementation.
+
+---
+
 ### Persistent Aida Responsibilities (future)
 
 Businesses should eventually be able to assign ongoing governed responsibilities: monitor overdue leads, advertising performance, reputation, website conversion health, vendor/listing campaigns and operational exceptions. Each responsibility needs an accountable owner, tenant/data/tool scope, trigger/cadence, evidence/freshness expectations, maximum autonomy level, approval boundary and measurable outcome, plus pause/revoke controls.
@@ -339,3 +357,16 @@ You wear several today — that's fine. Document so roles can split later.
 - [foundations/COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md) — commercialisation operating target  
 - [PRODUCT-VISION.md](./PRODUCT-VISION.md)  
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)  
+
+
+### Approved Prospecting navigation release — 12 October 2026
+
+- Requirement: `growth.prospecting_modes` / Prospecting navigation.
+- Approval: operator instruction “COMPLETE PROSPECTING NAVIGATION RELEASE”, 12 October 2026.
+- Approved order: Overview → Discover → Prospects → Pipeline → Today → Activity.
+- Scope: reorder existing manifest and shared navigation; preserve routes, permissions, aliases, responsive rendering and highlighting.
+- Implementation: `packages/platform-core/src/apps/navigation.ts` and `packages/platform-core/src/apps/builtins/prospecting.ts`; isolated branch `fix/prospecting-navigation-order`, based on production/main `6793e372`.
+- Verification: regression tests in `scripts/test-prospecting-navigation-order.mjs`; 11/11 navigation tests passed (390px mobile and 1440px desktop, all six active tabs); TypeScript, page hierarchy, full prebuild (886 passing TAP assertions plus script checks), production build and diff checks passed. Changed-file lint: zero errors, three existing warnings. Browser fixture tests are not authenticated production verification.
+- Release evidence: implementation commit `216e4499`; [PR #1012](https://github.com/w7tcv2m7tk-netizen/dg-platform-web/pull/1012). CI and production deployment pending; authenticated production verification remains required.
+- Status: implemented; production verification pending. Not VERIFIED COMPLETE. This navigation correction does not complete the wider Prospecting requirement.
+- Next action: validate the isolated diff, review PR checks, release only the navigation correction, then verify authenticated desktop/mobile navigation and all six routes.
