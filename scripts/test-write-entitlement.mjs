@@ -1,10 +1,9 @@
 /**
  * H-3 central write-entitlement enforcement.
  *
- * Reads are never affected. Tenant writes are blocked when the organisation's
- * subscription is read-only/suspended; a missing subscription keeps the existing
- * pre-checkout/trial behaviour (FULL); a subscription lookup FAILURE fails closed
- * for writes. Platform operators and explicit recovery/billing/onboarding paths
+ * Reads are never affected. Tenant writes are blocked when the organisation has
+ * no subscription or its subscription is read-only/suspended; a subscription
+ * lookup FAILURE fails closed for writes. Platform operators and explicit recovery/billing/onboarding paths
  * are exempt. Authority (C-1/C-2/C-3) is untouched.
  */
 import assert from "node:assert/strict";
@@ -91,9 +90,9 @@ describe("H-3 policy: methods, exempt paths, block mapping", () => {
 });
 
 describe("H-3 decision engine: writeEntitlementForSubscription (pure)", () => {
-  it("missing subscription (pre-checkout/trial) allows writes", async () => {
+  it("missing subscription blocks writes until verified billing exists", async () => {
     const { writeEntitlementForSubscription } = await loadCore("billing/entitlement-resolver.ts");
-    assert.deepEqual(writeEntitlementForSubscription(null), { decision: "allow" });
+    assert.deepEqual(writeEntitlementForSubscription(null), { decision: "block", reason: "read_only", level: "NONE" });
   });
   it("suspended/read-only blocks; trialing allows", async () => {
     const { writeEntitlementForSubscription } = await loadCore("billing/entitlement-resolver.ts");
@@ -110,9 +109,9 @@ describe("H-3 decision engine: writeEntitlementForSubscription (pure)", () => {
 });
 
 describe("H-3 decision engine: checkTenantWriteEntitlement (fetch + fail closed)", () => {
-  it("no subscription => allow; suspended => block read_only; founding => allow", async () => {
+  it("no subscription => block; suspended => block read_only; founding => allow", async () => {
     const { checkTenantWriteEntitlement } = await loadCore("billing/entitlement-resolver.ts");
-    assert.deepEqual(await checkTenantWriteEntitlement(TENANT_ORG, async () => null), { decision: "allow" });
+    assert.deepEqual(await checkTenantWriteEntitlement(TENANT_ORG, async () => null), { decision: "block", reason: "read_only", level: "NONE" });
     const s = await checkTenantWriteEntitlement(TENANT_ORG, async () => suspended);
     assert.equal(s.reason, "read_only");
     assert.deepEqual(await checkTenantWriteEntitlement(TENANT_ORG, async () => foundingSuspended), { decision: "allow" });
@@ -126,16 +125,59 @@ describe("H-3 decision engine: checkTenantWriteEntitlement (fetch + fail closed)
     assert.deepEqual(result, { decision: "block", reason: "lookup_failed" });
   });
 
-  it("with no DATABASE_URL the strict store returns null => allow (unconfigured is not a failure)", async () => {
+  it("with no DATABASE_URL the strict store returns no subscription => block", async () => {
     const { checkTenantWriteEntitlement } = await loadCore("billing/entitlement-resolver.ts");
     const savedDb = process.env.DATABASE_URL;
     delete process.env.DATABASE_URL;
     try {
-      assert.deepEqual(await checkTenantWriteEntitlement(TENANT_ORG), { decision: "allow" });
+      assert.deepEqual(await checkTenantWriteEntitlement(TENANT_ORG), { decision: "block", reason: "read_only", level: "NONE" });
     } finally {
       if (savedDb === undefined) delete process.env.DATABASE_URL;
       else process.env.DATABASE_URL = savedDb;
     }
+  });
+});
+
+describe("billing security: no subscription and unverified checkout do not grant access", () => {
+  it("resolves no PlatformSubscription to NONE while preserving explicit subscription exemptions", async () => {
+    const { resolveEntitlementForSubscription } = await loadCore("billing/entitlement-resolver.ts");
+    const unpaid = resolveEntitlementForSubscription(TENANT_ORG, null);
+    assert.equal(unpaid.level, "NONE");
+    assert.equal(unpaid.capabilities.canWrite, false);
+    assert.equal(unpaid.capabilities.canActivatePaidApps, false);
+    assert.equal(unpaid.capabilities.canUseAi, false);
+    assert.equal(unpaid.capabilities.canOutbound, false);
+
+    const exempt = resolveEntitlementForSubscription(TENANT_ORG, {
+      status: "ACTIVE", foundingCustomer: false, platformExempt: true,
+      trialEnd: null, currentPeriodEnd: null, cancelAtPeriodEnd: false,
+      paymentFailedAt: null, planTier: "starter",
+    });
+    assert.equal(exempt.level, "FULL");
+    assert.equal(exempt.platformExempt, true);
+    assert.equal(exempt.capabilities.canWrite, true);
+    assert.equal(exempt.capabilities.canActivatePaidApps, true);
+  });
+
+  it("requires a Stripe customer plus verified subscription state, never generic org status", async () => {
+    const { resolveOrganisationBillingKind, isVerifiedStripeBilling } = await loadCore("billing/org-billing-status.ts");
+    const base = { expectsPlatformBilling: true, hasStripeCustomer: true, foundingCustomer: false, status: "active", subscriptionStatus: null, entitlementsSuspended: false, commercialStatus: null };
+    for (const status of ["active", "trial"]) {
+      const kind = resolveOrganisationBillingKind({ ...base, status });
+      assert.equal(kind, "needs_checkout", `organisation status ${status} is not billing proof`);
+      assert.equal(isVerifiedStripeBilling({ hasStripeCustomer: true, kind }), false);
+    }
+    const noStripeStatus = resolveOrganisationBillingKind(base);
+    assert.equal(noStripeStatus, "needs_checkout", "a Stripe customer alone is not billing proof");
+    assert.equal(isVerifiedStripeBilling({ hasStripeCustomer: true, kind: noStripeStatus }), false);
+
+    for (const [subscriptionStatus, expectedKind] of [["trialing", "trial"], ["active", "subscribed"], ["cancel_at_period_end", "cancel_at_period_end"]]) {
+      const kind = resolveOrganisationBillingKind({ ...base, subscriptionStatus });
+      assert.equal(kind, expectedKind);
+      assert.equal(isVerifiedStripeBilling({ hasStripeCustomer: true, kind }), true);
+    }
+    assert.equal(isVerifiedStripeBilling({ hasStripeCustomer: false, kind: "subscribed" }), false);
+    assert.equal(isVerifiedStripeBilling({ hasStripeCustomer: true, kind: "founding_trial" }), false);
   });
 });
 

@@ -66,9 +66,9 @@ describe("shared guard decision (applies identically to all five surfaces)", () 
     );
   });
 
-  it("normal entitled tenant behaviour is unchanged (allow)", async () => {
+  it("verified trial remains writable; no-subscription tenants are blocked", async () => {
     const { tenantWriteEntitlementBlock } = await loadLib("tenant-write-entitlement.ts");
-    assert.equal(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG, role: "admin" }, fetchOf(null)), null);
+    assert.deepEqual(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG, role: "admin" }, fetchOf(null)), BLOCK_READ_ONLY);
     assert.equal(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG, role: "admin" }, fetchOf(trialing)), null);
   });
 
