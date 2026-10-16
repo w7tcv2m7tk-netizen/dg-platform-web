@@ -4,6 +4,7 @@ import { appIdsFromPlanSelection } from "../apps/org-apps";
 import { normalisePaidAppKeys, paidAppIdsFromKeys } from "../billing/paid-apps";
 import { getTemplate, isTemplateActivatable } from "../industry/catalogue";
 import { buildTemplateActivationPatch, readOrgIndustrySettings, type OrgIndustrySettings } from "../industry/entitlements";
+import { isVerifiedStripeBilling, getOrganisationBillingStatus } from "../billing/org-billing-status";
 
 type OrgSettings = { gen2Onboarding?: Gen2OnboardingProgress; foundingOnboarding?: unknown; apps?: { enabled?: string[]; planPreview?: { platformTier?: string; industryApps?: string[]; industryTemplates?: string[]; premiumApps?: string[]; appliedAt?: string; source?: string } }; profile?: { purchasedPremium?: unknown }; industry?: OrgIndustrySettings; services?: { templateKey?: string; activeTemplateKeys?: string[]; primaryTemplateKey?: string; appliedAt?: string; [key: string]: unknown }; [key: string]: unknown };
 const SERVICE_SUBINDUSTRY_TO_TEMPLATE: Record<string, string> = { electrical: "electrician", plumbing: "plumber", cleaning: "cleaner", maintenance: "maintenance", "building-construction": "builder", landscaping: "landscaper", hvac: "hvac", "pest-control": "pest_control", painting: "painter", handyman: "handyman", solar: "solar", "pool-service": "pool_service", "general-services": "general" };
@@ -182,4 +183,10 @@ export async function saveGen2OnboardingProgress(organisationId: string, patch: 
   return nextProgress;
 }
 
-export async function markGen2SubscriptionActivated(organisationId: string, checkoutSessionId?: string | null): Promise<Gen2OnboardingProgress> { return saveGen2OnboardingProgress(organisationId, { markStepComplete: "stripe", subscriptionActivatedAt: new Date().toISOString(), stripeCheckoutSessionId: checkoutSessionId ?? undefined, checklist: { subscription: true } }); }
+export async function markGen2SubscriptionActivated(organisationId: string, checkoutSessionId?: string | null): Promise<Gen2OnboardingProgress> {
+  const billing = await getOrganisationBillingStatus(organisationId);
+  if (!isVerifiedStripeBilling(billing)) {
+    throw new Error("Stripe subscription activation is not confirmed by verified billing state");
+  }
+  return saveGen2OnboardingProgress(organisationId, { markStepComplete: "stripe", subscriptionActivatedAt: new Date().toISOString(), stripeCheckoutSessionId: checkoutSessionId ?? undefined, checklist: { subscription: true } });
+}

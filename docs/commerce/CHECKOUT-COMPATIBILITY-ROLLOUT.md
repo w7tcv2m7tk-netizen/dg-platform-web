@@ -357,3 +357,28 @@ Existing Prisma export/file-tracing, cache-header and middleware-deprecation
 warnings and unrelated dynamic-render diagnostics remain. Code merge recommendation:
 PASS for this compatibility correction; deployment and activation remain HOLD
 until the production procedure and separately reviewed #1006 integration are proven.
+
+## Billing activation security correction — 2026-10-16
+
+An organisation without a `PlatformSubscription` now resolves to `NONE`; tenant
+writes are blocked until billing is verified. Explicit `foundingCustomer` and
+`platformExempt` flags on subscription rows retain their existing `FULL` access.
+Billing status no longer treats a Stripe customer record or generic organisation
+`active` / `trial` state as proof of a subscription. Stripe onboarding completion,
+the activation helper and the return-page success state share the verified
+customer-plus-subscription/trial check. Unverified persisted completion is shown
+as incomplete, and exempt organisations leave checkout without recording Stripe
+activation.
+
+Focused regressions cover no-subscription entitlements and writes, explicitly
+exempt subscription access, customer-only and generic-status rejection, verified
+active/trial acceptance, the success-return guard and stale onboarding progress.
+Local #1008 validation on 2026-10-16: 51 billing, entitlement, subscription and
+tenant-isolation tests passed; the security-certification suite passed all 46
+tests; checkout compatibility passed all 49 tests; pricing/catalogue, onboarding
+confirmation and built-artifact checks passed; TypeScript and `npx next build`
+passed. The standard prebuild pipeline completed before a sandbox-stalled Next.js
+compile was retried successfully with local process permissions. Targeted ESLint
+reported no errors and three pre-existing unused-variable warnings in
+`gen2-progress.ts`. No remote push, merge, deployment, gate opening or database
+operation is part of this change.
