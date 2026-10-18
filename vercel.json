@@ -35,6 +35,7 @@
   ],
   "git": {
     "deploymentEnabled": {
+      "work/commercial-readiness": false,
       "work/commercial-checkout-compatibility": false
     }
   }
