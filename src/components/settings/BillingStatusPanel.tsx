@@ -19,8 +19,6 @@ function statusBadgeClass(kind: OrganisationBillingStatus["kind"]): string {
   switch (kind) {
     case "subscribed":
       return "bg-emerald-500/15 text-emerald-300";
-    case "founding_trial":
-      return "bg-blue-500/15 text-blue-300";
     case "trial":
     case "cancel_at_period_end":
       return "bg-amber-500/15 text-amber-200";
@@ -144,7 +142,6 @@ export function BillingStatusPanel({
           platformTier={status.platformTier}
           hasBillingCustomer={status.hasStripeCustomer}
           expectsPlatformBilling={status.expectsPlatformBilling}
-          foundingCustomer={status.foundingCustomer}
         />
       ) : (
         <Link

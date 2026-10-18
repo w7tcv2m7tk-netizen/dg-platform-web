@@ -255,19 +255,19 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
     ["founding", "founding_customer"].includes(
       String(billing.programme ?? "").toLowerCase(),
     );
-  const exempt = billing.platformExempt === true;
+  const requestedExemption = billing.platformExempt === true;
 
   // H-6: PlatformSubscription is the authoritative billing record. If this
   // write fails the webhook must fail and remain retryable; derived organisation
   // JSON must never be allowed to advertise a subscription that does not exist.
   const { syncPlatformSubscriptionFromCheckout } = await import("./billing-service");
-  await syncPlatformSubscriptionFromCheckout({
+  const projectedSubscription = await syncPlatformSubscriptionFromCheckout({
     organisationId: org.id,
     stripeCustomerId: customerId,
     stripeSubscriptionId,
     planTier: platformTier,
     foundingCustomer: founding,
-    platformExempt: exempt,
+    platformExempt: requestedExemption,
     stripeEventId: session.id,
     stripeStatus: subscription.status as "active" | "trialing",
     trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
@@ -276,19 +276,21 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
     currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : null,
     currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
   }, database);
+  const exempt = projectedSubscription.platformExempt;
 
   // Derived projection for UI and legacy consumers. PlatformSubscription above
   // remains authoritative for commercial state and entitlement.
   await prisma.organisation.update({
     where: { id: org.id },
     data: {
-      status: founding || exempt || subscription.status === "active" ? "active" : "trial",
+      status: exempt || subscription.status === "active" ? "active" : "trial",
       billingCustomerId: customerId,
       settings: {
         ...settings,
         billing: {
           ...billing,
-          subscriptionStatus: founding || exempt ? "active" : subscription.status,
+          platformExempt: exempt,
+          subscriptionStatus: exempt ? "active" : subscription.status,
           cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
           entitlementsSuspended: false,
           lastCheckoutSessionId: session.id,

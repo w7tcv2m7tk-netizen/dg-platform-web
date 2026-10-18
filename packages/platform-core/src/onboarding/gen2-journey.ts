@@ -3,6 +3,8 @@
  * The journey persists the business operating profile and platform preparation
  * so navigation, resume and downstream personalisation share one source of truth.
  */
+import { PLATFORM_COMMERCIAL_PLANS } from "../billing/commercial-catalogue";
+
 export const GEN2_ONBOARDING_STEPS = ["welcome", "business_identity", "operating_profile", "business_profile", "goals", "plan", "apps", "support", "platform_preparation", "billing_cadence", "order_summary", "stripe", "connect", "checklist", "implementation"] as const;
 export type Gen2OnboardingStep = (typeof GEN2_ONBOARDING_STEPS)[number];
 export const GEN2_ONBOARDING_STEP_LABELS: Record<Gen2OnboardingStep, string> = { welcome: "Welcome", business_identity: "Business identity", operating_profile: "Operating Profile", business_profile: "Business Profile", goals: "Goals & priorities", plan: "Platform plan", apps: "Apps", support: "Support", platform_preparation: "Platform Preparation", billing_cadence: "Monthly or annual", order_summary: "Your DigitalGate setup", stripe: "Activate subscription", connect: "Connect your business", checklist: "Getting started", implementation: "Platform hand-off" };
@@ -27,7 +29,8 @@ export type Gen2OnboardingProgress = { version: 1; currentStep: Gen2OnboardingSt
 export const GEN2_CHECKLIST_ITEMS = [
   { id: "business_identity", label: "Business identity", step: "business_identity" as const }, { id: "operating_profile", label: "Operating Profile", step: "operating_profile" as const }, { id: "business_profile", label: "Business Profile", step: "business_profile" as const }, { id: "goals", label: "Goals", step: "goals" as const }, { id: "plan", label: "Plan selected", step: "plan" as const }, { id: "apps", label: "Apps selected", step: "apps" as const }, { id: "support", label: "Support selected", step: "support" as const }, { id: "platform_preparation", label: "Platform Preparation", step: "platform_preparation" as const }, { id: "subscription", label: "Subscription activated", step: "stripe" as const }, { id: "connect_website", label: "Connect website", optional: true }, { id: "connect_google", label: "Connect Google", optional: true }, { id: "import_contacts", label: "Import contacts", optional: true }, { id: "configure_apps", label: "Configure Apps", optional: true }, { id: "review_brain", label: "Review Business Brain", optional: true }, { id: "implementation", label: "Platform hand-off complete", step: "implementation" as const },
 ] as const;
-export const GEN2_PLATFORM_PLANS: Array<{ id: Gen2PlatformTier; name: string; monthlyCents: number; blurb: string }> = [ { id: "starter", name: "Starter", monthlyCents: 9900, blurb: "Core CRM, communications, documents and website foundation." }, { id: "professional", name: "Growth", monthlyCents: 24900, blurb: "Full Business Operating Platform for growing teams." }, { id: "business", name: "Scale", monthlyCents: 49900, blurb: "Scale operations with higher capacity and priority support." } ];
+export const GEN2_PLATFORM_PLANS: Array<{ id: Gen2PlatformTier; name: string; monthlyCents: number; blurb: string }> =
+  PLATFORM_COMMERCIAL_PLANS.map(({ id, name, monthlyCents, blurb }) => ({ id, name, monthlyCents, blurb }));
 export const GEN2_SUPPORT_PLANS: Array<{ id: Gen2SupportPlan; name: string; monthlyCents: number | null; blurb: string; detail: string }> = [
   { id: "standard", name: "Standard", monthlyCents: 0, blurb: "Included with every platform.", detail: "Email support, knowledge base, community access and platform updates." },
   { id: "priority", name: "Priority", monthlyCents: 19900, blurb: "Faster response when you need it.", detail: "Everything in Standard, priority queue, quarterly strategy session, Business Health review and performance optimisation." },

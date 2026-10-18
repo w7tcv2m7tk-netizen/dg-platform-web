@@ -54,6 +54,7 @@ function mirrorOrgBillingJson(
     stripeSubscriptionId?: string | null;
     entitlementsSuspended: boolean;
     suspendedAt?: string | null;
+    platformExempt?: boolean;
   },
 ): Record<string, unknown> {
   const billing =
@@ -65,6 +66,7 @@ function mirrorOrgBillingJson(
       ...billing,
       subscriptionStatus: patch.subscriptionStatus,
       stripeSubscriptionId: patch.stripeSubscriptionId ?? billing.stripeSubscriptionId,
+      ...(patch.platformExempt !== undefined ? { platformExempt: patch.platformExempt } : {}),
       entitlementsSuspended: patch.entitlementsSuspended,
       lastSubscriptionEventAt: new Date().toISOString(),
       suspendedAt: patch.suspendedAt ?? null,
@@ -85,6 +87,7 @@ async function mirrorToOrganisation(input: {
   stripeSubscriptionId?: string | null;
   entitlementsSuspended: boolean;
   suspendedAt?: string | null;
+  platformExempt?: boolean;
 }, database?: Prisma.TransactionClient) {
   const prisma = database ?? (await import("@dg/database")).prisma;
   const org = await prisma.organisation.findUnique({
@@ -97,6 +100,7 @@ async function mirrorToOrganisation(input: {
   const next = mirrorOrgBillingJson(settings, {
     subscriptionStatus: input.subscriptionStatus,
     stripeSubscriptionId: input.stripeSubscriptionId,
+    platformExempt: input.platformExempt,
     entitlementsSuspended: input.entitlementsSuspended,
     suspendedAt: input.suspendedAt ?? null,
   });
@@ -177,7 +181,9 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
     input.eventKind === "deleted" ? "updated" : input.eventKind;
   const founding =
     input.foundingCustomer ?? existing?.foundingCustomer ?? false;
-  const exempt = input.platformExempt ?? existing?.platformExempt ?? false;
+  // A persisted canonical exemption cannot be granted or revoked by routine
+  // Stripe metadata or the organisation-settings fallback.
+  const exempt = existing?.platformExempt ?? input.platformExempt ?? false;
 
   let status = commercialStatusFromStripeSubscription(
     subscription,
@@ -188,14 +194,14 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
   let paymentFailedAt = existing?.paymentFailedAt ?? null;
   if (status === "PAYMENT_FAILED") {
     if (!paymentFailedAt) paymentFailedAt = new Date();
-    if (!founding && !exempt) {
+    if (!exempt) {
       status = dunningStatusForAgeDays(daysBetween(paymentFailedAt, new Date()));
     }
   } else if (["active", "trialing", "incomplete", "paused"].includes(subscription.status)) {
     paymentFailedAt = null;
   }
 
-  if ((founding || exempt) && ["active", "trialing", "past_due", "unpaid", "canceled", "incomplete_expired"].includes(subscription.status)) {
+  if (exempt && ["active", "trialing", "past_due", "unpaid", "canceled", "incomplete_expired"].includes(subscription.status)) {
     if (status === "CANCELLED") {
       // still cancelled
     } else if (status !== "CANCEL_AT_PERIOD_END") {
@@ -204,7 +210,7 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
   }
 
   const entitlement = !["active", "trialing", "past_due", "unpaid", "canceled", "incomplete_expired"].includes(subscription.status) ? "NONE" : entitlementFromCommercialStatus(status, {
-    foundingOrExempt: founding || exempt,
+    platformExempt: exempt,
   });
 
   const now = new Date();
@@ -236,7 +242,7 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
     cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
     paymentFailedAt,
     gracePeriodEndsAt:
-      paymentFailedAt && !founding && !exempt
+      paymentFailedAt && !exempt
         ? new Date(
             paymentFailedAt.getTime() + DUNNING_DAYS.restrictedFrom * 86400000,
           )
@@ -286,6 +292,7 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
     stripeSubscriptionId: subscription.id,
     entitlementsSuspended,
     suspendedAt: entitlementsSuspended ? now.toISOString() : null,
+    platformExempt: row.platformExempt,
   }, database);
 
   return row;
@@ -333,8 +340,8 @@ async function projectInvoiceFailure(input: InvoiceFailureInput, database: Prism
   const latestInvoice = typeof subscription.latest_invoice === "string" ? subscription.latest_invoice : subscription.latest_invoice?.id;
   const genuinelyFailed = invoice.status === "open" && !invoice.paid && invoice.amount_remaining > 0 &&
     latestInvoice === invoice.id && subscription.status === "past_due";
-  if (!genuinelyFailed || existing.foundingCustomer || existing.platformExempt) {
-    const row = existing.foundingCustomer || existing.platformExempt ? existing : await projectStripeSubscription({
+  if (!genuinelyFailed || existing.platformExempt) {
+    const row = existing.platformExempt ? existing : await projectStripeSubscription({
       organisationId: input.organisationId, subscription: { ...subscription, id: input.stripeSubscriptionId, customer: input.stripeCustomerId },
       eventKind: "updated", stripeEventId: input.stripeEventId,
     }, database, read, subscription);
@@ -442,7 +449,7 @@ async function advanceCurrentDunning(
   now: Date,
   database: Prisma.TransactionClient,
 ): Promise<PlatformSubscriptionRow | null> {
-  if (row.foundingCustomer || row.platformExempt || !row.paymentFailedAt) {
+  if (row.platformExempt || !row.paymentFailedAt) {
     return row;
   }
 
@@ -534,12 +541,14 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
     throw new Error("Checkout cannot replace the current subscription");
   }
   const founding = input.foundingCustomer ?? false;
-  const exempt = input.platformExempt ?? false;
+  // Preserve the existing canonical value; the input is only a bootstrap
+  // fallback when no PlatformSubscription exists yet.
+  const exempt = existing?.platformExempt ?? input.platformExempt ?? false;
   const status: PlatformCommercialStatus =
     input.cancelAtPeriodEnd ? "CANCEL_AT_PERIOD_END" :
-      founding || exempt || input.stripeStatus === "active" ? "ACTIVE" : "TRIALING";
+      exempt || input.stripeStatus === "active" ? "ACTIVE" : "TRIALING";
   const entitlement = entitlementFromCommercialStatus(status, {
-    foundingOrExempt: founding || exempt,
+    platformExempt: exempt,
   });
 
   const row = await upsertPlatformSubscription({
@@ -550,8 +559,8 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
     stripeCustomerId: input.stripeCustomerId,
     stripeSubscriptionId: input.stripeSubscriptionId ?? null,
     stripeStatus: input.stripeStatus,
-    trialStart: founding || exempt ? null : input.trialStart,
-    trialEnd: founding || exempt ? null : input.trialEnd,
+    trialStart: exempt ? null : input.trialStart,
+    trialEnd: exempt ? null : input.trialEnd,
     cancelAtPeriodEnd: input.cancelAtPeriodEnd,
     currentPeriodStart: input.currentPeriodStart,
     currentPeriodEnd: input.currentPeriodEnd,

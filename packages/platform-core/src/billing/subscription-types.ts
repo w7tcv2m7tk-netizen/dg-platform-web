@@ -116,9 +116,9 @@ export type BillingBannerModel = {
 
 export function entitlementFromCommercialStatus(
   status: PlatformCommercialStatus,
-  opts?: { foundingOrExempt?: boolean },
+  opts?: { platformExempt?: boolean },
 ): PlatformEntitlementLevel {
-  if (opts?.foundingOrExempt) return "FULL";
+  if (opts?.platformExempt) return "FULL";
   switch (status) {
     case "TRIALING":
     case "ACTIVE":
@@ -217,14 +217,14 @@ function trialBannerTitle(days: number): string {
 export function buildBillingBanner(input: {
   level: PlatformEntitlementLevel;
   commercialStatus: string | null;
-  foundingOrExempt: boolean;
+  platformExempt: boolean;
   trialEnd: Date | null;
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
   planTier: string | null;
   now?: Date;
 }): BillingBannerModel {
-  if (input.foundingOrExempt) {
+  if (input.platformExempt) {
     return { kind: "none", title: "", body: "", tone: "neutral" };
   }
 

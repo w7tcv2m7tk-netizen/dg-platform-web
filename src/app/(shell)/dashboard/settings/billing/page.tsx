@@ -126,7 +126,6 @@ export default async function BillingSettingsPage({
               platformTier={billingStatus.platformTier}
               hasBillingCustomer={billingStatus.hasStripeCustomer}
               expectsPlatformBilling={billingStatus.expectsPlatformBilling}
-              foundingCustomer={billingStatus.foundingCustomer}
               compact
             />
           ) : null}

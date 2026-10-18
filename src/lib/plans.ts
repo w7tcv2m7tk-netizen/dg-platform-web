@@ -1,18 +1,27 @@
+import { PLATFORM_COMMERCIAL_PLANS } from "@dg/platform-core/billing/commercial-catalogue";
+
 export type PlatformTier = "starter" | "professional" | "business" | "enterprise";
 
 /** Canonical tier gate for native specialist industry-platform integrations/APIs. */
 export const INDUSTRY_INTEGRATION_MIN_TIER: PlatformTier = "business";
 export const MULTI_BUSINESS_MIN_TIER: PlatformTier = "business";
-export const SCALE_MAX_BUSINESSES = 5;
-export const SCALE_MAX_USERS = 20;
+const commercialPlanLimits = Object.fromEntries(
+  PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, {
+    maxUsers: plan.maxUsers,
+    maxActiveBusinesses: plan.maxActiveBusinesses,
+  }]),
+) as Record<"starter" | "professional" | "business", { maxUsers: number; maxActiveBusinesses: number }>;
+
+export const SCALE_MAX_BUSINESSES = commercialPlanLimits.business.maxActiveBusinesses;
+export const SCALE_MAX_USERS = commercialPlanLimits.business.maxUsers;
 
 export const PLATFORM_TIER_LIMITS: Record<
   PlatformTier,
   { maxUsers: number | null; maxActiveBusinesses: number | null }
 > = {
-  starter: { maxUsers: 1, maxActiveBusinesses: 1 },
-  professional: { maxUsers: 5, maxActiveBusinesses: 1 },
-  business: { maxUsers: SCALE_MAX_USERS, maxActiveBusinesses: SCALE_MAX_BUSINESSES },
+  starter: commercialPlanLimits.starter,
+  professional: commercialPlanLimits.professional,
+  business: commercialPlanLimits.business,
   enterprise: { maxUsers: null, maxActiveBusinesses: null },
 };
 

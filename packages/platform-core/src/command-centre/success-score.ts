@@ -20,7 +20,7 @@ export type SuccessScoreInput = {
   wordpressConfigured: boolean;
   lastSyncAt: string | null;
   hasBillingCustomer: boolean;
-  /** False for first-party / marketplace / operator organisations. */
+  /** False only for an explicitly authorised platform billing exemption. */
   expectsPlatformBilling?: boolean;
   status: string;
   memberCount: number;
@@ -42,24 +42,18 @@ export type SuccessScoreInput = {
 };
 
 export function organisationExpectsPlatformBilling(org: {
+  // Retained for caller compatibility; neither field grants an exemption.
   slug?: string | null;
   industry?: string | null;
   settings?: unknown;
 }): boolean {
   const settings = (org.settings ?? null) as {
     billing?: { platformExempt?: boolean };
-    featureFlags?: Record<string, boolean>;
   } | null;
 
-  if (settings?.billing?.platformExempt === true) return false;
-  if (settings?.featureFlags?.["billing.platform_exempt"] === true) return false;
-
-  const slug = (org.slug ?? "").toLowerCase();
-  if (slug === "wantd" || slug === "digitalgate" || slug.startsWith("digitalgate-")) {
-    return false;
-  }
-  if ((org.industry ?? "").toLowerCase() === "marketplace") return false;
-  return true;
+  // Identity, industry and feature flags are not authorization. Only the
+  // explicit billing exemption written by trusted platform provisioning is.
+  return settings?.billing?.platformExempt !== true;
 }
 
 export type SuccessScoreCoverage = "sparse" | "partial" | "rich";

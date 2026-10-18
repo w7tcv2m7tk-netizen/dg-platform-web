@@ -31,6 +31,31 @@ function stripePriceIdForTier(tier: string): string | null {
   return id || null;
 }
 
+async function validatedStripePriceId(
+  stripe: Stripe,
+  tier: string,
+  expectedAmountCents: number,
+): Promise<string | null> {
+  const id = stripePriceIdForTier(tier);
+  if (!id) return null;
+  let price: Stripe.Price;
+  try {
+    price = await stripe.prices.retrieve(id);
+  } catch {
+    throw new Error("Configured Stripe price could not be verified against the published plan catalogue.");
+  }
+  if (
+    price.active !== true ||
+    price.currency.toLowerCase() !== "aud" ||
+    price.unit_amount !== expectedAmountCents ||
+    price.recurring?.interval !== "month" ||
+    (price.recurring.interval_count ?? 1) !== 1
+  ) {
+    throw new Error(`Configured Stripe price does not match the published ${tier} monthly AUD catalogue price.`);
+  }
+  return id;
+}
+
 function getStripeClient() {
   const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
   if (!secretKey) throw new Error("STRIPE_SECRET_KEY is not configured");
@@ -88,7 +113,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     select: { billingCustomerId: true, settings: true },
   });
 
-  const priceId = annual ? null : stripePriceIdForTier(tier);
+  const priceId = annual ? null : await validatedStripePriceId(stripe, tier, monthlyAmount);
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priceId
     ? [{ quantity: 1, price: priceId }]
     : [
@@ -243,8 +268,12 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         programme?: string;
       };
     } | null)?.billing) ?? {};
-  const exempt =
-    existingSub?.platformExempt === true || settingsBilling.platformExempt === true;
+  // Once a canonical subscription exists, its exemption bit is authoritative.
+  // Organisation settings are only a bootstrap fallback for organisations that
+  // do not yet have a PlatformSubscription row.
+  const exempt = existingSub
+    ? existingSub.platformExempt
+    : settingsBilling.platformExempt === true;
 
   if (!exempt) {
     sessionParams.subscription_data = {

@@ -24,11 +24,8 @@ export type NeonPortalProfile = {
 type OrgSettings = {
   profile?: OrganisationBusinessProfile;
   billing?: {
-    subscriptionStatus?: string;
     platformExempt?: boolean;
-    foundingCustomer?: boolean;
     programme?: string;
-    lastCheckoutAt?: string;
   };
   apps?: { enabled?: string[] };
 };
@@ -94,24 +91,31 @@ function purchaseFromSettings(
   };
 }
 
-function computeSetup(input: {
+export function computePortalSetup(input: {
   orgStatus: string;
   profile?: OrganisationBusinessProfile;
   billing?: OrgSettings["billing"];
-  billingCustomerId?: string | null;
+  subscription?: {
+    status: string;
+    entitlement: string;
+    platformExempt: boolean;
+  } | null;
 }): NeonPortalSetup {
   const billing = input.billing ?? {};
-  const founding =
-    billing.foundingCustomer === true ||
-    ["founding", "founding_customer"].includes(String(billing.programme ?? "").toLowerCase());
-  const exempt = billing.platformExempt === true;
-  const sub = String(billing.subscriptionStatus ?? "").toLowerCase();
-  const paid =
-    exempt ||
-    founding ||
-    Boolean(input.billingCustomerId?.trim()) ||
-    sub === "active" ||
-    sub === "trialing";
+  const subscription = input.subscription;
+  const exempt = subscription
+    ? subscription.platformExempt === true
+    : billing.platformExempt === true;
+  const verifiedSubscription = Boolean(
+    subscription &&
+    ["ACTIVE", "TRIALING", "CANCEL_AT_PERIOD_END"].includes(subscription.status.toUpperCase()) &&
+    ["FULL", "FULL_WITH_WARNING"].includes(subscription.entitlement.toUpperCase()),
+  );
+  // Settings may authorize a pre-subscription exemption only. Subscription
+  // status copied into JSON is never proof of payment, trial, or activation.
+  const billingVerified = subscription
+    ? exempt || verifiedSubscription
+    : exempt;
 
   const profile = input.profile;
   const onboardingDone = Boolean(
@@ -119,14 +123,17 @@ function computeSetup(input: {
       (profile.contactEmail?.trim() || profile.contactName?.trim()),
   );
 
+  const liveOrganisationStatus =
+    input.orgStatus === "active" ||
+    (input.orgStatus === "trial" && subscription?.status.toUpperCase() === "TRIALING");
   const platformLive =
-    paid &&
+    billingVerified &&
     onboardingDone &&
-    (input.orgStatus === "active" || founding || exempt);
+    liveOrganisationStatus;
 
   return {
     account_created: true,
-    payment_done: paid,
+    payment_done: billingVerified,
     onboarding_done: onboardingDone,
     platform_live: platformLive,
   };
@@ -193,11 +200,15 @@ export async function resolvePortalProfileFromNeon(input: {
   const profile = settings.profile;
   const onboarding = profileToOnboarding(profile, email);
   const { purchase, purchaseLabel } = purchaseFromSettings(profile, settings.billing);
-  const setup = computeSetup({
+  const subscription = await prisma.platformSubscription.findUnique({
+    where: { organisationId: org.id },
+    select: { status: true, entitlement: true, platformExempt: true },
+  });
+  const setup = computePortalSetup({
     orgStatus: org.status,
     profile,
     billing: settings.billing,
-    billingCustomerId: org.billingCustomerId,
+    subscription,
   });
 
   const displayName =
