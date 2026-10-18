@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { INFRASTRUCTURE_NAV, type InfrastructureNavId } from "@dg/platform-core";
+import { INFRASTRUCTURE_NAV } from "@dg/platform-core/infrastructure/nav";
+import type { InfrastructureNavId } from "@dg/platform-core/infrastructure/nav";
 
 /**
  * @deprecated AppContextNav owns Infrastructure tabs. Do not mount on section hubs.

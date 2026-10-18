@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { WANTD_PLACEHOLDERS } from "@dg/platform-core";
+import { WANTD_PLACEHOLDERS } from "@dg/platform-core/wantd/brand";
 
 export function WantdWantInput({
   actionHref,

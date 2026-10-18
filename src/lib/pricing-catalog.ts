@@ -3,7 +3,7 @@ import {
   INDUSTRY_PLATFORMS as CORE_INDUSTRY_PLATFORMS,
   INDUSTRY_PUBLIC_GROUPS,
   type IndustryRoadmapLane,
-} from "@dg/platform-core";
+} from "@dg/platform-core/industry/platform";
 
 export type CatalogStatus = "live" | "soon" | "rolling-out" | "included";
 

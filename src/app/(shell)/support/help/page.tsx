@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import {
   HELP_ARTICLES,
   listHelpCategoriesWithArticles,
-} from "@dg/platform-core";
+} from "@dg/platform-core/help/articles";
 
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@/lib/support";
 

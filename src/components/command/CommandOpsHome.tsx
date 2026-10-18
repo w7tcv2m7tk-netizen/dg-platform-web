@@ -2,12 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import {
-  buildCommandCockpitPresentation,
-  clientIntelligencePresentation,
-  type CommandCentreOpsHome,
-  type SalesWeekPrompt,
-} from "@dg/platform-core";
+import { buildCommandCockpitPresentation, clientIntelligencePresentation } from "@dg/platform-core/command-centre/presentation";
+import type { CommandCentreOpsHome } from "@dg/platform-core/command-centre/types";
+import type { SalesWeekPrompt } from "@dg/platform-core/command-centre/sales-week";
 
 import { AiAdvisorPanel } from "@/components/command/AiAdvisorPanel";
 import { PlatformRoadmapBar } from "@/components/platform/PlatformRoadmapBar"; // operator roadmap progress

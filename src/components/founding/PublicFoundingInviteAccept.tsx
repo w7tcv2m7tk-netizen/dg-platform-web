@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FOUNDING_PERSONAL_INVITE_BENEFITS } from "@dg/platform-core";
+import { FOUNDING_PERSONAL_INVITE_BENEFITS } from "@dg/platform-core/founding/types";
 
 export { parseFoundingInvitePageSlug } from "@/lib/founding-invite-page-slug";
 

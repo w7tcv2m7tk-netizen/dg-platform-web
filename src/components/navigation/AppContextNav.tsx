@@ -5,7 +5,7 @@ import { useMemo } from "react";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { AppHorizontalSubnav } from "@/components/navigation/AppHorizontalSubnav";
-import { resolveActiveAppNavigation, routeIsActive } from "@dg/platform-core";
+import { resolveActiveAppNavigation, routeIsActive } from "@dg/platform-core/apps/active-nav";
 
 const SKIP_PREFIXES = ["/onboarding", "/signup", "/login", "/dashboard/apps"];
 
