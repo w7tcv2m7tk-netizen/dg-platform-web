@@ -8,18 +8,17 @@ import { NextResponse } from "next/server";
 
 import {
   isNextResponse,
-  requireIndustryAppBeta,
   requirePermission,
   requirePlatformAuth,
 } from "@/lib/platform-api";
+import { requireFinanceAppAccess } from "@/lib/finance-app-access";
+import { tenantWriteEntitlementBlock, writeEntitlementResponse } from "@/lib/write-entitlement";
 
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  {
-    const betaDenied = await requireIndustryAppBeta(session, "finance");
-    if (betaDenied) return betaDenied;
-  }
+  const accessDenied = await requireFinanceAppAccess(session.organisationId);
+  if (accessDenied) return accessDenied;
 
   const { searchParams } = new URL(req.url);
   const result = await listFinanceApplications({
@@ -34,10 +33,8 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  {
-    const betaDenied = await requireIndustryAppBeta(session, "finance");
-    if (betaDenied) return betaDenied;
-  }
+  const accessDenied = await requireFinanceAppAccess(session.organisationId);
+  if (accessDenied) return accessDenied;
   const permissionDenied = requirePermission(session, {
     module: "industry",
     action: "edit",
@@ -45,6 +42,8 @@ export async function POST(req: Request) {
     subModule: "finance",
   });
   if (permissionDenied) return permissionDenied;
+  const writeBlock = await tenantWriteEntitlementBlock(session);
+  if (writeBlock) return writeEntitlementResponse(writeBlock);
 
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body || typeof body.title !== "string" || !body.title.trim()) {
@@ -96,10 +95,8 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  {
-    const betaDenied = await requireIndustryAppBeta(session, "finance");
-    if (betaDenied) return betaDenied;
-  }
+  const accessDenied = await requireFinanceAppAccess(session.organisationId);
+  if (accessDenied) return accessDenied;
   const permissionDenied = requirePermission(session, {
     module: "industry",
     action: "edit",
@@ -107,6 +104,8 @@ export async function PATCH(req: Request) {
     subModule: "finance",
   });
   if (permissionDenied) return permissionDenied;
+  const writeBlock = await tenantWriteEntitlementBlock(session);
+  if (writeBlock) return writeEntitlementResponse(writeBlock);
 
   const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!body || typeof body.id !== "string") {

@@ -1,7 +1,7 @@
 # Business Apps floors — Finance · Creator · Commercial · Automotive · PM · Services
 
 **Audience:** Ben + agents shipping Industry Apps  
-**Status:** Finance / Commercial / Property Management / Services = **closed-beta floors** (enrol via feature flags). Creator + Automotive remain scaffold.  
+**Status:** Finance / Commercial / Property Management / Services = **closed-beta floors** (enrol via feature flags). Finance provides CRM-linked borrowers and manually tracked applications; lender submission/synchronisation, credit assessment, full loan origination and automated compliance processing are unavailable. Creator + Automotive remain scaffold.
 **Depends on:** Gen 2 shell; manifests in `platform-core`; beta flags `finance.beta`, `commercial.beta`, `pm.beta`, `services.beta`
 
 ---
@@ -18,7 +18,7 @@
 
 | App | Registry | Gate | Floor |
 |-----|----------|------|-------|
-| **Finance** | `enabled: true` | `finance.beta` | Broking pipeline + applications + clients |
+| **Finance** | `enabled: true` | Paid Finance Industry App + `finance.beta` | CRM-linked borrowers; manual applications and stage pipeline |
 | **Services** | `enabled: true` | `services.beta` | Jobs + scheduling + checklist/photos |
 | **Commercial** | `enabled: true` | `commercial.beta` | Properties + leases + tenants (CRM) |
 | **Property Management** | `enabled: true` | `pm.beta` | Properties + leases + owners/tenants + maintenance |
