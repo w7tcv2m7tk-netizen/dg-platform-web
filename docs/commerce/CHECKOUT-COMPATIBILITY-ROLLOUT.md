@@ -361,8 +361,9 @@ until the production procedure and separately reviewed #1006 integration are pro
 ## Billing activation security correction — 2026-10-16
 
 An organisation without a `PlatformSubscription` now resolves to `NONE`; tenant
-writes are blocked until billing is verified. Explicit `foundingCustomer` and
-`platformExempt` flags on subscription rows retain their existing `FULL` access.
+writes are blocked until billing is verified. Only `platformExempt` preserves the
+explicit exemption path; `foundingCustomer` is retained as cohort metadata and no
+longer grants access or bypasses trial and dunning.
 Billing status no longer treats a Stripe customer record or generic organisation
 `active` / `trial` state as proof of a subscription. Stripe onboarding completion,
 the activation helper and the return-page success state share the verified

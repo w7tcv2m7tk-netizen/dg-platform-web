@@ -101,20 +101,21 @@ describe("H-3 decision engine: writeEntitlementForSubscription (pure)", () => {
     assert.equal(blocked.reason, "read_only");
     assert.deepEqual(writeEntitlementForSubscription(trialing), { decision: "allow" });
   });
-  it("founding / platform-exempt orgs always allow writes", async () => {
+  it("Founding designation does not bypass billing; explicit platform exemption remains writable", async () => {
     const { writeEntitlementForSubscription } = await loadCore("billing/entitlement-resolver.ts");
-    assert.deepEqual(writeEntitlementForSubscription(foundingSuspended), { decision: "allow" });
+    assert.deepEqual(writeEntitlementForSubscription(foundingSuspended), { decision: "block", reason: "read_only", level: "READ_ONLY" });
     assert.deepEqual(writeEntitlementForSubscription(exemptSuspended), { decision: "allow" });
   });
 });
 
 describe("H-3 decision engine: checkTenantWriteEntitlement (fetch + fail closed)", () => {
-  it("no subscription => block; suspended => block read_only; founding => allow", async () => {
+  it("no subscription => block; suspended Founding => block; explicit exemption => allow", async () => {
     const { checkTenantWriteEntitlement } = await loadCore("billing/entitlement-resolver.ts");
     assert.deepEqual(await checkTenantWriteEntitlement(TENANT_ORG, async () => null), { decision: "block", reason: "read_only", level: "NONE" });
     const s = await checkTenantWriteEntitlement(TENANT_ORG, async () => suspended);
     assert.equal(s.reason, "read_only");
-    assert.deepEqual(await checkTenantWriteEntitlement(TENANT_ORG, async () => foundingSuspended), { decision: "allow" });
+    assert.deepEqual(await checkTenantWriteEntitlement(TENANT_ORG, async () => foundingSuspended), { decision: "block", reason: "read_only", level: "READ_ONLY" });
+    assert.deepEqual(await checkTenantWriteEntitlement(TENANT_ORG, async () => exemptSuspended), { decision: "allow" });
   });
 
   it("database lookup FAILURE fails closed (lookup_failed), not open", async () => {

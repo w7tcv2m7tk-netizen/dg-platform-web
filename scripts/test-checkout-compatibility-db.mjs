@@ -14,12 +14,30 @@ import { checkoutPost } from "./checkout-test-http.mjs";
 const applyInvoicePaymentFailed = input => processInvoiceFailure({ stripeInvoiceId: "in_fixture", ...input });
 const control = new PrismaClient();
 let org, requests, createWait, loseResponse, beforeAcceptance, remainingAtAcceptance, acceptedSessions, providerSubscription, subscriptionReadHook, providerInvoice, invoiceReadHook;
+const priceEnvironmentKeys = ["STRIPE_PRICE_STARTER", "STRIPE_PRICE_GROWTH", "STRIPE_PRICE_PROFESSIONAL", "STRIPE_PRICE_SCALE", "STRIPE_PRICE_BUSINESS"];
+const originalPriceEnvironment = new Map(priceEnvironmentKeys.map(key => [key, process.env[key]]));
+let configuredPrices;
+function fixturePrice({ amount, currency = "aud", interval = "month", intervalCount = 1, active = true }) {
+  return { id: "price_fixture", active, currency, unit_amount: amount, recurring: { interval, interval_count: intervalCount } };
+}
 const waitFor = async predicate => {
   const deadline = Date.now() + 2000;
   while (!predicate()) { if (Date.now() > deadline) throw new Error("Provider fixture did not reach expected state"); await new Promise(r => setTimeout(r, 5)); }
 };
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const standard = () => createPlatformCheckoutSession({ organisationId: org.id, email: "fixture@example.test", platformTier: "professional" });
+const seedCanonicalSubscription = (platformExempt, providerLinked = false) => prisma.platformSubscription.create({
+  data: {
+    organisationId: org.id,
+    status: "CANCELLED",
+    entitlement: "FULL",
+    planTier: "professional",
+    stripeCustomerId: providerLinked ? providerSubscription.customer : null,
+    stripeSubscriptionId: providerLinked ? providerSubscription.id : null,
+    stripeStatus: "canceled",
+    platformExempt,
+  },
+});
 const offer = { version: 1, id: "fixture", label: "Fixture", status: "agreed", currency: "aud", amountCents: 24900, cadence: "monthly", platformTier: "professional", industryApps: [], industryTemplates: [], premiumApps: [], trialDays: 14 };
 const custom = () => createCustomCommercialCheckoutSession({ organisationId: org.id, email: "fixture@example.test", offer });
 const close = () => control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = true, revision = revision + 1, changed_at = clock_timestamp() WHERE id = 1`;
@@ -35,6 +53,11 @@ before(async () => {
   const sdk = new Stripe(process.env.STRIPE_SECRET_KEY);
   mock.method(Object.getPrototypeOf(sdk.accounts), "retrieve", async () => ({ id: "acct_fixture" }));
   mock.method(Object.getPrototypeOf(sdk.balance), "retrieve", async () => ({ livemode: false }));
+  mock.method(Object.getPrototypeOf(sdk.prices), "retrieve", async id => {
+    const price = configuredPrices.get(id);
+    if (!price) throw new Error("Unexpected or unavailable test price");
+    return structuredClone(price);
+  });
   mock.method(Object.getPrototypeOf(sdk.subscriptions), "list", () => ({ async *[Symbol.asyncIterator]() {} }));
   mock.method(Object.getPrototypeOf(sdk.checkout.sessions), "retrieve", async id => {
     const session = acceptedSessions.find(s => s.id === id);
@@ -79,6 +102,8 @@ beforeEach(async () => {
   await prisma.platformCheckoutAttempt.deleteMany();
   await prisma.platformSubscription.deleteMany();
   await prisma.organisation.update({ where: { id: org.id }, data: { billingCustomerId: null, settings: {} } });
+  for (const key of priceEnvironmentKeys) delete process.env[key];
+  configuredPrices = new Map();
   subscriptionReadHook = null; invoiceReadHook = null;
   requests = []; createWait = null; loseResponse = false; beforeAcceptance = null;
   providerSubscription = { id: "sub_completed_fixture", customer: "cus_completed_fixture", livemode: false, status: "trialing",
@@ -89,7 +114,13 @@ beforeEach(async () => {
   remainingAtAcceptance = 2100; acceptedSessions = [];
   await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = false, revision = revision + 1, changed_at = clock_timestamp(), last_admission_expires_at = NULL WHERE id = 1`;
 });
-after(async () => { mock.restoreAll(); await prisma.$disconnect(); await control.$disconnect(); });
+after(async () => {
+  mock.restoreAll();
+  for (const [key, value] of originalPriceEnvironment) {
+    if (value === undefined) delete process.env[key]; else process.env[key] = value;
+  }
+  await prisma.$disconnect(); await control.$disconnect();
+});
 
 test("open gate persists absolute expiry before returning admission", async () => {
   const admission = await admitPlatformCheckout();
@@ -108,6 +139,110 @@ for (const [label, entry] of [["standard billing / onboarding", standard], ["cus
     assert.equal(requests[0].line_items[0].price_data.unit_amount, 24900);
   });
 }
+
+for (const [tier, envKey, amount] of [
+  ["starter", "STRIPE_PRICE_STARTER", 9900],
+  ["professional", "STRIPE_PRICE_GROWTH", 24900],
+  ["business", "STRIPE_PRICE_SCALE", 49900],
+]) {
+  test(`${tier} configured Stripe price matches the published monthly AUD catalogue`, async () => {
+    process.env[envKey] = `price_${tier}_fixture`;
+    configuredPrices.set(process.env[envKey], fixturePrice({ amount }));
+    await createPlatformCheckoutSession({ organisationId: org.id, email: "fixture@example.test", platformTier: tier });
+    assert.equal(requests.length, 1);
+    assert.deepEqual(requests[0].line_items, [{ quantity: 1, price: `price_${tier}_fixture` }]);
+    assert.equal(requests[0].subscription_data.trial_period_days, 14);
+  });
+}
+
+for (const [label, price] of [
+  ["amount", fixturePrice({ amount: 24901 })],
+  ["currency", fixturePrice({ amount: 24900, currency: "usd" })],
+  ["interval", fixturePrice({ amount: 24900, interval: "year" })],
+  ["interval count", fixturePrice({ amount: 24900, intervalCount: 2 })],
+  ["inactive status", fixturePrice({ amount: 24900, active: false })],
+]) {
+  test(`configured Growth Stripe price with mismatched ${label} fails closed`, async () => {
+    process.env.STRIPE_PRICE_GROWTH = "price_growth_mismatch";
+    configuredPrices.set(process.env.STRIPE_PRICE_GROWTH, price);
+    await assert.rejects(standard(), /does not match the published professional monthly AUD catalogue price/);
+    assert.equal(requests.length, 0);
+  });
+}
+
+test("Founding 10 designation keeps standard monthly pricing and 14-day trial", async () => {
+  await prisma.organisation.update({
+    where: { id: org.id },
+    data: { settings: { foundingOnboarding: { stage: "onboarding_started" }, billing: { foundingCustomer: true, programme: "founding" } } },
+  });
+  await standard();
+  assert.equal(requests[0].line_items[0].price_data.unit_amount, 24900);
+  assert.equal(requests[0].subscription_data.trial_period_days, 14);
+});
+
+test("only the explicit platform exemption omits the standard trial", async () => {
+  await prisma.organisation.update({ where: { id: org.id }, data: { settings: { billing: { platformExempt: true } } } });
+  await standard();
+  assert.equal(requests[0].subscription_data?.trial_period_days, undefined);
+});
+
+test("canonical exemption remains authoritative when organisation settings omit it", async () => {
+  await seedCanonicalSubscription(true);
+  await standard();
+  assert.equal(requests[0].subscription_data?.trial_period_days, undefined);
+});
+
+test("canonical non-exemption keeps the standard trial despite stale exempt settings", async () => {
+  await seedCanonicalSubscription(false);
+  await prisma.organisation.update({ where: { id: org.id }, data: { settings: { billing: { platformExempt: true } } } });
+  await standard();
+  assert.equal(requests[0].subscription_data.trial_period_days, 14);
+});
+
+test("checkout webhook preserves a canonical exemption absent from organisation settings", async () => {
+  await seedCanonicalSubscription(true, true);
+  await provisionFromPlatformCheckout(completedSession());
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  const owner = await prisma.organisation.findUnique({ where: { id: org.id } });
+  assert.equal(canonical.platformExempt, true);
+  assert.equal(owner.settings.billing.platformExempt, true);
+  assert.equal(canonical.status, "ACTIVE");
+});
+
+test("checkout webhook cannot grant a canonical non-exempt subscription from stale settings", async () => {
+  await seedCanonicalSubscription(false, true);
+  await prisma.organisation.update({ where: { id: org.id }, data: { settings: { billing: { platformExempt: true } } } });
+  await provisionFromPlatformCheckout(completedSession());
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  const owner = await prisma.organisation.findUnique({ where: { id: org.id } });
+  assert.equal(canonical.platformExempt, false);
+  assert.equal(owner.settings.billing.platformExempt, false);
+  assert.equal(canonical.status, "TRIALING");
+});
+
+test("repeated lifecycle webhook preserves the canonical exemption and remains idempotent", async () => {
+  providerSubscription.status = "active";
+  await seedCanonicalSubscription(true, true);
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_canonical_exemption");
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_canonical_exemption");
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  const owner = await prisma.organisation.findUnique({ where: { id: org.id } });
+  assert.equal(canonical.platformExempt, true);
+  assert.equal(owner.settings.billing.platformExempt, true);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: "evt_canonical_exemption:subscription" } }), 1);
+});
+
+test("lifecycle webhook cannot override canonical non-exemption from stale settings", async () => {
+  providerSubscription.status = "active";
+  await seedCanonicalSubscription(false, true);
+  await prisma.organisation.update({ where: { id: org.id }, data: { settings: { billing: { platformExempt: true } } } });
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_canonical_non_exemption");
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  const owner = await prisma.organisation.findUnique({ where: { id: org.id } });
+  assert.equal(canonical.platformExempt, false);
+  assert.equal(owner.settings.billing.platformExempt, false);
+});
+
 test("missing singleton denies admission", async () => {
   await control.$executeRaw`DELETE FROM platform_checkout_creation_gate WHERE id = 1`;
   try { await assert.rejects(standard(), CheckoutTemporarilyUnavailable); assert.equal(requests.length, 0); }

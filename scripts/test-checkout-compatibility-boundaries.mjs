@@ -26,7 +26,7 @@ test("billing and both onboarding branches use direct server imports and return 
     assert.match(s, /instanceof CheckoutTemporarilyUnavailable/); assert.match(s, /status: 503/); assert.match(s, /"Retry-After": "60"/);
   }
   const onboarding = read("src/app/api/v1/onboarding/gen2/route.ts");
-  assert.match(onboarding, /offer \? await createCustomCommercialCheckoutSession/);
+  assert.match(onboarding, /effectiveOffer \? await createCustomCommercialCheckoutSession/);
   assert.match(onboarding, /: await createPlatformCheckoutSession/);
   for (const p of ["platform-stripe", "commercial-offer"]) assert.doesNotMatch(read(`packages/platform-core/src/billing/${p}.ts`), /export (?:async function|const) create.*CheckoutSession/);
   assert.doesNotMatch(read("packages/platform-core/src/index.ts"), /platform-checkout|checkout-creation-gate|checkout-session-create/);
@@ -37,5 +37,8 @@ test("webhook route never consults admission barrier", () => {
 });
 test("review branch push cannot request an automatic Vercel deployment", () => {
   const config = JSON.parse(read("vercel.json"));
-  assert.deepEqual(config.git.deploymentEnabled, { "work/commercial-checkout-compatibility": false });
+  assert.deepEqual(config.git.deploymentEnabled, {
+    "work/commercial-readiness": false,
+    "work/commercial-checkout-compatibility": false,
+  });
 });

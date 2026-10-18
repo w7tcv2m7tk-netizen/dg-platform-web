@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test:checkout-coordinator-db": "node scripts/run-checkout-coordinator-db-tests.mjs",
+    "test:billing-exemption-boundary": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-billing-exemption-boundary.mjs",
     "test:checkout-client-boundary": "node --test scripts/test-checkout-client-boundary.mjs",
     "test:991-envelope": "node --experimental-strip-types --test scripts/test-remediate-991-envelope.mjs",
     "test:991-action": "node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-remediate-991-action.mjs",
@@ -113,7 +114,7 @@
     "test:team-invite-seat-reservation": "node scripts/test-team-invite-seat-reservation.mjs",
     "test:industry-activation-core-app-safety": "node scripts/test-industry-activation-core-app-safety.mjs",
     "test:marketing-trial-conversion": "node scripts/test-marketing-trial-conversion.mjs",
-    "test:custom-pricing-founding-separation": "node scripts/test-custom-pricing-founding-separation.mjs",
+    "test:custom-pricing-founding-separation": "node scripts/test-custom-pricing-founding-separation.mjs && node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/test-commercial-offer-acceptance.mjs",
     "test:custom-offer-experience": "node scripts/test-custom-offer-experience.mjs",
     "test:founding-operator-customer-boundary": "node scripts/test-founding-operator-customer-boundary.mjs",
     "test:pricing-entitlements": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/test-pricing-entitlements.mjs",

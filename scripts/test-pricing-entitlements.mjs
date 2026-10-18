@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import assert from "node:assert/strict";
+import { PLATFORM_COMMERCIAL_PLANS } from "../packages/platform-core/src/billing/commercial-catalogue.ts";
+import { GEN2_PLATFORM_PLANS } from "../packages/platform-core/src/onboarding/gen2-journey.ts";
 import {
   SCALE_MAX_BUSINESSES,
   SCALE_MAX_USERS,
@@ -20,6 +22,19 @@ assert.equal(maxActiveBusinessesForTier("starter"), 1);
 assert.equal(maxActiveBusinessesForTier("professional"), 1);
 assert.equal(maxActiveBusinessesForTier("business"), 5);
 assert.equal(maxActiveBusinessesForTier("enterprise"), null);
+
+assert.deepEqual(
+  PLATFORM_COMMERCIAL_PLANS.map(({ id, monthlyCents, maxUsers }) => ({ id, monthlyCents, maxUsers })),
+  [
+    { id: "starter", monthlyCents: 9900, maxUsers: 1 },
+    { id: "professional", monthlyCents: 24900, maxUsers: 5 },
+    { id: "business", monthlyCents: 49900, maxUsers: 20 },
+  ],
+);
+assert.deepEqual(
+  GEN2_PLATFORM_PLANS.map(({ id, monthlyCents }) => ({ id, monthlyCents })),
+  PLATFORM_COMMERCIAL_PLANS.map(({ id, monthlyCents }) => ({ id, monthlyCents })),
+);
 
 assert.equal(canAddUserAtCount("professional", 4), true);
 assert.equal(canAddUserAtCount("professional", 5), false);
