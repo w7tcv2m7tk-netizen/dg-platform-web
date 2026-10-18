@@ -3,14 +3,18 @@ import assert from "node:assert/strict";
 
 const read = (path) => fs.readFileSync(path, "utf8");
 const plans = read("src/lib/plans.ts");
+const catalogue = read("packages/platform-core/src/billing/commercial-catalogue.ts");
 const invite = read("src/app/api/v1/org/team/invite/route.ts");
 const memberships = read("packages/platform-core/src/org/memberships.ts");
 
-assert.ok(plans.includes("starter: { maxUsers: 1, maxActiveBusinesses: 1 }"));
-assert.ok(plans.includes("professional: { maxUsers: 5, maxActiveBusinesses: 1 }"));
-assert.ok(plans.includes("export const SCALE_MAX_USERS = 20;"));
-assert.ok(plans.includes("export const SCALE_MAX_BUSINESSES = 5;"));
-assert.ok(plans.includes("business: { maxUsers: SCALE_MAX_USERS, maxActiveBusinesses: SCALE_MAX_BUSINESSES }"));
+assert.ok(plans.includes('import { PLATFORM_COMMERCIAL_PLANS } from "@dg/platform-core/billing/commercial-catalogue"'));
+assert.ok(plans.includes("PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, {"));
+assert.ok(catalogue.includes('{ id: "starter", name: "Starter", monthlyCents: 9900, maxUsers: 1, maxActiveBusinesses: 1'));
+assert.ok(catalogue.includes('{ id: "professional", name: "Growth", monthlyCents: 24900, maxUsers: 5, maxActiveBusinesses: 1'));
+assert.ok(catalogue.includes('{ id: "business", name: "Scale", monthlyCents: 49900, maxUsers: 20, maxActiveBusinesses: 5'));
+assert.ok(plans.includes("export const SCALE_MAX_USERS = commercialPlanLimits.business.maxUsers;"));
+assert.ok(plans.includes("export const SCALE_MAX_BUSINESSES = commercialPlanLimits.business.maxActiveBusinesses;"));
+assert.ok(plans.includes("business: commercialPlanLimits.business"));
 
 assert.ok(invite.includes('status: { in: ["active", "invited"] }'));
 assert.ok(invite.includes("occupiedSeats >= maxUsers"));

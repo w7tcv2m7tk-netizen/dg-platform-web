@@ -9,6 +9,9 @@ export interface PlatformSession {
   role: string;
   /** Optional granular grants from membership.permissions */
   permissionGrants?: unknown;
+  /** Server-resolved canonical purchase projections; never populated from profile settings. */
+  industryPurchaseIds?: string[];
+  premiumPurchaseKeys?: string[];
   dbConfigured: boolean;
   organisations: import("../org/memberships").UserOrganisationSummary[];
 }
@@ -47,6 +50,26 @@ export async function resolvePlatformSession(
 
   const organisations = await listUserOrganisations(input.clerkUserId);
 
+  let industryPurchaseIds: string[] = [];
+  let premiumPurchaseKeys: string[] = [];
+  try {
+    const { authorisedIndustryPurchaseIds, authorisedPremiumPurchaseKeys } = await import("../industry/purchase-authority");
+    const subscription = await prisma.platformSubscription.findUnique({
+      where: { organisationId: membership.organisationId },
+      select: {
+        organisationId: true, industryApps: true, premiumApps: true, status: true,
+        entitlement: true, stripeStatus: true, stripeSubscriptionId: true,
+        stripeCustomerId: true, trialEnd: true, currentPeriodEnd: true,
+        gracePeriodEndsAt: true, cancelAtPeriodEnd: true,
+      },
+    });
+    industryPurchaseIds = authorisedIndustryPurchaseIds(subscription, membership.organisationId);
+    premiumPurchaseKeys = authorisedPremiumPurchaseKeys(subscription, membership.organisationId);
+  } catch {
+    // A failed authority read denies paid application features while preserving
+    // access to the authenticated core platform.
+  }
+
   if (input.email && membership.email !== input.email) {
     // Keep login email cache in sync — never overwrite displayName / publicEmail here.
     await prisma.membership.update({
@@ -70,6 +93,8 @@ export async function resolvePlatformSession(
       (membership as { permissions?: unknown }).permissions ??
       ((membership.externalRefs as { permissionGrants?: unknown } | null)?.permissionGrants ??
         undefined),
+    industryPurchaseIds,
+    premiumPurchaseKeys,
     dbConfigured: true,
     organisations,
   };

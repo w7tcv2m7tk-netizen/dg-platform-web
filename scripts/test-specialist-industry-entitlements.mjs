@@ -9,14 +9,13 @@ const routes = [
 ];
 
 assert.match(helper, /canUseIndustryIntegrations\(tier\)/, "specialist integrations require Scale+");
-assert.match(helper, /settings\.profile\?\.purchasedApps/, "specialist integrations require paid Industry purchase");
-assert.match(helper, /industryIdForAppOrTemplate\(key\) === requiredIndustryId/, "purchase must match required Industry");
+assert.match(helper, /isIndustryAppPurchased\(subscription, organisationId, requiredIndustryId\)/, "specialist integrations require the exact canonical Industry App purchase");
 assert.match(helper, /appInstallation\.findFirst/, "specialist integrations require active Industry App");
 assert.match(helper, /industry_app_purchase_required/, "missing purchase fails closed");
 assert.match(helper, /industry_app_required/, "inactive app fails closed");
 
 for (const [name, source] of routes) {
   assert.match(source, /specialistIndustryEntitlementBlock/, name + " uses central specialist entitlement");
-  assert.match(source, /"property"/, name + " requires Property Industry");
+  assert.match(source, /"real-estate"/, name + " requires the exact Real Estate Industry App");
 }
 console.log("specialist industry entitlement gates: ok");

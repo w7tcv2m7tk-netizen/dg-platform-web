@@ -15,9 +15,11 @@ import {
   type PlatformSession,
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
+import { organisationHasSelectedIndustryApp, type IndustrySelectionSettings } from "@/lib/industry-app-selection";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { enforceWriteEntitlement } from "@/lib/write-entitlement";
+import { industryAppForProtectedApiPath, paidAppForProtectedApiPath } from "@/lib/industry-api-access-policy";
 
 registerNotificationEventHandlers();
 bootConnectorEngine();
@@ -95,11 +97,22 @@ export async function requireClerkSession(): Promise<PlatformSession | NextRespo
 export async function requirePlatformAuth(
   req: Request,
 ): Promise<PlatformSession | NextResponse> {
-  const session = await resolvePlatformAuthSession(req);
-  if (isNextResponse(session)) return session;
+  const resolved = await resolvePlatformAuthSession(req);
+  if (isNextResponse(resolved)) return resolved;
+  const session = await withCanonicalAppPurchases(resolved);
 
   const writeBlock = await enforceWriteEntitlement(req, session);
   if (writeBlock) return writeBlock;
+
+  const industryAppId = industryAppForProtectedApiPath(requestPathname(req));
+  if (industryAppId) {
+    const purchaseBlock = await requireIndustryAppBeta(session, industryAppId);
+    if (purchaseBlock) return purchaseBlock;
+  }
+  const paidAppId = paidAppForProtectedApiPath(requestPathname(req));
+  if (paidAppId && !sessionHasFeature(session, `${paidAppId}.read`)) {
+    return NextResponse.json({ error: { code: "paid_app_purchase_required", message: `A verified ${paidAppId} purchase is required.` } }, { status: 403 });
+  }
 
   const accommodationPermissionBlock = accommodationWritePermission(req, session);
   if (accommodationPermissionBlock) return accommodationPermissionBlock;
@@ -108,6 +121,27 @@ export async function requirePlatformAuth(
   if (propertyPermissionBlock) return propertyPermissionBlock;
 
   return session;
+}
+
+async function withCanonicalAppPurchases(session: PlatformSession): Promise<PlatformSession> {
+  if (session.industryPurchaseIds !== undefined && session.premiumPurchaseKeys !== undefined) return session;
+  try {
+    const { prisma } = await import("@dg/database");
+    const subscription = await prisma.platformSubscription.findUnique({
+      where: { organisationId: session.organisationId },
+      select: { organisationId: true, industryApps: true, premiumApps: true, status: true,
+        entitlement: true, stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true,
+        trialEnd: true, currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
+    });
+    const { authorisedIndustryPurchaseIds, authorisedPremiumPurchaseKeys } = await import("@dg/platform-core/industry/purchase-authority");
+    return {
+      ...session,
+      industryPurchaseIds: authorisedIndustryPurchaseIds(subscription, session.organisationId),
+      premiumPurchaseKeys: authorisedPremiumPurchaseKeys(subscription, session.organisationId),
+    };
+  } catch {
+    return { ...session, industryPurchaseIds: [], premiumPurchaseKeys: [] };
+  }
 }
 
 async function resolvePlatformAuthSession(
@@ -247,22 +281,27 @@ export async function requireIndustryAppBeta(
   session: PlatformSession,
   appId: string,
 ): Promise<NextResponse | null> {
-  const { organisationHasIndustryAppBeta, INDUSTRY_APP_BETA_FLAGS } = await import(
-    "@dg/platform-core"
-  );
-  const flag = INDUSTRY_APP_BETA_FLAGS[appId];
-  if (!flag) return null;
-  const ok = await organisationHasIndustryAppBeta(session.organisationId, appId);
-  if (ok) return null;
-  return NextResponse.json(
-    {
-      error: {
-        code: "beta_required",
-        message: `${appId} requires ${flag} enrolment for this organisation`,
-      },
-    },
-    { status: 403 },
-  );
+  const { organisationHasIndustryAppBeta } = await import("@dg/platform-core");
+  try {
+    const { prisma } = await import("@dg/database");
+    const [subscription, organisation] = await Promise.all([prisma.platformSubscription.findUnique({
+      where: { organisationId: session.organisationId },
+      select: { organisationId: true, industryApps: true, premiumApps: true, status: true,
+        entitlement: true, stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true,
+        trialEnd: true, currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
+    }), prisma.organisation.findUnique({ where: { id: session.organisationId }, select: { settings: true } })]);
+    const { industryAppAccessDecision } = await import("@dg/platform-core/industry/purchase-authority");
+    const betaEnrolled = await organisationHasIndustryAppBeta(session.organisationId, appId);
+    const decision = industryAppAccessDecision({ authority: subscription, organisationId: session.organisationId, appId, betaEnrolled,
+      selectedForOrganisation: organisationHasSelectedIndustryApp(organisation?.settings as IndustrySelectionSettings | null, appId) });
+    if (decision === "allowed") return null;
+    const code = decision === "beta_required" ? "beta_required" : decision === "industry_app_not_selected" ? decision : "industry_app_purchase_required";
+    const message = decision === "beta_required" ? `${appId} beta enrolment is required.` : decision === "industry_app_not_selected" ? `${appId} is not selected for this organisation.` : `A verified ${appId} Industry App purchase is required.`;
+    return NextResponse.json({ error: { code, message } }, { status: 403 });
+  } catch {
+    return NextResponse.json({ error: { code: "industry_entitlement_unavailable", message: "Industry App access could not be verified." } }, { status: 503 });
+  }
+  return null;
 }
 
 export type PlatformAuthContext =
