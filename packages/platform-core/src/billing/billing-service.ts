@@ -6,6 +6,8 @@
 import Stripe from "stripe";
 import type { Prisma } from "@dg/database";
 import { withProjectionTransaction, type ProjectionRead } from "./projection-transaction";
+import { normalisePaidAppKeys } from "./paid-apps";
+import { stripeItemsMatchPurchasedSelections } from "./purchased-line-items";
 
 import {
   appendSubscriptionEvent,
@@ -25,6 +27,54 @@ import {
 function unixToDate(sec: number | null | undefined): Date | null {
   if (sec == null || !Number.isFinite(sec)) return null;
   return new Date(sec * 1000);
+}
+
+function metadataStringList(value: string | null | undefined): string[] {
+  return (value ?? "").split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+/**
+ * Recover only the unique subset of already-canonical purchases still proved by
+ * Stripe's current line items. This handles removals when metadata is stale or
+ * incomplete without granting any selection that was not already verified.
+ */
+function verifiedExistingPurchaseSubset(
+  subscription: Stripe.Subscription,
+  existing: PlatformSubscriptionRow,
+): { industryApps: string[]; premiumApps: string[] } | null {
+  const industryApps = [...new Set(existing.industryApps)];
+  const premiumApps = [...new Set(existing.premiumApps)];
+  const selections = [...industryApps.map((id) => ({ kind: "industry" as const, id })),
+    ...premiumApps.map((id) => ({ kind: "premium" as const, id }))];
+  // Avoid exponential work on unusual large legacy records. The caller will
+  // preserve the existing projection when a unique safe reconciliation cannot
+  // be established.
+  if (!existing.planTier || selections.length > 12) return null;
+  const cadenceValues: Array<"monthly" | "annual"> = subscription.metadata.dg_billing_cadence === "monthly"
+    ? ["monthly"] : subscription.metadata.dg_billing_cadence === "annual" ? ["annual"] : ["monthly", "annual"];
+  const supportPlan = subscription.metadata.dg_support_plan ?? "standard";
+  const matches = new Map<string, { industryApps: string[]; premiumApps: string[] }>();
+  const subset = (index: number, industries: string[], premiums: string[]) => {
+    if (index === selections.length) {
+      for (const cadence of cadenceValues) {
+        if (!stripeItemsMatchPurchasedSelections(subscription.items.data, {
+          platformTier: existing.planTier!, platformPriceId: platformPriceIdForTier(existing.planTier!),
+          industryApps: industries, premiumApps: premiums, supportPlan, cadence,
+        })) continue;
+        const result = { industryApps: [...industries], premiumApps: [...premiums] };
+        matches.set(JSON.stringify(result), result);
+        if (matches.size > 1) return;
+      }
+      return;
+    }
+    subset(index + 1, industries, premiums);
+    if (matches.size > 1) return;
+    const selection = selections[index]!;
+    if (selection.kind === "industry") subset(index + 1, [...industries, selection.id], premiums);
+    else subset(index + 1, industries, [...premiums, selection.id]);
+  };
+  subset(0, [], []);
+  return matches.size === 1 ? [...matches.values()][0]! : null;
 }
 
 function stripeSubPeriods(subscription: Stripe.Subscription): {
@@ -167,7 +217,11 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
   if (existing && input.stripeEventId && await prisma.platformSubscriptionEvent.findUnique({
     where: { stripeEventId: `${input.stripeEventId}:subscription` },
   })) return existing;
-  const subscription = authoritativeSubscription ?? await read(timeout => new Stripe(process.env.STRIPE_SECRET_KEY ?? "").subscriptions.retrieve(input.subscription.id, { timeout, maxNetworkRetries: 0 }));
+  const subscription = authoritativeSubscription ?? await read(timeout => new Stripe(process.env.STRIPE_SECRET_KEY ?? "").subscriptions.retrieve(
+    input.subscription.id,
+    { expand: ["items.data.price.product"] },
+    { timeout, maxNetworkRetries: 0 },
+  ));
   const authoritativeCustomer = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.id;
   const org = await prisma.organisation.findUniqueOrThrow({ where: { id: organisationId } });
   if (subscription.id !== input.subscription.id || authoritativeCustomer !== customer ||
@@ -176,6 +230,35 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
     (org.billingCustomerId && org.billingCustomerId !== authoritativeCustomer)) {
     throw new Error("Subscription projection ownership is unconfirmed");
   }
+  // Empty arrays are meaningful only when the provider explicitly supplied the
+  // selection fields. Missing fields on an existing subscription are not proof
+  // that previously verified app purchases were removed.
+  const purchaseMetadataComplete = Boolean(
+    subscription.metadata.dg_billing_cadence &&
+    subscription.metadata.dg_platform_tier &&
+    (Object.hasOwn(subscription.metadata, "dg_industry_apps") || Object.hasOwn(subscription.metadata, "dg_industry_templates")) &&
+    Object.hasOwn(subscription.metadata, "dg_premium_apps"),
+  );
+  if (!purchaseMetadataComplete && !existing) {
+    throw new Error("New subscription purchase metadata is incomplete or lacks a verifiable catalogue cadence or platform tier");
+  }
+  const verifiedPurchaseMetadata = purchaseMetadataComplete && stripeItemsMatchPurchasedSelections(subscription.items.data, {
+    platformTier: subscription.metadata.dg_platform_tier,
+    platformPriceId: platformPriceIdForTier(subscription.metadata.dg_platform_tier),
+    industryApps: [...new Set([
+      ...metadataStringList(subscription.metadata.dg_industry_apps),
+      ...metadataStringList(subscription.metadata.dg_industry_templates),
+    ])],
+    premiumApps: normalisePaidAppKeys(metadataStringList(subscription.metadata.dg_premium_apps)),
+    supportPlan: subscription.metadata.dg_support_plan ?? "standard",
+    cadence: subscription.metadata.dg_billing_cadence === "annual" ? "annual" : "monthly",
+  });
+  if (purchaseMetadataComplete && !verifiedPurchaseMetadata && !existing) {
+    throw new Error("New subscription purchase metadata does not match the canonical Stripe line items");
+  }
+  const reconciledExistingPurchases = !verifiedPurchaseMetadata && existing
+    ? verifiedExistingPurchaseSubset(subscription, existing)
+    : null;
   const periods = stripeSubPeriods(subscription);
   const eventKind = ["canceled", "incomplete_expired"].includes(subscription.status) ? "deleted" :
     input.eventKind === "deleted" ? "updated" : input.eventKind;
@@ -231,7 +314,18 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
     organisationId,
     status,
     entitlement,
-    planTier: subscription.metadata.dg_platform_tier ?? existing?.planTier ?? null,
+    planTier: verifiedPurchaseMetadata
+      ? subscription.metadata.dg_platform_tier
+      : existing?.planTier ?? null,
+    industryApps: verifiedPurchaseMetadata
+      ? [...new Set([
+          ...metadataStringList(subscription.metadata.dg_industry_apps),
+          ...metadataStringList(subscription.metadata.dg_industry_templates),
+        ])]
+      : reconciledExistingPurchases?.industryApps,
+    premiumApps: verifiedPurchaseMetadata
+      ? normalisePaidAppKeys(metadataStringList(subscription.metadata.dg_premium_apps))
+      : reconciledExistingPurchases?.premiumApps,
     stripeCustomerId: customerId,
     stripeSubscriptionId: subscription.id,
     stripeStatus: subscription.status,
@@ -296,6 +390,17 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
   }, database);
 
   return row;
+}
+
+function platformPriceIdForTier(tier: string): string | null {
+  const configured = tier === "starter"
+    ? process.env.STRIPE_PRICE_STARTER
+    : tier === "professional"
+      ? process.env.STRIPE_PRICE_PROFESSIONAL ?? process.env.STRIPE_PRICE_GROWTH
+      : tier === "business"
+        ? process.env.STRIPE_PRICE_BUSINESS ?? process.env.STRIPE_PRICE_SCALE
+        : undefined;
+  return configured?.trim() || null;
 }
 
 /** invoice.payment_failed — enter / refresh payment-failed ladder without hard suspend. */
@@ -525,6 +630,8 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
   stripeCustomerId: string;
   stripeSubscriptionId?: string | null;
   planTier: string;
+  industryApps: string[];
+  premiumApps: string[];
   foundingCustomer?: boolean;
   platformExempt?: boolean;
   trialStart: Date | null;
@@ -556,6 +663,8 @@ export async function syncPlatformSubscriptionFromCheckout(input: {
     status,
     entitlement,
     planTier: input.planTier,
+    industryApps: input.industryApps,
+    premiumApps: input.premiumApps,
     stripeCustomerId: input.stripeCustomerId,
     stripeSubscriptionId: input.stripeSubscriptionId ?? null,
     stripeStatus: input.stripeStatus,

@@ -11,6 +11,7 @@ import {
   normalisePaidAppKeys,
   type PaidAppKey,
 } from "./paid-apps";
+import { stripeItemsMatchPurchasedSelections } from "./purchased-line-items";
 
 const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
   PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
@@ -169,7 +170,9 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
   if (session.mode !== "subscription" || session.status !== "complete" || !stripeSubscriptionId) {
     throw new Error("Platform checkout requires a completed subscription session");
   }
-  const subscription = await read(timeout => getStripeClient().subscriptions.retrieve(stripeSubscriptionId, { timeout, maxNetworkRetries: 0 }));
+  const subscription = await read(timeout => getStripeClient().subscriptions.retrieve(stripeSubscriptionId, {
+    expand: ["items.data.price.product"],
+  }, { timeout, maxNetworkRetries: 0 }));
   if (subscription.id !== stripeSubscriptionId || stripeCustomerId(subscription.customer) !== customerId ||
     subscription.livemode !== session.livemode || !metadata.organisation_id ||
     subscription.metadata.organisation_id !== metadata.organisation_id || subscription.metadata.dg_platform_subscription !== "true") {
@@ -207,6 +210,36 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
   }
   if (!["active", "trialing"].includes(subscription.status)) {
     throw new Error("Platform checkout subscription activation is unconfirmed");
+  }
+  const verifiedIndustryApps = metadataList(subscription.metadata?.dg_industry_apps);
+  const verifiedIndustryTemplates = metadataList(subscription.metadata?.dg_industry_templates);
+  const selectedIndustryIds = [...new Set([...industryApps, ...industryTemplates])].sort();
+  const verifiedIndustryIds = [...new Set([...verifiedIndustryApps, ...verifiedIndustryTemplates])].sort();
+  if (JSON.stringify(selectedIndustryIds) !== JSON.stringify(verifiedIndustryIds)) {
+    throw new Error("Stripe subscription Industry App metadata does not match the completed Checkout Session");
+  }
+  const verifiedPremiumApps = normalisePaidAppKeys(metadataList(subscription.metadata?.dg_premium_apps));
+  if (JSON.stringify([...requestedPremiumApps].sort()) !== JSON.stringify([...verifiedPremiumApps].sort())) {
+    throw new Error("Stripe subscription premium-app metadata does not match the completed Checkout Session");
+  }
+  const cadence = metadata.dg_billing_cadence === "annual" ? "annual" : "monthly";
+  if (subscription.metadata?.dg_billing_cadence !== cadence) {
+    throw new Error("Stripe subscription billing cadence does not match the completed Checkout Session");
+  }
+  if (subscription.metadata?.dg_platform_tier !== platformTier ||
+    (subscription.metadata?.dg_support_plan ?? "standard") !== (metadata.dg_support_plan ?? "standard")) {
+    throw new Error("Stripe subscription commercial metadata does not match the completed Checkout Session");
+  }
+  const configuredPlatformPriceId = platformPriceIdForTier(platformTier);
+  if (!stripeItemsMatchPurchasedSelections(subscription.items.data, {
+    platformTier,
+    platformPriceId: configuredPlatformPriceId,
+    industryApps: selectedIndustryIds,
+    premiumApps: requestedPremiumApps,
+    supportPlan: metadata.dg_support_plan ?? "standard",
+    cadence,
+  })) {
+    throw new Error("Stripe subscription line items do not match the canonical DigitalGate purchase catalogue");
   }
   const premiumApps = await paidAppsFromAuthoritativeSubscription({
     subscription,
@@ -266,6 +299,8 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
     stripeCustomerId: customerId,
     stripeSubscriptionId,
     planTier: platformTier,
+    industryApps: [...new Set([...verifiedIndustryApps, ...verifiedIndustryTemplates])],
+    premiumApps: verifiedPremiumApps,
     foundingCustomer: founding,
     platformExempt: requestedExemption,
     stripeEventId: session.id,
@@ -333,6 +368,17 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
     billingCustomerId: customerId,
     referralReward: null,
   };
+}
+
+function platformPriceIdForTier(tier: string): string | null {
+  const configured = tier === "starter"
+    ? process.env.STRIPE_PRICE_STARTER
+    : tier === "professional"
+      ? process.env.STRIPE_PRICE_PROFESSIONAL ?? process.env.STRIPE_PRICE_GROWTH
+      : tier === "business"
+        ? process.env.STRIPE_PRICE_BUSINESS ?? process.env.STRIPE_PRICE_SCALE
+        : undefined;
+  return configured?.trim() || null;
 }
 
 export async function handlePlatformSubscriptionLifecycle(

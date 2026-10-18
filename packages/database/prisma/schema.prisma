@@ -929,6 +929,10 @@ model PlatformSubscription {
   /** FULL | FULL_WITH_WARNING | MOSTLY_FULL | READ_ONLY | NONE — derived; stored for query speed */
   entitlement          String    @default("FULL")
   planTier             String?   @map("plan_tier")
+  /** Industry App purchases projected only from a verified Stripe subscription. */
+  industryApps         String[]  @default([]) @map("industry_apps")
+  /** Premium app purchases projected only from a verified Stripe subscription. */
+  premiumApps          String[]  @default([]) @map("premium_apps")
   stripeCustomerId     String?   @unique @map("stripe_customer_id")
   stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
   /** Raw Stripe subscription.status when known */

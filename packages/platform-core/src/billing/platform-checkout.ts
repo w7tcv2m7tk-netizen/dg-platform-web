@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { coordinatePlatformCheckout } from "./checkout-coordinator";
 import { parseCustomCommercialOffer, type CustomCommercialOffer } from "./commercial-offer";
 import { annualPriceFromMonthlyCents, BILLING_COMMERCIAL_CONFIG } from "./subscription-types";
-import { industryCheckoutLines } from "../industry/platform";
+import { industryCheckoutLines, industryIdForAppOrTemplate } from "../industry/platform";
 import { PLATFORM_COMMERCIAL_PLANS, SUPPORT_COMMERCIAL_PLANS } from "./commercial-catalogue";
 import { normalisePaidAppKeys, paidAppCheckoutLines, GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS } from "./paid-apps";
 
@@ -105,6 +105,9 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   const industryApps = Array.isArray(input.industryApps)
     ? input.industryApps.filter((id): id is string => typeof id === "string" && Boolean(id.trim()))
     : [];
+  if (industryApps.some((id) => !industryIdForAppOrTemplate(id))) {
+    throw new Error("Checkout contains an unknown Industry App selection");
+  }
   const premiumApps = normalisePaidAppKeys(input.premiumApps);
 
   const { prisma } = await import("@dg/database");

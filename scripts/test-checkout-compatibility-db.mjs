@@ -6,6 +6,7 @@ import { prisma, PrismaClient } from "@dg/database";
 import { admitPlatformCheckout, CheckoutTemporarilyUnavailable } from "../packages/platform-core/src/billing/checkout-creation-gate.ts";
 import { createPlatformCheckoutSession, createCustomCommercialCheckoutSession, createNegotiatedCommercialCheckoutSession } from "../packages/platform-core/src/billing/platform-checkout.ts";
 import { provisionFromPlatformCheckout, handlePlatformSubscriptionLifecycle } from "../packages/platform-core/src/billing/platform-stripe.ts";
+import { expectedPurchasedLineItems } from "../packages/platform-core/src/billing/purchased-line-items.ts";
 import { StripePaymentConnector } from "../packages/platform-core/src/commerce/connectors/stripe/index.ts";
 import { processPaymentWebhookEvent } from "../packages/platform-core/src/commerce/payment-engine.ts";
 import { applyInvoicePaymentFailed as processInvoiceFailure, applyInvoicePaidRecovery, advanceDunningForSubscription } from "../packages/platform-core/src/billing/billing-service.ts";
@@ -41,6 +42,12 @@ const seedCanonicalSubscription = (platformExempt, providerLinked = false) => pr
 const offer = { version: 1, id: "fixture", label: "Fixture", status: "agreed", currency: "aud", amountCents: 24900, cadence: "monthly", platformTier: "professional", industryApps: [], industryTemplates: [], premiumApps: [], trialDays: 14 };
 const custom = () => createCustomCommercialCheckoutSession({ organisationId: org.id, email: "fixture@example.test", offer });
 const close = () => control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = true, revision = revision + 1, changed_at = clock_timestamp() WHERE id = 1`;
+function providerItems({ industryApps = [], premiumApps = [], platformTier = "professional", supportPlan = "standard", cadence = "monthly" } = {}) {
+  return expectedPurchasedLineItems({ industryApps, premiumApps, platformTier, supportPlan, cadence }).map(line => ({ quantity: 1, price: {
+    id: `price_${line.amountCents}_${line.name ?? "configured"}`, unit_amount: line.amountCents, currency: "aud",
+    recurring: { interval: cadence === "annual" ? "year" : "month", interval_count: 1 }, product: { name: line.name ?? "Configured DigitalGate plan" },
+  } }));
+}
 before(async () => {
   const url = new URL(process.env.DATABASE_URL);
   assert.equal(url.hostname, "127.0.0.1"); assert.notEqual(url.port, "5432"); assert.equal(url.pathname, "/dg_checkout_test");
@@ -108,7 +115,8 @@ beforeEach(async () => {
   requests = []; createWait = null; loseResponse = false; beforeAcceptance = null;
   providerSubscription = { id: "sub_completed_fixture", customer: "cus_completed_fixture", livemode: false, status: "trialing",
     trial_start: 1700000000, trial_end: 1700604800, current_period_start: 1700000000, current_period_end: 1700604800,
-    metadata: { organisation_id: org.id, dg_platform_subscription: "true", dg_platform_tier: "professional" }, latest_invoice: "in_fixture" };
+    metadata: { organisation_id: org.id, dg_platform_subscription: "true", dg_platform_tier: "professional", dg_billing_cadence: "monthly", dg_support_plan: "standard", dg_industry_apps: "", dg_premium_apps: "" },
+    items: { data: providerItems() }, latest_invoice: "in_fixture" };
   providerInvoice = { id: "in_fixture", subscription: providerSubscription.id, customer: providerSubscription.customer,
     livemode: false, status: "open", paid: false, amount_remaining: 24900 };
   remainingAtAcceptance = 2100; acceptedSessions = [];
@@ -243,6 +251,103 @@ test("lifecycle webhook cannot override canonical non-exemption from stale setti
   assert.equal(owner.settings.billing.platformExempt, false);
 });
 
+test("verified lifecycle webhook projects Industry and premium purchases idempotently", async () => {
+  providerSubscription.status = "trialing";
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.metadata.dg_premium_apps = "voice_ai";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"], premiumApps: ["voice_ai"] });
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "created", "evt_app_entitlements");
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "created", "evt_app_entitlements");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.deepEqual(row.industryApps, ["finance"]);
+  assert.deepEqual(row.premiumApps, ["voice_ai"]);
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: "evt_app_entitlements:subscription" } }), 1);
+});
+
+test("actual Stripe line-item removal revokes prior app purchases despite stale metadata", async () => {
+  await seedCanonicalSubscription(false, true);
+  await prisma.platformSubscription.update({ where: { organisationId: org.id }, data: {
+    status: "ACTIVE", entitlement: "FULL", stripeStatus: "active", industryApps: ["finance"], premiumApps: ["voice_ai"],
+  } });
+  providerSubscription.status = "active";
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.metadata.dg_premium_apps = "voice_ai";
+  providerSubscription.items.data = providerItems();
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_purchase_line_conflict");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(row.status, "ACTIVE");
+  assert.deepEqual(row.industryApps, []);
+  assert.deepEqual(row.premiumApps, []);
+});
+
+test("incomplete purchase metadata cannot erase previously verified entitlements", async () => {
+  await seedCanonicalSubscription(false, true);
+  await prisma.platformSubscription.update({ where: { organisationId: org.id }, data: {
+    status: "ACTIVE", entitlement: "FULL", stripeStatus: "active", industryApps: ["finance"], premiumApps: ["voice_ai"],
+  } });
+  providerSubscription.status = "active";
+  delete providerSubscription.metadata.dg_premium_apps;
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"], premiumApps: ["voice_ai"] });
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_incomplete_purchase_metadata");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.deepEqual(row.industryApps, ["finance"]);
+  assert.deepEqual(row.premiumApps, ["voice_ai"]);
+});
+
+test("verified subscription item removal revokes only the removed app projection", async () => {
+  providerSubscription.status = "active";
+  providerSubscription.metadata.dg_industry_apps = "finance,services";
+  providerSubscription.metadata.dg_premium_apps = "voice_ai";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance", "services"], premiumApps: ["voice_ai"] });
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "created", "evt_purchase_before_removal");
+  providerSubscription.metadata.dg_industry_apps = "services";
+  providerSubscription.metadata.dg_premium_apps = "";
+  providerSubscription.items.data = providerItems({ industryApps: ["services"] });
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "updated", "evt_verified_purchase_removal");
+  const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.deepEqual(row.industryApps, ["services"]);
+  assert.deepEqual(row.premiumApps, []);
+});
+
+test("new subscription cannot omit app selections while charging their catalogue line items", async () => {
+  providerSubscription.status = "active";
+  delete providerSubscription.metadata.dg_industry_apps;
+  delete providerSubscription.metadata.dg_industry_templates;
+  delete providerSubscription.metadata.dg_premium_apps;
+  providerSubscription.items.data = providerItems({ premiumApps: ["voice_ai"] });
+  await assert.rejects(
+    handlePlatformSubscriptionLifecycle(providerSubscription, "created", "evt_missing_app_selections"),
+    /purchase metadata is incomplete/,
+  );
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});
+
+test("checkout selection cannot create an Industry entitlement absent from the verified subscription", async () => {
+  const session = completedSession();
+  session.metadata.dg_industry_apps = "finance";
+  await assert.rejects(provisionFromPlatformCheckout(session), /Industry App metadata does not match/);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});
+
+test("out-of-order lifecycle event projects the latest provider purchases and cancellation expires access", async () => {
+  providerSubscription.status = "active";
+  providerSubscription.trial_end = null;
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"] });
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "created", "evt_app_old");
+  const staleEvent = structuredClone(providerSubscription);
+  providerSubscription.metadata.dg_industry_apps = "services,cleaning";
+  providerSubscription.items.data = providerItems({ industryApps: ["services", "cleaning"] });
+  await handlePlatformSubscriptionLifecycle(staleEvent, "updated", "evt_app_new");
+  let row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.deepEqual(row.industryApps, ["services", "cleaning"]);
+  providerSubscription.status = "canceled";
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_app_cancel");
+  row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.deepEqual(row.industryApps, ["services", "cleaning"]);
+  assert.equal(row.status, "CANCELLED");
+});
+
 test("missing singleton denies admission", async () => {
   await control.$executeRaw`DELETE FROM platform_checkout_creation_gate WHERE id = 1`;
   try { await assert.rejects(standard(), CheckoutTemporarilyUnavailable); assert.equal(requests.length, 0); }
@@ -285,8 +390,7 @@ test("read-only report transaction cannot mutate even with privileged test role"
 });
 test("existing completed checkout provisions through webhook authority while gate closed", async () => {
   await close();
-  const result = await provisionFromPlatformCheckout({ id: "cs_completed_fixture", mode: "subscription", status: "complete", payment_status: "no_payment_required", livemode: false, customer: "cus_completed_fixture", subscription: "sub_completed_fixture",
-    customer_email: "fixture@example.test", metadata: { dg_platform_checkout: "true", organisation_id: org.id, dg_platform_tier: "professional" } });
+  const result = await provisionFromPlatformCheckout({ ...completedSession(), id: "cs_completed_fixture", payment_status: "no_payment_required" });
   assert.equal(result.ok, true);
   const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
   assert.equal(canonical.stripeSubscriptionId, "sub_completed_fixture"); assert.equal(canonical.entitlement, "FULL");
@@ -648,7 +752,10 @@ test("stale lifecycle metadata cannot overwrite the authoritative current tier",
   providerSubscription.status = "active";
   const stale = structuredClone(providerSubscription); stale.metadata.dg_platform_tier = "starter";
   providerSubscription.metadata.dg_platform_tier = "business";
-  await provisionFromPlatformCheckout(completedSession());
+  providerSubscription.items.data = providerItems({ platformTier: "business" });
+  const session = completedSession();
+  session.metadata.dg_platform_tier = "business";
+  await provisionFromPlatformCheckout(session);
   await handlePlatformSubscriptionLifecycle(stale, "updated", "evt_stale_plan");
   const row = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
   assert.equal(row.planTier, "business");
@@ -879,6 +986,7 @@ test("invoice provider timeout preserves canonical state and permits retry", asy
 test("paid-app provisioning reuses the verified subscription snapshot", async () => {
   providerSubscription.status = "active"; providerSubscription.metadata.dg_premium_apps = "growth_suite";
   const session = completedSession(); session.metadata.dg_premium_apps = "growth_suite";
+  providerSubscription.items.data = providerItems({ premiumApps: ["growth_suite"] });
   let reads = 0; subscriptionReadHook = async () => { reads++; };
   await provisionFromPlatformCheckout(session);
   assert.equal(reads, 1);
@@ -887,7 +995,7 @@ test("paid-app provisioning reuses the verified subscription snapshot", async ()
 test("reused provider snapshot rejects unpaid app metadata before provisioning", async () => {
   providerSubscription.status = "active"; providerSubscription.metadata.dg_premium_apps = "";
   const session = completedSession(); session.metadata.dg_premium_apps = "growth_suite";
-  await assert.rejects(provisionFromPlatformCheckout(session), /Paid app entitlement missing/);
+  await assert.rejects(provisionFromPlatformCheckout(session), /premium-app metadata does not match/);
   assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
 });
 
