@@ -40,5 +40,6 @@ test("review branch push cannot request an automatic Vercel deployment", () => {
   assert.deepEqual(config.git.deploymentEnabled, {
     "work/commercial-readiness": false,
     "work/commercial-checkout-compatibility": false,
+    "release/checkout-entitlements-20261019": false,
   });
 });
