@@ -19,7 +19,7 @@ export type StripePurchasedSubscriptionItem = {
     unit_amount: number | null;
     currency: string;
     recurring: { interval: string; interval_count?: number } | null;
-    product: string | { name?: string | null; deleted?: unknown };
+    product: string | { id?: string; name?: string | null; deleted?: unknown };
   };
 };
 

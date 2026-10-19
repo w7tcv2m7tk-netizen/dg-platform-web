@@ -149,6 +149,7 @@
     "test:business-discovery-relevance": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/test-business-discovery-relevance.mjs",
     "test:checkout-compatibility": "node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-legacy-checkout-inventory.mjs scripts/test-checkout-compatibility-boundaries.mjs scripts/test-checkout-delayed-create.mjs scripts/test-checkout-webhook-origin.mjs",
     "test:checkout-compatibility-db": "node scripts/run-checkout-compatibility-db-tests.mjs",
+    "reconcile:legacy-app-entitlements:production": "node scripts/reconcile-legacy-app-entitlements-production.mjs",
     "checkout:inventory": "node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/reconcile-legacy-checkouts.mjs",
     "test:checkout-compatibility-artifacts": "node --test scripts/test-checkout-compatibility-artifacts.mjs"
   },

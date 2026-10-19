@@ -14,7 +14,7 @@ import { checkoutPost } from "./checkout-test-http.mjs";
 
 const applyInvoicePaymentFailed = input => processInvoiceFailure({ stripeInvoiceId: "in_fixture", ...input });
 const control = new PrismaClient();
-let org, requests, createWait, loseResponse, beforeAcceptance, remainingAtAcceptance, acceptedSessions, providerSubscription, subscriptionReadHook, providerInvoice, invoiceReadHook;
+let org, requests, createWait, loseResponse, beforeAcceptance, remainingAtAcceptance, acceptedSessions, providerSubscription, subscriptionReadHook, providerInvoice, invoiceReadHook, checkoutLineItems;
 const priceEnvironmentKeys = ["STRIPE_PRICE_STARTER", "STRIPE_PRICE_GROWTH", "STRIPE_PRICE_PROFESSIONAL", "STRIPE_PRICE_SCALE", "STRIPE_PRICE_BUSINESS"];
 const originalPriceEnvironment = new Map(priceEnvironmentKeys.map(key => [key, process.env[key]]));
 let configuredPrices;
@@ -39,7 +39,7 @@ const seedCanonicalSubscription = (platformExempt, providerLinked = false) => pr
     platformExempt,
   },
 });
-const offer = { version: 1, id: "fixture", label: "Fixture", status: "agreed", currency: "aud", amountCents: 24900, cadence: "monthly", platformTier: "professional", industryApps: [], industryTemplates: [], premiumApps: [], trialDays: 14 };
+const offer = { version: 1, id: "fixture", label: "Fixture", status: "agreed", currency: "aud", amountCents: 24900, cadence: "monthly", platformTier: "professional", industryApps: [], industryTemplates: [], premiumApps: [], trialDays: 14, oneOffAmountCents: 5000, oneOffLabel: "Implementation" };
 const custom = () => createCustomCommercialCheckoutSession({ organisationId: org.id, email: "fixture@example.test", offer });
 const close = () => control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = true, revision = revision + 1, changed_at = clock_timestamp() WHERE id = 1`;
 function providerItems({ industryApps = [], premiumApps = [], platformTier = "professional", supportPlan = "standard", cadence = "monthly" } = {}) {
@@ -70,6 +70,10 @@ before(async () => {
     const session = acceptedSessions.find(s => s.id === id);
     if (!session) throw new Error("Unexpected session lookup");
     return structuredClone(session);
+  });
+  mock.method(Object.getPrototypeOf(sdk.checkout.sessions), "listLineItems", async id => {
+    assert.equal(id, "cs_custom_fixture");
+    return structuredClone({ data: checkoutLineItems, has_more: false, object: "list", url: "/v1/checkout/sessions/cs_custom_fixture/line_items" });
   });
   mock.method(Object.getPrototypeOf(sdk.checkout.sessions), "create", async (parameters, options) => {
     requests.push(structuredClone(parameters));
@@ -108,11 +112,15 @@ before(async () => {
 beforeEach(async () => {
   await prisma.platformCheckoutAttempt.deleteMany();
   await prisma.platformSubscription.deleteMany();
+  await prisma.opportunity.deleteMany({ where: { organisationId: org.id } });
   await prisma.organisation.update({ where: { id: org.id }, data: { billingCustomerId: null, settings: {} } });
   for (const key of priceEnvironmentKeys) delete process.env[key];
   configuredPrices = new Map();
   subscriptionReadHook = null; invoiceReadHook = null;
-  requests = []; createWait = null; loseResponse = false; beforeAcceptance = null;
+  requests = []; createWait = null; loseResponse = false; beforeAcceptance = null; checkoutLineItems = [];
+  await prisma.opportunity.create({ data: { organisationId: org.id, title: "Accepted fixture offer", stage: "proposal", metadata: {
+    custom_offer_claimed_by_org_id: org.id, custom_offer_claimed_at: "2026-10-19T00:00:00.000Z", custom_offer_token: "fixture-token", commercial_offer: offer,
+  } } });
   providerSubscription = { id: "sub_completed_fixture", customer: "cus_completed_fixture", livemode: false, status: "trialing",
     trial_start: 1700000000, trial_end: 1700604800, current_period_start: 1700000000, current_period_end: 1700604800,
     metadata: { organisation_id: org.id, dg_platform_subscription: "true", dg_platform_tier: "professional", dg_billing_cadence: "monthly", dg_support_plan: "standard", dg_industry_apps: "", dg_premium_apps: "" },
@@ -400,6 +408,167 @@ test("existing completed checkout provisions through webhook authority while gat
 const completedSession = () => ({ id: "cs_paid_fixture", mode: "subscription", status: "complete", payment_status: "paid", livemode: false,
   customer: providerSubscription.customer, subscription: providerSubscription.id,
   metadata: { dg_platform_checkout: "true", organisation_id: org.id, dg_platform_tier: "professional" } });
+
+function customOfferMetadata() {
+  return {
+    dg_platform_checkout: "true", organisation_id: org.id,
+    dg_platform_tier: offer.platformTier, dg_billing_cadence: offer.cadence,
+    dg_industry_apps: "", dg_industry_templates: "", dg_premium_apps: "",
+    dg_support_plan: "standard", dg_commercial_offer_id: offer.id,
+    dg_commercial_offer_label: offer.label, dg_commercial_offer_version: String(offer.version),
+    dg_offer_currency: offer.currency, dg_subscription_amount_cents: String(offer.amountCents),
+    dg_one_off_amount_cents: String(offer.oneOffAmountCents), dg_one_off_label: offer.oneOffLabel,
+    dg_trial_days: String(offer.trialDays), dg_seats: "",
+  };
+}
+
+function customProviderLine(id, amount, recurring, name, extra = {}) {
+  return { quantity: 1, price: { id, unit_amount: amount, currency: "aud",
+    recurring: recurring ? { interval: "month", interval_count: 1 } : null,
+    product: { name, metadata: { dg_commercial_offer_id: offer.id, ...extra } } } };
+}
+
+function completedCustomSession(metadata = customOfferMetadata()) {
+  return { id: "cs_custom_fixture", mode: "subscription", status: "complete", payment_status: "paid", livemode: false,
+    customer: providerSubscription.customer, subscription: providerSubscription.id, metadata };
+}
+
+test("accepted custom offer provisions only exact recurring and one-off checkout lines", async () => {
+  const recurring = customProviderLine("price_custom_recurring", offer.amountCents, true, offer.label);
+  const setup = customProviderLine("price_custom_setup", offer.oneOffAmountCents, false, offer.oneOffLabel, { dg_charge_type: "one_off_implementation" });
+  providerSubscription.status = "trialing";
+  providerSubscription.trial_end = providerSubscription.trial_start + offer.trialDays * 86400;
+  providerSubscription.metadata = { ...customOfferMetadata(), dg_platform_subscription: "true" };
+  providerSubscription.items = { data: [recurring] };
+  checkoutLineItems = [recurring, setup];
+  await provisionFromPlatformCheckout(completedCustomSession());
+  await provisionFromPlatformCheckout(completedCustomSession());
+  const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: org.id } });
+  assert.equal(canonical.stripeSubscriptionId, providerSubscription.id);
+  assert.deepEqual(canonical.industryApps, []);
+  assert.equal(canonical.status, "TRIALING");
+  assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: "cs_custom_fixture:checkout" } }), 1);
+});
+
+test("custom offer rejects extra or duplicated Checkout lines", async () => {
+  const recurring = customProviderLine("price_custom_recurring", offer.amountCents, true, offer.label);
+  const setup = customProviderLine("price_custom_setup", offer.oneOffAmountCents, false, offer.oneOffLabel, { dg_charge_type: "one_off_implementation" });
+  providerSubscription.status = "trialing";
+  providerSubscription.trial_end = providerSubscription.trial_start + offer.trialDays * 86400;
+  providerSubscription.metadata = { ...customOfferMetadata(), dg_platform_subscription: "true" };
+  providerSubscription.items = { data: [recurring] };
+  checkoutLineItems = [recurring, setup, setup];
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession()), /do not match the accepted offer/);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});
+
+test("custom offer rejects stale offer metadata and mismatched recurring line", async () => {
+  const recurring = customProviderLine("price_custom_recurring", offer.amountCents + 1, true, offer.label);
+  const setup = customProviderLine("price_custom_setup", offer.oneOffAmountCents, false, offer.oneOffLabel, { dg_charge_type: "one_off_implementation" });
+  providerSubscription.status = "trialing";
+  providerSubscription.trial_end = providerSubscription.trial_start + offer.trialDays * 86400;
+  providerSubscription.metadata = { ...customOfferMetadata(), dg_platform_subscription: "true" };
+  providerSubscription.items = { data: [recurring] };
+  checkoutLineItems = [recurring, setup];
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession({ ...customOfferMetadata(), dg_commercial_offer_id: "stale-offer" })), /stale, unaccepted/);
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession()), /do not match the accepted offer/);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});
+
+test("custom offer requires every metadata field written by the creator", async () => {
+  const recurring = customProviderLine("price_custom_recurring", offer.amountCents, true, offer.label);
+  const setup = customProviderLine("price_custom_setup", offer.oneOffAmountCents, false, offer.oneOffLabel, { dg_charge_type: "one_off_implementation" });
+  providerSubscription.status = "trialing";
+  providerSubscription.trial_end = providerSubscription.trial_start + offer.trialDays * 86400;
+  providerSubscription.metadata = { ...customOfferMetadata(), dg_platform_subscription: "true" };
+  providerSubscription.items = { data: [recurring] };
+  checkoutLineItems = [recurring, setup];
+  for (const key of ["dg_commercial_offer_label", "dg_commercial_offer_version", "dg_offer_currency",
+    "dg_platform_tier", "dg_billing_cadence", "dg_support_plan", "dg_subscription_amount_cents",
+    "dg_one_off_amount_cents", "dg_one_off_label", "dg_trial_days", "dg_seats",
+    "dg_industry_apps", "dg_industry_templates", "dg_premium_apps", "organisation_id"]) {
+    const incomplete = customOfferMetadata();
+    delete incomplete[key];
+    await assert.rejects(provisionFromPlatformCheckout(completedCustomSession(incomplete)),
+      key === "organisation_id" ? /ownership.*unconfirmed/ : /do not match the accepted offer/,
+      `missing ${key} must fail closed`);
+  }
+  for (const key of ["dg_commercial_offer_version", "dg_offer_currency", "dg_subscription_amount_cents",
+    "dg_one_off_amount_cents", "dg_one_off_label", "dg_trial_days", "dg_seats", "dg_industry_apps",
+    "dg_industry_templates", "dg_premium_apps", "organisation_id"]) {
+    providerSubscription.metadata = { ...customOfferMetadata(), dg_platform_subscription: "true" };
+    delete providerSubscription.metadata[key];
+    await assert.rejects(provisionFromPlatformCheckout(completedCustomSession()),
+      key === "organisation_id" ? /ownership.*unconfirmed/ : /do not match the accepted offer/,
+      `missing subscription ${key} must fail closed`);
+  }
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});
+
+test("custom offer rejects forged seats and recurring quantity", async () => {
+  const recurring = customProviderLine("price_custom_recurring", offer.amountCents, true, offer.label);
+  const setup = customProviderLine("price_custom_setup", offer.oneOffAmountCents, false, offer.oneOffLabel, { dg_charge_type: "one_off_implementation" });
+  providerSubscription.status = "trialing";
+  providerSubscription.trial_end = providerSubscription.trial_start + offer.trialDays * 86400;
+  providerSubscription.metadata = { ...customOfferMetadata(), dg_platform_subscription: "true" };
+  providerSubscription.items = { data: [recurring] };
+  checkoutLineItems = [recurring, setup];
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession({ ...customOfferMetadata(), dg_seats: "1" })), /do not match the accepted offer/);
+  checkoutLineItems = [{ ...recurring, quantity: 2 }, setup];
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession()), /do not match the accepted offer/);
+  await assert.rejects(provisionFromPlatformCheckout({ ...completedCustomSession(), customer: "cus_foreign" }), /ownership.*unconfirmed/);
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession({ ...customOfferMetadata(), organisation_id: "org_foreign" })), /ownership.*unconfirmed/);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});
+
+test("custom offer rejects wrong recurring interval and setup charge", async () => {
+  const recurring = customProviderLine("price_custom_recurring", offer.amountCents, true, offer.label);
+  const setup = customProviderLine("price_custom_setup", offer.oneOffAmountCents, false, offer.oneOffLabel, { dg_charge_type: "one_off_implementation" });
+  providerSubscription.status = "trialing";
+  providerSubscription.trial_end = providerSubscription.trial_start + offer.trialDays * 86400;
+  providerSubscription.metadata = { ...customOfferMetadata(), dg_platform_subscription: "true" };
+  providerSubscription.items = { data: [recurring] };
+  checkoutLineItems = [recurring, setup];
+  const wrongInterval = structuredClone(recurring);
+  wrongInterval.price.recurring.interval = "year";
+  checkoutLineItems = [wrongInterval, setup];
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession()), /do not match the accepted offer/);
+  const wrongSetup = customProviderLine("price_custom_setup", offer.oneOffAmountCents + 1, false, offer.oneOffLabel, { dg_charge_type: "one_off_implementation" });
+  checkoutLineItems = [recurring, wrongSetup];
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession()), /do not match the accepted offer/);
+  const renamedSetup = customProviderLine("price_custom_setup", offer.oneOffAmountCents, false, "Different label", { dg_charge_type: "one_off_implementation" });
+  checkoutLineItems = [recurring, renamedSetup];
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession()), /do not match the accepted offer/);
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession({ ...customOfferMetadata(), dg_one_off_label: "Different label" })), /do not match the accepted offer/);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});
+
+test("custom offer rejects mismatched trial and revoked accepted offer", async () => {
+  const recurring = customProviderLine("price_custom_recurring", offer.amountCents, true, offer.label);
+  const setup = customProviderLine("price_custom_setup", offer.oneOffAmountCents, false, offer.oneOffLabel, { dg_charge_type: "one_off_implementation" });
+  providerSubscription.status = "trialing";
+  providerSubscription.trial_end = providerSubscription.trial_start + (offer.trialDays - 1) * 86400;
+  providerSubscription.metadata = { ...customOfferMetadata(), dg_platform_subscription: "true" };
+  providerSubscription.items = { data: [recurring] };
+  checkoutLineItems = [recurring, setup];
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession({ ...customOfferMetadata(), dg_trial_days: "13" })), /do not match the accepted offer/);
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession()), /do not match the accepted offer/);
+  await prisma.opportunity.updateMany({ where: { organisationId: org.id }, data: { metadata: {
+    custom_offer_claimed_by_org_id: org.id, custom_offer_claimed_at: "2026-10-19T00:00:00.000Z", custom_offer_token: "fixture-token",
+    commercial_offer: { ...offer, status: "cancelled" },
+  } } });
+  providerSubscription.trial_end = providerSubscription.trial_start + offer.trialDays * 86400;
+  await assert.rejects(provisionFromPlatformCheckout(completedCustomSession()), /stale, unaccepted/);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
+});
+
+test("custom checkout creation rejects unaccepted and customer-modified offers", async () => {
+  const modified = { ...offer, amountCents: offer.amountCents - 1000 };
+  await assert.rejects(createCustomCommercialCheckoutSession({ organisationId: org.id, email: "fixture@example.test", offer: modified }), /exact current offer accepted/);
+  await prisma.opportunity.updateMany({ where: { organisationId: org.id }, data: { metadata: { commercial_offer: offer, custom_offer_token: "fixture-token" } } });
+  await assert.rejects(custom(), /exact current offer accepted/);
+  assert.equal(requests.length, 0);
+});
 
 test("paid zero-trial custom checkout projects ACTIVE without fabricating a trial", async () => {
   Object.assign(providerSubscription, { status: "active", trial_start: null, trial_end: null });

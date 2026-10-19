@@ -296,17 +296,22 @@ export async function createCustomCommercialCheckoutSession(input: {
   successPath?: string;
   cancelPath?: string;
 }) {
-  const offer = parseCustomCommercialOffer(input.offer);
-  if (!offer) throw new Error("Invalid custom commercial offer");
+  const requestedOffer = parseCustomCommercialOffer(input.offer);
+  if (!requestedOffer) throw new Error("Invalid custom commercial offer");
   const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
   if (!secretKey) throw new Error("Stripe billing is not available");
   const stripe = new Stripe(secretKey);
   const { prisma } = await import("@dg/database");
+  const { getAcceptedCommercialOfferForCheckout } = await import("./commercial-offer");
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
     select: { billingCustomerId: true },
   });
   if (!org) throw new Error("Organisation not found");
+  const offer = await getAcceptedCommercialOfferForCheckout(input.organisationId, requestedOffer.id);
+  if (!offer || JSON.stringify(offer) !== JSON.stringify(requestedOffer)) {
+    throw new Error("Custom checkout requires the exact current offer accepted by this organisation");
+  }
 
   const base = appBaseUrl();
   const successPath = input.successPath ?? "/dashboard/apps?sync=1&checkout=success";
@@ -322,8 +327,13 @@ export async function createCustomCommercialCheckoutSession(input: {
     dg_support_plan: offer.supportPlan ?? "standard",
     dg_commercial_offer_id: offer.id,
     dg_commercial_offer_label: offer.label,
+    dg_commercial_offer_version: String(offer.version),
+    dg_offer_currency: offer.currency,
     dg_subscription_amount_cents: String(offer.amountCents),
     dg_one_off_amount_cents: String(offer.oneOffAmountCents ?? 0),
+    dg_one_off_label: offer.oneOffAmountCents ? (offer.oneOffLabel ?? "Implementation & setup") : "",
+    dg_trial_days: String(offer.trialDays),
+    dg_seats: String(offer.seats ?? ""),
     organisation_id: input.organisationId,
   };
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [

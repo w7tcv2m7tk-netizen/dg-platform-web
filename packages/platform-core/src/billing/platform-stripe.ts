@@ -12,6 +12,7 @@ import {
   type PaidAppKey,
 } from "./paid-apps";
 import { stripeItemsMatchPurchasedSelections } from "./purchased-line-items";
+import { customOfferPurchaseMatches } from "./custom-offer-line-items";
 
 const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
   PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
@@ -211,6 +212,39 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
   if (!["active", "trialing"].includes(subscription.status)) {
     throw new Error("Platform checkout subscription activation is unconfirmed");
   }
+  const customOfferId = metadata.dg_commercial_offer_id?.trim();
+  if (customOfferId) {
+    const { getAcceptedCommercialOfferForCheckout } = await import("./commercial-offer");
+    const acceptedOffer = await getAcceptedCommercialOfferForCheckout(metadata.organisation_id!, customOfferId);
+    if (!acceptedOffer) throw new Error("Custom offer is stale, unaccepted, or not owned by this organisation");
+    const owner = await database.organisation.findUnique({ where: { id: metadata.organisation_id }, select: { billingCustomerId: true } });
+    if (!owner || (owner.billingCustomerId && owner.billingCustomerId !== customerId)) {
+      throw new Error("Custom offer Stripe customer ownership is unconfirmed");
+    }
+    const stripe = getStripeClient();
+    const checkoutLines = await read(timeout => stripe.checkout.sessions.listLineItems(
+      session.id,
+      { limit: 100, expand: ["data.price.product"] },
+      { timeout, maxNetworkRetries: 0 },
+    ));
+    const trialStart = subscription.trial_start ?? null;
+    const trialEnd = subscription.trial_end ?? null;
+    if (!customOfferPurchaseMatches({
+      sessionMetadata: metadata,
+      subscriptionMetadata: subscription.metadata,
+      subscriptionItems: subscription.items.data,
+      checkoutLineItems: checkoutLines.data,
+      offer: acceptedOffer,
+      organisationId: metadata.organisation_id,
+      checkoutCustomerId: customerId,
+      subscriptionCustomerId: stripeCustomerId(subscription.customer) ?? "",
+      subscriptionStatus: subscription.status,
+      trialStart,
+      trialEnd,
+    })) {
+      throw new Error("Custom checkout line items, trial, or entitlements do not match the accepted offer");
+    }
+  }
   const verifiedIndustryApps = metadataList(subscription.metadata?.dg_industry_apps);
   const verifiedIndustryTemplates = metadataList(subscription.metadata?.dg_industry_templates);
   const selectedIndustryIds = [...new Set([...industryApps, ...industryTemplates])].sort();
@@ -231,7 +265,7 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
     throw new Error("Stripe subscription commercial metadata does not match the completed Checkout Session");
   }
   const configuredPlatformPriceId = platformPriceIdForTier(platformTier);
-  if (!stripeItemsMatchPurchasedSelections(subscription.items.data, {
+  if (!customOfferId && !stripeItemsMatchPurchasedSelections(subscription.items.data, {
     platformTier,
     platformPriceId: configuredPlatformPriceId,
     industryApps: selectedIndustryIds,

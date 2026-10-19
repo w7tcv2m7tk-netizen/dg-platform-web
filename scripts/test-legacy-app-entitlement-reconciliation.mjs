@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { after, afterEach, before, test } from "node:test";
-import { randomUUID } from "node:crypto";
+import { randomUUID, generateKeyPairSync, sign } from "node:crypto";
 import { prisma } from "@dg/database";
 import { expectedPurchasedLineItems } from "../packages/platform-core/src/billing/purchased-line-items.ts";
-import { reconcileLegacyAppEntitlements, prismaLegacyEntitlementRepository } from "../packages/platform-core/src/billing/legacy-app-entitlement-reconciliation.ts";
+import { reconcileLegacyAppEntitlements, prismaLegacyEntitlementRepository, prismaProductionLegacyEntitlementRepository } from "../packages/platform-core/src/billing/legacy-app-entitlement-reconciliation.ts";
+import { canonicalProductionApproval } from "../packages/platform-core/src/billing/legacy-reconciliation-approval.ts";
 
 let organisation;
 let candidate;
@@ -22,7 +23,7 @@ function providerItems({ industryApps = ["finance"], premiumApps = [] } = {}) {
       unit_amount: line.amountCents,
       currency: "aud",
       recurring: { interval: "month", interval_count: 1 },
-      product: { name: line.name ?? "DigitalGate Growth" },
+      product: { id: `prod_fixture_${line.amountCents}`, name: line.name ?? "DigitalGate Growth" },
     },
   }));
 }
@@ -52,15 +53,26 @@ function stripeFixture(overrides = {}) {
   };
 }
 
-function stripeApi(subscription) {
+function stripeApi(subscription, balanceLivemode = subscription.livemode) {
   return {
     accounts: { retrieve: async () => ({ id: "acct_test_fixture" }) },
-    balance: { retrieve: async () => ({ livemode: false }) },
+    balance: { retrieve: async () => ({ livemode: balanceLivemode }) },
     subscriptions: { retrieve: async (id) => {
       assert.equal(id, candidate.stripeSubscriptionId);
       return structuredClone(subscription);
     } },
   };
+}
+
+function signedApproval(planSha256, { expired = false } = {}) {
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  const approvedAt = new Date(Date.now() - (expired ? 2 * 60 * 60 * 1000 : 0)).toISOString();
+  const unsigned = { version: 1, mode: "production", planSha256, stripeAccountId: "acct_test_fixture",
+    databaseHost: "ep-prod-fixture.neon.tech", databaseName: "dg_production_fixture",
+    approvedBy: "release-manager", changeTicket: "CHG-TEST-EVIDENCE", approvedAt,
+    expiresAt: new Date(Date.now() + (expired ? -60 * 60 * 1000 : 60 * 60 * 1000)).toISOString() };
+  const approval = { ...unsigned, signature: sign(null, Buffer.from(canonicalProductionApproval(unsigned)), privateKey).toString("base64") };
+  return { approval, publicKey: publicKey.export({ type: "spki", format: "pem" }).toString() };
 }
 
 async function setup({ exempt = false, paidApps = false, status = "ACTIVE", stripeStatus = "active", entitlement = "FULL", trialEnd = null } = {}) {
@@ -136,6 +148,208 @@ test("dry-run verifies Stripe line items and performs no database write", async 
   await cleanup();
 });
 
+test("dry-run evidence is reviewable, redacted and fingerprints the proposed catalogue purchase", async () => {
+  await setup();
+  const report = await reconcileLegacyAppEntitlements({ stripe: stripeApi(stripeSubscription), repository,
+    expectedStripeAccountId: "acct_test_fixture", now });
+  const evidence = report.results[0].evidence;
+  assert.equal(evidence.stripeSubscriptionId, stripeSubscription.id);
+  assert.equal(evidence.stripeCustomerRef.length, 16);
+  assert.equal(evidence.livemode, false);
+  const item = evidence.lineItems.find(line => line.priceId === stripeSubscription.items.data[1].price.id);
+  assert.ok(item);
+  assert.equal(item.productId, `prod_fixture_${item.unitAmountCents}`);
+  assert.equal(item.quantity, 1);
+  assert.equal(item.currency, "aud");
+  assert.equal(item.billingInterval, "month");
+  assert.notEqual(item.catalogueMapping, "unmatched");
+  assert.deepEqual(evidence.proposedIndustryApps, ["finance"]);
+  assert.deepEqual(evidence.proposedPremiumApps, []);
+  assert.equal(evidence.evidenceFingerprint, report.results[0].itemFingerprint);
+  assert.doesNotMatch(JSON.stringify(evidence), /fixture@example|cus_[a-z0-9]+/i);
+});
+
+test("production-mode dry-run uses live-mode fixtures but performs no database write", async () => {
+  await setup();
+  stripeSubscription.livemode = true;
+  const report = await reconcileLegacyAppEntitlements({
+    stripe: stripeApi(stripeSubscription), repository,
+    expectedStripeAccountId: "acct_test_fixture", mode: "production", now,
+  });
+  assert.equal(report.mode, "production");
+  assert.equal(report.applied, false);
+  assert.equal(report.results[0].outcome, "reconcile");
+  const row = await control.platformSubscription.findUnique({ where: { id: candidate.id } });
+  assert.deepEqual(row.industryApps, []);
+});
+
+test("production apply requires a signature bound to the exact plan and target", async () => {
+  await setup();
+  stripeSubscription.livemode = true;
+  const stripe = stripeApi(stripeSubscription);
+  const target = { databaseHost: "ep-prod-fixture.neon.tech", databaseName: "dg_production_fixture", stripeAccountId: "acct_test_fixture" };
+  const dryRun = await reconcileLegacyAppEntitlements({ stripe, repository, expectedStripeAccountId: target.stripeAccountId, mode: "production", expectedDatabaseHost: target.databaseHost, expectedDatabaseName: target.databaseName, now });
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  const approvedAt = new Date().toISOString();
+  const unsigned = { version: 1, mode: "production", planSha256: dryRun.planSha256, stripeAccountId: target.stripeAccountId,
+    databaseHost: target.databaseHost, databaseName: target.databaseName,
+    approvedBy: "release-manager", changeTicket: "CHG-TEST-42", approvedAt, expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString() };
+  const productionApproval = { ...unsigned, signature: sign(null, Buffer.from(canonicalProductionApproval(unsigned)), privateKey).toString("base64") };
+  const testOnlyAuthorizedRepository = {
+    ...repository,
+    authorizeProductionApply: async input => input.planSha256 === dryRun.planSha256 && input.approval.signature === productionApproval.signature,
+  };
+  await assert.rejects(reconcileLegacyAppEntitlements({
+    stripe, repository, expectedStripeAccountId: target.stripeAccountId, mode: "production", apply: true, now,
+  }), /separately signed approval/);
+  const applied = await reconcileLegacyAppEntitlements({
+    stripe, repository: testOnlyAuthorizedRepository, expectedStripeAccountId: target.stripeAccountId, mode: "production", apply: true,
+    productionApproval, approvalPublicKey: publicKey.export({ type: "spki", format: "pem" }).toString(),
+    expectedDatabaseHost: target.databaseHost, expectedDatabaseName: target.databaseName, now,
+  });
+  assert.equal(applied.applied, true);
+  assert.equal(applied.results[0].reason, "applied_with_audit_event");
+  const row = await control.platformSubscription.findUnique({ where: { id: candidate.id } });
+  assert.deepEqual(row.industryApps, ["finance"]);
+});
+
+test("production approval cannot be replayed when Stripe line-item evidence changes", async () => {
+  await setup();
+  stripeSubscription.livemode = true;
+  const stripe = stripeApi(stripeSubscription);
+  const dryRun = await reconcileLegacyAppEntitlements({ stripe, repository, expectedStripeAccountId: "acct_test_fixture", mode: "production", expectedDatabaseHost: "ep-prod-fixture.neon.tech", expectedDatabaseName: "dg_production_fixture", now });
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  const approvedAt = new Date().toISOString();
+  const unsigned = { version: 1, mode: "production", planSha256: dryRun.planSha256, stripeAccountId: "acct_test_fixture",
+    databaseHost: "ep-prod-fixture.neon.tech", databaseName: "dg_production_fixture",
+    approvedBy: "release-manager", changeTicket: "CHG-TEST-43", approvedAt, expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString() };
+  const productionApproval = { ...unsigned, signature: sign(null, Buffer.from(canonicalProductionApproval(unsigned)), privateKey).toString("base64") };
+  const testOnlyAuthorizedRepository = {
+    ...repository,
+    authorizeProductionApply: async input => input.planSha256 === dryRun.planSha256 && input.approval.signature === productionApproval.signature,
+  };
+  stripeSubscription.items.data[0].price.product.id = "prod_changed_after_review";
+  const changedEvidence = await reconcileLegacyAppEntitlements({ stripe, repository, expectedStripeAccountId: "acct_test_fixture",
+    mode: "production", expectedDatabaseHost: unsigned.databaseHost, expectedDatabaseName: unsigned.databaseName, now });
+  assert.notEqual(changedEvidence.results[0].evidence.evidenceFingerprint, dryRun.results[0].evidence.evidenceFingerprint);
+  assert.notEqual(changedEvidence.planSha256, dryRun.planSha256);
+  await assert.rejects(reconcileLegacyAppEntitlements({
+    stripe, repository: testOnlyAuthorizedRepository, expectedStripeAccountId: "acct_test_fixture", mode: "production", apply: true,
+    productionApproval, approvalPublicKey: publicKey.export({ type: "spki", format: "pem" }).toString(),
+    expectedDatabaseHost: unsigned.databaseHost, expectedDatabaseName: unsigned.databaseName, now,
+  }), /does not match this exact plan/);
+  const row = await control.platformSubscription.findUnique({ where: { id: candidate.id } });
+  assert.deepEqual(row.industryApps, []);
+});
+
+test("expired signed reconciliation approval is rejected before writes", async () => {
+  await setup();
+  stripeSubscription.livemode = true;
+  const target = { databaseHost: "ep-prod-fixture.neon.tech", databaseName: "dg_production_fixture" };
+  const dryRun = await reconcileLegacyAppEntitlements({ stripe: stripeApi(stripeSubscription), repository,
+    expectedStripeAccountId: "acct_test_fixture", mode: "production", ...target, now });
+  const { approval, publicKey } = signedApproval(dryRun.planSha256, { expired: true });
+  await assert.rejects(reconcileLegacyAppEntitlements({ stripe: stripeApi(stripeSubscription), repository,
+    expectedStripeAccountId: "acct_test_fixture", mode: "production", apply: true,
+    productionApproval: approval, approvalPublicKey: publicKey, ...target, now }), /does not match this exact plan/);
+  assert.deepEqual((await control.platformSubscription.findUnique({ where: { id: candidate.id } })).industryApps, []);
+});
+
+test("tampered reconciliation approval signature is rejected before writes", async () => {
+  await setup();
+  stripeSubscription.livemode = true;
+  const target = { databaseHost: "ep-prod-fixture.neon.tech", databaseName: "dg_production_fixture" };
+  const dryRun = await reconcileLegacyAppEntitlements({ stripe: stripeApi(stripeSubscription), repository,
+    expectedStripeAccountId: "acct_test_fixture", mode: "production", ...target, now });
+  const { approval, publicKey } = signedApproval(dryRun.planSha256);
+  approval.signature = `${approval.signature[0] === "A" ? "B" : "A"}${approval.signature.slice(1)}`;
+  await assert.rejects(reconcileLegacyAppEntitlements({ stripe: stripeApi(stripeSubscription), repository,
+    expectedStripeAccountId: "acct_test_fixture", mode: "production", apply: true,
+    productionApproval: approval, approvalPublicKey: publicKey, ...target, now }), /does not match this exact plan/);
+  assert.deepEqual((await control.platformSubscription.findUnique({ where: { id: candidate.id } })).industryApps, []);
+});
+
+test("post-deployment catch-up candidates require a fresh signed plan", async () => {
+  await setup();
+  stripeSubscription.livemode = true;
+  const target = { databaseHost: "ep-prod-fixture.neon.tech", databaseName: "dg_production_fixture" };
+  const stripe = stripeApi(stripeSubscription);
+  const firstPlan = await reconcileLegacyAppEntitlements({ stripe, repository, expectedStripeAccountId: "acct_test_fixture",
+    mode: "production", ...target, now });
+  const { approval, publicKey } = signedApproval(firstPlan.planSha256);
+  const originalCandidate = await control.platformSubscription.findUnique({ where: { id: candidate.id },
+    include: { organisation: { select: { billingCustomerId: true } } } });
+  const catchup = { ...candidate, id: "post-deployment-catchup-row", organisationId: "org_post_deploy_catchup",
+    stripeCustomerId: "cus_post_deploy_catchup", stripeSubscriptionId: "sub_post_deploy_catchup",
+    organisation: { billingCustomerId: "cus_post_deploy_catchup" }, industryApps: [], premiumApps: [] };
+  const catchupStripe = { ...stripe, subscriptions: { retrieve: async id => {
+    if (id === stripeSubscription.id) return structuredClone(stripeSubscription);
+    assert.equal(id, catchup.stripeSubscriptionId);
+    const sub = structuredClone(stripeSubscription);
+    sub.id = catchup.stripeSubscriptionId; sub.customer = catchup.stripeCustomerId;
+    sub.metadata.organisation_id = catchup.organisationId;
+    return sub;
+  } } };
+  repository = { ...repository, listCandidates: async () => [originalCandidate, catchup] };
+  const postDeploy = await reconcileLegacyAppEntitlements({ stripe: catchupStripe, repository,
+    expectedStripeAccountId: "acct_test_fixture", mode: "production", ...target, now });
+  assert.notEqual(postDeploy.planSha256, firstPlan.planSha256);
+  assert.equal(postDeploy.results.length, 2);
+  assert.equal(postDeploy.results[1].outcome, "reconcile");
+  await assert.rejects(reconcileLegacyAppEntitlements({ stripe: catchupStripe, repository,
+    expectedStripeAccountId: "acct_test_fixture", mode: "production", apply: true,
+    productionApproval: approval, approvalPublicKey: publicKey, ...target, now }), /does not match this exact plan/);
+  assert.deepEqual((await control.platformSubscription.findUnique({ where: { id: candidate.id } })).industryApps, []);
+});
+
+test("production writer refuses direct writes without a separately authorized plan", async () => {
+  await setup();
+  const writer = prismaProductionLegacyEntitlementRepository(control, {
+    databaseHost: "ep-prod-fixture.neon.tech", databaseName: "dg_production_fixture",
+  }, "");
+  await assert.rejects(writer.apply({ candidate, industryApps: ["finance"], premiumApps: [], auditKey: "unauthorized", approvalReference: "none", itemFingerprint: "none", planSha256: "unapproved" }), /writer is locked/);
+  const row = await control.platformSubscription.findUnique({ where: { id: candidate.id } });
+  assert.deepEqual(row.industryApps, []);
+});
+
+test("production writer rejects a signed plan when the database URL is not its allowlisted Neon target", async () => {
+  await setup();
+  const target = { databaseHost: "ep-prod-fixture.neon.tech", databaseName: "dg_production_fixture" };
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+  const approvedAt = new Date().toISOString();
+  const unsigned = { version: 1, mode: "production", planSha256: "a".repeat(64), stripeAccountId: "acct_test_fixture",
+    ...target, approvedBy: "release-manager", changeTicket: "CHG-TEST-44", approvedAt,
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString() };
+  const approval = { ...unsigned, signature: sign(null, Buffer.from(canonicalProductionApproval(unsigned)), privateKey).toString("base64") };
+  const pem = publicKey.export({ type: "spki", format: "pem" }).toString();
+  const writer = prismaProductionLegacyEntitlementRepository(control, target, pem);
+  const change = { candidateId: candidate.id, organisationId: candidate.organisationId,
+    stripeSubscriptionId: candidate.stripeSubscriptionId, stripeCustomerId: candidate.stripeCustomerId,
+    updatedAt: candidate.updatedAt.toISOString(), industryApps: ["finance"], premiumApps: [],
+    auditKey: "approved-audit", itemFingerprint: "fixture-fingerprint" };
+  assert.equal(await writer.authorizeProductionApply({ planSha256: unsigned.planSha256, approval,
+    stripeAccountId: unsigned.stripeAccountId, ...target, proposedChanges: [change] }), true);
+  await assert.rejects(writer.apply({ candidate, industryApps: change.industryApps, premiumApps: [],
+    auditKey: change.auditKey, itemFingerprint: change.itemFingerprint, approvalReference: "CHG-TEST-44:release-manager",
+    planSha256: unsigned.planSha256 }), /does not match the approved Neon host/);
+  const row = await control.platformSubscription.findUnique({ where: { id: candidate.id } });
+  assert.deepEqual(row.industryApps, []);
+});
+
+test("partial repository failure is reported and leaves the failed row unchanged", async () => {
+  await setup();
+  const failingRepository = { ...repository, apply: async () => { throw new Error("fixture write failure"); } };
+  const report = await reconcileLegacyAppEntitlements({
+    stripe: stripeApi(stripeSubscription), repository: failingRepository,
+    expectedStripeAccountId: "acct_test_fixture", apply: true,
+    approvalReference: "test:partial-failure", now,
+  });
+  assert.equal(report.results[0].outcome, "blocked");
+  assert.equal(report.results[0].reason, "reconciliation_write_failed");
+  const row = await control.platformSubscription.findUnique({ where: { id: candidate.id } });
+  assert.deepEqual(row.industryApps, []);
+});
+
 test("authorized test-fixture write is atomic, idempotent and leaves billing exemptions untouched", async () => {
   await setup();
   const report = await reconcileLegacyAppEntitlements({
@@ -202,7 +416,7 @@ for (const [name, change] of [
     await setup();
     const invalid = structuredClone(stripeSubscription);
     change(invalid);
-    const report = await reconcileLegacyAppEntitlements({ stripe: stripeApi(invalid), repository, expectedStripeAccountId: "acct_test_fixture", apply: true, approvalReference: "test:fixture-approved", now });
+    const report = await reconcileLegacyAppEntitlements({ stripe: stripeApi(invalid, false), repository, expectedStripeAccountId: "acct_test_fixture", apply: true, approvalReference: "test:fixture-approved", now });
     assert.equal(report.results[0].outcome, "blocked");
     const row = await control.platformSubscription.findUnique({ where: { id: candidate.id } });
     assert.deepEqual(row.industryApps, []);
