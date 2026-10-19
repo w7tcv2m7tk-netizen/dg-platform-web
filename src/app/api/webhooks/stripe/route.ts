@@ -14,6 +14,7 @@ import {
   prismaReceiptStore,
   processPaymentWebhookEvent,
   provisionFromPlatformCheckout,
+  readPlatformSubscriptionWebhookCutoverHold,
   requirePaymentConnector,
   resolveOrganisationIdByConnectAccount,
   syncCommerceSubscriptionFromStripe,
@@ -347,6 +348,28 @@ export async function POST(req: Request) {
     if (event.connectAccountId && ["checkout.completed", "checkout.expired", "payment.failed"].includes(event.type)) {
       return NextResponse.json({ received: true, skipped: event.type.startsWith("checkout.")
         ? "connected_account_checkout" : "connected_account_payment_event" });
+    }
+
+    // During the explicitly controlled legacy-entitlement cutover, defer only
+    // platform subscription lifecycle events. Read shared DB state before the
+    // receipt claim: held deliveries remain retryable and cannot be mistaken
+    // for processed events. A missing/unreadable state also fails closed.
+    const subscriptionLifecycle = ["subscription.created", "subscription.updated", "subscription.cancelled"].includes(event.type);
+    const rawSubscription = event.raw as Stripe.Subscription | null;
+    if (subscriptionLifecycle && !event.connectAccountId && rawSubscription && isPlatformSubscription(rawSubscription)) {
+      try {
+        if (await readPlatformSubscriptionWebhookCutoverHold()) {
+          return NextResponse.json(
+            { error: { code: "subscription_webhook_cutover_hold", message: "Subscription event is temporarily deferred." } },
+            { status: 503, headers: { "Retry-After": "60" } },
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { error: { code: "subscription_webhook_hold_unavailable", message: "Subscription event is temporarily deferred." } },
+          { status: 503, headers: { "Retry-After": "60" } },
+        );
+      }
     }
 
     // H-7: atomic claim → processing → processed / failed, with stale-claim

@@ -11,6 +11,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const baselineRef = "331b96e1"; // Pinned main baseline, before the independent gate migration.
 const migration = "packages/database/prisma/migrations/20261009_platform_checkout_creation_gate/migration.sql";
 const appEntitlementsMigration = "packages/database/prisma/migrations/20261018_platform_subscription_app_entitlements/migration.sql";
+const subscriptionWebhookHoldMigration = "packages/database/prisma/migrations/20261019_platform_subscription_webhook_hold/migration.sql";
 const pgBin = process.argv[2];
 if (!pgBin || !path.isAbsolute(pgBin)) throw new Error("Pass the installed PostgreSQL bin directory");
 const safeEnv = { ...process.env };
@@ -55,6 +56,7 @@ try {
   run(path.join(pgBin, "psql"), [...psql, "-f", migration]);
   run(path.join(pgBin, "psql"), [...psql, "-f", "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql"]);
   run(path.join(pgBin, "psql"), [...psql, "-f", appEntitlementsMigration]);
+  run(path.join(pgBin, "psql"), [...psql, "-f", subscriptionWebhookHoldMigration]);
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-url", databaseUrl, "--to-schema-datamodel", "packages/database/prisma", "--exit-code"], { env });
   run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-checkout-compatibility-db.mjs"], { env });
   run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-legacy-app-entitlement-reconciliation.mjs"], { env });

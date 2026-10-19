@@ -10,6 +10,7 @@ import { expectedPurchasedLineItems } from "../packages/platform-core/src/billin
 import { StripePaymentConnector } from "../packages/platform-core/src/commerce/connectors/stripe/index.ts";
 import { processPaymentWebhookEvent } from "../packages/platform-core/src/commerce/payment-engine.ts";
 import { applyInvoicePaymentFailed as processInvoiceFailure, applyInvoicePaidRecovery, advanceDunningForSubscription } from "../packages/platform-core/src/billing/billing-service.ts";
+import { readPlatformSubscriptionWebhookCutoverHold } from "../packages/platform-core/src/billing/subscription-webhook-cutover-hold.ts";
 import { checkoutPost } from "./checkout-test-http.mjs";
 
 const applyInvoicePaymentFailed = input => processInvoiceFailure({ stripeInvoiceId: "in_fixture", ...input });
@@ -111,6 +112,7 @@ before(async () => {
 });
 beforeEach(async () => {
   await prisma.platformCheckoutAttempt.deleteMany();
+  await control.$executeRaw`UPDATE platform_checkout_creation_gate SET subscription_webhooks_held = false WHERE id = 1`;
   await prisma.platformSubscription.deleteMany();
   await prisma.opportunity.deleteMany({ where: { organisationId: org.id } });
   await prisma.organisation.update({ where: { id: org.id }, data: { billingCustomerId: null, settings: {} } });
@@ -129,6 +131,21 @@ beforeEach(async () => {
     livemode: false, status: "open", paid: false, amount_remaining: 24900 };
   remainingAtAcceptance = 2100; acceptedSessions = [];
   await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked = false, revision = revision + 1, changed_at = clock_timestamp(), last_admission_expires_at = NULL WHERE id = 1`;
+});
+
+test("subscription webhook hold is shared across independent database readers and fails closed when unavailable", async () => {
+  const readFromPrisma = () => readPlatformSubscriptionWebhookCutoverHold(async () =>
+    prisma.platformCheckoutCreationGate.findUnique({ where: { id: 1 }, select: { subscriptionWebhooksHeld: true } }));
+  const readFromControl = () => readPlatformSubscriptionWebhookCutoverHold(async () =>
+    control.platformCheckoutCreationGate.findUnique({ where: { id: 1 }, select: { subscriptionWebhooksHeld: true } }));
+
+  await control.platformCheckoutCreationGate.update({ where: { id: 1 }, data: { subscriptionWebhooksHeld: true } });
+  assert.equal(await readFromPrisma(), true, "separate app client sees the committed hold");
+  assert.equal(await readFromControl(), true);
+  await control.platformCheckoutCreationGate.update({ where: { id: 1 }, data: { subscriptionWebhooksHeld: false } });
+  assert.equal(await readFromPrisma(), false, "separate app client sees release without process restart");
+  await assert.rejects(readPlatformSubscriptionWebhookCutoverHold(async () => null), /hold state is unavailable/);
+  await assert.rejects(readPlatformSubscriptionWebhookCutoverHold(async () => ({ subscriptionWebhooksHeld: null })), /hold state is unavailable/);
 });
 after(async () => {
   mock.restoreAll();
