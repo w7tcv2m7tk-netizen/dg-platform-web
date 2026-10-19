@@ -34,7 +34,10 @@ function stripeLineItems(input: CreateCheckoutSessionInput | CreatePaymentLinkIn
   }));
 }
 
-function mapCheckoutCompleted(session: Stripe.Checkout.Session): PaymentWebhookEvent {
+export function mapCheckoutCompleted(
+  session: Stripe.Checkout.Session,
+  connectAccountId?: string,
+): PaymentWebhookEvent {
   const metadata = session.metadata ?? {};
   const paymentIntent =
     typeof session.payment_intent === "string"
@@ -43,6 +46,7 @@ function mapCheckoutCompleted(session: Stripe.Checkout.Session): PaymentWebhookE
   return {
     type: "checkout.completed",
     providerId: "stripe",
+    connectAccountId,
     providerEventId: session.id,
     organisationId: metadata.organisationId,
     paymentRequestId: metadata.paymentRequestId,
@@ -154,7 +158,10 @@ export class StripePaymentConnector implements PaymentConnector {
       event.type === "checkout.session.completed" ||
       event.type === "checkout.session.async_payment_succeeded"
     ) {
-      return mapCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+      return mapCheckoutCompleted(
+        event.data.object as Stripe.Checkout.Session,
+        event.account ?? undefined,
+      );
     }
 
     if (event.type === "checkout.session.expired") {
