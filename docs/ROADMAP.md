@@ -496,3 +496,25 @@ Status remains BLOCKED for hosted/authenticated synthetic certification and
 operator-approved creation-gate/coordinator migrations, guard rollout and
 legacy invocation/session drain. No Production data, billing configuration,
 provider objects or checkout admission were changed. No Neon preview created.
+
+### P0 entitlement candidate integration - 21 October 2026
+
+PR #1015 reconciles checkout candidate `27a2ae80` and atomic webhook guard
+`d5c9f30a`; the earlier separate read/check hold is replaced with the guard's
+transactional hold/receipt claim. Connected Checkout rejection before receipt
+claim and canonical invoice customer/subscription IDs are preserved. Recovery
+errors propagate for receipt retry. Additive migration bytes are unchanged.
+Updated stale source-contract tests for canonical purchased-app authority and
+shared industry layouts, and run server-only Studio permission tests in the
+server condition. No customer feature or entitlement rule was relaxed.
+Fresh local evidence: checkout/lifecycle PostgreSQL 124/124; reconciliation
+27/27; shared-row guard PostgreSQL 6/6; combined provider/route checks 106/106,
+including identity forwarding and recovery failure; drain reporter 7/7; full
+`npm run build` including prebuild and TypeScript passed. Changed-path ESLint
+passed with one existing connector unused-variable warning. Owned cluster
+stopped/destroyed. These mocks/local integrations do not certify hosted
+Stripe/Clerk, purchased access or Production safety.
+Status BLOCKED: independent integration review, authenticated synthetic hosted
+test-mode acceptance, separately approved migration/guard/drain/reconciliation
+release sequence and rollback evidence. No live provider operations, migrations,
+entitlement reconciliation or checkout reopening performed. No Neon previews.

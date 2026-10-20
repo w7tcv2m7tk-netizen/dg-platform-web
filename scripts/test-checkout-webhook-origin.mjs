@@ -119,7 +119,7 @@ function cutoverWebhookRuntime(readHold, receipts) {
     providerEventId: "evt_cutover_hold",
     type: "subscription.updated",
     connectAccountId: undefined,
-    raw: { id: "sub_cutover_hold", customer: "cus_cutover_hold", metadata: { dg_platform_subscription: "true" } },
+    raw: { id: "sub_cutover_hold", customer: "cus_cutover_hold", metadata: { dg_platform_subscription: "true", organisation_id: "org_cutover_hold" } },
   };
   let receiptClaims = 0;
   let lifecycleCalls = 0;
@@ -127,11 +127,15 @@ function cutoverWebhookRuntime(readHold, receipts) {
     bootPaymentConnectors() {},
     requirePaymentConnector: () => ({ parseWebhook: async () => event }),
     prismaReceiptStore: () => ({ claim: true }),
-    readPlatformSubscriptionWebhookCutoverHold: readHold,
+    PlatformSubscriptionWebhookHoldUnavailableError: class PlatformSubscriptionWebhookHoldUnavailableError extends Error {},
     isPlatformSubscription: sub => Boolean(sub?.metadata?.dg_platform_tier || sub?.metadata?.dg_platform_subscription === "true"),
     handlePlatformSubscriptionLifecycle: async () => { lifecycleCalls++; return { ok: true }; },
     resolveOrganisationIdByConnectAccount: async () => undefined,
-    withWebhookReceiptState: async ({ eventId, handle }) => {
+    withWebhookReceiptState: async ({ eventId, requireSubscriptionWebhookOpen, handle }) => {
+      if (requireSubscriptionWebhookOpen) {
+        try { if (await readHold()) return { status: "held" }; }
+        catch (cause) { throw new platform.PlatformSubscriptionWebhookHoldUnavailableError("hold unavailable", { cause }); }
+      }
       receiptClaims++;
       if (receipts.has(eventId)) return { status: "duplicate", reason: "already_processed" };
       const result = await handle();
@@ -145,6 +149,11 @@ function cutoverWebhookRuntime(readHold, receipts) {
   const exports = {};
   vm.runInNewContext(source, { exports, require: name => {
     if (name === "@dg/platform-core") return platform;
+    if (name === "@dg/database") return { prisma: {
+      organisation: { findUnique: async ({ where }) => where.id === "org_cutover_hold" || where.billingCustomerId === "cus_cutover_hold"
+        ? { id: "org_cutover_hold", billingCustomerId: "cus_cutover_hold" } : null },
+      platformSubscription: { findUnique: async () => null },
+    } };
     if (name === "next/server") return { NextResponse: { json: Response.json } };
     throw new Error(`Unexpected dependency: ${name}`);
   }, Response, process: { env: { STRIPE_SECRET_KEY: "sk_test_fixture", STRIPE_WEBHOOK_SECRET: "whsec_fixture" } },
