@@ -1,7 +1,7 @@
 # AIM Financial and My Venue Clean — checkout evidence reconciliation
 
 Requirement IDs: `platform.auth`, `detach.portal_billing`, `crm.companies`.
-Issue: #1013. Evidence review: 20 October 2026. This records a verification result;
+Issue: #1013. Evidence review: 20–21 October 2026. This records a verification result;
 it does not certify a payment or authorise billing activation.
 
 ## Serving revision and release order
@@ -23,8 +23,11 @@ review did not create a Checkout Session or change any admission flag.
 
 Read-only canonical records show organisation status `trial`; no canonical
 PlatformSubscription row or Stripe subscription reference is recorded there.
-An agreed commercial-offer record selects internal tier `professional`, Priority
-support and zero trial days. Those are stored configuration, not payment proof.
+An agreed commercial-offer record selects AUD $947/month, internal tier
+`professional`, Finance industry access, Growth Suite premium access, Priority
+support and zero trial days. No industry-template list or one-off amount is
+recorded in that recognised offer. These are stored configuration, not payment
+proof or confirmation against an externally signed agreement.
 No current industry value is recorded on the organisation. The review does not
 infer Finance app entitlement from the customer name or tier.
 
