@@ -1,6 +1,6 @@
 import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
 import { notFound } from "next/navigation";
-import { getDailyOpportunityBriefing, listGrowthProspects } from "@dg/platform-core";
+import { acquisitionLifecycle, getDailyOpportunityBriefing } from "@dg/platform-core";
 
 import { ProspectingTodayActions } from "@/components/prospecting/ProspectingTodayActions";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
@@ -14,35 +14,39 @@ export default async function ProspectingTodayPage() {
   if (!process.env.DATABASE_URL) {
     return (
       <>
-        <ProspectingPageHeader title="Today" description="Your Daily Top 3 — qualified prospects first, with research work kept separate from outreach." />
+        <ProspectingPageHeader title="Today’s Priorities" description="Your three highest-priority relationships, with evidence and the next action." />
         <main className="dg-page-main"><p className="text-sm text-amber-200">Prospecting is temporarily unavailable.</p></main>
       </>
     );
   }
 
-  const [briefing, prospects] = await Promise.all([
-    getDailyOpportunityBriefing({ organisationId: session.organisationId, limit: 30 }),
-    listGrowthProspects({ organisationId: session.organisationId, limit: 200 }),
-  ]);
+  const briefing = await getDailyOpportunityBriefing({ organisationId: session.organisationId, limit: 30 });
+  const { prisma } = await import("@dg/database");
+  const prospects = await prisma.growthProspect.findMany({ where: { organisationId: session.organisationId, id: { in: briefing.rows.map((row) => row.prospectId) } }, select: { id: true, contactName: true, industry: true, location: true, convertedOrganisationId: true } });
   const prospectById = new Map(prospects.map((p) => [p.id, p]));
+  const targetIds = prospects.map((p) => p.convertedOrganisationId).filter((id): id is string => Boolean(id));
+  const memberships = await prisma.membership.findMany({ where: { organisationId: { in: targetIds }, clerkUserId: session.clerkUserId, status: "active", role: { in: ["owner", "admin"] } }, select: { organisationId: true } });
+  const subscriptions = await prisma.platformSubscription.findMany({ where: { organisationId: { in: memberships.map((m) => m.organisationId) } }, select: { organisationId: true, status: true, stripeStatus: true, stripeSubscriptionId: true } });
+  const commercialByOrg = new Map(subscriptions.map((s) => [s.organisationId, s]));
   const allRows = briefing.rows.map((row) => {
     const prospect = prospectById.get(row.prospectId);
     return {
       ...row,
+      lifecycleLabel: acquisitionLifecycle(row.stage, prospect?.convertedOrganisationId ? commercialByOrg.get(prospect.convertedOrganisationId) : null),
       contactName: prospect?.contactName ?? null,
       industry: prospect?.industry ?? null,
       location: prospect?.location ?? null,
     };
   });
 
-  const contactRows = allRows.filter((row) => row.stage === "qualified").slice(0, 3);
-  const researchRows = allRows.filter((row) => row.stage === "audit_created").slice(0, 3);
-  const rows = contactRows.length ? contactRows : researchRows;
+  const rows = allRows.slice(0, 3);
+  const contactRows = rows.filter((row) => !["prospect", "audit_created"].includes(row.stage));
 
   return (
     <>
-      <ProspectingPageHeader title="Today" description="Your Daily Top 3 — qualified prospects first, with research work kept separate from outreach." />
+      <ProspectingPageHeader title="Today’s Priorities" description="Your three highest-priority relationships, with evidence and the next action." />
       <main className="dg-page-main space-y-5">
+        <a href="/apps/prospecting/overview" className="text-sm text-violet-300">Open Overview →</a>
         <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <Metric label="Top 3 ready" value={contactRows.length} />
           <Metric label="Contacted today" value={briefing.contactedToday} />
