@@ -144,3 +144,30 @@ test('Priorities recovery does not catch or bypass the authentication gate',asyn
  },{process:{env:{}}}).default;
  await assert.rejects(page,/auth_denied/);assert.equal(reads,0);
 });
+
+
+test('Pipeline labels research/contact priorities and never averages mixed priority types', async () => {
+ const renderToStaticMarkup = require('react-dom/server').renderToStaticMarkup;
+ const scoreEngine = load('packages/platform-core/src/command-centre/growth-engine/opportunity-engine.ts', {});
+ const stages = [{id:'discovered',label:'Discovered',actionLabel:'Review'}];
+ const research = {id:'research',businessName:'Unresearched synthetic',stage:'prospect',industry:'Real estate',updatedAt:new Date().toISOString()};
+ const contact = {...research,id:'contact',businessName:'Qualified synthetic',stage:'qualified',contactEmail:'test@example.invalid',websiteUrl:'https://example.invalid'};
+ const render = async prospects => {
+  const surface = load('src/components/prospecting/ProspectingPipelineSurface.tsx', {
+   'react/jsx-runtime':require('react/jsx-runtime'), 'next/link':({children})=>children,
+   '@dg/platform-core':{PROSPECT_WORKSPACE_STAGES:stages,growthPipelineStages:()=>[],workspaceStageForProspectStage:()=> 'discovered',listGrowthProspects:async()=>prospects,computeProspectOpportunityScore:scoreEngine.computeProspectOpportunityScore},
+   '@dg/database':{prisma:{growthProspectAudit:{findMany:async()=>prospects.filter(p=>p.id==='contact').map(p=>({prospectId:p.id,businessHealth:50,aiVisibility:40,seoScore:45,websiteHealth:50,findings:{probes:{contentAccessible:true}}}))}}},
+   '@/components/prospecting/ProspectingPageHeader':{ProspectingPageHeader:()=>null},
+   '@/components/prospecting/ProspectingCustomerActions':{},
+  },{process:{env:{DATABASE_URL:'synthetic'}}}).ProspectingPipelineSurface;
+  return renderToStaticMarkup(await surface({organisationId:'synthetic',showArchived:false,variant:'apps'}));
+ };
+ const researchHtml = await render([research]);
+ assert.match(researchHtml,/Research priority/); assert.doesNotMatch(researchHtml.match(/<ul.*?<\/ul>/s)[0],/Opportunity Score/);
+ const contactHtml = await render([contact]);
+ assert.match(contactHtml,/Contact priority/);
+ const mixedHtml = await render([research,contact]);
+ assert.match(mixedHtml,/Research priority/); assert.match(mixedHtml,/Contact priority/);
+ const table = mixedHtml.match(/<tbody>(.*?)<\/tbody>/s)[1];
+ assert.doesNotMatch(table,/priority/); assert.match(table,/—/);
+});

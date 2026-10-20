@@ -564,3 +564,42 @@ Evidence retained outside Git in Verification/ProspectingApp/20261021, including
 desktop/mobile screenshots and application request log. Prior full npm build
 including prebuild/TypeScript remains applicable: no runtime code changed in
 this verification. No merge or deployment authorised by this evidence.
+
+
+### Prospecting release completion candidate - 21 October 2026
+
+Requirements: `growth.pipeline`, `platform.auth`; PR #1018, branch
+`release/prospecting-intake`. Corrected Pipeline score labels to use the actual
+scoring result's Research/Contact priority type, including discovered prospects.
+Stage averages carry their priority type and are suppressed for mixed types.
+Rendering regression exercises both types with the real scoring engine.
+
+Validation on the corrected working tree: intake/rendering 13/13; report, mobile
+and navigation regressions 60/60; additive migration and acquisition local DB
+16/16; P1 concurrency 11/11; targeted ESLint zero errors/warnings; complete
+`npm run build` including all prebuild checks, TypeScript and optimized build
+passed (existing framework warnings remain). No checks disabled.
+
+Authenticated localhost acceptance with the retained Clerk Development fixture
+account: corrected Pipeline labels visible; due follow-up and consultation
+appear in Top 3; finance call brief opens with explicit synthetic audit evidence
+and no real-estate appraisal claims. Explicitly selecting a synthetic existing
+customer, company and contact succeeds. Exact before/after customer, membership,
+subscription/entitlement, CRM and prior communication snapshots are identical.
+This supplements the preceding manual create/archive, tenant denial, mobile
+navigation and Activity checks. All evidence is synthetic; no real commercial
+activation or external message occurred. Owned local cluster removed.
+
+Vercel metadata confirms ABR_GUID and GOOGLE_PLACES_API_KEY configured for
+Production. Values were not retrieved; positive live provider response remains
+unverified. Local provider failure tests and synthetic provider regressions
+are not live ABR/Google certification. Preview DB URLs remain absent.
+
+Production is unchanged. Release requires explicit approval of migration
+`20261020090000_unified_acquisition_identity` (four nullable columns, format
+checks, tenant-scoped unique indexes; no backfill/merge/reassignment), followed
+by #1018 merge and Production deployment. Recheck Production migration state
+and drift read-only before applying only that migration; never deploy all
+pending migrations or alter migration recovery. Verify live read-only provider
+search and authenticated UI after release, without creating live test prospects.
+No checkout, Stripe, entitlement or webhook implementation changes included.
