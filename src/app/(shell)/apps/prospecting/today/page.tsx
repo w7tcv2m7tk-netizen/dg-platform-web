@@ -11,36 +11,16 @@ export default async function ProspectingTodayPage() {
   const session = await getAuthorisedPlatformPageSession("prospecting.prospects.read");
   if (!session) notFound();
 
-  if (!process.env.DATABASE_URL) {
-    return (
-      <>
-        <ProspectingPageHeader title="Today’s Priorities" description="Your three highest-priority relationships, with evidence and the next action." />
-        <main className="dg-page-main"><p className="text-sm text-amber-200">Prospecting is temporarily unavailable.</p></main>
-      </>
-    );
+  if (!process.env.DATABASE_URL) return <ProspectingUnavailable />;
+
+  let workspace: Awaited<ReturnType<typeof loadPriorities>> | null = null;
+  try {
+    workspace = await loadPriorities(session);
+  } catch (error) {
+    console.error("[prospecting/today] load failed", error);
   }
-
-  const briefing = await getDailyOpportunityBriefing({ organisationId: session.organisationId, limit: 30 });
-  const { prisma } = await import("@dg/database");
-  const prospects = await prisma.growthProspect.findMany({ where: { organisationId: session.organisationId, id: { in: briefing.rows.map((row) => row.prospectId) } }, select: { id: true, contactName: true, industry: true, location: true, convertedOrganisationId: true } });
-  const prospectById = new Map(prospects.map((p) => [p.id, p]));
-  const targetIds = prospects.map((p) => p.convertedOrganisationId).filter((id): id is string => Boolean(id));
-  const memberships = await prisma.membership.findMany({ where: { organisationId: { in: targetIds }, clerkUserId: session.clerkUserId, status: "active", role: { in: ["owner", "admin"] } }, select: { organisationId: true } });
-  const subscriptions = await prisma.platformSubscription.findMany({ where: { organisationId: { in: memberships.map((m) => m.organisationId) } }, select: { organisationId: true, status: true, stripeStatus: true, stripeSubscriptionId: true } });
-  const commercialByOrg = new Map(subscriptions.map((s) => [s.organisationId, s]));
-  const allRows = briefing.rows.map((row) => {
-    const prospect = prospectById.get(row.prospectId);
-    return {
-      ...row,
-      lifecycleLabel: acquisitionLifecycle(row.stage, prospect?.convertedOrganisationId ? commercialByOrg.get(prospect.convertedOrganisationId) : null),
-      contactName: prospect?.contactName ?? null,
-      industry: prospect?.industry ?? null,
-      location: prospect?.location ?? null,
-    };
-  });
-
-  const rows = allRows.slice(0, 3);
-  const contactRows = rows.filter((row) => !["prospect", "audit_created"].includes(row.stage));
+  if (!workspace) return <ProspectingUnavailable />;
+  const { briefing, rows, contactRows } = workspace;
 
   return (
     <>
@@ -67,6 +47,47 @@ export default async function ProspectingTodayPage() {
       </main>
     </>
   );
+}
+
+async function loadPriorities(session: { organisationId: string; clerkUserId: string }) {
+  const briefing = await getDailyOpportunityBriefing({ organisationId: session.organisationId, limit: 30 });
+  const { prisma } = await import("@dg/database");
+  const prospects = await prisma.growthProspect.findMany({ where: { organisationId: session.organisationId, id: { in: briefing.rows.map((row) => row.prospectId) } }, select: { id: true, contactName: true, industry: true, location: true, convertedOrganisationId: true } });
+  const prospectById = new Map(prospects.map((p) => [p.id, p]));
+  const targetIds = prospects.map((p) => p.convertedOrganisationId).filter((id): id is string => Boolean(id));
+  const memberships = await prisma.membership.findMany({ where: { organisationId: { in: targetIds }, clerkUserId: session.clerkUserId, status: "active", role: { in: ["owner", "admin"] } }, select: { organisationId: true } });
+  const subscriptions = await prisma.platformSubscription.findMany({ where: { organisationId: { in: memberships.map((m) => m.organisationId) } }, select: { organisationId: true, status: true, stripeStatus: true, stripeSubscriptionId: true } });
+  const commercialByOrg = new Map(subscriptions.map((s) => [s.organisationId, s]));
+  const allRows = briefing.rows.map((row) => {
+    const prospect = prospectById.get(row.prospectId);
+    return {
+      ...row,
+      lifecycleLabel: acquisitionLifecycle(row.stage, prospect?.convertedOrganisationId ? commercialByOrg.get(prospect.convertedOrganisationId) : null),
+      contactName: prospect?.contactName ?? null,
+      industry: prospect?.industry ?? null,
+      location: prospect?.location ?? null,
+    };
+  });
+
+  const rows = allRows.slice(0, 3);
+  const contactRows = rows.filter((row) => !["prospect", "audit_created"].includes(row.stage));
+
+  return { briefing, rows, contactRows };
+}
+
+function ProspectingUnavailable() {
+  return <>
+    <ProspectingPageHeader title="Today’s Priorities" description="Your three highest-priority relationships, with evidence and the next action." />
+    <main className="dg-page-main">
+      <section role="alert" className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-100">
+        <p>Prospecting is temporarily unavailable. DigitalGate has kept unavailable signals out of the workspace rather than estimating them.</p>
+        <div className="flex flex-wrap gap-3">
+          <a href="/apps/prospecting" className="inline-flex min-h-11 items-center rounded-lg bg-amber-200 px-4 font-semibold text-slate-950">Try again</a>
+          <a href="/dashboard/advisor" className="inline-flex min-h-11 items-center rounded-lg border border-amber-200/30 px-4 font-semibold text-amber-50">Get help</a>
+        </div>
+      </section>
+    </main>
+  </>;
 }
 
 function Metric({ label, value }: { label: string; value: number }) {

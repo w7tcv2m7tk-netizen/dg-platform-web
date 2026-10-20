@@ -1,7 +1,13 @@
 import { lookupBusinessIdentityByAbn } from "../business-identity";
 
 export class AcquisitionError extends Error {
-  constructor(public code: string, message: string, public status = 409) { super(message); }
+  code: string;
+  status: number;
+  constructor(code: string, message: string, status = 409) {
+    super(message);
+    this.code = code;
+    this.status = status;
+  }
 }
 
 export function normaliseAustralianAbn(value: string): string {

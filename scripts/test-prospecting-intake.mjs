@@ -114,3 +114,33 @@ test('search renders provider results before selection; registry selection verif
  assert.equal(selections[1].googlePlaceId,'synthetic');assert.equal(selections[1].abn,undefined);assert.equal(selections[1].identity,undefined);
  assert.ok(requests.every(([url])=>!url.includes('/growth/prospects')));
 });
+
+test('default Priorities page renders retry/help recovery for missing database and query failure',async()=>{
+ const React=require('react');const {renderToStaticMarkup}=require('react-dom/server');
+ for(const database of [undefined,'postgresql://synthetic-local-test-only']) {
+  let queries=0;
+  const page=load('src/app/(shell)/apps/prospecting/today/page.tsx',{
+   'react/jsx-runtime':require('react/jsx-runtime'),
+   '@/components/prospecting/ProspectingPageHeader':{ProspectingPageHeader:({title})=>React.createElement('h1',null,title)},
+   'next/navigation':{notFound(){throw Error('not_found');}},
+   '@dg/platform-core':{getDailyOpportunityBriefing:async()=>{queries++;throw Error('Synthetic database failure');}},
+   '@/components/prospecting/ProspectingTodayActions':{ProspectingTodayActions:()=>{throw Error('Unavailable data must not render actions');}},
+   '@/lib/platform-page-feature':{getAuthorisedPlatformPageSession:async()=>({organisationId:'synthetic'})},
+  },{process:{env:{DATABASE_URL:database}},console:{error(){}}}).default;
+  const html=renderToStaticMarkup(await page());
+  assert.match(html,/Try again/);assert.match(html,/Get help/);assert.match(html,/rather than estimating/);
+  assert.match(html,/href="\/apps\/prospecting"/);assert.equal(queries,database?1:0);
+ }
+});
+
+test('Priorities recovery does not catch or bypass the authentication gate',async()=>{
+ let reads=0;
+ const page=load('src/app/(shell)/apps/prospecting/today/page.tsx',{
+  'react/jsx-runtime':require('react/jsx-runtime'),
+  '@/components/prospecting/ProspectingPageHeader':{},'next/navigation':{notFound(){throw Error('auth_denied');}},
+  '@dg/platform-core':{getDailyOpportunityBriefing:async()=>{reads++;}},
+  '@/components/prospecting/ProspectingTodayActions':{},
+  '@/lib/platform-page-feature':{getAuthorisedPlatformPageSession:async()=>null},
+ },{process:{env:{}}}).default;
+ await assert.rejects(page,/auth_denied/);assert.equal(reads,0);
+});
