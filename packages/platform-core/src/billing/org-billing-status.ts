@@ -99,7 +99,7 @@ function kindFromCommercial(
   }
 }
 
-function resolveKind(input: {
+export function resolveOrganisationBillingKind(input: {
   expectsPlatformBilling: boolean;
   hasStripeCustomer: boolean;
   foundingCustomer: boolean;
@@ -123,13 +123,21 @@ function resolveKind(input: {
     return "suspended";
   }
 
-  if (input.hasStripeCustomer) {
-    return input.status === "trial" ? "trial" : "subscribed";
-  }
+  if (input.hasStripeCustomer && sub === "trialing") return "trial";
+  if (input.hasStripeCustomer && sub === "active") return "subscribed";
+  if (input.hasStripeCustomer && sub === "cancel_at_period_end") return "cancel_at_period_end";
   if (input.foundingCustomer) return "founding_trial";
-  if (input.status === "trial") return "trial";
-  if (input.status === "active") return "active";
   return "needs_checkout";
+}
+
+/** A Stripe customer or browser return URL is insufficient: require verified subscription state. */
+export function isVerifiedStripeBilling(
+  billing: Pick<OrganisationBillingStatus, "hasStripeCustomer" | "kind"> | null | undefined,
+): boolean {
+  return Boolean(
+    billing?.hasStripeCustomer &&
+      (billing.kind === "trial" || billing.kind === "subscribed" || billing.kind === "cancel_at_period_end"),
+  );
 }
 
 /**
@@ -203,7 +211,7 @@ export async function getOrganisationBillingStatus(
     trialEnd: platformSub?.trialEnd?.toISOString() ?? null,
     currentPeriodEnd: platformSub?.currentPeriodEnd?.toISOString() ?? null,
     cancelAtPeriodEnd: platformSub?.cancelAtPeriodEnd ?? false,
-    kind: resolveKind({
+    kind: resolveOrganisationBillingKind({
       expectsPlatformBilling: platformSub ? !platformExempt : expectsPlatformBilling,
       hasStripeCustomer,
       foundingCustomer,

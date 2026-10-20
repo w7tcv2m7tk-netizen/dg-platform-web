@@ -23,10 +23,10 @@ export const prospectingApp: AppManifest = {
   icon: "◎",
   routes: [
     { path: "/apps/prospecting", label: "Overview" },
-    { path: "/apps/prospecting/today", label: "Today" },
     { path: "/apps/prospecting/discovery", label: "Discover" },
     { path: "/apps/prospecting/prospects", label: "Prospects" },
     { path: "/apps/prospecting/pipeline", label: "Pipeline" },
+    { path: "/apps/prospecting/today", label: "Today" },
     { path: "/apps/prospecting/activity", label: "Activity" },
   ],
   navigation: [

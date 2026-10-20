@@ -4,6 +4,7 @@ import {
   getFoundingOnboarding,
   getGen2OnboardingProgress,
   getOrganisationBillingStatus,
+  isVerifiedStripeBilling,
 } from "@dg/platform-core";
 
 import { AdaptiveOnboardingJourney } from "@/components/onboarding/AdaptiveOnboardingJourney";
@@ -15,7 +16,6 @@ import { getPlatformPageContext } from "@/lib/org-apps";
 import { getPlatformOperatorContext } from "@/lib/platform-operator";
 import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
 
-const VERIFIED_CHECKOUT_KINDS = new Set(["trial", "subscribed", "cancel_at_period_end"]);
 const PLATFORM_OPERATOR_SLUG = "digitalgate";
 
 export default async function OnboardingPage({ searchParams }: { searchParams: Promise<{ invite?: string; journey?: string; checkout?: string; review?: string; operatorOrg?: string }> }) {
@@ -55,18 +55,39 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   }
 
   const requestedCheckoutSuccess = params.checkout === "success";
-  const billing = requestedCheckoutSuccess ? await getOrganisationBillingStatus(session.organisationId).catch(() => null) : null;
-  const checkoutConfirmed = Boolean(
-    billing && (billing.kind === "platform_exempt" || (billing.hasStripeCustomer && VERIFIED_CHECKOUT_KINDS.has(billing.kind))),
-  );
+  const billing = await getOrganisationBillingStatus(session.organisationId).catch(() => null);
+  const checkoutConfirmed = isVerifiedStripeBilling(billing);
   const checkoutPending = requestedCheckoutSuccess && !checkoutConfirmed;
   const checkoutStatus = checkoutConfirmed ? "success" as const : params.checkout === "cancelled" ? "cancelled" as const : null;
   if (checkoutPending) return <VipOnboardingExperience businessName={session.organisationName}><OnboardingCheckoutPending /></VipOnboardingExperience>;
 
-  const initialProgress = progress ?? emptyGen2Progress(founding);
   const reviewMode = params.review === "1" || params.review === "true";
   const preset = getVipCustomerPreset(session.organisationName);
-  if (initialProgress.completedAt && !reviewMode) return <VipOnboardingExperience businessName={session.organisationName} aidaWelcome={`Your DigitalGate workspace for ${session.organisationName} is already configured.`} setupFocus={preset?.setupFocus}><section className="mx-auto max-w-2xl rounded-3xl border border-violet-300/15 bg-white/[0.035] p-8 text-center"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Setup complete</p><h2 className="mt-3 text-2xl font-semibold text-white">Your operating profile is saved</h2><p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/55">Reviewing setup updates configuration without resetting operational records.</p><div className="mt-6 flex justify-center gap-3"><a href="/onboarding?review=1" className="inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 text-sm font-semibold text-white">Review setup with Aida</a><a href="/dashboard" className="inline-flex min-h-11 items-center rounded-full border border-white/10 px-5 text-sm font-semibold text-white/75">Return to platform</a></div></section></VipOnboardingExperience>;
+  const billingLifecycleReady = Boolean(
+    billing && (
+      billing.kind === "platform_exempt" ||
+      isVerifiedStripeBilling(billing)
+    ),
+  );
+  const initialProgress = progress ?? emptyGen2Progress(founding);
+  const hasUnverifiedCheckoutProgress = Boolean(
+    !billingLifecycleReady && (
+      initialProgress.completedAt ||
+      initialProgress.subscriptionActivatedAt ||
+      initialProgress.completedSteps.includes("stripe")
+    ),
+  );
+  const safeProgress = hasUnverifiedCheckoutProgress
+    ? {
+        ...initialProgress,
+        currentStep: "stripe" as const,
+        completedSteps: initialProgress.completedSteps.filter((step) => step !== "stripe" && step !== "connect" && step !== "checklist" && step !== "implementation"),
+        completedAt: null,
+        subscriptionActivatedAt: null,
+        checklist: { ...initialProgress.checklist, subscription: false },
+      }
+    : initialProgress;
+  if (initialProgress.completedAt && billingLifecycleReady && !reviewMode) return <VipOnboardingExperience businessName={session.organisationName} aidaWelcome={`Your DigitalGate workspace for ${session.organisationName} is already configured.`} setupFocus={preset?.setupFocus}><section className="mx-auto max-w-2xl rounded-3xl border border-violet-300/15 bg-white/[0.035] p-8 text-center"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300">Setup complete</p><h2 className="mt-3 text-2xl font-semibold text-white">Your operating profile is saved</h2><p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/55">Reviewing setup updates configuration without resetting operational records.</p><div className="mt-6 flex justify-center gap-3"><a href="/onboarding?review=1" className="inline-flex min-h-11 items-center rounded-full bg-violet-600 px-5 text-sm font-semibold text-white">Review setup with Aida</a><a href="/dashboard" className="inline-flex min-h-11 items-center rounded-full border border-white/10 px-5 text-sm font-semibold text-white/75">Return to platform</a></div></section></VipOnboardingExperience>;
 
-  return <VipOnboardingExperience businessName={session.organisationName} aidaWelcome={preset?.aidaWelcome} setupFocus={preset?.setupFocus}><AdaptiveOnboardingJourney initial={initialProgress} businessName={session.organisationName} aidaWelcome={preset?.aidaWelcome} setupFocus={preset?.setupFocus} recommendedTemplate={preset?.industryTemplate} checkoutStatus={checkoutStatus} founding={founding} reviewMode={reviewMode}/></VipOnboardingExperience>;
+  return <VipOnboardingExperience businessName={session.organisationName} aidaWelcome={preset?.aidaWelcome} setupFocus={preset?.setupFocus}><AdaptiveOnboardingJourney initial={safeProgress} businessName={session.organisationName} aidaWelcome={preset?.aidaWelcome} setupFocus={preset?.setupFocus} recommendedTemplate={preset?.industryTemplate} checkoutStatus={checkoutStatus} founding={founding} reviewMode={reviewMode}/></VipOnboardingExperience>;
 }
