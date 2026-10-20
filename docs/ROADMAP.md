@@ -603,3 +603,52 @@ and drift read-only before applying only that migration; never deploy all
 pending migrations or alter migration recovery. Verify live read-only provider
 search and authenticated UI after release, without creating live test prospects.
 No checkout, Stripe, entitlement or webhook implementation changes included.
+
+
+### Approved Prospecting Production rollout - 21 October 2026
+
+Requirements: `growth.pipeline`, `platform.auth`. Operator explicitly approved
+the exact identity migration, #1018 merge and Production deployment. Applied
+only `20261020090000_unified_acquisition_identity` in an atomic transaction
+with its checksum record: 724683fc03047fd36c9df1b49b170d467fcf5a1d5026fbcb412b5fa76da7f612.
+Verified four nullable columns, two validated format checks and both tenant
+unique indexes. Prospect count 51, unknown-owner prospects 43 and companies 15
+unchanged; no backfill. Existing migration/recovery rows were not modified.
+
+#1018 merged as `06d47650f85d8534afcace7564292f4e2380438c`; Vercel deployment
+`dpl_ByeBkme9WDx7to5Wt4s3aibgG451` READY with app.digitalgate.com.au assigned.
+No Preview deployment/Neon branch created. Early error/fatal runtime log scan
+returned no records (limited window, not complete runtime certification).
+Local application acceptance and full build passed as recorded above.
+Authenticated Production/provider acceptance remains pending because the
+available browser is signed out. No authentication bypass or synthetic writes
+against Production. Next action: owner signs into the open in-app DigitalGate
+tab; verify Priorities, controls, existing Activity and read-only ABR/Google
+search. Do not claim live provider verification from configuration metadata.
+Evidence: Verification/ProspectingRelease/20261021/release.json. This entry
+supersedes the migration/release HOLD only; provider acceptance remains open.
+
+
+### Verified registered-name correction - 21 October 2026
+
+Requirement `growth.pipeline`. Authenticated Production acceptance of #1018
+confirmed Priorities/default landing, full Growth order, Delete controls, live
+ABR name matches and Google name results, successful ABN verification, and
+Activity history. No live prospect was created, edited, archived or linked.
+
+Acceptance exposed a narrow intake defect: a sole-trader ABN with no parsed
+legalName returned only its numeric identifier despite populated registered
+business names, and registry review replaced the selected name with that ABN.
+Branch `fix/prospecting-registered-business-names` offers each ABR-returned legal,
+registered business or trading name as an explicit choice under the same ABN;
+review preserves the selected name and original identity/provenance. Shared
+ABNs remain one identity and tenant duplicate prevention is unchanged. Google
+uses the first returned name with an explicit multiple-name explanation; users
+can search another registered name directly. No inference, merge or legal-name
+fabrication; no schema, billing, entitlement or webhook change.
+
+New sole-trader and selection regressions plus existing intake/rendering tests
+15/15; report/mobile/navigation 60/60; targeted ESLint passed; complete npm build
+including prebuild, TypeScript and optimized build passed. Existing warnings
+remain, no checks disabled. Next: publish targeted fix, deploy and repeat the
+read-only live ABN/name-selection review. No additional migration is required.

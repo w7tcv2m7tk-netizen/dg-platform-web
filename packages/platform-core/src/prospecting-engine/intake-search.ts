@@ -22,8 +22,16 @@ export async function searchProspectIntake(
     if (input.mode === "abn") {
       const verified = await dependencies.verifyAbn(query);
       verifiedIdentity = verified.provenance.snapshot;
-      registry = [{ abn: verified.abn, businessName: verifiedIdentity.entity.legalName || verified.abn }];
-      googleQuery = verifiedIdentity.entity.legalName || "";
+      const names = [...new Set([
+        verifiedIdentity.entity.legalName,
+        ...(verifiedIdentity.entity.businessNames ?? []),
+        ...(verifiedIdentity.entity.tradingNames ?? []),
+      ].filter((name): name is string => Boolean(name?.trim())))];
+      registry = names.length
+        ? names.map((businessName) => ({ abn: verified.abn, businessName }))
+        : [{ abn: verified.abn, businessName: verified.abn }];
+      googleQuery = names[0] || "";
+      if (names.length > 1) warnings.push(`This ABN has multiple registered names. Select the intended business. Google results use ${names[0]}; search another name directly if needed.`);
     } else {
       const result = await dependencies.searchName(query, 12);
       registry = result.matches;

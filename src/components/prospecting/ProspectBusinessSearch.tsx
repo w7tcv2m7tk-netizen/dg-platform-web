@@ -43,12 +43,12 @@ export function ProspectBusinessSearch({ onSelect, disabled }: { onSelect: (busi
     finally { setPending(false); }
   }
 
-  async function selectRegistry(abn: string) {
+  async function selectRegistry(abn: string, businessName: string) {
     setPending(true); setError("");
     try {
       const identity = await fetchProspectIdentity(abn);
       const address = identity.entity.address;
-      onSelect({ businessName: identity.entity.legalName || abn, abn: identity.identifiers.abn, identity, location: [address?.state, address?.postcode].filter(Boolean).join(" ") });
+      onSelect({ businessName, abn: identity.identifiers.abn, identity, location: [address?.state, address?.postcode].filter(Boolean).join(" ") });
     } catch (error) { setError(error instanceof Error ? error.message : "ABR verification failed"); }
     finally { setPending(false); }
   }
@@ -82,10 +82,10 @@ export function ProspectBusinessSearch({ onSelect, disabled }: { onSelect: (busi
         <h3 className="font-medium text-slate-200">ABR registry results</h3>
         <p className="text-xs text-slate-400">Select a result to verify its ABN. A matching name alone does not confirm identity.</p>
         {!result.registry.length ? <p className="mt-2 text-sm text-slate-400">No ABR results returned.</p> : null}
-        <ul className="mt-2 space-y-2">{result.registry.map((match) => <li key={match.abn} className="rounded-lg border border-slate-700 p-3">
+        <ul className="mt-2 space-y-2">{result.registry.map((match) => <li key={`${match.abn}:${match.businessName}`} className="rounded-lg border border-slate-700 p-3">
           <p className="font-medium text-white">{match.businessName}</p><p className="text-sm text-slate-400">ABN {match.abn}{match.location ? ` · ${match.location}` : ""}</p>
           {result.verifiedIdentity?.identifiers.abn === match.abn ? <p className="text-xs text-slate-400">{result.verifiedIdentity.entity.status} · {[result.verifiedIdentity.entity.address?.state, result.verifiedIdentity.entity.address?.postcode].filter(Boolean).join(" ")}</p> : null}
-          <button type="button" disabled={busy} onClick={() => void selectRegistry(match.abn)} className="min-h-11 text-sm text-violet-300 disabled:opacity-50">Verify ABN and review</button>
+          <button type="button" disabled={busy} onClick={() => void selectRegistry(match.abn, match.businessName)} className="min-h-11 text-sm text-violet-300 disabled:opacity-50">Verify ABN and review</button>
         </li>)}</ul>
       </div>
       <div>

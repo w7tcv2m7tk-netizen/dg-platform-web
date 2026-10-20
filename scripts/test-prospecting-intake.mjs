@@ -14,9 +14,9 @@ function load(file, dependencies, extra = {}) {
 class AcquisitionError extends Error { constructor(code, message, status) { super(message); this.code=code; this.status=status; } }
 const identity = { countryPack: 'AU', identifiers: { abn: '10000000003' }, entity: { legalName: 'AIM Financial — synthetic', status: 'Active', address: { state: 'QLD', postcode: '4000' } }, sources: { abr: {} }, retrievedAt: '2026-10-20T00:00:00Z' };
 const candidate = { key: 'google_places:synthetic', provider: 'google_places', externalId: 'synthetic', businessName: identity.entity.legalName, location: 'Other address', websiteUrl: 'https://synthetic.example', phone: '0000000000', providerRefs: { googlePlaceId: 'synthetic' }, confidence: .9 };
-function searchFixture({ abrDown=false, googleDown=false, configured=true }={}) {
+function searchFixture({ abrDown=false, googleDown=false, configured=true, identityRecord=identity }={}) {
  const calls=[];
- const deps={ searchName: async query => { calls.push(['abrName',query]); if(abrDown) throw Error('ABR outage'); return { configured, matches:[{ abn: identity.identifiers.abn, businessName: identity.entity.legalName }], query }; }, verifyAbn: async query => { calls.push(['verify',query]); if(abrDown) throw Error('ABR outage'); return { abn: identity.identifiers.abn, provenance: {snapshot:identity} }; }, google: { isConfigured:()=>configured, search:async ctx=>{ calls.push(['google',ctx.textQuery]); if(googleDown) throw Error('Google outage'); return [candidate]; } } };
+ const deps={ searchName: async query => { calls.push(['abrName',query]); if(abrDown) throw Error('ABR outage'); return { configured, matches:[{ abn: identity.identifiers.abn, businessName: identity.entity.legalName }], query }; }, verifyAbn: async query => { calls.push(['verify',query]); if(abrDown) throw Error('ABR outage'); return { abn: identityRecord.identifiers.abn, provenance: {snapshot:identityRecord} }; }, google: { isConfigured:()=>configured, search:async ctx=>{ calls.push(['google',ctx.textQuery]); if(googleDown) throw Error('Google outage'); return [candidate]; } } };
  const {searchProspectIntake}=load('packages/platform-core/src/prospecting-engine/intake-search.ts', {'../business-identity':{searchBusinessIdentityByName:deps.searchName},'../business-discovery/providers/google-places':{googlePlacesProvider:deps.google},'./identity':{AcquisitionError, verifyAcquisitionAbn:deps.verifyAbn}});
  return {search:input=>searchProspectIntake(input),calls};
 }
@@ -33,6 +33,15 @@ test('ABN search verifies first and searches Google by registry name and optiona
 test('failed ABN lookup cannot infer a business identity or search Google using an identifier',async()=>{
  const {search,calls}=searchFixture({abrDown:true}); const result=await search({mode:'abn',query:'10000000003'});
  assert.equal(result.verifiedIdentity,null);assert.equal(result.registry.length,0);assert.equal(result.google.length,0);assert.equal(calls.length,1);assert.ok(result.warnings.length);
+});
+test('sole-trader ABN exposes registered names without inventing a legal name',async()=>{
+ const record={...identity,entity:{...identity.entity,legalName:undefined,businessNames:['Synthetic Alpha','Synthetic Beta','Synthetic Alpha']}};
+ const {search,calls}=searchFixture({identityRecord:record});
+ const result=await search({mode:'abn',query:'10000000003',location:'QLD'});
+ assert.deepEqual(Array.from(result.registry,r=>r.businessName),['Synthetic Alpha','Synthetic Beta']);
+ assert.equal(result.verifiedIdentity.entity.legalName,undefined);
+ assert.deepEqual(calls,[['verify','10000000003'],['google','Synthetic Alpha QLD']]);
+ assert.match(result.warnings.join(' '),/multiple registered names/);
 });
 test('name search can return Google during an ABR outage; Google failure preserves ABR',async()=>{
  const a=await searchFixture({abrDown:true}).search({mode:'name',query:'Synthetic'});assert.equal(a.google.length,1);assert.equal(a.registry.length,0);
@@ -113,6 +122,18 @@ test('search renders provider results before selection; registry selection verif
  button(render(props),'Review this Google business').props.onClick();
  assert.equal(selections[1].googlePlaceId,'synthetic');assert.equal(selections[1].abn,undefined);assert.equal(selections[1].identity,undefined);
  assert.ok(requests.every(([url])=>!url.includes('/growth/prospects')));
+});
+
+test('registry review keeps the explicitly selected registered business name for a sole trader',async()=>{
+ const selections=[];
+ const soleTrader={...identity,entity:{...identity.entity,legalName:undefined,businessNames:['Synthetic Alpha','Synthetic Beta']}};
+ const render=mount('src/components/prospecting/ProspectBusinessSearch.tsx','ProspectBusinessSearch',{}, {fetch:async(url,options)=>({ok:true,json:async()=>({data:options?{registry:soleTrader.entity.businessNames.map(businessName=>({abn:'10000000003',businessName})),google:[],warnings:[],verifiedIdentity:soleTrader}:{identity:soleTrader}})})});
+ const props={onSelect:value=>selections.push(value),disabled:false};
+ find(render(props),n=>n.type==='input'&&n.props.maxLength===200).props.onChange({target:{value:'10000000003'}});
+ button(render(props),'Search ABR and Google').props.onClick();await new Promise(setImmediate);
+ const choices=nodes(render(props)).filter(n=>n.type==='button'&&text(n)==='Verify ABN and review');
+ assert.equal(choices.length,2);choices[1].props.onClick();await new Promise(setImmediate);
+ assert.equal(selections[0].businessName,'Synthetic Beta');assert.equal(selections[0].abn,'10000000003');assert.equal(selections[0].identity.entity.legalName,undefined);
 });
 
 test('default Priorities page renders retry/help recovery for missing database and query failure',async()=>{
