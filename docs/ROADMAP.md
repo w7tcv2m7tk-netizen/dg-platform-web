@@ -652,3 +652,23 @@ New sole-trader and selection regressions plus existing intake/rendering tests
 including prebuild, TypeScript and optimized build passed. Existing warnings
 remain, no checks disabled. Next: publish targeted fix, deploy and repeat the
 read-only live ABN/name-selection review. No additional migration is required.
+
+
+### Live registered-name acceptance completed - 21 October 2026
+
+Requirement `growth.pipeline`. #1020 merged as a589483e; deployment
+`dpl_AWUymGbRoPXb7SVnE3vYsTFk7vcT` READY on app.digitalgate.com.au. Authenticated
+Production ABN search returned three distinct registered-name choices and a
+Google DigitalGate result. Selecting DIGITALGATE retained that exact business
+name and verified ABN in the unsaved review; confirmation stayed unchecked and
+Add remained disabled. Earlier live name lookup, Priorities/default landing,
+desktop/mobile full Growth order, Delete controls, Activity history and call
+brief checks passed. No further migration; no Production prospect writes,
+messages or calls. Error/fatal log scan through 22:55 UTC found no records
+(limited early window). No Preview deployment or Neon branch created.
+
+Requested read-only live acceptance is complete. Save/archive and customer
+preservation were exercised only with synthetic local fixtures, not Production.
+Evidence retained in Verification/ProspectingRegisteredNames/20261021 including
+full build, 15 intake tests, 60 regressions, lint and live screenshot. Final
+acceptance entry retained locally to avoid another documentation-only deploy.
