@@ -162,7 +162,7 @@ export async function setOrganisationCommercialOffer(input: {
   return offer;
 }
 
-/** Backwards-compatible aliases for records created before custom pricing was separated from Founding 10. */
+/** Alias for stored offers predating custom pricing separation. */
 export type NegotiatedCommercialOffer = CustomCommercialOffer;
 export const parseNegotiatedCommercialOffer = parseCustomCommercialOffer;
 

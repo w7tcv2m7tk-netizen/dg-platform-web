@@ -1,6 +1,7 @@
 import "server-only";
 import Stripe from "stripe";
-import { coordinatePlatformCheckout } from "./checkout-coordinator";
+import { admitPlatformCheckout } from "./checkout-creation-gate";
+import { createAdmittedPlatformSession } from "./checkout-session-create";
 import { parseCustomCommercialOffer, type CustomCommercialOffer } from "./commercial-offer";
 import { annualPriceFromMonthlyCents, BILLING_COMMERCIAL_CONFIG } from "./subscription-types";
 import { industryCheckoutLines } from "../industry/platform";
@@ -10,7 +11,6 @@ import { normalisePaidAppKeys, paidAppCheckoutLines, GROWTH_SUITE_WITH_INDUSTRY_
 const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
   PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
 );
-
 export type PlatformBillingCadence = "monthly" | "annual";
 
 const TIER_LABELS: Record<string, string> = {
@@ -227,7 +227,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
       if (!customer.deleted) sessionParams.customer = customer.id;
       else sessionParams.customer_email = input.email;
     } catch {
-      throw new Error("The existing billing customer could not be verified. Please try again shortly.");
+      sessionParams.customer_email = input.email;
     }
   } else {
     sessionParams.customer_email = input.email;
@@ -253,7 +253,13 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     };
   }
 
-  return coordinatePlatformCheckout({ organisationId: input.organisationId, stripe, parameters: sessionParams });
+  // Admission commits before provider I/O. The immutable absolute expiry bounds
+  // delayed/unknown creates after closure; never retry with a refreshed expiry.
+  const admission = await admitPlatformCheckout();
+  sessionParams.expires_at = admission.expiresAt;
+  const session = await createAdmittedPlatformSession(stripe, sessionParams);
+
+  return { url: session.url, sessionId: session.id };
 }
 
 export async function createCustomCommercialCheckoutSession(input: {
@@ -352,14 +358,18 @@ export async function createCustomCommercialCheckoutSession(input: {
       if (!customer.deleted) sessionParams.customer = customer.id;
       else sessionParams.customer_email = input.email;
     } catch {
-      throw new Error("The existing billing customer could not be verified. Please try again shortly.");
+      sessionParams.customer_email = input.email;
     }
   } else {
     sessionParams.customer_email = input.email;
   }
 
-  const checkout = await coordinatePlatformCheckout({ organisationId: input.organisationId, stripe, parameters: sessionParams });
-  return { ...checkout, offer };
+  // Admission commits before provider I/O. The immutable absolute expiry bounds
+  // delayed/unknown creates after closure; never retry with a refreshed expiry.
+  const admission = await admitPlatformCheckout();
+  sessionParams.expires_at = admission.expiresAt;
+  const session = await createAdmittedPlatformSession(stripe, sessionParams);
+  return { url: session.url, sessionId: session.id, offer };
 }
 
 

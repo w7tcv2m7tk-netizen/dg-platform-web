@@ -21,25 +21,6 @@ function getStripeClient() {
   return new Stripe(secretKey);
 }
 
-/** Signed invoice events use either Acacia top-level or Basil/Dahlia parent fields.
- * Metadata is a routing hint; billing handlers still validate canonical ownership.
- */
-function invoiceSubscriptionDetails(invoice: Stripe.Invoice) {
-  const parent = (invoice as Stripe.Invoice & { parent?: {
-    type?: string;
-    subscription_details?: { subscription?: string | { id: string } | null; metadata?: Stripe.Metadata | null } | null;
-  } | null }).parent;
-  const legacy = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
-  if (parent) {
-    if (parent.type !== "subscription_details") return { subscriptionId: undefined, metadata: invoice.metadata ?? {} };
-    const details = parent.subscription_details;
-    const subscriptionId = typeof details?.subscription === "string" ? details.subscription : details?.subscription?.id;
-    if (!subscriptionId || (legacy && legacy !== subscriptionId)) throw new Error("Invoice subscription identity is unconfirmed");
-    return { subscriptionId, metadata: details?.metadata ?? invoice.metadata ?? {} };
-  }
-  return { subscriptionId: legacy, metadata: invoice.subscription_details?.metadata ?? invoice.metadata ?? {} };
-}
-
 function stripeLineItems(input: CreateCheckoutSessionInput | CreatePaymentLinkInput) {
   return input.lineItems.map((item) => ({
     quantity: Math.max(1, item.quantity),
@@ -173,7 +154,7 @@ export class StripePaymentConnector implements PaymentConnector {
       event.type === "checkout.session.completed" ||
       event.type === "checkout.session.async_payment_succeeded"
     ) {
-      return { ...mapCheckoutCompleted(event.data.object as Stripe.Checkout.Session), connectAccountId: event.account ?? undefined };
+      return mapCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
     }
 
     if (event.type === "checkout.session.expired") {
@@ -181,7 +162,6 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "checkout.expired",
         providerId: "stripe",
-        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId: session.metadata?.organisationId,
         paymentRequestId: session.metadata?.paymentRequestId,
@@ -195,7 +175,6 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "payment.failed",
         providerId: "stripe",
-        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId: intent.metadata?.organisationId,
         paymentRequestId: intent.metadata?.paymentRequestId,
@@ -207,7 +186,13 @@ export class StripePaymentConnector implements PaymentConnector {
 
     if (event.type === "invoice.paid") {
       const invoice = event.data.object as Stripe.Invoice;
-      const { subscriptionId: sub, metadata: meta } = invoiceSubscriptionDetails(invoice);
+      const sub =
+        typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : invoice.subscription?.id;
+      const meta = (invoice.subscription_details?.metadata ??
+        invoice.metadata ??
+        {}) as Record<string, string>;
       const organisationId =
         meta.organisation_id ||
         meta.organisationId ||
@@ -240,7 +225,13 @@ export class StripePaymentConnector implements PaymentConnector {
       event.type === "invoice.payment_action_required"
     ) {
       const invoice = event.data.object as Stripe.Invoice;
-      const { subscriptionId: sub, metadata: meta } = invoiceSubscriptionDetails(invoice);
+      const sub =
+        typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : invoice.subscription?.id;
+      const meta = (invoice.subscription_details?.metadata ??
+        invoice.metadata ??
+        {}) as Record<string, string>;
       const customerId =
         typeof invoice.customer === "string"
           ? invoice.customer
@@ -272,7 +263,6 @@ export class StripePaymentConnector implements PaymentConnector {
       return {
         type: "customer.updated",
         providerId: "stripe",
-        connectAccountId: event.account ?? undefined,
         providerEventId: event.id,
         organisationId:
           customer.metadata?.organisation_id ||
@@ -330,8 +320,7 @@ export class StripePaymentConnector implements PaymentConnector {
       };
     }
 
-    if (event.type === "customer.subscription.updated" ||
-      event.type === "customer.subscription.paused" || event.type === "customer.subscription.resumed") {
+    if (event.type === "customer.subscription.updated") {
       const subscription = event.data.object as Stripe.Subscription;
       const customerId =
         typeof subscription.customer === "string"
@@ -410,7 +399,6 @@ export class StripePaymentConnector implements PaymentConnector {
     return {
       type: "ignored",
       providerId: "stripe",
-      connectAccountId: event.account ?? undefined,
       providerEventId: event.id,
       occurredAt: new Date(event.created * 1000),
       raw: { ignoredStripeType: event.type, stripeEventId: event.id },

@@ -2,12 +2,10 @@
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
-import { CheckoutCoordinationError } from "../packages/platform-core/src/billing/checkout-coordinator.ts";
 import { CheckoutTemporarilyUnavailable } from "../packages/platform-core/src/billing/checkout-creation-gate.ts";
 
 export function checkoutPost(kind, create) {
   const modules = {
-    "@dg/platform-core/billing/checkout-coordinator": { CheckoutCoordinationError },
     "@dg/platform-core/billing/checkout-creation-gate": { CheckoutTemporarilyUnavailable },
     "@dg/platform-core/billing/platform-checkout": {
       createPlatformCheckoutSession: create, createCustomCommercialCheckoutSession: create,

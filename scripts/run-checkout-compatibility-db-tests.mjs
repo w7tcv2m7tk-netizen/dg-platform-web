@@ -52,7 +52,6 @@ try {
   const psql = ["-X", "-h", "127.0.0.1", "-p", String(port), "-U", "checkout_test", "-d", "dg_checkout_test", "-v", "ON_ERROR_STOP=1", "--single-transaction"];
   run(path.join(pgBin, "psql"), [...psql, "-f", sql]);
   run(path.join(pgBin, "psql"), [...psql, "-f", migration]);
-  run(path.join(pgBin, "psql"), [...psql, "-f", "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql"]);
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-url", databaseUrl, "--to-schema-datamodel", "packages/database/prisma", "--exit-code"], { env });
   run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-checkout-compatibility-db.mjs"], { env });
   passed = true;

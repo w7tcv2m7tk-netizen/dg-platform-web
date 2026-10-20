@@ -4,13 +4,10 @@ import path from "node:path";
 import { test } from "node:test";
 const read = p => readFileSync(p, "utf8");
 const creators = read("packages/platform-core/src/billing/platform-checkout.ts");
-test("both platform session creators use the fenced coordinator and durable admission", () => {
-  assert.equal((creators.match(/coordinatePlatformCheckout\(/g) ?? []).length, 2);
-  const coordinator = read("packages/platform-core/src/billing/checkout-coordinator.ts");
-  assert.match(coordinator, /await admitPlatformCheckout\(\{ expiresAt: storedParams.expires_at, database: tx \}\)/);
-  assert.match(coordinator, /await createAdmittedPlatformSession\(stripe, storedParams/);
+test("both platform session creators must pass authoritative admission immediately before Stripe create", () => {
+  assert.equal((creators.match(/await createAdmittedPlatformSession\(stripe, sessionParams\)/g) ?? []).length, 2);
+  assert.equal((creators.match(/await admitPlatformCheckout\(\);\s+sessionParams\.expires_at = admission\.expiresAt;\s+const session = await createAdmittedPlatformSession\(stripe, sessionParams\)/g) ?? []).length, 2);
   assert.match(creators, /^import "server-only"/);
-  assert.match(coordinator, /^import "server-only"/);
 });
 test("all subscription create sites are covered, separate Connect payment creator stays separate", () => {
   const files = [];
@@ -34,4 +31,9 @@ test("billing and both onboarding branches use direct server imports and return 
 test("webhook route never consults admission barrier", () => {
   assert.doesNotMatch(read("src/app/api/webhooks/stripe/route.ts"), /admitPlatformCheckout|checkout-creation-gate/);
   assert.doesNotMatch(read("packages/platform-core/src/billing/platform-stripe.ts"), /admitPlatformCheckout|checkout-creation-gate/);
+});
+
+test("review branch push cannot request an automatic Vercel deployment", () => {
+  const config = JSON.parse(read("vercel.json"));
+  assert.deepEqual(config.git.deploymentEnabled, { "work/commercial-checkout-compatibility": false });
 });

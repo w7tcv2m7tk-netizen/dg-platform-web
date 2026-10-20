@@ -75,17 +75,12 @@ export async function syncCommerceSubscriptionFromStripe(input: {
     return { ok: false, reason: "missing_organisation_id" };
   }
 
-  // Basil/Dahlia periods belong to items. A single ledger row can represent
-  // only a common period; never invent a period when item schedules differ.
-  const items = subscription.items?.data ?? [];
-  const period = (field: "current_period_start" | "current_period_end") => {
-    const legacy = (subscription as Stripe.Subscription & { current_period_start?: number; current_period_end?: number })[field];
-    if (legacy !== undefined) return legacy;
-    const values = items.map(item => (item as typeof item & { current_period_start?: number; current_period_end?: number })[field]);
-    return values.length && values.every(value => typeof value === "number" && Number.isFinite(value) && value === values[0]) ? values[0] : null;
-  };
-  const periodStartSec = period("current_period_start");
-  const periodEndSec = period("current_period_end");
+  const periodStartSec =
+    (subscription as Stripe.Subscription & { current_period_start?: number })
+      .current_period_start ?? null;
+  const periodEndSec =
+    (subscription as Stripe.Subscription & { current_period_end?: number })
+      .current_period_end ?? null;
   const periodStart = periodStartSec ? new Date(periodStartSec * 1000) : null;
   const periodEnd = periodEndSec ? new Date(periodEndSec * 1000) : null;
   const cancelledAt = subscription.canceled_at

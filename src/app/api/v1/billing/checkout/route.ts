@@ -1,6 +1,5 @@
 import { CheckoutTemporarilyUnavailable } from "@dg/platform-core/billing/checkout-creation-gate";
 import { createPlatformCheckoutSession } from "@dg/platform-core/billing/platform-checkout";
-import { CheckoutCoordinationError } from "@dg/platform-core/billing/checkout-coordinator";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, rejectDemoLiveAction, requirePermission, requirePlatformAuth } from "@/lib/platform-api";
@@ -42,9 +41,6 @@ export async function POST(req: Request) {
         { error: { code: err.outcome === "unknown" ? "checkout_outcome_unknown" : "checkout_temporarily_unavailable", message: err.message } },
         { status: 503, headers: { ...(err.outcome === "unknown" ? {} : { "Retry-After": "60" }), "Cache-Control": "no-store" } },
       );
-    }
-    if (err instanceof CheckoutCoordinationError) {
-      return NextResponse.json({ error: { code: err.code, message: err.message } }, { status: 409 });
     }
     const message = err instanceof Error ? err.message : "Checkout failed";
     return NextResponse.json(

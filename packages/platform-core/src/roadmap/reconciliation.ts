@@ -58,9 +58,9 @@ const DESCRIPTION_OVERRIDES: Record<string, string> = {
   "detach.roe_sot":
     "Native Gen 2 is authoritative for normal Real Estate customer journeys; WordPress is not normal runtime authority.",
   "detach.portal_billing":
-    "PR #1006 is the sole checkout release candidate. Native billing implementation exists; migrations, legacy isolation, hosted test-mode signup/payment and production release remain gated. See docs/ROADMAP.md.",
+    "PR #1008 compatibility is merged; #1016 guard, #1006 coordinator and #1015 entitlement cutover remain staged. Hosted test-mode signup/payment and controlled production activation remain gated. See docs/ROADMAP.md.",
   "growth.reports":
-    "Report snapshots and tenant-safe access merged in #997; production prospect_snapshot/revoked_at columns were absent in the 11 October read-only audit. Schema alignment and deployed workflow verification remain blocked.",
+    "Report snapshots and tenant-safe access merged in #997. The missing snapshot/revocation migration was restored on 20 October and the owner confirmed Activity recovery. Full report delivery and authenticated Phase 1 intake remain unverified (#1018).",
   "comms.voice":
     "ElevenLabs adapter and three published agent records exist; current telephony, tool/webhook continuity and deeper Brain context are not operationally verified. See docs/ROADMAP.md.",
   "comms.agents":

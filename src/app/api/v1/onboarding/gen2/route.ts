@@ -1,10 +1,10 @@
 import { CheckoutTemporarilyUnavailable } from "@dg/platform-core/billing/checkout-creation-gate";
 import { createCustomCommercialCheckoutSession, createPlatformCheckoutSession } from "@dg/platform-core/billing/platform-checkout";
-import { CheckoutCoordinationError } from "@dg/platform-core/billing/checkout-coordinator";
 import {
   createOrganisationGoal,
   getGen2OnboardingProgress,
   getOrganisationBillingStatus,
+  isVerifiedStripeBilling,
   getOrganisationBusinessProfile,
   getOrganisationCommercialOffer,
   getOrganisationGoals,
@@ -28,7 +28,6 @@ const GOAL_METRIC_HINTS: Record<string, { metric: "custom" | "active_leads" | "s
   ai_visibility: { metric: "ai_visibility", target: 80 },
   website_performance: { metric: "business_health", target: 80 },
 };
-const VERIFIED_CHECKOUT_KINDS = new Set(["trial", "subscribed", "cancel_at_period_end"]);
 const CLIENT_CHECKLIST_KEYS = new Set(["business_identity", "business_profile", "goals", "plan", "apps", "implementation"]);
 const APPEARANCES = new Set(["system", "dark", "light"]);
 const MIGRATION_INTENTS = new Set(["migrate", "replace", "connect", "none"]);
@@ -167,8 +166,7 @@ export async function PATCH(req: Request) {
   const markStepComplete = isGen2OnboardingStep(body.markStepComplete) ? (body.markStepComplete as Gen2OnboardingStep) : undefined;
   if (markStepComplete === "stripe") {
     const billing = await getOrganisationBillingStatus(resolvedOrganisationId);
-    const exempt = billing?.kind === "platform_exempt";
-    if (!exempt && (!billing || !billing.hasStripeCustomer || !VERIFIED_CHECKOUT_KINDS.has(billing.kind))) {
+    if (!isVerifiedStripeBilling(billing)) {
       return NextResponse.json({ error: { code: "checkout_not_confirmed", message: "Your Stripe checkout has not been confirmed yet. Please try again in a moment." } }, { status: 409 });
     }
   }
@@ -228,9 +226,8 @@ export async function POST(req: Request) {
   if (billing?.kind === "platform_exempt") {
     await saveGen2OnboardingProgress(resolvedOrganisationId, {
       platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan,
-      subscriptionActivatedAt: new Date().toISOString(), markStepComplete: "stripe",
     });
-    return NextResponse.json({ data: { exempt: true, url: "/onboarding?checkout=success" } });
+    return NextResponse.json({ data: { exempt: true, url: "/dashboard?welcome=1" } });
   }
   try {
     const targetProfile = operatorPreview ? await getOrganisationBusinessProfile(resolvedOrganisationId) : null;
@@ -246,9 +243,6 @@ export async function POST(req: Request) {
         { error: { code: error.outcome === "unknown" ? "checkout_outcome_unknown" : "checkout_temporarily_unavailable", message: error.message } },
         { status: 503, headers: { ...(error.outcome === "unknown" ? {} : { "Retry-After": "60" }), "Cache-Control": "no-store" } },
       );
-    }
-    if (error instanceof CheckoutCoordinationError) {
-      return NextResponse.json({ error: { code: error.code, message: error.message } }, { status: 409 });
     }
     const message = error instanceof Error ? error.message : "Unknown checkout error";
     console.error("[onboarding.checkout] Stripe checkout failed", {

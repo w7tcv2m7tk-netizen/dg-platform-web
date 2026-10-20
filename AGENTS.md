@@ -32,7 +32,15 @@ Neither is a second approved development backlog.
 
 Current delivery order: P0 commercial launch; P1 prospecting; P1 Aida and Business
 Brain; P1 Daily Business Briefings; P1 AI Voice. PR #1006 is the sole checkout release
-candidate; do not merge #1008 independently. Production releases, configuration,
+candidate; #1008 compatibility was merged into main. Production releases, configuration,
 migrations, Stripe changes, Payment Link deactivation and checkout activation
 require explicit operator approval. Preserve the current Core products: Starter
 AUD $99/month, Growth $249/month and Scale $499/month, all with a 14-day trial.
+
+Automatic Vercel Preview deployments are disabled by owner instruction (20 October
+2026). Do not create Neon preview branches, restore Preview database URL variables,
+or enable automatic previews. Use owned disposable local PostgreSQL with synthetic
+fixtures for database tests. Run the complete `npm run build` (including prebuild)
+before publishing a release branch; `next build` alone is not equivalent evidence.
+The existing Development Register remains authoritative for local workspace
+ownership, preservation and retirement; the Roadmap governs product requirements.

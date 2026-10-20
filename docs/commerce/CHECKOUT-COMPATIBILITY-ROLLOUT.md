@@ -2,9 +2,8 @@
 
 Status: development/review only. **HOLD production rollout.** No production
 migration, gate activation, Stripe call, deployment or data modification was
-performed during development. This document now describes the #1006 integration
-of corrected #1008 commit `1d010d151fb5c54aeccdf4c479227f44d006969f`.
-PR #1008 itself is unchanged. Both additive migrations are preserved.
+performed during development. PR #1006 is unchanged. This release branches from
+main at `331b96e1`, independently of the persistent coordinator.
 
 ## Architecture and scope
 
@@ -25,10 +24,8 @@ unknown commit outcomes and a closed gate all fail closed with HTTP 503,
 No cache, browser state, environment flag or per-process authority is involved.
 
 Admission and operator closure lock the same row, serializing across instances.
-The integrated coordinator supplies its persisted, immutable one-hour `expires_at`
-to admission. The gate records the greatest of its existing horizon and that exact
-expiry; it does not overwrite the request with the returned maximum. The compatible
-#1008 artifact uses its original database-issued 35-minute admission horizon. Stripe's installed SDK
+The permit supplies `expires_at` to Stripe, fixed to the maximum recorded
+admission expiry, normally database time plus 35 minutes. Stripe's installed SDK
 contract permits absolute expiry between 30 minutes and 24 hours from creation.
 A worker delayed beyond the permitted creation window fails rather than getting
 a fresh expiry; SDK replays retain the same body and invocation idempotency key.
@@ -41,9 +38,8 @@ Database and provider clock accuracy must be checked operationally.
 ### Delayed creation and uncertain outcomes
 
 Stripe requires `expires_at` to be **at least 30 minutes and at most 24 hours
-after session creation**, not after admission. The integrated one-hour expiry leaves approximately 30 minutes for a new session
-to be accepted. The earlier compatible 35-minute permit leaves approximately five
-minutes. Immediately
+after session creation**, not after admission. A normal 35-minute permit therefore
+leaves approximately five minutes for a new session to be accepted. Immediately
 before the minimum boundary it remains valid; exactly 30 minutes remaining is
 permitted; below that Stripe rejects it. Second rounding, clock skew and provider
 processing consume that margin. A local elapsed-time check cannot establish
@@ -51,7 +47,7 @@ whether Stripe previously accepted the request.
 
 Both standard and custom-offer creators use the same server-only send helper.
 An explicit Stripe HTTP 400 `StripeInvalidRequestError` with `param=expires_at`
-on an initial send is a confirmed rejection and becomes a customer-safe HTTP 503,
+is a confirmed rejection of this send and becomes a customer-safe HTTP 503,
 `checkout_temporarily_unavailable`, Retry-After 60 and Cache-Control no-store.
 The response contains no raw Stripe error. The helper neither obtains another
 permit nor changes expiry, and the committed database horizon remains intact.
@@ -66,28 +62,21 @@ non-acceptance from a stale expiry, failure message or local timeout. An accepte
 session remains valid even if its response arrives after the minimum creation
 window. Existing Stripe URLs and webhook processing remain available.
 
-An explicit expiry rejection during recovery of an already uncertain attempt
-cannot disprove acceptance of its earlier send. It records RECOVERY_REQUIRED,
-retains the current slot and original key/body, and returns HTTP 409. A confirmed
-initial expiry rejection retires the failed attempt, preserves history and returns
-503 without automatically creating another session. Other rejection-like errors
-remain uncertain. A PREPARED reservation with no committed send marker may be
-retired when stale; an UNCERTAIN attempt may never be replaced on that basis.
-
 Normal SDK network retries are disabled for these sends. The installed SDK still
-allows a connection-closed replay. The integrated coordinator supplies its persisted
-idempotency key and original API version on every invocation; SDK replays use the
-same body/key. Gate admission and the fenced send marker commit atomically before
-provider I/O. Every explicit replay requires fresh admission but retains its old
-expiry. A closed gate denies replay without changing the unresolved attempt. A
-known session is retrieved and may resume while closed; no create is involved.
+allows a connection-closed replay, so each invocation supplies a random
+idempotency key. That replay uses the same key and body and can return an already
+accepted session without creating another. The key is not persisted across
+separate HTTP requests: this compatibility release still does not deduplicate
+independent requests, manual retries or restarts. Never automatically retry an
+uncertain outcome with a new key. Durable recovery requires integrated #1006.
 
 Reference: [Stripe Checkout session expiry](https://docs.stripe.com/api/checkout/sessions/create#checkout_session_create-expires_at).
 
-The integrated release coordinates standard billing, standard onboarding and
-custom-offer onboarding purchases. Legacy compatibility creators still do not
-share its per-organisation uniqueness protocol, so isolate them before reopening.
-Existing URLs can complete during the hold; webhook processing stays available.
+This compatibility release does **not** coordinate or deduplicate purchases while
+open. Opening it before #1006 retains legacy duplicate-session risks. Its purpose
+is to establish a verifiable closed transition. It never expires a session,
+invalidates an existing Stripe URL, or changes webhook authority. Existing URLs
+can complete during the hold; webhook processing must stay available.
 
 The additive `20261009_platform_checkout_creation_gate` migration creates only
 one new table, its checks, and one initially **closed** singleton. It has no
@@ -243,17 +232,25 @@ migration workflow; `db:push` is a development convenience, not this procedure.
    investigate failures read-only. Do not delete attempts, expire sessions or
    modify entitlements to force a clean report. Preserve a final clean report
    tied to the closed revision, deployment inventory, T0/T1 and migration evidence.
-7. **Approve the integrated coordinator and its migration.** The #1006 artifact
-   now admits every initial send and replay, records the actual immutable one-hour
-   expiry, preserves provider scope/key/body, and fences admission with the send
-   marker in one short transaction. Local integration tests are described below.
-   Review the integration independently before release. After compatible isolation,
-   old execution drain and a clean Stripe inventory are proven, apply only the
-   approved `20261009_platform_checkout_attempt` SQL migration and register it
-   through the existing approved migration-history process. Verify physical schema
-   parity and both migration checksums. Keep the gate closed and its horizon intact.
-   Do not run blanket migrations or `db:push`. Do not overlap reachable legacy
-   compatibility creators with integrated checkout when reopening.
+7. **Prepare the coordinator separately.** #1006 must receive a separately reviewed
+   follow-up/rebase integrating this same database admission gate **before every
+   provider create/replay**. Its current code does not consult this table. Also
+   review how its immutable replay expiry participates in the drain bound. This
+   means recording at least the actual immutable expiry being submitted: #1006
+   currently persists a one-hour expiry, which a fresh 35-minute compatibility
+   permit cannot cover. Never replace a stored replay body/key/expiry with a new
+   permit's timestamp. Gate initial sends and every replay, preserve provider
+   account/mode/API version and fencing, and test closure, delayed initial sends,
+   the 30-minute boundary, existing accepted sessions and lost responses. Only a
+   provably never-submitted reservation may be safely retired without resolving
+   a provider outcome; stale expiry does not prove an uncertain send was rejected.
+   Preserve both additive migrations and direct server-only route imports when
+   rebasing the overlapping creator/schema changes. This
+   compatibility PR intentionally leaves #1006 untouched. Until that integration
+   and tests exist, HOLD coordinator traffic. Apply only the approved coordinator
+   migration after compatibility is proven and the inventory is clean; verify
+   parity and history. No deployment dependency cycle exists: compatibility is
+   already independently installed and all old code is isolated.
 8. **Stage/promote integrated coordinator while closed.** Require full focused,
    PostgreSQL, billing/onboarding, security, type, lint, build and bundle-boundary
    checks on the integrated artifact. Prove no uncoordinated compatibility creator
@@ -292,8 +289,8 @@ If a failed integrated release ignores the gate, ingress isolation is mandatory.
 Current recommendation: **HOLD production release/activation**, pending an
 independently reviewed compatibility release, verified ingress isolation and
 in-flight bounds, approved migration execution, real restricted-key sandbox
-permission tests, a complete read-only inventory, and independent approval of
-the completed #1006 gate integration. The compatibility code is independently reviewable and
+permission tests, a complete read-only inventory, and the separately reviewed
+#1006 gate integration. The compatibility code is independently reviewable and
 schema-additive; simulated tests cannot certify live permissions or topology.
 
 The report key requires account and balance read, Checkout Session list/retrieve
@@ -301,9 +298,11 @@ and Subscription retrieve only. It needs no create/expire permission. Existing
 application checkout credentials retain their current requirements; neither key
 nor Stripe settings were modified in this PR.
 
-This integration deliberately excludes #1008's `vercel.json` change. No Vercel
-configuration was changed. Release operators must independently verify legacy
-immutable deployment isolation, preview/production routing and old execution bounds.
+`vercel.json` disables automatic deployment for
+`work/commercial-checkout-compatibility` only, to keep this review push from
+creating a preview. Unspecified branches retain their existing behavior. This
+repository rule does not change the live Vercel project settings. See
+[Vercel Git configuration](https://vercel.com/docs/project-configuration/git-configuration).
 
 ## Local verification
 
@@ -321,7 +320,7 @@ npm run test:checkout-compatibility-artifacts
 
 The disposable runner clears inherited database and Stripe variables, checks a
 cluster nonce before any mutation, materializes pinned main schema `331b96e1`,
-applies both exact additive SQL migrations, verifies schema parity and destroys its localhost
+applies the exact gate SQL, verifies schema parity and destroys its localhost
 cluster. Its Stripe methods are simulated; no network calls are made.
 
 Development results on 2026-10-09: 33 focused tests, 16 disposable PostgreSQL
@@ -359,57 +358,27 @@ warnings and unrelated dynamic-render diagnostics remain. Code merge recommendat
 PASS for this compatibility correction; deployment and activation remain HOLD
 until the production procedure and separately reviewed #1006 integration are proven.
 
+## Billing activation security correction — 2026-10-16
 
-## Integrated #1006 validation
+An organisation without a `PlatformSubscription` now resolves to `NONE`; tenant
+writes are blocked until billing is verified. Explicit `foundingCustomer` and
+`platformExempt` flags on subscription rows retain their existing `FULL` access.
+Billing status no longer treats a Stripe customer record or generic organisation
+`active` / `trial` state as proof of a subscription. Stripe onboarding completion,
+the activation helper and the return-page success state share the verified
+customer-plus-subscription/trial check. Unverified persisted completion is shown
+as incomplete, and exempt organisations leave checkout without recording Stripe
+activation.
 
-The coordinator runner applies both migrations over pinned PR #1001 `92bb0851`;
-the compatibility runner applies both over pinned main `331b96e1`. Both use fresh
-localhost PostgreSQL clusters and fake Stripe providers only. Both verify physical
-schema parity, a cluster nonce, and cluster destruction. Neither loads dotenv.
-
-Integration validation: 48 focused tests, 34 coordinator PostgreSQL tests,
-30 compatibility PostgreSQL tests and 46 security tests passed. Full prebuild
-regressions and TypeScript passed. The entry-point suite executes the real standard
-and custom creators and actual route exports with isolated auth dependencies.
-The coordinator suite exercises closure, replay denial/reopening, immutable keys,
-fencing, actual one-hour drain coverage, unknown-response recovery, provider expiry
-boundaries and uncertain replay rejection. Closed-gate webhook provisioning passes.
-
-The first compatibility fixture run failed after webhook provisioning left a
-customer ID on its organisation; fixture isolation now resets that state. Its
-unbounded waits were replaced with bounded waits. The stopped test child allowed
-the parent runner to destroy its temporary cluster; the corrected final run passed.
-Sandbox localhost binding was denied; approved local PostgreSQL reruns passed.
-Logs: `/private/tmp/dg-integration-*.log`.
-
-Production readiness remains HOLD. Local simulations do not establish legacy
-Vercel deployment isolation, old execution drain, live Stripe inventory or real
-restricted-key permissions. The gate must remain closed until migration sequencing,
-sole-producer routing, reconciliation and controlled reopening have separate approval.
-
-Final build/quality results: standard Turbopack `npx next build` completed with exit
-0 and its final route summary. Both actual browser/server artifact checks passed:
-coordinator, gate, admission SQL and provider-send markers are absent from browser
-chunks and present on the server. Final `npx tsc --noEmit` and focused ESLint on
-every changed TS/JS file passed without warnings. Repository-wide lint remains
-blocked by 144 errors and 149 warnings in unchanged files; no checks were disabled.
-The sandbox build stalled at compilation and was stopped; the approved local
-process-permission rerun passed. Existing Prisma CommonJS export, broad file-tracing,
-cache-header and middleware-deprecation warnings remain. No deployment was run.
-
-Code merge recommendation: READY for independent review with the known repository
-lint baseline disclosed. Production deployment/reopening recommendation: HOLD.
-The 21 integration files are the two commerce documents; package scripts and Prisma
-schema; the unchanged gate SQL migration; coordinator, gate, provider send helper
-and legacy inventory modules; both checkout API routes; and ten test/inventory
-scripts. The existing attempt migration is unchanged. #1008's Vercel configuration
-change is excluded. Latest fetched main `5a08e2f7` adds unrelated AI work; a read-only
-merge-tree check of the existing #1006 commits against it showed no conflict
-markers. No branch merge was performed. Before eventual merge, refresh GitHub
-checks and reconcile the overlapping #1008 changes according to the approved
-release order; do not run both creators concurrently when reopening.
-
-Migration SHA-256 evidence:
-
-- Attempt: `6ec2d6992f95e04aca5a1635c0e6edd54a24f88c749d9737ca6f005e5cd10fa4`
-- Gate: `3e6c075bf84cc6888950f4c7ba006997bb956714afe4117aff4f9bb28b519cad`
+Focused regressions cover no-subscription entitlements and writes, explicitly
+exempt subscription access, customer-only and generic-status rejection, verified
+active/trial acceptance, the success-return guard and stale onboarding progress.
+Local #1008 validation on 2026-10-16: 51 billing, entitlement, subscription and
+tenant-isolation tests passed; the security-certification suite passed all 46
+tests; checkout compatibility passed all 49 tests; pricing/catalogue, onboarding
+confirmation and built-artifact checks passed; TypeScript and `npx next build`
+passed. The standard prebuild pipeline completed before a sandbox-stalled Next.js
+compile was retried successfully with local process permissions. Targeted ESLint
+reported no errors and three pre-existing unused-variable warnings in
+`gen2-progress.ts`. No remote push, merge, deployment, gate opening or database
+operation is part of this change.

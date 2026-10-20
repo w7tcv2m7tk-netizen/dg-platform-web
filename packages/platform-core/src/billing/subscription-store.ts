@@ -69,11 +69,10 @@ function mapRow(row: {
 
 export async function getPlatformSubscription(
   organisationId: string,
-  database?: Prisma.TransactionClient,
 ): Promise<PlatformSubscriptionRow | null> {
   if (!process.env.DATABASE_URL) return null;
   try {
-    const prisma = database ?? (await import("@dg/database")).prisma;
+    const { prisma } = await import("@dg/database");
     const row = await prisma.platformSubscription.findUnique({
       where: { organisationId },
     });
@@ -156,9 +155,8 @@ export type UpsertPlatformSubscriptionInput = {
 
 export async function upsertPlatformSubscription(
   input: UpsertPlatformSubscriptionInput,
-  database?: Prisma.TransactionClient,
 ): Promise<PlatformSubscriptionRow> {
-  const prisma = database ?? (await import("@dg/database")).prisma;
+  const { prisma } = await import("@dg/database");
   const data = {
     status: input.status,
     entitlement: input.entitlement,
@@ -231,8 +229,8 @@ export async function appendSubscriptionEvent(input: {
   source?: "stripe" | "system" | "staff";
   stripeEventId?: string | null;
   payload?: Prisma.InputJsonValue;
-}, database?: Prisma.TransactionClient): Promise<{ created: boolean; id?: string }> {
-  const prisma = database ?? (await import("@dg/database")).prisma;
+}): Promise<{ created: boolean; id?: string }> {
+  const { prisma } = await import("@dg/database");
 
   if (input.stripeEventId) {
     const existing = await prisma.platformSubscriptionEvent.findUnique({

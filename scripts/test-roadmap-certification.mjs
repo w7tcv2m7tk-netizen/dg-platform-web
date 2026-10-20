@@ -45,7 +45,7 @@ test("existing register distinguishes delivery verification from approval and ca
     assert.ok(register.includes(state), `missing verification state: ${state}`);
   }
   assert.match(register, /Mocked Stripe tests must not be relabelled hosted Stripe test-mode E2E/);
-  assert.match(register, /do not merge #1008 separately/);
+  assert.match(register, /#1008 compatibility is already merged|#1008 compatibility is merged/);
   assert.match(register, /40\/40/);
   assert.match(register, /No new requirement is labelled \*\*APPROVED AND NOT STARTED\*\* without approval evidence/);
 });
