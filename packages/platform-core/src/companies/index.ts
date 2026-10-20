@@ -1,7 +1,7 @@
 import type { Company, Prisma } from "@dg/database";
 
 import { writeAuditLog } from "../audit";
-import { platformEvents } from "../events";
+import { publishCrmEvent, type CrmTransactionContext } from "../crm-transaction";
 
 export interface CreateCompanyInput {
   organisationId: string;
@@ -135,8 +135,8 @@ export async function listCompanyContacts(organisationId: string, companyId: str
   }));
 }
 
-export async function createCompany(input: CreateCompanyInput) {
-  const { prisma } = await import("@dg/database");
+export async function createCompany(input: CreateCompanyInput, context?: CrmTransactionContext) {
+  const prisma = context?.db ?? (await import("@dg/database")).prisma;
 
   const company = await prisma.company.create({
     data: {
@@ -171,9 +171,9 @@ export async function createCompany(input: CreateCompanyInput) {
     entityType: "Company",
     entityId: company.id,
     changes: { after: serializeCompany(company) },
-  });
+  }, context?.db);
 
-  await platformEvents.publish({
+  await publishCrmEvent({
     type: "company.created",
     organisationId: input.organisationId,
     actorId: input.actorId,
@@ -181,7 +181,7 @@ export async function createCompany(input: CreateCompanyInput) {
     entityId: company.id,
     payload: { name: company.name },
     occurredAt: new Date(),
-  });
+  }, context);
 
   return serializeCompany(company);
 }

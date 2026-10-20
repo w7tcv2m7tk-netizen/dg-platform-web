@@ -24,7 +24,7 @@ Before a future remote rollout, run a separately authorised read-only inventory 
 
 The identity and relationship POST endpoints live beneath `/api/v1/prospecting/prospects/:id/`. The relationship form selects explicit existing CRM records and customer organisations. CRM records must belong to the prospect-book tenant. Explicit cross-tenant customer links require current active owner/admin membership in both source and destination. Linking grants no membership and invokes no customer transition, onboarding or commercial mutation.
 
-Repeated identical links create one `relationship_linked` engagement. Conflicting links or contact/company associations return 409. Contacts are never reassigned, including unassigned contacts. Existing conversion services remain in use; a tenant-scoped advisory lock serialises conversion retries, and existing metadata checkpoints allow partial service failures to resume. This does not make the existing multi-service conversion fully transactional.
+Repeated identical links create one `relationship_linked` engagement. Conflicting links or contact/company associations return 409. Contacts are never reassigned, including unassigned contacts. Existing conversion services remain in use; a tenant-scoped advisory lock serialises conversion retries. Conversion queries, CRM activities and audit writes share the same transaction connection and roll back together on failure. CRM event handlers run after commit, with no conversion connection or lock held during their work. Relationship linking locks the shared tenant-scoped company before validating or assigning identity; matching retries preserve established provenance.
 
 ## Workflow and priorities
 
@@ -72,3 +72,29 @@ Outstanding validation: live ABR credentials/provider integration, authenticated
 - `src/app/api/v1/prospecting/prospects/[id]/relationships/route.ts`
 - `src/components/prospecting/ProspectRelationshipForm.tsx`
 - `src/components/prospecting/ProspectingOverview.tsx`
+
+## Targeted P1 remediation — 20 October 2026
+
+Scope: only concurrent company identity assignment and the conversion connection-pool deadlock. No schema or migration changes.
+
+- P1-1: lock the shared company row within the linking transaction before reading its ABN. A conflicting waiter sees the committed winning identity and rejects before linking. Matching retries do not rewrite provenance.
+- P1-2: pass an explicit transaction context through the existing Company, Contact, Opportunity and audit helpers. Reads, relationship validation and writes share the advisory-lock transaction's connection. Queue existing CRM events in memory and dispatch only after successful commit. Outside conversion, helpers retain their existing default client and immediate event behavior.
+- New tests: ten targeted cases (11 tests including the parent group) against real PostgreSQL. A coordinator holds the relevant company/advisory lock until both worker connections are observed waiting in `pg_stat_activity`, making the interleaving deterministic. Worker pools stay at one or two connections with a two-second pool timeout.
+- Cases cover conflicting company assignment, matching retries and provenance, established conflicts, cross-tenant rejection, one-connection conversion, two-connection conversions and retries under forced contention, atomic rollback with a safe retry, preserved contact/company associations, and connection availability while a deferred handler waits.
+- Negative control: the same tests replayed the two implementations from `52dcb3d6` through a temporary validation-only source loader. The shared-company race and small-pool conversion tests failed as expected; no worktree source was replaced. Each replay used its own disposable cluster.
+
+Validation: existing 15 local integration tests and 85 regressions passed; targeted tests passed; TypeScript and relevant lint passed. The optimized Next.js build passed (including TypeScript and all 456 static-generation entries). Both owned test clusters were stopped and removed. Live-provider and authenticated-browser rollout gates from the original report remain outside this targeted remediation.
+
+Files changed by this remediation:
+
+- `packages/platform-core/src/prospecting-engine/relationship-linking.ts`
+- `packages/platform-core/src/prospecting-engine/crm-conversion.ts`
+- `packages/platform-core/src/crm-transaction.ts` (new)
+- `packages/platform-core/src/audit/index.ts`
+- `packages/platform-core/src/companies/index.ts`
+- `packages/platform-core/src/contacts/index.ts`
+- `packages/platform-core/src/opportunities/index.ts`
+- `scripts/test-prospecting-p1-concurrency.mjs` (new)
+- `scripts/run-unified-acquisition-local-db.mjs`
+- `scripts/test-contact-company-tenant-isolation.mjs` (assert transaction-aware validation argument)
+- `docs/unified-acquisition-phase1.md`

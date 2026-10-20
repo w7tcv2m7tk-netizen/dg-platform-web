@@ -37,6 +37,7 @@ try {
  run(path.join(pgBin, 'psql'), [...psql, '-f', 'scripts/fixtures/unified-acquisition-legacy.sql']);
  run(path.join(pgBin, 'psql'), [...psql, '-f', 'packages/database/prisma/migrations/20261020090000_unified_acquisition_identity/migration.sql']);
  run(process.execPath, ['--test', '--test-timeout=30000', 'scripts/test-unified-acquisition-local-db.mjs']);
+ run(process.execPath, ['--test', '--test-timeout=30000', 'scripts/test-prospecting-p1-concurrency.mjs']);
 } finally {
  if (existsSync(path.join(data, 'postmaster.pid'))) run(path.join(pgBin, 'pg_ctl'), ['-D', data, '-m', 'immediate', '-w', 'stop']);
  rmSync(owned, { recursive: true, force: true });

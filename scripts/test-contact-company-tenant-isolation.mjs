@@ -36,7 +36,7 @@ test("createContact and updateContact resolve company by id + organisationId bef
   assert.match(helper, /throw new LinkedCompanyNotFoundError/);
 
   const createFn = contacts.slice(createAt, updateAt);
-  assert.match(createFn, /await assertCompanyInOrganisation\(input\.organisationId, companyId\)/);
+  assert.match(createFn, /await assertCompanyInOrganisation\(input\.organisationId, companyId, context\?\.db\)/);
   assert.ok(
     createFn.indexOf("assertCompanyInOrganisation") < createFn.indexOf("prisma.contact.create"),
     "createContact must verify the company before inserting the contact",

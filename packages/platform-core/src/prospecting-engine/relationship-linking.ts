@@ -19,6 +19,8 @@ export async function linkAcquisitionRelationship(input: {
         throw new AcquisitionError("relationship_conflict", "An existing CRM link cannot be replaced by intake");
     }
     if (companyId) {
+      // Different prospects can select the same company; serialise on that shared row.
+      await tx.$queryRaw`SELECT id FROM companies WHERE id = ${companyId} AND organisation_id = ${input.organisationId} AND deleted_at IS NULL FOR UPDATE`;
       const company = await tx.company.findFirst({ where: { id: companyId, organisationId: input.organisationId, deletedAt: null } });
       if (!company) throw new AcquisitionError("not_found", "CRM company not found", 404);
       if (prospect.abn && company.abn && prospect.abn !== company.abn)
