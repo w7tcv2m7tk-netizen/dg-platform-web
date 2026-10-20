@@ -496,3 +496,37 @@ Clerk development dashboard, verified webhook isolation and a supported
 local synthetic authenticated application context. No migration applied
 to Production; identity migration approval and deployment remain separate.
 No Neon Preview resources or automatic Preview deployments were created.
+
+### Local synthetic authentication support - 21 October 2026
+
+Requirements: `platform.auth`, `growth.pipeline`. Branch
+`fix/local-synthetic-auth`, based on `a7d2bf11`. Added explicit local-only pairing,
+an owned disposable PostgreSQL/loopback Next development launcher and refusal
+coverage. Reuses actual Clerk middleware and session/tenant checks; no auth,
+billing, entitlement, webhook, schema or Production configuration was changed.
+Local-only guard tests 26/26; existing pairing/verification regressions 34/34;
+changed-script ESLint passed. Actual local cluster/schema bootstrap and Next
+startup succeeded; all attempted owned clusters were stopped and removed.
+Real Clerk test-mode email-code sign-in succeeded and reached `/post-login`.
+The authenticated dashboard and attention/notification APIs returned HTTP 200.
+Matching Next bind hostname to localhost app origin resolved the local refresh
+loop; both test keys also have matching public signing-key IDs. Four narrow
+shared-shell imports were changed to existing client-safe modules to avoid
+server Node dependencies in development browser bundles. No middleware auth
+exception was retained. Synthetic local fixtures used normal owner membership
+and explicit local exempt subscriptions, not real paid customer state. One
+reserved-email Clerk Development user was prepared and retained for local tests.
+Owned clusters/servers were stopped and destroyed after testing. No remote
+webhook, Production, Vercel, Neon or billing objects/configuration changed.
+Full authenticated Prospecting/tenant-isolation certification remains BLOCKED:
+browser navigation timed out; the direct cross-tenant detail probe ultimately
+returned HTTP 405 (GET is unsupported), so it provides no tenant-isolation proof. Next action: complete those UI checks on the working
+isolated local auth setup; do not relabel this login/shell smoke as release
+certification. Local support implementation does not approve a Production release.
+
+Final local support validation: complete `npm run build` including prebuild,
+TypeScript and optimized compilation passed on the final implementation;
+Prospecting intake/report/navigation regression 71/71 and sidebar fallback/
+metadata checks passed. Local mode refusal tests 26/26 and original environment
+guards 34/34 passed. ESLint: zero errors, one existing AppContextNav unused
+pageTitle warning. Framework/build warnings remain; no checks were disabled.

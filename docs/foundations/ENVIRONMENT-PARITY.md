@@ -148,3 +148,61 @@ Production must never pair with development/preview/unknown Neon hosts.
 
 See also: `docs/foundations/ORGANISATION-LIFECYCLE.md`, `.cursor/rules/environment-parity.mdc`,
 `.env.example`.
+
+## Owned local synthetic development (21 October 2026)
+
+For `platform.auth` and authenticated `growth.pipeline` acceptance, use:
+
+```sh
+npm run dev:synthetic -- /absolute/postgresql/bin /absolute/existing-test-credentials.env
+```
+
+The credential file is read only. Only `CLERK_SECRET_KEY` and
+`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` are taken from it; both must be test keys.
+Never put secrets in chat, commits, command arguments or the launcher context.
+The launcher rejects worktree dotenv files, starts its own PostgreSQL cluster on
+literal 127.0.0.1 and a random non-default port, creates a fresh
+`dg_synthetic_prospecting` database, installs the current schema into that empty
+local database, and binds Next development to verified localhost. It prints the local
+origin and an owner-only context file containing only local connection details.
+Its environment allowlist excludes Stripe, mail, messaging, AI, Vercel, CI,
+Production authentication and all inherited database variables. Stop with Ctrl-C;
+the owned cluster is stopped and removed. No remote migration or webhook is
+created. This schema bootstrap does not replace migration regression tests.
+
+`DG_LOCAL_SYNTHETIC=1` enables a separate fail-closed pairing check. It requires
+NODE_ENV=development, DG_NEON_ENV=development, both Clerk test keys, an HTTP
+loopback app origin, and disposable database names on literal loopback with an
+explicit non-default port. All optional direct/shadow/reconciliation database
+URLs must obey the same rule; routing override URL parameters are rejected.
+The existing Neon classifications and Production matrix remain unchanged.
+Production, test runtime, Vercel and CI refuse local mode. The normal Clerk
+middleware, session checks and organisation permissions remain intact.
+
+No webhook signing secret is invented. Ordinary browser authentication does not
+exercise invitation webhooks. Test invitation delivery separately only with a
+verified isolated endpoint and its actual development signing secret. Do not
+re-enable either disabled Clerk endpoint as part of this launcher setup.
+
+Runtime verification: real Clerk development email-code sign-in succeeded and
+reached `/post-login`; the authenticated dashboard and its attention/notification
+APIs returned HTTP 200. The original refresh loop was resolved by matching the
+Next bind hostname to the localhost app origin. The launcher checks that every
+localhost DNS result is loopback before binding. No middleware/auth exception
+was retained. Four shared-shell imports now refer directly to existing client-safe
+modules, avoiding server-only Node dependencies in development browser bundles.
+
+Synthetic local fixtures used a real test Clerk user, a normal owner membership,
+two disposable organisations and explicitly exempt test-only subscriptions.
+No paid state or Stripe object was manufactured remotely. The reserved
+`+clerk_test` address uses Clerk test-mode OTP; no real email code was delivered.
+The synthetic Clerk development user is retained for subsequent local tests.
+All owned PostgreSQL clusters and local servers were stopped and removed.
+
+Full Prospecting workflow and authenticated tenant-isolation certification is
+still outstanding: browser navigation stalled/timeouts occurred, and the direct
+cross-tenant API browser navigation was blocked by the browser client; the server
+subsequently recorded HTTP 405 because that detail endpoint has no GET handler.
+That response does not establish a tenant-isolation result. Do not
+claim those checks passed, or equate the successful login/shell smoke with
+release certification. No Production, Neon or Vercel configuration changed.

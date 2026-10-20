@@ -1,7 +1,7 @@
 "use client";
 
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
-import { flattenAppRoutes } from "@dg/platform-core";
+import { flattenAppRoutes } from "@dg/platform-core/apps/route-tree";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 
