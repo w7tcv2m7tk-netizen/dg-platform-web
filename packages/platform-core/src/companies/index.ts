@@ -7,6 +7,8 @@ export interface CreateCompanyInput {
   organisationId: string;
   actorId?: string;
   name: string;
+  abn?: string;
+  identityProvenance?: Prisma.InputJsonValue;
   website?: string;
   phone?: string;
   email?: string;
@@ -36,6 +38,8 @@ function serializeCompany(company: Company, contactCount = 0) {
     id: company.id,
     organisationId: company.organisationId,
     name: company.name,
+    abn: company.abn,
+    identityProvenance: company.identityProvenance,
     website: company.website,
     phone: company.phone,
     email: company.email,
@@ -138,6 +142,8 @@ export async function createCompany(input: CreateCompanyInput) {
     data: {
       organisationId: input.organisationId,
       name: input.name.trim(),
+      abn: input.abn,
+      identityProvenance: input.identityProvenance,
       website: input.website?.trim() || null,
       phone: input.phone?.trim() || null,
       email: input.email?.trim().toLowerCase() || null,

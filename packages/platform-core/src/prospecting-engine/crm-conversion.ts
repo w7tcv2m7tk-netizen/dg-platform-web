@@ -1,8 +1,9 @@
 import type { Prisma } from "@dg/database";
 
+import { AcquisitionError, legacyAustralianAbns } from "./identity";
 import { writeAuditLog } from "../audit";
 import { createCompany } from "../companies";
-import { ensureContactForLeadFields, getContact, updateContact } from "../contacts";
+import { ensureContactForLeadFields, getContact } from "../contacts";
 import { createOpportunity, getOpportunity } from "../opportunities";
 
 export type ProspectCrmConversionResult = {
@@ -27,7 +28,7 @@ function stringMeta(metadata: Record<string, unknown>, key: string): string | nu
  * The prospect metadata stores canonical CRM ids so retries are idempotent and a
  * partially completed conversion can safely resume without creating parallel CRM records.
  */
-export async function convertGrowthProspectToCrm(input: {
+async function convertGrowthProspectToCrmLocked(input: {
   organisationId: string;
   prospectId: string;
   actorId?: string;
@@ -51,22 +52,42 @@ export async function convertGrowthProspectToCrm(input: {
       where: { id: companyId, organisationId: input.organisationId, deletedAt: null },
       select: { id: true },
     });
-    if (!existing) companyId = null;
+    if (!existing) throw new AcquisitionError("relationship_conflict", "Existing CRM company link is unavailable; reconcile it explicitly");
   }
 
+  const existingContactId = stringMeta(metadata, "crm_contact_id");
+  const existingContact = existingContactId
+    ? await getContact(input.organisationId, existingContactId)
+    : prospect.contactEmail ? await prisma.contact.findFirst({ where: { organisationId: input.organisationId, deletedAt: null, email: prospect.contactEmail.toLowerCase() } }) : null;
+  if (existingContactId && !existingContact) throw new AcquisitionError("relationship_conflict", "Existing CRM contact link is unavailable; reconcile it explicitly");
+  if (!companyId && prospect.abn) {
+    const match = await prisma.company.findFirst({ where: { organisationId: input.organisationId, deletedAt: null, abn: prospect.abn }, select: { id: true } });
+    companyId = match?.id ?? null;
+  }
+  if (!companyId && prospect.abn) {
+    const legacy = await prisma.company.findMany({ where: { organisationId: input.organisationId, abn: null, deletedAt: null }, select: { id: true, metadata: true } });
+    const candidates = legacy.filter((row) => legacyAustralianAbns(row.metadata).includes(prospect.abn!));
+    if (candidates.length > 1 || candidates.some((row) => legacyAustralianAbns(row.metadata).length > 1))
+      throw new AcquisitionError("reconciliation_required", "Legacy CRM identities need explicit reconciliation");
+    if (candidates.length === 1) companyId = candidates[0].id;
+  }
+  if (companyId) {
+    const company = await prisma.company.findFirst({ where: { id: companyId, organisationId: input.organisationId, deletedAt: null } });
+    if (!company || (prospect.abn && company.abn && prospect.abn !== company.abn))
+      throw new AcquisitionError("identity_conflict", "CRM company does not match this business identity");
+  }
+  if (existingContact?.companyId && existingContact.companyId !== companyId)
+    throw new AcquisitionError("contact_company_conflict", "Select the existing company explicitly before conversion; contact association was preserved");
+
+  if (companyId && prospect.abn) await prisma.company.updateMany({ where: { id: companyId, organisationId: input.organisationId, abn: null }, data: { abn: prospect.abn, identityProvenance: prospect.identityProvenance as Prisma.InputJsonValue } });
+  const completedOpportunityId = stringMeta(metadata, "crm_opportunity_id");
+  if (companyId && completedOpportunityId && await getOpportunity(input.organisationId, completedOpportunityId))
+    return { prospectId: prospect.id, companyId, contactId: existingContact?.id ?? null, opportunityId: completedOpportunityId };
+
   if (!companyId) {
-    const existingCompany = await prisma.company.findFirst({
-      where: {
-        organisationId: input.organisationId,
-        deletedAt: null,
-        OR: [
-          ...(prospect.websiteUrl ? [{ website: prospect.websiteUrl }] : []),
-          { name: { equals: prospect.businessName, mode: "insensitive" } },
-        ],
-      },
-      orderBy: { updatedAt: "desc" },
-      select: { id: true },
-    });
+    const existingCompany = prospect.abn ? await prisma.company.findFirst({
+      where: { organisationId: input.organisationId, deletedAt: null, abn: prospect.abn }, select: { id: true },
+    }) : null;
 
     if (existingCompany) {
       companyId = existingCompany.id;
@@ -75,12 +96,15 @@ export async function convertGrowthProspectToCrm(input: {
         organisationId: input.organisationId,
         actorId: input.actorId,
         name: prospect.businessName,
+        abn: prospect.abn ?? undefined,
+        identityProvenance: prospect.identityProvenance as Prisma.InputJsonValue | undefined,
         website: prospect.websiteUrl ?? undefined,
         phone: prospect.contactPhone ?? undefined,
         email: prospect.contactEmail ?? undefined,
         industry: prospect.industry ?? undefined,
       });
       companyId = company.id;
+
     }
 
     metadata = { ...metadata, crm_company_id: companyId };
@@ -90,14 +114,16 @@ export async function convertGrowthProspectToCrm(input: {
     });
   }
 
+  metadata = { ...metadata, crm_company_id: companyId };
+  await prisma.growthProspect.update({ where: { id: prospect.id }, data: { metadata: metadata as Prisma.InputJsonValue } });
   let contactId = stringMeta(metadata, "crm_contact_id");
   if (contactId) {
     const existing = await getContact(input.organisationId, contactId);
-    if (!existing) contactId = null;
+    if (!existing) throw new AcquisitionError("relationship_conflict", "Existing CRM contact link is unavailable; reconcile it explicitly");
   }
 
   if (!contactId) {
-    const ensured = await ensureContactForLeadFields({
+    const ensured = existingContact ? { id: existingContact.id, created: false } : await ensureContactForLeadFields({
       organisationId: input.organisationId,
       actorId: input.actorId,
       name: prospect.contactName ?? undefined,
@@ -109,13 +135,8 @@ export async function convertGrowthProspectToCrm(input: {
 
     if (contactId) {
       const contact = await getContact(input.organisationId, contactId);
-      if (contact && contact.companyId !== companyId) {
-        await updateContact({
-          organisationId: input.organisationId,
-          contactId,
-          actorId: input.actorId,
-          companyId,
-        });
+      if (contact?.companyId && contact.companyId !== companyId) {
+        throw new AcquisitionError("contact_company_conflict", "Contact belongs to another company; its association was preserved");
       }
       metadata = { ...metadata, crm_contact_id: contactId };
       await prisma.growthProspect.update({
@@ -128,7 +149,7 @@ export async function convertGrowthProspectToCrm(input: {
   let opportunityId = stringMeta(metadata, "crm_opportunity_id");
   if (opportunityId) {
     const existing = await getOpportunity(input.organisationId, opportunityId);
-    if (!existing) opportunityId = null;
+    if (!existing) throw new AcquisitionError("relationship_conflict", "Existing CRM opportunity link is unavailable; reconcile it explicitly");
   }
 
   if (!opportunityId) {
@@ -202,4 +223,16 @@ export async function convertGrowthProspectToCrm(input: {
     contactId,
     opportunityId,
   };
+}
+
+/** Serialise retries using a transaction-scoped lock while reusing canonical CRM services.
+ * Each service persists its own activity/events; metadata checkpoints allow failed steps to resume.
+ */
+export async function convertGrowthProspectToCrm(input: { organisationId: string; prospectId: string; actorId?: string }) {
+  const { prisma } = await import("@dg/database");
+  return prisma.$transaction(async (tx) => {
+    // Lock the tenant's conversion stream: two prospects may identify the same ABN.
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${"acquisition-crm:" + input.organisationId}, 0))::text`;
+    return convertGrowthProspectToCrmLocked(input);
+  }, { timeout: 30000, maxWait: 30000 });
 }
