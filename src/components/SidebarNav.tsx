@@ -312,7 +312,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
     ...ia.grow,
     apps:
       marketingApp && !ia.grow.apps.some((app) => app.id === "marketing")
-        ? [marketingApp, ...ia.grow.apps]
+        ? [...ia.grow.apps.filter((app) => app.id === "prospecting"), marketingApp, ...ia.grow.apps.filter((app) => app.id !== "prospecting")]
         : ia.grow.apps,
   };
 
