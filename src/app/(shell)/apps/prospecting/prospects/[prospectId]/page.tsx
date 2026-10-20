@@ -106,6 +106,17 @@ export default async function ProspectResearchPage({ params }: { params: Promise
   const canWrite = sessionHasFeature(session, "prospecting.prospects.write");
   const canQualify = Boolean(prospect.contactName && (prospect.contactPhone || prospect.contactEmail));
   const isResearch = prospect.stage === "audit_created";
+  const isDiscovered = prospect.stage === "prospect";
+  const researchDisabledReason = !prospect.websiteUrl?.trim()
+    ? "Use Edit to add the business website before starting research."
+    : undefined;
+  const decisionMakerDisabledReason = !isResearch
+    ? isDiscovered
+      ? "Start research first. Decision-maker research becomes available during Research once a website is identified."
+      : "Decision-maker research is available during Research. Use Edit to update contact details in this lifecycle stage."
+    : !prospect.websiteUrl
+      ? "Use Edit to add the business website before searching its public pages for a decision-maker."
+      : undefined;
 
   return (
     <>
@@ -137,7 +148,15 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               <p><span className="text-slate-500">Phone:</span> <span className="text-slate-200">{prospect.contactPhone || "Not identified"}</span></p>
               <p><span className="text-slate-500">Email:</span> <span className="text-slate-200">{prospect.contactEmail || "Not identified"}</span></p>
             </div>
-            {canWrite ? <><DecisionMakerResearch prospectId={prospect.id} /><div className="mt-4"><ProspectEditControl prospect={prospect} /></div></> : null}
+            {canWrite ? <>
+              {isDiscovered ? <div className="mt-4 space-y-2">
+                <ProspectAuditRefresh prospectId={prospect.id} hasAudit={Boolean(audit)} disabledReason={researchDisabledReason} />
+                <p className="text-sm text-slate-400">This prospect is in Discover. Start research to gather evidence and move it into Research.</p>
+              </div> : null}
+              {!prospect.websiteUrl ? <p className="mt-3 text-sm text-slate-400">Website not identified. Use Edit to add the correct website for website checks and decision-maker research.</p> : null}
+              <DecisionMakerResearch prospectId={prospect.id} disabledReason={decisionMakerDisabledReason} />
+              <div className="mt-4"><ProspectEditControl prospect={prospect} /></div>
+            </> : null}
           </div>
 
           <div className="dg-card">
@@ -159,7 +178,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
         </section>
 
         <section className="dg-card">
-          <div className="flex items-center justify-between gap-3"><p className="text-xs uppercase tracking-wide text-slate-500">Audit evidence</p>{canWrite ? <ProspectAuditRefresh prospectId={prospect.id} /> : null}</div>
+          <div className="flex items-center justify-between gap-3"><p className="text-xs uppercase tracking-wide text-slate-500">Audit evidence</p>{canWrite && !isDiscovered ? <ProspectAuditRefresh prospectId={prospect.id} hasAudit={Boolean(audit)} disabledReason={researchDisabledReason} /> : null}</div>
           {audit ? (
             <>
               {!contentAccessible ? <p className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-sm text-amber-100">The website responded but blocked the audit probe. On-page health, SEO and AI Visibility scores are withheld because the content could not be verified.</p> : null}
@@ -303,8 +322,8 @@ export default async function ProspectResearchPage({ params }: { params: Promise
 
         <section className="dg-card">
           <p className="text-xs uppercase tracking-wide text-slate-500">Qualification decision</p>
-          <h2 className="mt-2 text-lg font-semibold text-white">{isResearch ? "Ready for a qualification decision?" : prospect.stage === "qualified" ? "Qualification complete" : "Research decision recorded"}</h2>
-          <p className="mt-2 max-w-2xl text-sm text-slate-400">{isResearch ? "Research is complete enough to make the next lifecycle decision. Qualifying advances the prospect out of Research; disqualification closes it without manufacturing contact activity." : prospect.stage === "qualified" ? "This prospect has already advanced beyond Research. The evidence above remains the research record; qualification is a separate lifecycle state." : "This prospect has already moved beyond the active Research stage."}</p>
+          <h2 className="mt-2 text-lg font-semibold text-white">{isDiscovered ? "Research has not started" : isResearch ? "Ready for a qualification decision?" : prospect.stage === "qualified" ? "Qualification complete" : "Research decision recorded"}</h2>
+          <p className="mt-2 max-w-2xl text-sm text-slate-400">{isDiscovered ? "Use Start research above before making a qualification decision. ABN verification establishes business identity; it does not perform website or decision-maker research." : isResearch ? "Research is complete enough to make the next lifecycle decision. Qualifying advances the prospect out of Research; disqualification closes it without manufacturing contact activity." : prospect.stage === "qualified" ? "This prospect has already advanced beyond Research. The evidence above remains the research record; qualification is a separate lifecycle state." : "This prospect has already moved beyond the active Research stage."}</p>
           {canWrite && isResearch ? <div className="mt-5"><ProspectQualificationActions prospectId={prospect.id} canQualify={canQualify} /></div> : <p className="mt-4 text-sm text-slate-300">Current stage: {prospect.stage}</p>}
         </section>
       </main>

@@ -652,3 +652,54 @@ New sole-trader and selection regressions plus existing intake/rendering tests
 including prebuild, TypeScript and optimized build passed. Existing warnings
 remain, no checks disabled. Next: publish targeted fix, deploy and repeat the
 read-only live ABN/name-selection review. No additional migration is required.
+
+
+### Live registered-name acceptance completed - 21 October 2026
+
+Requirement `growth.pipeline`. #1020 merged as a589483e; deployment
+`dpl_AWUymGbRoPXb7SVnE3vYsTFk7vcT` READY on app.digitalgate.com.au. Authenticated
+Production ABN search returned three distinct registered-name choices and a
+Google DigitalGate result. Selecting DIGITALGATE retained that exact business
+name and verified ABN in the unsaved review; confirmation stayed unchecked and
+Add remained disabled. Earlier live name lookup, Priorities/default landing,
+desktop/mobile full Growth order, Delete controls, Activity history and call
+brief checks passed. No further migration; no Production prospect writes,
+messages or calls. Error/fatal log scan through 22:55 UTC found no records
+(limited early window). No Preview deployment or Neon branch created.
+
+Requested read-only live acceptance is complete. Save/archive and customer
+preservation were exercised only with synthetic local fixtures, not Production.
+Evidence retained in Verification/ProspectingRegisteredNames/20261021 including
+full build, 15 intake tests, 60 regressions, lint and live screenshot. Final
+acceptance entry retained locally to avoid another documentation-only deploy.
+
+
+### Prospect research-entry correction - 21 October 2026
+
+Requirement `growth.pipeline`. Operator screenshot exposed a newly added
+Discover-stage prospect offered Find decision-maker even though its API permits
+only Research; the footer incorrectly said a research decision was recorded.
+Branch `fix/prospecting-research-entry` reuses the existing audit action as a
+prominent Start research control, distinguishes first/repeated runs and shows
+accurate Discover/Research/qualified copy. Decision-maker controls explain and
+enforce their Research and website prerequisites; existing API stage and tenant
+guards remain. Save handler renamed from useCandidate to saveCandidate to avoid
+the existing hook-name lint error; no hook or candidate semantics changed.
+
+Start/re-run research requires a website. The scoped audit endpoint rejects
+missing/invalid websites with 422 before invoking the research engine; this
+avoids a website audit on an ABN-only intake record. Existing SSRF protections,
+identity/provenance and research implementation are preserved. No migration,
+billing, checkout, entitlement or webhook changes. No live prospect modified.
+
+Final validation: intake/rendering/route tests 18/18; report/mobile/navigation
+regressions 60/60; ESLint zero errors, one existing no-img-element warning; full
+npm build including prebuild, TypeScript and optimized compilation passed.
+Actual Clerk Development/normal owner/disposable loopback app replay: missing
+website disables Start and decision-maker actions; Edit website PATCH 200 then
+Start research POST 201 transitions to Research and enables decision-maker
+research. Synthetic unresolvable site remains unavailable; no live website
+audit success is claimed. Qualification remains disabled without contact.
+Final fresh-process replay supersedes provisional hot-reload observations; owned
+clusters removed. Evidence: Verification/ProspectingResearchEntry/20261021.
+Next: targeted release and read-only verification on the existing live prospect.

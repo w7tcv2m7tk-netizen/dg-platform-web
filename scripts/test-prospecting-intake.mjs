@@ -192,3 +192,62 @@ test('Pipeline labels research/contact priorities and never averages mixed prior
  const table = mixedHtml.match(/<tbody>(.*?)<\/tbody>/s)[1];
  assert.doesNotMatch(table,/priority/); assert.match(table,/—/);
 });
+
+test('research entry uses the existing audit action and blocks premature decision-maker requests',async()=>{
+ const calls=[];let refreshed=0;
+ const deps={'next/navigation':{useRouter:()=>({refresh(){refreshed++;}})}};
+ const fetch=async(url,options)=>{calls.push([url,options.method]);return {ok:true,json:async()=>({data:{candidates:[]}})};};
+ const audit=mount('src/components/prospecting/ProspectAuditRefresh.tsx','ProspectAuditRefresh',deps,{fetch});
+ await button(audit({prospectId:'synthetic',hasAudit:false}),'Start research').props.onClick();await new Promise(setImmediate);
+ assert.deepEqual(calls,[['/api/v1/prospecting/prospects/synthetic/audit','POST']]);assert.equal(refreshed,1);
+ assert.ok(button(audit({prospectId:'synthetic',hasAudit:true}),'Re-run Research'));
+ const decision=mount('src/components/prospecting/DecisionMakerResearch.tsx','DecisionMakerResearch',deps,{fetch});
+ const blocked=button(decision({prospectId:'synthetic',disabledReason:'Start research first.'}),'Find decision-maker');assert.equal(blocked.props.disabled,true);
+ await blocked.props.onClick();await new Promise(setImmediate);assert.equal(calls.length,1);
+ const enabled=button(decision({prospectId:'synthetic'}),'Find decision-maker');assert.equal(enabled.props.disabled,false);
+ await enabled.props.onClick();await new Promise(setImmediate);assert.deepEqual(calls[1],['/api/v1/prospecting/prospects/synthetic/decision-maker','POST']);
+});
+
+test('prospect detail distinguishes Discover, Research without website, and qualified stages',async()=>{
+ const react=require('react');const navigation={'next/navigation':{useRouter:()=>({refresh(){}})}};
+ const DecisionMakerResearch=load('src/components/prospecting/DecisionMakerResearch.tsx',{'react':react,'react/jsx-runtime':require('react/jsx-runtime'),...navigation}).DecisionMakerResearch;
+ const ProspectAuditRefresh=load('src/components/prospecting/ProspectAuditRefresh.tsx',{'react':react,'react/jsx-runtime':require('react/jsx-runtime'),...navigation}).ProspectAuditRefresh;
+ const score=load('packages/platform-core/src/command-centre/growth-engine/opportunity-engine.ts',{}).computeProspectOpportunityScore;
+ const renderToStaticMarkup=require('react-dom/server').renderToStaticMarkup;
+ const render=async(stage,websiteUrl,canWrite=true)=>{
+  const prospect={id:'synthetic',businessName:'Synthetic business',stage,websiteUrl,updatedAt:new Date().toISOString(),metadata:{}};
+  const page=load('src/app/(shell)/apps/prospecting/prospects/[prospectId]/page.tsx',{
+   'react/jsx-runtime':require('react/jsx-runtime'),'next/link':({children})=>children,'next/navigation':{notFound(){throw Error('not_found');}},
+   '@dg/platform-core':{computeProspectOpportunityScore:score,getGrowthProspect:async()=>prospect,organisationGrowthScope:id=>({organisationId:id}),sessionHasFeature:()=>canWrite},
+   '@dg/database':{prisma:{growthProspectAudit:{findFirst:async()=>null},company:{findMany:async()=>[]},contact:{findMany:async()=>[]},membership:{findMany:async()=>[]}}},
+   '@/components/prospecting/ProspectRelationshipForm':{ProspectRelationshipForm:()=>null},
+   '@/components/prospecting/ProspectingCustomerActions':{ProspectEditControl:()=>react.createElement('button',null,'Edit')},
+   '@/components/prospecting/ProspectingPageHeader':{ProspectingPageHeader:()=>null},
+   '@/components/prospecting/ProspectQualificationActions':{ProspectQualificationActions:()=>react.createElement('button',null,'Qualify')},
+   '@/components/prospecting/DecisionMakerResearch':{DecisionMakerResearch},'@/components/prospecting/ProspectAuditRefresh':{ProspectAuditRefresh},
+   '@/components/prospecting/ProspectReportActions':{ProspectReportActions:()=>null},
+   '@/lib/platform-page-feature':{getAuthorisedPlatformPageSession:async()=>({organisationId:'synthetic-owner',clerkUserId:'synthetic-user'})},
+  }).default;
+  return renderToStaticMarkup(await page({params:Promise.resolve({prospectId:'synthetic'})}));
+ };
+ const discovered=await render('prospect',null);assert.match(discovered,/>Start research</);assert.match(discovered,/Research has not started/);assert.match(discovered,/disabled=""[^>]*>Find decision-maker/);assert.doesNotMatch(discovered,/already moved beyond/);
+ const missing=await render('audit_created',null);assert.match(missing,/Use Edit to add the business website/);assert.match(missing,/disabled=""[^>]*>Find decision-maker/);
+ const research=await render('audit_created','https://example.invalid');assert.doesNotMatch(research,/disabled=""[^>]*>Find decision-maker/);assert.match(research,/>Qualify</);
+ const qualified=await render('qualified','https://example.invalid');assert.match(qualified,/Qualification complete/);assert.match(qualified,/disabled=""[^>]*>Find decision-maker/);
+ const readOnly=await render('prospect',null,false);assert.doesNotMatch(readOnly,/>Start research<|>Find decision-maker<|>Edit</);
+});
+
+test('audit endpoint rejects missing websites and foreign/archived prospects before research',async()=>{
+ let session={organisationId:'synthetic-owner',clerkUserId:'synthetic-user'},denied=null,prospect={id:'synthetic',websiteUrl:null},reads=0,audits=0;
+ const route=load('src/app/api/v1/prospecting/prospects/[id]/audit/route.ts',{
+  '@dg/platform-core':{organisationGrowthScope:organisationId=>({organisationId}),getGrowthProspect:async(id,scope)=>{reads++;assert.equal(scope.organisationId,'synthetic-owner');return prospect;},runGrowthProspectAudit:async(input)=>{audits++;assert.equal(input.scope.organisationId,'synthetic-owner');return {id:'synthetic-audit'};}},
+  'next/server':{NextResponse:{json:(body,{status})=>({body,status})}},
+  '@/lib/platform-api':{requirePlatformAuth:async()=>session,isNextResponse:x=>Boolean(x?.status),requireFeature:()=>denied},
+ },{URL}).POST;
+ const call=()=>route({}, {params:Promise.resolve({id:'synthetic'})});
+ assert.equal((await call()).status,422);assert.equal(audits,0);
+ for(const websiteUrl of ['invalid','javascript:alert(1)','']){prospect={id:'synthetic',websiteUrl};assert.equal((await call()).status,422);}
+ prospect=null;assert.equal((await call()).status,404);prospect={archivedAt:new Date(),websiteUrl:'https://example.invalid'};assert.equal((await call()).status,404);assert.equal(audits,0);
+ prospect={id:'synthetic',websiteUrl:'https://example.invalid'};assert.equal((await call()).status,201);assert.equal(audits,1);
+ const before=reads;denied={status:403};assert.equal((await call()).status,403);session={status:401};assert.equal((await call()).status,401);assert.equal(reads,before);assert.equal(audits,1);
+});
