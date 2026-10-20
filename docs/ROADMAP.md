@@ -530,3 +530,37 @@ Prospecting intake/report/navigation regression 71/71 and sidebar fallback/
 metadata checks passed. Local mode refusal tests 26/26 and original environment
 guards 34/34 passed. ESLint: zero errors, one existing AppContextNav unused
 pageTitle warning. Framework/build warnings remain; no checks were disabled.
+
+
+### Authenticated Prospecting verification - 21 October 2026
+
+Requirements: `platform.auth`, `growth.pipeline`. Actual Clerk Development
+email-code session, normal synthetic owner membership, owned disposable
+loopback PostgreSQL and localhost Next development app; no authentication
+bypass, Production access, Neon preview, deployment or remote migration.
+
+PASS: Prospecting first among permitted Growth items on desktop and mobile
+(390x844); default Today's Priorities shows three synthetic relationships and
+Research Priority; manual intake POST returns 201; Delete archives the new
+record, active count returns from four to three, archived view offers Restore.
+Other tenant prospect absent from list and direct page returns 404. Existing
+CRM company/contact linking succeeds; retry retains one relationship activity
+and the original contact.companyId. Activity renders that relationship event.
+Name/ABN searches fail safely without provider credentials and never assert
+verified identity. Report sharing/export stays disabled without audit evidence.
+
+FAIL: Pipeline calls the same unresearched value Opportunity Score instead of
+Research Priority, including in its aggregate score copy. Reproduction: add an
+unverified manual prospect with industry Real estate, leave research absent,
+then compare Pipeline (Opportunity Score 38) with Priorities (Research Priority
+38). No correction made during verification.
+
+BLOCKED/NOT CERTIFIED: positive ABR/Google results and verified ABN persistence
+(no provider credentials in the isolated launcher); existing customer commercial
+record preservation; qualified call brief and follow-up/consultation selection
+require further authenticated fixture scenarios. These results are not full
+release certification. AUTHENTICATED APPLICATION CERTIFICATION: HOLD.
+Evidence retained outside Git in Verification/ProspectingApp/20261021, including
+desktop/mobile screenshots and application request log. Prior full npm build
+including prebuild/TypeScript remains applicable: no runtime code changed in
+this verification. No merge or deployment authorised by this evidence.
