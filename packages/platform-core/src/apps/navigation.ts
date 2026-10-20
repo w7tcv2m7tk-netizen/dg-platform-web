@@ -245,9 +245,10 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
     routes: [
       {
         path: "/apps/prospecting",
-        label: "Overview",
+        label: "Priorities",
         matchAlso: ["/command/growth-engine"],
       },
+      { path: "/apps/prospecting/overview", label: "Overview" },
       { path: "/apps/prospecting/discovery", label: "Discover" },
       { path: "/apps/prospecting/prospects", label: "Prospects" },
       {

@@ -171,6 +171,9 @@ model Contact {
 }
 
 model Company {
+  abn                     String?   @db.VarChar(11)
+  identityProvenance      Json?     @map("identity_provenance")
+
   id             String    @id @default(cuid())
   organisationId String    @map("organisation_id")
   name           String
@@ -187,6 +190,7 @@ model Company {
   contacts     Contact[]
 
   @@index([organisationId])
+  @@unique([organisationId, abn])
   @@map("companies")
 }
 
@@ -639,6 +643,9 @@ model AuditLog {
 // ─── Growth Engine (Prospecting & Opportunity Engine — per-organisation) ─────
 
 model GrowthProspect {
+  abn                     String?   @db.VarChar(11)
+  identityProvenance      Json?     @map("identity_provenance")
+
   id                      String    @id @default(cuid())
   /** Owning tenant — each org has its own prospect book. */
   organisationId          String?   @map("organisation_id")
@@ -668,6 +675,7 @@ model GrowthProspect {
   @@index([stage])
   @@index([ownerClerkUserId])
   @@index([archivedAt])
+  @@unique([organisationId, abn])
   @@map("growth_prospects")
 }
 

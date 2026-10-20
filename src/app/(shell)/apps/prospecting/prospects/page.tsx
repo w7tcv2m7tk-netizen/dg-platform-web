@@ -7,6 +7,7 @@ import {
 } from "@dg/platform-core";
 
 import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
+import { ProspectArchiveControl } from "@/components/prospecting/ProspectingCustomerActions";
 import { CreateProspectForm } from "@/components/command/CreateProspectForm";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
 
@@ -50,7 +51,7 @@ export default async function ProspectingProspectsPage() {
         {canDiscover ? (
           <details className="rounded-xl border border-slate-700/80 bg-slate-950/40 px-5 py-4">
             <summary className="cursor-pointer select-none font-semibold text-white">+ Add prospect</summary>
-            <p className="mt-2 text-sm text-slate-400">Add a business directly when you already know who you want to pursue.</p>
+            <p className="mt-2 text-sm text-slate-400">Search ABR by business name or ABN, review Google business results, or add a prospect manually.</p>
             <div className="mt-4">
               <CreateProspectForm pipelineHref="/apps/prospecting/pipeline" />
             </div>
@@ -95,6 +96,7 @@ export default async function ProspectingProspectsPage() {
                     <th className="px-4 py-3 font-medium">Contact</th>
                     <th className="px-4 py-3 font-medium">Updated</th>
                     <th className="px-4 py-3 font-medium">Next action</th>
+                    {canDiscover ? <th className="px-4 py-3 font-medium">Manage</th> : null}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/80">
@@ -124,6 +126,7 @@ export default async function ProspectingProspectsPage() {
                           {prospect.stage === "qualified" ? (prospect.contactName ? `Prepare contact · ${prospect.contactName}` : "Prepare contact") : prospect.stage === "audit_created" ? "Continue research" : "Research"}
                         </Link>
                       </td>
+                      {canDiscover ? <td className="px-4 py-3"><ProspectArchiveControl prospectId={prospect.id} businessName={prospect.businessName} /></td> : null}
                     </tr>
                   ))}
                 </tbody>
