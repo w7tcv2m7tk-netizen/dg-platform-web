@@ -703,3 +703,19 @@ audit success is claimed. Qualification remains disabled without contact.
 Final fresh-process replay supersedes provisional hot-reload observations; owned
 clusters removed. Evidence: Verification/ProspectingResearchEntry/20261021.
 Next: targeted release and read-only verification on the existing live prospect.
+
+
+### Research-entry live acceptance - 21 October 2026
+
+Requirement `growth.pipeline`. #1021 merged as 1b3d1330; deployment
+`dpl_HvJToTH3E6eDQ7NfMuXnTW6LpYBy` READY on app.digitalgate.com.au.
+Authenticated read-only inspection of the existing DIGITALGATE prospect confirms
+Start research is visible but disabled with Edit/website guidance, premature
+decision-maker action is disabled, and the footer says Research has not started.
+ABN and existing record details unchanged; no live audit or data write performed.
+Local mutation/transition tests remain the evidence for Start/Research execution.
+No additional migration. Evidence retained under
+Verification/ProspectingResearchEntry/20261021. No further work for this scoped
+UI/guard correction. Owner next action: Edit the prospect's correct website,
+then Start research and inspect the evidence before finding the decision-maker.
+Final acceptance entry retained locally to avoid a documentation-only deploy.
