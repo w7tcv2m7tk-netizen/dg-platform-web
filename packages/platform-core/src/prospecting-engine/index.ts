@@ -6,3 +6,4 @@ export * from "./crm-conversion";
 export * from "./identity";
 export * from "./relationship-linking";
 export * from "./lifecycle";
+export * from "./intake-search";

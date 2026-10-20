@@ -48,6 +48,8 @@ export async function POST(req: Request) {
   const prospect = await createGrowthProspect({
     abn: typeof body.abn === "string" ? body.abn : undefined,
     organisationId: session.organisationId,
+    metadata: typeof body.googlePlaceId === "string" && /^[A-Za-z0-9_-]{1,300}$/.test(body.googlePlaceId)
+      ? { intakeSource: "user_selected_google_listing", providerRefs: { googlePlaceId: body.googlePlaceId } } : undefined,
     businessName: body.businessName,
     contactName: body.contactName,
     contactEmail: body.contactEmail,

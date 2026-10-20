@@ -192,4 +192,23 @@ await test('ABR lookup, persistence, tenant uniqueness, concurrency and customer
    const orphan = await prisma.growthProspect.create({ data: { businessName: 'Legacy synthetic orphan', metadata: { providerRefs: { abn: fixtures[0].abn } } } });
    assert.equal(orphan.organisationId, null); assert.equal(orphan.abn, null); assert.equal(orphan.identityProvenance, null);
  });
+ await t.test('pipeline deletion is tenant-scoped, restorable and preserves linked CRM/customer history', async () => {
+   const before = await prisma.growthProspect.findUnique({ where: { id: ids[0] } });
+   const companyBefore = await prisma.company.findUnique({ where: { id: company.id } });
+   const contactBefore = await prisma.contact.findUnique({ where: { id: contact.id } });
+   const engagementsBefore = await prisma.growthProspectEngagement.count({ where: { prospectId: ids[0] } });
+   assert.equal(await prospects.archiveGrowthProspect({ organisationId: other.id, prospectId: ids[0] }), null);
+   assert.equal((await prisma.growthProspect.findUnique({ where: { id: ids[0] } })).archivedAt, null);
+   const removed = await prospects.archiveGrowthProspect({ organisationId: org.id, prospectId: ids[0] });
+   assert.ok(removed.archivedAt);
+   assert.ok(!(await prospects.listGrowthProspects({ organisationId: org.id })).some(row => row.id === ids[0]));
+   assert.deepEqual(await prisma.company.findUnique({ where: { id: company.id } }), companyBefore);
+   assert.deepEqual(await prisma.contact.findUnique({ where: { id: contact.id } }), contactBefore);
+   const archived = await prisma.growthProspect.findUnique({ where: { id: ids[0] } });
+   for (const key of ['abn','crmCompanyId','crmContactId','customerOrganisationId']) assert.equal(archived[key], before[key]);
+   assert.ok(await prisma.growthProspectEngagement.count({ where: { prospectId: ids[0] } }) >= engagementsBefore);
+   await prospects.restoreGrowthProspect({ organisationId: org.id, prospectId: ids[0] });
+   assert.equal((await prisma.growthProspect.findUnique({ where: { id: ids[0] } })).archivedAt, null);
+ });
+
 });
