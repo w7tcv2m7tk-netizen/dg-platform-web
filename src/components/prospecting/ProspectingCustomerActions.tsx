@@ -233,7 +233,7 @@ export function ProspectArchiveControl({
     const label = businessName?.trim() || "this prospect";
     const confirmed = archived
       ? window.confirm(`Restore ${label} to the active pipeline?`)
-      : window.confirm(`Archive ${label}? Existing audit and CRM records will remain on file.`);
+      : window.confirm(`Delete ${label} from the active pipeline? It will be archived and can be restored. Existing CRM, customer and audit records will remain on file.`);
     if (!confirmed) return;
 
     setPending(true);
@@ -247,7 +247,7 @@ export function ProspectArchiveControl({
       if (!res.ok) throw new Error("archive_failed");
       router.refresh();
     } catch {
-      setError(archived ? "Could not restore this prospect." : "Could not archive this prospect.");
+      setError(archived ? "Could not restore this prospect." : "Could not delete this prospect from the pipeline.");
     } finally {
       setPending(false);
     }
@@ -259,9 +259,10 @@ export function ProspectArchiveControl({
         type="button"
         disabled={pending}
         onClick={() => void onClick()}
+        aria-label={`${archived ? "Restore" : "Delete"} ${businessName || "prospect"}${archived ? "" : " from pipeline"}`}
         className="rounded-md border border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-slate-500 disabled:opacity-50"
       >
-        {pending ? (archived ? "Restoring…" : "Archiving…") : archived ? "Restore" : "Archive"}
+        {pending ? (archived ? "Restoring…" : "Deleting…") : archived ? "Restore" : "Delete"}
       </button>
       {error ? <span className="text-[11px] text-rose-300">{error}</span> : null}
     </div>

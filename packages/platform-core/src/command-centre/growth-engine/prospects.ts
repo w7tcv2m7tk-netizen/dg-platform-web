@@ -1,3 +1,4 @@
+import { AcquisitionError, legacyAustralianAbns, verifyAcquisitionAbn } from "../../prospecting-engine/identity";
 import type { GrowthProspect, Prisma } from "@dg/database";
 import type { ProspectPipelineStage } from "./types";
 
@@ -8,6 +9,7 @@ export interface CreateGrowthProspectInput {
   /** Required — each organisation owns its own prospect book. */
   organisationId: string;
   businessName: string;
+  abn?: string;
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
@@ -58,6 +60,8 @@ function serializeProspect(row: GrowthProspect) {
     id: row.id,
     organisationId: row.organisationId,
     businessName: row.businessName,
+    abn: row.abn,
+    identityProvenance: row.identityProvenance,
     contactName: row.contactName,
     contactEmail: row.contactEmail,
     contactPhone: row.contactPhone,
@@ -146,9 +150,37 @@ export async function createGrowthProspect(input: CreateGrowthProspectInput) {
     throw new Error("organisationId is required to create a growth prospect");
   }
 
+  const requestedAbn = input.abn ?? (input.metadata?.providerRefs as { abn?: string } | undefined)?.abn;
+  const identity = requestedAbn ? await verifyAcquisitionAbn(requestedAbn) : null;
+  if (identity) {
+    const existing = await prisma.growthProspect.findUnique({ where: { organisationId_abn: { organisationId, abn: identity.abn } } });
+    if (existing) {
+      if (existing.archivedAt) throw new AcquisitionError("archived_identity", "This ABN belongs to an archived prospect; restore that relationship first");
+      return serializeProspect(existing);
+    }
+    // Reconcile metadata claims only after verification, without deleting or merging records.
+    const legacy = await prisma.growthProspect.findMany({ where: { organisationId, abn: null }, select: { id: true, metadata: true } });
+    const candidates = legacy.filter((row) => legacyAustralianAbns(row.metadata).includes(identity.abn));
+    if (candidates.length > 1 || candidates.some((row) => legacyAustralianAbns(row.metadata).length > 1))
+      throw new AcquisitionError("reconciliation_required", "Multiple legacy identity claims need explicit reconciliation; no business records were merged");
+    if (candidates.length === 1) {
+      const adopted = await prisma.growthProspect.update({ where: { id: candidates[0].id }, data: { abn: identity.abn, identityProvenance: JSON.parse(JSON.stringify(identity.provenance)) } }).catch(async (error: { code?: string }) => {
+        if (error.code === "P2002") {
+          const canonical = await prisma.growthProspect.findUnique({ where: { organisationId_abn: { organisationId, abn: identity.abn } } });
+          if (canonical) return canonical;
+        }
+        throw error;
+      });
+      if (adopted.archivedAt) throw new AcquisitionError("archived_identity", "This ABN belongs to an archived prospect; restore that relationship first");
+      return serializeProspect(adopted);
+    }
+  }
+  let reused = false;
   const row = await prisma.growthProspect.create({
     data: {
       organisationId,
+      abn: identity?.abn,
+      identityProvenance: identity ? JSON.parse(JSON.stringify(identity.provenance)) : undefined,
       businessName: input.businessName.trim(),
       contactName: input.contactName?.trim() || null,
       contactEmail: input.contactEmail?.trim().toLowerCase() || null,
@@ -163,7 +195,15 @@ export async function createGrowthProspect(input: CreateGrowthProspectInput) {
           ? (input.metadata as Prisma.InputJsonValue)
           : undefined,
     },
+  }).catch(async (error: { code?: string }) => {
+    if (identity && error.code === "P2002") {
+      const existing = await prisma.growthProspect.findUnique({ where: { organisationId_abn: { organisationId, abn: identity.abn } } });
+      if (existing) { reused = true; return existing; }
+    }
+    throw error;
   });
+
+  if (reused) return serializeProspect(row);
 
   await prisma.growthProspectEngagement.create({
     data: {

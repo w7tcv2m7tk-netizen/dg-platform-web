@@ -124,8 +124,10 @@ export async function ProspectingPipelineSurface({
   const stageRows = PROSPECT_WORKSPACE_STAGES.map((stage) => {
     const items = enriched.filter((e) => e.workspaceStage === stage.id);
     const scored = items.filter((i) => i.score.score > 0);
+    const priorityLabels = new Set(scored.map((i) => i.score.contactPriority != null ? "Contact priority" : "Research priority"));
+    const priorityLabel = priorityLabels.size === 1 ? [...priorityLabels][0] : null;
     const avgScore =
-      scored.length > 0
+      scored.length > 0 && priorityLabel
         ? Math.round(scored.reduce((sum, i) => sum + i.score.score, 0) / scored.length)
         : null;
     const requiringAction = items.filter(
@@ -135,7 +137,7 @@ export async function ProspectingPipelineSurface({
         i.score.recommendedAction === "run_audit" ||
         i.score.recommendedAction === "follow_up",
     ).length;
-    return { stage, items, avgScore, requiringAction };
+    return { stage, items, avgScore, priorityLabel, requiringAction };
   });
 
   const activeCount = prospects.length;
@@ -206,18 +208,18 @@ export async function ProspectingPipelineSurface({
                     <tr className="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
                       <th className="pb-2 pr-3 font-medium">Stage</th>
                       <th className="pb-2 pr-3 font-medium">Prospects</th>
-                      <th className="pb-2 pr-3 font-medium">Avg score</th>
+                      <th className="pb-2 pr-3 font-medium">Average priority</th>
                       <th className="pb-2 pr-3 font-medium">Need action</th>
                       <th className="pb-2 font-medium">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {stageRows.map(({ stage, items, avgScore, requiringAction }) => (
+                    {stageRows.map(({ stage, items, avgScore, priorityLabel, requiringAction }) => (
                       <tr key={stage.id} className="border-b border-slate-800/60">
                         <td className="py-2.5 pr-3 text-slate-200">{stage.label}</td>
                         <td className="py-2.5 pr-3 tabular-nums text-white">{items.length}</td>
                         <td className="py-2.5 pr-3 tabular-nums text-slate-400">
-                          {avgScore != null ? avgScore : "—"}
+                          {avgScore != null ? `${avgScore} · ${priorityLabel}` : "—"}
                         </td>
                         <td className="py-2.5 pr-3 tabular-nums text-slate-400">
                           {requiringAction > 0 ? requiringAction : "—"}
@@ -234,7 +236,8 @@ export async function ProspectingPipelineSurface({
               </div>
               <p className="mt-3 text-xs text-slate-500">
                 Opportunity value columns land when commercial estimates are attributed per prospect.
-                Avg Opportunity Score™ uses live audit signals when available.
+                Research priority ranks investigation; contact priority is available after qualification.
+                Averages are shown only when all scored prospects in a stage use the same priority type.
               </p>
             </section>
 
@@ -305,10 +308,10 @@ export async function ProspectingPipelineSurface({
 
                             <div className="mt-2 flex flex-wrap items-baseline gap-2">
                               <span className="text-sm font-semibold text-sky-300">
-                                {workspaceStage === "researching" ? "Research priority" : "Opportunity Score™"} {score.score}
+                                {score.contactPriority != null ? "Contact priority" : "Research priority"} {score.score}
                               </span>
                               <span className="text-xs text-amber-200/90">
-                                {bandEmoji(score.band)} {score.bandLabel}{workspaceStage === "researching" ? "" : " opportunity"}
+                                {bandEmoji(score.band)} {score.bandLabel} priority
                               </span>
                             </div>
 

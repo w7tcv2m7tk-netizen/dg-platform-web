@@ -480,3 +480,126 @@ reduce the open-item count. #1016 → #1006 → #1015 remains the commercial rel
 order; #1018 retains its authenticated local-verification and identity-migration
 gates. No live billing activation or Production migration was performed for this
 backlog reconciliation.
+
+### P1 Prospecting candidate reconciliation - 21 October 2026
+
+PR #1018 candidate `09a85fb7` reconciled main `d7abf8fd`; preserved its
+Today’s Priorities/follow-up coverage rather than the older qualified-only
+source assertions. No Prospecting product logic changed in this merge.
+Fresh checks: owned disposable acquisition integration 16/16, concurrency
+11/11, intake/report/navigation 71/71; complete `npm run build` including
+prebuild and TypeScript passed. The initial sandbox build was interrupted
+while compiling; the full rerun outside the sandbox passed. The local
+cluster was stopped and removed. Provider/route mocks are not authenticated
+application certification. Status remains BLOCKED pending an accessible
+Clerk development dashboard, verified webhook isolation and a supported
+local synthetic authenticated application context. No migration applied
+to Production; identity migration approval and deployment remain separate.
+No Neon Preview resources or automatic Preview deployments were created.
+
+### Local synthetic authentication support - 21 October 2026
+
+Requirements: `platform.auth`, `growth.pipeline`. Branch
+`fix/local-synthetic-auth`, based on `a7d2bf11`. Added explicit local-only pairing,
+an owned disposable PostgreSQL/loopback Next development launcher and refusal
+coverage. Reuses actual Clerk middleware and session/tenant checks; no auth,
+billing, entitlement, webhook, schema or Production configuration was changed.
+Local-only guard tests 26/26; existing pairing/verification regressions 34/34;
+changed-script ESLint passed. Actual local cluster/schema bootstrap and Next
+startup succeeded; all attempted owned clusters were stopped and removed.
+Real Clerk test-mode email-code sign-in succeeded and reached `/post-login`.
+The authenticated dashboard and attention/notification APIs returned HTTP 200.
+Matching Next bind hostname to localhost app origin resolved the local refresh
+loop; both test keys also have matching public signing-key IDs. Four narrow
+shared-shell imports were changed to existing client-safe modules to avoid
+server Node dependencies in development browser bundles. No middleware auth
+exception was retained. Synthetic local fixtures used normal owner membership
+and explicit local exempt subscriptions, not real paid customer state. One
+reserved-email Clerk Development user was prepared and retained for local tests.
+Owned clusters/servers were stopped and destroyed after testing. No remote
+webhook, Production, Vercel, Neon or billing objects/configuration changed.
+Full authenticated Prospecting/tenant-isolation certification remains BLOCKED:
+browser navigation timed out; the direct cross-tenant detail probe ultimately
+returned HTTP 405 (GET is unsupported), so it provides no tenant-isolation proof. Next action: complete those UI checks on the working
+isolated local auth setup; do not relabel this login/shell smoke as release
+certification. Local support implementation does not approve a Production release.
+
+Final local support validation: complete `npm run build` including prebuild,
+TypeScript and optimized compilation passed on the final implementation;
+Prospecting intake/report/navigation regression 71/71 and sidebar fallback/
+metadata checks passed. Local mode refusal tests 26/26 and original environment
+guards 34/34 passed. ESLint: zero errors, one existing AppContextNav unused
+pageTitle warning. Framework/build warnings remain; no checks were disabled.
+
+
+### Authenticated Prospecting verification - 21 October 2026
+
+Requirements: `platform.auth`, `growth.pipeline`. Actual Clerk Development
+email-code session, normal synthetic owner membership, owned disposable
+loopback PostgreSQL and localhost Next development app; no authentication
+bypass, Production access, Neon preview, deployment or remote migration.
+
+PASS: Prospecting first among permitted Growth items on desktop and mobile
+(390x844); default Today's Priorities shows three synthetic relationships and
+Research Priority; manual intake POST returns 201; Delete archives the new
+record, active count returns from four to three, archived view offers Restore.
+Other tenant prospect absent from list and direct page returns 404. Existing
+CRM company/contact linking succeeds; retry retains one relationship activity
+and the original contact.companyId. Activity renders that relationship event.
+Name/ABN searches fail safely without provider credentials and never assert
+verified identity. Report sharing/export stays disabled without audit evidence.
+
+FAIL: Pipeline calls the same unresearched value Opportunity Score instead of
+Research Priority, including in its aggregate score copy. Reproduction: add an
+unverified manual prospect with industry Real estate, leave research absent,
+then compare Pipeline (Opportunity Score 38) with Priorities (Research Priority
+38). No correction made during verification.
+
+BLOCKED/NOT CERTIFIED: positive ABR/Google results and verified ABN persistence
+(no provider credentials in the isolated launcher); existing customer commercial
+record preservation; qualified call brief and follow-up/consultation selection
+require further authenticated fixture scenarios. These results are not full
+release certification. AUTHENTICATED APPLICATION CERTIFICATION: HOLD.
+Evidence retained outside Git in Verification/ProspectingApp/20261021, including
+desktop/mobile screenshots and application request log. Prior full npm build
+including prebuild/TypeScript remains applicable: no runtime code changed in
+this verification. No merge or deployment authorised by this evidence.
+
+
+### Prospecting release completion candidate - 21 October 2026
+
+Requirements: `growth.pipeline`, `platform.auth`; PR #1018, branch
+`release/prospecting-intake`. Corrected Pipeline score labels to use the actual
+scoring result's Research/Contact priority type, including discovered prospects.
+Stage averages carry their priority type and are suppressed for mixed types.
+Rendering regression exercises both types with the real scoring engine.
+
+Validation on the corrected working tree: intake/rendering 13/13; report, mobile
+and navigation regressions 60/60; additive migration and acquisition local DB
+16/16; P1 concurrency 11/11; targeted ESLint zero errors/warnings; complete
+`npm run build` including all prebuild checks, TypeScript and optimized build
+passed (existing framework warnings remain). No checks disabled.
+
+Authenticated localhost acceptance with the retained Clerk Development fixture
+account: corrected Pipeline labels visible; due follow-up and consultation
+appear in Top 3; finance call brief opens with explicit synthetic audit evidence
+and no real-estate appraisal claims. Explicitly selecting a synthetic existing
+customer, company and contact succeeds. Exact before/after customer, membership,
+subscription/entitlement, CRM and prior communication snapshots are identical.
+This supplements the preceding manual create/archive, tenant denial, mobile
+navigation and Activity checks. All evidence is synthetic; no real commercial
+activation or external message occurred. Owned local cluster removed.
+
+Vercel metadata confirms ABR_GUID and GOOGLE_PLACES_API_KEY configured for
+Production. Values were not retrieved; positive live provider response remains
+unverified. Local provider failure tests and synthetic provider regressions
+are not live ABR/Google certification. Preview DB URLs remain absent.
+
+Production is unchanged. Release requires explicit approval of migration
+`20261020090000_unified_acquisition_identity` (four nullable columns, format
+checks, tenant-scoped unique indexes; no backfill/merge/reassignment), followed
+by #1018 merge and Production deployment. Recheck Production migration state
+and drift read-only before applying only that migration; never deploy all
+pending migrations or alter migration recovery. Verify live read-only provider
+search and authenticated UI after release, without creating live test prospects.
+No checkout, Stripe, entitlement or webhook implementation changes included.

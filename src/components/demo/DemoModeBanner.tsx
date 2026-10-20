@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DEMO_BANNER_COPY } from "@dg/platform-core";
+import { DEMO_BANNER_COPY } from "@dg/platform-core/demo/types";
 
 export function DemoModeBanner({ canReset }: { canReset: boolean }) {
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");

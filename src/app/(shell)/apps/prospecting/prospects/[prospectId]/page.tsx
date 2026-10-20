@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ProspectRelationshipForm } from "@/components/prospecting/ProspectRelationshipForm";
 import { notFound } from "next/navigation";
 import {
   computeProspectOpportunityScore,
@@ -97,6 +98,11 @@ export default async function ProspectResearchPage({ params }: { params: Promise
     metadata: prospect.metadata,
     audit: audit && contentAccessible ? { businessHealth: audit.businessHealth, aiVisibility: audit.aiVisibility, seoScore: audit.seoScore, websiteHealth: audit.websiteHealth, findings: audit.findings } : null,
   });
+  const [companies, contacts, memberships] = await Promise.all([
+    sessionHasFeature(session, "crm.companies.write") ? prisma.company.findMany({ where: { organisationId: session.organisationId, deletedAt: null }, orderBy: { name: "asc" }, take: 200, select: { id: true, name: true } }) : [],
+    sessionHasFeature(session, "crm.contacts.write") ? prisma.contact.findMany({ where: { organisationId: session.organisationId, deletedAt: null }, orderBy: { firstName: "asc" }, take: 200, select: { id: true, firstName: true, lastName: true } }) : [],
+    prisma.membership.findMany({ where: { clerkUserId: session.clerkUserId, status: "active", role: { in: ["owner", "admin"] } }, select: { organisation: { select: { id: true, name: true } } } }),
+  ]);
   const canWrite = sessionHasFeature(session, "prospecting.prospects.write");
   const canQualify = Boolean(prospect.contactName && (prospect.contactPhone || prospect.contactEmail));
   const isResearch = prospect.stage === "audit_created";
@@ -105,6 +111,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
     <>
       <ProspectingPageHeader title="Research prospect" description="Review evidence, identify the decision-maker and make a deliberate qualification decision." />
       <main className="dg-page-main space-y-6">
+        {canWrite ? <ProspectRelationshipForm prospectId={prospect.id} abn={prospect.abn} companies={companies.map((c) => ({ id: c.id, label: c.name }))} contacts={contacts.map((c) => ({ id: c.id, label: [c.firstName, c.lastName].filter(Boolean).join(" ") }))} organisations={memberships.map((m) => ({ id: m.organisation.id, label: m.organisation.name }))} /> : null}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <Link href="/apps/prospecting/today" className="text-xs text-violet-300 hover:underline">← Back to Today</Link>
