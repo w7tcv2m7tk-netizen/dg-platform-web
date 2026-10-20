@@ -9,10 +9,16 @@ const discoverySurface = fs.readFileSync("src/components/prospecting/Prospecting
 const opportunityEngine = fs.readFileSync("packages/platform-core/src/command-centre/growth-engine/opportunity-engine.ts", "utf8");
 const overview = fs.readFileSync("src/app/(shell)/apps/prospecting/page.tsx", "utf8");
 
-assert.match(page, /Prospecting Today/);
-assert.match(page, /Next best action/);
-assert.match(actions, /Call brief/);
-assert.match(actions, /Call now/);
+// The approved qualified-first workflow uses the shared header and staged call preparation.
+// Labels changed in the merged native experience; do not restore the older UI to satisfy tests.
+assert.match(page, /ProspectingPageHeader title="Today"/);
+assert.match(page, /Your Daily Top 3/);
+assert.match(page, /row\.stage === "qualified"/);
+assert.match(page, /row\.stage === "audit_created"/);
+assert.match(actions, /Prepare call/);
+assert.match(actions, /Hide call brief/);
+assert.match(actions, /const callHref = active\.contactPhone \? `tel:/);
+assert.match(actions, /showBrief && callHref/);
 assert.match(actions, /What happened\?/);
 for (const outcome of ["no_answer", "interested", "follow_up", "not_interested", "wrong_contact"]) {
   assert.match(actions, new RegExp(outcome));
@@ -22,12 +28,14 @@ assert.match(api, /organisationId: session\.organisationId/);
 assert.match(api, /follow_up_due/);
 assert.match(api, /followUpDraft/);
 assert.match(discovery, /prospectBookHref/);
-assert.match(discovery, /router\.push/);
-assert.match(discoverySurface, /id="prospect-book"/);
+assert.match(discovery, /router\.refresh\(\)/);
+assert.match(discovery, /setSelected\(new Set\(\)\)/);
+assert.match(discoverySurface, /href="\/apps\/prospecting\/prospects"/);
 console.log("Prospecting mobile workflow checks passed.");
 
 assert.doesNotMatch(opportunityEngine, /"prospect_created",\s*\n\s*\],/);
 assert.match(opportunityEngine, /input\.contactPhone \|\| input\.contactEmail/);
 assert.match(overview, /\["prospect", "audit_created"\]/);
-assert.match(actions, /Research prospect/);
-assert.match(actions, /Enrich contact/);
+assert.match(actions, /const needsResearch = active\.stage !== "qualified"/);
+assert.match(actions, /Review research/);
+assert.match(actions, /\/apps\/prospecting\/prospects\/\$\{active\.prospectId\}/);
