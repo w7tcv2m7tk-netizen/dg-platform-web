@@ -8,8 +8,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const baselineRef = "331b96e1"; // Pinned main baseline, before the independent gate migration.
+const baselineRef = "7a10486d00c83adfb8744e4de86c5d9f21ed4ad0"; // Verified main already includes the checkout gate schema.
 const migration = "packages/database/prisma/migrations/20261009_platform_checkout_creation_gate/migration.sql";
+const holdMigration = "packages/database/prisma/migrations/20261019_platform_subscription_webhook_hold/migration.sql";
 const pgBin = process.argv[2];
 if (!pgBin || !path.isAbsolute(pgBin)) throw new Error("Pass the installed PostgreSQL bin directory");
 const safeEnv = { ...process.env };
@@ -45,19 +46,29 @@ try {
   for (const relative of ["schema.prisma", "models/ai-visibility.prisma", "models/business-brain.prisma"]) {
     const result = spawnSync("git", ["show", `${baselineRef}:packages/database/prisma/${relative}`], { cwd: root, encoding: "utf8" });
     if (result.status !== 0) throw new Error("Cannot read baseline schema");
-    writeFileSync(path.join(baseline, relative), result.stdout);
+    let schema = result.stdout;
+    if (relative === "schema.prisma") {
+      // Reconstruct only this table from its certified SQL below: Prisma's
+      // datamodel cannot represent its singleton CHECK constraint.
+      const gate = /model PlatformCheckoutCreationGate \{[\s\S]*?\n\}/g;
+      if ([...schema.matchAll(gate)].length !== 1) throw new Error("Expected exactly one baseline gate model");
+      schema = schema.replace(gate, "");
+    }
+    writeFileSync(path.join(baseline, relative), schema);
   }
   const sql = path.join(owned, "baseline.sql");
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-empty", "--to-schema-datamodel", baseline, "--script", "--output", sql], { env });
   const psql = ["-X", "-h", "127.0.0.1", "-p", String(port), "-U", "checkout_test", "-d", "dg_checkout_test", "-v", "ON_ERROR_STOP=1", "--single-transaction"];
   run(path.join(pgBin, "psql"), [...psql, "-f", sql]);
+  // Apply once to the owned disposable database, including SQL-only checks.
   run(path.join(pgBin, "psql"), [...psql, "-f", migration]);
+  run(path.join(pgBin, "psql"), [...psql, "-f", holdMigration]);
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-url", databaseUrl, "--to-schema-datamodel", "packages/database/prisma", "--exit-code"], { env });
   run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-checkout-compatibility-db.mjs"], { env });
   passed = true;
 } finally {
   if (existsSync(path.join(data, "postmaster.pid"))) run(path.join(pgBin, "pg_ctl"), ["-D", data, "-m", "immediate", "-w", "stop"]);
   rmSync(owned, { recursive: true, force: true });
-  writeFileSync(path.join(tmpdir(), "dg-compat-db-evidence.json"), JSON.stringify({ passed, baselineRef, migration, cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
+  writeFileSync(path.join(tmpdir(), "dg-compat-db-evidence.json"), JSON.stringify({ passed, baselineRef, migrations: [migration, holdMigration], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
   console.log("Disposable checkout PostgreSQL cluster stopped and destroyed");
 }

@@ -1,3 +1,15 @@
+import { randomUUID } from "node:crypto";
+
+/** A hold/lock failure must become retryable, never a claimed event. */
+export class PlatformSubscriptionWebhookHoldUnavailableError extends Error {
+  readonly code = "PLATFORM_SUBSCRIPTION_WEBHOOK_HOLD_UNAVAILABLE";
+
+  constructor(options?: ErrorOptions) {
+    super("Platform subscription webhook guard state is unavailable", options);
+    this.name = "PlatformSubscriptionWebhookHoldUnavailableError";
+  }
+}
+
 /**
  * Stripe webhook receipt state machine (H-7 crash recovery).
  *
@@ -35,7 +47,8 @@ export type ReceiptRow = {
 export type ClaimOutcome =
   | { kind: "claimed"; attempt: number; recoveredStaleClaim: boolean }
   | { kind: "duplicate"; reason: "already_processed" | "in_flight" }
-  | { kind: "exhausted"; attempts: number };
+  | { kind: "exhausted"; attempts: number }
+  | { kind: "held" };
 
 /**
  * Storage seam. The Prisma implementation lands with the migration; tests
@@ -48,6 +61,13 @@ export type ClaimOutcome =
 export type ReceiptStore = {
   /** Insert a new claim. Returns false if the row already exists. */
   insertClaim(eventId: string, eventType: string, organisationId: string | null): Promise<boolean>;
+  /** Atomically read/lock the shared hold row and claim or recover this receipt. */
+  claimWithSubscriptionWebhookHold?(input: {
+    eventId: string;
+    eventType: string;
+    organisationId: string | null;
+    now: Date;
+  }): Promise<ClaimOutcome>;
   read(eventId: string): Promise<ReceiptRow | null>;
   /**
    * Conditional UPDATE → 'processing'. Must only succeed when the row is
@@ -83,8 +103,21 @@ export async function claimWebhookEvent(
     organisationId?: string | null;
     now?: Date;
   },
+  options: { requireSubscriptionWebhookOpen?: boolean } = {},
 ): Promise<ClaimOutcome> {
   const now = input.now ?? new Date();
+
+  if (options.requireSubscriptionWebhookOpen) {
+    if (!store.claimWithSubscriptionWebhookHold) {
+      throw new PlatformSubscriptionWebhookHoldUnavailableError();
+    }
+    return store.claimWithSubscriptionWebhookHold({
+      eventId: input.eventId,
+      eventType: input.eventType,
+      organisationId: input.organisationId ?? null,
+      now,
+    });
+  }
 
   // Fast path: no row yet.
   const inserted = await store.insertClaim(
@@ -155,7 +188,8 @@ export async function claimWebhookEvent(
 export type ProcessOutcome<T> =
   | { status: "processed"; result: T }
   | { status: "duplicate"; reason: "already_processed" | "in_flight" }
-  | { status: "exhausted"; attempts: number };
+  | { status: "exhausted"; attempts: number }
+  | { status: "held" };
 
 /**
  * Run a handler exactly once per event, with crash recovery.
@@ -170,14 +204,16 @@ export async function withWebhookReceiptState<T>(options: {
   organisationId?: string | null;
   handle: () => Promise<T>;
   now?: Date;
+  requireSubscriptionWebhookOpen?: boolean;
 }): Promise<ProcessOutcome<T>> {
   const claim = await claimWebhookEvent(options.store, {
     eventId: options.eventId,
     eventType: options.eventType,
     organisationId: options.organisationId,
     now: options.now,
-  });
+  }, { requireSubscriptionWebhookOpen: options.requireSubscriptionWebhookOpen });
 
+  if (claim.kind === "held") return { status: "held" };
   if (claim.kind === "duplicate") {
     return { status: "duplicate", reason: claim.reason };
   }
@@ -214,6 +250,84 @@ export async function withWebhookReceiptState<T>(options: {
  */
 export function prismaReceiptStore(): ReceiptStore {
   return {
+    async claimWithSubscriptionWebhookHold(input) {
+      const { prisma } = await import("@dg/database");
+      try {
+        return await prisma.$transaction(async (tx) => {
+          // A shared row lock conflicts with the operator's UPDATE that turns
+          // the hold on. If this claim obtains the lock first, activation waits
+          // for this receipt claim to commit; if activation commits first, this
+          // SELECT observes `true` and returns without inserting/reclaiming.
+          const states = await tx.$queryRaw<Array<{ subscription_webhooks_held: boolean }>>`
+            SELECT "subscription_webhooks_held"
+            FROM "platform_checkout_creation_gate"
+            WHERE "id" = 1
+            FOR SHARE
+          `;
+          const state = states[0];
+          if (!state || typeof state.subscription_webhooks_held !== "boolean") {
+            throw new PlatformSubscriptionWebhookHoldUnavailableError();
+          }
+          if (state.subscription_webhooks_held) return { kind: "held" };
+
+          // ON CONFLICT avoids aborting the transaction for simultaneous
+          // duplicate deliveries. The receipt claim and hold check commit
+          // together; the Stripe handler itself runs only after this short
+          // transaction releases the gate lock.
+          const inserted = await tx.$queryRaw<Array<{ event_id: string }>>`
+            INSERT INTO "stripe_webhook_receipts"
+              ("id", "event_id", "event_type", "organisation_id", "status", "attempts", "claimed_at")
+            VALUES
+              (${randomUUID()}, ${input.eventId}, ${input.eventType}, ${input.organisationId}, 'processing', 1, ${input.now})
+            ON CONFLICT ("event_id") DO NOTHING
+            RETURNING "event_id"
+          `;
+          if (inserted.length > 0) {
+            return { kind: "claimed", attempt: 1, recoveredStaleClaim: false };
+          }
+
+          const existing = await tx.stripeWebhookReceipt.findUnique({
+            where: { eventId: input.eventId },
+            select: { eventId: true, status: true, attempts: true, claimedAt: true },
+          });
+          if (!existing) return { kind: "duplicate", reason: "in_flight" };
+          if (existing.status === "processed" || (existing.status === "processing" && !existing.claimedAt)) {
+            return { kind: "duplicate", reason: "already_processed" };
+          }
+          if (existing.attempts >= MAX_ATTEMPTS) return { kind: "exhausted", attempts: existing.attempts };
+
+          const staleBefore = new Date(input.now.getTime() - STALE_CLAIM_MS);
+          if (existing.status === "processing" && existing.claimedAt && existing.claimedAt > staleBefore) {
+            return { kind: "duplicate", reason: "in_flight" };
+          }
+
+          const reclaimed = await tx.stripeWebhookReceipt.updateMany({
+            where: {
+              eventId: input.eventId,
+              OR: [
+                { status: "failed" },
+                { status: "processing", claimedAt: { lt: staleBefore } },
+              ],
+            },
+            data: { status: "processing", claimedAt: input.now, attempts: { increment: 1 } },
+          });
+          if (reclaimed.count === 0) return { kind: "duplicate", reason: "in_flight" };
+          const row = await tx.stripeWebhookReceipt.findUnique({
+            where: { eventId: input.eventId },
+            select: { attempts: true },
+          });
+          if (!row) return { kind: "duplicate", reason: "in_flight" };
+          return {
+            kind: "claimed",
+            attempt: row.attempts,
+            recoveredStaleClaim: existing.status === "processing",
+          };
+        });
+      } catch (error) {
+        if (error instanceof PlatformSubscriptionWebhookHoldUnavailableError) throw error;
+        throw new PlatformSubscriptionWebhookHoldUnavailableError({ cause: error });
+      }
+    },
     async insertClaim(eventId, eventType, organisationId) {
       const { prisma } = await import("@dg/database");
       try {

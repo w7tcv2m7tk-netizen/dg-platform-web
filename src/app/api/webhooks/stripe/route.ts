@@ -11,6 +11,7 @@ import {
   isCommerceCustomerSubscription,
   isPlatformCheckoutSession,
   isPlatformSubscription,
+  PlatformSubscriptionWebhookHoldUnavailableError,
   prismaReceiptStore,
   processPaymentWebhookEvent,
   provisionFromPlatformCheckout,
@@ -40,6 +41,259 @@ async function resolveOrgIdFromStripeCustomer(
   return orgs.length === 1 ? orgs[0].id : undefined;
 }
 
+type PlatformBillingDisposition = "platform" | "unrelated";
+
+function stripeObjectId(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && "id" in value && typeof value.id === "string") {
+    return value.id;
+  }
+  return undefined;
+}
+
+function isPlatformBillingMetadata(metadata: Record<string, unknown> | null | undefined): boolean {
+  return metadata?.dg_platform_subscription === "true" || Boolean(metadata?.dg_platform_tier);
+}
+
+function metadataOrganisationId(metadata: Record<string, unknown> | null | undefined): string | undefined {
+  const identities = [metadata?.organisation_id, metadata?.organisationId]
+    .filter((value): value is string => typeof value === "string" && Boolean(value.trim()))
+    .map((value) => value.trim());
+  if (new Set(identities).size > 1) throw new Error("Conflicting organisation metadata aliases");
+  return identities[0];
+}
+
+/** Customer identity is canonical evidence, not an entitlement or metadata claim. */
+async function canonicalCustomerOwner(customerId?: string) {
+  if (!customerId) return null;
+  const { prisma } = await import("@dg/database");
+  const [organisation, subscription] = await Promise.all([
+    prisma.organisation.findUnique({ where: { billingCustomerId: customerId }, select: { id: true } }),
+    prisma.platformSubscription.findUnique({
+      where: { stripeCustomerId: customerId },
+      select: { organisationId: true, stripeSubscriptionId: true },
+    }),
+  ]);
+  if (organisation && subscription && organisation.id !== subscription.organisationId) {
+    throw new Error("Conflicting canonical customer owners");
+  }
+  const organisationId = organisation?.id ?? subscription?.organisationId;
+  return organisationId ? { organisationId, subscriptionId: subscription?.stripeSubscriptionId } : null;
+}
+
+async function verifyPlatformOwner(input: {
+  organisationId?: string | null;
+  customerId?: string;
+  subscriptionId?: string;
+}) {
+  if (!input.organisationId) {
+    throw new PlatformSubscriptionWebhookHoldUnavailableError(
+      { cause: new Error("Platform billing event has no organisation identity") },
+    );
+  }
+  if (!input.customerId) {
+    throw new PlatformSubscriptionWebhookHoldUnavailableError(
+      { cause: new Error("Platform billing event has no Stripe customer identity") },
+    );
+  }
+
+  const { prisma } = await import("@dg/database");
+  const organisation = await prisma.organisation.findUnique({
+    where: { id: input.organisationId },
+    select: { id: true, billingCustomerId: true },
+  });
+  if (!organisation) {
+    throw new PlatformSubscriptionWebhookHoldUnavailableError(
+      { cause: new Error("Platform billing event references an unknown organisation") },
+    );
+  }
+
+  if (input.customerId) {
+    const [customerOrganisation, customerSubscription] = await Promise.all([
+      prisma.organisation.findUnique({
+        where: { billingCustomerId: input.customerId },
+        select: { id: true },
+      }),
+      prisma.platformSubscription.findUnique({
+        where: { stripeCustomerId: input.customerId },
+        select: { organisationId: true },
+      }),
+    ]);
+    if (
+      (organisation.billingCustomerId && organisation.billingCustomerId !== input.customerId) ||
+      (customerOrganisation && customerOrganisation.id !== input.organisationId) ||
+      (customerSubscription && customerSubscription.organisationId !== input.organisationId)
+    ) {
+      throw new PlatformSubscriptionWebhookHoldUnavailableError(
+        { cause: new Error("Platform billing customer ownership is inconsistent") },
+      );
+    }
+  }
+
+  if (input.subscriptionId) {
+    const subscription = await prisma.platformSubscription.findUnique({
+      where: { stripeSubscriptionId: input.subscriptionId },
+      select: { organisationId: true, stripeCustomerId: true },
+    });
+    if (
+      subscription &&
+      (subscription.organisationId !== input.organisationId ||
+        (input.customerId && subscription.stripeCustomerId && subscription.stripeCustomerId !== input.customerId))
+    ) {
+      throw new PlatformSubscriptionWebhookHoldUnavailableError(
+        { cause: new Error("Platform billing subscription ownership is inconsistent") },
+      );
+    }
+  }
+}
+
+/**
+ * Resolve the exact webhook paths that can write platform subscription state.
+ * Stripe's signed marker is only accepted together with a real organisation
+ * and non-conflicting canonical Stripe customer/subscription ownership.
+ * Database lookup failures fail closed before any receipt is claimed.
+ */
+async function resolvePlatformBillingDisposition(
+  event: ParsedStripeEvent,
+): Promise<PlatformBillingDisposition> {
+  if (event.connectAccountId) return "unrelated";
+  const guardedEventType = [
+    "subscription.created",
+    "subscription.updated",
+    "subscription.cancelled",
+    "checkout.completed",
+    "invoice.payment_failed",
+    "invoice.payment_action_required",
+    "invoice.paid",
+  ].includes(event.type);
+  if (!guardedEventType) return "unrelated";
+
+  try {
+    const { prisma } = await import("@dg/database");
+    if (["subscription.created", "subscription.updated", "subscription.cancelled"].includes(event.type)) {
+      const subscription = event.raw as Stripe.Subscription | null;
+      if (!subscription) throw new Error("Subscription lifecycle event has no subscription object");
+      const subscriptionId = subscription.id || event.stripeSubscriptionId;
+      const customerId = stripeObjectId(subscription.customer) || event.providerCustomerId;
+      const canonical = subscriptionId
+        ? await prisma.platformSubscription.findUnique({
+            where: { stripeSubscriptionId: subscriptionId },
+            select: { organisationId: true, stripeCustomerId: true },
+          })
+        : null;
+      const metadata = subscription.metadata as Record<string, unknown> | undefined;
+      const organisationId = metadataOrganisationId(metadata) || canonical?.organisationId;
+      if (canonical || isPlatformSubscription(subscription)) {
+        if (!subscriptionId) throw new Error("Platform subscription event has no subscription identity");
+        await verifyPlatformOwner({ organisationId, customerId, subscriptionId });
+        return "platform";
+      }
+      return "unrelated";
+    }
+
+    if (event.type === "checkout.completed") {
+      const session = event.raw as Stripe.Checkout.Session | null;
+      if (!session) throw new Error("Checkout completion has no session object");
+      if (session.mode !== "subscription") {
+        if (isPlatformCheckoutSession(session)) throw new Error("Platform checkout has an invalid mode");
+        return "unrelated";
+      }
+      const subscriptionId = stripeObjectId(session.subscription);
+      const customerId = stripeObjectId(session.customer);
+      const canonical = subscriptionId
+        ? await prisma.platformSubscription.findUnique({
+            where: { stripeSubscriptionId: subscriptionId },
+            select: { organisationId: true, stripeCustomerId: true },
+          })
+        : null;
+      if (!isPlatformCheckoutSession(session) && !canonical) return "unrelated";
+      let organisationId = metadataOrganisationId(session.metadata) || canonical?.organisationId;
+      if (!organisationId) {
+        const customerOwner = await canonicalCustomerOwner(customerId);
+        const email = (session.customer_details?.email ?? session.customer_email ?? session.metadata?.contact_email ?? "")
+          .trim().toLowerCase();
+        const memberships = email ? await prisma.membership.findMany({
+          where: { email }, select: { organisationId: true }, distinct: ["organisationId"], take: 2,
+        }) : [];
+        if (!customerOwner || memberships.length !== 1 || memberships[0].organisationId !== customerOwner.organisationId) {
+          throw new Error("Legacy checkout email and canonical customer ownership are unresolved");
+        }
+        organisationId = customerOwner.organisationId;
+      }
+      if (!subscriptionId) throw new Error("Platform checkout completion has no subscription identity");
+      await verifyPlatformOwner({ organisationId, customerId, subscriptionId });
+      // Carry the verified identity into receipt bookkeeping and provisioning;
+      // do not let the handler independently select the newest email membership.
+      event.organisationId = organisationId;
+      return "platform";
+    }
+
+    if (["invoice.payment_failed", "invoice.payment_action_required", "invoice.paid"].includes(event.type)) {
+      const invoice = event.raw as Stripe.Invoice | null;
+      if (!invoice) throw new Error("Invoice event has no invoice object");
+      const subscriptionId = event.stripeSubscriptionId || stripeObjectId(invoice.subscription);
+      const customerId = event.providerCustomerId || stripeObjectId(invoice.customer);
+      const canonical = subscriptionId
+        ? await prisma.platformSubscription.findUnique({
+            where: { stripeSubscriptionId: subscriptionId },
+            select: { organisationId: true, stripeCustomerId: true },
+          })
+        : null;
+      const subscriptionMetadata = invoice.subscription_details?.metadata as Record<string, unknown> | undefined;
+      const invoiceMetadata = invoice.metadata as Record<string, unknown> | undefined;
+      const metadata = { ...invoiceMetadata, ...subscriptionMetadata };
+      const organisationClaims = new Set([metadataOrganisationId(invoiceMetadata), metadataOrganisationId(subscriptionMetadata)]
+        .filter((id): id is string => Boolean(id)));
+      if (organisationClaims.size > 1) throw new Error("Conflicting invoice organisation identities");
+      const markedPlatform = [invoiceMetadata, subscriptionMetadata].some(isPlatformBillingMetadata);
+      const markedCommerce = [invoiceMetadata, subscriptionMetadata].some(
+        (source) => source?.dg_commerce_subscription === "true" || source?.dg_commerce === "true",
+      );
+      if (markedCommerce && (canonical || markedPlatform)) throw new Error("Conflicting invoice billing classes");
+      const customerOwner = await canonicalCustomerOwner(customerId);
+      if (markedCommerce && !customerOwner) return "unrelated";
+      if (!canonical && !markedPlatform && subscriptionId) {
+        const commerce = await prisma.commerceSubscription.findMany({
+          where: { providerId: "stripe", providerSubscriptionId: subscriptionId },
+          select: { organisationId: true, metadata: true }, take: 2,
+        });
+        if (commerce.length > 0) {
+          const ownerMetadata = commerce[0].metadata as Record<string, unknown> | null;
+          if (commerce.length !== 1 || !customerId || ownerMetadata?.customerId !== customerId ||
+              (metadataOrganisationId(metadata) && metadataOrganisationId(metadata) !== commerce[0].organisationId)) {
+            throw new Error("Commerce invoice ownership is unresolved");
+          }
+          // A shared customer is allowed, but the commerce marker must not
+          // conceal an unprojected platform invoice. Require a known, distinct
+          // platform subscription as well as the corroborated commerce record.
+          if (customerOwner && (!customerOwner.subscriptionId || customerOwner.subscriptionId === subscriptionId)) {
+            throw new Error("Shared invoice customer has unresolved subscription ownership");
+          }
+          return "unrelated";
+        }
+      }
+      if (markedCommerce) throw new Error("Commerce marker conflicts with canonical platform customer ownership");
+      if (!canonical && !markedPlatform && !customerOwner) {
+        if (subscriptionId) throw new Error("Subscription invoice ownership is unresolved");
+        return "unrelated";
+      }
+      if (!canonical && customerOwner?.subscriptionId && customerOwner.subscriptionId !== subscriptionId) {
+        throw new Error("Invoice subscription conflicts with canonical customer subscription");
+      }
+      const organisationId = metadataOrganisationId(metadata) || canonical?.organisationId || customerOwner?.organisationId;
+      if (!subscriptionId) throw new Error("Platform invoice event has no subscription identity");
+      await verifyPlatformOwner({ organisationId, customerId, subscriptionId });
+      event.organisationId = organisationId;
+      return "platform";
+    }
+
+    return "unrelated";
+  } catch (error) {
+    if (error instanceof PlatformSubscriptionWebhookHoldUnavailableError) throw error;
+    throw new PlatformSubscriptionWebhookHoldUnavailableError({ cause: error });
+  }
+}
+
 /**
  * Event handling, separated from receipt bookkeeping so a failed handler can
  * release its idempotency claim and remain retryable (H-7).
@@ -48,7 +302,10 @@ type ParsedStripeEvent = Awaited<
   ReturnType<ReturnType<typeof requirePaymentConnector>["parseWebhook"]>
 >;
 
-async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse> {
+async function handleStripeEvent(
+  event: ParsedStripeEvent,
+  platformBillingDisposition: PlatformBillingDisposition,
+): Promise<NextResponse> {
   if (event.type === "ignored") {
     const ignoredType =
       event.raw &&
@@ -62,8 +319,10 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
 
   if (event.type === "checkout.completed" && event.raw) {
     const session = event.raw as Stripe.Checkout.Session;
-    if (isPlatformCheckoutSession(session)) {
-      const platformResult = await provisionFromPlatformCheckout(session);
+    if (!event.connectAccountId && platformBillingDisposition === "platform" && isPlatformCheckoutSession(session)) {
+      const platformResult = await provisionFromPlatformCheckout({
+        ...session, metadata: { ...session.metadata, organisation_id: event.organisationId! },
+      });
       console.info("[stripe webhook] platform checkout:", platformResult);
       return NextResponse.json({ received: true, platform: platformResult });
     }
@@ -161,6 +420,9 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
     event.type === "invoice.payment_failed" ||
     event.type === "invoice.payment_action_required"
   ) {
+    if (platformBillingDisposition !== "platform") {
+      return NextResponse.json({ received: true, skipped: "not_a_verified_platform_subscription" });
+    }
     let organisationId = event.organisationId;
     if (!organisationId) {
       organisationId = await resolveOrgIdFromStripeCustomer(event.providerCustomerId);
@@ -255,7 +517,7 @@ async function handleStripeEvent(event: ParsedStripeEvent): Promise<NextResponse
     // Connected-account invoices already returned above, so this is a
     // platform-account invoice; the H-8 !connectAccountId gate is preserved by
     // the early return.
-    if (organisationId) {
+    if (organisationId && platformBillingDisposition === "platform") {
       try {
         await applyInvoicePaidRecovery({
           organisationId,
@@ -341,6 +603,12 @@ export async function POST(req: Request) {
     const connector = requirePaymentConnector("stripe");
     const event = await connector.parseWebhook(rawBody, headers);
 
+    // Defer only platform subscription lifecycle events during the controlled
+    // entitlement cutover. The store atomically checks the shared hold and
+    // claims/reclaims the receipt in one short database transaction.
+    const platformBillingDisposition = await resolvePlatformBillingDisposition(event);
+    const requireSubscriptionWebhookOpen = platformBillingDisposition === "platform";
+
     // H-7: atomic claim → processing → processed / failed, with stale-claim
     // recovery. A handler that throws leaves the receipt `failed` and rethrows
     // so Stripe retries; a crash leaves it `processing` until the stale
@@ -350,8 +618,16 @@ export async function POST(req: Request) {
       eventId: event.providerEventId,
       eventType: event.type,
       organisationId: event.organisationId ?? null,
-      handle: () => handleStripeEvent(event),
+      requireSubscriptionWebhookOpen,
+      handle: () => handleStripeEvent(event, platformBillingDisposition),
     });
+
+    if (outcome.status === "held") {
+      return NextResponse.json(
+        { error: { code: "subscription_webhook_cutover_hold", message: "Subscription event is temporarily deferred." } },
+        { status: 503, headers: { "Retry-After": "60" } },
+      );
+    }
 
     if (outcome.status === "duplicate") {
       return NextResponse.json({
@@ -378,6 +654,12 @@ export async function POST(req: Request) {
 
     return outcome.result;
   } catch (err) {
+    if (err instanceof PlatformSubscriptionWebhookHoldUnavailableError) {
+      return NextResponse.json(
+        { error: { code: "subscription_webhook_hold_unavailable", message: "Subscription event is temporarily deferred." } },
+        { status: 503, headers: { "Retry-After": "60" } },
+      );
+    }
     const message = err instanceof Error ? err.message : "Webhook processing failed";
     console.error("[stripe webhook]", message);
     return NextResponse.json({ error: message }, { status: 400 });

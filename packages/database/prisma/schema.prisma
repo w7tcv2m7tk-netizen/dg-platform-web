@@ -2095,6 +2095,7 @@ model AiWorkerProvisioningReceipt {
 model PlatformCheckoutCreationGate {
   id                     Int       @id @default(1)
   blocked                Boolean   @default(true)
+  subscriptionWebhooksHeld Boolean  @default(false) @map("subscription_webhooks_held")
   revision               Int       @default(0)
   changedAt              DateTime  @default(now()) @map("changed_at") @db.Timestamptz(6)
   lastAdmissionExpiresAt DateTime? @map("last_admission_expires_at") @db.Timestamptz(6)

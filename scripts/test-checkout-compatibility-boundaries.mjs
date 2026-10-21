@@ -33,7 +33,10 @@ test("webhook route never consults admission barrier", () => {
   assert.doesNotMatch(read("packages/platform-core/src/billing/platform-stripe.ts"), /admitPlatformCheckout|checkout-creation-gate/);
 });
 
-test("review branch push cannot request an automatic Vercel deployment", () => {
+test("review branches cannot request automatic Vercel deployments", () => {
   const config = JSON.parse(read("vercel.json"));
-  assert.deepEqual(config.git.deploymentEnabled, { "work/commercial-checkout-compatibility": false });
+  assert.deepEqual(config.git.deploymentEnabled, {
+    "work/commercial-checkout-compatibility": false,
+    "release/stripe-webhook-guard-only-20261019": false,
+  });
 });
