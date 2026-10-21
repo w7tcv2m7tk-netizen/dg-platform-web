@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const baselineRef = "f26e3e4761e8af66707919589a5ee883bb5d3ef8";
+const baselineRef = "7a10486d00c83adfb8744e4de86c5d9f21ed4ad0";
 const holdMigration = "packages/database/prisma/migrations/20261019_platform_subscription_webhook_hold/migration.sql";
 const pgBin = process.argv[2];
 if (!pgBin || !path.isAbsolute(pgBin)) throw new Error("Pass the installed PostgreSQL bin directory");

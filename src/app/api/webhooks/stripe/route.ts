@@ -56,8 +56,29 @@ function isPlatformBillingMetadata(metadata: Record<string, unknown> | null | un
 }
 
 function metadataOrganisationId(metadata: Record<string, unknown> | null | undefined): string | undefined {
-  const value = metadata?.organisation_id ?? metadata?.organisationId;
-  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+  const identities = [metadata?.organisation_id, metadata?.organisationId]
+    .filter((value): value is string => typeof value === "string" && Boolean(value.trim()))
+    .map((value) => value.trim());
+  if (new Set(identities).size > 1) throw new Error("Conflicting organisation metadata aliases");
+  return identities[0];
+}
+
+/** Customer identity is canonical evidence, not an entitlement or metadata claim. */
+async function canonicalCustomerOwner(customerId?: string) {
+  if (!customerId) return null;
+  const { prisma } = await import("@dg/database");
+  const [organisation, subscription] = await Promise.all([
+    prisma.organisation.findUnique({ where: { billingCustomerId: customerId }, select: { id: true } }),
+    prisma.platformSubscription.findUnique({
+      where: { stripeCustomerId: customerId },
+      select: { organisationId: true, stripeSubscriptionId: true },
+    }),
+  ]);
+  if (organisation && subscription && organisation.id !== subscription.organisationId) {
+    throw new Error("Conflicting canonical customer owners");
+  }
+  const organisationId = organisation?.id ?? subscription?.organisationId;
+  return organisationId ? { organisationId, subscriptionId: subscription?.stripeSubscriptionId } : null;
 }
 
 async function verifyPlatformOwner(input: {
@@ -172,7 +193,11 @@ async function resolvePlatformBillingDisposition(
 
     if (event.type === "checkout.completed") {
       const session = event.raw as Stripe.Checkout.Session | null;
-      if (!session || session.mode !== "subscription") return "unrelated";
+      if (!session) throw new Error("Checkout completion has no session object");
+      if (session.mode !== "subscription") {
+        if (isPlatformCheckoutSession(session)) throw new Error("Platform checkout has an invalid mode");
+        return "unrelated";
+      }
       const subscriptionId = stripeObjectId(session.subscription);
       const customerId = stripeObjectId(session.customer);
       const canonical = subscriptionId
@@ -182,9 +207,24 @@ async function resolvePlatformBillingDisposition(
           })
         : null;
       if (!isPlatformCheckoutSession(session) && !canonical) return "unrelated";
-      const organisationId = session.metadata?.organisation_id || canonical?.organisationId;
+      let organisationId = metadataOrganisationId(session.metadata) || canonical?.organisationId;
+      if (!organisationId) {
+        const customerOwner = await canonicalCustomerOwner(customerId);
+        const email = (session.customer_details?.email ?? session.customer_email ?? session.metadata?.contact_email ?? "")
+          .trim().toLowerCase();
+        const memberships = email ? await prisma.membership.findMany({
+          where: { email }, select: { organisationId: true }, distinct: ["organisationId"], take: 2,
+        }) : [];
+        if (!customerOwner || memberships.length !== 1 || memberships[0].organisationId !== customerOwner.organisationId) {
+          throw new Error("Legacy checkout email and canonical customer ownership are unresolved");
+        }
+        organisationId = customerOwner.organisationId;
+      }
       if (!subscriptionId) throw new Error("Platform checkout completion has no subscription identity");
       await verifyPlatformOwner({ organisationId, customerId, subscriptionId });
+      // Carry the verified identity into receipt bookkeeping and provisioning;
+      // do not let the handler independently select the newest email membership.
+      event.organisationId = organisationId;
       return "platform";
     }
 
@@ -200,12 +240,50 @@ async function resolvePlatformBillingDisposition(
           })
         : null;
       const subscriptionMetadata = invoice.subscription_details?.metadata as Record<string, unknown> | undefined;
-      const metadata = subscriptionMetadata ?? invoice.metadata as Record<string, unknown> | undefined;
-      const markedPlatform = isPlatformBillingMetadata(metadata);
-      if (!canonical && !markedPlatform) return "unrelated";
-      const organisationId = metadataOrganisationId(metadata) || canonical?.organisationId;
+      const invoiceMetadata = invoice.metadata as Record<string, unknown> | undefined;
+      const metadata = { ...invoiceMetadata, ...subscriptionMetadata };
+      const organisationClaims = new Set([metadataOrganisationId(invoiceMetadata), metadataOrganisationId(subscriptionMetadata)]
+        .filter((id): id is string => Boolean(id)));
+      if (organisationClaims.size > 1) throw new Error("Conflicting invoice organisation identities");
+      const markedPlatform = [invoiceMetadata, subscriptionMetadata].some(isPlatformBillingMetadata);
+      const markedCommerce = [invoiceMetadata, subscriptionMetadata].some(
+        (source) => source?.dg_commerce_subscription === "true" || source?.dg_commerce === "true",
+      );
+      if (markedCommerce && (canonical || markedPlatform)) throw new Error("Conflicting invoice billing classes");
+      const customerOwner = await canonicalCustomerOwner(customerId);
+      if (markedCommerce && !customerOwner) return "unrelated";
+      if (!canonical && !markedPlatform && subscriptionId) {
+        const commerce = await prisma.commerceSubscription.findMany({
+          where: { providerId: "stripe", providerSubscriptionId: subscriptionId },
+          select: { organisationId: true, metadata: true }, take: 2,
+        });
+        if (commerce.length > 0) {
+          const ownerMetadata = commerce[0].metadata as Record<string, unknown> | null;
+          if (commerce.length !== 1 || !customerId || ownerMetadata?.customerId !== customerId ||
+              (metadataOrganisationId(metadata) && metadataOrganisationId(metadata) !== commerce[0].organisationId)) {
+            throw new Error("Commerce invoice ownership is unresolved");
+          }
+          // A shared customer is allowed, but the commerce marker must not
+          // conceal an unprojected platform invoice. Require a known, distinct
+          // platform subscription as well as the corroborated commerce record.
+          if (customerOwner && (!customerOwner.subscriptionId || customerOwner.subscriptionId === subscriptionId)) {
+            throw new Error("Shared invoice customer has unresolved subscription ownership");
+          }
+          return "unrelated";
+        }
+      }
+      if (markedCommerce) throw new Error("Commerce marker conflicts with canonical platform customer ownership");
+      if (!canonical && !markedPlatform && !customerOwner) {
+        if (subscriptionId) throw new Error("Subscription invoice ownership is unresolved");
+        return "unrelated";
+      }
+      if (!canonical && customerOwner?.subscriptionId && customerOwner.subscriptionId !== subscriptionId) {
+        throw new Error("Invoice subscription conflicts with canonical customer subscription");
+      }
+      const organisationId = metadataOrganisationId(metadata) || canonical?.organisationId || customerOwner?.organisationId;
       if (!subscriptionId) throw new Error("Platform invoice event has no subscription identity");
       await verifyPlatformOwner({ organisationId, customerId, subscriptionId });
+      event.organisationId = organisationId;
       return "platform";
     }
 
@@ -244,8 +322,10 @@ async function handleStripeEvent(
       return NextResponse.json({ received: true, skipped: "connected_account_checkout" });
     }
     const session = event.raw as Stripe.Checkout.Session;
-    if (!event.connectAccountId && isPlatformCheckoutSession(session)) {
-      const platformResult = await provisionFromPlatformCheckout(session);
+    if (!event.connectAccountId && platformBillingDisposition === "platform" && isPlatformCheckoutSession(session)) {
+      const platformResult = await provisionFromPlatformCheckout({
+        ...session, metadata: { ...session.metadata, organisation_id: event.organisationId! },
+      });
       console.info("[stripe webhook] platform checkout:", platformResult);
       return NextResponse.json({ received: true, platform: platformResult });
     }

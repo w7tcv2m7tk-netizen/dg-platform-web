@@ -1,7 +1,13 @@
 # Stripe webhook cutover guard-only release
 
-This candidate is based on the Production source commit
-`f26e3e4761e8af66707919589a5ee883bb5d3ef8`. It contains only the additive
+This candidate incorporates verified main source commit
+`7a10486d00c83adfb8744e4de86c5d9f21ed4ad0`. The original isolated candidate
+started at `f26e3e4761e8af66707919589a5ee883bb5d3ef8`; that is historical,
+not the current deployment baseline. The reviewed published guard head is
+`d20f05bc17f76a861a337a4d063f8587dca73b0c`; subsequent targeted corrections
+are uncommitted until separately approved. Reverify the actual serving SHA
+and final reviewed guard SHA before release; do not deploy an old PR-body SHA.
+Relative to current main, the release contains only the additive
 subscription-webhook hold, atomic hold/receipt coordination, a read-only drain
 report, focused tests, and this operational procedure. It intentionally does
 not contain PR #1015's entitlement projection, custom-offer validation,
@@ -26,6 +32,21 @@ subscription/customer mapping or by a signed platform marker plus an existing
 organisation and non-conflicting customer/subscription ownership. Missing or
 conflicting ownership evidence returns retryable 503 before receipt claiming.
 
+Legacy invoices also resolve the unique canonical customer mapping when the
+subscription ID has not yet been projected. A contradictory subscription ID or
+ambiguous owner is retryable, not unrelated. Explicit signed commerce markers,
+or a unique commerce subscription corroborated by its stored customer identity,
+remain separate. Subscription invoices with no established billing ownership
+return 503 rather than permanently acknowledging missing purchase evidence.
+An explicit commerce marker does not override canonical platform customer
+ownership: a shared customer requires one corroborated commerce record and a
+known distinct canonical platform subscription. Missing/partial or conflicting
+evidence remains retryable before receipt claiming. The schema does not enforce
+cross-table customer exclusivity, so do not assume shared customers are impossible.
+Legacy marked Checkout sessions without an organisation ID require the email's
+single organisation to match canonical customer ownership. The verified ID is
+passed to provisioning, which must not choose the newest membership independently.
+
 ## Preconditions
 
 1. Independently verify that the serving application and database are the
@@ -34,6 +55,19 @@ conflicting ownership evidence returns retryable 503 before receipt claiming.
 2. Verify the prior additive migrations for the receipt state machine and
    `platform_checkout_creation_gate` have been applied. Back up and confirm the
    documented rollback/recovery procedure.
+   The certified execution runner has **25 directories**, including the accepted
+   unified-acquisition identity migration. It is distinct from this guard-only
+   branch's migration directory: do not use this branch to reconstruct or deploy
+   the complete recovery history. Existing operator evidence records **22 finished
+   entries**, including checkout attempts and the creation gate. These are dated
+   evidence, not a fresh preflight. The gate is blocked, revision 0, with no
+   outstanding admission. Never replay an applied migration or reopen the gate.
+   Remaining individually approved stages are
+   `20261018_platform_subscription_app_entitlements` (23),
+   `20261019_platform_subscription_webhook_hold` (24), and
+   `20261020_aida_conversation_schema_alignment` (25). Use only their certified
+   staged runner and separate approvals. Additive entitlement columns do not
+   authorise deployment/activation of the new entitlement authority.
 3. Apply the additive
    `20261019_platform_subscription_webhook_hold` migration. Confirm the
    singleton row exists with `subscription_webhooks_held = false`.
@@ -84,9 +118,21 @@ conflicting ownership evidence returns retryable 503 before receipt claiming.
 
 ## Relationship to PR #1015 and cutover
 
-Only after the guard is deployed, verified and the in-flight receipt drain is
-clear may the separately approved entitlement cutover begin. Activate the hold,
-run and review a fresh dry-run reconciliation, obtain separate signed
+The application release order remains **#1016 guard → #1006 coordinator → #1015
+entitlement cutover**. Preserve the deployed guard in each successor. Migration,
+deployment, Stripe event-selection changes, hold activation/release, signed
+reconciliation writes and checkout opening each retain their separate owner
+approval gates. Updating documentation or adding schema columns grants none of
+those approvals. The PR body must be reconciled with the final reviewed head,
+25-directory runner and current gate evidence before publication; do not repeat
+the historical `d5c9f30a`, 24-directory or absent-gate instructions.
+
+After the guard is deployed and verified, and old-deployment invocations are
+proven terminal, obtain separate approval and activate the hold. Then run the
+read-only receipt drain while the hold is active; all claimed handlers must
+complete or be safely resolved, with an explicit disposition for failed receipts.
+Only after that drain is clear may the separately approved entitlement cutover
+begin. Run and review a fresh dry-run reconciliation, obtain separate signed
 authorisation for any writes, and apply only that exact plan. Deploy the
 entitlement projection only after reconciliation succeeds. Keep the hold active
 until all serving instances run the new projection and health checks pass.
@@ -104,3 +150,36 @@ that ignores an active hold: it could process held events during reconciliation.
 If no guard-capable deployment is healthy, keep the hold active and events
 retrying until the guard is restored; do not release the hold as a shortcut.
 Preserve additive columns and receipt history during rollback.
+
+## Targeted local remediation evidence — 22 October 2026 (Brisbane)
+
+Starting head `d20f05bc17f76a861a337a4d063f8587dca73b0c`, branch
+`finish/webhook-guard`, with uncommitted review corrections; no publication.
+The focused route/receipt/drain/routing/ownership set passed 123/123;
+`npm run test:checkout-compatibility` passed 95/95 (overlapping coverage, not
+additional independent cases). Disposable PostgreSQL checkout compatibility
+passed 30/30 and guard concurrency passed 6/6; both runners' Prisma datamodel
+parity checks passed. The checkout runner reconstructs the singleton gate from
+certified SQL so its CHECK constraint is tested, not omitted by schema diff.
+`tsc --noEmit --incremental false` passed. The final full `npm run build`,
+including prebuild, Next.js 16.2.12 Turbopack, TypeScript and 457/457 static pages,
+exited 0; implementation/test hashes remained unchanged during that build.
+Build evidence: `/private/tmp/dg-1016-remediation-accepted-build-20261022.json`
+and its adjacent `.log`; remaining logs use `/private/tmp/dg-1016-remediation-*`.
+Existing module-format, middleware-deprecation, Cache-Control and file-tracing
+warnings remain; no unrelated build repair was attempted. No Production or
+Stripe connection was used. These local results require independent review and
+do not replace the Production routing, execution/drain, retry/replay and
+separately approved migration checks above. Unknown legacy ownership deliberately
+remains retryable rather than granting access or acknowledging the event.
+
+Follow-up marker/customer review: 144/144 focused tests and 116/116 checkout
+compatibility tests passed (overlapping sets), with standalone TypeScript passing.
+Cases cover all three invoice events, partial/exact/conflicting platform mappings,
+commerce-only and corroborated shared-customer controls, and connected-account
+isolation. This supersedes the earlier focused counts, not the unchanged
+disposable SQL/concurrency evidence. The follow-up full-build evidence is
+`/private/tmp/dg-1016-marker-customer-build-20261022.json` and adjacent `.log`.
+It exited 0 with Next.js 16.2.12 Turbopack, TypeScript and 457/457 static pages.
+SQL/locking code is unchanged, so disposable database suites were not repeated
+for this follow-up. The same external release approvals and checks still apply.

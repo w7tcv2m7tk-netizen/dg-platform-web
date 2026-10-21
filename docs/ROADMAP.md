@@ -42,6 +42,27 @@ Each task references an existing requirement ID. Before closure, record implemen
 
 ### Requirement reconciliation
 
+**22 October 2026 — targeted #1016 local review corrections (`platform.auth`,
+`detach.portal_billing`):** `finish/webhook-guard` at `d20f05bc` plus uncommitted
+invoice customer-ownership and corroborated email-fallback fixes, disposable
+baseline correction and [guard runbook](billing/STRIPE-WEBHOOK-GUARD-ONLY-RELEASE.md)
+updates. Focused runtime tests 123/123; checkout compatibility 95/95 (overlaps);
+owned disposable PostgreSQL checkout 30/30 and atomic guard 6/6, including Prisma
+schema parity. Standalone TypeScript and complete `npm run build` (prebuild,
+Next.js 16.2.12 Turbopack, TypeScript, 457 static pages) passed. Verification is
+local mocked-provider/disposable integration only; operational certification
+remains **BLOCKED**. Next: independent diff review, then separate publication,
+migration/deployment and hold/cutover approvals. No Production/provider changes,
+entitlement activation, commits or pushes were performed by this remediation.
+
+Follow-up invoice marker/customer correction for the same requirements: canonical
+platform customer evidence now precedes commerce-marker exclusion. Shared
+customers require distinct, corroborated subscription identities; uncertainty
+remains retryable. Focused runtime tests 144/144, checkout compatibility 116/116
+(overlaps), and standalone TypeScript passed. Earlier six local remediation
+paths are preserved; no Production/provider operation or publication is authorised
+by these local results. Final build evidence is recorded in the guard runbook.
+
 Historical audit baseline (11–12 October, retained as dated evidence): local checkout candidate `2d04d58f75dc12ed50015176939e31bc5af31767`; remote main and production `6793e37283b8597d26679442e5adae3c9393e3f6`, independently checked 11 October. Subsequent uncommitted governance/test changes must be identified as local changes, not a new PR head. GitHub had no open issues; recent closed issue-page inspection contained no standalone issues. Existing PRs, requirement IDs and operator instructions provide the available scope/history evidence; no issue approvals are invented.
 
 | Priority / existing requirement | Approved boundary and implementation evidence | Current verification state / remaining work | Next action and approval |
