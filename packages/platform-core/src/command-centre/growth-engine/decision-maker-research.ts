@@ -210,17 +210,19 @@ function cardCandidates(html: string, sourceUrl: string): DecisionMakerCandidate
 }
 
 function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCandidate | null {
-  const top = html.slice(0, 300_000);
-  const headings = [...top.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)]
-    .map(m => decodeText(m[1] || "")).filter(Boolean);
-  const role = leadershipRoleFromText(top);
-  const heading = headings
-    .map(value => validPersonName(value))
-    .find(value => value &&
-      /^[A-Z][A-Za-z'’.-]+(?:\s+[A-Z][A-Za-z'’.-]+){1,3}$/.test(value) &&
-      !/^(meet our team|our team|the team|about us|contact us|our people|leadership team|management team)$/i.test(value) &&
-      !leadershipRank(value)
-    ) ?? null;
+  // Navigation, forms and footers cannot establish a person's leadership role.
+  const top = html.slice(0, 300_000).replace(/<(nav|footer|form|script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  const headings = [...top.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)];
+  const profile = headings.map((match, index) => {
+    const name = validPersonName(decodeText(match[1] || ""));
+    const start = (match.index ?? 0) + match[0].length;
+    const end = Math.min(headings[index + 1]?.index ?? top.length, start + 4000);
+    const role = leadershipRoleFromText(decodeText(top.slice(start, end)).slice(0, 300));
+    return { name, role };
+  }).find(item => item.name && item.role &&
+    /^[A-Z][A-Za-z'’.-]+(?:\s+[A-Z][A-Za-z'’.-]+){1,3}$/.test(item.name) && !leadershipRank(item.name));
+  const heading = profile?.name ?? null;
+  const role = profile?.role ?? null;
   const rank = leadershipRank(role);
   if (!heading || !role || !rank) return null;
 
@@ -268,7 +270,6 @@ function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCan
   const isGenericEmail = isBusinessEmail;
   const email = [...localEmails, ...localVisibleEmails, ...profileVisibleEmails]
     .find(value => !isGenericEmail(value)) ?? null;
-  if (!email && !phone && ![...localEmails, ...localVisibleEmails, ...profileVisibleEmails].some(isBusinessEmail)) return null;
 
   const localImages = [...local.matchAll(/<img\b[^>]*(?:src|data-src|data-lazy-src)=["']([^"']+)["'][^>]*>/gi)]
     .map(m => m[1] || "").filter(src => src && !/(?:logo|icon|sprite|placeholder|data:image)/i.test(src));

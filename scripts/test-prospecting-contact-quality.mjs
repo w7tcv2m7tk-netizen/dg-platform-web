@@ -43,3 +43,17 @@ test('contact form heading with footer founder text never becomes a person',asyn
  const api=fixture('<h1>Enquiry Review</h1><p>Founder support</p><a href="mailto:hello@synthetic.test">Contact business</a>');
  const {candidates}=await api.researchProspectDecisionMaker('https://synthetic.test');assert.equal(candidates.length,0);
 });
+
+test('a plausible heading cannot borrow a founder role from a form or footer',async()=>{
+ const api=fixture('<h1>Platform Consultation</h1><p>Tell us about your business.</p><form><select><option>Founder</option></select></form><footer>Founder support <a href="mailto:hello@synthetic.test">Office</a></footer>');
+ const {candidates}=await api.researchProspectDecisionMaker('https://synthetic.test');assert.equal(candidates.length,0);
+});
+test('a heading cannot borrow leadership evidence from another heading section',async()=>{
+ const api=fixture('<h1>Platform Consultation</h1><p>Schedule a session.</p><h2>Meet Ben Example</h2><p>Founder</p><a href="mailto:hello@synthetic.test">Business contact</a>');
+ const {candidates}=await api.researchProspectDecisionMaker('https://synthetic.test');assert.equal(candidates.length,1);assert.equal(candidates[0].name,'Ben Example');
+});
+
+test('verified name and adjacent role remain candidates without direct contacts',async()=>{
+ const api=fixture('<h1>Meet Ben Example</h1><h2>Ben Example</h2><p>Founder &amp; Platform Architect</p><footer><a href="mailto:hello@synthetic.test">Office</a></footer>');
+ const {candidates}=await api.researchProspectDecisionMaker('https://synthetic.test');assert.equal(candidates.length,1);assert.equal(candidates[0].name,'Ben Example');assert.equal(candidates[0].email,null);assert.equal(candidates[0].businessEmail,'hello@synthetic.test');
+});
