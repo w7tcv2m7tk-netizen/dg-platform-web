@@ -44,7 +44,7 @@ function validPhone(value: string | null) {
 function validPersonName(value: string | null) {
   if (!value) return null;
   const name = value.replace(/\s+/g, " ").trim().replace(/^meet\s+/i, "");
-  if (/\b(?:business hours|opening hours|contact us|our team|privacy policy|email|phone|read more|view profile)\b/i.test(name)) return null;
+  if (/\b(?:business|opening|contact|our|privacy|terms|email|phone|enquir(?:y|ies)|inquir(?:y|ies)|review|services|strategy|read more|view profile|get started)\b/i.test(name)) return null;
   if (!/^[\p{L}][\p{L}’' .-]*\s+[\p{L}][\p{L}’' .-]*$/u.test(name)) return null;
   if (name.length < 3 || name.length > 80 || /[@{};:=!<>]/.test(name) || /\d/.test(name)) return null;
   return name;
@@ -275,7 +275,7 @@ function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCan
   const image = localImages[0] ?? null;
   return {
     name: heading, role, email, phone, sourceUrl,
-    evidence: `${heading} is identified as ${role} on a public individual profile page with direct contact details.`,
+    evidence: `${heading} is identified as ${role} on a public profile page.`,
     imageUrl: image ? absoluteUrl(decodeEntities(image), sourceUrl) : null,
     confidence: "high",
     rank: rank + (email ? 5 : 0) + (phone ? 5 : 0) + 10,

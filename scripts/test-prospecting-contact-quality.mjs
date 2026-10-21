@@ -12,7 +12,7 @@ function fixture(html) {
 }
 test('normalizes Meet prefix and rejects non-person headings',()=>{
  const api=fixture(''); assert.equal(api.validPersonName('Meet Ben Example'),'Ben Example');
- for(const name of ['Business Hours','Email','Opening Hours','Contact Us']) assert.equal(api.validPersonName(name),null);
+ for(const name of ['Business Hours','Email','Opening Hours','Contact Us','Enquiry Review','Our Story','Strategy Session']) assert.equal(api.validPersonName(name),null);
 });
 test('rejects placeholder and malformed encoded emails',()=>{
  const api=fixture(''); for(const email of ['you@yourbusiness.com.au','you@example.com','bad%ZZ@example.net']) assert.equal(api.validEmail(email),null);
@@ -37,4 +37,9 @@ test('named leader can use business contact route even without direct phone or e
  const api=fixture('<h1>Meet Ben Example</h1><p>Founder</p><a href="mailto:hello@synthetic.test">Contact our business</a>');
  const {candidates}=await api.researchProspectDecisionMaker('https://synthetic.test');
  assert.equal(candidates.length,1);assert.equal(candidates[0].name,'Ben Example');assert.equal(candidates[0].email,null);assert.equal(candidates[0].businessEmail,'hello@synthetic.test');
+});
+
+test('contact form heading with footer founder text never becomes a person',async()=>{
+ const api=fixture('<h1>Enquiry Review</h1><p>Founder support</p><a href="mailto:hello@synthetic.test">Contact business</a>');
+ const {candidates}=await api.researchProspectDecisionMaker('https://synthetic.test');assert.equal(candidates.length,0);
 });
