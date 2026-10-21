@@ -41,10 +41,6 @@ function clamp(n: number, min = 0, max = 100) {
   return Math.max(min, Math.min(max, Math.round(n)));
 }
 
-function daysSince(date: Date) {
-  return Math.floor((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000));
-}
-
 function startOfToday() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
@@ -196,7 +192,7 @@ export function computeProspectOpportunityScore(
   if (!input.contactPhone && !input.contactEmail) penalties.push("No usable contact route");
   if (researchConfidence < 55) penalties.push("Research confidence is still low");
 
-  const isQualified = input.stage === "qualified";
+  const isQualified = !["prospect", "audit_created", "lost", "won", "onboarding"].includes(input.stage);
   const contactable = Boolean(input.contactPhone || input.contactEmail);
   const dailyTop3Eligible = isQualified && contactable && researchConfidence >= 55;
   // Contact Priority rewards fit, opportunity and evidence. Qualification is a gate,
@@ -254,14 +250,12 @@ export async function getDailyOpportunityBriefing(options?: {
   const rows = await prisma.growthProspect.findMany({
     where: {
       archivedAt: null,
-      convertedOrganisationId: null,
       stage: { in: ACTIVE_STAGES },
       ...(options?.organisationId
         ? { organisationId: options.organisationId }
         : {}),
     },
     orderBy: { updatedAt: "desc" },
-    take: 120,
     include: {
       reports: {
         orderBy: { generatedAt: "desc" },
@@ -287,6 +281,10 @@ export async function getDailyOpportunityBriefing(options?: {
   });
 
   const scored = rows
+    .filter((row) => {
+      const followUpAt = (row.metadata as { salesWorkflow?: { followUpAt?: string } } | null)?.salesWorkflow?.followUpAt;
+      return row.stage !== "follow_up_due" || !followUpAt || new Date(followUpAt).getTime() <= Date.now();
+    })
     .map((row) => {
       const stage = row.stage as ProspectPipelineStage;
       const rawAudit = row.audits[0] ?? null;
@@ -310,12 +308,16 @@ export async function getDailyOpportunityBriefing(options?: {
       return { row, stage, audit, report, result };
     })
     .sort((a, b) => {
-      // Canonical readiness rule: qualified + contactable + sufficient evidence
-      // always outranks research work. All prospecting surfaces consume this briefing.
+      // Due follow-ups first, then contact readiness and the existing evidence-based priority.
+      const due = (item: typeof a) => {
+        const workflow = (item.row.metadata as { salesWorkflow?: { followUpAt?: string } } | null)?.salesWorkflow;
+        return item.stage === "follow_up_due" && (!workflow?.followUpAt || new Date(workflow.followUpAt).getTime() <= Date.now());
+      };
+      if (due(a) !== due(b)) return due(a) ? -1 : 1;
       if (a.result.dailyTop3Eligible !== b.result.dailyTop3Eligible) {
         return a.result.dailyTop3Eligible ? -1 : 1;
       }
-      return b.result.score - a.result.score;
+      return b.result.score - a.result.score || a.row.id.localeCompare(b.row.id);
     })
     .slice(0, limit);
 
@@ -325,6 +327,7 @@ export async function getDailyOpportunityBriefing(options?: {
     businessName: item.row.businessName,
     stage: item.stage,
     score: item.result.score,
+    scoreLabel: item.result.contactPriority != null ? "Contact priority" : "Research priority",
     band: item.result.band,
     bandLabel: item.result.bandLabel,
     recommendedAction: item.result.recommendedAction,
@@ -341,8 +344,8 @@ export async function getDailyOpportunityBriefing(options?: {
         }
       : null,
     auditFindings: (() => {
-      const findings = item.audit?.findings as { findings?: Array<{ title?: string; observed?: string; detail?: string; recommendedAction?: string }> } | null;
-      return (findings?.findings ?? []).slice(0, 8).map((finding) => ({
+      const findings = item.audit?.findings as { items?: Array<{ title?: string; observed?: string; detail?: string; recommendedAction?: string }> } | null;
+      return (findings?.items ?? []).slice(0, 8).map((finding) => ({
         title: finding.title ?? "",
         observed: finding.observed ?? "",
         detail: finding.detail ?? "",
@@ -377,16 +380,14 @@ export async function getDailyOpportunityBriefing(options?: {
       prisma.growthProspect.count({
         where: {
           archivedAt: null,
-          convertedOrganisationId: null,
-          stage: { in: ["email_opened"] },
+              stage: { in: ["email_opened"] },
           ...(options?.organisationId ? { organisationId: options.organisationId } : {}),
         },
       }),
       prisma.growthProspect.count({
         where: {
           archivedAt: null,
-          convertedOrganisationId: null,
-          stage: "meeting_booked",
+              stage: "meeting_booked",
           ...(options?.organisationId ? { organisationId: options.organisationId } : {}),
         },
       }),
@@ -396,8 +397,7 @@ export async function getDailyOpportunityBriefing(options?: {
           type: "proposal_sent",
           prospect: {
             archivedAt: null,
-            convertedOrganisationId: null,
-            stage: "proposal_sent",
+                  stage: "proposal_sent",
             ...(options?.organisationId ? { organisationId: options.organisationId } : {}),
           },
         },

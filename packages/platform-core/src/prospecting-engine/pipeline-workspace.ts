@@ -65,10 +65,10 @@ export const PROSPECT_WORKSPACE_STAGES: ProspectWorkspaceStageDef[] = [
   },
   {
     id: "converted",
-    label: "Converted",
+    label: "Won / handover",
     actionLabel: "CRM",
     sourceStages: ["won", "onboarding"],
-    description: "Promoted into CRM as a relationship.",
+    description: "Won or handed over. Trial and Customer require authoritative commercial state.",
   },
   {
     id: "lost",

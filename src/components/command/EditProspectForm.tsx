@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ProspectBusinessSearch } from "@/components/prospecting/ProspectBusinessSearch";
 
 export type EditProspectFields = {
   id: string;
@@ -23,6 +24,7 @@ export function EditProspectForm({
   compact?: boolean;
 }) {
   const router = useRouter();
+  const [details, setDetails] = useState({ websiteUrl: prospect.websiteUrl ?? "", contactPhone: prospect.contactPhone ?? "", location: prospect.location ?? "" });
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +65,7 @@ export function EditProspectForm({
     return (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => { setDetails({ websiteUrl: prospect.websiteUrl ?? "", contactPhone: prospect.contactPhone ?? "", location: prospect.location ?? "" }); setOpen(true); }}
         className={
           compact
             ? "rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-300 hover:border-sky-500/40 hover:text-sky-200"
@@ -96,6 +98,12 @@ export function EditProspectForm({
           Cancel
         </button>
       </div>
+      <p className="text-xs text-slate-400">Choose a Google listing to fill available website, phone and location details. Review before saving. ABR verification remains in Business identity.</p>
+      <ProspectBusinessSearch disabled={pending} onSelect={(business) => {
+        if (!business.googlePlaceId) { setError("Use Business identity to verify the ABN. Choose a Google result here for website and contact details."); return; }
+        setDetails(current => ({ websiteUrl: business.websiteUrl || current.websiteUrl, contactPhone: business.phone || current.contactPhone, location: business.location || current.location }));
+        setError(null);
+      }} />
       <form onSubmit={onSubmit} className="space-y-3">
         <label className="block">
           <span className="text-xs text-slate-400">Business name *</span>
@@ -119,7 +127,8 @@ export function EditProspectForm({
             <span className="text-xs text-slate-400">Location</span>
             <input
               name="location"
-              defaultValue={prospect.location ?? ""}
+              value={details.location}
+              onChange={event => setDetails(current => ({ ...current, location: event.target.value }))}
               className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
             />
           </label>
@@ -144,7 +153,8 @@ export function EditProspectForm({
             <span className="text-xs text-slate-400">Phone</span>
             <input
               name="contactPhone"
-              defaultValue={prospect.contactPhone ?? ""}
+              value={details.contactPhone}
+              onChange={event => setDetails(current => ({ ...current, contactPhone: event.target.value }))}
               className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
             />
           </label>
@@ -152,7 +162,8 @@ export function EditProspectForm({
             <span className="text-xs text-slate-400">Website</span>
             <input
               name="websiteUrl"
-              defaultValue={prospect.websiteUrl ?? ""}
+              value={details.websiteUrl}
+              onChange={event => setDetails(current => ({ ...current, websiteUrl: event.target.value }))}
               placeholder="https://"
               className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white"
             />

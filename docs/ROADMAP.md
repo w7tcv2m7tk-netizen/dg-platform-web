@@ -496,3 +496,264 @@ Status remains BLOCKED for hosted/authenticated synthetic certification and
 operator-approved creation-gate/coordinator migrations, guard rollout and
 legacy invocation/session drain. No Production data, billing configuration,
 provider objects or checkout admission were changed. No Neon preview created.
+### P1 Prospecting candidate reconciliation - 21 October 2026
+
+PR #1018 candidate `09a85fb7` reconciled main `d7abf8fd`; preserved its
+Today’s Priorities/follow-up coverage rather than the older qualified-only
+source assertions. No Prospecting product logic changed in this merge.
+Fresh checks: owned disposable acquisition integration 16/16, concurrency
+11/11, intake/report/navigation 71/71; complete `npm run build` including
+prebuild and TypeScript passed. The initial sandbox build was interrupted
+while compiling; the full rerun outside the sandbox passed. The local
+cluster was stopped and removed. Provider/route mocks are not authenticated
+application certification. Status remains BLOCKED pending an accessible
+Clerk development dashboard, verified webhook isolation and a supported
+local synthetic authenticated application context. No migration applied
+to Production; identity migration approval and deployment remain separate.
+No Neon Preview resources or automatic Preview deployments were created.
+
+### Local synthetic authentication support - 21 October 2026
+
+Requirements: `platform.auth`, `growth.pipeline`. Branch
+`fix/local-synthetic-auth`, based on `a7d2bf11`. Added explicit local-only pairing,
+an owned disposable PostgreSQL/loopback Next development launcher and refusal
+coverage. Reuses actual Clerk middleware and session/tenant checks; no auth,
+billing, entitlement, webhook, schema or Production configuration was changed.
+Local-only guard tests 26/26; existing pairing/verification regressions 34/34;
+changed-script ESLint passed. Actual local cluster/schema bootstrap and Next
+startup succeeded; all attempted owned clusters were stopped and removed.
+Real Clerk test-mode email-code sign-in succeeded and reached `/post-login`.
+The authenticated dashboard and attention/notification APIs returned HTTP 200.
+Matching Next bind hostname to localhost app origin resolved the local refresh
+loop; both test keys also have matching public signing-key IDs. Four narrow
+shared-shell imports were changed to existing client-safe modules to avoid
+server Node dependencies in development browser bundles. No middleware auth
+exception was retained. Synthetic local fixtures used normal owner membership
+and explicit local exempt subscriptions, not real paid customer state. One
+reserved-email Clerk Development user was prepared and retained for local tests.
+Owned clusters/servers were stopped and destroyed after testing. No remote
+webhook, Production, Vercel, Neon or billing objects/configuration changed.
+Full authenticated Prospecting/tenant-isolation certification remains BLOCKED:
+browser navigation timed out; the direct cross-tenant detail probe ultimately
+returned HTTP 405 (GET is unsupported), so it provides no tenant-isolation proof. Next action: complete those UI checks on the working
+isolated local auth setup; do not relabel this login/shell smoke as release
+certification. Local support implementation does not approve a Production release.
+
+Final local support validation: complete `npm run build` including prebuild,
+TypeScript and optimized compilation passed on the final implementation;
+Prospecting intake/report/navigation regression 71/71 and sidebar fallback/
+metadata checks passed. Local mode refusal tests 26/26 and original environment
+guards 34/34 passed. ESLint: zero errors, one existing AppContextNav unused
+pageTitle warning. Framework/build warnings remain; no checks were disabled.
+
+
+### Authenticated Prospecting verification - 21 October 2026
+
+Requirements: `platform.auth`, `growth.pipeline`. Actual Clerk Development
+email-code session, normal synthetic owner membership, owned disposable
+loopback PostgreSQL and localhost Next development app; no authentication
+bypass, Production access, Neon preview, deployment or remote migration.
+
+PASS: Prospecting first among permitted Growth items on desktop and mobile
+(390x844); default Today's Priorities shows three synthetic relationships and
+Research Priority; manual intake POST returns 201; Delete archives the new
+record, active count returns from four to three, archived view offers Restore.
+Other tenant prospect absent from list and direct page returns 404. Existing
+CRM company/contact linking succeeds; retry retains one relationship activity
+and the original contact.companyId. Activity renders that relationship event.
+Name/ABN searches fail safely without provider credentials and never assert
+verified identity. Report sharing/export stays disabled without audit evidence.
+
+FAIL: Pipeline calls the same unresearched value Opportunity Score instead of
+Research Priority, including in its aggregate score copy. Reproduction: add an
+unverified manual prospect with industry Real estate, leave research absent,
+then compare Pipeline (Opportunity Score 38) with Priorities (Research Priority
+38). No correction made during verification.
+
+BLOCKED/NOT CERTIFIED: positive ABR/Google results and verified ABN persistence
+(no provider credentials in the isolated launcher); existing customer commercial
+record preservation; qualified call brief and follow-up/consultation selection
+require further authenticated fixture scenarios. These results are not full
+release certification. AUTHENTICATED APPLICATION CERTIFICATION: HOLD.
+Evidence retained outside Git in Verification/ProspectingApp/20261021, including
+desktop/mobile screenshots and application request log. Prior full npm build
+including prebuild/TypeScript remains applicable: no runtime code changed in
+this verification. No merge or deployment authorised by this evidence.
+
+
+### Prospecting release completion candidate - 21 October 2026
+
+Requirements: `growth.pipeline`, `platform.auth`; PR #1018, branch
+`release/prospecting-intake`. Corrected Pipeline score labels to use the actual
+scoring result's Research/Contact priority type, including discovered prospects.
+Stage averages carry their priority type and are suppressed for mixed types.
+Rendering regression exercises both types with the real scoring engine.
+
+Validation on the corrected working tree: intake/rendering 13/13; report, mobile
+and navigation regressions 60/60; additive migration and acquisition local DB
+16/16; P1 concurrency 11/11; targeted ESLint zero errors/warnings; complete
+`npm run build` including all prebuild checks, TypeScript and optimized build
+passed (existing framework warnings remain). No checks disabled.
+
+Authenticated localhost acceptance with the retained Clerk Development fixture
+account: corrected Pipeline labels visible; due follow-up and consultation
+appear in Top 3; finance call brief opens with explicit synthetic audit evidence
+and no real-estate appraisal claims. Explicitly selecting a synthetic existing
+customer, company and contact succeeds. Exact before/after customer, membership,
+subscription/entitlement, CRM and prior communication snapshots are identical.
+This supplements the preceding manual create/archive, tenant denial, mobile
+navigation and Activity checks. All evidence is synthetic; no real commercial
+activation or external message occurred. Owned local cluster removed.
+
+Vercel metadata confirms ABR_GUID and GOOGLE_PLACES_API_KEY configured for
+Production. Values were not retrieved; positive live provider response remains
+unverified. Local provider failure tests and synthetic provider regressions
+are not live ABR/Google certification. Preview DB URLs remain absent.
+
+Production is unchanged. Release requires explicit approval of migration
+`20261020090000_unified_acquisition_identity` (four nullable columns, format
+checks, tenant-scoped unique indexes; no backfill/merge/reassignment), followed
+by #1018 merge and Production deployment. Recheck Production migration state
+and drift read-only before applying only that migration; never deploy all
+pending migrations or alter migration recovery. Verify live read-only provider
+search and authenticated UI after release, without creating live test prospects.
+No checkout, Stripe, entitlement or webhook implementation changes included.
+
+
+### Approved Prospecting Production rollout - 21 October 2026
+
+Requirements: `growth.pipeline`, `platform.auth`. Operator explicitly approved
+the exact identity migration, #1018 merge and Production deployment. Applied
+only `20261020090000_unified_acquisition_identity` in an atomic transaction
+with its checksum record: 724683fc03047fd36c9df1b49b170d467fcf5a1d5026fbcb412b5fa76da7f612.
+Verified four nullable columns, two validated format checks and both tenant
+unique indexes. Prospect count 51, unknown-owner prospects 43 and companies 15
+unchanged; no backfill. Existing migration/recovery rows were not modified.
+
+#1018 merged as `06d47650f85d8534afcace7564292f4e2380438c`; Vercel deployment
+`dpl_ByeBkme9WDx7to5Wt4s3aibgG451` READY with app.digitalgate.com.au assigned.
+No Preview deployment/Neon branch created. Early error/fatal runtime log scan
+returned no records (limited window, not complete runtime certification).
+Local application acceptance and full build passed as recorded above.
+Authenticated Production/provider acceptance remains pending because the
+available browser is signed out. No authentication bypass or synthetic writes
+against Production. Next action: owner signs into the open in-app DigitalGate
+tab; verify Priorities, controls, existing Activity and read-only ABR/Google
+search. Do not claim live provider verification from configuration metadata.
+Evidence: Verification/ProspectingRelease/20261021/release.json. This entry
+supersedes the migration/release HOLD only; provider acceptance remains open.
+
+
+### Verified registered-name correction - 21 October 2026
+
+Requirement `growth.pipeline`. Authenticated Production acceptance of #1018
+confirmed Priorities/default landing, full Growth order, Delete controls, live
+ABR name matches and Google name results, successful ABN verification, and
+Activity history. No live prospect was created, edited, archived or linked.
+
+Acceptance exposed a narrow intake defect: a sole-trader ABN with no parsed
+legalName returned only its numeric identifier despite populated registered
+business names, and registry review replaced the selected name with that ABN.
+Branch `fix/prospecting-registered-business-names` offers each ABR-returned legal,
+registered business or trading name as an explicit choice under the same ABN;
+review preserves the selected name and original identity/provenance. Shared
+ABNs remain one identity and tenant duplicate prevention is unchanged. Google
+uses the first returned name with an explicit multiple-name explanation; users
+can search another registered name directly. No inference, merge or legal-name
+fabrication; no schema, billing, entitlement or webhook change.
+
+New sole-trader and selection regressions plus existing intake/rendering tests
+15/15; report/mobile/navigation 60/60; targeted ESLint passed; complete npm build
+including prebuild, TypeScript and optimized build passed. Existing warnings
+remain, no checks disabled. Next: publish targeted fix, deploy and repeat the
+read-only live ABN/name-selection review. No additional migration is required.
+
+
+### Live registered-name acceptance completed - 21 October 2026
+
+Requirement `growth.pipeline`. #1020 merged as a589483e; deployment
+`dpl_AWUymGbRoPXb7SVnE3vYsTFk7vcT` READY on app.digitalgate.com.au. Authenticated
+Production ABN search returned three distinct registered-name choices and a
+Google DigitalGate result. Selecting DIGITALGATE retained that exact business
+name and verified ABN in the unsaved review; confirmation stayed unchecked and
+Add remained disabled. Earlier live name lookup, Priorities/default landing,
+desktop/mobile full Growth order, Delete controls, Activity history and call
+brief checks passed. No further migration; no Production prospect writes,
+messages or calls. Error/fatal log scan through 22:55 UTC found no records
+(limited early window). No Preview deployment or Neon branch created.
+
+Requested read-only live acceptance is complete. Save/archive and customer
+preservation were exercised only with synthetic local fixtures, not Production.
+Evidence retained in Verification/ProspectingRegisteredNames/20261021 including
+full build, 15 intake tests, 60 regressions, lint and live screenshot. Final
+acceptance entry retained locally to avoid another documentation-only deploy.
+
+
+### Prospect research-entry correction - 21 October 2026
+
+Requirement `growth.pipeline`. Operator screenshot exposed a newly added
+Discover-stage prospect offered Find decision-maker even though its API permits
+only Research; the footer incorrectly said a research decision was recorded.
+Branch `fix/prospecting-research-entry` reuses the existing audit action as a
+prominent Start research control, distinguishes first/repeated runs and shows
+accurate Discover/Research/qualified copy. Decision-maker controls explain and
+enforce their Research and website prerequisites; existing API stage and tenant
+guards remain. Save handler renamed from useCandidate to saveCandidate to avoid
+the existing hook-name lint error; no hook or candidate semantics changed.
+
+Start/re-run research requires a website. The scoped audit endpoint rejects
+missing/invalid websites with 422 before invoking the research engine; this
+avoids a website audit on an ABN-only intake record. Existing SSRF protections,
+identity/provenance and research implementation are preserved. No migration,
+billing, checkout, entitlement or webhook changes. No live prospect modified.
+
+Final validation: intake/rendering/route tests 18/18; report/mobile/navigation
+regressions 60/60; ESLint zero errors, one existing no-img-element warning; full
+npm build including prebuild, TypeScript and optimized compilation passed.
+Actual Clerk Development/normal owner/disposable loopback app replay: missing
+website disables Start and decision-maker actions; Edit website PATCH 200 then
+Start research POST 201 transitions to Research and enables decision-maker
+research. Synthetic unresolvable site remains unavailable; no live website
+audit success is claimed. Qualification remains disabled without contact.
+Final fresh-process replay supersedes provisional hot-reload observations; owned
+clusters removed. Evidence: Verification/ProspectingResearchEntry/20261021.
+Next: targeted release and read-only verification on the existing live prospect.
+
+
+### Research-entry live acceptance - 21 October 2026
+
+Requirement `growth.pipeline`. #1021 merged as 1b3d1330; deployment
+`dpl_HvJToTH3E6eDQ7NfMuXnTW6LpYBy` READY on app.digitalgate.com.au.
+Authenticated read-only inspection of the existing DIGITALGATE prospect confirms
+Start research is visible but disabled with Edit/website guidance, premature
+decision-maker action is disabled, and the footer says Research has not started.
+ABN and existing record details unchanged; no live audit or data write performed.
+Local mutation/transition tests remain the evidence for Start/Research execution.
+No additional migration. Evidence retained under
+Verification/ProspectingResearchEntry/20261021. No further work for this scoped
+UI/guard correction. Owner next action: Edit the prospect's correct website,
+then Start research and inspect the evidence before finding the decision-maker.
+Final acceptance entry retained locally to avoid a documentation-only deploy.
+
+
+### Prospecting intake and contact quality — 21 October 2026
+
+Requirement `growth.pipeline`; operator approved Google/ABR detail reuse, decision-maker name cleanup, available business email fallback, and removal of the duplicate Priorities page. Branch `fix/prospecting-contact-quality` extends the existing intake and Edit forms: explicitly combine Google listing details with a verified ABN, reset final identity confirmation, and retain separate identity provenance. Google website/phone/address fields populate when returned; ABR is an identity registry, not a website directory. Missing provider website remains explicitly unavailable.
+
+Decision-maker research removes a leading Meet, rejects generic contact headings and placeholder emails, and offers sourced same-domain general business mailboxes separately from personal email. Explicit candidate selection saves the available contact email. Existing saved contact names are not silently rewritten. Prospecting root redirects to Today; the duplicate Priorities tab is removed from both navigation configurations; Overview and legacy Overview entry remain available.
+
+Verification: synthetic executable regressions in `test-prospecting-intake.mjs`, new `test-prospecting-contact-quality.mjs`, report integrity, mobile workflow and navigation ordering: 88 passed, 0 skipped. Includes explicit complementary selection, unrelated selection reset, Edit population, fallback save, root redirects, false heading/placeholder rejection, direct-email precedence and foreign-mailbox rejection. Relevant lint: 0 errors, 3 pre-existing warnings. Full build/release and authenticated application observations recorded in the subsequent acceptance entry; no production readiness inferred from mocks. No database migration, CRM/customer reassignment, billing or webhook change. Evidence: Verification/ProspectingContactQuality/20261021. Next: complete final build and authenticated read-only release verification; no live candidate save or synthetic production write.
+
+Final-revision validation: complete `npm run build` (prebuild, optimized compile, TypeScript and route generation) passed. Authenticated fresh-process Clerk Development session with an owned disposable loopback PostgreSQL database confirmed the actual prospect detail Edit contains business search; search POST returns 200 with honest provider-unavailable results because no provider credentials are inherited. Real provider enrichment is covered by synthetic executable tests here, not claimed as local live-provider certification. Today root redirect and six-tab navigation observed authenticated locally. Owned local server/cluster stopped and removed. No live record saved. Next: focused release and read-only live UI verification.
+
+### Contact-quality live follow-up — 21 October 2026
+
+Requirement `growth.pipeline`. #1022 deployed as 96b53214, READY. Authenticated read-only research returns Ben Roe and sourced hello@digitalgate.com.au fallback; existing saved contact unchanged. Live inspection exposed one additional generic heading, Enquiry Review, wrongly interpreted as a person. Extend conservative generic-heading rejection and avoid claiming direct contact evidence on phone/email-free profiles. New executable contact-form/footer-role fixture reproduces this case and confirms no candidate is emitted. Final targeted regressions: 89 passed, 0 skipped; complete npm run build passed including prebuild, optimized compilation and TypeScript. No further schema or access change.
+
+Live business search returns ABR identity and a Google DigitalGate result at Southport with phone but no website; listing was not selected or saved. Website enrichment is supported where Google supplies it, not fabricated or inferred from ABR. Owner must confirm listing relevance. Final heading-filter release and read-only candidate recheck remain next. Evidence: Verification/ProspectingContactQuality/20261021.
+
+### Person-role evidence scoping — 21 October 2026
+
+Requirement `growth.pipeline`. Live acceptance of #1023 exposed a second contact-page heading borrowing unrelated leadership text. Correct the cause: profile candidates require a role within the following heading section (bounded to the first 300 text characters/4000 HTML characters), excluding navigation, forms, footers, scripts and styles. A genuine named leader remains eligible without direct contact details; the independently sourced business mailbox is attached separately. New synthetic form/footer and section-boundary fixtures pass. The actual SSRF-protected service read the public DigitalGate website without database credentials and returned exactly one candidate: Ben Roe, Founder, no claimed direct email, sourced business mailbox hello@digitalgate.com.au. No production record mutation.
+
+Final focused regressions: 92 passed, 0 failed/skipped. Complete npm run build passed including prebuild, TypeScript and optimized routes. Relevant lint: no errors, two existing unused-variable warnings. Evidence in Verification/ProspectingContactQuality/20261021, including public-contact-smoke.json. Next: release this validated structural correction and confirm the authenticated application returns the same single candidate.
