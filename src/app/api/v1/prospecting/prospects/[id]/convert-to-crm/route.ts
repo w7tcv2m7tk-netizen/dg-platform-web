@@ -1,4 +1,4 @@
-import { convertGrowthProspectToCrm } from "@dg/platform-core";
+import { AcquisitionError, convertGrowthProspectToCrm } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requireFeature, requirePlatformAuth } from "@/lib/platform-api";
@@ -22,6 +22,7 @@ export async function POST(req: Request, { params }: RouteParams) {
   }
 
   const { id } = await params;
+  try {
   const converted = await convertGrowthProspectToCrm({
     organisationId: session.organisationId,
     prospectId: id,
@@ -36,4 +37,8 @@ export async function POST(req: Request, { params }: RouteParams) {
   }
 
   return NextResponse.json({ data: converted });
+  } catch (error) {
+    if (error instanceof AcquisitionError) return NextResponse.json({ error: { code: error.code, message: error.message } }, { status: error.status });
+    throw error;
+  }
 }

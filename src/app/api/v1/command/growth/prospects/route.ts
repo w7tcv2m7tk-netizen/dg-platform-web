@@ -1,4 +1,5 @@
 import {
+  AcquisitionError,
   createGrowthProspect,
   getGrowthEngineSummary,
   listGrowthProspects,
@@ -43,8 +44,12 @@ export async function POST(req: Request) {
     );
   }
 
+  try {
   const prospect = await createGrowthProspect({
+    abn: typeof body.abn === "string" ? body.abn : undefined,
     organisationId: session.organisationId,
+    metadata: typeof body.googlePlaceId === "string" && /^[A-Za-z0-9_-]{1,300}$/.test(body.googlePlaceId)
+      ? { intakeSource: "user_selected_google_listing", providerRefs: { googlePlaceId: body.googlePlaceId } } : undefined,
     businessName: body.businessName,
     contactName: body.contactName,
     contactEmail: body.contactEmail,
@@ -58,4 +63,8 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json({ data: prospect }, { status: 201 });
+  } catch (error) {
+    if (error instanceof AcquisitionError) return NextResponse.json({ error: { code: error.code, message: error.message } }, { status: error.status });
+    throw error;
+  }
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ProspectBusinessSearch } from "./ProspectBusinessSearch";
 
 import type { ProspectPipelineStage } from "@dg/platform-core";
 
@@ -129,6 +130,7 @@ type ProspectEditFields = {
 };
 
 export function ProspectEditControl({ prospect }: { prospect: ProspectEditFields }) {
+  const [details, setDetails] = useState({ websiteUrl: prospect.websiteUrl ?? "", contactPhone: prospect.contactPhone ?? "", location: prospect.location ?? "" });
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -168,7 +170,7 @@ export function ProspectEditControl({ prospect }: { prospect: ProspectEditFields
     return (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => { setDetails({ websiteUrl: prospect.websiteUrl ?? "", contactPhone: prospect.contactPhone ?? "", location: prospect.location ?? "" }); setOpen(true); }}
         className="rounded-md border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-slate-500"
       >
         Edit
@@ -191,7 +193,13 @@ export function ProspectEditControl({ prospect }: { prospect: ProspectEditFields
           Cancel
         </button>
       </div>
-      <form onSubmit={onSubmit} className="space-y-2">
+      <p className="mb-3 text-xs text-slate-400">Select Google details to fill available website, phone and location, then review and save. Verify ABN separately in Business identity.</p>
+      <ProspectBusinessSearch disabled={pending} onSelect={business => {
+        if (!business.googlePlaceId) { setError("Choose a Google result for website and contact details. Verify ABN in Business identity."); return; }
+        setDetails(current => ({ websiteUrl: business.websiteUrl || current.websiteUrl, contactPhone: business.phone || current.contactPhone, location: business.location || current.location }));
+        setError(null);
+      }} />
+      <form onSubmit={onSubmit} className="mt-3 space-y-2">
         <input
           name="businessName"
           required
@@ -201,11 +209,11 @@ export function ProspectEditControl({ prospect }: { prospect: ProspectEditFields
         />
         <div className="grid gap-2 sm:grid-cols-2">
           <input name="industry" defaultValue={prospect.industry ?? ""} placeholder="Industry" className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white" />
-          <input name="location" defaultValue={prospect.location ?? ""} placeholder="Location" className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white" />
+          <input name="location" value={details.location} onChange={event => setDetails(current => ({ ...current, location: event.target.value }))} placeholder="Location" className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white" />
           <input name="contactName" defaultValue={prospect.contactName ?? ""} placeholder="Contact name" className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white" />
           <input name="contactEmail" type="email" defaultValue={prospect.contactEmail ?? ""} placeholder="Contact email" className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white" />
-          <input name="contactPhone" defaultValue={prospect.contactPhone ?? ""} placeholder="Phone" className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white" />
-          <input name="websiteUrl" defaultValue={prospect.websiteUrl ?? ""} placeholder="Website" className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white" />
+          <input name="contactPhone" value={details.contactPhone} onChange={event => setDetails(current => ({ ...current, contactPhone: event.target.value }))} placeholder="Phone" className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white" />
+          <input name="websiteUrl" value={details.websiteUrl} onChange={event => setDetails(current => ({ ...current, websiteUrl: event.target.value }))} placeholder="Website" className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white" />
         </div>
         {error ? <p className="text-xs text-rose-300">{error}</p> : null}
         <button type="submit" disabled={pending} className="rounded-md bg-sky-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
@@ -233,7 +241,7 @@ export function ProspectArchiveControl({
     const label = businessName?.trim() || "this prospect";
     const confirmed = archived
       ? window.confirm(`Restore ${label} to the active pipeline?`)
-      : window.confirm(`Archive ${label}? Existing audit and CRM records will remain on file.`);
+      : window.confirm(`Delete ${label} from the active pipeline? It will be archived and can be restored. Existing CRM, customer and audit records will remain on file.`);
     if (!confirmed) return;
 
     setPending(true);
@@ -247,7 +255,7 @@ export function ProspectArchiveControl({
       if (!res.ok) throw new Error("archive_failed");
       router.refresh();
     } catch {
-      setError(archived ? "Could not restore this prospect." : "Could not archive this prospect.");
+      setError(archived ? "Could not restore this prospect." : "Could not delete this prospect from the pipeline.");
     } finally {
       setPending(false);
     }
@@ -259,9 +267,10 @@ export function ProspectArchiveControl({
         type="button"
         disabled={pending}
         onClick={() => void onClick()}
+        aria-label={`${archived ? "Restore" : "Delete"} ${businessName || "prospect"}${archived ? "" : " from pipeline"}`}
         className="rounded-md border border-slate-700 px-2 py-1 text-[11px] text-slate-400 hover:border-slate-500 disabled:opacity-50"
       >
-        {pending ? (archived ? "Restoring…" : "Archiving…") : archived ? "Restore" : "Archive"}
+        {pending ? (archived ? "Restoring…" : "Deleting…") : archived ? "Restore" : "Delete"}
       </button>
       {error ? <span className="text-[11px] text-rose-300">{error}</span> : null}
     </div>
