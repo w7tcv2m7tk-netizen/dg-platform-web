@@ -18,10 +18,19 @@ export function CreateProspectForm({ pipelineHref = "/apps/prospecting/pipeline"
   const [error, setError] = useState<string | null>(null);
 
   function selectBusiness(business: ProspectBusinessSelection) {
-    setFields({ ...empty, businessName: business.businessName, abn: business.abn || "", location: business.location || "", contactPhone: business.phone || "", websiteUrl: business.websiteUrl || "" });
-    setIdentity(business.identity || null);
+    const keepIdentity = Boolean(business.keepVerifiedIdentity && identity);
+    const keepGoogle = Boolean(business.keepGoogleDetails && googlePlaceId);
+    setFields((current) => ({
+      ...empty,
+      businessName: keepIdentity ? current.businessName : business.businessName,
+      abn: keepIdentity ? current.abn : business.abn || "",
+      location: keepGoogle ? current.location : business.location || "",
+      contactPhone: keepGoogle ? current.contactPhone : business.phone || "",
+      websiteUrl: keepGoogle ? current.websiteUrl : business.websiteUrl || "",
+    }));
+    setIdentity(keepIdentity ? identity : business.identity || null);
     setIdentityConfirmed(false);
-    setGooglePlaceId(business.googlePlaceId);
+    setGooglePlaceId(keepGoogle ? googlePlaceId : business.googlePlaceId);
     setError(null);
   }
 
@@ -55,7 +64,7 @@ export function CreateProspectForm({ pipelineHref = "/apps/prospecting/pipeline"
   }
 
   return <form onSubmit={onSubmit} className="space-y-5">
-    <ProspectBusinessSearch onSelect={selectBusiness} disabled={pending} />
+    <ProspectBusinessSearch onSelect={selectBusiness} disabled={pending} hasVerifiedIdentity={Boolean(identity)} hasGoogleDetails={Boolean(googlePlaceId)} />
     <fieldset disabled={pending} className="space-y-4">
       <legend className="mb-2 font-semibold text-white">Review and add prospect</legend>
       <p className="text-sm text-slate-400">Select a result above or enter details manually. Review the business identity before adding it to your pipeline.</p>

@@ -243,11 +243,6 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
   prospecting: {
     name: "Prospecting",
     routes: [
-      {
-        path: "/apps/prospecting",
-        label: "Priorities",
-        matchAlso: ["/command/growth-engine"],
-      },
       { path: "/apps/prospecting/overview", label: "Overview" },
       { path: "/apps/prospecting/discovery", label: "Discover" },
       { path: "/apps/prospecting/prospects", label: "Prospects" },
@@ -256,7 +251,7 @@ const SIDEBAR_APP_DISPLAY: Record<string, { name?: string; routes?: AppRoute[] }
         label: "Pipeline",
         matchAlso: ["/command/growth-engine/pipeline"],
       },
-      { path: "/apps/prospecting/today", label: "Today", matchAlso: ["/command/sales-week"] },
+      { path: "/apps/prospecting/today", label: "Today", matchAlso: ["/command/sales-week", "/command/growth-engine"] },
       {
         path: "/apps/prospecting/activity",
         label: "Activity",

@@ -11,6 +11,8 @@ export type ProspectBusinessSelection = {
   phone?: string;
   websiteUrl?: string;
   googlePlaceId?: string;
+  keepVerifiedIdentity?: boolean;
+  keepGoogleDetails?: boolean;
 };
 
 export async function fetchProspectIdentity(abn: string): Promise<BusinessIdentityRecord> {
@@ -23,7 +25,7 @@ export async function fetchProspectIdentity(abn: string): Promise<BusinessIdenti
 type SearchResult = Awaited<ReturnType<typeof searchProspectIntake>>;
 const inputClass = "mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white";
 
-export function ProspectBusinessSearch({ onSelect, disabled }: { onSelect: (business: ProspectBusinessSelection) => void; disabled: boolean }) {
+export function ProspectBusinessSearch({ onSelect, disabled, hasVerifiedIdentity = false, hasGoogleDetails = false }: { onSelect: (business: ProspectBusinessSelection) => void; disabled: boolean; hasVerifiedIdentity?: boolean; hasGoogleDetails?: boolean }) {
   const [mode, setMode] = useState<"name" | "abn">("name");
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
@@ -43,19 +45,19 @@ export function ProspectBusinessSearch({ onSelect, disabled }: { onSelect: (busi
     finally { setPending(false); }
   }
 
-  async function selectRegistry(abn: string, businessName: string) {
+  async function selectRegistry(abn: string, businessName: string, keepGoogleDetails = false) {
     setPending(true); setError("");
     try {
       const identity = await fetchProspectIdentity(abn);
       const address = identity.entity.address;
-      onSelect({ businessName, abn: identity.identifiers.abn, identity, location: [address?.state, address?.postcode].filter(Boolean).join(" ") });
+      onSelect({ businessName, keepGoogleDetails, abn: identity.identifiers.abn, identity, location: [address?.state, address?.postcode].filter(Boolean).join(" ") });
     } catch (error) { setError(error instanceof Error ? error.message : "ABR verification failed"); }
     finally { setPending(false); }
   }
 
-  function selectGoogle(candidate: DiscoveryCandidate) {
+  function selectGoogle(candidate: DiscoveryCandidate, keepVerifiedIdentity = false) {
     // Explicit selection supplies listing details only; Google does not verify an ABN.
-    onSelect({ businessName: candidate.businessName, location: candidate.location, phone: candidate.phone, websiteUrl: candidate.websiteUrl, googlePlaceId: candidate.providerRefs.googlePlaceId });
+    onSelect({ keepVerifiedIdentity, businessName: candidate.businessName, location: candidate.location, phone: candidate.phone, websiteUrl: candidate.websiteUrl, googlePlaceId: candidate.providerRefs.googlePlaceId });
   }
 
   return <section aria-label="Find a prospect" className="space-y-4 rounded-xl border border-slate-700 p-4">
@@ -86,6 +88,7 @@ export function ProspectBusinessSearch({ onSelect, disabled }: { onSelect: (busi
           <p className="font-medium text-white">{match.businessName}</p><p className="text-sm text-slate-400">ABN {match.abn}{match.location ? ` · ${match.location}` : ""}</p>
           {result.verifiedIdentity?.identifiers.abn === match.abn ? <p className="text-xs text-slate-400">{result.verifiedIdentity.entity.status} · {[result.verifiedIdentity.entity.address?.state, result.verifiedIdentity.entity.address?.postcode].filter(Boolean).join(" ")}</p> : null}
           <button type="button" disabled={busy} onClick={() => void selectRegistry(match.abn, match.businessName)} className="min-h-11 text-sm text-violet-300 disabled:opacity-50">Verify ABN and review</button>
+          {hasGoogleDetails ? <button type="button" disabled={busy} onClick={() => void selectRegistry(match.abn, match.businessName, true)} className="ml-4 min-h-11 text-sm text-violet-300">Verify ABN with selected Google details</button> : null}
         </li>)}</ul>
       </div>
       <div>
@@ -95,7 +98,9 @@ export function ProspectBusinessSearch({ onSelect, disabled }: { onSelect: (busi
         <ul className="mt-2 space-y-2">{result.google.map((candidate) => <li key={candidate.key} className="rounded-lg border border-slate-700 p-3">
           <p className="font-medium text-white">{candidate.businessName}</p>
           <p className="break-words text-sm text-slate-400">{[candidate.location, candidate.phone, candidate.websiteUrl].filter(Boolean).join(" · ")}</p>
+          {!candidate.websiteUrl ? <p className="text-xs text-slate-400">Website not provided by Google. Add it manually if known.</p> : null}
           <button type="button" disabled={busy} onClick={() => selectGoogle(candidate)} className="min-h-11 text-sm text-violet-300 disabled:opacity-50">Review this Google business</button>
+          {hasVerifiedIdentity ? <button type="button" disabled={busy} onClick={() => selectGoogle(candidate, true)} className="ml-4 min-h-11 text-sm text-violet-300">Use Google details with selected ABN</button> : null}
         </li>)}</ul>
       </div>
     </div> : null}

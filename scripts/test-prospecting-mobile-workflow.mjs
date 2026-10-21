@@ -9,7 +9,7 @@ const discoverySurface = fs.readFileSync("src/components/prospecting/Prospecting
 const opportunityEngine = fs.readFileSync("packages/platform-core/src/command-centre/growth-engine/opportunity-engine.ts", "utf8");
 const overview = fs.readFileSync("src/components/prospecting/ProspectingOverview.tsx", "utf8");
 
-assert.match(page, /Today’s Priorities/);
+assert.match(page, /title="Today"/);
 assert.match(page, /allRows.slice\(0, 3\)/);
 assert.match(actions, /Hide call brief/);
 assert.match(actions, /callHref/);
