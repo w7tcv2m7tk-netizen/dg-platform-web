@@ -518,3 +518,53 @@ Status BLOCKED: independent integration review, authenticated synthetic hosted
 test-mode acceptance, separately approved migration/guard/drain/reconciliation
 release sequence and rollback evidence. No live provider operations, migrations,
 entitlement reconciliation or checkout reopening performed. No Neon previews.
+
+
+### P0 customer checkout recovery — 21 October 2026 continuation
+
+Requirements `platform.auth`, `detach.portal_billing`, `crm.companies`; existing
+#1006/#1016/#1015 candidates remain the release path. At #1015 `b1d08a0d` plus local
+uncommitted regression/docs, two synthetic saved-progress scenarios execute the
+real offer resolver and coordinator: stale AUD 947/zero-trial proposal ignored,
+public plan/14-day trial retained, expired session safely replaced, open session
+reused once, saved progress preserved and no activation before completion.
+Disposable PostgreSQL: checkout/lifecycle **126/126**, reconciliation **27/27**,
+atomic guard **6/6**; explicit acceptance/Founding neutrality, TypeScript and
+whitespace checks passed. Full application build evidence at unchanged `b1d08a0d`
+is reused, not rerun. Local test log: `/private/tmp/dg-urgent-checkout-db-20261021.log`.
+No Production/provider writes, commits, pushes or deployment.
+
+**Operational acceptance BLOCKED:** sandbox Stripe and Clerk Development read-only
+checks passed, but the existing test webhook hostname's Vercel deployment returned
+404 in the authorised team and its isolation/revision remain unverified. Clerk
+webhook signing secret is absent locally. No synthetic external checkout was sent
+to that unverified destination. Both customers use standard public pricing; the
+historical AIM proposal is not a contract. See the updated
+[customer certification/release sequence](commerce/CUSTOMER-CHECKOUT-CERTIFICATION.md).
+Next action: independent review of the combined candidate and focused delta, then
+approve/verify isolated test routing and authenticated acceptance before separate
+migration, guard, hold/reconciliation, entitlement deployment and opening approvals.
+
+
+### 21 October 2026 — local external-provider acceptance
+
+Both synthetic customer journeys passed real Stripe test Checkout, 14-day trials,
+signed CLI webhook delivery, canonical app purchases, onboarding and dashboard
+access: 22/22 acceptance checks; pairing/security: 67/67. See
+`docs/commerce/CUSTOMER-CHECKOUT-CERTIFICATION.md`. Production release and customer
+invitations remain approval-gated. No hosted configuration or customer data changed.
+
+
+### 21 October 2026 — controlled checkout release preparation
+
+Requirements `platform.auth`, `detach.portal_billing`, `crm.companies`; existing
+PRs #1006/#1015/#1016. Independent focused read-only review of the seven-path
+completion delta: PASS, no P0/P1. Reused exact local external acceptance 22/22,
+pairing/security 67/67, TypeScript and full canonical build exit 0 (456 pages).
+No business-rule change or test rerun during release preparation. The release
+commands and approval gates are in `docs/commerce/CHECKOUT-RELEASE-APPROVAL.md`.
+Application branch `finish/checkout-entitlements`; parent b1d08a0d. Database
+execution remains pinned to separate certified recovery af85b034 (24 directories);
+all 22 shared application migration files match. Production verification remains
+NOT VERIFIED for this candidate. Next: approve publication/integration and the
+explicit operational scopes; no Production operation or invitation authorised.

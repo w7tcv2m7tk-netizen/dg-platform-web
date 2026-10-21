@@ -177,6 +177,9 @@ export function isClerkNeonPairingAllowed(clerk, neon) {
  * }}
  */
 export function evaluateEnvironmentPairing(env = process.env) {
+  if (env.DG_LOCAL_CHECKOUT_CERTIFICATION) {
+    return evaluateLocalCheckoutCertification(env);
+  }
   const databaseUrl = env.DATABASE_URL?.trim() ?? "";
   const hasClerk =
     Boolean(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim()) || Boolean(env.CLERK_SECRET_KEY?.trim());
@@ -300,4 +303,51 @@ export function assertEnvironmentPairingOrThrow(env = process.env) {
   if (result.skipped || result.ok) return result;
   const detail = result.errors.join("; ");
   throw new Error(`Environment pairing blocked: ${detail}`);
+}
+
+
+/** Explicit local test authority; this is never a Neon endpoint classification.
+ * Runtime instrumentation must additionally verify the database's ownership nonce.
+ * @param {Record<string, string | undefined>} env
+ */
+export function evaluateLocalCheckoutCertification(env) {
+  const errors = [];
+  if (env.DG_LOCAL_CHECKOUT_CERTIFICATION !== "authorised-disposable") errors.push("Local certification authorisation is invalid");
+  if (env.NODE_ENV !== "development" || env.VERCEL || env.VERCEL_ENV || env.VERCEL_TARGET_ENV || env.VERCEL_URL || env.CI) errors.push("Local certification is prohibited outside an unhosted development runtime");
+  if (env.DG_NEON_ENV !== "development") errors.push("Local certification requires the development declaration");
+  if (!env.CLERK_SECRET_KEY?.startsWith("sk_test_") || !env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith("pk_test_")) errors.push("Local certification requires both Clerk Development keys");
+  if (env.STRIPE_SECRET_KEY && !/^(?:sk|rk)_test_/.test(env.STRIPE_SECRET_KEY)) errors.push("Local certification rejects live Stripe credentials");
+  if (!/^[a-f0-9]{64}$/.test(env.DG_CHECKOUT_CERTIFICATION_NONCE ?? "")) errors.push("Disposable database ownership nonce is missing or invalid");
+  try {
+    const db = new URL(env.DATABASE_URL ?? "");
+    if (db.protocol !== "postgresql:" || db.hostname !== "127.0.0.1" || !db.port || Number(db.port) < 1024 || db.port === "5432" || !/^\/dg_checkout_certification_[a-f0-9]{12}$/.test(db.pathname)) throw new Error();
+    if (env.DATABASE_URL_UNPOOLED !== env.DATABASE_URL) throw new Error();
+    const expected = { connect_timeout: "3", pool_timeout: "1", socket_timeout: "5", connection_limit: "4" };
+    if ([...db.searchParams].length !== Object.keys(expected).length || Object.entries(expected).some(([k,v]) => db.searchParams.get(k) !== v)) throw new Error();
+  } catch { errors.push("Disposable database targets or bounded connection settings do not match"); }
+  try {
+    const origin = new URL(env.NEXT_PUBLIC_APP_URL ?? "");
+    if (origin.protocol !== "http:" || !["localhost", "127.0.0.1"].includes(origin.hostname) || !origin.port || origin.username || origin.password || origin.pathname !== "/" || origin.search || origin.hash) throw new Error();
+    if (env.NEXT_PUBLIC_PLATFORM_URL && new URL(env.NEXT_PUBLIC_PLATFORM_URL).origin !== origin.origin) throw new Error();
+    if (env.CLERK_PROXY_URL || env.CLERK_FAPI_URL) throw new Error();
+  } catch { errors.push("Local certification application origin or authentication routing is invalid"); }
+  return { ok: errors.length === 0, skipped: false, errors, clerk: "development", neonDeclared: env.DG_NEON_ENV ?? null,
+    neonHost: "unknown", neonEndpointId: null, localCertification: true };
+}
+
+/** Must complete before the development server can accept requests.
+ * The reader uses the application's own Prisma pool; it creates no separate pool.
+ * @param {Record<string, string | undefined>} env
+ * @param {() => Promise<Array<{nonce: string | null, database: string, address: string | null, port: number}>>} readIdentity
+ */
+export async function verifyLocalCheckoutCertificationDatabase(env, readIdentity) {
+  const result = evaluateLocalCheckoutCertification(env);
+  if (!result.ok) throw new Error("Local certification configuration rejected");
+  let rows;
+  try { rows = await readIdentity(); } catch { throw new Error("Disposable database ownership verification failed"); }
+  const db = new URL(env.DATABASE_URL);
+  if (rows.length !== 1 || rows[0].nonce !== env.DG_CHECKOUT_CERTIFICATION_NONCE || rows[0].database !== db.pathname.slice(1) || rows[0].address !== "127.0.0.1" || rows[0].port !== Number(db.port)) {
+    throw new Error("Disposable database ownership verification failed");
+  }
+  return result;
 }

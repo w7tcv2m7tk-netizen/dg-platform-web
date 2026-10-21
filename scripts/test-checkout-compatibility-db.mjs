@@ -6,6 +6,7 @@ import { prisma, PrismaClient } from "@dg/database";
 import { admitPlatformCheckout, CheckoutTemporarilyUnavailable } from "../packages/platform-core/src/billing/checkout-creation-gate.ts";
 import { createPlatformCheckoutSession, createCustomCommercialCheckoutSession, createNegotiatedCommercialCheckoutSession } from "../packages/platform-core/src/billing/platform-checkout.ts";
 import { provisionFromPlatformCheckout, handlePlatformSubscriptionLifecycle } from "../packages/platform-core/src/billing/platform-stripe.ts";
+import { getOrganisationCommercialOffer } from "../packages/platform-core/src/billing/commercial-offer.ts";
 import { expectedPurchasedLineItems } from "../packages/platform-core/src/billing/purchased-line-items.ts";
 import { StripePaymentConnector } from "../packages/platform-core/src/commerce/connectors/stripe/index.ts";
 import { processPaymentWebhookEvent } from "../packages/platform-core/src/commerce/payment-engine.ts";
@@ -211,6 +212,37 @@ test("Founding 10 designation keeps standard monthly pricing and 14-day trial", 
   await standard();
   assert.equal(requests[0].line_items[0].price_data.unit_amount, 24900);
   assert.equal(requests[0].subscription_data.trial_period_days, 14);
+});
+
+// Synthetic equivalents of the two saved onboarding shapes; no customer data.
+for (const scenario of [
+  { label: "mortgage prospect", tier: "professional", industry: "finance", template: "mortgage-finance-broking", premium: [], staleOffer: true, expiredSession: false },
+  { label: "cleaning prospect", tier: "business", industry: "services", template: "cleaning", premium: ["growth_suite"], staleOffer: false, expiredSession: true },
+]) test(`${scenario.label}: saved onboarding resumes standard checkout once without activation`, async () => {
+  await prisma.opportunity.deleteMany({ where: { organisationId: org.id } });
+  const progress = { platformTier: scenario.tier, billingCadence: "monthly", industryApps: [scenario.industry],
+    industryTemplates: [scenario.template], premiumApps: scenario.premium, supportPlan: "standard",
+    currentStep: "stripe", completedSteps: ["business", "plan", "apps", "order_summary"],
+    ...(scenario.expiredSession ? { stripeCheckoutSessionId: "cs_expired_saved_fixture" } : {}) };
+  const settings = { gen2Onboarding: progress, billing: { programme: "founding", foundingCustomer: true,
+    ...(scenario.staleOffer ? { commercialOffer: { ...offer, id: "historical-unaccepted", amountCents: 94700, trialDays: 0 } } : {}) } };
+  await prisma.organisation.update({ where: { id: org.id }, data: { settings } });
+  if (scenario.expiredSession) acceptedSessions.push({ id: progress.stripeCheckoutSessionId, mode: "subscription", status: "expired",
+    expires_at: 1, metadata: { organisation_id: org.id, dg_platform_checkout: "true" } });
+  assert.equal(await getOrganisationCommercialOffer(org.id), null, "historical agreed settings are not an accepted custom contract");
+  const input = { organisationId: org.id, email: "fixture@example.test", platformTier: scenario.tier,
+    industryApps: progress.industryApps, premiumApps: progress.premiumApps, supportPlan: "standard" };
+  const first = await createPlatformCheckoutSession(input);
+  const resumed = await createPlatformCheckoutSession(input);
+  assert.deepEqual(resumed, first, "resumption returns the same owned open session");
+  assert.equal(requests.length, 1, "resumption cannot create a second provider session");
+  assert.equal(requests[0].line_items[0].price_data.unit_amount, scenario.tier === "professional" ? 24900 : 49900);
+  assert.equal(requests[0].subscription_data.trial_period_days, 14);
+  assert.equal(requests[0].metadata.dg_commercial_offer_id, undefined);
+  const after = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  assert.deepEqual(after.settings, settings, "checkout creation/resumption preserves saved progress and historical records");
+  assert.equal(after.billingCustomerId, null);
+  assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0, "uncompleted checkout grants no subscription or access");
 });
 
 test("only the explicit platform exemption omits the standard trial", async () => {
