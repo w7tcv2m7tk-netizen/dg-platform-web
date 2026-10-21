@@ -7,6 +7,8 @@ type Row = {
   prospectId: string;
   businessName: string;
   stage: string;
+  lifecycleLabel?: string;
+  scoreLabel?: string;
   score: number;
   bandLabel: string;
   recommendedAction: string;
@@ -75,9 +77,9 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
   const hasContactRoute = Boolean(callHref || emailHref);
   // Lifecycle stage is authoritative. A qualified prospect must never be sent back through research
   // just because an older audit/recommendation field still says research or run_audit.
-  const needsResearch = active.stage !== "qualified";
+  const needsResearch = ["prospect", "audit_created"].includes(active.stage);
   const decisionMaker = active.contactName || "the decision-maker";
-  const firstName = active.contactName?.trim().split(/\\s+/)[0] || "there";
+  const firstName = active.contactName?.trim().split(/\s+/)[0] || "there";
   const scores = active.auditScores;
   const materialFindings = active.auditFindings
     .filter((finding) => finding.title && !/business health score/i.test(finding.title))
@@ -94,9 +96,9 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
           : null,
       ].filter((item): item is string => Boolean(item));
   const strongestFinding = materialFindings[0] ?? null;
-  const strongestEvidence = evidence[0] || "The research identified a verified digital growth opportunity.";
+  const strongestEvidence = evidence[0] || "Research evidence is not available yet.";
   const opportunityParts = [
-    materialFindings.some((finding) => /suburb|local|appraisal|enquiry|vendor/i.test(finding.title))
+    /real[ _-]?estate|property/i.test(active.industry ?? "") && materialFindings.some((finding) => /suburb|appraisal|vendor/i.test(finding.title))
       ? "strengthen the path from local visibility and appraisal intent to enquiry"
       : null,
     scores?.seo != null && scores.seo < 55 ? "improve organic search visibility" : null,
@@ -116,7 +118,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
     ? strongestFinding.title.replace(/\.$/, "").toLowerCase()
     : scores?.seo != null && scores?.aiVisibility != null
       ? "some practical search and AI visibility opportunities"
-      : "a couple of practical digital growth opportunities";
+      : "the next steps for your business";
   const openingLine = active.reportViewCount > 0
     ? `Hi ${firstName}, Ben Roe from DigitalGate. I prepared a Digital Opportunity Report for ${active.businessName}. The ${openingObservation} stood out as one of the clearest opportunities — have you got a minute to compare notes?`
     : active.reportSent
@@ -128,7 +130,8 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
       <section className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">Do this next</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">{active.lifecycleLabel ?? active.stage}</p>
+            <p className="mt-1 text-sm text-violet-200">{active.recommendedActionLabel}</p>
             <h2 className="mt-1 truncate text-xl font-semibold text-white">{active.businessName}</h2>
             <p className="mt-1 text-sm text-slate-400">
               {[active.contactName, active.location].filter(Boolean).join(" · ") || active.industry || "Prospect"}
@@ -136,7 +139,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
           </div>
           <div className="shrink-0 rounded-xl border border-violet-400/30 bg-slate-950/60 px-3 py-2 text-center">
             <p className="text-xl font-bold text-white">{active.score}</p>
-            <p className="text-[10px] uppercase text-violet-300">{active.bandLabel}</p>
+            <p className="text-[10px] uppercase text-violet-300">{active.scoreLabel ?? "Research priority"}</p>
           </div>
         </div>
 
@@ -148,7 +151,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
         </div>
 
         <div className="mt-3 rounded-xl border border-slate-800 bg-slate-950/55 p-3">
-          <p className="text-xs uppercase tracking-wide text-slate-500">{needsResearch ? "Research brief" : "Contact brief"}</p>
+          <p className="text-xs uppercase tracking-wide text-slate-500">{needsResearch ? "Research brief" : "Opportunity summary"}</p>
           <p className="mt-1 text-sm text-slate-300">{needsResearch ? active.approachHint : digitalGateOpportunity}</p>
           {needsResearch ? (
             <p className="mt-3 text-xs text-slate-500">
@@ -162,7 +165,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          {needsResearch ? (
+          {needsResearch || evidence.length === 0 || !hasContactRoute ? (
             <>
               <a href={`/apps/prospecting/prospects/${active.prospectId}`} className="col-span-2 inline-flex min-h-12 items-center justify-center rounded-xl bg-violet-600 px-4 text-sm font-semibold text-white hover:bg-violet-500">
                 Review research
@@ -175,7 +178,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
               </button>
               {showBrief && callHref ? (
                 <a href={callHref} onClick={() => setShowLog(true)} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-500">
-                  Call {active.contactName?.split(/\\s+/)[0] || "now"}
+                  Call {active.contactName?.split(/\s+/)[0] || "now"}
                 </a>
               ) : showBrief && emailHref ? (
                 <a href={emailHref} className="inline-flex min-h-12 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white">
@@ -284,7 +287,7 @@ export function ProspectingTodayActions({ rows }: { rows: Row[] }) {
               <button key={row.prospectId} type="button" onClick={() => { setActiveId(row.prospectId); setDraft(""); setShowLog(false); setShowBrief(false); }} className="flex min-h-14 w-full items-center justify-between rounded-xl border border-slate-800 bg-slate-950/40 px-4 text-left">
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-medium text-white">{row.businessName}</span>
-                  <span className="block truncate text-xs text-slate-500">{row.stage !== "qualified" ? "Research" : "Prepare call"}</span>
+                  <span className="block truncate text-xs text-slate-500">{row.lifecycleLabel ?? row.stage} · {row.recommendedActionLabel}</span>
                 </span>
                 <span className="ml-3 text-sm font-semibold text-violet-300">{row.score}</span>
               </button>

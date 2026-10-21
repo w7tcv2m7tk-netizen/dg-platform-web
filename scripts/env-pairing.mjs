@@ -180,6 +180,7 @@ export function evaluateEnvironmentPairing(env = process.env) {
   if (env.DG_LOCAL_CHECKOUT_CERTIFICATION) {
     return evaluateLocalCheckoutCertification(env);
   }
+  if (env.DG_LOCAL_SYNTHETIC === "1") return evaluateLocalSyntheticPairing(env);
   const databaseUrl = env.DATABASE_URL?.trim() ?? "";
   const hasClerk =
     Boolean(env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim()) || Boolean(env.CLERK_SECRET_KEY?.trim());
@@ -291,6 +292,58 @@ export function evaluateEnvironmentPairing(env = process.env) {
     neonDeclared,
     neonHost: hostResult.class,
     neonEndpointId: hostResult.endpointId,
+  };
+}
+
+/** Explicit local-only development context; does not change the Neon matrix.
+ * Only literal loopback destinations are accepted. URL routing overrides are
+ * rejected so a loopback-looking connection cannot select a remote server.
+ * @param {Record<string, string | undefined>} env
+ */
+function evaluateLocalSyntheticPairing(env) {
+  const errors = [];
+  if (env.NODE_ENV !== "development" || env.VERCEL || env.VERCEL_ENV || env.CI) {
+    errors.push("Local synthetic mode requires an unhosted development runtime");
+  }
+  if (env.DG_NEON_ENV !== "development") errors.push("Local synthetic mode requires the development declaration");
+  if (!env.CLERK_SECRET_KEY?.startsWith("sk_test_") ||
+      !env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith("pk_test_")) {
+    errors.push("Local synthetic mode requires both Clerk test keys");
+  }
+  const loopback = new Set(["127.0.0.1", "[::1]"]);
+  for (const key of ["DATABASE_URL", "DIRECT_URL", "SHADOW_DATABASE_URL", "DATABASE_URL_UNPOOLED", "RECONCILIATION_DATABASE_URL"]) {
+    const value = env[key];
+    if (!value && key !== "DATABASE_URL") continue;
+    try {
+      const url = new URL(value ?? "");
+      const allowedParams = new Set(["connection_limit", "connect_timeout", "pool_timeout", "schema"]);
+      if (!["postgres:", "postgresql:"].includes(url.protocol) || !loopback.has(url.hostname) ||
+          !url.port || url.port === "5432" || !url.pathname.startsWith("/dg_synthetic_") ||
+          url.hash || [...url.searchParams.keys()].some((key) => !allowedParams.has(key))) {
+        throw new Error("invalid destination");
+      }
+    } catch {
+      errors.push(`${key} must name a disposable dg_synthetic_ database on literal loopback and a non-default port`);
+    }
+  }
+  try {
+    const url = new URL(env.NEXT_PUBLIC_APP_URL ?? "");
+    if (url.protocol !== "http:" || ![...loopback, "localhost"].includes(url.hostname) || !url.port || url.username || url.password) {
+      throw new Error("invalid origin");
+    }
+  } catch {
+    errors.push("Local synthetic mode requires an HTTP loopback application origin");
+  }
+  // A test session must never accidentally inherit live provider credentials.
+  if (env.STRIPE_SECRET_KEY || env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || env.CLERK_PROXY_URL || env.NEXT_PUBLIC_CLERK_PROXY_URL) {
+    errors.push("Local synthetic mode must not inherit Stripe keys or a Clerk proxy");
+  }
+  return {
+    ok: errors.length === 0, skipped: false, errors,
+    clerk: classifyClerkEnvironment(env).class,
+    neonDeclared: env.DG_NEON_ENV ?? null,
+    neonHost: /** @type {NeonHostClass} */ ("unknown"),
+    neonEndpointId: null,
   };
 }
 

@@ -5,6 +5,7 @@ import {
   canAccessCommandCentre,
   formatTimelineDateTime,
   getContact,
+  getCompany,
   getContactAccommodationGuestPanel,
   listBusinessReferralsForContact,
   listCompanies,
@@ -49,8 +50,8 @@ export default async function ContactDetailPage({ params }: PageProps) {
         })
       ).items
     : [];
-  const company = contact.companyId
-    ? companies.find((candidate) => candidate.id === contact.companyId) ?? null
+  const company = canReadCompanies && contact.companyId
+    ? await getCompany(session.organisationId, contact.companyId)
     : null;
   const accommodationGuest = canReadAccommodationGuests
     ? await getContactAccommodationGuestPanel(session.organisationId, id)
@@ -99,6 +100,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
               </Link>
             </>
           ) : null}
+          {canReadCompanies && company ? <span> · Company ABN: {company.abn || "Not recorded"}</span> : null}
           {canReadAccommodationGuests && accommodationGuest ? (
             <>
               {" · "}

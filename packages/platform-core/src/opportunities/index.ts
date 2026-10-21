@@ -7,6 +7,7 @@ import type { Opportunity, Prisma } from "@dg/database";
 
 import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
+import { publishCrmEvent, type CrmTransactionContext } from "../crm-transaction";
 
 export const OPPORTUNITY_STATUSES = ["open", "won", "lost"] as const;
 export type OpportunityStatus = (typeof OPPORTUNITY_STATUSES)[number];
@@ -41,8 +42,8 @@ export class LinkedOpportunityRecordNotFoundError extends Error {
   }
 }
 
-async function assertOpportunityRelationships(input: CreateOpportunityInput): Promise<void> {
-  const { prisma } = await import("@dg/database");
+async function assertOpportunityRelationships(input: CreateOpportunityInput, db?: Prisma.TransactionClient): Promise<void> {
+  const prisma = db ?? (await import("@dg/database")).prisma;
   const organisationId = input.organisationId;
 
   if (input.contactId) {
@@ -141,8 +142,8 @@ export async function listOpportunities(options: ListOpportunitiesOptions) {
   };
 }
 
-export async function getOpportunity(organisationId: string, opportunityId: string) {
-  const { prisma } = await import("@dg/database");
+export async function getOpportunity(organisationId: string, opportunityId: string, db?: Prisma.TransactionClient) {
+  const prisma = db ?? (await import("@dg/database")).prisma;
   const row = await prisma.opportunity.findFirst({
     where: { id: opportunityId, organisationId },
   });
@@ -160,10 +161,10 @@ export async function getOpportunityForLead(
   return row ? serializeOpportunity(row) : null;
 }
 
-export async function createOpportunity(input: CreateOpportunityInput) {
-  const { prisma } = await import("@dg/database");
+export async function createOpportunity(input: CreateOpportunityInput, context?: CrmTransactionContext) {
+  const prisma = context?.db ?? (await import("@dg/database")).prisma;
 
-  await assertOpportunityRelationships(input);
+  await assertOpportunityRelationships(input, context?.db);
 
   if (input.leadId) {
     const existing = await prisma.opportunity.findFirst({
@@ -225,9 +226,9 @@ export async function createOpportunity(input: CreateOpportunityInput) {
     action: "create",
     entityType: "Opportunity",
     entityId: row.id,
-  });
+  }, context?.db);
 
-  await platformEvents.publish({
+  await publishCrmEvent({
     type: "opportunity.created",
     organisationId: input.organisationId,
     actorId: input.actorId,
@@ -235,7 +236,7 @@ export async function createOpportunity(input: CreateOpportunityInput) {
     entityId: row.id,
     payload: { title: row.title, stage: row.stage, leadId: row.leadId },
     occurredAt: new Date(),
-  });
+  }, context);
 
   return serializeOpportunity(row);
 }

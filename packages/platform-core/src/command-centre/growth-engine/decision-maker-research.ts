@@ -4,6 +4,8 @@ export type DecisionMakerCandidate = {
   name: string | null;
   role: string | null;
   email: string | null;
+  businessEmail?: string;
+  businessEmailSourceUrl?: string;
   phone: string | null;
   sourceUrl: string;
   evidence: string;
@@ -23,8 +25,13 @@ function cleanText(value: string) {
 }
 function validEmail(value: string | null) {
   if (!value) return null;
-  const decoded = decodeURIComponent(value).trim();
+  let decoded: string;
+  try { decoded = decodeURIComponent(value).trim(); } catch { return null; }
+  if (/@(?:example\.(?:com|org|net)|yourbusiness\.com\.au|yourdomain\.[a-z.]+)$/i.test(decoded)) return null;
   return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(decoded) ? decoded : null;
+}
+function isBusinessEmail(value: string) {
+  return /^(?:info|admin|support|hello|office|sales|rentals?|contact|enquir(?:y|ies)|reception)@/i.test(value);
 }
 function validPhone(value: string | null) {
   if (!value) return null;
@@ -36,7 +43,9 @@ function validPhone(value: string | null) {
 }
 function validPersonName(value: string | null) {
   if (!value) return null;
-  const name = value.replace(/\s+/g, " ").trim();
+  const name = value.replace(/\s+/g, " ").trim().replace(/^meet\s+/i, "");
+  if (/\b(?:business|opening|contact|our|privacy|terms|email|phone|enquir(?:y|ies)|inquir(?:y|ies)|review|services|strategy|read more|view profile|get started)\b/i.test(name)) return null;
+  if (!/^[\p{L}][\p{L}’' .-]*\s+[\p{L}][\p{L}’' .-]*$/u.test(name)) return null;
   if (name.length < 3 || name.length > 80 || /[@{};:=!<>]/.test(name) || /\d/.test(name)) return null;
   return name;
 }
@@ -147,7 +156,7 @@ function cardCandidates(html: string, sourceUrl: string): DecisionMakerCandidate
   for (const emailMatch of normalisedHtml.matchAll(/href=["']\s*mailto:([^"'?#>]+)["']/gi)) {
     const emailIndex = emailMatch.index ?? 0;
     const email = validEmail(decodeHref(emailMatch[1] || ""));
-    if (!email) continue;
+    if (!email || isBusinessEmail(email)) continue;
 
     const openTags = [...normalisedHtml.slice(Math.max(0, emailIndex - 9000), emailIndex).matchAll(/<(article|li|section|div)\b[^>]*>/gi)];
     let blockStart = Math.max(0, emailIndex - 3500);
@@ -201,17 +210,19 @@ function cardCandidates(html: string, sourceUrl: string): DecisionMakerCandidate
 }
 
 function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCandidate | null {
-  const top = html.slice(0, 300_000);
-  const headings = [...top.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)]
-    .map(m => decodeText(m[1] || "")).filter(Boolean);
-  const role = leadershipRoleFromText(top);
-  const heading = headings
-    .map(value => validPersonName(value))
-    .find(value => value &&
-      /^[A-Z][A-Za-z'’.-]+(?:\s+[A-Z][A-Za-z'’.-]+){1,3}$/.test(value) &&
-      !/^(meet our team|our team|the team|about us|contact us|our people|leadership team|management team)$/i.test(value) &&
-      !leadershipRank(value)
-    ) ?? null;
+  // Navigation, forms and footers cannot establish a person's leadership role.
+  const top = html.slice(0, 300_000).replace(/<(nav|footer|form|script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  const headings = [...top.matchAll(/<h[1-6]\b[^>]*>([\s\S]*?)<\/h[1-6]>/gi)];
+  const profile = headings.map((match, index) => {
+    const name = validPersonName(decodeText(match[1] || ""));
+    const start = (match.index ?? 0) + match[0].length;
+    const end = Math.min(headings[index + 1]?.index ?? top.length, start + 4000);
+    const role = leadershipRoleFromText(decodeText(top.slice(start, end)).slice(0, 300));
+    return { name, role };
+  }).find(item => item.name && item.role &&
+    /^[A-Z][A-Za-z'’.-]+(?:\s+[A-Z][A-Za-z'’.-]+){1,3}$/.test(item.name) && !leadershipRank(item.name));
+  const heading = profile?.name ?? null;
+  const role = profile?.role ?? null;
   const rank = leadershipRank(role);
   if (!heading || !role || !rank) return null;
 
@@ -256,17 +267,16 @@ function profilePageCandidate(html: string, sourceUrl: string): DecisionMakerCan
     .replace(/\s+(?:\[dot\]|\(dot\))\s+/gi, ".");
   const profileVisibleEmails = [...decodedProfile.matchAll(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi)]
     .map(m => validEmail(m[0])).filter(Boolean) as string[];
-  const isGenericEmail = (value: string) => /^(info|admin|support|hello|office|sales|rentals?)@/i.test(value);
+  const isGenericEmail = isBusinessEmail;
   const email = [...localEmails, ...localVisibleEmails, ...profileVisibleEmails]
     .find(value => !isGenericEmail(value)) ?? null;
-  if (!email && !phone) return null;
 
   const localImages = [...local.matchAll(/<img\b[^>]*(?:src|data-src|data-lazy-src)=["']([^"']+)["'][^>]*>/gi)]
     .map(m => m[1] || "").filter(src => src && !/(?:logo|icon|sprite|placeholder|data:image)/i.test(src));
   const image = localImages[0] ?? null;
   return {
     name: heading, role, email, phone, sourceUrl,
-    evidence: `${heading} is identified as ${role} on a public individual profile page with direct contact details.`,
+    evidence: `${heading} is identified as ${role} on a public profile page.`,
     imageUrl: image ? absoluteUrl(decodeEntities(image), sourceUrl) : null,
     confidence: "high",
     rank: rank + (email ? 5 : 0) + (phone ? 5 : 0) + 10,
@@ -283,7 +293,7 @@ function extractCandidates(html: string, sourceUrl: string): DecisionMakerCandid
   for (const match of emailMatches) {
     const index = match.index ?? 0;
     const email = validEmail(decodeHref(match[1] || ""));
-    if (!email) continue;
+    if (!email || isBusinessEmail(email)) continue;
     const windowStart = Math.max(0, index - 2500);
     const windowEnd = Math.min(html.length, index + 1800);
     const windowHtml = html.slice(windowStart, windowEnd);
@@ -360,6 +370,7 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
     error?: string;
   }> = [];
   const candidates: DecisionMakerCandidate[] = [];
+  const businessEmails: Array<{ email: string; sourceUrl: string }> = [];
   const seen = new Set<string>();
   const queue = [base];
   // Common public people/team routes are worth probing directly. Many modern sites
@@ -390,6 +401,15 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
       }
       const html = (await res.text()).slice(0, 1_000_000);
       const expandedHtml = expandProtectedEmails(html);
+      const host = new URL(base).hostname.replace(/^www\./, "").toLowerCase();
+      if (new URL(res.url || url).hostname.replace(/^www\./, "").toLowerCase() === host) {
+        for (const match of decodeEntities(expandedHtml).matchAll(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi)) {
+          const email = validEmail(match[0]);
+          if (email && isBusinessEmail(email) && email.split("@")[1]?.toLowerCase() === host && !businessEmails.some(item => item.email === email)) {
+            businessEmails.push({ email, sourceUrl: res.url || url });
+          }
+        }
+      }
       const pageCandidates = extractCandidates(html, res.url || url);
       const protectedEmailMarkers = [...html.matchAll(/data-cfemail=["'][0-9a-f]+["']/gi)].length;
       const protectedEmailsDecoded = Math.max(0, [...expandedHtml.matchAll(/href=["']mailto:/gi)].length - [...html.matchAll(/href=["']mailto:/gi)].length);
@@ -450,6 +470,13 @@ export async function researchProspectDecisionMaker(websiteUrl: string | null | 
         candidateFields: [],
         error: error instanceof Error ? error.name : "fetch_failed",
       });
+    }
+  }
+  for (const candidate of candidates) {
+    if (candidate.email && isBusinessEmail(candidate.email)) candidate.email = null;
+    if (!candidate.email && businessEmails[0]) {
+      candidate.businessEmail = businessEmails[0].email;
+      candidate.businessEmailSourceUrl = businessEmails[0].sourceUrl;
     }
   }
   candidates.sort((a,b) => b.rank-a.rank);
