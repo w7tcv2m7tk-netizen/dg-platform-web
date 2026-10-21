@@ -57,7 +57,7 @@
     "test:booking-unit-reassignment": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-booking-unit-reassignment.mjs",
     "test:website-studio-save-isolation": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-website-studio-save-isolation.mjs",
     "test:website-studio-publication": "node --experimental-strip-types --test scripts/test-website-studio-publication.mjs",
-    "test:website-studio-permissions": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-website-studio-permissions.mjs scripts/test-studio-images.mjs",
+    "test:website-studio-permissions": "node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-website-studio-permissions.mjs scripts/test-studio-images.mjs",
     "test:website-studio-page-save-isolation": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-website-studio-page-save-isolation.mjs",
     "test:website-studio-responsive": "node --test scripts/test-website-studio-responsive.mjs",
     "db:generate": "prisma generate --schema=packages/database/prisma",
