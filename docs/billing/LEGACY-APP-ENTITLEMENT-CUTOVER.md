@@ -8,16 +8,22 @@ has been run while preparing this procedure.
 ## Hold mechanism and limits
 
 `platform_checkout_creation_gate.subscription_webhooks_held` is the shared,
-server-controlled switch. The signed Stripe webhook route checks it for only
-platform-account `subscription.created`, `subscription.updated`, and
-`subscription.cancelled` events whose signed subscription payload has the
-DigitalGate platform marker. Connected-account subscriptions, invoices,
-checkout completions and other event types do not use this hold. The route reads
-the singleton PostgreSQL row on each matching request (no per-instance cache).
-It checks before creating a `StripeWebhookReceipt`; a held event gets HTTP 503
-with `Retry-After: 60`, and no receipt or projection write. A missing row,
-column, permission or database response also gets 503 for those events. The
-hold is never controlled by customer data or a customer-facing API.
+operator-controlled switch. The atomic hold/receipt transaction covers platform
+subscription created/updated/cancelled, checkout completion (including async payment
+success), invoice failure/action-required and invoice recovery. The combined release
+also normalizes subscription paused/resumed into the guarded update path. Ownership
+is established from verified event data and canonical ownership mappings; uncertainty
+fails closed. Connected-account and verified non-platform commerce remain unaffected.
+The singleton row is locked FOR SHARE inside the same transaction as receipt claim;
+activation's UPDATE conflicts with that lock. Held events return 503 before a receipt
+is claimed. Handlers run after the transaction ends. Missing hold state fails closed.
+No customer-facing route controls the hold.
+
+Use [the consolidated release approval package](../commerce/CHECKOUT-RELEASE-APPROVAL.md)
+for the current dependency order, old-deployment execution evidence and migration
+source. This document does not authorize any Production operation. Receipt drain is
+not evidence that pre-guard invocations have terminated. Reconciliation cannot start
+until guard deployment, old-invocation termination and hold/drain are verified.
 
 The hold has no automatic expiry. The maximum planned active window is 30
 minutes. Alert the release owner at 15 minutes. If the final projection cannot
@@ -30,8 +36,9 @@ enabled and that its delivery retry horizon is not at risk before starting.
 
 1. Verify a recent independent production backup/PITR recovery point and a
    tested restoration procedure. Record the recovery owner and rollback window.
-2. Apply the additive entitlement migration and the additive hold-column
-   migration. Verify the seeded singleton row exists and the hold is `false`.
+2. Execute only the separately approved complete recovery migration manifest,
+   including prerequisite gate, attempts, entitlement and hold-column migrations.
+   Verify checkout blocked=true and the singleton hold is `false`.
    Old code remains compatible with these additive schema changes.
 3. Before any hold activation, deploy a **guard-only compatibility build** that
    includes the pre-receipt hold check but retains the currently serving
@@ -41,9 +48,13 @@ enabled and that its delivery retry horizon is not at risk before starting.
    independently from the new entitlement gates. An equivalent, independently
    verified edge mechanism returning retryable 503 before the application
    handler may be used instead.
-4. Confirm no subscription handler is currently in flight. Activate the hold
+4. Prove all pre-guard invocations terminal using provider execution evidence and
+   the verified effective hard runtime, then wait the documented safety margin.
+   Verify old immutable routes cannot receive webhook traffic. Activate the hold
    with a reviewed operator-only database action, incrementing the gate revision
-   and `changed_at` in the same update. Read the committed state back through
+   and `changed_at` in the same update. After activation, drain all already-claimed
+   guarded billing handlers and resolve failed receipts before reconciliation.
+   Read the committed state back through
    more than one application instance. Do not activate it from customer paths.
 5. Run the production reconciliation command in dry-run mode against the
    explicitly allowlisted Neon host/database and verified live Stripe account.
@@ -108,9 +119,10 @@ the additive columns or delete audit rows as rollback.
 
 ## Concurrency, retries and reconciliation safety
 
-The pre-receipt hold prevents new platform subscription lifecycle handlers from
-racing the reconciliation window. A handler already in flight must be drained
-before activation. Other Stripe event types continue normally. Stripe retains
+The atomic pre-receipt hold prevents new guarded platform billing handlers from
+racing the reconciliation window. Pre-guard invocations must terminate before activation; already-claimed guarded
+handlers must drain after activation and before reconciliation. Other Stripe event
+types continue normally. Stripe retains
 undelivered webhook events for automatic/manual retry; the application receipt
 table stores event IDs and processing state, not payloads, so it is not itself
 an event replay queue.
