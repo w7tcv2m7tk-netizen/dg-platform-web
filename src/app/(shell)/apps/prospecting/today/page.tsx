@@ -24,7 +24,7 @@ export default async function ProspectingTodayPage() {
 
   return (
     <>
-      <ProspectingPageHeader title="Today’s Priorities" description="Your three highest-priority relationships, with evidence and the next action." />
+      <ProspectingPageHeader title="Today" description="Your three highest-priority relationships, with evidence and the next action." />
       <main className="dg-page-main space-y-5">
         <a href="/apps/prospecting/overview" className="text-sm text-violet-300">Open Overview →</a>
         <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -77,7 +77,7 @@ async function loadPriorities(session: { organisationId: string; clerkUserId: st
 
 function ProspectingUnavailable() {
   return <>
-    <ProspectingPageHeader title="Today’s Priorities" description="Your three highest-priority relationships, with evidence and the next action." />
+    <ProspectingPageHeader title="Today" description="Your three highest-priority relationships, with evidence and the next action." />
     <main className="dg-page-main">
       <section role="alert" className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-100">
         <p>Prospecting is temporarily unavailable. DigitalGate has kept unavailable signals out of the workspace rather than estimating them.</p>

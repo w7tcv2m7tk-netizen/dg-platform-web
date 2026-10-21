@@ -86,7 +86,7 @@ test('choosing a different result clears the previous verified ABN and contact d
 });
 test('Delete uses existing soft-delete API; cancellation does not send a request; restore remains available',async()=>{
  const calls=[];let confirm=true;
- const render=mount('src/components/prospecting/ProspectingCustomerActions.tsx','ProspectArchiveControl',{'next/navigation':{useRouter:()=>({refresh(){}})},'@dg/platform-core':{},'next/link':()=>null}, {window:{confirm:()=>confirm}, fetch:async(url,options)=>{calls.push([url,options.method]);return {ok:true};}});
+ const render=mount('src/components/prospecting/ProspectingCustomerActions.tsx','ProspectArchiveControl',{'next/navigation':{useRouter:()=>({refresh(){}})},'@dg/platform-core':{},'next/link':()=>null,'./ProspectBusinessSearch':{ProspectBusinessSearch:()=>null}}, {window:{confirm:()=>confirm}, fetch:async(url,options)=>{calls.push([url,options.method]);return {ok:true};}});
  const props={prospectId:'synthetic-id',businessName:'DigitalGate — synthetic'};
  confirm=false;await button(render(props),'Delete').props.onClick();assert.equal(calls.length,0);
  confirm=true;await button(render(props),'Delete').props.onClick();await new Promise(setImmediate);assert.deepEqual(calls[0],['/api/v1/prospecting/prospects/synthetic-id','DELETE']);
@@ -251,3 +251,44 @@ test('audit endpoint rejects missing websites and foreign/archived prospects bef
  prospect={id:'synthetic',websiteUrl:'https://example.invalid'};assert.equal((await call()).status,201);assert.equal(audits,1);
  const before=reads;denied={status:403};assert.equal((await call()).status,403);session={status:401};assert.equal((await call()).status,401);assert.equal(reads,before);assert.equal(audits,1);
 });
+
+test('explicit Google and ABR combinations preserve selected listing fields and reset confirmation',()=>{
+ const Search=()=>null; const render=mount('src/components/command/CreateProspectForm.tsx','CreateProspectForm',{'next/navigation':{useRouter:()=>({})},'@/components/prospecting/ProspectBusinessSearch':{ProspectBusinessSearch:Search}});
+ find(render(),n=>n.type===Search).props.onSelect({businessName:'Google synthetic',phone:'0400000000',websiteUrl:'https://synthetic.test',location:'Street',googlePlaceId:'place'});
+ find(render(),n=>n.type===Search).props.onSelect({businessName:'Registry synthetic',abn:'10000000003',identity,location:'QLD',keepGoogleDetails:true});
+ let tree=render();assert.equal(input(tree,'websiteUrl').props.value,'https://synthetic.test');assert.equal(input(tree,'location').props.value,'Street');assert.equal(input(tree,'abn').props.value,'10000000003');
+ find(tree,n=>n.type==='input'&&n.props.type==='checkbox').props.onChange({target:{checked:true}});
+ find(render(),n=>n.type===Search).props.onSelect({businessName:'Google alternative',phone:'0411111111',websiteUrl:'https://other.test',googlePlaceId:'place2',keepVerifiedIdentity:true});
+ tree=render();assert.equal(input(tree,'businessName').props.value,'Registry synthetic');assert.equal(input(tree,'abn').props.value,'10000000003');assert.equal(input(tree,'websiteUrl').props.value,'https://other.test');assert.equal(button(tree,'Add to pipeline').props.disabled,true);
+});
+
+test('Prospecting entry redirects to Today and preserves the legacy Overview URL',async()=>{
+ const urls=[];
+ const {default:page}=load('src/app/(shell)/apps/prospecting/page.tsx',{'next/navigation':{redirect:url=>urls.push(url)}});
+ await page({searchParams:Promise.resolve({})});await page({searchParams:Promise.resolve({view:'overview'})});
+ assert.deepEqual(urls,['/apps/prospecting/today','/apps/prospecting/overview']);
+});
+
+test('existing prospect Edit fills available Google details without changing identity or contact name',()=>{
+ const Search=()=>null;
+ const render=mount('src/components/command/EditProspectForm.tsx','EditProspectForm',{'next/navigation':{useRouter:()=>({})},'@/components/prospecting/ProspectBusinessSearch':{ProspectBusinessSearch:Search}});
+ const props={prospect:{id:'synthetic',businessName:'Registry synthetic',contactName:'Existing Person',websiteUrl:'',contactPhone:'',location:'QLD'}};
+ button(render(props),'Edit').props.onClick();
+ find(render(props),n=>n.type===Search).props.onSelect({businessName:'Different listing name',websiteUrl:'https://synthetic.test',phone:'0400000000',location:'Street',googlePlaceId:'place'});
+ const tree=render(props);assert.equal(input(tree,'websiteUrl').props.value,'https://synthetic.test');assert.equal(input(tree,'contactPhone').props.value,'0400000000');assert.equal(input(tree,'businessName').props.defaultValue,'Registry synthetic');assert.equal(input(tree,'contactName').props.defaultValue,'Existing Person');
+});
+
+test('candidate save uses clearly labelled sourced business fallback only when direct email absent',async()=>{
+ const calls=[]; const candidate={name:'Ben Example',email:null,phone:'0400000000',businessEmail:'hello@synthetic.test',businessEmailSourceUrl:'https://synthetic.test/contact',sourceUrl:'https://synthetic.test/team',evidence:'Synthetic source',rank:100};
+ const render=mount('src/components/prospecting/DecisionMakerResearch.tsx','DecisionMakerResearch',{'next/navigation':{useRouter:()=>({refresh(){}})}},{fetch:async(url,options)=>{calls.push([url,options]);return {ok:true,json:async()=>options.method==='POST'?{data:{candidates:[candidate]}}:{data:{}}};}});
+ const props={prospectId:'synthetic'};button(render(props),'Find decision-maker').props.onClick();await new Promise(setImmediate);
+ const tree=render(props);assert.match(text(tree),/Business email fallback: hello@synthetic.test/);assert.match(text(tree),/No direct email/);
+ button(tree,'Use this candidate').props.onClick();await new Promise(setImmediate);assert.equal(JSON.parse(calls[1][1].body).contactEmail,'hello@synthetic.test');
+});
+
+ test('actual prospect detail Edit control exposes Google population without identity mutation',()=>{
+ const Search=()=>null; const render=mount('src/components/prospecting/ProspectingCustomerActions.tsx','ProspectEditControl',{'next/navigation':{useRouter:()=>({})},'next/link':()=>null,'./ProspectBusinessSearch':{ProspectBusinessSearch:Search}});
+ const props={prospect:{id:'synthetic',businessName:'Registry synthetic',contactName:'Existing Person'}};
+ button(render(props),'Edit').props.onClick();find(render(props),n=>n.type===Search).props.onSelect({businessName:'Listing',websiteUrl:'https://synthetic.test',phone:'0400000000',location:'Street',googlePlaceId:'place'});
+ const tree=render(props);assert.equal(input(tree,'websiteUrl').props.value,'https://synthetic.test');assert.equal(input(tree,'businessName').props.defaultValue,'Registry synthetic');
+ });

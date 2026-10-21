@@ -8,7 +8,6 @@ const { default: test } = await import('node:test');
 const { createRequire } = await import('node:module');
 const require = createRequire(import.meta.url);
 const expectedTabs = [
-  ['Priorities', '/apps/prospecting'],
   ['Overview', '/apps/prospecting/overview'],
   ['Discover', '/apps/prospecting/discovery'],
   ['Prospects', '/apps/prospecting/prospects'],
@@ -33,7 +32,7 @@ const manifestRoutes = configuredRoutes('packages/platform-core/src/apps/builtin
 test('shared Prospecting tabs follow the approved order', () => assert.deepEqual(shellRoutes.map(({label,path}) => [label,path]), expectedTabs));
 test('Prospecting manifest agrees with the shared navigation order', () => assert.deepEqual(manifestRoutes.map(({label,path}) => [label,path]), expectedTabs));
 test('existing legacy route aliases remain intact', () => {
-  for (const [label, alias] of [['Priorities','/command/growth-engine'],['Pipeline','/command/growth-engine/pipeline'],['Today','/command/sales-week'],['Activity','/command/growth-engine/follow-ups']]) assert.ok(shellRoutes.find(route => route.label === label).matchAlso.includes(alias));
+  for (const [label, alias] of [['Today','/command/growth-engine'],['Pipeline','/command/growth-engine/pipeline'],['Today','/command/sales-week'],['Activity','/command/growth-engine/follow-ups']]) assert.ok(shellRoutes.find(route => route.label === label).matchAlso.includes(alias));
 });
 function load(file, dependencies) {
   const loaded = { exports: {} };
@@ -61,7 +60,7 @@ for (const [label, pathname] of expectedTabs) test(`${label} retains its page an
   assert.ok(fs.existsSync(`src/app/(shell)${pathname}/page.tsx`));
   assert.deepEqual(shellRoutes.filter(route => matching.routeIsActive(pathname,route.path,shellRoutes)).map(route=>route.label),[label]);
   const html = navigationMarkup(pathname);
-  assert.equal((html.match(/<a /g) || []).length, 7);
+  assert.equal((html.match(/<a /g) || []).length, 6);
   assert.equal((html.match(/font-medium/g) || []).length, 1);
   assert.match(html,/flex-wrap/);
 });

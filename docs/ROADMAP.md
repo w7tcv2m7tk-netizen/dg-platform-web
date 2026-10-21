@@ -703,3 +703,30 @@ audit success is claimed. Qualification remains disabled without contact.
 Final fresh-process replay supersedes provisional hot-reload observations; owned
 clusters removed. Evidence: Verification/ProspectingResearchEntry/20261021.
 Next: targeted release and read-only verification on the existing live prospect.
+
+
+### Research-entry live acceptance - 21 October 2026
+
+Requirement `growth.pipeline`. #1021 merged as 1b3d1330; deployment
+`dpl_HvJToTH3E6eDQ7NfMuXnTW6LpYBy` READY on app.digitalgate.com.au.
+Authenticated read-only inspection of the existing DIGITALGATE prospect confirms
+Start research is visible but disabled with Edit/website guidance, premature
+decision-maker action is disabled, and the footer says Research has not started.
+ABN and existing record details unchanged; no live audit or data write performed.
+Local mutation/transition tests remain the evidence for Start/Research execution.
+No additional migration. Evidence retained under
+Verification/ProspectingResearchEntry/20261021. No further work for this scoped
+UI/guard correction. Owner next action: Edit the prospect's correct website,
+then Start research and inspect the evidence before finding the decision-maker.
+Final acceptance entry retained locally to avoid a documentation-only deploy.
+
+
+### Prospecting intake and contact quality — 21 October 2026
+
+Requirement `growth.pipeline`; operator approved Google/ABR detail reuse, decision-maker name cleanup, available business email fallback, and removal of the duplicate Priorities page. Branch `fix/prospecting-contact-quality` extends the existing intake and Edit forms: explicitly combine Google listing details with a verified ABN, reset final identity confirmation, and retain separate identity provenance. Google website/phone/address fields populate when returned; ABR is an identity registry, not a website directory. Missing provider website remains explicitly unavailable.
+
+Decision-maker research removes a leading Meet, rejects generic contact headings and placeholder emails, and offers sourced same-domain general business mailboxes separately from personal email. Explicit candidate selection saves the available contact email. Existing saved contact names are not silently rewritten. Prospecting root redirects to Today; the duplicate Priorities tab is removed from both navigation configurations; Overview and legacy Overview entry remain available.
+
+Verification: synthetic executable regressions in `test-prospecting-intake.mjs`, new `test-prospecting-contact-quality.mjs`, report integrity, mobile workflow and navigation ordering: 88 passed, 0 skipped. Includes explicit complementary selection, unrelated selection reset, Edit population, fallback save, root redirects, false heading/placeholder rejection, direct-email precedence and foreign-mailbox rejection. Relevant lint: 0 errors, 3 pre-existing warnings. Full build/release and authenticated application observations recorded in the subsequent acceptance entry; no production readiness inferred from mocks. No database migration, CRM/customer reassignment, billing or webhook change. Evidence: Verification/ProspectingContactQuality/20261021. Next: complete final build and authenticated read-only release verification; no live candidate save or synthetic production write.
+
+Final-revision validation: complete `npm run build` (prebuild, optimized compile, TypeScript and route generation) passed. Authenticated fresh-process Clerk Development session with an owned disposable loopback PostgreSQL database confirmed the actual prospect detail Edit contains business search; search POST returns 200 with honest provider-unavailable results because no provider credentials are inherited. Real provider enrichment is covered by synthetic executable tests here, not claimed as local live-provider certification. Today root redirect and six-tab navigation observed authenticated locally. Owned local server/cluster stopped and removed. No live record saved. Next: focused release and read-only live UI verification.
