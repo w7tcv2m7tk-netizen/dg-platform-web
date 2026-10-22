@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const baselineRef = "92bb0851"; // Verified PR #1001 baseline, before this additive migration.
 const migration = "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql";
+const gateMigration = "packages/database/prisma/migrations/20261009_platform_checkout_creation_gate/migration.sql";
+const holdMigration = "packages/database/prisma/migrations/20261019_platform_subscription_webhook_hold/migration.sql";
 const pgBin = process.argv[2];
 if (!pgBin || !path.isAbsolute(pgBin)) throw new Error("Pass the installed PostgreSQL bin directory");
 const safeEnv = { ...process.env };
@@ -52,13 +54,14 @@ try {
   const psql = ["-X", "-h", "127.0.0.1", "-p", String(port), "-U", "checkout_test", "-d", "dg_checkout_test", "-v", "ON_ERROR_STOP=1", "--single-transaction"];
   run(path.join(pgBin, "psql"), [...psql, "-f", sql]);
   run(path.join(pgBin, "psql"), [...psql, "-f", migration]);
-  run(path.join(pgBin, "psql"), [...psql, "-f", "packages/database/prisma/migrations/20261009_platform_checkout_creation_gate/migration.sql"]);
+  run(path.join(pgBin, "psql"), [...psql, "-f", gateMigration]);
+  run(path.join(pgBin, "psql"), [...psql, "-f", holdMigration]);
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-url", databaseUrl, "--to-schema-datamodel", "packages/database/prisma", "--exit-code"], { env });
   run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-checkout-coordinator-db.mjs"], { env });
   passed = true;
 } finally {
   if (existsSync(path.join(data, "postmaster.pid"))) run(path.join(pgBin, "pg_ctl"), ["-D", data, "-m", "immediate", "-w", "stop"]);
   rmSync(owned, { recursive: true, force: true });
-  writeFileSync(path.join(tmpdir(), "dg-checkout-db-evidence.json"), JSON.stringify({ passed, baselineRef, migration, cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
+  writeFileSync(path.join(tmpdir(), "dg-checkout-db-evidence.json"), JSON.stringify({ passed, baselineRef, migrations: [migration, gateMigration, holdMigration], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
   console.log("Disposable checkout PostgreSQL cluster stopped and destroyed");
 }
