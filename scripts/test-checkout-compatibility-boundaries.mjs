@@ -4,10 +4,13 @@ import path from "node:path";
 import { test } from "node:test";
 const read = p => readFileSync(p, "utf8");
 const creators = read("packages/platform-core/src/billing/platform-checkout.ts");
-test("both platform session creators must pass authoritative admission immediately before Stripe create", () => {
-  assert.equal((creators.match(/await createAdmittedPlatformSession\(stripe, sessionParams\)/g) ?? []).length, 2);
-  assert.equal((creators.match(/await admitPlatformCheckout\(\);\s+sessionParams\.expires_at = admission\.expiresAt;\s+const session = await createAdmittedPlatformSession\(stripe, sessionParams\)/g) ?? []).length, 2);
+test("both platform session creators use the fenced coordinator and durable admission", () => {
+  assert.equal((creators.match(/coordinatePlatformCheckout\(/g) ?? []).length, 2);
+  const coordinator = read("packages/platform-core/src/billing/checkout-coordinator.ts");
+  assert.match(coordinator, /await admitPlatformCheckout\(\{ expiresAt: storedParams.expires_at, database: tx \}\)/);
+  assert.match(coordinator, /await createAdmittedPlatformSession\(stripe, storedParams/);
   assert.match(creators, /^import "server-only"/);
+  assert.match(coordinator, /^import "server-only"/);
 });
 test("all subscription create sites are covered, separate Connect payment creator stays separate", () => {
   const files = [];
@@ -23,7 +26,7 @@ test("billing and both onboarding branches use direct server imports and return 
     assert.match(s, /instanceof CheckoutTemporarilyUnavailable/); assert.match(s, /status: 503/); assert.match(s, /"Retry-After": "60"/);
   }
   const onboarding = read("src/app/api/v1/onboarding/gen2/route.ts");
-  assert.match(onboarding, /offer \? await createCustomCommercialCheckoutSession/);
+  assert.match(onboarding, /effectiveOffer \? await createCustomCommercialCheckoutSession/);
   assert.match(onboarding, /: await createPlatformCheckoutSession/);
   for (const p of ["platform-stripe", "commercial-offer"]) assert.doesNotMatch(read(`packages/platform-core/src/billing/${p}.ts`), /export (?:async function|const) create.*CheckoutSession/);
   assert.doesNotMatch(read("packages/platform-core/src/index.ts"), /platform-checkout|checkout-creation-gate|checkout-session-create/);
@@ -32,11 +35,12 @@ test("webhook route never consults admission barrier", () => {
   assert.doesNotMatch(read("src/app/api/webhooks/stripe/route.ts"), /admitPlatformCheckout|checkout-creation-gate/);
   assert.doesNotMatch(read("packages/platform-core/src/billing/platform-stripe.ts"), /admitPlatformCheckout|checkout-creation-gate/);
 });
-
 test("review branches cannot request automatic Vercel deployments", () => {
   const config = JSON.parse(read("vercel.json"));
   assert.deepEqual(config.git.deploymentEnabled, {
     "work/commercial-checkout-compatibility": false,
     "release/stripe-webhook-guard-only-20261019": false,
+    "work/commercial-readiness": false,
+    "release/checkout-entitlements-20261019": false,
   });
 });

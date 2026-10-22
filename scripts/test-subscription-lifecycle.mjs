@@ -41,7 +41,7 @@ describe("subscription entitlement matrix", () => {
     assert.equal(entitlementFromCommercialStatus("CANCELLED"), "NONE");
 
     assert.equal(
-      entitlementFromCommercialStatus("SUSPENDED", { foundingOrExempt: true }),
+      entitlementFromCommercialStatus("SUSPENDED", { platformExempt: true }),
       "FULL",
     );
 
@@ -68,7 +68,7 @@ describe("subscription entitlement matrix", () => {
     const banner = buildBillingBanner({
       level: "FULL_WITH_WARNING",
       commercialStatus: "PAYMENT_FAILED",
-      foundingOrExempt: false,
+      platformExempt: false,
       trialEnd: null,
       currentPeriodEnd: null,
       cancelAtPeriodEnd: false,

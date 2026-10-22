@@ -1,5 +1,5 @@
-import type { RoadmapStatus } from "@dg/platform-core";
-import { roadmapStatusLabel } from "@dg/platform-core";
+import type { RoadmapStatus } from "@dg/platform-core/roadmap";
+import { roadmapStatusLabel } from "@dg/platform-core/roadmap";
 
 const STYLES: Record<RoadmapStatus, string> = {
   done: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",

@@ -19,7 +19,7 @@ export type OrganisationBillingStatus = {
   /** Organisation.status — typically trial | active | suspended | archived */
   status: string;
   hasStripeCustomer: boolean;
-  /** False for marketplace / Wantd / platformExempt orgs — do not invent Stripe customers. */
+  /** False only for explicitly authorised platformExempt organisations. */
   expectsPlatformBilling: boolean;
   platformExempt: boolean;
   foundingCustomer: boolean;
@@ -38,7 +38,6 @@ export type OrganisationBillingStatus = {
    */
   kind:
     | "platform_exempt"
-    | "founding_trial"
     | "trial"
     | "active"
     | "subscribed"
@@ -126,7 +125,6 @@ export function resolveOrganisationBillingKind(input: {
   if (input.hasStripeCustomer && sub === "trialing") return "trial";
   if (input.hasStripeCustomer && sub === "active") return "subscribed";
   if (input.hasStripeCustomer && sub === "cancel_at_period_end") return "cancel_at_period_end";
-  if (input.foundingCustomer) return "founding_trial";
   return "needs_checkout";
 }
 
@@ -186,12 +184,11 @@ export async function getOrganisationBillingStatus(
   const foundingCustomer = platformSub
     ? platformSub.foundingCustomer === true
     : isFoundingCustomer(billing);
-  // PlatformSubscription is authoritative once present. Legacy org settings /
-  // slug heuristics are only pre-subscription fallbacks and must not make a
-  // real canonical subscription exempt (or bill an explicitly exempt one).
+  // PlatformSubscription is authoritative once present. Without a canonical
+  // row, only the explicit billing setting is an authorised exemption.
   const platformExempt = platformSub
     ? platformSub.platformExempt === true
-    : !expectsPlatformBilling || billing.platformExempt === true;
+    : billing.platformExempt === true;
 
   return {
     organisationId: org.id,
@@ -227,8 +224,6 @@ export function billingStatusHeadline(status: OrganisationBillingStatus): string
   switch (status.kind) {
     case "platform_exempt":
       return "Platform billing does not apply";
-    case "founding_trial":
-      return "Founding Customer — standard pricing";
     case "trial":
       return status.hasStripeCustomer ? "Trial (Stripe linked)" : "Trial";
     case "subscribed":
@@ -248,16 +243,14 @@ export function billingStatusHeadline(status: OrganisationBillingStatus): string
     case "active":
       return "Active — Stripe checkout needed";
     case "needs_checkout":
-      return "No Stripe customer yet";
+      return "Subscription checkout required";
   }
 }
 
 export function billingStatusDetail(status: OrganisationBillingStatus): string {
   switch (status.kind) {
     case "platform_exempt":
-      return "This organisation is marked platform-exempt (for example marketplace / Wantd). Missing a Stripe customer is expected — we do not create a fake one.";
-    case "founding_trial":
-      return "You’re on the Founding Customer programme. Founding status does not change subscription pricing; standard published pricing applies unless this organisation separately accepts a DigitalGate Custom Pricing offer.";
+      return "DigitalGate has explicitly authorised this organisation as platform-exempt. Missing a Stripe customer is expected — we do not create a fake one.";
     case "trial":
       return status.hasStripeCustomer
         ? "Your organisation is on a card-required trial with a Stripe customer on file. Manage invoices and payment method in the Customer Portal."
@@ -283,6 +276,8 @@ export function billingStatusDetail(status: OrganisationBillingStatus): string {
     case "active":
       return "Organisation is active but no Stripe customer is linked yet. Complete in-app checkout or sync a purchase so invoices and the portal work.";
     case "needs_checkout":
-      return "No Stripe customer on file for this organisation. Completing checkout creates one — we never invent MRR or fake customers.";
+      return status.hasStripeCustomer
+        ? "A Stripe customer exists, but there is no verified subscription or trial yet. Complete checkout to activate the standard plan."
+        : "No Stripe customer on file yet. Complete checkout to start the standard subscription trial.";
   }
 }

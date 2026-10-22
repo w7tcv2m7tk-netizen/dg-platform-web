@@ -318,6 +318,9 @@ async function handleStripeEvent(
   }
 
   if (event.type === "checkout.completed" && event.raw) {
+    if (event.connectAccountId) {
+      return NextResponse.json({ received: true, skipped: "connected_account_checkout" });
+    }
     const session = event.raw as Stripe.Checkout.Session;
     if (!event.connectAccountId && platformBillingDisposition === "platform" && isPlatformCheckoutSession(session)) {
       const platformResult = await provisionFromPlatformCheckout({
@@ -481,6 +484,9 @@ async function handleStripeEvent(
         skipped: "connected_account_invoice",
       });
     }
+    if (platformBillingDisposition !== "platform") {
+      return NextResponse.json({ received: true, skipped: "not_a_verified_platform_subscription" });
+    }
 
     const invoice = event.raw as Stripe.Invoice | undefined;
     const periodStart = invoice?.period_start
@@ -517,15 +523,13 @@ async function handleStripeEvent(
     // Connected-account invoices already returned above, so this is a
     // platform-account invoice; the H-8 !connectAccountId gate is preserved by
     // the early return.
-    if (organisationId && platformBillingDisposition === "platform") {
-      try {
-        await applyInvoicePaidRecovery({
-          organisationId,
-          stripeEventId: event.providerEventId,
-        });
-      } catch (err) {
-        console.warn("[stripe webhook] invoice paid recovery failed", err);
-      }
+    if (organisationId) {
+      await applyInvoicePaidRecovery({
+        organisationId,
+        stripeSubscriptionId: event.stripeSubscriptionId,
+        stripeCustomerId: event.providerCustomerId,
+        stripeEventId: event.providerEventId,
+      });
     }
 
     let referralReward: unknown = null;
@@ -603,6 +607,12 @@ export async function POST(req: Request) {
     const connector = requirePaymentConnector("stripe");
     const event = await connector.parseWebhook(rawBody, headers);
 
+    // Local payment requests are created on the platform account. Connected
+    // account metadata cannot authorize any receipt or tenant payment mutation.
+    if (event.connectAccountId && ["checkout.completed", "checkout.expired", "payment.failed"].includes(event.type)) {
+      return NextResponse.json({ received: true, skipped: event.type.startsWith("checkout.")
+        ? "connected_account_checkout" : "connected_account_payment_event" });
+    }
     // Defer only platform subscription lifecycle events during the controlled
     // entitlement cutover. The store atomically checks the shared hold and
     // claims/reclaims the receipt in one short database transaction.

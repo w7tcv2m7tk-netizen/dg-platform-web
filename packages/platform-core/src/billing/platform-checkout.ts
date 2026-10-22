@@ -1,7 +1,6 @@
 import "server-only";
 import Stripe from "stripe";
-import { admitPlatformCheckout } from "./checkout-creation-gate";
-import { createAdmittedPlatformSession } from "./checkout-session-create";
+import { coordinatePlatformCheckout } from "./checkout-coordinator";
 import { parseCustomCommercialOffer, type CustomCommercialOffer } from "./commercial-offer";
 import { annualPriceFromMonthlyCents, BILLING_COMMERCIAL_CONFIG } from "./subscription-types";
 import { industryCheckoutLines } from "../industry/platform";
@@ -11,6 +10,7 @@ import { normalisePaidAppKeys, paidAppCheckoutLines, GROWTH_SUITE_WITH_INDUSTRY_
 const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
   PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
 );
+
 export type PlatformBillingCadence = "monthly" | "annual";
 
 const TIER_LABELS: Record<string, string> = {
@@ -29,6 +29,31 @@ function stripePriceIdForTier(tier: string): string | null {
   };
   const id = envMap[tier]?.trim();
   return id || null;
+}
+
+async function validatedStripePriceId(
+  stripe: Stripe,
+  tier: string,
+  expectedAmountCents: number,
+): Promise<string | null> {
+  const id = stripePriceIdForTier(tier);
+  if (!id) return null;
+  let price: Stripe.Price;
+  try {
+    price = await stripe.prices.retrieve(id);
+  } catch {
+    throw new Error("Configured Stripe price could not be verified against the published plan catalogue.");
+  }
+  if (
+    price.active !== true ||
+    price.currency.toLowerCase() !== "aud" ||
+    price.unit_amount !== expectedAmountCents ||
+    price.recurring?.interval !== "month" ||
+    (price.recurring.interval_count ?? 1) !== 1
+  ) {
+    throw new Error(`Configured Stripe price does not match the published ${tier} monthly AUD catalogue price.`);
+  }
+  return id;
 }
 
 function getStripeClient() {
@@ -88,7 +113,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     select: { billingCustomerId: true, settings: true },
   });
 
-  const priceId = annual ? null : stripePriceIdForTier(tier);
+  const priceId = annual ? null : await validatedStripePriceId(stripe, tier, monthlyAmount);
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priceId
     ? [{ quantity: 1, price: priceId }]
     : [
@@ -227,7 +252,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
       if (!customer.deleted) sessionParams.customer = customer.id;
       else sessionParams.customer_email = input.email;
     } catch {
-      sessionParams.customer_email = input.email;
+      throw new Error("The existing billing customer could not be verified. Please try again shortly.");
     }
   } else {
     sessionParams.customer_email = input.email;
@@ -243,8 +268,12 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         programme?: string;
       };
     } | null)?.billing) ?? {};
-  const exempt =
-    existingSub?.platformExempt === true || settingsBilling.platformExempt === true;
+  // Once a canonical subscription exists, its exemption bit is authoritative.
+  // Organisation settings are only a bootstrap fallback for organisations that
+  // do not yet have a PlatformSubscription row.
+  const exempt = existingSub
+    ? existingSub.platformExempt
+    : settingsBilling.platformExempt === true;
 
   if (!exempt) {
     sessionParams.subscription_data = {
@@ -253,13 +282,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     };
   }
 
-  // Admission commits before provider I/O. The immutable absolute expiry bounds
-  // delayed/unknown creates after closure; never retry with a refreshed expiry.
-  const admission = await admitPlatformCheckout();
-  sessionParams.expires_at = admission.expiresAt;
-  const session = await createAdmittedPlatformSession(stripe, sessionParams);
-
-  return { url: session.url, sessionId: session.id };
+  return coordinatePlatformCheckout({ organisationId: input.organisationId, stripe, parameters: sessionParams });
 }
 
 export async function createCustomCommercialCheckoutSession(input: {
@@ -358,18 +381,14 @@ export async function createCustomCommercialCheckoutSession(input: {
       if (!customer.deleted) sessionParams.customer = customer.id;
       else sessionParams.customer_email = input.email;
     } catch {
-      sessionParams.customer_email = input.email;
+      throw new Error("The existing billing customer could not be verified. Please try again shortly.");
     }
   } else {
     sessionParams.customer_email = input.email;
   }
 
-  // Admission commits before provider I/O. The immutable absolute expiry bounds
-  // delayed/unknown creates after closure; never retry with a refreshed expiry.
-  const admission = await admitPlatformCheckout();
-  sessionParams.expires_at = admission.expiresAt;
-  const session = await createAdmittedPlatformSession(stripe, sessionParams);
-  return { url: session.url, sessionId: session.id, offer };
+  const checkout = await coordinatePlatformCheckout({ organisationId: input.organisationId, stripe, parameters: sessionParams });
+  return { ...checkout, offer };
 }
 
 

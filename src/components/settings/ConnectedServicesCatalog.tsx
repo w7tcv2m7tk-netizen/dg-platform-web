@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEnabledAppsOptional } from "@/components/platform/EnabledAppsProvider";
 import { ResolutionFallback } from "@/components/ui/ResolutionAction";
-import { getTemplate } from "@dg/platform-core";
+import { getTemplate } from "@dg/platform-core/industry/catalogue";
 
 type DisplayState = "connected" | "attention" | "not_connected" | "available" | "planned";
 type Connector = { manifest:{ id:string; name:string; category:"property"|"business"|"marketing"|"commerce"|"ops"; maturity:"native"|"available"|"planned"; capabilities:string[]; appIds?:string[] }; platformConfigured:boolean; connectionScope:"platform"|"organisation"; organisation?:{ status?:string; label?:string|null; lastError?:string|null; lastSyncAt?:string|null }; health?:{ status?:string; lastError?:string|null; lastSyncAt?:string|null } };

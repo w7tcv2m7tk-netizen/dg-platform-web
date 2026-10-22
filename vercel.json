@@ -36,7 +36,9 @@
   "git": {
     "deploymentEnabled": {
       "work/commercial-checkout-compatibility": false,
-      "release/stripe-webhook-guard-only-20261019": false
+      "release/stripe-webhook-guard-only-20261019": false,
+      "work/commercial-readiness": false,
+      "release/checkout-entitlements-20261019": false
     }
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useEnabledAppsOptional } from "@/components/platform/EnabledAppsProvider";
-import { getTemplate } from "@dg/platform-core";
+import { getTemplate } from "@dg/platform-core/industry/catalogue";
 
 type HealthState = "connected" | "attention" | "not_connected" | "available";
 type Maturity = "native" | "available" | "planned";

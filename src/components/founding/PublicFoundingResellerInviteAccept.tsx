@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FOUNDING_RESELLER_INVITE_POINTS } from "@dg/platform-core";
+import { FOUNDING_RESELLER_INVITE_POINTS } from "@dg/platform-core/partners/invite-copy";
 
 export function PublicFoundingResellerInviteAccept({
   token,

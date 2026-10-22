@@ -55,7 +55,6 @@ export async function AppsBillingStatusCard({
             platformTier={status.platformTier}
             hasBillingCustomer={status.hasStripeCustomer}
             expectsPlatformBilling={status.expectsPlatformBilling}
-            foundingCustomer={status.foundingCustomer}
           />
         </div>
       </div>

@@ -74,6 +74,7 @@ export async function GET(req: Request) {
   if (!opportunityId) return NextResponse.json({ error: { code: "validation_error", message: "opportunityId is required" } }, { status: 422 });
   const current = await getOpportunityCustomOffer({ organisationId: auth.session.organisationId, opportunityId });
   if (!current) return NextResponse.json({ error: { code: "not_found", message: "Opportunity not found" } }, { status: 404 });
+  if (current.founding) return NextResponse.json({ error: { code: "standard_pricing_only", message: "Founding 10 prospects use standard published pricing." } }, { status: 409 });
   return NextResponse.json({
     data: {
       offer: current.offer,
@@ -104,6 +105,7 @@ export async function POST(req: Request) {
   }
   const existing = await getOpportunityCustomOffer({ organisationId: auth.session.organisationId, opportunityId });
   if (!existing) return NextResponse.json({ error: { code: "not_found", message: "Opportunity not found" } }, { status: 404 });
+  if (existing.founding) return NextResponse.json({ error: { code: "standard_pricing_only", message: "Founding 10 prospects use standard published pricing." } }, { status: 409 });
   if (existing.claimedByOrganisationId) {
     return NextResponse.json(
       { error: { code: "offer_locked", message: "This offer has already been accepted and is locked." } },

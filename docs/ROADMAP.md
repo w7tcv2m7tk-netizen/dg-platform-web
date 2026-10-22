@@ -502,6 +502,47 @@ order; #1018 retains its authenticated local-verification and identity-migration
 gates. No live billing activation or Production migration was performed for this
 backlog reconciliation.
 
+### P0 checkout candidate reconciliation - 21 October 2026
+
+PR #1006 reconciled main `d7abf8fd` with candidate `666f4533` without
+changing coordinator/billing behaviour. Preserved the coordinator migration,
+projection transaction and tests; merged Prospecting-first navigation,
+governance evidence and the default-off Business Briefing foundation.
+Three stale source-text assertions now execute the public plan limits and
+retain Starter 1/1, Growth 5/1 and Scale 20/5 user/business caps.
+Validation: coordinator disposable PostgreSQL 44/44; focused compatibility
+84/84; complete `npm run build`, including prebuild and TypeScript, passed.
+The disposable PostgreSQL cluster was stopped and destroyed.
+Status remains BLOCKED for hosted/authenticated synthetic certification and
+operator-approved creation-gate/coordinator migrations, guard rollout and
+legacy invocation/session drain. No Production data, billing configuration,
+provider objects or checkout admission were changed. No Neon preview created.
+### P0 checkout guard/coordinator integration — 22 October 2026
+
+Requirements: `platform.auth`, `detach.portal_billing`. PR #1006 integration
+commit `188f92b1a2fa7b3a99ee2632503bd7b269191df7` merges deployed main
+`8b01687fc235d16db6467a91551247e3f69444f9` and preserves the shared
+webhook hold, atomic receipt claim, connected-account isolation, canonical
+invoice ownership and coordinator admission fence. The review branches remain
+disabled in `vercel.json`; no Preview or Neon branch was created.
+
+Local verification at the integration commit: checkout compatibility 151/151,
+receipt replay 14/14, drain reporter 7/7, standalone TypeScript PASS, and full
+`npm run build` PASS with prebuild and Next.js 16.2.12 Webpack 457/457 pages.
+The full build used `NODE_OPTIONS=--max-old-space-size=6144` after the default
+2 GiB heap exhausted. The owned disposable PostgreSQL suites remain **unverified
+on this host**: client tools exist, but the server binary is absent and local
+Homebrew installation was not permitted by the execution environment. Previous
+database results are historical evidence, not a fresh pass for this merge.
+
+Verification state: **IMPLEMENTED BUT UNVERIFIED** for the integrated branch;
+Production remains **BLOCKED**. Next action: run the owned disposable database
+suites on a permitted host, integrate this exact coordinator into PR #1015,
+repeat affected checks and authenticated synthetic customer acceptance, then
+review the consolidated merge decision. Production webhook termination proof,
+hold, Stripe configuration, reconciliation, checkout opening and invitations
+remain separate release gates. No Production state was changed for this merge.
+
 ### P1 Prospecting candidate reconciliation - 21 October 2026
 
 PR #1018 candidate `09a85fb7` reconciled main `d7abf8fd`; preserved its

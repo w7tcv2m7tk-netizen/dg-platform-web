@@ -6,6 +6,21 @@
 import type { EmailBodyBlock } from "../communications/email-html";
 import { composeEmailBody } from "../communications/email-html";
 import { FOUNDING_PERSONAL_INVITE_BENEFITS } from "./types";
+import {
+  foundingAgreementUrl,
+  foundingImplementationUrl,
+  foundingOnboardingUrl,
+  foundingPersonalInviteUrl,
+  foundingSetupUrl,
+} from "./urls";
+
+export {
+  foundingAgreementUrl,
+  foundingImplementationUrl,
+  foundingOnboardingUrl,
+  foundingPersonalInviteUrl,
+  foundingSetupUrl,
+} from "./urls";
 
 const ACCENT = "#3B82F6";
 
@@ -19,44 +34,6 @@ const FOUNDING_BENEFITS = [
   "Standard published Platform + Apps pricing (14-day trial; annual ≈ 10 months)",
   "Selected members may be invited into the DigitalGate Founding Acquisition Partner Programme (invitation only)",
 ];
-
-function appOrigin(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://app.digitalgate.com.au";
-  return raw.replace(/\/$/, "");
-}
-
-export function foundingSetupUrl(inviteToken: string): string {
-  const token = encodeURIComponent(inviteToken.trim());
-  return `${appOrigin()}/founding/setup?invite=${token}`;
-}
-
-export function foundingAgreementUrl(inviteToken: string): string {
-  const token = encodeURIComponent(inviteToken.trim());
-  return `${appOrigin()}/founding/agreement?invite=${token}`;
-}
-
-export function foundingOnboardingUrl(inviteToken?: string | null): string {
-  const base = `${appOrigin()}/onboarding`;
-  const token = inviteToken?.trim();
-  return token ? `${base}?invite=${encodeURIComponent(token)}` : base;
-}
-
-export function foundingImplementationUrl(): string {
-  return `${appOrigin()}/implementation`;
-}
-
-function publicSiteOrigin(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://digitalgate.com.au";
-  return raw.replace(/\/$/, "");
-}
-
-/** Personal invitation — public site, not the generic application form. */
-export function foundingPersonalInviteUrl(inviteToken: string): string {
-  const token = encodeURIComponent(inviteToken.trim());
-  return `${publicSiteOrigin()}/founding-customers/invite/${token}`;
-}
 
 function signoffBlocks(): EmailBodyBlock[] {
   return [
