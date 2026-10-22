@@ -472,17 +472,14 @@ for (const input of [
 }
 
 test("connected-account checkout and subscription events bypass the platform hold and platform provisioning", async () => {
-  for (const event of [
-    { ...checkoutEvent(), connectAccountId: "acct_fixture" },
-    { ...subscriptionEvent("subscription.updated"), connectAccountId: "acct_fixture" },
+  for (const { event, guardChecks, receiptClaims } of [
+    { event: { ...checkoutEvent(), connectAccountId: "acct_fixture" }, guardChecks: [], receiptClaims: 0 },
+    { event: { ...subscriptionEvent("subscription.updated"), connectAccountId: "acct_fixture" }, guardChecks: [false], receiptClaims: 1 },
   ]) {
     const app = loadRoute({ event, hold: true });
     assert.equal((await app.post()).status, 200);
-    // The coordinator release rejects connected Checkout before any receipt;
-    // connected subscriptions retain their unrelated processing path.
-    const checkout = event.type === "checkout.completed";
-    assert.deepEqual(app.guardChecks, checkout ? [] : [false]);
-    assert.equal(app.receiptClaims, checkout ? 0 : 1);
+    assert.deepEqual(app.guardChecks, guardChecks);
+    assert.equal(app.receiptClaims, receiptClaims);
     assert.equal(app.platformMutations, 0);
   }
 });

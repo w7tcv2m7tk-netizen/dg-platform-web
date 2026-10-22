@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const baselineRef = "7a10486d00c83adfb8744e4de86c5d9f21ed4ad0"; // Verified main already includes the checkout gate schema.
 const migration = "packages/database/prisma/migrations/20261009_platform_checkout_creation_gate/migration.sql";
+const attemptMigration = "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql";
 const appEntitlementsMigration = "packages/database/prisma/migrations/20261018_platform_subscription_app_entitlements/migration.sql";
 const subscriptionWebhookHoldMigration = "packages/database/prisma/migrations/20261019_platform_subscription_webhook_hold/migration.sql";
 const pgBin = process.argv[2];
@@ -63,7 +64,7 @@ try {
   run(path.join(pgBin, "psql"), [...psql, "-f", sql]);
   // Apply once to the owned disposable database, including SQL-only checks.
   run(path.join(pgBin, "psql"), [...psql, "-f", migration]);
-  run(path.join(pgBin, "psql"), [...psql, "-f", "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql"]);
+  run(path.join(pgBin, "psql"), [...psql, "-f", attemptMigration]);
   run(path.join(pgBin, "psql"), [...psql, "-f", appEntitlementsMigration]);
   run(path.join(pgBin, "psql"), [...psql, "-f", subscriptionWebhookHoldMigration]);
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-url", databaseUrl, "--to-schema-datamodel", "packages/database/prisma", "--exit-code"], { env });
@@ -74,6 +75,6 @@ try {
 } finally {
   if (existsSync(path.join(data, "postmaster.pid"))) run(path.join(pgBin, "pg_ctl"), ["-D", data, "-m", "immediate", "-w", "stop"]);
   rmSync(owned, { recursive: true, force: true });
-  writeFileSync(path.join(tmpdir(), "dg-compat-db-evidence.json"), JSON.stringify({ passed, baselineRef, migration, cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
+  writeFileSync(path.join(tmpdir(), "dg-compat-db-evidence.json"), JSON.stringify({ passed, baselineRef, migrations: [migration, attemptMigration, appEntitlementsMigration, subscriptionWebhookHoldMigration], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
   console.log("Disposable checkout PostgreSQL cluster stopped and destroyed");
 }
