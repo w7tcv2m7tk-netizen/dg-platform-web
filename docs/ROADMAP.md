@@ -615,6 +615,31 @@ review the consolidated merge decision. Production webhook termination proof,
 hold, Stripe configuration, reconciliation, checkout opening and invitations
 remain separate release gates. No Production state was changed for this merge.
 
+### P0 guarded entitlement integration — 22 October 2026
+
+Requirements: `platform.auth`, `detach.portal_billing`, `crm.companies`.
+PR #1015 integration commit `fb7692ed0a40c97eb1316f164645a239a49da44a`
+incorporates coordinator `978ad16a1145f08f120241a813d1e503ac247bf3`
+and deployed guard/main `8b01687fc235d16db6467a91551247e3f69444f9`.
+Local checkout/guard compatibility 151/151, Finance access 12/12, drain
+reporter 7/7, TypeScript and full prebuild/Next.js Webpack build passed
+(457/457 pages) on 22 October 2026. These are local verification only.
+
+Verification state: **IMPLEMENTED BUT UNVERIFIED**. The disposable PostgreSQL
+regression suites and authenticated AIM Financial/MyVenue Clean acceptance
+were not rerun for this commit because this host has no PostgreSQL server and
+the execution environment declined installation. Historical 22/22 sandbox
+acceptance remains tied to its earlier source revision. All 25 Production
+migration ledger checksums match the 24-file recovery commit plus the newer
+acquisition-identity source on main; no migration write was performed.
+
+Next action: execute the owned database suites and fresh authenticated
+synthetic acceptance on an approved local host, then review exact PR checks.
+Production remains BLOCKED pending old webhook invocation termination proof,
+the measured safety margin, separately approved hold/drain, live Stripe event
+selection, signed reconciliation, deployment and checkout reopening. No
+Production operation, Preview or Neon branch was created for this integration.
+
 ### P1 Prospecting candidate reconciliation - 21 October 2026
 
 PR #1018 candidate `09a85fb7` reconciled main `d7abf8fd`; preserved its

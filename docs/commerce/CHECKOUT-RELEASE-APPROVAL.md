@@ -1,5 +1,44 @@
 # Controlled checkout release approval package
 
+## Consolidated integration decision — 22 October 2026
+
+**NO-GO for merge or Production cutover.** The #1006 coordinator was reconciled
+with deployed guard/main `8b01687fc235d16db6467a91551247e3f69444f9` in
+commit `188f92b1a2fa7b3a99ee2632503bd7b269191df7`; its evidence update is
+`978ad16a1145f08f120241a813d1e503ac247bf3`. The stacked #1015 integration
+commit is `fb7692ed0a40c97eb1316f164645a239a49da44a`. The guard, atomic
+receipt claim, connected-account isolation, canonical invoice recovery,
+coordinator admission fence and entitlement checks remain in the combined tree.
+
+Fresh local checks on the combined worktree: checkout/guard compatibility
+151/151, Finance access 12/12, drain reporter 7/7, TypeScript PASS and full
+`npm run build` with prebuild PASS (Next.js 16.2.12, 457/457 pages). The build
+used a 6144 MiB Node heap because the default 2 GiB limit exhausted. Owned
+disposable PostgreSQL regressions and authenticated AIM Financial/MyVenue Clean
+synthetic acceptance have **not** been rerun on these merge commits. This host
+has client-only PostgreSQL tools; the execution environment declined the local
+server installation. The previous 22/22 authenticated sandbox acceptance
+remains historical evidence for its tested revision, not a pass for this tree.
+
+Exact already-applied Production migration SQL was verified against the live
+ledger on 22 October: all 25 entries are finished, none rolled back, and all
+25 checksums match their source bytes. Twenty-four files come from recovery
+commit `af85b034f854c8e9ff9a66890a9607f85503cca3`; the additional
+`20261020090000_unified_acquisition_identity` comes from main source commit
+`30d3df78817c745e2f02903ec76a1ac0107b853d`. The former temporary
+recovery worktree is absent, so the commit object is the available immutable
+source; no migration was run in this integration. The candidate application
+tree is not the certified recovery runner.
+
+Production remains on the guard deployment at the above main SHA; the checkout
+gate is blocked at revision 0 and the webhook hold is false. Before any cutover,
+obtain provider evidence that old webhook invocations are terminal and the
+verified runtime safety margin has elapsed; then separately approve the hold,
+drain and live Stripe event selection, signed purchase reconciliation, staged
+coordinator/entitlement deployment, hold release, checkout opening and customer
+invitations. No Production writes or provider changes were made here. Do not
+interpret the historical GO for preparing this package as a current release GO.
+
 Prepared 21 October 2026. Requirements: `platform.auth`, `detach.portal_billing`,
 `crm.companies`. This is the executable approval proposal, not permission to run
 Production operations. No Production change was performed while preparing it.
