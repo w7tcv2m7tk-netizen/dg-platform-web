@@ -37,11 +37,17 @@ test("webhook route never consults admission barrier", () => {
 });
 test("review branches cannot request automatic Vercel deployments", () => {
   const config = JSON.parse(read("vercel.json"));
-  assert.deepEqual(config.git.deploymentEnabled, {
-    "work/commercial-readiness": false,
-    "work/commercial-checkout-compatibility": false,
-    "release/checkout-entitlements-20261019": false,
-    "release/stripe-webhook-guard-only-20261019": false,
-    "fix/checkout-release-readiness-20261023": false,
-  });
+  const protectedBranches = [
+    "work/commercial-readiness",
+    "work/commercial-checkout-compatibility",
+    "release/checkout-entitlements-20261019",
+    "release/stripe-webhook-guard-only-20261019",
+    "fix/checkout-release-readiness-20261023",
+  ];
+  for (const branch of protectedBranches) {
+    assert.equal(config.git?.deploymentEnabled?.[branch], false, `${branch} must explicitly disable deployments`);
+  }
+  for (const [branch, enabled] of Object.entries(config.git.deploymentEnabled)) {
+    assert.equal(enabled, false, `${branch} must not enable deployments`);
+  }
 });

@@ -890,3 +890,19 @@ configuration and signed purchase reconciliation BEFORE serving entitlement gate
 then full deployment/smoke, checkout opening and invitations each require owner
 approval. Existing dependency audit findings need security disposition. No new
 Neon resources, Production writes, provider mutations, deployments or invitations.
+
+### 23 October 2026 — PR #1027 suppression CI remediation
+
+Requirements `platform.auth`, `detach.portal_billing`, `crm.companies`; branch
+`fix/checkout-release-readiness-20261023`, based on `f90dad065d9237da0f8a77237a8ac541aaf6d985`.
+`scripts/test-checkout-compatibility-boundaries.mjs` now requires each of the five
+protected branch entries to be explicitly false, permits extra disabled entries,
+and rejects enabled entries. No deployment configuration or application change.
+Local verification: `node --test scripts/test-checkout-compatibility-boundaries.mjs`
+5/5; `npm run test:checkout-release` 376/376, zero failed/skipped; 13 in-memory
+positive/negative controls pass (each protected entry missing/true rejected, extra
+false accepted, extra true rejected). Log `/private/tmp/dg-1027-remediation-focused.log`.
+Status **VERIFIED IN ISOLATION** for assertion; Production release remains
+**BLOCKED** under the existing runbooks. Next: push this focused correction,
+monitor GitHub Actions to completion and check Vercel branch deployments. No
+Production/provider mutation, merge or deployment approved or performed.
