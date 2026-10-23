@@ -11,6 +11,8 @@ import {
   normalisePaidAppKeys,
   type PaidAppKey,
 } from "./paid-apps";
+import { stripeItemsMatchPurchasedSelections } from "./purchased-line-items";
+import { customOfferPurchaseMatches } from "./custom-offer-line-items";
 
 const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
   PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
@@ -169,7 +171,9 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
   if (session.mode !== "subscription" || session.status !== "complete" || !stripeSubscriptionId) {
     throw new Error("Platform checkout requires a completed subscription session");
   }
-  const subscription = await read(timeout => getStripeClient().subscriptions.retrieve(stripeSubscriptionId, { timeout, maxNetworkRetries: 0 }));
+  const subscription = await read(timeout => getStripeClient().subscriptions.retrieve(stripeSubscriptionId, {
+    expand: ["items.data.price.product"],
+  }, { timeout, maxNetworkRetries: 0 }));
   if (subscription.id !== stripeSubscriptionId || stripeCustomerId(subscription.customer) !== customerId ||
     subscription.livemode !== session.livemode || !metadata.organisation_id ||
     subscription.metadata.organisation_id !== metadata.organisation_id || subscription.metadata.dg_platform_subscription !== "true") {
@@ -207,6 +211,69 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
   }
   if (!["active", "trialing"].includes(subscription.status)) {
     throw new Error("Platform checkout subscription activation is unconfirmed");
+  }
+  const customOfferId = metadata.dg_commercial_offer_id?.trim();
+  if (customOfferId) {
+    const { getAcceptedCommercialOfferForCheckout } = await import("./commercial-offer");
+    const acceptedOffer = await getAcceptedCommercialOfferForCheckout(metadata.organisation_id!, customOfferId);
+    if (!acceptedOffer) throw new Error("Custom offer is stale, unaccepted, or not owned by this organisation");
+    const owner = await database.organisation.findUnique({ where: { id: metadata.organisation_id }, select: { billingCustomerId: true } });
+    if (!owner || (owner.billingCustomerId && owner.billingCustomerId !== customerId)) {
+      throw new Error("Custom offer Stripe customer ownership is unconfirmed");
+    }
+    const stripe = getStripeClient();
+    const checkoutLines = await read(timeout => stripe.checkout.sessions.listLineItems(
+      session.id,
+      { limit: 100, expand: ["data.price.product"] },
+      { timeout, maxNetworkRetries: 0 },
+    ));
+    const trialStart = subscription.trial_start ?? null;
+    const trialEnd = subscription.trial_end ?? null;
+    if (!customOfferPurchaseMatches({
+      sessionMetadata: metadata,
+      subscriptionMetadata: subscription.metadata,
+      subscriptionItems: subscription.items.data,
+      checkoutLineItems: checkoutLines.data,
+      offer: acceptedOffer,
+      organisationId: metadata.organisation_id,
+      checkoutCustomerId: customerId,
+      subscriptionCustomerId: stripeCustomerId(subscription.customer) ?? "",
+      subscriptionStatus: subscription.status,
+      trialStart,
+      trialEnd,
+    })) {
+      throw new Error("Custom checkout line items, trial, or entitlements do not match the accepted offer");
+    }
+  }
+  const verifiedIndustryApps = metadataList(subscription.metadata?.dg_industry_apps);
+  const verifiedIndustryTemplates = metadataList(subscription.metadata?.dg_industry_templates);
+  const selectedIndustryIds = [...new Set([...industryApps, ...industryTemplates])].sort();
+  const verifiedIndustryIds = [...new Set([...verifiedIndustryApps, ...verifiedIndustryTemplates])].sort();
+  if (JSON.stringify(selectedIndustryIds) !== JSON.stringify(verifiedIndustryIds)) {
+    throw new Error("Stripe subscription Industry App metadata does not match the completed Checkout Session");
+  }
+  const verifiedPremiumApps = normalisePaidAppKeys(metadataList(subscription.metadata?.dg_premium_apps));
+  if (JSON.stringify([...requestedPremiumApps].sort()) !== JSON.stringify([...verifiedPremiumApps].sort())) {
+    throw new Error("Stripe subscription premium-app metadata does not match the completed Checkout Session");
+  }
+  const cadence = metadata.dg_billing_cadence === "annual" ? "annual" : "monthly";
+  if (subscription.metadata?.dg_billing_cadence !== cadence) {
+    throw new Error("Stripe subscription billing cadence does not match the completed Checkout Session");
+  }
+  if (subscription.metadata?.dg_platform_tier !== platformTier ||
+    (subscription.metadata?.dg_support_plan ?? "standard") !== (metadata.dg_support_plan ?? "standard")) {
+    throw new Error("Stripe subscription commercial metadata does not match the completed Checkout Session");
+  }
+  const configuredPlatformPriceId = platformPriceIdForTier(platformTier);
+  if (!customOfferId && !stripeItemsMatchPurchasedSelections(subscription.items.data, {
+    platformTier,
+    platformPriceId: configuredPlatformPriceId,
+    industryApps: selectedIndustryIds,
+    premiumApps: requestedPremiumApps,
+    supportPlan: metadata.dg_support_plan ?? "standard",
+    cadence,
+  })) {
+    throw new Error("Stripe subscription line items do not match the canonical DigitalGate purchase catalogue");
   }
   const premiumApps = await paidAppsFromAuthoritativeSubscription({
     subscription,
@@ -266,6 +333,8 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
     stripeCustomerId: customerId,
     stripeSubscriptionId,
     planTier: platformTier,
+    industryApps: [...new Set([...verifiedIndustryApps, ...verifiedIndustryTemplates])],
+    premiumApps: verifiedPremiumApps,
     foundingCustomer: founding,
     platformExempt: requestedExemption,
     stripeEventId: session.id,
@@ -333,6 +402,17 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
     billingCustomerId: customerId,
     referralReward: null,
   };
+}
+
+function platformPriceIdForTier(tier: string): string | null {
+  const configured = tier === "starter"
+    ? process.env.STRIPE_PRICE_STARTER
+    : tier === "professional"
+      ? process.env.STRIPE_PRICE_PROFESSIONAL ?? process.env.STRIPE_PRICE_GROWTH
+      : tier === "business"
+        ? process.env.STRIPE_PRICE_BUSINESS ?? process.env.STRIPE_PRICE_SCALE
+        : undefined;
+  return configured?.trim() || null;
 }
 
 export async function handlePlatformSubscriptionLifecycle(

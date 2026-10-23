@@ -114,6 +114,120 @@ for (const type of ["invoice.paid", "invoice.payment_failed", "invoice.payment_a
   }
 }
 
+function cutoverWebhookRuntime(readHold, receipts) {
+  let event = {
+    providerEventId: "evt_cutover_hold",
+    type: "subscription.updated",
+    connectAccountId: undefined,
+    raw: { id: "sub_cutover_hold", customer: "cus_cutover_hold", metadata: { dg_platform_subscription: "true", organisation_id: "org_cutover_hold" } },
+  };
+  let receiptClaims = 0;
+  let lifecycleCalls = 0;
+  const platform = {
+    bootPaymentConnectors() {},
+    requirePaymentConnector: () => ({ parseWebhook: async () => event }),
+    prismaReceiptStore: () => ({ claim: true }),
+    PlatformSubscriptionWebhookHoldUnavailableError: class PlatformSubscriptionWebhookHoldUnavailableError extends Error {},
+    isPlatformSubscription: sub => Boolean(sub?.metadata?.dg_platform_tier || sub?.metadata?.dg_platform_subscription === "true"),
+    handlePlatformSubscriptionLifecycle: async () => { lifecycleCalls++; return { ok: true }; },
+    resolveOrganisationIdByConnectAccount: async () => undefined,
+    withWebhookReceiptState: async ({ eventId, requireSubscriptionWebhookOpen, handle }) => {
+      if (requireSubscriptionWebhookOpen) {
+        try { if (await readHold()) return { status: "held" }; }
+        catch (cause) { throw new platform.PlatformSubscriptionWebhookHoldUnavailableError("hold unavailable", { cause }); }
+      }
+      receiptClaims++;
+      if (receipts.has(eventId)) return { status: "duplicate", reason: "already_processed" };
+      const result = await handle();
+      receipts.add(eventId);
+      return { status: "processed", result };
+    },
+  };
+  const source = ts.transpileModule(readFileSync("src/app/api/webhooks/stripe/route.ts", "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText;
+  const exports = {};
+  vm.runInNewContext(source, { exports, require: name => {
+    if (name === "@dg/platform-core") return platform;
+    if (name === "@dg/database") return { prisma: {
+      organisation: { findUnique: async ({ where }) => where.id === "org_cutover_hold" || where.billingCustomerId === "cus_cutover_hold"
+        ? { id: "org_cutover_hold", billingCustomerId: "cus_cutover_hold" } : null },
+      platformSubscription: { findUnique: async () => null },
+    } };
+    if (name === "next/server") return { NextResponse: { json: Response.json } };
+    throw new Error(`Unexpected dependency: ${name}`);
+  }, Response, process: { env: { STRIPE_SECRET_KEY: "sk_test_fixture", STRIPE_WEBHOOK_SECRET: "whsec_fixture" } },
+  console: { info() {}, error() {}, warn() {} } });
+  return {
+    setEvent(next) { event = next; },
+    async post() { return exports.POST(new Request("https://fixture.test/api/webhooks/stripe", { method: "POST", body: "signed fixture" })); },
+    get receiptClaims() { return receiptClaims; },
+    get lifecycleCalls() { return lifecycleCalls; },
+  };
+}
+
+test("held platform lifecycle event returns retryable 503 before receipt claim and processes after release", async () => {
+  const receipts = new Set();
+  let held = true;
+  const appA = cutoverWebhookRuntime(async () => held, receipts);
+  const heldResponse = await appA.post();
+  assert.equal(heldResponse.status, 503);
+  assert.equal(heldResponse.headers.get("retry-after"), "60");
+  assert.equal(appA.receiptClaims, 0);
+  assert.equal(receipts.size, 0);
+  assert.equal(appA.lifecycleCalls, 0);
+
+  held = false;
+  const appB = cutoverWebhookRuntime(async () => held, receipts);
+  const releasedResponse = await appB.post();
+  assert.equal(releasedResponse.status, 200);
+  assert.equal(appB.receiptClaims, 1);
+  assert.equal(appB.lifecycleCalls, 1);
+  assert.equal(receipts.size, 1);
+  const duplicate = await appA.post();
+  assert.equal(duplicate.status, 200);
+  assert.equal((await duplicate.json()).duplicate, true);
+  assert.equal(appA.lifecycleCalls, 0);
+});
+
+test("hold lookup failure defers platform lifecycle event without claiming its receipt", async () => {
+  const receipts = new Set();
+  const app = cutoverWebhookRuntime(async () => { throw new Error("database unavailable"); }, receipts);
+  const response = await app.post();
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).error.code, "subscription_webhook_hold_unavailable");
+  assert.equal(app.receiptClaims, 0);
+  assert.equal(receipts.size, 0);
+});
+
+test("unrelated and connected-account subscription events bypass the platform cutover hold", async () => {
+  const receipts = new Set();
+  let reads = 0;
+  const app = cutoverWebhookRuntime(async () => { reads++; return true; }, receipts);
+  app.setEvent({ providerEventId: "evt_unrelated", type: "ignored", raw: { ignoredStripeType: "product.updated" } });
+  assert.equal((await app.post()).status, 200);
+  assert.equal(reads, 0);
+  app.setEvent({ providerEventId: "evt_connected_subscription", type: "subscription.updated", connectAccountId: "acct_connected",
+    raw: { id: "sub_connected", metadata: { dg_platform_subscription: "true" } } });
+  assert.equal((await app.post()).status, 200);
+  assert.equal(reads, 0);
+});
+
+test("multiple webhook application instances observe hold activation and release through shared state", async () => {
+  const receipts = new Set();
+  const shared = { held: false };
+  const readSharedState = async () => shared.held;
+  const appA = cutoverWebhookRuntime(readSharedState, receipts);
+  const appB = cutoverWebhookRuntime(readSharedState, receipts);
+  shared.held = true;
+  assert.equal((await appA.post()).status, 503);
+  assert.equal((await appB.post()).status, 503);
+  assert.equal(appA.receiptClaims + appB.receiptClaims, 0);
+  shared.held = false;
+  assert.equal((await appB.post()).status, 200);
+  assert.equal(receipts.size, 1);
+});
+
 test("Dahlia commerce subscription projects common item billing periods", async () => {
   const source = ts.transpileModule(readFileSync("packages/platform-core/src/commerce/subscription-sync.ts", "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },

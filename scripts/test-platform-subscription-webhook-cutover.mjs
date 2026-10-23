@@ -76,6 +76,7 @@ function loadRoute({
   platformSubscription = null,
   customerOwner = null,
   ownershipError = null,
+  recoveryError = null,
   memberships = [{ organisationId: orgId }],
   commerceSubscriptions = [],
 } = {}) {
@@ -84,6 +85,7 @@ function loadRoute({
   let platformMutations = 0;
   const seen = new Set();
   const guardChecks = [];
+  const recoveries = [];
   const provisionedSessions = [];
   const invoiceMutations = [];
 
@@ -146,7 +148,13 @@ function loadRoute({
     },
     handlePlatformSubscriptionLifecycle: async () => { platformMutations++; return { ok: true }; },
     applyInvoicePaymentFailed: async input => { invoiceMutations.push(input); platformMutations++; return { status: "ACTIVE", entitlement: "FULL" }; },
-    applyInvoicePaidRecovery: async input => { invoiceMutations.push(input); platformMutations++; return { status: "ACTIVE" }; },
+    applyInvoicePaidRecovery: async (input) => {
+      recoveries.push(input);
+      invoiceMutations.push(input);
+      if (recoveryError) throw recoveryError;
+      platformMutations++;
+      return { status: "ACTIVE" };
+    },
     provisionFromPlatformCheckout: async session => { provisionedSessions.push(session); platformMutations++; return { ok: true }; },
     resolveOrganisationIdByConnectAccount: async () => undefined,
     isCommerceCustomerSubscription: (subscription) => Boolean(subscription?.metadata?.organisation_id),
@@ -182,6 +190,7 @@ function loadRoute({
     get handlers() { return handlers; },
     get platformMutations() { return platformMutations; },
     get guardChecks() { return guardChecks; },
+    get recoveries() { return recoveries; },
     get provisionedSessions() { return provisionedSessions; },
     get invoiceMutations() { return invoiceMutations; },
   };
@@ -494,5 +503,25 @@ test("non-platform checkout completion remains unheld", async () => {
   assert.equal((await app.post()).status, 200);
   assert.deepEqual(app.guardChecks, [false]);
   assert.equal(app.receiptClaims, 1);
+  assert.equal(app.platformMutations, 0);
+});
+
+
+test("integrated invoice recovery retains canonical customer and subscription identities", async () => {
+  const event = invoiceEvent("invoice.paid");
+  const app = loadRoute({ event });
+  assert.equal((await app.post()).status, 200);
+  assert.equal(app.recoveries.length, 1);
+  const input = app.recoveries[0];
+  assert.equal(input.organisationId, orgId);
+  assert.equal(input.stripeSubscriptionId, subscriptionId);
+  assert.equal(input.stripeCustomerId, customerId);
+  assert.equal(input.stripeEventId, event.providerEventId);
+});
+
+test("integrated invoice recovery failure remains retryable rather than acknowledged", async () => {
+  const app = loadRoute({ event: invoiceEvent("invoice.paid"), recoveryError: new Error("fixture recovery failed") });
+  assert.equal((await app.post()).status, 400);
+  assert.equal(app.recoveries.length, 1);
   assert.equal(app.platformMutations, 0);
 });

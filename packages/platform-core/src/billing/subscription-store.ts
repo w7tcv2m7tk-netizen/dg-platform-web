@@ -11,6 +11,8 @@ export type PlatformSubscriptionRow = {
   status: PlatformCommercialStatus;
   entitlement: PlatformEntitlementLevel;
   planTier: string | null;
+  industryApps: string[];
+  premiumApps: string[];
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   stripeStatus: string | null;
@@ -39,6 +41,8 @@ function mapRow(row: {
   status: string;
   entitlement: string;
   planTier: string | null;
+  industryApps: string[];
+  premiumApps: string[];
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   stripeStatus: string | null;
@@ -134,6 +138,10 @@ export type UpsertPlatformSubscriptionInput = {
   status: PlatformCommercialStatus;
   entitlement: PlatformEntitlementLevel;
   planTier?: string | null;
+  /** Set only from a verified Stripe subscription projection. */
+  industryApps?: string[];
+  /** Set only from a verified Stripe subscription projection. */
+  premiumApps?: string[];
   stripeCustomerId?: string | null;
   stripeSubscriptionId?: string | null;
   stripeStatus?: string | null;
@@ -163,6 +171,8 @@ export async function upsertPlatformSubscription(
     status: input.status,
     entitlement: input.entitlement,
     planTier: input.planTier ?? undefined,
+    industryApps: input.industryApps,
+    premiumApps: input.premiumApps,
     stripeCustomerId: input.stripeCustomerId ?? undefined,
     stripeSubscriptionId: input.stripeSubscriptionId ?? undefined,
     stripeStatus: input.stripeStatus ?? undefined,
@@ -197,6 +207,8 @@ export async function upsertPlatformSubscription(
       status: input.status,
       entitlement: input.entitlement,
       planTier: input.planTier ?? null,
+      industryApps: input.industryApps ?? [],
+      premiumApps: input.premiumApps ?? [],
       stripeCustomerId: input.stripeCustomerId ?? null,
       stripeSubscriptionId: input.stripeSubscriptionId ?? null,
       stripeStatus: input.stripeStatus ?? null,

@@ -50,7 +50,10 @@ test("webhook provisioning verifies paid app entitlement against Stripe subscrip
 
 test("org app mutation blocks paid app activation without a recorded purchase", () => {
   assert.match(orgApps, /paidAppKeyForAppId/);
-  assert.match(orgApps, /settings\.profile\?\.purchasedPremium/);
+  assert.match(orgApps, /authorisedPremiumPurchaseKeys\(canonicalSubscription, session\.organisationId\)/);
+  assert.match(orgApps, /normalisePaidAppKeys\(canonicalPremiumApps\)/);
+  assert.match(orgApps, /purchasedKeys\.includes\(paidKey\)/);
+  assert.doesNotMatch(orgApps, /settings\.profile\?\.purchasedPremium/);
   assert.match(orgApps, /paid_app_purchase_required/);
 });
 

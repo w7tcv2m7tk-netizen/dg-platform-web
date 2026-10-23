@@ -697,13 +697,14 @@ function scopeRouteToPrimaryQuery(route: AppRoute, primaryHref: string): AppRout
 function buildIndustryNavApps(
   enabledIndustryApps: AppNavTreeItem[],
   industrySelectionIds: string[] = [],
+  industryEntitlementIds: string[] = [],
+  hiddenAppIds: ReadonlySet<string> = new Set(),
 ): AppNavTreeItem[] {
   const enabledAppIds = enabledIndustryApps.map((a) => a.id);
   const byAppId = new Map(enabledIndustryApps.map((a) => [a.id, a]));
   const { industries } = resolveIndustryEntitlements({
     enabledAppIds,
-    purchasedApps: industrySelectionIds,
-    planPreviewIndustryApps: industrySelectionIds,
+    verifiedPurchasedApps: industryEntitlementIds,
   });
 
   const items: AppNavTreeItem[] = [];
@@ -721,11 +722,12 @@ function buildIndustryNavApps(
       ? explicitActiveTemplateIds
       : (entitlement?.activeTemplateIds ?? []);
 
-    if (!entitlement?.entitled && activeTemplateIds.length === 0) continue;
+    if (!entitlement?.entitled) continue;
 
     for (const templateId of activeTemplateIds) {
       const template = getTemplate(templateId);
       if (!template || template.industryId !== industry.id) continue;
+      if (template.appId && hiddenAppIds.has(template.appId)) continue;
 
       const app = template.appId ? byAppId.get(template.appId) : undefined;
       if (template.appId) consumedAppIds.add(template.appId);
@@ -920,6 +922,10 @@ export function getCategorizedPlatformNavigation(
     partnerType?: PartnerType | null;
     /** Purchased / applied Industry template ids — entitlements for Industry sidebar rows */
     industrySelectionIds?: string[];
+    /** Verified canonical PlatformSubscription purchase projection. */
+    industryEntitlementIds?: string[];
+    /** App ids hidden from navigation when their separate access gate is not satisfied. */
+    hiddenAppIds?: string[];
   },
 ): CategorizedPlatformNavigation {
   const foundingCustomerMode =
@@ -928,9 +934,11 @@ export function getCategorizedPlatformNavigation(
   const customerApps = platformApps
     .list()
     .filter((a) => (a.manifest.visibility ?? "customer") === "customer");
+  const hiddenAppIds = new Set(options?.hiddenAppIds ?? []);
 
   const enabledApps = customerApps
     .filter((a) => isAppEnabled(a.manifest.id, enabledIds))
+    .filter((a) => !hiddenAppIds.has(a.manifest.id))
     .filter((a) => !SIDEBAR_HIDDEN_APP_IDS.has(a.manifest.id))
     .map((a) => toTreeItem(a, enabledIds));
 
@@ -981,13 +989,15 @@ export function getCategorizedPlatformNavigation(
   const industryApps = buildIndustryNavApps(
     industryModuleApps,
     options?.industrySelectionIds ?? [],
+    options?.industryEntitlementIds ?? [],
+    hiddenAppIds,
   );
 
   const tiers: AppNavTierGroup[] = APP_TIER_ORDER.map((tier) => ({
     tier,
     label: APP_TIER_LABELS[tier],
     apps: customerApps
-      .filter((a) => a.manifest.tier === tier && isAppEnabled(a.manifest.id, enabledIds))
+      .filter((a) => a.manifest.tier === tier && isAppEnabled(a.manifest.id, enabledIds) && !hiddenAppIds.has(a.manifest.id))
       .map((a) => toTreeItem(a, enabledIds)),
   })).filter((g) => g.apps.length > 0);
 

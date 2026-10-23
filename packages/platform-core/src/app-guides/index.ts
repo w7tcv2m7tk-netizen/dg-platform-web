@@ -599,9 +599,9 @@ export const APP_SETUP_GUIDES: AppSetupGuide[] = [
     appId: "finance",
     headline: "Finance broking pipeline",
     summary:
-      "Mortgage / finance broking floor — applications, stage pipeline, CRM borrowers. Gated by finance.beta. Accounting stays label-only until Xero.",
+      "Early-access mortgage-broking floor for CRM-linked borrowers and manually tracked application stages. Gated by finance.beta and the paid Finance Industry App. Automated lender submission, lender status sync, credit assessment, full loan origination and compliance processing are not available.",
     estimatedMinutes: 10,
-    prerequisites: ["finance.beta enabled", "CRM Contacts for borrowers"],
+    prerequisites: ["Paid Finance Industry App entitlement", "finance.beta enabled", "CRM Contacts for borrowers"],
     steps: [
       {
         id: "fin-1",

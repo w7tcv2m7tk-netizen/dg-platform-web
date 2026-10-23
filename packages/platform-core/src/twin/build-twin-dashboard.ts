@@ -1,5 +1,4 @@
 import type { BusinessBrainSnapshot } from "../brain/types";
-import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type { BusinessContext } from "../org/business-context";
 import type { OverviewConnectorProbes } from "../overview/connector-probes";
 import type { OverviewLiveMetrics } from "../overview/gather-live-metrics";
@@ -399,7 +398,7 @@ function buildConnectedSystems(input: BuildDigitalTwinDashboardInput): TwinConne
 
   if (connectors?.comms?.ok) add("communications", "Communications", "live");
   else if (
-    hasAdvancedCommsEntitlement({ enabledAppIds: [...enabled] }) ||
+    input.connectors?.comms?.appEnabled ||
     enabled.has("communications")
   ) {
     add("communications", "Communications", "partial");

@@ -1,5 +1,152 @@
 # DigitalGate — Execution Roadmap
 
+### P0 hosted UI verification checkpoint — 23 October 2026
+
+Requirements: `platform.auth`, `detach.portal_billing`. Browser run
+`ui-retry-20261023T002825Z` created and completed a genuine hosted sandbox Finance
+Checkout through the normal onboarding UI. Stripe verified exactly 14 days; the
+canonical row matched customer/subscription identity and projected TRIALING/FULL,
+Finance industry purchase, no paid premium extras. The synthetic subscription
+was cancelled during cleanup; no customer or Production billing was activated.
+The earlier Cleaning run verified the $998 basket, genuine signed expiry and
+replacement through the normal UI.
+
+The completion-receipt assertion used the wrong key: checkout receipt identity is
+the session ID by design, while the signed event retains its Stripe event ID.
+The runner now queries the session-keyed receipt, waits boundedly for processed
+acknowledgement, then tests the real event's hold/release/idempotent replay.
+No receipt identity, handler or security gate was changed. The hosted card
+interaction uses the observed ordinary accordion target. Browser contexts close
+on both success and failure, preventing a failed fixture from disrupting the next
+login. Owned coordinator rows recover fixture sessions for cleanup even when a
+navigation fails before the response can be read.
+
+Full product build and database evidence above remain valid. The final corrected
+receipt/replay, UI completion and purchased-app/dashboard checks still require a
+fresh browser-only run. Both PRs were rechecked open/draft and mergeable at heads
+#1006 978ad16a and #1015 48218a21. They have not been merged or deployed, and the
+local completion delta is not yet published. Production remains BLOCKED. Exact
+next action: operator reruns the browser-only Terminal launcher; inspect its new
+result, then publish the tested delta and obtain explicit Production approval.
+
+### P0 real UI acceptance remediation — 23 October 2026
+
+Requirements: `platform.auth`, `detach.portal_billing`. The manual Terminal run
+removed the host execution blocker. Fresh owned PostgreSQL evidence: schema
+parity PASS; checkout/lifecycle 126/126; reconciliation 27/27; atomic hold 6/6;
+coordinator 44/44. The owned cluster stopped and was removed. These suites use
+mocked provider calls and synthetic local data, not Production certification.
+
+Real UI run one exposed a 403 on pre-purchase onboarding autosave. The exact
+`/api/v1/onboarding/gen2/state` path is now a recovery exemption; authentication,
+organisation edit permission, demo and operator-target checks remain. Completion
+requests require verified canonical billing or an explicit platform exemption.
+The central gate still protects adjacent paths. Twelve executable route/policy
+regressions pass; the prior security/onboarding focused set passes 58/58.
+
+Real UI retry confirmed successful autosave but detected a lost premium basket.
+`src/lib/onboarding/save-queue.ts` and AdaptiveOnboardingJourney now serialize
+profile/state saves and explicit progress mutations, skipping superseded queued
+drafts. Four executable save-order/failure regressions pass (16/16 with route
+cases). The harness waits for actual autosave persistence between selection
+steps. No direct API shortcut creates the primary purchase or completes setup.
+
+Full canonical `npm run build` including prebuild, TypeScript and Webpack PASS
+on the final product delta, completed 23 October 2026 10:16 AEST. The first build
+identified a stale copied generated Prisma client; a private local client was
+regenerated from this schema without changing shared dependencies or Production.
+A source-text assertion tied to the removed Promise.all expression was updated
+to retain error-display wiring; executable tests cover failed saves and ordering.
+Changed server/helper/test lint passes; the component retains exactly its two
+existing set-state-in-effect lint errors, confirmed against the prior component.
+No rule was disabled.
+
+Verification state remains **IMPLEMENTED BUT UNVERIFIED** for the corrected
+end-to-end UI and **BLOCKED** for Production release. Current browser retry:
+`outputs/ui-retry-20261023T001854Z` in this chat. No new UI PASS is claimed until
+its saved result is read. The first two UI attempts cleaned up two synthetic
+Clerk users each and created zero Stripe sessions/subscriptions. No Production
+or customer state, PR head, merge, migration, webhook selection, hold or checkout
+admission has been changed by this remediation. Next: inspect the final real UI
+result, publish the verified delta to #1015, then request explicit approval for
+staged #1006 -> #1015 Production release and operational cutover.
+
+### P0 unblock follow-up — 23 October 2026
+
+Requirements: `platform.auth`, `detach.portal_billing`. The acceptance runner now
+accounts for the actual Industry selection default (Growth Suite): the synthetic
+Finance journey deselects the bundle through visible controls, retains included
+Reviews and verifies the $398 monthly basket. Cleaning keeps the bundle. The
+runner waits for persisted review position and basket before reloading, removes
+a blind coordinate-click fallback, and makes fixture cleanup failures BLOCKED.
+The owned compatibility database launcher additionally runs coordinator cases
+last against the fully migrated schema; the older standalone coordinator launcher
+predates entitlement columns and is not used for this combined candidate.
+
+Syntax and whitespace checks PASS; database/UI runtime verification is pending
+the operator's Terminal run because this chat cannot create PostgreSQL shared
+memory. `outputs/Run-Checkout-Verification.command` in the current chat captures
+local-only results. No unchanged database rerun was made in the sandbox.
+Production remains BLOCKED; no new runtime pass is claimed.
+
+Additional read-only inventory: connected DigitalGate live Stripe account has
+zero subscriptions (status=all, complete result) and zero open Checkout sessions
+(complete result). Production has six canonical rows, all exempt, none provider
+linked. Verify account pairing and the signed dry run before concluding no paid
+purchase reconciliation is needed; preserve all exemptions. The corrected recent
+Vercel log query returned no webhook records, which does not prove termination.
+A proposed exact event-selection payload was prepared only, not applied.
+
+### P0 checkout launch preflight — 23 October 2026
+
+Requirements: `platform.auth`, `detach.portal_billing`. Source inspected: #1006
+`978ad16a1145f08f120241a813d1e503ac247bf3`, #1015
+`48218a2196b444770f7b967c9cced9700d7f6303`. GitHub ancestry confirms #1015 contains
+the exact #1006 head, and both contain merged #1016/main `8b01687f`. No further
+application reconciliation was necessary; no merge, publication or deploy occurred.
+
+Local correction: `scripts/run-local-checkout-ui-acceptance.mjs` starts synthetic
+fixtures at welcome, completes normal onboarding controls, captures UI-created
+Checkout, resumes saved progress, waits for signed webhook authority, then clicks
+Enter my workspace before asserting dashboard completion. Clerk readiness uses
+Playwright's correct third options argument and reports SDK request failures.
+Duplicate/expiry, exact AUD basket/14-day trial, hold/receipt replay, tenant/provider
+ownership, FULL entitlement and unpurchased-app rejection checks remain. Finance
+beta is enabled only on the owned synthetic fixture. This is a local uncommitted
+harness correction, not a verified browser acceptance result.
+
+Fresh checks on source `48218a21`: `npm run test:checkout-compatibility` 157/157;
+six focused onboarding/pairing/Finance/receipt/drain suites 92/92; runner
+`node --check` PASS. Disposable PostgreSQL compatibility launcher stopped before
+tests: `initdb` was denied `shmget` shared memory by the execution sandbox. Its
+temporary directory was cleaned up. No unchanged rerun; coordinator/atomic database
+and corrected browser acceptance remain unverified. No full build repeated for
+this harness-only delta; existing build evidence is historical, not a new pass.
+
+Read-only Production observations: Vercel READY deployment
+`dpl_BTMeff7CDD4pRtWJyDKeGVZ8dgoC`, source `8b01687f`, includes the app Production
+alias. Protected Neon production branch `br-old-shadow-a7ffezls`: 25 completed
+migration entries; all 23 common application SQL checksums match; entitlement
+columns exist; gate blocked=true/revision=0, hold=false; 20 receipts all processed.
+Two historical/recovery migration directories are absent from the application
+tree, which must not be substituted for the certified migration runner. Old
+claims of missing prerequisite migrations are superseded by this observation.
+
+Verification state: **BLOCKED** for launch. Live Stripe endpoint receives checkout
+events/payment failure only: subscription lifecycle and invoice events are absent.
+Neither customer has a canonical subscription. AIM has no Finance beta enrolment,
+eight saved premium apps and a raw historical $947/zero-day offer; these do not
+establish consent or the requested $398/14-day basket. My Venue Clean retains
+Scale/Services/Growth Suite selections. No customer fields were changed.
+
+Exact next action: run the corrected UI and owned database suites on a host that
+permits PostgreSQL shared memory, then verify old-invocation termination, current
+recovery evidence, signed legacy reconciliation and exact runtime webhook/parser
+compatibility. Separately approve staged coordinator/entitlement releases, event
+coverage/hold/reconciliation operations, and customer-confirmed baskets/checkout
+opening. Production remains NO-GO. No Production or Stripe configuration/data,
+customer billing, merge, deployment, migration, hold or checkout gate was changed.
+
 **Version:** 2.2 — Foundations before implementation
 **Last updated:** 20 October 2026 (dated history retained)
 
@@ -517,6 +664,78 @@ Status remains BLOCKED for hosted/authenticated synthetic certification and
 operator-approved creation-gate/coordinator migrations, guard rollout and
 legacy invocation/session drain. No Production data, billing configuration,
 provider objects or checkout admission were changed. No Neon preview created.
+
+### P0 entitlement candidate integration - 21 October 2026
+
+PR #1015 reconciles checkout candidate `27a2ae80` and atomic webhook guard
+`d5c9f30a`; the earlier separate read/check hold is replaced with the guard's
+transactional hold/receipt claim. Connected Checkout rejection before receipt
+claim and canonical invoice customer/subscription IDs are preserved. Recovery
+errors propagate for receipt retry. Additive migration bytes are unchanged.
+Updated stale source-contract tests for canonical purchased-app authority and
+shared industry layouts, and run server-only Studio permission tests in the
+server condition. No customer feature or entitlement rule was relaxed.
+Fresh local evidence: checkout/lifecycle PostgreSQL 124/124; reconciliation
+27/27; shared-row guard PostgreSQL 6/6; combined provider/route checks 106/106,
+including identity forwarding and recovery failure; drain reporter 7/7; full
+`npm run build` including prebuild and TypeScript passed. Changed-path ESLint
+passed with one existing connector unused-variable warning. Owned cluster
+stopped/destroyed. These mocks/local integrations do not certify hosted
+Stripe/Clerk, purchased access or Production safety.
+Status BLOCKED: independent integration review, authenticated synthetic hosted
+test-mode acceptance, separately approved migration/guard/drain/reconciliation
+release sequence and rollback evidence. No live provider operations, migrations,
+entitlement reconciliation or checkout reopening performed. No Neon previews.
+
+
+### P0 customer checkout recovery — 21 October 2026 continuation
+
+Requirements `platform.auth`, `detach.portal_billing`, `crm.companies`; existing
+#1006/#1016/#1015 candidates remain the release path. At #1015 `b1d08a0d` plus local
+uncommitted regression/docs, two synthetic saved-progress scenarios execute the
+real offer resolver and coordinator: stale AUD 947/zero-trial proposal ignored,
+public plan/14-day trial retained, expired session safely replaced, open session
+reused once, saved progress preserved and no activation before completion.
+Disposable PostgreSQL: checkout/lifecycle **126/126**, reconciliation **27/27**,
+atomic guard **6/6**; explicit acceptance/Founding neutrality, TypeScript and
+whitespace checks passed. Full application build evidence at unchanged `b1d08a0d`
+is reused, not rerun. Local test log: `/private/tmp/dg-urgent-checkout-db-20261021.log`.
+No Production/provider writes, commits, pushes or deployment.
+
+**Operational acceptance BLOCKED:** sandbox Stripe and Clerk Development read-only
+checks passed, but the existing test webhook hostname's Vercel deployment returned
+404 in the authorised team and its isolation/revision remain unverified. Clerk
+webhook signing secret is absent locally. No synthetic external checkout was sent
+to that unverified destination. Both customers use standard public pricing; the
+historical AIM proposal is not a contract. See the updated
+[customer certification/release sequence](commerce/CUSTOMER-CHECKOUT-CERTIFICATION.md).
+Next action: independent review of the combined candidate and focused delta, then
+approve/verify isolated test routing and authenticated acceptance before separate
+migration, guard, hold/reconciliation, entitlement deployment and opening approvals.
+
+
+### 21 October 2026 — local external-provider acceptance
+
+Both synthetic customer journeys passed real Stripe test Checkout, 14-day trials,
+signed CLI webhook delivery, canonical app purchases, onboarding and dashboard
+access: 22/22 acceptance checks; pairing/security: 67/67. See
+`docs/commerce/CUSTOMER-CHECKOUT-CERTIFICATION.md`. Production release and customer
+invitations remain approval-gated. No hosted configuration or customer data changed.
+
+
+### 21 October 2026 — controlled checkout release preparation
+
+Requirements `platform.auth`, `detach.portal_billing`, `crm.companies`; existing
+PRs #1006/#1015/#1016. Independent focused read-only review of the seven-path
+completion delta: PASS, no P0/P1. Reused exact local external acceptance 22/22,
+pairing/security 67/67, TypeScript and full canonical build exit 0 (456 pages).
+No business-rule change or test rerun during release preparation. The release
+commands and approval gates are in `docs/commerce/CHECKOUT-RELEASE-APPROVAL.md`.
+Application branch `finish/checkout-entitlements`; parent b1d08a0d. Database
+execution remains pinned to separate certified recovery af85b034 (24 directories);
+all 22 shared application migration files match. Production verification remains
+NOT VERIFIED for this candidate. Next: approve publication/integration and the
+explicit operational scopes; no Production operation or invitation authorised.
 ### P0 checkout guard/coordinator integration — 22 October 2026
 
 Requirements: `platform.auth`, `detach.portal_billing`. PR #1006 integration
@@ -542,6 +761,31 @@ repeat affected checks and authenticated synthetic customer acceptance, then
 review the consolidated merge decision. Production webhook termination proof,
 hold, Stripe configuration, reconciliation, checkout opening and invitations
 remain separate release gates. No Production state was changed for this merge.
+
+### P0 guarded entitlement integration — 22 October 2026
+
+Requirements: `platform.auth`, `detach.portal_billing`, `crm.companies`.
+PR #1015 integration commit `fb7692ed0a40c97eb1316f164645a239a49da44a`
+incorporates coordinator `978ad16a1145f08f120241a813d1e503ac247bf3`
+and deployed guard/main `8b01687fc235d16db6467a91551247e3f69444f9`.
+Local checkout/guard compatibility 151/151, Finance access 12/12, drain
+reporter 7/7, TypeScript and full prebuild/Next.js Webpack build passed
+(457/457 pages) on 22 October 2026. These are local verification only.
+
+Verification state: **IMPLEMENTED BUT UNVERIFIED**. The disposable PostgreSQL
+regression suites and authenticated AIM Financial/MyVenue Clean acceptance
+were not rerun for this commit because this host has no PostgreSQL server and
+the execution environment declined installation. Historical 22/22 sandbox
+acceptance remains tied to its earlier source revision. All 25 Production
+migration ledger checksums match the 24-file recovery commit plus the newer
+acquisition-identity source on main; no migration write was performed.
+
+Next action: execute the owned database suites and fresh authenticated
+synthetic acceptance on an approved local host, then review exact PR checks.
+Production remains BLOCKED pending old webhook invocation termination proof,
+the measured safety margin, separately approved hold/drain, live Stripe event
+selection, signed reconciliation, deployment and checkout reopening. No
+Production operation, Preview or Neon branch was created for this integration.
 
 ### P1 Prospecting candidate reconciliation - 21 October 2026
 
@@ -804,3 +1048,19 @@ Live business search returns ABR identity and a Google DigitalGate result at Sou
 Requirement `growth.pipeline`. Live acceptance of #1023 exposed a second contact-page heading borrowing unrelated leadership text. Correct the cause: profile candidates require a role within the following heading section (bounded to the first 300 text characters/4000 HTML characters), excluding navigation, forms, footers, scripts and styles. A genuine named leader remains eligible without direct contact details; the independently sourced business mailbox is attached separately. New synthetic form/footer and section-boundary fixtures pass. The actual SSRF-protected service read the public DigitalGate website without database credentials and returned exactly one candidate: Ben Roe, Founder, no claimed direct email, sourced business mailbox hello@digitalgate.com.au. No production record mutation.
 
 Final focused regressions: 92 passed, 0 failed/skipped. Complete npm run build passed including prebuild, TypeScript and optimized routes. Relevant lint: no errors, two existing unused-variable warnings. Evidence in Verification/ProspectingContactQuality/20261021, including public-contact-smoke.json. Next: release this validated structural correction and confirm the authenticated application returns the same single candidate.
+
+
+### 2026-10-23 — Checkout final browser acceptance PASS
+
+Requirements: platform.auth, detach.portal_billing. Normal UI onboarding, saved
+resumption, hosted Stripe test Checkout and exact 14-day trials passed for Growth
+249 + Finance 149 AUD/month and Scale + Services/Growth Suite 998 AUD/month. Both
+verified webhook activation, hold/release duplicate replay, completion before
+dashboard, purchased access and unpaid-app denial passed; Cleaning expiry and
+replacement passed. Evidence ui-retry-20261023T003814Z, finished 00:40:53Z. Synthetic
+subscriptions/users cleaned and disposable database/app/listener stopped. Full
+canonical build and necessary database/security suites already passed. No further
+rerun warranted. Production remains NO-GO pending approved release, missing live
+webhook event coverage, serving/invocation/recovery/account-reconciliation checks
+and customer commercial consent/Finance beta authority. No Production mutation,
+merge, deployment or customer billing was performed.

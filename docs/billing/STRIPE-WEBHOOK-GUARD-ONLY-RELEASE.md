@@ -22,8 +22,10 @@ state: `subscription.created`, `subscription.updated`,
 `subscription.cancelled`, `checkout.completed` (Stripe
 `checkout.session.completed` and `checkout.session.async_payment_succeeded`),
 `invoice.payment_failed`, `invoice.payment_action_required`, and
-`invoice.paid`. Other `customer.subscription.*` events are currently parsed as
-ignored and do not mutate platform state. Connected-account events and
+`invoice.paid`. In this reconciled combined candidate, Stripe
+`customer.subscription.paused` and `customer.subscription.resumed` normalize to
+`subscription.updated` and use the same guard. Other unhandled subscription
+events cannot mutate platform state. Connected-account events and
 verified non-platform subscriptions remain on their normal path. Checkout and
 invoice ownership must be corroborated by an existing canonical Stripe
 subscription/customer mapping or by a signed platform marker plus an existing

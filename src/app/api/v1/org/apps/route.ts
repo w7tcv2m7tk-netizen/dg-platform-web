@@ -18,6 +18,7 @@ import {
 } from "@dg/platform-core";
 
 import { isNextResponse, requirePermission, requirePlatformSession } from "@/lib/platform-api";
+import { authorisedIndustryPurchaseIds, authorisedPremiumPurchaseKeys } from "@dg/platform-core/industry/purchase-authority";
 import {
   tenantWriteEntitlementBlock,
   writeEntitlementResponse,
@@ -179,35 +180,32 @@ function enrolIndustryBetasForEnabled(
 
 function paidAppActivationAllowed(
   appId: string,
-  settings: OrgSettings,
+  canonicalPremiumApps: string[],
   staffOrOperator: boolean,
 ): boolean {
   if (staffOrOperator) return true;
   const paidKey = paidAppKeyForAppId(appId);
   if (!paidKey) return true;
-  const purchasedKeys = normalisePaidAppKeys(settings.profile?.purchasedPremium);
+  const purchasedKeys = normalisePaidAppKeys(canonicalPremiumApps);
   return purchasedKeys.includes(paidKey) || paidAppIdsFromKeys(purchasedKeys).includes(appId);
 }
 
 function unpaidPaidApps(
   appIds: string[],
-  settings: OrgSettings,
+  canonicalPremiumApps: string[],
   staffOrOperator: boolean,
 ): string[] {
-  return appIds.filter((appId) => !paidAppActivationAllowed(appId, settings, staffOrOperator));
+  return appIds.filter((appId) => !paidAppActivationAllowed(appId, canonicalPremiumApps, staffOrOperator));
 }
 
 function unpaidIndustryApps(
   appIds: string[],
-  settings: OrgSettings,
+  canonicalIndustryApps: string[],
   staffOrOperator: boolean,
 ): string[] {
   if (staffOrOperator) return [];
-  const purchased = Array.isArray(settings.profile?.purchasedApps)
-    ? settings.profile.purchasedApps.filter((key): key is string => typeof key === "string")
-    : [];
   const purchasedIndustries = new Set(
-    purchased
+    canonicalIndustryApps
       .map((key) => industryIdForAppOrTemplate(key))
       .filter((id): id is string => Boolean(id)),
   );
@@ -294,6 +292,14 @@ export async function PATCH(req: Request) {
 
   const settings = (org?.settings as OrgSettings | null) ?? {};
   let enabled = resolveEnabledAppIds(settings);
+  const canonicalSubscription = await prisma.platformSubscription.findUnique({
+    where: { organisationId: session.organisationId },
+    select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
+      stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true,
+      currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
+  });
+  const canonicalIndustryApps = canonicalSubscription ? authorisedIndustryPurchaseIds(canonicalSubscription, session.organisationId) : [];
+  const canonicalPremiumApps = canonicalSubscription ? authorisedPremiumPurchaseKeys(canonicalSubscription, session.organisationId) : [];
 
   // Platform authority only — organisation slug is tenant-editable (see
   // packages/platform-core/src/access/platform-authority.ts). API-key sessions
@@ -329,8 +335,8 @@ export async function PATCH(req: Request) {
     const denied = requireAppSettingsManage(session);
     if (denied) return denied;
     const requested = appIdsFromPlanSelection(body.plan);
-    const unpaid = unpaidPaidApps(requested, settings, staffOrOperator);
-    const unpaidIndustry = unpaidIndustryApps(requested, settings, staffOrOperator);
+    const unpaid = unpaidPaidApps(requested, canonicalPremiumApps, staffOrOperator);
+    const unpaidIndustry = unpaidIndustryApps(requested, canonicalIndustryApps, staffOrOperator);
     if (unpaidIndustry.length) {
       return NextResponse.json(
         {
@@ -359,7 +365,7 @@ export async function PATCH(req: Request) {
     if (denied) return denied;
     const set = new Set(enabled);
     const turningOn = body.enabled === true || (body.enabled !== false && !set.has(body.appId));
-    if (turningOn && unpaidIndustryApps([body.appId], settings, staffOrOperator).length) {
+    if (turningOn && unpaidIndustryApps([body.appId], canonicalIndustryApps, staffOrOperator).length) {
       return NextResponse.json(
         {
           error: {
@@ -370,7 +376,7 @@ export async function PATCH(req: Request) {
         { status: 403 },
       );
     }
-    if (turningOn && !paidAppActivationAllowed(body.appId, settings, staffOrOperator)) {
+    if (turningOn && !paidAppActivationAllowed(body.appId, canonicalPremiumApps, staffOrOperator)) {
       return NextResponse.json(
         {
           error: {
@@ -390,8 +396,8 @@ export async function PATCH(req: Request) {
     const denied = requireAppSettingsManage(session);
     if (denied) return denied;
     const requested = body.enabled.filter((id: unknown) => typeof id === "string") as string[];
-    const unpaid = unpaidPaidApps(requested, settings, staffOrOperator);
-    const unpaidIndustry = unpaidIndustryApps(requested, settings, staffOrOperator);
+    const unpaid = unpaidPaidApps(requested, canonicalPremiumApps, staffOrOperator);
+    const unpaidIndustry = unpaidIndustryApps(requested, canonicalIndustryApps, staffOrOperator);
     if (unpaidIndustry.length) {
       return NextResponse.json(
         {

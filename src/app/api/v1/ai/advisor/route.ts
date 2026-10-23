@@ -194,6 +194,7 @@ export async function POST(req: Request) {
     userDisplayName,
     organisationName: session.organisationName,
     enabledAppIds,
+    communicationsEntitled: connectors.comms?.appEnabled === true,
     metrics,
     scores: twinScores,
     intelligence,

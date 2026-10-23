@@ -181,6 +181,16 @@ export async function getOrganisationCommercialOffer(
   return commercialOfferFromAcceptedOpportunity(accepted, organisationId);
 }
 
+/** Resolve only the organisation's current, explicitly claimed offer. Callers
+ * must match its ID and values before trusting checkout metadata. */
+export async function getAcceptedCommercialOfferForCheckout(
+  organisationId: string,
+  expectedOfferId: string,
+): Promise<CustomCommercialOffer | null> {
+  const offer = await getOrganisationCommercialOffer(organisationId);
+  return offer?.id === expectedOfferId ? offer : null;
+}
+
 async function setOrganisationCommercialOffer(input: {
   organisationId: string;
   offer: CustomCommercialOffer;

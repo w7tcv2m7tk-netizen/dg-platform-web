@@ -26,7 +26,7 @@ export async function POST(req: Request, { params }: RouteParams) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
 
-  const entitlementBlock = await specialistIndustryEntitlementBlock(session.organisationId, "property");
+  const entitlementBlock = await specialistIndustryEntitlementBlock(session.organisationId, "real-estate");
   if (entitlementBlock) return entitlementBlock;
 
   const { id } = await params;

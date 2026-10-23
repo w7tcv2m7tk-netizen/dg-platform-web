@@ -14,6 +14,9 @@ import { getOrgEnabledAppIdsCached, getOrgIndustrySelectionIdsCached } from "@/l
 import { getOrgBrandThemeCached } from "@/lib/org-brand-theme";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
+import { getFinanceAppAccessState } from "@/lib/finance-app-access";
+import type { FinanceAppAccessState } from "@/lib/finance-app-access-policy";
+import { authorisedIndustryPurchaseIds, authorisedPremiumPurchaseKeys } from "@dg/platform-core/industry/purchase-authority";
 
 /** Server wrapper — dedupes session + enabled apps once per request. */
 export async function PlatformShellLoader({
@@ -36,6 +39,26 @@ export async function PlatformShellLoader({
   // Signed-out visitors must not see default member navigation before login.
   if (!session) {
     return <>{children}</>;
+  }
+
+  let financeAccess: FinanceAppAccessState = { industryEntitled: false, betaEnrolled: false, selectedForOrganisation: false };
+  let industryEntitlementIds: string[] = [];
+  let premiumEntitlementKeys: string[] = [];
+  if (process.env.DATABASE_URL) {
+    try {
+      const { prisma } = await import("@dg/database");
+      const canonical = await prisma.platformSubscription.findUnique({
+        where: { organisationId: session.organisationId },
+        select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
+          stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true,
+          currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
+      });
+      industryEntitlementIds = authorisedIndustryPurchaseIds(canonical, session.organisationId);
+      premiumEntitlementKeys = authorisedPremiumPurchaseKeys(canonical, session.organisationId);
+      financeAccess = await getFinanceAppAccessState(session.organisationId);
+    } catch {
+      // Finance navigation stays hidden if its access state cannot be verified.
+    }
   }
 
   const userName =
@@ -117,6 +140,9 @@ export async function PlatformShellLoader({
     <PlatformShell
       enabledIds={enabledIds}
       industrySelectionIds={industrySelectionIds}
+      industryEntitlementIds={industryEntitlementIds}
+      premiumEntitlementKeys={premiumEntitlementKeys}
+      financeAccessEnabled={financeAccess.industryEntitled && financeAccess.betaEnrolled && financeAccess.selectedForOrganisation}
       userName={userName ?? undefined}
       showFloatingChat={showFloatingChat && !isDemo}
       showCommandCentre={showCommandCentreNav}

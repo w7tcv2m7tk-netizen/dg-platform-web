@@ -1,7 +1,6 @@
 import type { BusinessBrainSnapshot } from "../brain/types";
 import type { BusinessBenchmarksBundle } from "../benchmarks/types";
 import type { BusinessHealthBundle } from "../business-health/types";
-import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type { GeneratedIntelligence } from "../intelligence/generate-intelligence";
 import type { OverviewLiveMetrics } from "../overview/gather-live-metrics";
 import type { OrgScoresResult } from "../scoring/calculate-scores";
@@ -21,6 +20,8 @@ export type BuildAdvisorBriefingInput = {
   userDisplayName: string;
   organisationName: string;
   enabledAppIds: string[];
+  /** Server-resolved from the canonical PlatformSubscription projection. */
+  communicationsEntitled?: boolean;
   metrics?: OverviewLiveMetrics | null;
   scores?: OrgScoresResult | null;
   intelligence?: GeneratedIntelligence | null;
@@ -63,7 +64,10 @@ function formatAud(cents: number) {
 }
 
 /** Context chips based on apps the organisation actually has. */
-export function buildAdvisorContexts(enabledAppIds: string[]): AdvisorContextOption[] {
+export function buildAdvisorContexts(
+  enabledAppIds: string[],
+  communicationsEntitled = false,
+): AdvisorContextOption[] {
   const enabled = new Set(enabledAppIds);
   const contexts: AdvisorContextOption[] = [
     { id: "entire_business", label: "Entire Business" },
@@ -101,7 +105,7 @@ export function buildAdvisorContexts(enabledAppIds: string[]): AdvisorContextOpt
   }
   if (
     enabled.has("automation") ||
-    hasAdvancedCommsEntitlement({ enabledAppIds: [...enabled] })
+    communicationsEntitled
   ) {
     contexts.push({ id: "automation", label: "Automation" });
   }
@@ -157,7 +161,7 @@ function buildRecommendations(input: BuildAdvisorBriefingInput): AdvisorRecommen
           ? "Enquiry volume is rising while response capacity is falling behind — a real risk of losing qualified opportunities."
           : "Unresolved follow-up usually precedes conversion drop-off.",
         whatIRecommend: "Contact overdue prospects today, then automate first-response for new enquiries.",
-        whatDigitalGateCanDo: hasAdvancedCommsEntitlement({ enabledAppIds: enabled })
+        whatDigitalGateCanDo: input.communicationsEntitled === true
           ? "Create a follow-up task now, then configure a Communications voice agent for first-response."
           : "Create a follow-up task now so the work is tracked — DigitalGate executes the tool after you confirm.",
         actionLabel: "Open Opportunities →",
@@ -559,7 +563,10 @@ export function buildAdvisorBriefing(input: BuildAdvisorBriefingInput): Business
     topRecommendations: recommendations,
     suggestedQuestions: SUGGESTED_QUESTIONS,
     askExamples: ASK_EXAMPLES,
-    availableContexts: buildAdvisorContexts(input.enabledAppIds),
+    availableContexts: buildAdvisorContexts(
+      input.enabledAppIds,
+      input.communicationsEntitled === true,
+    ),
     questionAnswers,
   };
 }
