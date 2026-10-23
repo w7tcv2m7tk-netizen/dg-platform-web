@@ -6,7 +6,7 @@ Prepared 23 October 2026 on separate branch
 `d71be3b9b13a2aeb4fe0fb02e0dfbb6a77c17048`, reviewed against main
 `8b01687fc235d16db6467a91551247e3f69444f9`. Existing candidate is untouched.
 
-## VERIFIED — implementation and local validation
+## VERIFIED — implementation, local validation and GitHub CI
 
 PR #1025 remains draft, mergeable, with no check runs at review. Its 177-path delta
 integrates coordinator, verified Stripe purchase projection/shared enforcement,
@@ -44,6 +44,16 @@ Exact logs/hashes/timestamps and reused external evidence: `validation-evidence.
 Initial coordinator runner failure and an artifact test run before artifacts existed
 were diagnosed and corrected; final results above supersede those attempts.
 
+GitHub CI [run 39910874550](https://github.com/w7tcv2m7tk-netizen/dg-platform-web/actions/runs/39910874550)
+passed on `efe48949baf66334003504e218aaeeb04952193e`, completing
+2026-10-23T06:25:17Z. Every job step succeeded: 376 focused checks, 206 disposable
+PostgreSQL checks and 2 browser-boundary checks (584 total), standalone TypeScript,
+full npm build including prebuild and 457-page static generation, schema/lockfile
+integrity and whitespace checks. This is isolated GitHub runner evidence, not a
+Production cutover. Run 39910633041 was cancelled by the newer head's run.
+The subsequent integration-safety config/test/documentation delta must also pass
+its PR checks; report that exact run and commit at integration approval.
+
 Production read-only: 25/25 ledger/checksums match certified corrected runner,
 attempt/gate constraints and entitlement columns exist; blocked=true, hold=false,
 revision0, no outstanding admission. Thus missing schema is no longer a current
@@ -51,7 +61,7 @@ blocker. No DDL, ledger resolution or customer data write was performed.
 
 ## NOT VERIFIED / BLOCKED
 
-GitHub execution of new CI, final deployed routing/source/env identity, old invocation
+Final deployed routing/source/env identity, old invocation
 termination, live Stripe event/catalogue readiness, signed legacy purchase cutover,
 catch-up/replay and Production smoke/customer activation. Previous provider acceptance
 22/22 is valid historical evidence, not a run against the newly integrated deployed
@@ -61,7 +71,9 @@ unreviewed dependency update was made.
 ## REQUIRES OWNER APPROVAL — minimum controlled sequence
 
 1. Review this separate commit and publish/integrate through #1025 without losing
-   reviewed dependencies; obtain CI evidence with no Preview/Neon provisioning.
+   reviewed dependencies; require passing CI on the final head and recheck no
+   Preview/Neon provisioning. Both the review branch and integration target are
+   explicitly deployment-suppressed; Production deployment rules are unchanged.
 2. Reverify current database/recovery preconditions. **No migration execution now.**
 3. Verify/deploy only reviewed guard-capable main, routing and old invocation
    completion plus verified-runtime safety margin, keeping checkout closed.

@@ -906,3 +906,19 @@ Status **VERIFIED IN ISOLATION** for assertion; Production release remains
 **BLOCKED** under the existing runbooks. Next: push this focused correction,
 monitor GitHub Actions to completion and check Vercel branch deployments. No
 Production/provider mutation, merge or deployment approved or performed.
+
+
+### 23 October 2026 — PR #1027 integration deployment safety
+
+Requirements `platform.auth`, `detach.portal_billing`, `crm.companies`.
+`fix/checkout-release-readiness-20261023`, parent `efe48949`: explicitly suppress
+`finish/checkout-entitlements` as well as the review branch, preserving all prior
+rules and Production defaults. Regression checks reject missing/enabled protected
+branches and unrequested Production suppression: affected18/18, full focused389/389,
+whitespace PASS. No application, Prisma, migration, dependency or Stripe changes.
+Readiness document records successful CI39910874550 at efe48949; historical guard
+migration instructions are explicitly superseded by verified25/25 completion,
+without claiming operational Stripe cutover. This delta requires fresh PR CI.
+Status VERIFIED IN ISOLATION locally; Production remains BLOCKED pending operational
+evidence and separate approvals. Next: passing final-head CI and owner-approved
+integration only; no merge/deployment/hold/checkout activation authorised.
