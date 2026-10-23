@@ -13,10 +13,10 @@ export interface WriteAuditLogInput {
   ipAddress?: string;
 }
 
-export async function writeAuditLog(input: WriteAuditLogInput) {
-  if (!process.env.DATABASE_URL) return;
+export async function writeAuditLog(input: WriteAuditLogInput, db?: Prisma.TransactionClient) {
+  if (!db && !process.env.DATABASE_URL) return;
 
-  const { prisma } = await import("@dg/database");
+  const prisma = db ?? (await import("@dg/database")).prisma;
 
   await prisma.auditLog.create({
     data: {
