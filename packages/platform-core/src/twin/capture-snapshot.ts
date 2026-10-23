@@ -1,6 +1,5 @@
 import type { OverviewConnectorProbes } from "../overview/connector-probes";
 import type { OverviewLiveMetrics } from "../overview/gather-live-metrics";
-import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type { DigitalTwinSnapshot } from "./types";
 
 export interface CaptureTwinSnapshotInput {
@@ -41,7 +40,7 @@ export function captureDigitalTwinSnapshot(input: CaptureTwinSnapshotInput): Dig
   if (metrics.social?.linkedInCompanyConnected) connected.push("linkedin");
   if (metrics.social?.instagramFollowers !== null && metrics.social?.instagramFollowers !== undefined) connected.push("instagram");
   if (metrics.social?.youtubeChannelCount !== null && metrics.social?.youtubeChannelCount !== undefined) connected.push("youtube");
-  if (connectors.comms?.ok || hasAdvancedCommsEntitlement({ enabledAppIds })) connected.push("communications");
+  if (connectors.comms?.ok || connectors.comms?.appEnabled) connected.push("communications");
 
   const websiteScore = connectors.website?.score;
   const pipelineValue = metrics.pipelineValueCents > 0 ? metrics.pipelineValueCents / 100 : undefined;

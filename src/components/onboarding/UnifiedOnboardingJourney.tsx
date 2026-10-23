@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { INDUSTRY_TAXONOMY, type Gen2OnboardingProgress } from "@dg/platform-core";
+import { INDUSTRY_TAXONOMY } from "@dg/platform-core/apps/industry-taxonomy";
+import type { Gen2OnboardingProgress } from "@dg/platform-core/onboarding/gen2-journey";
 
 type StageId = "welcome" | "business" | "industry" | "services" | "branding" | "connections" | "review";
 

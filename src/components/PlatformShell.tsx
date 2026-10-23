@@ -9,6 +9,9 @@ export function PlatformShell({
   showFloatingChat = true,
   enabledIds,
   industrySelectionIds = [],
+  industryEntitlementIds = [],
+  premiumEntitlementKeys = [],
+  financeAccessEnabled = false,
   userName,
   showCommandCentre = false,
   isPlatformOperator = false,
@@ -30,6 +33,9 @@ export function PlatformShell({
   showFloatingChat?: boolean;
   enabledIds: string[];
   industrySelectionIds?: string[];
+  industryEntitlementIds?: string[];
+  premiumEntitlementKeys?: string[];
+  financeAccessEnabled?: boolean;
   userName?: string;
   showCommandCentre?: boolean;
   isPlatformOperator?: boolean;
@@ -52,6 +58,9 @@ export function PlatformShell({
       <EnabledAppsProvider
         initialEnabledIds={enabledIds}
         industrySelectionIds={industrySelectionIds}
+        industryEntitlementIds={industryEntitlementIds}
+        premiumEntitlementKeys={premiumEntitlementKeys}
+        financeAccessEnabled={financeAccessEnabled}
         showCommandCentre={showCommandCentre}
         isPlatformOperator={isPlatformOperator}
         showPartnerPortal={showPartnerPortal}

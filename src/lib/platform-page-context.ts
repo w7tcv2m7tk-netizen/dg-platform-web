@@ -2,10 +2,10 @@ import { currentUser } from "@clerk/nextjs/server";
 import {
   getDefaultEnabledAppIds,
   resolveEnabledAppIds,
-  collectIndustrySelectionIds,
   type PlatformSession,
 } from "@dg/platform-core";
 import { cache } from "react";
+import { organisationIndustrySelectionIds } from "@/lib/industry-app-selection";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import type { PortalProfile } from "@/lib/dg-api";
@@ -110,17 +110,5 @@ export const getOrgIndustrySelectionIdsCached = cache(async (): Promise<string[]
   });
 
   const settings = readOrgNavSettings(org?.settings as OrgNavSettings);
-  const canonicalTemplates = settings?.industry?.templates ?? {};
-  const activeTemplateIds = Object.entries(canonicalTemplates)
-    .filter(([, entry]) => entry?.active === true)
-    .map(([id]) => id);
-  const hasCanonicalIndustryState = Object.keys(canonicalTemplates).length > 0;
-
-  // Once canonical Industry activation exists, it is the navigation truth —
-  // including the intentional state where every child is inactive.
-  // Legacy onboarding / purchase markers are fallback-only for organisations
-  // that have never written canonical child state.
-  return hasCanonicalIndustryState
-    ? activeTemplateIds
-    : collectIndustrySelectionIds(settings);
+  return organisationIndustrySelectionIds(settings);
 });

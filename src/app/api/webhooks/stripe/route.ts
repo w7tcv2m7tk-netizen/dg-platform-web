@@ -318,6 +318,9 @@ async function handleStripeEvent(
   }
 
   if (event.type === "checkout.completed" && event.raw) {
+    if (event.connectAccountId) {
+      return NextResponse.json({ received: true, skipped: "connected_account_checkout" });
+    }
     const session = event.raw as Stripe.Checkout.Session;
     if (!event.connectAccountId && platformBillingDisposition === "platform" && isPlatformCheckoutSession(session)) {
       const platformResult = await provisionFromPlatformCheckout({
@@ -518,14 +521,12 @@ async function handleStripeEvent(
     // platform-account invoice; the H-8 !connectAccountId gate is preserved by
     // the early return.
     if (organisationId && platformBillingDisposition === "platform") {
-      try {
-        await applyInvoicePaidRecovery({
-          organisationId,
-          stripeEventId: event.providerEventId,
-        });
-      } catch (err) {
-        console.warn("[stripe webhook] invoice paid recovery failed", err);
-      }
+      await applyInvoicePaidRecovery({
+        organisationId,
+        stripeSubscriptionId: event.stripeSubscriptionId,
+        stripeCustomerId: event.providerCustomerId,
+        stripeEventId: event.providerEventId,
+      });
     }
 
     let referralReward: unknown = null;
@@ -603,9 +604,16 @@ export async function POST(req: Request) {
     const connector = requirePaymentConnector("stripe");
     const event = await connector.parseWebhook(rawBody, headers);
 
-    // Defer only platform subscription lifecycle events during the controlled
-    // entitlement cutover. The store atomically checks the shared hold and
-    // claims/reclaims the receipt in one short database transaction.
+    // Local payment requests belong to the platform account.
+    // Connected-account metadata must not authorize platform-account payment
+    // mutations or receipt claims.
+    if (event.connectAccountId && ["checkout.completed", "checkout.expired", "payment.failed"].includes(event.type)) {
+      return NextResponse.json({ received: true, skipped: event.type.startsWith("checkout.")
+        ? "connected_account_checkout" : "connected_account_payment_event" });
+    }
+
+    // Classify platform subscription events before claiming their receipts.
+    // The store atomically checks the shared hold and claims the receipt.
     const platformBillingDisposition = await resolvePlatformBillingDisposition(event);
     const requireSubscriptionWebhookOpen = platformBillingDisposition === "platform";
 

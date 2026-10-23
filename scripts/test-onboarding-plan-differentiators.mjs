@@ -20,16 +20,11 @@ assert.match(
   /key:\s*"business"[\s\S]*users:\s*"Up to 20 Users"/,
   "Scale must retain the 20-user cap in canonical pricing",
 );
-assert.match(
-  plans,
-  /export const SCALE_MAX_USERS = 20;/,
-  "Scale canonical entitlement must remain capped at 20 users",
-);
-assert.match(
-  plans,
-  /business:\s*\{\s*maxUsers:\s*SCALE_MAX_USERS,\s*maxActiveBusinesses:\s*SCALE_MAX_BUSINESSES\s*\}/,
-  "Scale plan limits must enforce the canonical 20-user and 5-business caps",
-);
+await import("./register-ts-resolver.mjs");
+const { SCALE_MAX_USERS, SCALE_MAX_BUSINESSES, PLATFORM_TIER_LIMITS } = await import("../src/lib/plans.ts");
+assert.equal(SCALE_MAX_USERS, 20, "Scale must remain capped at 20 users");
+assert.equal(SCALE_MAX_BUSINESSES, 5, "Scale must remain capped at 5 businesses");
+assert.deepEqual(PLATFORM_TIER_LIMITS.business, { maxUsers: 20, maxActiveBusinesses: 5 });
 
 assert.match(
   pricing,

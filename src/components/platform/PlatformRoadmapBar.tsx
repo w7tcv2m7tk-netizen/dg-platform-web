@@ -1,7 +1,7 @@
 import {
   getCommerciallyReadyV1Summary,
   getRoadmapSummary,
-} from "@dg/platform-core";
+} from "@dg/platform-core/roadmap";
 
 function ProgressRow({
   label,

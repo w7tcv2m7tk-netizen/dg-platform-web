@@ -44,7 +44,7 @@ Cron: `/api/cron/billing-dunning` (daily). Reminder flags (`day3ReminderAt`, `da
 ## Trial
 
 - Standard: **14-day card-required** Stripe trial (`trial_period_days: 14`, `payment_method_collection: always`).
-- **Founding** / **platformExempt**: bypass trial + dunning rules (FULL entitlement).
+- **platformExempt**: preserves only the explicitly authorised exemption path. Founding 10 is a cohort designation, not an exemption; Founding customers use the standard 14-day trial, subscription verification, entitlements and dunning rules.
 
 ## Persistence
 

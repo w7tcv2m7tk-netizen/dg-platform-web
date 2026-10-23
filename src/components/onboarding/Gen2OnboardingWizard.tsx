@@ -4,20 +4,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  annualPriceFromMonthlyCents,
-  BILLING_COMMERCIAL_CONFIG,
   GEN2_CHECKLIST_ITEMS,
   GEN2_GOAL_OPTIONS,
   GEN2_ONBOARDING_STEP_LABELS,
   GEN2_ONBOARDING_STEPS,
   GEN2_PLATFORM_PLANS,
   gen2ChecklistStats,
-  type BillingCadence,
   type Gen2OnboardingProgress,
   type Gen2OnboardingStep,
   type Gen2PlatformTier,
-  type NegotiatedCommercialOffer,
-} from "@dg/platform-core";
+  type BillingCadence,
+} from "@dg/platform-core/onboarding/gen2-journey";
+import { annualPriceFromMonthlyCents, BILLING_COMMERCIAL_CONFIG } from "@dg/platform-core/billing/subscription-types";
+import type { NegotiatedCommercialOffer } from "@dg/platform-core/billing/commercial-offer";
 
 type ProfileDraft = {
   businessName: string;

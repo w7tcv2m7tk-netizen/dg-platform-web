@@ -62,9 +62,9 @@ describe("tenantWriteEntitlementBlock: verified trial and explicit exemptions re
     assert.equal(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(trialing)), null);
   });
 
-  it("founding / platform-exempt organisations always allow the write", async () => {
+  it("Founding status does not bypass payment; authorised platform exemptions remain writable", async () => {
     const { tenantWriteEntitlementBlock } = await loadLib("tenant-write-entitlement.ts");
-    assert.equal(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(foundingSuspended)), null);
+    assert.deepEqual(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(foundingSuspended)), BLOCK_READ_ONLY);
     assert.equal(await tenantWriteEntitlementBlock({ organisationId: TENANT_ORG }, fetchOf(exemptSuspended)), null);
   });
 });

@@ -151,11 +151,11 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<span class="app-chip soon">Finance — Coming Soon<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Coming Soon</a>`,
+      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Early Access</a>`,
     ],
     [
       /<span class="app-chip soon">Finance — Early Access<\/span>/g,
-      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Coming Soon</a>`,
+      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Early Access</a>`,
     ],
     [
       /<span class="app-chip soon">Automotive — Coming Soon<\/span>/g,
@@ -260,7 +260,7 @@ function patchHomepageAppsSection(html) {
     ],
     [
       /<a class="app-chip soon" href="\/apps\/industry\/finance\/">Finance — Early Access<\/a>/g,
-      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Coming Soon</a>`,
+      `<a class="app-chip soon" href="/apps/industry/finance/">Finance — Early Access</a>`,
     ],
     [
       /<a class="app-chip soon" href="\/apps\/industry\/creator\/">Creator &amp; Media — Early Access<\/a>/g,

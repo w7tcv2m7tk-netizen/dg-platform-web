@@ -231,7 +231,7 @@ export default async function CrmOpportunityDetailPage({ params }: PageProps) {
             />
           ) : null}
 
-          {staff && canWrite ? (
+          {staff && canWrite && !founding ? (
             <CustomCommercialOfferEditor opportunityId={opportunity.id} />
           ) : null}
 

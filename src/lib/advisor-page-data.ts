@@ -117,6 +117,7 @@ export async function loadAdvisorPageData(): Promise<BusinessAdvisorBundle | nul
     userDisplayName,
     organisationName: session.organisationName,
     enabledAppIds,
+    communicationsEntitled: connectors.comms?.appEnabled === true,
     metrics,
     scores: twinScores,
     intelligence,

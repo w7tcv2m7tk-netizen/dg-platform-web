@@ -29,6 +29,9 @@ import {
   getOrganisationStripeConnect,
   isStripeConnectConfigured,
 } from "./stripe-connect";
+import { CUSTOMER_COMMISSION_BPS, REFER_AND_EARN_HREF } from "./constants";
+
+export { CUSTOMER_COMMISSION_BPS, REFER_AND_EARN_HREF } from "./constants";
 
 export {
   STRIPE_CONNECT_ACCOUNT_TYPE,
@@ -44,10 +47,7 @@ export {
 } from "./stripe-connect";
 
 export const REFERRAL_COOKIE = "dg_ref";
-/** Canonical customer Referral Programme surface — lives under Settings. */
-export const REFER_AND_EARN_HREF = "/dashboard/settings/referrals";
 export const REFERRAL_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 days
-export const CUSTOMER_COMMISSION_BPS = BPS.FOUNDING_10_REFERRAL;
 export const PARTNER_COMMISSION_BPS = BPS.RESELLER;
 export const RESELLER_COMMISSION_BPS = BPS.RESELLER;
 export const REWARD_MONTHS = COMMISSION_PERIOD_MONTHS;

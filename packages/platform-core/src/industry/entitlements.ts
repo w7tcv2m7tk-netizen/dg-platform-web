@@ -198,8 +198,8 @@ export function readOrgIndustrySettings(
 
 export function resolveIndustryEntitlements(input: {
   enabledAppIds?: string[];
-  purchasedApps?: string[];
-  planPreviewIndustryApps?: string[];
+  /** IDs projected from the canonical verified subscription, never profile JSON. */
+  verifiedPurchasedApps?: string[];
   industrySettings?: OrgIndustrySettings | null;
 }): { industries: ResolvedIndustryEntitlement[]; activeTemplateIds: string[] } {
   const enabledAppIds = new Set(
@@ -208,9 +208,7 @@ export function resolveIndustryEntitlements(input: {
   const settings = input.industrySettings ?? null;
 
   const knownFromPurchase = collectKnownTemplateIds([
-    ...(input.purchasedApps ?? []),
-    ...(input.planPreviewIndustryApps ?? []),
-    ...(input.enabledAppIds ?? []),
+    ...(input.verifiedPurchasedApps ?? []),
   ]);
 
   const appIdOwnerCounts = new Map<string, number>();
@@ -231,14 +229,7 @@ export function resolveIndustryEntitlements(input: {
     const comingSoonTemplateIds: string[] = [];
     const reservedTemplateIds: string[] = [];
 
-    let anySettingsActive = false;
-
     for (const template of industry.templates) {
-      const settingsEntry = settingsEntryForTemplate(settings, template);
-      if (settingsEntry?.active === true) {
-        anySettingsActive = true;
-      }
-
       const active = isTemplateActive(
         template,
         settings,
@@ -258,7 +249,9 @@ export function resolveIndustryEntitlements(input: {
     }
 
     const entitledFromKeys = industry.templates.some((t) => knownFromPurchase.has(t.id));
-    const entitled = entitledFromKeys || anySettingsActive;
+    // Activation and plan-preview settings describe configuration only. A
+    // purchase must come from the server-controlled subscription projection.
+    const entitled = entitledFromKeys;
 
     for (const template of industry.templates) {
       if (!isTemplateActivatable(template.status)) continue;

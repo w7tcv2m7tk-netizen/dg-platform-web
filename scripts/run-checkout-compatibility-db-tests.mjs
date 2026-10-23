@@ -8,15 +8,27 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const baselineRef = "7a10486d00c83adfb8744e4de86c5d9f21ed4ad0"; // Verified main already includes the checkout gate schema.
+const baselineRef = "8b01687fc235d16db6467a91551247e3f69444f9"; // Reviewed main; reconstruct the gate from certified SQL, including its hold column.
 const migration = "packages/database/prisma/migrations/20261009_platform_checkout_creation_gate/migration.sql";
-const holdMigration = "packages/database/prisma/migrations/20261019_platform_subscription_webhook_hold/migration.sql";
+const appEntitlementsMigration = "packages/database/prisma/migrations/20261018_platform_subscription_app_entitlements/migration.sql";
+const subscriptionWebhookHoldMigration = "packages/database/prisma/migrations/20261019_platform_subscription_webhook_hold/migration.sql";
 const pgBin = process.argv[2];
 if (!pgBin || !path.isAbsolute(pgBin)) throw new Error("Pass the installed PostgreSQL bin directory");
-const safeEnv = { ...process.env };
-for (const key of Object.keys(safeEnv)) {
-  if (key.startsWith("PG") || key.startsWith("STRIPE_") || ["DATABASE_URL", "DIRECT_URL", "SHADOW_DATABASE_URL", "RECONCILIATION_DATABASE_URL"].includes(key)) delete safeEnv[key];
+// Do not inherit credentials, provider keys, dotenv configuration or Node preload hooks.
+const safeEnv = { NODE_ENV: "test", LC_ALL: "C", LANG: "C" };
+for (const key of ["PATH", "HOME", "TMPDIR", "SystemRoot"]) {
+  if (process.env[key]) safeEnv[key] = process.env[key];
 }
+const suite = process.argv[3] ?? "compatibility";
+const suites = {
+  compatibility: ["test-checkout-compatibility-db.mjs", "test-legacy-app-entitlement-reconciliation.mjs", "test-platform-subscription-webhook-cutover-db.mjs", "test-checkout-release-operator-sql-db.mjs"],
+  operator: ["test-checkout-release-operator-sql-db.mjs"],
+  coordinator: ["test-checkout-coordinator-db.mjs"],
+  guard: ["test-platform-subscription-webhook-cutover-db.mjs"],
+};
+if (!Object.hasOwn(suites, suite) || process.argv.length > 4) throw new Error("Unknown disposable checkout test suite");
+const pgSharedir = spawnSync(path.join(pgBin, "pg_config"), ["--sharedir"], { env: safeEnv, encoding: "utf8" });
+if (pgSharedir.status !== 0 || !path.isAbsolute(pgSharedir.stdout.trim())) throw new Error("Cannot resolve PostgreSQL installation data");
 const run = (command, args, extra = {}) => {
   const result = spawnSync(command, args, { cwd: root, stdio: "inherit", env: safeEnv, ...extra });
   if (result.error) throw result.error;
@@ -35,10 +47,10 @@ const owned = mkdtempSync(path.join(tmpdir(), "dg-compat-pg-"));
 const data = path.join(owned, "data");
 const marker = randomUUID();
 const databaseUrl = `postgresql://checkout_test@127.0.0.1:${port}/dg_checkout_test?connection_limit=16`;
-const env = { ...safeEnv, DATABASE_URL: databaseUrl, DG_CHECKOUT_DB_MARKER: marker };
+const env = { ...safeEnv, DATABASE_URL: databaseUrl, DG_CHECKOUT_DB_MARKER: marker, DG_CHECKOUT_PG_BIN: pgBin };
 let passed = false;
 try {
-  run(path.join(pgBin, "initdb"), ["-D", data, "-U", "checkout_test", "-A", "trust", "--encoding=UTF8", "--locale=C", "-L", path.resolve(pgBin, "../share/postgresql")]);
+  run(path.join(pgBin, "initdb"), ["-D", data, "-U", "checkout_test", "-A", "trust", "--encoding=UTF8", "--locale=C", "-L", pgSharedir.stdout.trim()]);
   run(path.join(pgBin, "pg_ctl"), ["-D", data, "-l", path.join(owned, "server.log"), "-w", "start", "-o", `-h 127.0.0.1 -p ${port} -k ${owned} -c dg.checkout_test_cluster=${marker}`]);
   run(path.join(pgBin, "createdb"), ["-h", "127.0.0.1", "-p", String(port), "-U", "checkout_test", "dg_checkout_test"]);
   const baseline = path.join(owned, "baseline");
@@ -62,13 +74,17 @@ try {
   run(path.join(pgBin, "psql"), [...psql, "-f", sql]);
   // Apply once to the owned disposable database, including SQL-only checks.
   run(path.join(pgBin, "psql"), [...psql, "-f", migration]);
-  run(path.join(pgBin, "psql"), [...psql, "-f", holdMigration]);
+  run(path.join(pgBin, "psql"), [...psql, "-f", "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql"]);
+  run(path.join(pgBin, "psql"), [...psql, "-f", appEntitlementsMigration]);
+  run(path.join(pgBin, "psql"), [...psql, "-f", subscriptionWebhookHoldMigration]);
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-url", databaseUrl, "--to-schema-datamodel", "packages/database/prisma", "--exit-code"], { env });
-  run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-checkout-compatibility-db.mjs"], { env });
+  for (const file of suites[suite]) {
+    run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", `scripts/${file}`], { env });
+  }
   passed = true;
 } finally {
   if (existsSync(path.join(data, "postmaster.pid"))) run(path.join(pgBin, "pg_ctl"), ["-D", data, "-m", "immediate", "-w", "stop"]);
   rmSync(owned, { recursive: true, force: true });
-  writeFileSync(path.join(tmpdir(), "dg-compat-db-evidence.json"), JSON.stringify({ passed, baselineRef, migrations: [migration, holdMigration], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
+  writeFileSync(path.join(tmpdir(), `dg-${suite}-db-evidence.json`), JSON.stringify({ passed, suite, baselineRef, migrations: [migration, "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql", appEntitlementsMigration, subscriptionWebhookHoldMigration], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
   console.log("Disposable checkout PostgreSQL cluster stopped and destroyed");
 }

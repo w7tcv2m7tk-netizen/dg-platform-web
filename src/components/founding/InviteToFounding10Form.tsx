@@ -7,7 +7,7 @@ import {
   FOUNDING_SOURCE_LABELS,
   FOUNDING_SOURCES,
   type FoundingSource,
-} from "@dg/platform-core";
+} from "@dg/platform-core/founding/types";
 
 export function InviteToFounding10Form({
   contactId,

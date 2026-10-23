@@ -8,17 +8,19 @@ import {
   GEN2_GOAL_OPTIONS,
   GEN2_PLATFORM_PLANS,
   GEN2_SUPPORT_PLANS,
-  GROWTH_APP_CATALOGUE,
-  GROWTH_SUITE_MONTHLY_CENTS,
-  GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS,
-  INDUSTRY_TAXONOMY,
-  annualPriceFromMonthlyCents,
   type BillingCadence,
   type Gen2OnboardingProgress,
   type Gen2OnboardingStep,
   type Gen2OperatingProfile,
   type Gen2VipSetup,
-} from "@dg/platform-core";
+} from "@dg/platform-core/onboarding/gen2-journey";
+import {
+  GROWTH_APP_CATALOGUE,
+  GROWTH_SUITE_MONTHLY_CENTS,
+  GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS,
+} from "@dg/platform-core/billing/paid-apps";
+import { INDUSTRY_TAXONOMY } from "@dg/platform-core/apps/industry-taxonomy";
+import { annualPriceFromMonthlyCents } from "@dg/platform-core/billing/subscription-types";
 
 type Stage = "welcome" | "business" | "operating" | "goals" | "plan" | "apps" | "support" | "preparation" | "review";
 type OperatingSubstep = "industry" | "business_type" | "profile";

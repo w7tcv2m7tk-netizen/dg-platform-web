@@ -1,4 +1,4 @@
-import { WANTD_NAV } from "@dg/platform-core";
+import { WANTD_NAV } from "@dg/platform-core/wantd/brand";
 import type { WebsiteTheme } from "@dg/platform-core";
 
 import { WantdIcon, WantdWordmark } from "@/components/websites/WantdPublicArt";

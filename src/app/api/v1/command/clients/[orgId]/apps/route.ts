@@ -31,7 +31,7 @@ function normaliseStringList(value: unknown): string[] {
     : [];
 }
 
-function buildResponse(org: { id: string; name: string; slug: string; settings: unknown }, platformSubscription?: { status: string; stripeStatus: string | null; stripeSubscriptionId: string | null } | null) {
+function buildResponse(org: { id: string; name: string; slug: string; settings: unknown }, platformSubscription?: { status: string; stripeStatus: string | null; stripeSubscriptionId: string | null; industryApps: string[]; premiumApps: string[] } | null) {
   const settings = (org.settings as OrgSettings | null) ?? {};
   const enabled = resolveEnabledAppIds(settings);
   const core = new Set<string>(FOUNDING_MODE_CORE_APP_IDS);
@@ -59,8 +59,8 @@ function buildResponse(org: { id: string; name: string; slug: string; settings: 
       platformTier: plan?.platformTier ?? null,
       industryApps: normaliseStringList(plan?.industryApps),
       premiumApps: normaliseStringList(plan?.premiumApps),
-      purchasedApps: normaliseStringList(settings.profile?.purchasedApps),
-      purchasedPremium: normaliseStringList(settings.profile?.purchasedPremium),
+      purchasedApps: normaliseStringList(platformSubscription?.industryApps),
+      purchasedPremium: normaliseStringList(platformSubscription?.premiumApps),
       appliedAt: plan?.appliedAt ?? null,
       commerciallyActivated,
       commercialStatus: commerciallyActivated ? (stripeStatus === "trialing" ? "On trial" : "Active") : "Awaiting subscription",
@@ -84,7 +84,7 @@ export async function GET(
   });
   const platformSubscription = await prisma.platformSubscription.findUnique({
     where: { organisationId: orgId },
-    select: { status: true, stripeStatus: true, stripeSubscriptionId: true },
+    select: { status: true, stripeStatus: true, stripeSubscriptionId: true, industryApps: true, premiumApps: true },
   });
 
   if (!org) {

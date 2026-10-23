@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { resolveLetterheadBrandAsset } from "@dg/platform-core";
+import { resolveLetterheadBrandAsset } from "@dg/platform-core/org/brand-theme";
 
 type DocumentBrandMarkProps = {
   logoUrl?: string;

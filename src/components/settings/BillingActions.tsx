@@ -6,14 +6,12 @@ export function BillingActions({
   platformTier,
   hasBillingCustomer,
   expectsPlatformBilling = true,
-  foundingCustomer = false,
   compact = false,
 }: {
   platformTier?: string | null;
   /** True only when organisation.billingCustomerId is set (or equivalent Stripe link). */
   hasBillingCustomer?: boolean;
   expectsPlatformBilling?: boolean;
-  foundingCustomer?: boolean;
   /** Hide subscribe CTA when used in the invoices section (portal-only). */
   compact?: boolean;
 }) {
@@ -71,9 +69,7 @@ export function BillingActions({
   const showSubscribe = !compact;
   const subscribeLabel = hasBillingCustomer
     ? "Change plan in Stripe →"
-    : foundingCustomer
-      ? "Start founding checkout →"
-      : "Subscribe in app →";
+    : "Subscribe in app →";
 
   return (
     <div className={compact ? "mt-4 space-y-2" : "mt-4 space-y-2"}>

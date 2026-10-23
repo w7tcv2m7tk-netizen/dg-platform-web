@@ -14,8 +14,6 @@ import {
   CONTACT_VOLUMES,
   CORE_APP_OPTIONS,
   CRM_SYSTEMS,
-  FOUNDING_ONBOARDING_STEP_LABELS,
-  FOUNDING_ONBOARDING_STEPS,
   GROWTH_APP_OPTIONS,
   INDUSTRY_APP_OPTIONS,
   INFRA_APP_OPTIONS,
@@ -24,11 +22,15 @@ import {
   OUTCOME_OPTIONS,
   PROCESS_OPTIONS,
   WEBSITE_PLATFORMS,
+} from "@dg/platform-core/founding/catalog";
+import {
+  FOUNDING_ONBOARDING_STEP_LABELS,
+  FOUNDING_ONBOARDING_STEPS,
   type FoundingOnboardingAnswers,
   type FoundingOnboardingRecord,
   type FoundingOnboardingStep,
   type FoundingTeamMember,
-} from "@dg/platform-core";
+} from "@dg/platform-core/founding/types";
 
 const INPUT =
   "w-full rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";

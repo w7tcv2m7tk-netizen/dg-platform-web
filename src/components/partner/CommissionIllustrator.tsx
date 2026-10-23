@@ -1,12 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  APPROVED_PARTNER_MESSAGING,
-  bpsToPercentLabel,
-  illustratePartnerCommission,
-  PARTNER_COMMISSION_CONFIG,
-} from "@dg/platform-core";
+import { APPROVED_PARTNER_MESSAGING } from "@dg/platform-core/partners/programme";
+import { bpsToPercentLabel } from "@dg/platform-core/partners/commercial-model";
+import { illustratePartnerCommission, PARTNER_COMMISSION_CONFIG } from "@dg/platform-core/partners/types";
 
 function money(cents: number): string {
   return (cents / 100).toLocaleString("en-AU", {

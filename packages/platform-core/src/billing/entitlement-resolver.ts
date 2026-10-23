@@ -50,10 +50,10 @@ export function resolveEntitlementForSubscription(
     };
   }
 
-  const foundingOrExempt = sub.foundingCustomer || sub.platformExempt;
-  const level = foundingOrExempt
+  const platformExempt = sub.platformExempt;
+  const level = platformExempt
     ? "FULL"
-    : entitlementFromCommercialStatus(sub.status, { foundingOrExempt });
+    : entitlementFromCommercialStatus(sub.status);
 
   return {
     organisationId,
@@ -70,7 +70,7 @@ export function resolveEntitlementForSubscription(
     banner: buildBillingBanner({
       level,
       commercialStatus: sub.status,
-      foundingOrExempt,
+      platformExempt,
       trialEnd: sub.trialEnd,
       currentPeriodEnd: sub.currentPeriodEnd,
       cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
@@ -125,7 +125,7 @@ export type TenantWriteEntitlement =
  * Pure write decision for a loaded subscription row (no I/O).
  *
  * - null (no subscription)                       => block (NONE).
- * - founding / platform-exempt                   => allow (FULL).
+ * - platform-exempt                              => allow (FULL).
  * - suspended / read-only (canWrite=false)       => block "read_only".
  *
  * Shares entitlementFromCommercialStatus + capabilitiesForEntitlement with
@@ -135,10 +135,10 @@ export function writeEntitlementForSubscription(
   sub: PlatformSubscriptionRow | null,
 ): TenantWriteEntitlement {
   if (!sub) return { decision: "block", reason: "read_only", level: "NONE" };
-  const foundingOrExempt = sub.foundingCustomer || sub.platformExempt;
-  const level = foundingOrExempt
+  const platformExempt = sub.platformExempt;
+  const level = platformExempt
     ? "FULL"
-    : entitlementFromCommercialStatus(sub.status, { foundingOrExempt });
+    : entitlementFromCommercialStatus(sub.status);
   return capabilitiesForEntitlement(level).canWrite
     ? { decision: "allow" }
     : { decision: "block", reason: "read_only", level };

@@ -26,6 +26,7 @@ type OrgSettings = {
   demo?: { enabled: boolean; seedVersion: number; seededAt: string };
   apps?: { enabled: string[] };
   featureFlags?: Record<string, boolean>;
+  billing?: { platformExempt?: boolean };
 };
 
 export async function ensureDemoOrganisation(): Promise<{
@@ -57,11 +58,11 @@ export async function ensureDemoOrganisation(): Promise<{
           seededAt: "",
         },
         apps: { enabled: DEMO_APPS },
+        billing: { platformExempt: true },
         featureFlags: {
           "re.beta": true,
           "acc.beta": true,
           "websites.builder": true,
-          "billing.platform_exempt": true,
         },
       },
     },
@@ -232,6 +233,9 @@ export async function resetDemoOrganisation(organisationId?: string): Promise<{
   });
 
   const prev = (ensured.settings as OrgSettings | null) ?? {};
+  const retainedFeatureFlags = Object.fromEntries(
+    Object.entries(prev.featureFlags ?? {}).filter(([key]) => key !== "billing.platform_exempt"),
+  );
   await prisma.organisation.update({
     where: { id },
     data: {
@@ -245,12 +249,12 @@ export async function resetDemoOrganisation(organisationId?: string): Promise<{
           seededAt: new Date().toISOString(),
         },
         apps: { enabled: DEMO_APPS },
+        billing: { ...(prev.billing ?? {}), platformExempt: true },
         featureFlags: {
-          ...(prev.featureFlags ?? {}),
+          ...retainedFeatureFlags,
           "re.beta": true,
           "acc.beta": true,
           "websites.builder": true,
-          "billing.platform_exempt": true,
         },
       },
     },

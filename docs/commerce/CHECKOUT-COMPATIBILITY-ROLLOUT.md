@@ -361,8 +361,9 @@ until the production procedure and separately reviewed #1006 integration are pro
 ## Billing activation security correction — 2026-10-16
 
 An organisation without a `PlatformSubscription` now resolves to `NONE`; tenant
-writes are blocked until billing is verified. Explicit `foundingCustomer` and
-`platformExempt` flags on subscription rows retain their existing `FULL` access.
+writes are blocked until billing is verified. Only `platformExempt` preserves the
+explicit exemption path; `foundingCustomer` is retained as cohort metadata and no
+longer grants access or bypasses trial and dunning.
 Billing status no longer treats a Stripe customer record or generic organisation
 `active` / `trial` state as proof of a subscription. Stripe onboarding completion,
 the activation helper and the return-page success state share the verified
@@ -382,3 +383,29 @@ compile was retried successfully with local process permissions. Targeted ESLint
 reported no errors and three pre-existing unused-variable warnings in
 `gen2-progress.ts`. No remote push, merge, deployment, gate opening or database
 operation is part of this change.
+
+## PR #1006 reconciliation validation — 2026-10-16
+
+PR #1006 was reconciled locally against main after #1008 merged at
+`f26e3e4761e8af66707919589a5ee883bb5d3ef8`. The merge retains the durable
+checkout coordinator and persisted request/idempotency identity while applying
+#1008's fail-closed entitlement and verified-billing onboarding changes. The
+attempt and checkout-gate migrations remain separate additive migrations; the
+local schema-parity harness passed with both applied in order.
+
+Validation: checkout compatibility 84/84; coordinator PostgreSQL lifecycle
+44/44; compatibility/webhook PostgreSQL lifecycle 92/92; billing-channel 6/6;
+tenant-write guard 10/10; tenant-write gaps 11/11; write-entitlement 14/14;
+pricing, billing-authority, onboarding verification, server commercial
+entitlements, browser-artifact and client-boundary checks passed. `npx tsc
+--noEmit` and the standard `npm run build` passed, including the full prebuild
+pipeline. The build emitted existing non-fatal cache-header, middleware,
+Prisma external and dynamic-render warnings. Local database suites used
+disposable PostgreSQL clusters and stopped/destroyed them after passing.
+
+No hosted checkout was initiated and no Neon/Stripe/Clerk resources were
+changed. Hosted verification remains blocked by the isolated Neon project's
+SQL quota (HTTP 402). The local branch has not been pushed; the current Vercel
+branch-suppression rule covers the #1008 branch only, so safe publication of
+`work/commercial-readiness` requires a separate deployment/provisioning
+preflight.

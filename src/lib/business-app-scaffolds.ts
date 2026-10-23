@@ -55,12 +55,12 @@ export const BUSINESS_APP_SCAFFOLDS: Record<
     id: "finance",
     name: "Finance",
     icon: "▣",
-    tagline: "Loan pipeline, clients, and applications — broker workflow on Gen 2",
-    deferredTitle: "Scaffold floor — not a closed beta yet",
+    tagline: "Early-access broker workflow — CRM-linked borrowers and manually tracked applications",
+    deferredTitle: "Finance early access — manual application tracking",
     deferredBody:
-      "Routes are registered so the product map is visible. No loan pipeline, approval scores, commission MRR, or lender integrations are live here. Use CRM for clients until Finance ships.",
+      "Enrolled workspaces can manage CRM-linked borrowers and manually track Finance applications through stages. Automated lender submission or status sync, credit assessment, full loan origination, and automated compliance processing are not available.",
     gen1Note:
-      "WordPress Gen 1 Finance module remains the operational surface until Gen 2 migrates broker workflows.",
+      "The current Gen 2 Finance floor is an early-access manual tracker; do not assume legacy or provider integrations are connected.",
     nav: [
       { href: "/apps/finance", label: "Overview" },
       { href: "/apps/finance/pipeline", label: "Pipeline" },
@@ -88,34 +88,34 @@ export const BUSINESS_APP_SCAFFOLDS: Record<
       {
         segment: "",
         title: "Finance",
-        summary: "Broker dashboard — pipeline, clients, and applications",
-        emptyTitle: "Finance App scaffold",
+        summary: "Early-access broker workspace for CRM-linked borrowers and manually tracked applications",
+        emptyTitle: "Finance application tracker",
         emptyBody:
-          "Overview counts and broker KPIs will appear here when the pilot floor ships. Nothing is fabricated.",
+          "Track borrowers from CRM contacts and maintain application stages manually. Lender submission, credit assessment, and automated compliance workflows are not included.",
       },
       {
         segment: "pipeline",
         title: "Pipeline",
-        summary: "Loan and finance application stages",
-        emptyTitle: "No finance pipeline yet",
+        summary: "Manually track mortgage application stages",
+        emptyTitle: "No Finance applications yet",
         emptyBody:
-          "Stage boards and lender tracking are planned. Track people in CRM until this surface is real.",
+          "Create an application linked to a CRM contact and update its stage as work progresses. Lender status synchronisation is not available.",
       },
       {
         segment: "clients",
         title: "Clients",
-        summary: "Finance client records and document collection",
-        emptyTitle: "Clients → CRM for now",
+        summary: "Borrowers are shared CRM contacts linked to Finance applications",
+        emptyTitle: "Borrowers → CRM contacts",
         emptyBody:
-          "Dedicated broker client folders are not built. Use CRM contacts and activities.",
+          "Finance does not create separate borrower records or provide a dedicated application document-collection workflow. Use shared CRM contacts and approved Documents features.",
       },
       {
         segment: "applications",
         title: "Applications",
-        summary: "Application forms, status, and lender submissions",
-        emptyTitle: "No applications store yet",
+        summary: "Manual application records, status and stage tracking",
+        emptyTitle: "No Finance applications yet",
         emptyBody:
-          "Application forms and lender submission flows are planned — not stubbed with fake statuses.",
+          "Application records and manual stage tracking are available to enrolled workspaces. Automated lender submission, credit assessment, full loan origination, and compliance processing are not available.",
       },
     ],
     staffDocSlug: "business-apps-scaffold",
