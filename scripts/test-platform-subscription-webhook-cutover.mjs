@@ -77,6 +77,8 @@ function loadRoute({
   customerOwner = null,
   ownershipError = null,
   recoveryError = null,
+  memberships = [{ organisationId: orgId }],
+  commerceSubscriptions = [],
 } = {}) {
   let receiptClaims = 0;
   let handlers = 0;
@@ -84,12 +86,16 @@ function loadRoute({
   const seen = new Set();
   const guardChecks = [];
   const recoveries = [];
+  const provisionedSessions = [];
+  const invoiceMutations = [];
 
   class PlatformSubscriptionWebhookHoldUnavailableError extends Error {
     code = "PLATFORM_SUBSCRIPTION_WEBHOOK_HOLD_UNAVAILABLE";
   }
 
   const database = {
+    membership: { async findMany() { if (ownershipError) throw ownershipError; return memberships; } },
+    commerceSubscription: { async findMany() { if (ownershipError) throw ownershipError; return commerceSubscriptions; } },
     organisation: {
       async findUnique({ where }) {
         if (ownershipError) throw ownershipError;
@@ -141,14 +147,23 @@ function loadRoute({
       return { status: "processed", result: await handle() };
     },
     handlePlatformSubscriptionLifecycle: async () => { platformMutations++; return { ok: true }; },
-    applyInvoicePaymentFailed: async () => { platformMutations++; return { status: "ACTIVE", entitlement: "FULL" }; },
-    applyInvoicePaidRecovery: async (input) => {
+    applyInvoicePaymentFailed: async input => {
+      invoiceMutations.push(input);
+      platformMutations++;
+      return { status: "ACTIVE", entitlement: "FULL" };
+    },
+    applyInvoicePaidRecovery: async input => {
       recoveries.push(input);
+      invoiceMutations.push(input);
       if (recoveryError) throw recoveryError;
       platformMutations++;
       return { status: "ACTIVE" };
     },
-    provisionFromPlatformCheckout: async () => { platformMutations++; return { ok: true }; },
+    provisionFromPlatformCheckout: async session => {
+      provisionedSessions.push(session);
+      platformMutations++;
+      return { ok: true };
+    },
     resolveOrganisationIdByConnectAccount: async () => undefined,
     isCommerceCustomerSubscription: (subscription) => Boolean(subscription?.metadata?.organisation_id),
     syncCommerceSubscriptionFromStripe: async () => ({ ok: true }),
@@ -184,6 +199,8 @@ function loadRoute({
     get platformMutations() { return platformMutations; },
     get guardChecks() { return guardChecks; },
     get recoveries() { return recoveries; },
+    get provisionedSessions() { return provisionedSessions; },
+    get invoiceMutations() { return invoiceMutations; },
   };
 }
 
@@ -267,9 +284,10 @@ test("known non-platform subscription and invoice events preserve normal unrelat
 
   const invoice = loadRoute({
     event: invoiceEvent("invoice.payment_failed", {
-      subscription_details: { metadata: { organisation_id: orgId } },
+      subscription_details: { metadata: { organisation_id: orgId, dg_commerce_subscription: "true" } },
     }),
     hold: true,
+    owner: null,
   });
   assert.equal((await invoice.post()).status, 200);
   assert.deepEqual(invoice.guardChecks, [false]);
@@ -277,20 +295,220 @@ test("known non-platform subscription and invoice events preserve normal unrelat
   assert.equal(invoice.platformMutations, 0);
 });
 
-test("connected-account checkout and subscription events bypass the platform hold and platform provisioning", async () => {
-  for (const event of [
-    { ...checkoutEvent(), connectAccountId: "acct_fixture" },
-    { ...subscriptionEvent("subscription.updated"), connectAccountId: "acct_fixture" },
-  ]) {
-    const app = loadRoute({ event, hold: true });
-    assert.equal((await app.post()).status, 200);
-    // The coordinator release rejects connected Checkout before any receipt;
-    // connected subscriptions retain their unrelated processing path.
-    const checkout = event.type === "checkout.completed";
-    assert.deepEqual(app.guardChecks, checkout ? [] : [false]);
-    assert.equal(app.receiptClaims, checkout ? 0 : 1);
-    assert.equal(app.platformMutations, 0);
+for (const type of ["invoice.payment_failed", "invoice.payment_action_required", "invoice.paid"]) {
+  const commerceEvent = () => invoiceEvent(type, {
+    subscription_details: { metadata: { organisation_id: orgId, dg_commerce_subscription: "true" } },
+  });
+  for (const stripeSubscriptionId of [null, "sub_platform", subscriptionId]) {
+    test(`${type}: commerce marker cannot bypass a canonical platform customer without commerce evidence (${stripeSubscriptionId})`, async () => {
+      const app = loadRoute({ event: commerceEvent(), hold: true,
+        platformSubscription: { organisationId: orgId, stripeCustomerId: customerId, stripeSubscriptionId } });
+      assert.equal((await app.post()).status, 503);
+      assert.equal(app.receiptClaims, 0);
+      assert.equal(app.handlers, 0);
+      assert.equal(app.platformMutations, 0);
+    });
   }
+  test(`${type}: commerce-only customer remains unrelated and unheld`, async () => {
+    const app = loadRoute({ event: commerceEvent(), hold: true, owner: null });
+    assert.equal((await app.post()).status, 200);
+    // Commerce-only invoice events remain unrelated to platform billing.
+    assert.deepEqual(app.guardChecks, [false]);
+    assert.equal(app.receiptClaims, 1);
+    assert.equal(app.platformMutations, 0);
+  });
+  test(`${type}: distinct corroborated commerce subscription permits a shared customer`, async () => {
+    const app = loadRoute({ event: commerceEvent(), hold: true,
+      platformSubscription: { organisationId: orgId, stripeCustomerId: customerId, stripeSubscriptionId: "sub_platform" },
+      commerceSubscriptions: [{ organisationId: orgId, metadata: { customerId } }] });
+    assert.equal((await app.post()).status, 200);
+    assert.deepEqual(app.guardChecks, [false]);
+    assert.equal(app.platformMutations, 0);
+  });
+  test(`${type}: commerce record cannot override an unresolved platform subscription`, async () => {
+    const app = loadRoute({ event: commerceEvent(),
+      platformSubscription: { organisationId: orgId, stripeCustomerId: customerId, stripeSubscriptionId: null },
+      commerceSubscriptions: [{ organisationId: orgId, metadata: { customerId } }] });
+    assert.equal((await app.post()).status, 503);
+    assert.equal(app.receiptClaims, 0);
+  });
+  test(`${type}: connected-account commerce marker remains isolated despite platform lookup failure`, async () => {
+    const app = loadRoute({ event: { ...commerceEvent(), connectAccountId: "acct_fixture" }, hold: true,
+      ownershipError: new Error("must not consult platform ownership") });
+    assert.equal((await app.post()).status, 200);
+    assert.deepEqual(app.guardChecks, [false]);
+    assert.equal(app.platformMutations, 0);
+  });
+}
+
+for (const type of ["invoice.payment_failed", "invoice.payment_action_required", "invoice.paid"]) {
+  for (const mapping of ["organisation", "subscription"]) {
+    test(`${type}: canonical ${mapping} customer fallback is held, recovers once after release`, async () => {
+      const event = invoiceEvent(type, { subscription_details: { metadata: {} }, metadata: {} });
+      delete event.organisationId;
+      const app = loadRoute({ event, hold: true,
+        owner: { id: orgId, billingCustomerId: mapping === "organisation" ? customerId : null },
+        platformSubscription: mapping === "subscription"
+          ? { organisationId: orgId, stripeCustomerId: customerId, stripeSubscriptionId: null } : null,
+      });
+      assert.equal((await app.post()).status, 503);
+      assert.equal(app.receiptClaims, 0);
+      app.setHold(false);
+      assert.equal((await app.post()).status, 200);
+      assert.equal((await app.post()).status, 200);
+      assert.equal(app.receiptClaims, 1);
+      assert.equal(app.invoiceMutations.length, 1);
+      assert.equal(app.invoiceMutations[0].organisationId, orgId);
+    });
+  }
+  test(`${type}: unknown subscription ownership remains retryable and unclaimed`, async () => {
+    const app = loadRoute({ event: invoiceEvent(type, { subscription_details: { metadata: {} }, metadata: {} }), owner: null });
+    assert.equal((await app.post()).status, 503);
+    assert.equal(app.receiptClaims, 0);
+    assert.equal(app.platformMutations, 0);
+  });
+  test(`${type}: conflicting customer owners fail closed`, async () => {
+    const app = loadRoute({ event: invoiceEvent(type, { subscription_details: { metadata: {} } }),
+      platformSubscription: { organisationId: "org_other", stripeCustomerId: customerId, stripeSubscriptionId: null } });
+    assert.equal((await app.post()).status, 503);
+    assert.equal(app.receiptClaims, 0);
+  });
+  test(`${type}: connected invoices never use platform ownership or hold`, async () => {
+    const app = loadRoute({ event: { ...invoiceEvent(type), connectAccountId: "acct_fixture" }, hold: true,
+      ownershipError: new Error("platform DB must not be read") });
+    assert.equal((await app.post()).status, 200);
+    assert.deepEqual(app.guardChecks, [false]);
+    assert.equal(app.platformMutations, 0);
+  });
+}
+
+test("customer fallback rejects a conflicting canonical subscription ID", async () => {
+  const app = loadRoute({ event: invoiceEvent("invoice.payment_failed", { subscription_details: { metadata: {} } }),
+    platformSubscription: { organisationId: orgId, stripeCustomerId: customerId, stripeSubscriptionId: "sub_other" } });
+  assert.equal((await app.post()).status, 503);
+  assert.equal(app.receiptClaims, 0);
+});
+
+test("corroborated commerce subscription invoice remains unrelated", async () => {
+  const app = loadRoute({ event: invoiceEvent("invoice.payment_failed", { subscription_details: { metadata: {} } }),
+    hold: true, owner: null,
+    commerceSubscriptions: [{ organisationId: orgId, metadata: { customerId } }] });
+  assert.equal((await app.post()).status, 200);
+  assert.deepEqual(app.guardChecks, [false]);
+  assert.equal(app.platformMutations, 0);
+});
+
+for (const commerceSubscriptions of [
+  [{ organisationId: orgId, metadata: { customerId: "cus_foreign" } }],
+  [{ organisationId: orgId, metadata: { customerId } }, { organisationId: "org_other", metadata: { customerId } }],
+]) {
+  test("ambiguous or conflicting commerce invoice evidence fails closed", async () => {
+    const app = loadRoute({ event: invoiceEvent("invoice.payment_failed", { subscription_details: { metadata: {} } }),
+      owner: null, commerceSubscriptions });
+    assert.equal((await app.post()).status, 503);
+    assert.equal(app.receiptClaims, 0);
+  });
+}
+
+test("empty subscription metadata cannot hide invoice platform metadata", async () => {
+  const app = loadRoute({ event: invoiceEvent("invoice.payment_failed", {
+    subscription_details: { metadata: {} }, metadata: platformSubscriptionMetadata,
+  }), hold: true });
+  assert.equal((await app.post()).status, 503);
+  assert.equal(app.receiptClaims, 0);
+});
+
+test("conflicting invoice organisation or billing class claims fail closed", async () => {
+  for (const metadata of [{ organisation_id: "org_other" }, { dg_commerce: "true" }]) {
+    const app = loadRoute({ event: invoiceEvent("invoice.payment_failed", { metadata }) });
+    assert.equal((await app.post()).status, 503);
+    assert.equal(app.receiptClaims, 0);
+  }
+});
+
+test("subscription metadata cannot mask an invoice-level conflicting billing marker", async () => {
+  const app = loadRoute({ event: invoiceEvent("invoice.payment_failed", {
+    subscription_details: { metadata: { ...platformSubscriptionMetadata, dg_commerce: "false" } },
+    metadata: { dg_commerce: "true" },
+  }) });
+  assert.equal((await app.post()).status, 503);
+  assert.equal(app.receiptClaims, 0);
+  assert.equal(app.platformMutations, 0);
+});
+
+test("valid legacy email fallback uses the corroborated canonical organisation", async () => {
+  const event = checkoutEvent({ metadata: { dg_platform_checkout: "true", contact_email: "fixture@example.test" } });
+  delete event.organisationId;
+  const app = loadRoute({ event, hold: true });
+  assert.equal((await app.post()).status, 503);
+  assert.equal(app.receiptClaims, 0);
+  app.setHold(false);
+  assert.equal((await app.post()).status, 200);
+  assert.equal((await app.post()).status, 200);
+  assert.equal(app.provisionedSessions.length, 1);
+  assert.equal(app.provisionedSessions[0].metadata.organisation_id, orgId);
+});
+
+test("conflicting checkout organisation aliases remain unclaimed", async () => {
+  const app = loadRoute({ event: checkoutEvent({ metadata: {
+    dg_platform_checkout: "true", organisation_id: orgId, organisationId: "org_other",
+  } }) });
+  assert.equal((await app.post()).status, 503);
+  assert.equal(app.receiptClaims, 0);
+  assert.equal(app.platformMutations, 0);
+});
+
+test("platform-marked checkout with a conflicting mode cannot bypass the hold", async () => {
+  const app = loadRoute({ event: checkoutEvent({ mode: "payment" }), hold: true });
+  assert.equal((await app.post()).status, 503);
+  assert.equal(app.receiptClaims, 0);
+  assert.equal(app.platformMutations, 0);
+});
+
+for (const input of [
+  { memberships: [] },
+  { memberships: [{ organisationId: "org_other" }] },
+  { memberships: [{ organisationId: orgId }, { organisationId: "org_other" }] },
+  { owner: { id: orgId, billingCustomerId: null } },
+  { platformSubscription: { organisationId: "org_other", stripeCustomerId: customerId, stripeSubscriptionId: null } },
+]) {
+  test("legacy email fallback rejects absent, ambiguous or cross-organisation corroboration", async () => {
+    const app = loadRoute({ event: checkoutEvent({ metadata: { dg_platform_checkout: "true", contact_email: "fixture@example.test" } }), ...input });
+    assert.equal((await app.post()).status, 503);
+    assert.equal(app.receiptClaims, 0);
+    assert.equal(app.provisionedSessions.length, 0);
+  });
+}
+
+test("connected-account checkout is skipped before receipt and platform billing", async () => {
+  const app = loadRoute({
+    event: { ...checkoutEvent(), connectAccountId: "acct_fixture" },
+    hold: true,
+  });
+
+  const response = await app.post();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    received: true,
+    skipped: "connected_account_checkout",
+  });
+  assert.deepEqual(app.guardChecks, []);
+  assert.equal(app.receiptClaims, 0);
+  assert.equal(app.platformMutations, 0);
+  assert.equal(app.provisionedSessions.length, 0);
+});
+
+test("connected-account subscription bypasses platform hold but retains commerce receipt", async () => {
+  const app = loadRoute({
+    event: { ...subscriptionEvent("subscription.updated"), connectAccountId: "acct_fixture" },
+    hold: true,
+  });
+
+  assert.equal((await app.post()).status, 200);
+  assert.deepEqual(app.guardChecks, [false]);
+  assert.equal(app.receiptClaims, 1);
+  assert.equal(app.platformMutations, 0);
 });
 
 test("signed connected-account checkout context is preserved by Stripe event normalization", () => {

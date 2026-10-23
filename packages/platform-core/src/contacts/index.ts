@@ -2,6 +2,7 @@ import type { Contact, Prisma } from "@dg/database";
 
 import { writeAuditLog } from "../audit";
 import { platformEvents } from "../events";
+import { publishCrmEvent, type CrmTransactionContext } from "../crm-transaction";
 
 export interface CreateContactInput {
   organisationId: string;
@@ -60,8 +61,9 @@ export function isLinkedCompanyNotFoundError(
 export async function assertCompanyInOrganisation(
   organisationId: string,
   companyId: string,
+  db?: Prisma.TransactionClient,
 ): Promise<void> {
-  const { prisma } = await import("@dg/database");
+  const prisma = db ?? (await import("@dg/database")).prisma;
   const company = await prisma.company.findFirst({
     where: { id: companyId, organisationId, deletedAt: null },
     select: { id: true },
@@ -124,8 +126,8 @@ export async function listContacts(options: ListContactsOptions) {
   };
 }
 
-export async function getContact(organisationId: string, contactId: string) {
-  const { prisma } = await import("@dg/database");
+export async function getContact(organisationId: string, contactId: string, db?: Prisma.TransactionClient) {
+  const prisma = db ?? (await import("@dg/database")).prisma;
 
   const contact = await prisma.contact.findFirst({
     where: { id: contactId, organisationId, deletedAt: null },
@@ -157,13 +159,13 @@ export async function ensureContactForLeadFields(input: {
   email?: string;
   phone?: string;
   source?: string;
-}): Promise<{ id: string; created: boolean } | null> {
+}, context?: CrmTransactionContext): Promise<{ id: string; created: boolean } | null> {
   const email = input.email?.trim().toLowerCase() || "";
   const phone = input.phone?.trim() || "";
   const name = input.name?.trim() || "";
   if (!email && !phone && !name) return null;
 
-  const { prisma } = await import("@dg/database");
+  const prisma = context?.db ?? (await import("@dg/database")).prisma;
 
   if (email) {
     const existing = await prisma.contact.findFirst({
@@ -195,15 +197,15 @@ export async function ensureContactForLeadFields(input: {
     email: email || undefined,
     phone: phone || undefined,
     source: input.source ?? "manual",
-  });
+  }, context);
   return { id: created.id, created: true };
 }
 
-export async function createContact(input: CreateContactInput) {
-  const { prisma } = await import("@dg/database");
+export async function createContact(input: CreateContactInput, context?: CrmTransactionContext) {
+  const prisma = context?.db ?? (await import("@dg/database")).prisma;
   const companyId = input.companyId?.trim() || null;
   if (companyId) {
-    await assertCompanyInOrganisation(input.organisationId, companyId);
+    await assertCompanyInOrganisation(input.organisationId, companyId, context?.db);
   }
 
   const contact = await prisma.contact.create({
@@ -239,9 +241,9 @@ export async function createContact(input: CreateContactInput) {
     entityType: "Contact",
     entityId: contact.id,
     changes: { after: serializeContact(contact) },
-  });
+  }, context?.db);
 
-  await platformEvents.publish({
+  await publishCrmEvent({
     type: "contact.created",
     organisationId: input.organisationId,
     actorId: input.actorId,
@@ -249,7 +251,7 @@ export async function createContact(input: CreateContactInput) {
     entityId: contact.id,
     payload: { firstName: contact.firstName, email: contact.email },
     occurredAt: new Date(),
-  });
+  }, context);
 
   return serializeContact(contact);
 }

@@ -59,10 +59,8 @@ export async function importDiscoveryCandidates(
   const byPlace = new Set<string>();
   const byAbn = new Set<string>();
   const byWebsite = new Set<string>();
-  const byName = new Set<string>();
 
   for (const p of existing) {
-    byName.add(p.businessName.trim().toLowerCase());
     const site = normalizeWebsite(p.websiteUrl ?? undefined);
     if (site) byWebsite.add(site);
     const refs = (p.metadata as { providerRefs?: { googlePlaceId?: string; abn?: string } } | null)
@@ -97,14 +95,6 @@ export async function importDiscoveryCandidates(
       skipped.push({ key: candidate.key, businessName: name, reason: "duplicate_abn" });
       continue;
     }
-    if (site && byWebsite.has(site)) {
-      skipped.push({ key: candidate.key, businessName: name, reason: "duplicate_website" });
-      continue;
-    }
-    if (byName.has(name.toLowerCase()) && !site && !placeId) {
-      skipped.push({ key: candidate.key, businessName: name, reason: "duplicate_name" });
-      continue;
-    }
 
     const prospect = await createGrowthProspect({
       organisationId,
@@ -131,7 +121,6 @@ export async function importDiscoveryCandidates(
       },
     });
 
-    byName.add(name.toLowerCase());
     if (site) byWebsite.add(site);
     if (placeId) byPlace.add(placeId);
     if (abn) byAbn.add(abn);

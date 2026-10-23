@@ -8,7 +8,7 @@ const { default: test } = await import('node:test');
 const { createRequire } = await import('node:module');
 const require = createRequire(import.meta.url);
 const expectedTabs = [
-  ['Overview', '/apps/prospecting'],
+  ['Overview', '/apps/prospecting/overview'],
   ['Discover', '/apps/prospecting/discovery'],
   ['Prospects', '/apps/prospecting/prospects'],
   ['Pipeline', '/apps/prospecting/pipeline'],
@@ -32,7 +32,7 @@ const manifestRoutes = configuredRoutes('packages/platform-core/src/apps/builtin
 test('shared Prospecting tabs follow the approved order', () => assert.deepEqual(shellRoutes.map(({label,path}) => [label,path]), expectedTabs));
 test('Prospecting manifest agrees with the shared navigation order', () => assert.deepEqual(manifestRoutes.map(({label,path}) => [label,path]), expectedTabs));
 test('existing legacy route aliases remain intact', () => {
-  for (const [label, alias] of [['Overview','/command/growth-engine'],['Pipeline','/command/growth-engine/pipeline'],['Today','/command/sales-week'],['Activity','/command/growth-engine/follow-ups']]) assert.ok(shellRoutes.find(route => route.label === label).matchAlso.includes(alias));
+  for (const [label, alias] of [['Today','/command/growth-engine'],['Pipeline','/command/growth-engine/pipeline'],['Today','/command/sales-week'],['Activity','/command/growth-engine/follow-ups']]) assert.ok(shellRoutes.find(route => route.label === label).matchAlso.includes(alias));
 });
 function load(file, dependencies) {
   const loaded = { exports: {} };
@@ -80,3 +80,11 @@ if (process.argv.includes('--nav-browser')) {
     } finally { await browser.close(); }
   });
 }
+
+test('Growth canonical order starts with Prospecting and fallback cannot prepend Marketing ahead of it', () => {
+ const source = fs.readFileSync('packages/platform-core/src/apps/navigation.ts', 'utf8');
+ const literal = source.match(/const GROW_APP_ORDER = (\[[^;]+\]) as const;/)[1];
+ assert.deepEqual(JSON.parse(JSON.stringify(runInNewContext(literal))), ['prospecting','marketing','advertising','ai-visibility','seo','social','reviews','automation','analytics']);
+ const sidebar = fs.readFileSync('src/components/SidebarNav.tsx', 'utf8');
+ assert.ok(sidebar.includes('[...ia.grow.apps.filter((app) => app.id === "prospecting"), marketingApp'));
+});

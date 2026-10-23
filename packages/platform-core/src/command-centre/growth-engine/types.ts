@@ -211,6 +211,7 @@ export interface DailyOpportunityRow {
   businessName: string;
   stage: ProspectPipelineStage;
   score: number;
+  scoreLabel?: string;
   band: OpportunityBand;
   bandLabel: string;
   recommendedAction: OpportunityRecommendedAction;

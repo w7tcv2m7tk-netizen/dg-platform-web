@@ -153,7 +153,9 @@
     "checkout:inventory": "node --conditions=react-server --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/reconcile-legacy-checkouts.mjs",
     "test:checkout-compatibility-artifacts": "node --test scripts/test-checkout-compatibility-artifacts.mjs",
     "test:business-briefing": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-business-briefing.mjs",
-    "test:webhook-drain-report": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-platform-subscription-webhook-drain-report.mjs"
+    "test:webhook-drain-report": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-platform-subscription-webhook-drain-report.mjs",
+    "test:local-synthetic": "node --test scripts/test-local-synthetic-env.mjs",
+    "dev:synthetic": "node scripts/run-local-synthetic-app.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.4",

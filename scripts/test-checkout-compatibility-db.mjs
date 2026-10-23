@@ -55,8 +55,9 @@ before(async () => {
   assert.equal(url.hostname, "127.0.0.1"); assert.notEqual(url.port, "5432"); assert.equal(url.pathname, "/dg_checkout_test");
   const [row] = await prisma.$queryRaw`SELECT current_setting('dg.checkout_test_cluster') AS nonce`;
   assert.ok(process.env.DG_CHECKOUT_DB_MARKER); assert.equal(row.nonce, process.env.DG_CHECKOUT_DB_MARKER);
-  const [gate] = await prisma.$queryRaw`SELECT blocked FROM platform_checkout_creation_gate WHERE id = 1`;
+  const [gate] = await prisma.$queryRaw`SELECT blocked, subscription_webhooks_held FROM platform_checkout_creation_gate WHERE id = 1`;
   assert.equal(gate.blocked, true, "migration must seed closed");
+  assert.equal(gate.subscription_webhooks_held, false, "hold must remain inactive by default");
   org = await prisma.organisation.create({ data: { name: "Compatibility fixture", slug: `compat-${randomUUID()}` } });
   process.env.STRIPE_SECRET_KEY = "sk_test_no_network_allowed";
   const sdk = new Stripe(process.env.STRIPE_SECRET_KEY);
