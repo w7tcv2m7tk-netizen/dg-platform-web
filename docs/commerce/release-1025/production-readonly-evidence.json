@@ -1,0 +1,563 @@
+{
+  "capturedAt": "2026-10-23T05:52:19.612Z",
+  "source": "Authorised Neon read-only transaction (SET TRANSACTION READ ONLY; statement_timeout 10s; lock_timeout 3s)",
+  "projectId": "gentle-sky-35028642",
+  "branchId": "br-old-shadow-a7ffezls",
+  "ledger": [
+    {
+      "migration_name": "20260805_legacy_schema_baseline",
+      "checksum": "5794ebf61daba846609ed0a601094f4fe5a54b8d06a3bce2dcd28562c03b0777",
+      "applied_steps_count": 0,
+      "finished_at": "2026-10-21 10:30:13.092778+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260819_add_partner_programme",
+      "checksum": "3d156b2cf0e64b3f2760dfc4c91feed0cdc35f8fb8374f1b34d55f84ae4a6698",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:11.602284+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260820_add_delivery_workspace",
+      "checksum": "5e84f99e48c298129b0a3c2b66589d8c52691e2730cdcc8e5e4e47d71a659a05",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:14.215905+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260820_membership_permissions",
+      "checksum": "fb2d729c612f7bafdc9244a792e4e817af82a174a6d167850b073d563fbacd02",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:16.410286+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260822_add_support_chat",
+      "checksum": "540089553e5de95559105423c677d169fc3eaf69048519073b9f474828bc78b4",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:18.939051+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260823_ota_ical_last_sync",
+      "checksum": "d0d31e756a7ef2f83b5c0a11879e8a83e210df6079884188061ae15f82ab3136",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:21.060904+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260823_pm_floor",
+      "checksum": "4d1a50c60d9208d59b80adb7e8a197080fb33604c175c9b72b542ee4260c5ac9",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:23.930005+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260825_partner_terms_accept",
+      "checksum": "01f6a874fabb2cef9f5480e9b944709b474aeb15cf3088b70f72579ae7cccdf0",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:26.711178+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260826_platform_subscription_lifecycle",
+      "checksum": "9c1c4b0a3eeb3bd9def3f34b23070ba38fdbea59dd4d14df6655deb6503acdff",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:29.327885+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260828_partner_commercial_model",
+      "checksum": "82e2649d6ab522fcdd03d0a50931ba582fca3cc3937751a53e25f456bffd105d",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:31.699579+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260829_support_conversation_org_scope",
+      "checksum": "3464c70bf5fb8774dc34b41e3a9b475116f92c1d1e9fb56e9faa24df48771c07",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 22:42:34.082186+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260830_stripe_webhook_receipt_state",
+      "checksum": "d6b1645896077499228c0fec740d8e1b6ab080b555c82df7b1aaa950c07e1c00",
+      "applied_steps_count": 0,
+      "finished_at": "2026-08-30 23:18:26.153121+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260901_stripe_connect_tenant_trust",
+      "checksum": "0abace4df64a8ab95b82b78d17054ae4cf60081628c4c1cf3312b5f17e8a8e88",
+      "applied_steps_count": 0,
+      "finished_at": "2026-10-21 11:08:36.261444+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260904_business_brain_knowledge",
+      "checksum": "5203076dfc6cf5fa3a159734cc43b70e21c9900e9ffbe76b7202e990bd2594e4",
+      "applied_steps_count": 0,
+      "finished_at": "2026-10-21 11:20:02.836495+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260910_aida_public_conversations",
+      "checksum": "0d3aa31ad7c3e855c518b27bf62cfb6d50b0eadeeaaf69a064c5d6f968412b39",
+      "applied_steps_count": 0,
+      "finished_at": "2026-10-21 11:31:10.865019+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20260913_ai_visibility_intelligence",
+      "checksum": "267cc2a0d35723b6c685dc268258d41be1042d2716bd3a63e918043edc3ef102",
+      "applied_steps_count": 0,
+      "finished_at": "2026-10-21 11:44:49.633063+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20261007_ai_gateway_slice3_local_routine",
+      "checksum": "0e2376fdfb12b7b871f9dfc9177867d6fb7f674daf71a98d510d874edc19ebbc",
+      "applied_steps_count": 0,
+      "finished_at": "2026-10-07 01:27:01.271473+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20261007_ai_worker_provisioning_boundary",
+      "checksum": "55f5aa9294078d52a88a505b5480f41ed15e691f0175c7df1e3f58a0cbe3b70d",
+      "applied_steps_count": 0,
+      "finished_at": "2026-10-08 21:31:43.611+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20261008_prospect_report_snapshot",
+      "checksum": "aff518ba6b3174498ee97e8f53aa8af5febfeb628cb3cfedb2195a76d67a5b59",
+      "applied_steps_count": 1,
+      "finished_at": "2026-10-20 08:40:39.692081+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20261009_platform_checkout_attempt",
+      "checksum": "6ec2d6992f95e04aca5a1635c0e6edd54a24f88c749d9737ca6f005e5cd10fa4",
+      "applied_steps_count": 1,
+      "finished_at": "2026-10-21 13:14:10.186721+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20261009_platform_checkout_creation_gate",
+      "checksum": "3e6c075bf84cc6888950f4c7ba006997bb956714afe4117aff4f9bb28b519cad",
+      "applied_steps_count": 1,
+      "finished_at": "2026-10-21 13:27:57.015816+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20261018_platform_subscription_app_entitlements",
+      "checksum": "1dd5d856455c8c315014e0cc57fa3b1dd06f63b1352549b61a8f4738796627ad",
+      "applied_steps_count": 1,
+      "finished_at": "2026-10-21 14:18:49.767017+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20261019_platform_subscription_webhook_hold",
+      "checksum": "4369cd48baf20d279943a68c4e07a0134558a88273d778525f6a14caa6ee37b5",
+      "applied_steps_count": 1,
+      "finished_at": "2026-10-21 14:21:03.981742+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20261020090000_unified_acquisition_identity",
+      "checksum": "724683fc03047fd36c9df1b49b170d467fcf5a1d5026fbcb412b5fa76da7f612",
+      "applied_steps_count": 1,
+      "finished_at": "2026-10-20 22:38:05.586178+00",
+      "rolled_back_at": null
+    },
+    {
+      "migration_name": "20261020_aida_conversation_schema_alignment",
+      "checksum": "dbddd381fbb1b2f8dc2f99a99249e05235c668758a96d11e6d46934752314b9c",
+      "applied_steps_count": 1,
+      "finished_at": "2026-10-21 14:22:48.07898+00",
+      "rolled_back_at": null
+    }
+  ],
+  "gate": [
+    {
+      "id": 1,
+      "blocked": true,
+      "subscription_webhooks_held": false,
+      "revision": 0,
+      "last_admission_expires_at": null
+    }
+  ],
+  "subscriptionAggregates": [
+    {
+      "subscriptions": 6,
+      "exemptions": 6
+    }
+  ],
+  "indexes": [
+    {
+      "tablename": "platform_checkout_attempts",
+      "indexname": "platform_checkout_attempts_current_organisation_id_key",
+      "indexdef": "CREATE UNIQUE INDEX platform_checkout_attempts_current_organisation_id_key ON public.platform_checkout_attempts USING btree (current_organisation_id)"
+    },
+    {
+      "tablename": "platform_checkout_attempts",
+      "indexname": "platform_checkout_attempts_idempotency_key_key",
+      "indexdef": "CREATE UNIQUE INDEX platform_checkout_attempts_idempotency_key_key ON public.platform_checkout_attempts USING btree (idempotency_key)"
+    },
+    {
+      "tablename": "platform_checkout_attempts",
+      "indexname": "platform_checkout_attempts_organisation_id_created_at_idx",
+      "indexdef": "CREATE INDEX platform_checkout_attempts_organisation_id_created_at_idx ON public.platform_checkout_attempts USING btree (organisation_id, created_at)"
+    },
+    {
+      "tablename": "platform_checkout_attempts",
+      "indexname": "platform_checkout_attempts_pkey",
+      "indexdef": "CREATE UNIQUE INDEX platform_checkout_attempts_pkey ON public.platform_checkout_attempts USING btree (id)"
+    },
+    {
+      "tablename": "platform_checkout_attempts",
+      "indexname": "platform_checkout_attempts_session_id_key",
+      "indexdef": "CREATE UNIQUE INDEX platform_checkout_attempts_session_id_key ON public.platform_checkout_attempts USING btree (session_id)"
+    },
+    {
+      "tablename": "platform_checkout_creation_gate",
+      "indexname": "platform_checkout_creation_gate_pkey",
+      "indexdef": "CREATE UNIQUE INDEX platform_checkout_creation_gate_pkey ON public.platform_checkout_creation_gate USING btree (id)"
+    }
+  ],
+  "constraints": [
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_created_at_not_null",
+      "definition": "NOT NULL created_at"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_current_owner_check",
+      "definition": "CHECK (((current_organisation_id IS NULL) OR (current_organisation_id = organisation_id)))"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_id_not_null",
+      "definition": "NOT NULL id"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_idempotency_key_not_null",
+      "definition": "NOT NULL idempotency_key"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_legacy_session_ids_not_null",
+      "definition": "NOT NULL legacy_session_ids"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_organisation_id_fkey",
+      "definition": "FOREIGN KEY (organisation_id) REFERENCES organisations(id) ON UPDATE CASCADE ON DELETE CASCADE"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_organisation_id_not_null",
+      "definition": "NOT NULL organisation_id"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_provider_scope_not_null",
+      "definition": "NOT NULL provider_scope"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_purchase_fingerprint_not_null",
+      "definition": "NOT NULL purchase_fingerprint"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_release_check",
+      "definition": "CHECK (((current_organisation_id IS NULL) = (state = 'EXPIRED'::text)))"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_replay_until_not_null",
+      "definition": "NOT NULL replay_until"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_request_parameters_not_null",
+      "definition": "NOT NULL request_parameters"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_state_check",
+      "definition": "CHECK ((state = ANY (ARRAY['PREPARED'::text, 'UNCERTAIN'::text, 'OPEN'::text, 'AWAITING_WEBHOOK'::text, 'EXPIRED'::text, 'RECOVERY_REQUIRED'::text])))"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_state_not_null",
+      "definition": "NOT NULL state"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "conname": "platform_checkout_attempts_updated_at_not_null",
+      "definition": "NOT NULL updated_at"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "conname": "platform_checkout_creation__subscription_webhooks_held_not_null",
+      "definition": "NOT NULL subscription_webhooks_held"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "conname": "platform_checkout_creation_gate_blocked_not_null",
+      "definition": "NOT NULL blocked"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "conname": "platform_checkout_creation_gate_changed_at_not_null",
+      "definition": "NOT NULL changed_at"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "conname": "platform_checkout_creation_gate_id_not_null",
+      "definition": "NOT NULL id"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "conname": "platform_checkout_creation_gate_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "conname": "platform_checkout_creation_gate_revision",
+      "definition": "CHECK ((revision >= 0))"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "conname": "platform_checkout_creation_gate_revision_not_null",
+      "definition": "NOT NULL revision"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "conname": "platform_checkout_creation_gate_singleton",
+      "definition": "CHECK ((id = 1))"
+    }
+  ],
+  "limitations": "Catalog/ledger evidence only; no customer records or secret values captured. Does not attest deployed source or live provider configuration. Column catalog captured in a subsequent read-only transaction; this is not an atomic whole-system snapshot.",
+  "columns": [
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "column_default": "CURRENT_TIMESTAMP",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "current_organisation_id",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "expires_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "first_requested_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "id",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "idempotency_key",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "lease_token",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "lease_until",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "legacy_session_ids",
+      "data_type": "jsonb",
+      "udt_name": "jsonb",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "organisation_id",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "provider_scope",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "purchase_fingerprint",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "recovery_reason",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "replay_until",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "request_parameters",
+      "data_type": "jsonb",
+      "udt_name": "jsonb",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "session_id",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "state",
+      "data_type": "text",
+      "udt_name": "text",
+      "column_default": "'PREPARED'::text",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_attempts",
+      "column_name": "updated_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "column_default": null,
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "column_name": "blocked",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "true",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "column_name": "changed_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": "CURRENT_TIMESTAMP",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "column_name": "id",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "column_default": "1",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "column_name": "last_admission_expires_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "column_default": null,
+      "is_nullable": "YES"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "column_name": "revision",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "column_default": "0",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_checkout_creation_gate",
+      "column_name": "subscription_webhooks_held",
+      "data_type": "boolean",
+      "udt_name": "bool",
+      "column_default": "false",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_subscriptions",
+      "column_name": "industry_apps",
+      "data_type": "ARRAY",
+      "udt_name": "_text",
+      "column_default": "ARRAY[]::text[]",
+      "is_nullable": "NO"
+    },
+    {
+      "table_name": "platform_subscriptions",
+      "column_name": "premium_apps",
+      "data_type": "ARRAY",
+      "udt_name": "_text",
+      "column_default": "ARRAY[]::text[]",
+      "is_nullable": "NO"
+    }
+  ]
+}

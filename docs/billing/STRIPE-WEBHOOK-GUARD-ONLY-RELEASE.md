@@ -1,5 +1,15 @@
 # Stripe webhook cutover guard-only release
 
+> **23 October 2026 status correction:** Historical source references and pending
+> migration instructions below are retained as evidence, not executable current
+> approvals. Verified Production has **25/25 finished migrations**, including the
+> entitlement columns, webhook hold and Aida alignment. No migration or baseline
+> resolution remains. Follow the current
+> [Production migration runbook](../commerce/release-1025/PRODUCTION-MIGRATION-RUNBOOK.md)
+> and [Stripe cutover runbook](../commerce/release-1025/STRIPE-CUTOVER-RUNBOOK.md).
+> This correction does **not** establish serving routing, invocation drain, hold
+> activation, Stripe event configuration, purchase reconciliation or checkout opening.
+
 This candidate incorporates verified main source commit
 `7a10486d00c83adfb8744e4de86c5d9f21ed4ad0`. The original isolated candidate
 started at `f26e3e4761e8af66707919589a5ee883bb5d3ef8`; that is historical,
@@ -58,19 +68,22 @@ passed to provisioning, which must not choose the newest membership independentl
    The certified execution runner has **25 directories**, including the accepted
    unified-acquisition identity migration. It is distinct from this guard-only
    branch's migration directory: do not use this branch to reconstruct or deploy
-   the complete recovery history. Existing operator evidence records **22 finished
+   the complete recovery history. Historical operator evidence recorded **22 finished
    entries**, including checkout attempts and the creation gate. These are dated
    evidence, not a fresh preflight. The gate is blocked, revision 0, with no
    outstanding admission. Never replay an applied migration or reopen the gate.
-   Remaining individually approved stages are
+   **Superseded historical pending-stage inventory (all now completed):**
+   The formerly remaining individually approved stages were
    `20261018_platform_subscription_app_entitlements` (23),
    `20261019_platform_subscription_webhook_hold` (24), and
-   `20261020_aida_conversation_schema_alignment` (25). Use only their certified
-   staged runner and separate approvals. Additive entitlement columns do not
+   `20261020_aida_conversation_schema_alignment` (25). Using their certified
+   staged runner and separate approvals was the historical procedure; **do not
+   execute these completed stages again**. Additive entitlement columns do not
    authorise deployment/activation of the new entitlement authority.
-3. Apply the additive
-   `20261019_platform_subscription_webhook_hold` migration. Confirm the
-   singleton row exists with `subscription_webhooks_held = false`.
+3. **Superseded write instruction — do not execute:** the original instruction
+   was to apply `20261019_platform_subscription_webhook_hold`. It is now applied.
+   Current action is read-only verification that the singleton exists with
+   `subscription_webhooks_held = false`; any mismatch requires reviewed explanation.
 4. Confirm the webhook function's effective maximum execution duration and
    monitoring access from the deployed Vercel configuration/metadata. The source
    does not declare `maxDuration`; do not use an assumed runtime limit to clear

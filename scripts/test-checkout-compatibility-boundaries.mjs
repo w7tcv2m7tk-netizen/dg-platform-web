@@ -35,12 +35,40 @@ test("webhook route never consults admission barrier", () => {
   assert.doesNotMatch(read("src/app/api/webhooks/stripe/route.ts"), /admitPlatformCheckout|checkout-creation-gate/);
   assert.doesNotMatch(read("packages/platform-core/src/billing/platform-stripe.ts"), /admitPlatformCheckout|checkout-creation-gate/);
 });
-test("review branches cannot request automatic Vercel deployments", () => {
-  const config = JSON.parse(read("vercel.json"));
-  assert.deepEqual(config.git.deploymentEnabled, {
-    "work/commercial-readiness": false,
-    "work/commercial-checkout-compatibility": false,
-    "release/checkout-entitlements-20261019": false,
-    "release/stripe-webhook-guard-only-20261019": false,
+const protectedBranches = [
+  "work/commercial-readiness",
+  "work/commercial-checkout-compatibility",
+  "release/checkout-entitlements-20261019",
+  "release/stripe-webhook-guard-only-20261019",
+  "fix/checkout-release-readiness-20261023",
+  "finish/checkout-entitlements",
+];
+function assertDeploymentSuppression(config) {
+  for (const branch of protectedBranches) {
+    assert.equal(config.git?.deploymentEnabled?.[branch], false, `${branch} must explicitly disable deployments`);
+  }
+  for (const [branch, enabled] of Object.entries(config.git.deploymentEnabled)) {
+    assert.equal(enabled, false, `${branch} must not enable deployments`);
+  }
+  assert.equal(Object.hasOwn(config.git.deploymentEnabled, "main"), false, "Production retains the existing default deployment behaviour");
+}
+test("review and integration branches cannot request automatic Vercel deployments", () => {
+  assertDeploymentSuppression(JSON.parse(read("vercel.json")));
+});
+for (const branch of protectedBranches) {
+  test(`missing suppression for ${branch} is rejected`, () => {
+    const config = JSON.parse(read("vercel.json"));
+    delete config.git.deploymentEnabled[branch];
+    assert.throws(() => assertDeploymentSuppression(config), /must explicitly disable deployments/);
   });
+  test(`enabled deployment for ${branch} is rejected`, () => {
+    const config = JSON.parse(read("vercel.json"));
+    config.git.deploymentEnabled[branch] = true;
+    assert.throws(() => assertDeploymentSuppression(config), /must explicitly disable deployments/);
+  });
+}
+test("unrequested Production suppression is rejected", () => {
+  const config = JSON.parse(read("vercel.json"));
+  config.git.deploymentEnabled.main = false;
+  assert.throws(() => assertDeploymentSuppression(config), /Production retains/);
 });
