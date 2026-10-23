@@ -71,6 +71,10 @@ try {
   run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-checkout-compatibility-db.mjs"], { env });
   run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-legacy-app-entitlement-reconciliation.mjs"], { env });
   run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-platform-subscription-webhook-cutover-db.mjs"], { env });
+  // Exercise coordinator concurrency against the same fully migrated disposable
+  // schema. Its older standalone launcher predates entitlement columns. Run last
+  // because these cases deliberately change the singleton admission gate.
+  run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", "scripts/test-checkout-coordinator-db.mjs"], { env });
   passed = true;
 } finally {
   if (existsSync(path.join(data, "postmaster.pid"))) run(path.join(pgBin, "pg_ctl"), ["-D", data, "-m", "immediate", "-w", "stop"]);

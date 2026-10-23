@@ -97,7 +97,7 @@
     "test:business-audit-styling": "node scripts/test-business-audit-website-styling.mjs",
     "test:marketing-commercial-consistency": "node --test scripts/test-marketing-commercial-consistency.mjs",
     "test:onboarding-support-step": "node scripts/test-onboarding-support-step.mjs",
-    "test:onboarding-checkout-verification": "node scripts/test-onboarding-checkout-verification.mjs",
+    "test:onboarding-checkout-verification": "node scripts/test-onboarding-checkout-verification.mjs && node --experimental-strip-types --test scripts/test-onboarding-state-before-checkout.mjs scripts/test-onboarding-save-queue.mjs",
     "test:aida-business-overview": "node --test scripts/test-aida-business-overview.mjs",
     "test:aida-business-brain-depth": "node scripts/test-aida-business-brain-depth.mjs",
     "test:first-day-aida-experience": "node scripts/test-first-day-aida-experience.mjs",
