@@ -42,5 +42,6 @@ test("review branches cannot request automatic Vercel deployments", () => {
     "work/commercial-checkout-compatibility": false,
     "release/checkout-entitlements-20261019": false,
     "release/stripe-webhook-guard-only-20261019": false,
+    "fix/checkout-release-readiness-20261023": false,
   });
 });
