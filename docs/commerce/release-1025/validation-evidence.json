@@ -1,0 +1,119 @@
+{
+  "releaseSource": "d71be3b9b13a2aeb4fe0fb02e0dfbb6a77c17048",
+  "mainAtReview": "8b01687fc235d16db6467a91551247e3f69444f9",
+  "branch": "fix/checkout-release-readiness-20261023",
+  "productionChangesPerformed": false,
+  "externalAcceptance": {
+    "reused": true,
+    "assertions": 22,
+    "sha256": "78c6feade32d5be5b74be0cb60bd94dac505443c0713637ada9477110f7f23d9",
+    "source": "21 October synthetic Clerk Development and Stripe sandbox acceptance; not a new deployed-head run"
+  },
+  "checks": {
+    "focused": {
+      "pass": 376,
+      "fail": 0,
+      "includesPreflightChecks": 14
+    },
+    "coordinatorDatabase": {
+      "pass": 44,
+      "fail": 0
+    },
+    "checkoutLifecycleDatabase": {
+      "pass": 126,
+      "fail": 0
+    },
+    "reconciliationDatabase": {
+      "pass": 27,
+      "fail": 0
+    },
+    "atomicConcurrencyDatabase": {
+      "pass": 6,
+      "fail": 0
+    },
+    "browserBoundaries": {
+      "pass": 2,
+      "fail": 0
+    },
+    "typescript": {
+      "exitCode": 0
+    },
+    "operatorSQLDatabase": {
+      "pass": 3,
+      "fail": 0
+    },
+    "totalDistinctChecksInDeclaredGroups": 584
+  },
+  "build": {
+    "start": "2026-10-23T05:52:44.464684+00:00",
+    "finish": "2026-10-23T05:54:24.445434+00:00",
+    "durationSeconds": 100.0,
+    "exitCode": 0,
+    "timedOut": false,
+    "command": "npm run build",
+    "log": "/private/tmp/dg-readiness-full-build.log",
+    "next": "16.2.12",
+    "prisma": "6.19.3",
+    "node": "v24.4.1",
+    "bundler": "Webpack, existing checked-in npm build command unchanged",
+    "staticGeneration": "457/457",
+    "warnings": [
+      "Existing module-type reparsing warnings",
+      "Existing middleware/cache-control warnings",
+      "Dynamic routes using headers reported during prerender; build exits 0"
+    ]
+  },
+  "logs": {
+    "focused": {
+      "path": "/private/tmp/dg-readiness-final-focused.log",
+      "sha256": "835f4c720521821a6cd0eacf75e95ebc7146ae4e9f0820da5f8076eaad60fd9b"
+    },
+    "coordinator": {
+      "path": "/private/tmp/dg-readiness-coordinator.log",
+      "sha256": "7853e449e513ec17c35c8d69eed2a211899dfe8ae2bd0683a1ba91b71889a3ea"
+    },
+    "compatibility": {
+      "path": "/private/tmp/dg-readiness-compat.log",
+      "sha256": "36945df9e55ac53ffed699be94bf128d99eb2af98c0b76b8d0c38b51f422b615"
+    },
+    "build": {
+      "path": "/private/tmp/dg-readiness-full-build.log",
+      "sha256": "fd38083864908619f316d232ce28e359cb67dc8e5ef3568f757244c015a1305e"
+    },
+    "typescript": {
+      "path": "/private/tmp/dg-readiness-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "browserBoundaries": {
+      "path": "/private/tmp/dg-readiness-artifacts.log",
+      "sha256": "24fc05657c8f1d5bd502b19f8531e1a6374de18071d5ff13e60e20dcbc9e0f6d"
+    },
+    "operatorSQL": {
+      "path": "/private/tmp/dg-readiness-operator-sql.log",
+      "sha256": "06e6763508788641c792b374b9e0f02d2a2f1521a323d7fe024275d8dbf5af0a"
+    }
+  },
+  "limitations": [
+    "GitHub workflow has not run; it is not yet published",
+    "No Production deployment/routing/provider configuration acceptance performed",
+    "22 pre-existing npm audit findings reported by npm ci (3 moderate,17 high,2 critical); dependency changes out of scope, impact not established by this work"
+  ],
+  "prismaValidation": {
+    "passed": true,
+    "target": "synthetic localhost URL, validation only, no connection"
+  },
+  "sourceHashes": {
+    "package-lock.json": "1d68b173f056987cdfc6a63aa30619b4a5819aab1a422d1039dca69967c7780d",
+    "packages/database/prisma/schema.prisma": "9381e2d8e0165d4e10dd241ede1ad8227ee644f98361e34e1ff9d547679e61fc",
+    "scripts/run-checkout-compatibility-db-tests.mjs": "3edca6ce603551bde999bcea61c6c1bf75bf0292181b1fd7fc21b79f7e376bda",
+    "scripts/run-checkout-release-tests.mjs": "e1412785363fd2ac31c233b37485f84bf00fc81a960ab19ca4880478961b431f",
+    "scripts/test-checkout-release-operator-sql-db.mjs": "91f6f8d15d2024d11ca36bb0401b7cd35da50e9b80c0f54d33656477db82a917"
+  },
+  "frozenManifestObservedSha256": "cade019361a39bad26342d224bf694307246fa91cd593da3f9010fa1b18a9ee1",
+  "frozenManifestLimitation": "Not modified by this work. Original shared Git object af85b034 cannot currently be read (bad object HEAD); independent commit-to-file comparison unavailable. Runner files verified against preserved checksum inventory.",
+  "runnerFilesVerified": {
+    "matches": 37,
+    "mismatches": []
+  },
+  "providerMutationsPerformed": false
+}

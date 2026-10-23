@@ -862,3 +862,31 @@ as a separate UX follow-up, not verified paid/trial authority or a proven access
 bypass. Customer identity/progress untouched. Immediate next action: secure
 operator-side execution of the approved initial baseline only; all later write
 and release checkpoints remain separately gated. No new billing development.
+
+
+### 23 October 2026 — PR #1025 release readiness
+
+Requirements `platform.auth`, `detach.portal_billing`, `crm.companies`. Separate
+`fix/checkout-release-readiness-20261023` from reviewed `d71be3b9`; main reviewed
+at `8b01687f`. Existing candidate and frozen recovery package preserved.
+Fixed reproduced stale-schema standalone DB runners by sharing the owned disposable
+runner, certified SQL constraints and Prisma parity; added credential-free checkout
+CI (not yet published/executed), offline read-only preflight verifier and negative
+controls. No application business-rule change. Runbooks and exact evidence:
+`docs/commerce/release-1025/RELEASE-READINESS.md` and `validation-evidence.json`.
+Fresh focused runtime/source checks 376/376; disposable PostgreSQL coordinator44,
+checkout/lifecycle126, reconciliation27, atomic6, operator SQL3; browser artifacts2: **584/584**,
+0 failures. Full `npm run build` including prebuild, Next16.2.12/TypeScript,
+457/457 page generation exit0; standalone TypeScript and whitespace passed.
+Reused provider acceptance22/22 with original report hash (21 October source),
+not represented as a new deployed-head run. Local PostgreSQL18.6; CI targets16.
+Authorised read-only Production:25 finished migrations/checksums match complete
+certified runner; checkout blocked, hold inactive, six exempt subscriptions by
+aggregate. No migrations remain; do not rerun historical baseline instructions.
+Status **BLOCKED** for Production release, **VERIFIED IN ISOLATION** for the listed
+local checks. Next: review/integrate separate commit, run safe GitHub CI, verify
+serving guard/routing/old invocation termination, approve hold/drain/provider
+configuration and signed purchase reconciliation BEFORE serving entitlement gates;
+then full deployment/smoke, checkout opening and invitations each require owner
+approval. Existing dependency audit findings need security disposition. No new
+Neon resources, Production writes, provider mutations, deployments or invitations.
