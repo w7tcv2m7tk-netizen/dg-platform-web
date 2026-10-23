@@ -233,3 +233,39 @@ activation unless a specific required workflow demonstrates that dependency.
 
 GO for independent review of the local completion delta. HOLD for Production release,
 checkout reopening and customer invitations. No customer-specific billing code is needed.
+
+
+## 21 October 2026 — real AIM checkout failure, release blocker confirmed
+
+Owner reports a real AIM Financial subscription attempt returned “Subscription
+checkout is temporarily unavailable. Please try again shortly.” Billing & Plan
+showed organisation status Trial, no platform tier and no Stripe customer.
+At 15:25 Brisbane, explicitly scoped Production SELECT confirmed the creation-gate
+and checkout-attempt tables remain absent, 15 migrations finished and initial
+baseline ledger entry absent. Production alias/source remain dpl_GPeE5mZ7n5jjmTce3THEqiKYeG2T /
+7a10486d00c83adfb8744e4de86c5d9f21ed4ad0. Source inspection confirms missing
+gate admission throws this exact sanitised error before Stripe session creation.
+This establishes the expected fail-closed blocker; it does not independently
+exclude every other possible runtime issue or attest unobserved customer access.
+No customer records, progress, identity or Stripe objects were changed.
+
+Standard candidate acceptance remains Growth 249 + Finance 149 = AUD 398/month
+with 14-day trial, preserving authenticated onboarding resumption. The existing
+Production path is not newly certified for that basket. Before real payment,
+verify its complete summary and actual Stripe items/trial after approved release.
+No manual Payment Link or customer-specific offer workaround is permitted.
+
+Immediate release step: securely inject the verified direct Production URL in an
+approved operator-side execution environment and perform only the already-approved
+20260805_legacy_schema_baseline resolution, then verify 16 finished rows and original
+15 unchanged. Previous tool method was automatically rejected for credential
+embedding and was not executed; no retry through that method is authorised.
+Subsequent Stripe DDL/baselines/Aida/five migrations, guard/coordinator/entitlement
+deploys, hold/reconciliation/event changes and checkout opening require their own
+applicable approval. Keep old-invocation/session drain and rollback safeguards.
+
+Separate UX follow-up (detach.portal_billing / platform.auth): distinguish an
+organisation's pre-checkout Trial label from a verified subscription trial. Do not
+label this as an access bypass without evidence; no such bypass was established
+in this focused incident check. Fix wording separately unless actual access proves
+it security-critical. Preserve Nathan's existing organisation/onboarding throughout.

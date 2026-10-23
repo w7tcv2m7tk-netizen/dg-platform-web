@@ -851,3 +851,14 @@ execution remains pinned to separate certified recovery af85b034 (24 directories
 all 22 shared application migration files match. Production verification remains
 NOT VERIFIED for this candidate. Next: approve publication/integration and the
 explicit operational scopes; no Production operation or invitation authorised.
+
+
+### 21 October 2026 — AIM Production checkout impact
+
+`detach.portal_billing`, `platform.auth`: real customer attempt blocked by missing
+Production creation-gate schema, confirmed read-only at 15:25 Brisbane. See
+`docs/commerce/CUSTOMER-CHECKOUT-CERTIFICATION.md`. Existing Trial label recorded
+as a separate UX follow-up, not verified paid/trial authority or a proven access
+bypass. Customer identity/progress untouched. Immediate next action: secure
+operator-side execution of the approved initial baseline only; all later write
+and release checkpoints remain separately gated. No new billing development.
