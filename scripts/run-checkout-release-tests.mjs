@@ -5,6 +5,7 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const env = { NODE_ENV: "test", LC_ALL: "C", LANG: "C" };
 for (const key of ["PATH", "HOME", "TMPDIR", "SystemRoot"]) if (process.env[key]) env[key] = process.env[key];
 const files = [
+  "scripts/test-checkout-admission-unit.mjs",
   "scripts/test-checkout-release-preflight.mjs",
   "scripts/test-legacy-checkout-inventory.mjs",
   "scripts/test-checkout-compatibility-boundaries.mjs",

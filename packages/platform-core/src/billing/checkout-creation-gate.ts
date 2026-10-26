@@ -1,4 +1,5 @@
 import "server-only";
+import { verifyCheckoutAdmission, type CheckoutAdmissionContext } from "./checkout-admission";
 import type { Prisma } from "@dg/database";
 
 export class CheckoutTemporarilyUnavailable extends Error {
@@ -24,11 +25,19 @@ export class CheckoutTemporarilyUnavailable extends Error {
 export async function admitPlatformCheckout(input: {
   expiresAt?: number;
   database?: Pick<Prisma.TransactionClient, "$queryRaw">;
+  admission?: CheckoutAdmissionContext;
 } = {}): Promise<{ expiresAt: number }> {
   try {
     const database = input.database ?? (await import("@dg/database")).prisma;
     if (input.expiresAt !== undefined && (!Number.isSafeInteger(input.expiresAt) || input.expiresAt <= 0)) {
       throw new CheckoutTemporarilyUnavailable();
+    }
+    // Scoped bypass requires the caller's existing bounded transaction. Never
+    // validate a permit on one connection then admit on another.
+    let permit: string | null = null;
+    if (input.admission) {
+      if (!input.database) throw new CheckoutTemporarilyUnavailable();
+      permit = await verifyCheckoutAdmission(input.database as Prisma.TransactionClient, input.admission, true);
     }
     const rows = await database.$queryRaw<Array<{ expiresAt: bigint }>>`
       UPDATE platform_checkout_creation_gate
@@ -37,7 +46,7 @@ export async function admitPlatformCheckout(input: {
         COALESCE(to_timestamp(${input.expiresAt ?? null}::double precision),
           date_trunc('second', clock_timestamp()) + interval '35 minutes')
       )
-      WHERE id = 1 AND blocked = false
+      WHERE id = 1 AND (blocked = false OR ${permit}::text IS NOT NULL)
       RETURNING EXTRACT(EPOCH FROM last_admission_expires_at)::bigint AS "expiresAt"
     `;
     if (rows.length !== 1) throw new CheckoutTemporarilyUnavailable();
