@@ -922,3 +922,24 @@ without claiming operational Stripe cutover. This delta requires fresh PR CI.
 Status VERIFIED IN ISOLATION locally; Production remains BLOCKED pending operational
 evidence and separate approvals. Next: passing final-head CI and owner-approved
 integration only; no merge/deployment/hold/checkout activation authorised.
+
+### 26 October 2026 — PR #1025 React ViewTransition compatibility
+
+On the existing detached PR #1025 candidate based on `e9f6b865`, aligned `react`
+and `react-dom` to stable 19.3.1 and React type packages to 19.3.0 because the
+authenticated shell imports React's `ViewTransition`, absent from the previous
+19.2 runtime. Next 16.4.1 peer ranges accept React 19.3.1. Independent dependency
+review PASS. Isolated `npm ci`, Prisma generation, TypeScript, 389/389 checkout
+release tests, targeted `next.config.ts` lint, `git diff --check`, and full
+`npm run build` (prebuild, TypeScript, and 457/457 static pages) passed. React's
+server renderer also rendered a `ViewTransition` child. Subsequently located the
+existing Development credential pair read-only and ran the established synthetic
+launcher with owned disposable PostgreSQL. The real authenticated AppShell passed
+dashboard, Business Profile, Business Brain and CRM navigation, CRM hard reload,
+and return navigation with zero browser, hydration or React runtime errors.
+Only synthetic local membership/exemption fixtures were created.
+`AppShellLayout.tsx` targeted lint still reports the
+pre-existing `react-hooks/set-state-in-effect` warning at line 69; the file was not
+changed. Candidate is ready for final independent review and the authorised
+publication, then exact-head CI. Existing `finish/checkout-entitlements` deployment suppression is
+unchanged. No Production or provider changes.

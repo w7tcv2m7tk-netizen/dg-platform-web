@@ -15,14 +15,20 @@ contains App Router Server Actions, so the condition is present.
 
 `next` is updated to 16.4.1. Its lockfile dependency closure is updated to the
 matching `@next/env` and SWC packages, required `@swc/helpers`, Next's PostCSS
-dependency, and optional image packages. `sharp` is 0.35.5. React, React DOM,
-other direct dependency versions, and unrelated lockfile packages remain pinned.
+dependency, and optional image packages. `sharp` is 0.35.5. React and React DOM
+are aligned at stable 19.3.1, with their type packages at 19.3.0 and the required
+React DOM scheduler at 0.28.0. Next 16.4.1 accepts React 19.3.1 in its peer ranges.
+Other direct dependency versions remain unchanged.
 
 Next 16.4.1 no longer types or accepts `experimental.viewTransition`. The prior
 build warned that this option was unrecognized and ignored. The obsolete config
 entry was removed; the existing React `ViewTransition` component and CSS are
 unchanged. This removes a config warning/type error without disabling a
 recognized Next.js setting.
+
+React 19.3 supplies the stable `ViewTransition` export used by the unchanged
+authenticated `AppShellLayout`; React 19.2.4 did not export it. The React update
+is therefore part of the compatibility correction, not an optional upgrade.
 
 ## Five recorded image-decoder advisories
 
@@ -47,6 +53,22 @@ sharp versions. Vercel's platform statement is documented at
 - `npm run test:checkout-release`: 389 passed, 0 failed.
 - `npx tsc --noEmit`: passed after the Next config correction.
 - `npm run build --ignore-scripts`: passed using the repository's declared production build script (`next build --webpack`); compilation and TypeScript passed and all 457 static pages were generated. `--ignore-scripts` skipped the unrelated package lifecycle `prebuild` suite; the build script's own 3 boundary/artifact tests passed.
+- After React alignment: isolated `npm ci`, Prisma generation, TypeScript,
+  389/389 checkout-release tests, `next.config.ts` lint and the complete
+  `npm run build` including prebuild passed; all 457 pages were generated.
+  Targeted AppShell lint reports the pre-existing `set-state-in-effect` error at
+  line 69; AppShell source is unchanged.
+- Authenticated runtime acceptance, 26 October: the established synthetic launcher
+  used an existing Clerk Development pair and an owned disposable localhost
+  PostgreSQL cluster. The retained synthetic test user received a local owner
+  membership and explicit test-only exemption. The real server-authorised
+  AppShell rendered `/dashboard`; link navigation completed through
+  `/dashboard/business`, `/dashboard/brain`, `/apps/crm/contacts` and back to
+  `/dashboard`. A hard reload of CRM hydrated and navigation continued.
+  Browser error logs contained zero errors, zero hydration errors and zero React
+  runtime/ViewTransition errors. Shell attention/notification APIs returned 200.
+  This tests shell compatibility, not live paid access or customer checkout.
+  Source credential files were read-only; no secret values were recorded.
 - `git diff --check`: passed.
 - `npm audit --omit=dev`: 13 production-tree findings remain (3 moderate, 9 high, 1 critical). The audit listed no `next` or `sharp` finding after this update. It still exits nonzero for the remaining existing advisories; no unrelated dependency upgrades were made. A fresh audit request first encountered sandbox DNS failure; the successful read was run through the approved registry access path.
 
@@ -57,8 +79,8 @@ Stripe, entitlement or database behavior code was changed.
 
 ## Release status and operational limits
 
-The dependency correction is local and has not been published. The new candidate
-must receive exact-head CI and independent review. Current deployment identity is
+The dependency correction is scoped to the existing draft PR #1025. The resulting
+candidate must receive exact-head CI and independent review. Current deployment identity is
 confirmed below; this evidence does not establish the effective function duration,
 termination of old webhook invocations, acceptable snapshot recovery point,
 current live Stripe catalogue/event configuration, or completion of the signed
