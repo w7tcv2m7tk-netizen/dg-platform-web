@@ -4,6 +4,7 @@ import { appIdsFromPlanSelection, getDefaultEnabledAppIds, type PlanSelectionInp
 import { buildAccessContext } from "@dg/platform-core/access/evaluate";
 import { filterNavigationByAccess } from "@dg/platform-core/access/nav-filter";
 import { getCategorizedPlatformNavigation, getPartnerWorkspaceShellLinks } from "@dg/platform-core/apps/navigation";
+import { paidAppIdsFromKeys, paidAppKeyForAppId } from "@dg/platform-core/billing/paid-apps";
 import type { PartnerType } from "@dg/platform-core/partners/types";
 import { useRouter } from "next/navigation";
 import {
@@ -53,6 +54,9 @@ async function persistOrgApps(body: Record<string, unknown>) {
 export function EnabledAppsProvider({
   initialEnabledIds,
   industrySelectionIds = [],
+  industryEntitlementIds = [],
+  premiumEntitlementKeys = [],
+  financeAccessEnabled = false,
   showCommandCentre = false,
   isPlatformOperator = false,
   showPartnerPortal = false,
@@ -65,6 +69,10 @@ export function EnabledAppsProvider({
 }: {
   initialEnabledIds: string[];
   industrySelectionIds?: string[];
+  industryEntitlementIds?: string[];
+  premiumEntitlementKeys?: string[];
+  /** Finance is omitted from customer navigation unless both beta and paid-app access are present. */
+  financeAccessEnabled?: boolean;
   showCommandCentre?: boolean;
   isPlatformOperator?: boolean;
   showPartnerPortal?: boolean;
@@ -168,12 +176,17 @@ export function EnabledAppsProvider({
   }, [enabledIds, router, setEnabledIds]);
 
   const nav = useMemo(() => {
+    const entitledPaidAppIds = new Set(paidAppIdsFromKeys(premiumEntitlementKeys));
+    const paidAppIds = ["advertising", "marketing", "prospecting", "ai-visibility", "seo", "automation", "analytics", "social", "ai-communications"];
+    const hiddenPaidApps = paidAppIds.filter((id) => paidAppKeyForAppId(id) && !entitledPaidAppIds.has(id));
     const base = getCategorizedPlatformNavigation(enabledIds, {
       showCommandCentre,
       showPartnerPortal,
       showResellerAdmin,
       partnerType,
       industrySelectionIds,
+      industryEntitlementIds,
+      hiddenAppIds: [...hiddenPaidApps, ...(financeAccessEnabled ? [] : ["finance"])],
     });
     const ctx = buildAccessContext({
       role: membershipRole,
@@ -186,6 +199,9 @@ export function EnabledAppsProvider({
   }, [
     enabledIds,
     industrySelectionIds,
+    industryEntitlementIds,
+    premiumEntitlementKeys,
+    financeAccessEnabled,
     showCommandCentre,
     showPartnerPortal,
     showResellerAdmin,
@@ -194,6 +210,7 @@ export function EnabledAppsProvider({
     organisationId,
     isPlatformOperator,
     permissionGrants,
+    premiumEntitlementKeys,
   ]);
 
   const value = useMemo(

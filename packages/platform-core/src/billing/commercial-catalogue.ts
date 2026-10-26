@@ -1,10 +1,10 @@
 export type CommercialPlatformTier = "starter" | "professional" | "business";
 export type CommercialSupportPlan = "standard" | "priority" | "success_partner" | "enterprise_success";
 
-export const PLATFORM_COMMERCIAL_PLANS: Array<{ id: CommercialPlatformTier; name: string; monthlyCents: number; blurb: string }> = [
-  { id: "starter", name: "Starter", monthlyCents: 9900, blurb: "Platform Core essentials for one operator." },
-  { id: "professional", name: "Growth", monthlyCents: 24900, blurb: "Full Business Operating Platform for growing teams." },
-  { id: "business", name: "Scale", monthlyCents: 49900, blurb: "Scale operations with higher capacity and priority support." },
+export const PLATFORM_COMMERCIAL_PLANS: Array<{ id: CommercialPlatformTier; name: string; monthlyCents: number; maxUsers: number; maxActiveBusinesses: number; blurb: string }> = [
+  { id: "starter", name: "Starter", monthlyCents: 9900, maxUsers: 1, maxActiveBusinesses: 1, blurb: "Platform Core essentials for one operator." },
+  { id: "professional", name: "Growth", monthlyCents: 24900, maxUsers: 5, maxActiveBusinesses: 1, blurb: "Full Business Operating Platform for growing teams." },
+  { id: "business", name: "Scale", monthlyCents: 49900, maxUsers: 20, maxActiveBusinesses: 5, blurb: "Scale operations with higher capacity and priority support." },
 ];
 
 export const SUPPORT_COMMERCIAL_PLANS: Array<{ id: CommercialSupportPlan; name: string; monthlyCents: number | null; blurb: string; detail: string }> = [

@@ -14,10 +14,13 @@ const entitlements = read("src/lib/plans.ts");
 assert.match(entitlements, /starter/);
 assert.match(entitlements, /professional/);
 assert.match(entitlements, /business/);
-assert.match(entitlements, /professional:\s*\{\s*maxUsers:\s*5,\s*maxActiveBusinesses:\s*1\s*\}/);
-assert.match(entitlements, /business:\s*\{\s*maxUsers:\s*SCALE_MAX_USERS,\s*maxActiveBusinesses:\s*SCALE_MAX_BUSINESSES\s*\}/);
-assert.match(entitlements, /SCALE_MAX_USERS\s*=\s*20/);
-assert.match(entitlements, /SCALE_MAX_BUSINESSES\s*=\s*5/);
+// Assert public limits rather than their source-code representation.
+await import("./register-ts-resolver.mjs");
+const { PLATFORM_TIER_LIMITS, SCALE_MAX_USERS, SCALE_MAX_BUSINESSES } = await import("../src/lib/plans.ts");
+assert.deepEqual(PLATFORM_TIER_LIMITS.professional, { maxUsers: 5, maxActiveBusinesses: 1 });
+assert.deepEqual(PLATFORM_TIER_LIMITS.business, { maxUsers: 20, maxActiveBusinesses: 5 });
+assert.equal(SCALE_MAX_USERS, 20);
+assert.equal(SCALE_MAX_BUSINESSES, 5);
 
 const subscriptionStore = read("packages/platform-core/src/billing/subscription-store.ts");
 const dunning = subscriptionStore.slice(subscriptionStore.indexOf("export async function listSubscriptionsNeedingDunning"));

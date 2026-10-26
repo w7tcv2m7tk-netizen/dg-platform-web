@@ -1,5 +1,6 @@
 import { CheckoutTemporarilyUnavailable } from "@dg/platform-core/billing/checkout-creation-gate";
 import { createCustomCommercialCheckoutSession, createPlatformCheckoutSession } from "@dg/platform-core/billing/platform-checkout";
+import { CheckoutCoordinationError } from "@dg/platform-core/billing/checkout-coordinator";
 import {
   createOrganisationGoal,
   getGen2OnboardingProgress,
@@ -45,8 +46,10 @@ function resolveOrganisationId(req: Request, session: PlatformSession) {
 
 type AllowedClientProgress = Partial<Pick<Gen2OnboardingProgress, "platformTier" | "supportPlan" | "billingCadence" | "industryApps" | "industryTemplates" | "premiumApps" | "checklist" | "vipSetup">>;
 
-async function effectiveCommercialOffer(organisationId: string) {
-  // Founding 10 status never changes pricing. Only a separately accepted custom pricing offer may override the public catalogue.
+async function effectiveCommercialOffer(organisationId: string, foundingProspect: boolean) {
+  // Founding 10 uses the public catalogue. For other organisations, the core
+  // resolver requires a verifiable customer token claim, never a legacy setting.
+  if (foundingProspect) return null;
   return getOrganisationCommercialOffer(organisationId);
 }
 function cleanShortString(value: unknown, max = 160) { return typeof value === "string" ? value.trim().slice(0, max) : undefined; }
@@ -138,11 +141,15 @@ function safeClientProgress(raw: unknown): AllowedClientProgress {
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req); if (isNextResponse(session)) return session;
   const resolvedOrganisationId = resolveOrganisationId(req, session); if (isNextResponse(resolvedOrganisationId)) return resolvedOrganisationId;
-  const [progress, profile, goals, commercialOffer, billing] = await Promise.all([
+  const [progress, profile, goals, billing] = await Promise.all([
     getGen2OnboardingProgress(resolvedOrganisationId), getOrganisationBusinessProfile(resolvedOrganisationId),
-    getOrganisationGoals(resolvedOrganisationId).catch(() => []), effectiveCommercialOffer(resolvedOrganisationId),
+    getOrganisationGoals(resolvedOrganisationId).catch(() => []),
     getOrganisationBillingStatus(resolvedOrganisationId),
   ]);
+  const commercialOffer = await effectiveCommercialOffer(
+    resolvedOrganisationId,
+    Boolean(progress.founding || billing?.foundingCustomer),
+  );
   const palette = savedBrandPalette(profile?.brandColours);
   const effectiveProgress = palette ? {
     ...progress,
@@ -183,7 +190,14 @@ export async function PATCH(req: Request) {
       await createOrganisationGoal(resolvedOrganisationId, { title: trimmed, metric: hint.metric, target: hint.target, horizon: "quarter", status: "active" }).catch(() => null); existingTitles.add(trimmed.toLowerCase());
     }
   }
-  const [offer, existingProgress] = await Promise.all([effectiveCommercialOffer(resolvedOrganisationId), getGen2OnboardingProgress(resolvedOrganisationId)]);
+  const [existingProgress, billing] = await Promise.all([
+    getGen2OnboardingProgress(resolvedOrganisationId),
+    getOrganisationBillingStatus(resolvedOrganisationId),
+  ]);
+  const offer = await effectiveCommercialOffer(
+    resolvedOrganisationId,
+    Boolean(existingProgress.founding || billing?.foundingCustomer),
+  );
   const clientProgress = safeClientProgress(body.progress); const requestedVipSetup = clientProgress.vipSetup;
   if (requestedVipSetup?.completedAt) {
     const profile = await getOrganisationBusinessProfile(resolvedOrganisationId); const industryTemplates = clientProgress.industryTemplates ?? existingProgress.industryTemplates ?? []; const missing: string[] = [];
@@ -216,13 +230,17 @@ export async function POST(req: Request) {
   } else {
     const denied = requirePermission(session, { module: "billing", action: "manage", scope: "organisation" }); if (denied) return denied;
   }
-  const [progress, offer, billing] = await Promise.all([
-    getGen2OnboardingProgress(resolvedOrganisationId), effectiveCommercialOffer(resolvedOrganisationId), getOrganisationBillingStatus(resolvedOrganisationId),
+  const [progress, billing] = await Promise.all([
+    getGen2OnboardingProgress(resolvedOrganisationId), getOrganisationBillingStatus(resolvedOrganisationId),
   ]);
+  const effectiveOffer = await effectiveCommercialOffer(
+    resolvedOrganisationId,
+    Boolean(progress.founding || billing?.foundingCustomer),
+  );
   const body = await req.json().catch(() => ({}));
-  const platformTier = offer?.platformTier ?? (body.platformTier as string | undefined) ?? progress.platformTier ?? "professional";
-  const billingCadence = offer?.cadence ?? (body.billingCadence === "annual" || progress.billingCadence === "annual" ? ("annual" as const) : ("monthly" as const));
-  const industryApps = offer?.industryApps ?? body.industryApps ?? progress.industryApps; const premiumApps = offer?.premiumApps ?? body.premiumApps ?? progress.premiumApps; const requestedSupportPlan = typeof body.supportPlan === "string" ? body.supportPlan : undefined; const supportPlan = offer?.supportPlan ?? requestedSupportPlan ?? progress.supportPlan ?? "standard";
+  const platformTier = effectiveOffer?.platformTier ?? (body.platformTier as string | undefined) ?? progress.platformTier ?? "professional";
+  const billingCadence = effectiveOffer?.cadence ?? (body.billingCadence === "annual" || progress.billingCadence === "annual" ? ("annual" as const) : ("monthly" as const));
+  const industryApps = effectiveOffer?.industryApps ?? body.industryApps ?? progress.industryApps; const premiumApps = effectiveOffer?.premiumApps ?? body.premiumApps ?? progress.premiumApps; const requestedSupportPlan = typeof body.supportPlan === "string" ? body.supportPlan : undefined; const supportPlan = effectiveOffer?.supportPlan ?? requestedSupportPlan ?? progress.supportPlan ?? "standard";
   if (billing?.kind === "platform_exempt") {
     await saveGen2OnboardingProgress(resolvedOrganisationId, {
       platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan,
@@ -233,7 +251,7 @@ export async function POST(req: Request) {
     const targetProfile = operatorPreview ? await getOrganisationBusinessProfile(resolvedOrganisationId) : null;
     const checkoutEmail = operatorPreview ? (targetProfile?.businessEmail || targetProfile?.contactEmail || session.email) : session.email;
     const checkoutBusinessName = operatorPreview ? (targetProfile?.businessName || targetProfile?.tradingName || "Customer") : session.organisationName;
-    const checkout = offer ? await createCustomCommercialCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, businessName: checkoutBusinessName, offer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
+    const checkout = effectiveOffer ? await createCustomCommercialCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, businessName: checkoutBusinessName, offer: effectiveOffer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
       : await createPlatformCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, platformTier, industryApps, premiumApps, supportPlan, businessName: checkoutBusinessName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
     if (!operatorPreview) await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
     return NextResponse.json({ data: checkout });
@@ -244,12 +262,15 @@ export async function POST(req: Request) {
         { status: 503, headers: { ...(error.outcome === "unknown" ? {} : { "Retry-After": "60" }), "Cache-Control": "no-store" } },
       );
     }
+    if (error instanceof CheckoutCoordinationError) {
+      return NextResponse.json({ error: { code: error.code, message: error.message } }, { status: 409 });
+    }
     const message = error instanceof Error ? error.message : "Unknown checkout error";
     console.error("[onboarding.checkout] Stripe checkout failed", {
       organisationId: resolvedOrganisationId,
       platformTier,
       billingCadence,
-      hasCommercialOffer: Boolean(offer),
+      hasCommercialOffer: Boolean(effectiveOffer),
       message,
     });
     return NextResponse.json(

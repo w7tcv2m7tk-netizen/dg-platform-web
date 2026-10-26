@@ -2,6 +2,7 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 
 const onboarding = fs.readFileSync("src/app/api/v1/onboarding/gen2/route.ts", "utf8");
+const commercialOffer = fs.readFileSync("packages/platform-core/src/billing/commercial-offer.ts", "utf8");
 const foundingAgreement = fs.readFileSync("src/app/api/v1/founding/agreement/route.ts", "utf8");
 const foundingPage = fs.readFileSync("src/app/(shell)/founding/agreement/page.tsx", "utf8");
 const foundingOfferApi = fs.readFileSync("src/app/api/v1/founding/commercial-offer/route.ts", "utf8");
@@ -11,8 +12,17 @@ const customOfferPage = fs.readFileSync("src/app/custom-offer/[token]/page.tsx",
 const types = fs.readFileSync("packages/platform-core/src/founding/types.ts", "utf8");
 const terms = fs.readFileSync("marketing/pages/founding-customer-terms.html", "utf8");
 
-assert.match(onboarding, /return getOrganisationCommercialOffer\(organisationId\)/, "onboarding pricing must resolve from separately accepted organisation custom offer");
+assert.match(onboarding, /return getOrganisationCommercialOffer\(organisationId\)/, "onboarding pricing must resolve separately accepted custom offers");
+assert.match(onboarding, /Boolean\(existingProgress\.founding \|\| billing\?\.foundingCustomer\)/, "PATCH must keep Founding 10 on standard pricing");
+assert.match(onboarding, /Boolean\(progress\.founding \|\| billing\?\.foundingCustomer\)/, "GET and checkout must keep Founding 10 on standard pricing");
+assert.match(onboarding, /stripeCheckoutSessionId: checkout\.sessionId/, "starting Checkout records a session without activating subscription state");
 assert.doesNotMatch(onboarding, /commercialOfferSnapshot \?\?/, "Founding snapshot must not override onboarding pricing");
+assert.match(commercialOffer, /commercialOfferFromAcceptedOpportunity/);
+assert.match(commercialOffer, /custom_offer_claimed_by_org_id/);
+assert.match(commercialOffer, /custom_offer_claimed_at/);
+assert.match(commercialOffer, /custom_offer_token/);
+assert.match(commercialOffer, /Legacy organisation settings are retained for audit only/);
+assert.match(commercialOffer, /Founding 10 prospects use standard published pricing/);
 assert.doesNotMatch(foundingAgreement, /applyFoundingCommercialOfferToCustomer|getOrganisationCommercialOffer|commercialOfferSnapshot/, "Founding agreement must not apply pricing");
 assert.doesNotMatch(foundingPage, /applyFoundingCommercialOfferToCustomer|getOrganisationCommercialOffer|commercialOffer=/, "Founding page must not attach pricing");
 assert.match(foundingOfferApi, /retired_endpoint/, "legacy Founding pricing endpoint must be retired");

@@ -6,8 +6,8 @@ import {
   getIndustry,
   isTemplateActivatable,
   listIndustries,
-  type ResolvedIndustryEntitlement,
-} from "@dg/platform-core";
+} from "@dg/platform-core/industry/catalogue";
+import type { ResolvedIndustryEntitlement } from "@dg/platform-core/industry/entitlements";
 
 import { INDUSTRY_PLATFORM_CATALOG } from "@/lib/pricing-catalog";
 

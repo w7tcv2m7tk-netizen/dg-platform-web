@@ -1,6 +1,6 @@
 "use client";
 
-import { CUSTOMER_COMMISSION_BPS, REFER_AND_EARN_HREF } from "@dg/platform-core";
+import { CUSTOMER_COMMISSION_BPS, REFER_AND_EARN_HREF } from "@dg/platform-core/referrals/constants";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 

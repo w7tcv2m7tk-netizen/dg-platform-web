@@ -4,7 +4,7 @@ export const financeApp: AppManifest = {
   id: "finance",
   name: "Finance",
   description:
-    "Finance broking — mortgage and loan pipeline on Core CRM (accounting remains label-only until a live accounting connector is enabled)",
+    "Finance early access — CRM-linked borrowers and manually tracked mortgage applications; lender submission, credit assessment and automated compliance are not available",
   tier: "business",
   version: "0.3.0",
   icon: "◫",

@@ -32,7 +32,7 @@ export async function POST(req: Request) {
   }
   const organisationId = auth.session.organisationId;
 
-  const entitlementBlock = await specialistIndustryEntitlementBlock(organisationId, "property");
+  const entitlementBlock = await specialistIndustryEntitlementBlock(organisationId, "real-estate");
   if (entitlementBlock) return entitlementBlock;
 
   const body = await req.json().catch(() => null);

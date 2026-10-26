@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { DELIVERY_PARTNER_INVITE_POINTS } from "@dg/platform-core";
+import { DELIVERY_PARTNER_INVITE_POINTS } from "@dg/platform-core/partners/invite-copy";
 
 export function PublicDeliveryPartnerInviteAccept({
   token,

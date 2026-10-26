@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { getIndustry, INDUSTRY_TAXONOMY, type Gen2OnboardingProgress } from "@dg/platform-core";
+import { getIndustry } from "@dg/platform-core/industry/catalogue";
+import { INDUSTRY_TAXONOMY } from "@dg/platform-core/apps/industry-taxonomy";
+import type { Gen2OnboardingProgress } from "@dg/platform-core/onboarding/gen2-journey";
 
 export function VipIndustryProfileSetup({
   initial,

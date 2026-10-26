@@ -11,6 +11,8 @@ export type PlatformSubscriptionRow = {
   status: PlatformCommercialStatus;
   entitlement: PlatformEntitlementLevel;
   planTier: string | null;
+  industryApps: string[];
+  premiumApps: string[];
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   stripeStatus: string | null;
@@ -39,6 +41,8 @@ function mapRow(row: {
   status: string;
   entitlement: string;
   planTier: string | null;
+  industryApps: string[];
+  premiumApps: string[];
   stripeCustomerId: string | null;
   stripeSubscriptionId: string | null;
   stripeStatus: string | null;
@@ -69,10 +73,11 @@ function mapRow(row: {
 
 export async function getPlatformSubscription(
   organisationId: string,
+  database?: Prisma.TransactionClient,
 ): Promise<PlatformSubscriptionRow | null> {
   if (!process.env.DATABASE_URL) return null;
   try {
-    const { prisma } = await import("@dg/database");
+    const prisma = database ?? (await import("@dg/database")).prisma;
     const row = await prisma.platformSubscription.findUnique({
       where: { organisationId },
     });
@@ -133,6 +138,10 @@ export type UpsertPlatformSubscriptionInput = {
   status: PlatformCommercialStatus;
   entitlement: PlatformEntitlementLevel;
   planTier?: string | null;
+  /** Set only from a verified Stripe subscription projection. */
+  industryApps?: string[];
+  /** Set only from a verified Stripe subscription projection. */
+  premiumApps?: string[];
   stripeCustomerId?: string | null;
   stripeSubscriptionId?: string | null;
   stripeStatus?: string | null;
@@ -155,12 +164,15 @@ export type UpsertPlatformSubscriptionInput = {
 
 export async function upsertPlatformSubscription(
   input: UpsertPlatformSubscriptionInput,
+  database?: Prisma.TransactionClient,
 ): Promise<PlatformSubscriptionRow> {
-  const { prisma } = await import("@dg/database");
+  const prisma = database ?? (await import("@dg/database")).prisma;
   const data = {
     status: input.status,
     entitlement: input.entitlement,
     planTier: input.planTier ?? undefined,
+    industryApps: input.industryApps,
+    premiumApps: input.premiumApps,
     stripeCustomerId: input.stripeCustomerId ?? undefined,
     stripeSubscriptionId: input.stripeSubscriptionId ?? undefined,
     stripeStatus: input.stripeStatus ?? undefined,
@@ -195,6 +207,8 @@ export async function upsertPlatformSubscription(
       status: input.status,
       entitlement: input.entitlement,
       planTier: input.planTier ?? null,
+      industryApps: input.industryApps ?? [],
+      premiumApps: input.premiumApps ?? [],
       stripeCustomerId: input.stripeCustomerId ?? null,
       stripeSubscriptionId: input.stripeSubscriptionId ?? null,
       stripeStatus: input.stripeStatus ?? null,
@@ -229,8 +243,8 @@ export async function appendSubscriptionEvent(input: {
   source?: "stripe" | "system" | "staff";
   stripeEventId?: string | null;
   payload?: Prisma.InputJsonValue;
-}): Promise<{ created: boolean; id?: string }> {
-  const { prisma } = await import("@dg/database");
+}, database?: Prisma.TransactionClient): Promise<{ created: boolean; id?: string }> {
+  const prisma = database ?? (await import("@dg/database")).prisma;
 
   if (input.stripeEventId) {
     const existing = await prisma.platformSubscriptionEvent.findUnique({

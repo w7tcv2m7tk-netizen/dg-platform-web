@@ -13,7 +13,7 @@ const status = fs.readFileSync(
   "utf8",
 );
 
-const syncCall = checkout.indexOf("await syncPlatformSubscriptionFromCheckout({");
+const syncCall = checkout.indexOf("const projectedSubscription = await syncPlatformSubscriptionFromCheckout({");
 const orgUpdate = checkout.indexOf("await prisma.organisation.update({");
 assert.ok(syncCall >= 0, "checkout must sync PlatformSubscription");
 assert.ok(orgUpdate >= 0, "checkout must persist the derived organisation projection");
@@ -30,6 +30,11 @@ assert.doesNotMatch(
   syncWindow,
   /try\s*\{/,
   "authoritative subscription sync must not be swallowed by a try/catch",
+);
+assert.match(
+  checkout.slice(syncCall, orgUpdate),
+  /const exempt = projectedSubscription\.platformExempt/,
+  "derived checkout status must use the canonical exemption returned by subscription projection",
 );
 assert.doesNotMatch(
   checkout,
@@ -54,7 +59,7 @@ assert.match(
 );
 assert.match(
   status,
-  /const platformExempt = platformSub\s*\? platformSub\.platformExempt === true\s*:\s*!expectsPlatformBilling \|\| billing\.platformExempt === true/,
+  /const platformExempt = platformSub\s*\? platformSub\.platformExempt === true\s*:\s*billing\.platformExempt === true/,
   "PlatformSubscription exemption must be authoritative once a canonical row exists",
 );
 assert.match(

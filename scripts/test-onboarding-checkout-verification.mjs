@@ -24,6 +24,10 @@ const progress = fs.readFileSync(
   path.join(root, "packages/platform-core/src/onboarding/gen2-progress.ts"),
   "utf8",
 );
+const portalProfile = fs.readFileSync(
+  path.join(root, "packages/platform-core/src/org/portal-profile.ts"),
+  "utf8",
+);
 
 assert.match(
   route,
@@ -99,6 +103,16 @@ assert.equal(
   false,
   "website connection checklist proof must not be fabricated by the browser",
 );
+const setupProjection = portalProfile.slice(
+  portalProfile.indexOf("export function computePortalSetup"),
+  portalProfile.indexOf("/**\n * Gen 2 portal identity"),
+);
+assert.match(setupProjection, /const exempt =\s*subscription\s*\? subscription\.platformExempt === true\s*: billing\.platformExempt === true/);
+assert.match(setupProjection, /const verifiedSubscription = Boolean\([\s\S]*subscription\.status\.toUpperCase\(\)[\s\S]*subscription\.entitlement\.toUpperCase\(\)/);
+assert.match(setupProjection, /const billingVerified =\s*subscription\s*\? exempt \|\| verifiedSubscription\s*: exempt/);
+assert.doesNotMatch(setupProjection, /billing\.subscriptionStatus|founding|billingCustomerId/);
+assert.match(portalProfile, /prisma\.platformSubscription\.findUnique\([\s\S]*select: \{ status: true, entitlement: true, platformExempt: true \}/);
+assert.match(portalProfile, /computePortalSetup\(\{[\s\S]*subscription,/);
 assert.match(
   route,
   /markStepComplete === "stripe"[\s\S]*subscriptionActivatedAt: new Date\(\)\.toISOString\(\)/,

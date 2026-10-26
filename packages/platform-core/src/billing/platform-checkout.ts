@@ -1,16 +1,16 @@
 import "server-only";
 import Stripe from "stripe";
-import { admitPlatformCheckout } from "./checkout-creation-gate";
-import { createAdmittedPlatformSession } from "./checkout-session-create";
+import { coordinatePlatformCheckout } from "./checkout-coordinator";
 import { parseCustomCommercialOffer, type CustomCommercialOffer } from "./commercial-offer";
 import { annualPriceFromMonthlyCents, BILLING_COMMERCIAL_CONFIG } from "./subscription-types";
-import { industryCheckoutLines } from "../industry/platform";
+import { industryCheckoutLines, industryIdForAppOrTemplate } from "../industry/platform";
 import { PLATFORM_COMMERCIAL_PLANS, SUPPORT_COMMERCIAL_PLANS } from "./commercial-catalogue";
 import { normalisePaidAppKeys, paidAppCheckoutLines, GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS } from "./paid-apps";
 
 const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
   PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
 );
+
 export type PlatformBillingCadence = "monthly" | "annual";
 
 const TIER_LABELS: Record<string, string> = {
@@ -29,6 +29,31 @@ function stripePriceIdForTier(tier: string): string | null {
   };
   const id = envMap[tier]?.trim();
   return id || null;
+}
+
+async function validatedStripePriceId(
+  stripe: Stripe,
+  tier: string,
+  expectedAmountCents: number,
+): Promise<string | null> {
+  const id = stripePriceIdForTier(tier);
+  if (!id) return null;
+  let price: Stripe.Price;
+  try {
+    price = await stripe.prices.retrieve(id);
+  } catch {
+    throw new Error("Configured Stripe price could not be verified against the published plan catalogue.");
+  }
+  if (
+    price.active !== true ||
+    price.currency.toLowerCase() !== "aud" ||
+    price.unit_amount !== expectedAmountCents ||
+    price.recurring?.interval !== "month" ||
+    (price.recurring.interval_count ?? 1) !== 1
+  ) {
+    throw new Error(`Configured Stripe price does not match the published ${tier} monthly AUD catalogue price.`);
+  }
+  return id;
 }
 
 function getStripeClient() {
@@ -80,6 +105,9 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
   const industryApps = Array.isArray(input.industryApps)
     ? input.industryApps.filter((id): id is string => typeof id === "string" && Boolean(id.trim()))
     : [];
+  if (industryApps.some((id) => !industryIdForAppOrTemplate(id))) {
+    throw new Error("Checkout contains an unknown Industry App selection");
+  }
   const premiumApps = normalisePaidAppKeys(input.premiumApps);
 
   const { prisma } = await import("@dg/database");
@@ -88,7 +116,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     select: { billingCustomerId: true, settings: true },
   });
 
-  const priceId = annual ? null : stripePriceIdForTier(tier);
+  const priceId = annual ? null : await validatedStripePriceId(stripe, tier, monthlyAmount);
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priceId
     ? [{ quantity: 1, price: priceId }]
     : [
@@ -227,7 +255,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
       if (!customer.deleted) sessionParams.customer = customer.id;
       else sessionParams.customer_email = input.email;
     } catch {
-      sessionParams.customer_email = input.email;
+      throw new Error("The existing billing customer could not be verified. Please try again shortly.");
     }
   } else {
     sessionParams.customer_email = input.email;
@@ -243,8 +271,12 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
         programme?: string;
       };
     } | null)?.billing) ?? {};
-  const exempt =
-    existingSub?.platformExempt === true || settingsBilling.platformExempt === true;
+  // Once a canonical subscription exists, its exemption bit is authoritative.
+  // Organisation settings are only a bootstrap fallback for organisations that
+  // do not yet have a PlatformSubscription row.
+  const exempt = existingSub
+    ? existingSub.platformExempt
+    : settingsBilling.platformExempt === true;
 
   if (!exempt) {
     sessionParams.subscription_data = {
@@ -253,13 +285,7 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     };
   }
 
-  // Admission commits before provider I/O. The immutable absolute expiry bounds
-  // delayed/unknown creates after closure; never retry with a refreshed expiry.
-  const admission = await admitPlatformCheckout();
-  sessionParams.expires_at = admission.expiresAt;
-  const session = await createAdmittedPlatformSession(stripe, sessionParams);
-
-  return { url: session.url, sessionId: session.id };
+  return coordinatePlatformCheckout({ organisationId: input.organisationId, stripe, parameters: sessionParams });
 }
 
 export async function createCustomCommercialCheckoutSession(input: {
@@ -270,17 +296,22 @@ export async function createCustomCommercialCheckoutSession(input: {
   successPath?: string;
   cancelPath?: string;
 }) {
-  const offer = parseCustomCommercialOffer(input.offer);
-  if (!offer) throw new Error("Invalid custom commercial offer");
+  const requestedOffer = parseCustomCommercialOffer(input.offer);
+  if (!requestedOffer) throw new Error("Invalid custom commercial offer");
   const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
   if (!secretKey) throw new Error("Stripe billing is not available");
   const stripe = new Stripe(secretKey);
   const { prisma } = await import("@dg/database");
+  const { getAcceptedCommercialOfferForCheckout } = await import("./commercial-offer");
   const org = await prisma.organisation.findUnique({
     where: { id: input.organisationId },
     select: { billingCustomerId: true },
   });
   if (!org) throw new Error("Organisation not found");
+  const offer = await getAcceptedCommercialOfferForCheckout(input.organisationId, requestedOffer.id);
+  if (!offer || JSON.stringify(offer) !== JSON.stringify(requestedOffer)) {
+    throw new Error("Custom checkout requires the exact current offer accepted by this organisation");
+  }
 
   const base = appBaseUrl();
   const successPath = input.successPath ?? "/dashboard/apps?sync=1&checkout=success";
@@ -296,8 +327,13 @@ export async function createCustomCommercialCheckoutSession(input: {
     dg_support_plan: offer.supportPlan ?? "standard",
     dg_commercial_offer_id: offer.id,
     dg_commercial_offer_label: offer.label,
+    dg_commercial_offer_version: String(offer.version),
+    dg_offer_currency: offer.currency,
     dg_subscription_amount_cents: String(offer.amountCents),
     dg_one_off_amount_cents: String(offer.oneOffAmountCents ?? 0),
+    dg_one_off_label: offer.oneOffAmountCents ? (offer.oneOffLabel ?? "Implementation & setup") : "",
+    dg_trial_days: String(offer.trialDays),
+    dg_seats: String(offer.seats ?? ""),
     organisation_id: input.organisationId,
   };
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
@@ -358,18 +394,14 @@ export async function createCustomCommercialCheckoutSession(input: {
       if (!customer.deleted) sessionParams.customer = customer.id;
       else sessionParams.customer_email = input.email;
     } catch {
-      sessionParams.customer_email = input.email;
+      throw new Error("The existing billing customer could not be verified. Please try again shortly.");
     }
   } else {
     sessionParams.customer_email = input.email;
   }
 
-  // Admission commits before provider I/O. The immutable absolute expiry bounds
-  // delayed/unknown creates after closure; never retry with a refreshed expiry.
-  const admission = await admitPlatformCheckout();
-  sessionParams.expires_at = admission.expiresAt;
-  const session = await createAdmittedPlatformSession(stripe, sessionParams);
-  return { url: session.url, sessionId: session.id, offer };
+  const checkout = await coordinatePlatformCheckout({ organisationId: input.organisationId, stripe, parameters: sessionParams });
+  return { ...checkout, offer };
 }
 
 

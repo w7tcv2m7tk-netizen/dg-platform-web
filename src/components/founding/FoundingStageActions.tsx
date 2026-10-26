@@ -5,14 +5,12 @@ import { useState } from "react";
 import {
   FOUNDING_ENTRY_TYPE_LABELS,
   FOUNDING_SOURCE_LABELS,
-  FOUNDING_STAGE_LABELS,
-  foundingPersonalInviteUrl,
-  foundingSetupUrl,
-  normaliseFoundingStage,
   type FoundingEntryType,
   type FoundingInvitationStatus,
   type FoundingSource,
-} from "@dg/platform-core";
+} from "@dg/platform-core/founding/types";
+import { FOUNDING_STAGE_LABELS, normaliseFoundingStage } from "@dg/platform-core/founding/pipeline";
+import { foundingPersonalInviteUrl, foundingSetupUrl } from "@dg/platform-core/founding/urls";
 
 export function FoundingStageActions({
   opportunityId,

@@ -1,3 +1,4 @@
+import { withProjectionTransaction, type ProjectionRead } from "./projection-transaction";
 import type { Prisma } from "@dg/database";
 import Stripe from "stripe";
 
@@ -10,12 +11,14 @@ import {
   normalisePaidAppKeys,
   type PaidAppKey,
 } from "./paid-apps";
+import { stripeItemsMatchPurchasedSelections } from "./purchased-line-items";
+import { customOfferPurchaseMatches } from "./custom-offer-line-items";
 
 const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
   PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
 );
 
-export type PlatformBillingCadence = "monthly" | "annual";
+export type { PlatformBillingCadence, PlatformCheckoutInput } from "./platform-checkout";
 
 const TIER_LABELS: Record<string, string> = {
   starter: "DigitalGate Starter",
@@ -82,8 +85,8 @@ type InputJsonValue = Prisma.InputJsonValue;
 async function resolveOrganisationForCheckout(input: {
   organisationId?: string | null;
   email?: string | null;
-}) {
-  const { prisma } = await import("@dg/database");
+}, database?: Prisma.TransactionClient) {
+  const prisma = database ?? (await import("@dg/database")).prisma;
   const orgId = input.organisationId?.trim() || null;
 
   if (orgId) {
@@ -105,16 +108,11 @@ async function resolveOrganisationForCheckout(input: {
 }
 
 async function paidAppsFromAuthoritativeSubscription(input: {
-  stripe: Stripe;
-  subscriptionId: string | null;
+  subscription: Stripe.Subscription;
   sessionPremiumApps: PaidAppKey[];
 }): Promise<PaidAppKey[]> {
   if (input.sessionPremiumApps.length === 0) return [];
-  if (!input.subscriptionId) {
-    throw new Error("Paid app provisioning requires a Stripe subscription");
-  }
-
-  const subscription = await input.stripe.subscriptions.retrieve(input.subscriptionId);
+  const subscription = input.subscription;
   const subscriptionPremiumApps = normalisePaidAppKeys(
     metadataList(subscription.metadata?.dg_premium_apps),
   );
@@ -128,6 +126,21 @@ async function paidAppsFromAuthoritativeSubscription(input: {
 }
 
 export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Session) {
+  const organisationId = session.metadata?.organisation_id;
+  if (!organisationId) throw new Error("Platform checkout organisation ownership is unconfirmed");
+  const result = await withProjectionTransaction(organisationId, (database, read) => provisionLockedCheckout(session, database, read));
+  if (!("resolvedVia" in result) || !result.organisationId) return result;
+  let referralReward: unknown = null;
+  try {
+    const { markReferralPaidAndAccrue } = await import("../referrals");
+    const platformTier = session.metadata?.dg_platform_tier ?? "professional";
+    referralReward = await markReferralPaidAndAccrue({ referredOrganisationId: result.organisationId,
+      platformTier, stripeSessionId: session.id, subscriptionAmountCents: TIER_AMOUNTS_CENTS[platformTier] });
+  } catch (err) { console.warn("[billing] referral reward accrual failed", err); }
+  return { ...result, referralReward };
+}
+
+async function provisionLockedCheckout(session: Stripe.Checkout.Session, database: Prisma.TransactionClient, read: ProjectionRead) {
   const metadata = session.metadata ?? {};
   if (metadata.dg_platform_checkout !== "true") {
     return { handled: false as const };
@@ -155,16 +168,122 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     typeof session.subscription === "string"
       ? session.subscription
       : session.subscription?.id ?? null;
+  if (session.mode !== "subscription" || session.status !== "complete" || !stripeSubscriptionId) {
+    throw new Error("Platform checkout requires a completed subscription session");
+  }
+  const subscription = await read(timeout => getStripeClient().subscriptions.retrieve(stripeSubscriptionId, {
+    expand: ["items.data.price.product"],
+  }, { timeout, maxNetworkRetries: 0 }));
+  if (subscription.id !== stripeSubscriptionId || stripeCustomerId(subscription.customer) !== customerId ||
+    subscription.livemode !== session.livemode || !metadata.organisation_id ||
+    subscription.metadata.organisation_id !== metadata.organisation_id || subscription.metadata.dg_platform_subscription !== "true") {
+    throw new Error("Platform checkout subscription ownership or activation is unconfirmed");
+  }
+  if (["canceled", "incomplete_expired"].includes(subscription.status)) {
+    // Delivery order is not payment evidence. A terminal provider subscription
+    // can be observed without ever provisioning this checkout. Require the exact
+    // cancellation projection and its Stripe webhook evidence before recording it.
+    const prisma = database;
+    const canonical = await prisma.platformSubscription.findUnique({ where: { organisationId: metadata.organisation_id } });
+    if (!canonical || canonical.stripeSubscriptionId !== subscription.id || canonical.stripeCustomerId !== customerId ||
+      canonical.status !== "CANCELLED" || canonical.stripeStatus !== subscription.status) {
+      throw new Error("Checkout cancellation webhook confirmation is pending");
+    }
+    const cancellations = await prisma.platformSubscriptionEvent.findMany({ where: {
+      organisationId: metadata.organisation_id, subscriptionId: canonical.id, source: "stripe",
+      type: { in: ["stripe.subscription.deleted", "stripe.subscription.updated", "stripe.subscription.created"] },
+      payload: { path: ["stripeStatus"], equals: subscription.status },
+    }, orderBy: { createdAt: "desc" }, take: 100 });
+    // Older compatibility releases recorded status without provider IDs. Their
+    // cancellation record is usable only with the exact canonical/provider
+    // identity checked above; new records must also match their recorded IDs.
+    const cancellation = cancellations.some(event => {
+      const payload = event.payload as { stripeSubscriptionId?: string; stripeCustomerId?: string } | null;
+      return (!payload?.stripeSubscriptionId || payload.stripeSubscriptionId === subscription.id) &&
+        (!payload?.stripeCustomerId || payload.stripeCustomerId === customerId);
+    });
+    if (!cancellation) throw new Error("Checkout cancellation webhook evidence is missing");
+    const { appendSubscriptionEvent } = await import("./subscription-store");
+    await appendSubscriptionEvent({ organisationId: metadata.organisation_id, subscriptionId: canonical.id,
+      type: "checkout.terminal_observed", source: "stripe", stripeEventId: `${session.id}:checkout-terminal`,
+      payload: { stripeSubscriptionId: subscription.id, stripeCustomerId: customerId, stripeStatus: subscription.status } }, database);
+    return { handled: true as const, ok: true as const, outcome: "terminal_subscription" as const, organisationId: metadata.organisation_id };
+  }
+  if (!["active", "trialing"].includes(subscription.status)) {
+    throw new Error("Platform checkout subscription activation is unconfirmed");
+  }
+  const customOfferId = metadata.dg_commercial_offer_id?.trim();
+  if (customOfferId) {
+    const { getAcceptedCommercialOfferForCheckout } = await import("./commercial-offer");
+    const acceptedOffer = await getAcceptedCommercialOfferForCheckout(metadata.organisation_id!, customOfferId);
+    if (!acceptedOffer) throw new Error("Custom offer is stale, unaccepted, or not owned by this organisation");
+    const owner = await database.organisation.findUnique({ where: { id: metadata.organisation_id }, select: { billingCustomerId: true } });
+    if (!owner || (owner.billingCustomerId && owner.billingCustomerId !== customerId)) {
+      throw new Error("Custom offer Stripe customer ownership is unconfirmed");
+    }
+    const stripe = getStripeClient();
+    const checkoutLines = await read(timeout => stripe.checkout.sessions.listLineItems(
+      session.id,
+      { limit: 100, expand: ["data.price.product"] },
+      { timeout, maxNetworkRetries: 0 },
+    ));
+    const trialStart = subscription.trial_start ?? null;
+    const trialEnd = subscription.trial_end ?? null;
+    if (!customOfferPurchaseMatches({
+      sessionMetadata: metadata,
+      subscriptionMetadata: subscription.metadata,
+      subscriptionItems: subscription.items.data,
+      checkoutLineItems: checkoutLines.data,
+      offer: acceptedOffer,
+      organisationId: metadata.organisation_id,
+      checkoutCustomerId: customerId,
+      subscriptionCustomerId: stripeCustomerId(subscription.customer) ?? "",
+      subscriptionStatus: subscription.status,
+      trialStart,
+      trialEnd,
+    })) {
+      throw new Error("Custom checkout line items, trial, or entitlements do not match the accepted offer");
+    }
+  }
+  const verifiedIndustryApps = metadataList(subscription.metadata?.dg_industry_apps);
+  const verifiedIndustryTemplates = metadataList(subscription.metadata?.dg_industry_templates);
+  const selectedIndustryIds = [...new Set([...industryApps, ...industryTemplates])].sort();
+  const verifiedIndustryIds = [...new Set([...verifiedIndustryApps, ...verifiedIndustryTemplates])].sort();
+  if (JSON.stringify(selectedIndustryIds) !== JSON.stringify(verifiedIndustryIds)) {
+    throw new Error("Stripe subscription Industry App metadata does not match the completed Checkout Session");
+  }
+  const verifiedPremiumApps = normalisePaidAppKeys(metadataList(subscription.metadata?.dg_premium_apps));
+  if (JSON.stringify([...requestedPremiumApps].sort()) !== JSON.stringify([...verifiedPremiumApps].sort())) {
+    throw new Error("Stripe subscription premium-app metadata does not match the completed Checkout Session");
+  }
+  const cadence = metadata.dg_billing_cadence === "annual" ? "annual" : "monthly";
+  if (subscription.metadata?.dg_billing_cadence !== cadence) {
+    throw new Error("Stripe subscription billing cadence does not match the completed Checkout Session");
+  }
+  if (subscription.metadata?.dg_platform_tier !== platformTier ||
+    (subscription.metadata?.dg_support_plan ?? "standard") !== (metadata.dg_support_plan ?? "standard")) {
+    throw new Error("Stripe subscription commercial metadata does not match the completed Checkout Session");
+  }
+  const configuredPlatformPriceId = platformPriceIdForTier(platformTier);
+  if (!customOfferId && !stripeItemsMatchPurchasedSelections(subscription.items.data, {
+    platformTier,
+    platformPriceId: configuredPlatformPriceId,
+    industryApps: selectedIndustryIds,
+    premiumApps: requestedPremiumApps,
+    supportPlan: metadata.dg_support_plan ?? "standard",
+    cadence,
+  })) {
+    throw new Error("Stripe subscription line items do not match the canonical DigitalGate purchase catalogue");
+  }
   const premiumApps = await paidAppsFromAuthoritativeSubscription({
-    stripe: getStripeClient(),
-    subscriptionId: stripeSubscriptionId,
+    subscription,
     sessionPremiumApps: requestedPremiumApps,
   });
 
   const resolved = await resolveOrganisationForCheckout({
     organisationId: metadata.organisation_id,
     email,
-  });
+  }, database);
 
   if (!resolved) {
     return {
@@ -176,8 +295,9 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     };
   }
 
-  const { prisma } = await import("@dg/database");
+  const prisma = database;
   const org = resolved.org;
+  if (org.id !== metadata.organisation_id) throw new Error("Platform checkout organisation ownership is unconfirmed");
   const settings = (org.settings as Record<string, unknown> | null) ?? {};
   const profile = applyBrandPresetToProfile(
     {
@@ -202,34 +322,45 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     ["founding", "founding_customer"].includes(
       String(billing.programme ?? "").toLowerCase(),
     );
-  const exempt = billing.platformExempt === true;
+  const requestedExemption = billing.platformExempt === true;
 
   // H-6: PlatformSubscription is the authoritative billing record. If this
   // write fails the webhook must fail and remain retryable; derived organisation
   // JSON must never be allowed to advertise a subscription that does not exist.
   const { syncPlatformSubscriptionFromCheckout } = await import("./billing-service");
-  await syncPlatformSubscriptionFromCheckout({
+  const projectedSubscription = await syncPlatformSubscriptionFromCheckout({
     organisationId: org.id,
     stripeCustomerId: customerId,
     stripeSubscriptionId,
     planTier: platformTier,
+    industryApps: [...new Set([...verifiedIndustryApps, ...verifiedIndustryTemplates])],
+    premiumApps: verifiedPremiumApps,
     foundingCustomer: founding,
-    platformExempt: exempt,
+    platformExempt: requestedExemption,
     stripeEventId: session.id,
-  });
+    stripeStatus: subscription.status as "active" | "trialing",
+    trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+    trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+    cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
+    currentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : null,
+    currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
+  }, database);
+  const exempt = projectedSubscription.platformExempt;
 
   // Derived projection for UI and legacy consumers. PlatformSubscription above
   // remains authoritative for commercial state and entitlement.
   await prisma.organisation.update({
     where: { id: org.id },
     data: {
-      status: founding || exempt ? "active" : "trial",
+      status: exempt || subscription.status === "active" ? "active" : "trial",
       billingCustomerId: customerId,
       settings: {
         ...settings,
         billing: {
           ...billing,
-          subscriptionStatus: founding || exempt ? "active" : "trialing",
+          platformExempt: exempt,
+          subscriptionStatus: exempt ? "active" : subscription.status,
+          cancelAtPeriodEnd: Boolean(subscription.cancel_at_period_end),
           entitlementsSuspended: false,
           lastCheckoutSessionId: session.id,
           lastCheckoutAt: new Date().toISOString(),
@@ -262,19 +393,6 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     },
   });
 
-  let referralReward: unknown = null;
-  try {
-    const { markReferralPaidAndAccrue } = await import("../referrals");
-    referralReward = await markReferralPaidAndAccrue({
-      referredOrganisationId: org.id,
-      platformTier,
-      stripeSessionId: session.id,
-      subscriptionAmountCents: TIER_AMOUNTS_CENTS[platformTier],
-    });
-  } catch (err) {
-    console.warn("[billing] referral reward accrual failed", err);
-  }
-
   return {
     handled: true as const,
     ok: true,
@@ -282,8 +400,19 @@ export async function provisionFromPlatformCheckout(session: Stripe.Checkout.Ses
     email: email || undefined,
     resolvedVia: resolved.via,
     billingCustomerId: customerId,
-    referralReward,
+    referralReward: null,
   };
+}
+
+function platformPriceIdForTier(tier: string): string | null {
+  const configured = tier === "starter"
+    ? process.env.STRIPE_PRICE_STARTER
+    : tier === "professional"
+      ? process.env.STRIPE_PRICE_PROFESSIONAL ?? process.env.STRIPE_PRICE_GROWTH
+      : tier === "business"
+        ? process.env.STRIPE_PRICE_BUSINESS ?? process.env.STRIPE_PRICE_SCALE
+        : undefined;
+  return configured?.trim() || null;
 }
 
 export async function handlePlatformSubscriptionLifecycle(

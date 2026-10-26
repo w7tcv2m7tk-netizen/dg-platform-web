@@ -76,6 +76,7 @@ function loadRoute({
   platformSubscription = null,
   customerOwner = null,
   ownershipError = null,
+  recoveryError = null,
   memberships = [{ organisationId: orgId }],
   commerceSubscriptions = [],
 } = {}) {
@@ -84,6 +85,7 @@ function loadRoute({
   let platformMutations = 0;
   const seen = new Set();
   const guardChecks = [];
+  const recoveries = [];
   const provisionedSessions = [];
   const invoiceMutations = [];
 
@@ -145,9 +147,23 @@ function loadRoute({
       return { status: "processed", result: await handle() };
     },
     handlePlatformSubscriptionLifecycle: async () => { platformMutations++; return { ok: true }; },
-    applyInvoicePaymentFailed: async input => { invoiceMutations.push(input); platformMutations++; return { status: "ACTIVE", entitlement: "FULL" }; },
-    applyInvoicePaidRecovery: async input => { invoiceMutations.push(input); platformMutations++; return { status: "ACTIVE" }; },
-    provisionFromPlatformCheckout: async session => { provisionedSessions.push(session); platformMutations++; return { ok: true }; },
+    applyInvoicePaymentFailed: async input => {
+      invoiceMutations.push(input);
+      platformMutations++;
+      return { status: "ACTIVE", entitlement: "FULL" };
+    },
+    applyInvoicePaidRecovery: async input => {
+      recoveries.push(input);
+      invoiceMutations.push(input);
+      if (recoveryError) throw recoveryError;
+      platformMutations++;
+      return { status: "ACTIVE" };
+    },
+    provisionFromPlatformCheckout: async session => {
+      provisionedSessions.push(session);
+      platformMutations++;
+      return { ok: true };
+    },
     resolveOrganisationIdByConnectAccount: async () => undefined,
     isCommerceCustomerSubscription: (subscription) => Boolean(subscription?.metadata?.organisation_id),
     syncCommerceSubscriptionFromStripe: async () => ({ ok: true }),
@@ -182,6 +198,7 @@ function loadRoute({
     get handlers() { return handlers; },
     get platformMutations() { return platformMutations; },
     get guardChecks() { return guardChecks; },
+    get recoveries() { return recoveries; },
     get provisionedSessions() { return provisionedSessions; },
     get invoiceMutations() { return invoiceMutations; },
   };
@@ -295,6 +312,7 @@ for (const type of ["invoice.payment_failed", "invoice.payment_action_required",
   test(`${type}: commerce-only customer remains unrelated and unheld`, async () => {
     const app = loadRoute({ event: commerceEvent(), hold: true, owner: null });
     assert.equal((await app.post()).status, 200);
+    // Commerce-only invoice events remain unrelated to platform billing.
     assert.deepEqual(app.guardChecks, [false]);
     assert.equal(app.receiptClaims, 1);
     assert.equal(app.platformMutations, 0);
@@ -462,17 +480,35 @@ for (const input of [
   });
 }
 
-test("connected-account checkout and subscription events bypass the platform hold and platform provisioning", async () => {
-  for (const event of [
-    { ...checkoutEvent(), connectAccountId: "acct_fixture" },
-    { ...subscriptionEvent("subscription.updated"), connectAccountId: "acct_fixture" },
-  ]) {
-    const app = loadRoute({ event, hold: true });
-    assert.equal((await app.post()).status, 200);
-    assert.deepEqual(app.guardChecks, [false]);
-    assert.equal(app.receiptClaims, 1);
-    assert.equal(app.platformMutations, 0);
-  }
+test("connected-account checkout is skipped before receipt and platform billing", async () => {
+  const app = loadRoute({
+    event: { ...checkoutEvent(), connectAccountId: "acct_fixture" },
+    hold: true,
+  });
+
+  const response = await app.post();
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    received: true,
+    skipped: "connected_account_checkout",
+  });
+  assert.deepEqual(app.guardChecks, []);
+  assert.equal(app.receiptClaims, 0);
+  assert.equal(app.platformMutations, 0);
+  assert.equal(app.provisionedSessions.length, 0);
+});
+
+test("connected-account subscription bypasses platform hold but retains commerce receipt", async () => {
+  const app = loadRoute({
+    event: { ...subscriptionEvent("subscription.updated"), connectAccountId: "acct_fixture" },
+    hold: true,
+  });
+
+  assert.equal((await app.post()).status, 200);
+  assert.deepEqual(app.guardChecks, [false]);
+  assert.equal(app.receiptClaims, 1);
+  assert.equal(app.platformMutations, 0);
 });
 
 test("signed connected-account checkout context is preserved by Stripe event normalization", () => {
@@ -494,5 +530,25 @@ test("non-platform checkout completion remains unheld", async () => {
   assert.equal((await app.post()).status, 200);
   assert.deepEqual(app.guardChecks, [false]);
   assert.equal(app.receiptClaims, 1);
+  assert.equal(app.platformMutations, 0);
+});
+
+
+test("integrated invoice recovery retains canonical customer and subscription identities", async () => {
+  const event = invoiceEvent("invoice.paid");
+  const app = loadRoute({ event });
+  assert.equal((await app.post()).status, 200);
+  assert.equal(app.recoveries.length, 1);
+  const input = app.recoveries[0];
+  assert.equal(input.organisationId, orgId);
+  assert.equal(input.stripeSubscriptionId, subscriptionId);
+  assert.equal(input.stripeCustomerId, customerId);
+  assert.equal(input.stripeEventId, event.providerEventId);
+});
+
+test("integrated invoice recovery failure remains retryable rather than acknowledged", async () => {
+  const app = loadRoute({ event: invoiceEvent("invoice.paid"), recoveryError: new Error("fixture recovery failed") });
+  assert.equal((await app.post()).status, 400);
+  assert.equal(app.recoveries.length, 1);
   assert.equal(app.platformMutations, 0);
 });

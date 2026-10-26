@@ -13,6 +13,7 @@ import {
 } from "@dg/platform-core";
 
 import { isNextResponse, requirePermission, requirePlatformSession } from "@/lib/platform-api";
+import { authorisedIndustryPurchaseIds } from "@dg/platform-core/industry/purchase-authority";
 import {
   tenantWriteEntitlementBlock,
   writeEntitlementResponse,
@@ -107,14 +108,11 @@ function industrySettingsForOrg(settings: OrgSettings) {
     : null;
 }
 
-function entitlementsForOrg(settings: OrgSettings) {
+function entitlementsForOrg(settings: OrgSettings, canonicalIndustryApps: string[] = []) {
   const enabled = resolveEnabledAppIds(settings);
-  const purchasedApps = settings.profile?.purchasedApps ?? [];
-  const planPreviewIndustryApps = settings.apps?.planPreview?.industryApps ?? [];
   return resolveIndustryEntitlements({
     enabledAppIds: enabled,
-    purchasedApps,
-    planPreviewIndustryApps,
+    verifiedPurchasedApps: canonicalIndustryApps,
     industrySettings: industrySettingsForOrg(settings),
   });
 }
@@ -134,14 +132,16 @@ export async function GET() {
   }
 
   const { prisma } = await import("@dg/database");
-  const org = await prisma.organisation.findUnique({
-    where: { id: session.organisationId },
-    select: { settings: true },
-  });
+  const [org, canonicalSubscription] = await Promise.all([
+    prisma.organisation.findUnique({ where: { id: session.organisationId }, select: { settings: true } }),
+    prisma.platformSubscription.findUnique({ where: { organisationId: session.organisationId },
+      select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true, stripeStatus: true,
+        stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true, currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true } }),
+  ]);
 
   const settings = (org?.settings as OrgSettings | null) ?? {};
   const enabled = resolveEnabledAppIds(settings);
-  const entitlements = entitlementsForOrg(settings);
+  const entitlements = entitlementsForOrg(settings, authorisedIndustryPurchaseIds(canonicalSubscription, session.organisationId));
 
   return NextResponse.json({
     data: { entitlements, enabled, persisted: true },
@@ -248,6 +248,12 @@ export async function PATCH(req: Request) {
     where: { id: session.organisationId },
     select: { settings: true },
   });
+  const canonicalSubscription = await prisma.platformSubscription.findUnique({
+    where: { organisationId: session.organisationId },
+    select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true, stripeStatus: true,
+      stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true, currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
+  });
+  const canonicalIndustryApps = authorisedIndustryPurchaseIds(canonicalSubscription, session.organisationId);
 
   const settings = (org?.settings as OrgSettings | null) ?? {};
 
@@ -255,7 +261,7 @@ export async function PATCH(req: Request) {
   // commercial entitlement. Purchase truth is provisioned by Stripe.
   if (action === "activate" && !staffOrOperator) {
     const purchased = resolveIndustryEntitlements({
-      purchasedApps: settings.profile?.purchasedApps ?? [],
+      verifiedPurchasedApps: canonicalIndustryApps,
     });
     const purchasedIndustry = purchased.industries.find(
       (item) => item.industryId === template.industryId,
@@ -288,8 +294,7 @@ export async function PATCH(req: Request) {
   } else if (action === "deactivate" && template.appId) {
     const afterDeactivate = resolveIndustryEntitlements({
       enabledAppIds: enabled,
-      purchasedApps: settings.profile?.purchasedApps ?? [],
-      planPreviewIndustryApps: settings.apps?.planPreview?.industryApps ?? [],
+      verifiedPurchasedApps: canonicalIndustryApps,
       industrySettings: industryPatch,
     });
     const otherActiveSharesAppId = afterDeactivate.activeTemplateIds.some((id) => {
@@ -325,8 +330,7 @@ export async function PATCH(req: Request) {
   };
   const resolvedAfterPatch = resolveIndustryEntitlements({
     enabledAppIds: enabled,
-    purchasedApps: settings.profile?.purchasedApps ?? [],
-    planPreviewIndustryApps: settings.apps?.planPreview?.industryApps ?? [],
+    verifiedPurchasedApps: canonicalIndustryApps,
     industrySettings: industryPatch,
   });
   const activeServiceTemplateKeys = Array.from(new Set(
@@ -373,7 +377,7 @@ export async function PATCH(req: Request) {
     },
   });
 
-  const entitlements = entitlementsForOrg(nextSettings);
+  const entitlements = entitlementsForOrg(nextSettings, canonicalIndustryApps);
 
   return NextResponse.json({
     data: { entitlements, enabled },

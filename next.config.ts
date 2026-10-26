@@ -8,9 +8,6 @@ import type { NextConfig } from "next";
  * - Do not put `Cache-Control: immutable` on `/manifest.webmanifest` — installs need updates.
  */
 const nextConfig: NextConfig = {
-  experimental: {
-    viewTransition: true,
-  },
   // Bundle the canonical marketing footer into the "reset footer" route so it
   // can be read at runtime on Vercel (Studio "Reset footer to default").
   outputFileTracingIncludes: {

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
 import { specialistIndustryEntitlementBlock } from "@/lib/specialist-industry-entitlement";
+import { requireFinanceAppAccess } from "@/lib/finance-app-access";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ function publicState(settings: LendSettings | null) {
 async function authorise(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  const blocked = await specialistIndustryEntitlementBlock(session.organisationId, "finance");
+  const blocked = await requireFinanceAppAccess(session.organisationId);
   if (blocked) return blocked;
   return session;
 }
@@ -37,6 +38,8 @@ async function authorise(req: Request) {
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
+  const blocked = await specialistIndustryEntitlementBlock(session.organisationId, "finance");
+  if (blocked) return blocked;
   const { prisma } = await import("@dg/database");
   const subscription = await prisma.platformSubscription.findUnique({ where: { organisationId: session.organisationId }, select: { planTier: true } });
   const eligible = canUseIndustryIntegrations(subscription?.planTier as PlatformTier | null);

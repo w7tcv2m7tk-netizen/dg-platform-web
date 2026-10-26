@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { INDUSTRY_COMMERCIAL_LOCK } from "@dg/platform-core/industry/platform";
 import {
-  INDUSTRY_COMMERCIAL_LOCK,
   getIndustry,
   getTemplate,
   industryIdFromPathname,
   isTemplateActivatable,
   type IndustryCatalogueTemplate,
-  type ResolvedIndustryEntitlement,
-} from "@dg/platform-core";
+} from "@dg/platform-core/industry/catalogue";
+import type { ResolvedIndustryEntitlement } from "@dg/platform-core/industry/entitlements";
 
 type EntitlementsPayload = {
   industries: ResolvedIndustryEntitlement[];

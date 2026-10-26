@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 
-import { resolveIndustryFromAppId } from "@dg/platform-core";
-import type { BusinessOverview } from "@dg/platform-core";
+import { resolveIndustryFromAppId } from "@dg/platform-core/industry/platform";
+import type { BusinessOverview } from "@dg/platform-core/overview/types";
 
 import { SetupProgressBar } from "@/components/overview/SetupProgressBar";
 

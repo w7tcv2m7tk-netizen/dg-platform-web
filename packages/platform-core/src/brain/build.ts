@@ -1,6 +1,5 @@
 import type { BusinessContext } from "../org/business-context";
 import type { PlatformSetupStatus } from "../org/setup-status";
-import { hasAdvancedCommsEntitlement } from "../communications/entitlements";
 import type {
   BusinessBrainDimension,
   BusinessBrainField,
@@ -108,9 +107,7 @@ export function buildBusinessBrain(input: {
   const activeGoals = context.goals.filter((goal) => goal.status === "active");
   const connectorCount = input.connectorCount ?? context.twin.connectedSystems.length;
   const hasApprovedKnowledge = Boolean(input.hasApprovedKnowledge);
-  const commsEnabled = hasAdvancedCommsEntitlement({
-    enabledAppIds: context.enabledAppIds,
-  });
+  const commsEnabled = context.twin.connectedSystems.includes("communications");
   const automationEnabled = context.enabledAppIds.includes("automation");
   const crmEnabled = context.enabledAppIds.includes("crm");
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { listTemplates } from "@dg/platform-core";
+import { listTemplates } from "@dg/platform-core/industry/catalogue";
 import { platformApps } from "@dg/platform-core/apps/registry";
 
 import { useEnabledAppsOptional } from "@/components/platform/EnabledAppsProvider";
