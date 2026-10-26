@@ -45,10 +45,12 @@
   candidate-restore cutover is the fallback, not an automatic action.
 - Production exemption count is six. Identity-specific unchanged values require
   private operator comparison; no customer records were retrieved in this audit.
-- npm ci reports 22 existing dependency audit findings. No versions/lockfile were
-  changed; exploitability/release impact is not established. Owner/security must
-  disposition the existing critical/high advisories using exact locked versions,
-  without opportunistic dependency upgrades in checkout work.
+- The 26 October targeted Next.js security correction is recorded in
+  `NEXT-SECURITY-UPDATE-20261026.md`. Next 16.4.1 and sharp 0.35.5 remove the
+  reviewed Next Server Actions and five image-decoder advisory versions from the
+  production dependency tree. A fresh `npm audit --omit=dev` still reports 13
+  other findings (3 moderate, 9 high, 1 critical); those were not upgraded in
+  this scoped correction and remain subject to the existing security disposition.
 - No newly approved isolated hosted environment was used. Reused 22/22 provider
   evidence predates integrated head; deployed end-to-end smoke is outstanding.
 

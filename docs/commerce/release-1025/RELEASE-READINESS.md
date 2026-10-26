@@ -6,6 +6,24 @@ Prepared 23 October 2026 on separate branch
 `d71be3b9b13a2aeb4fe0fb02e0dfbb6a77c17048`, reviewed against main
 `8b01687fc235d16db6467a91551247e3f69444f9`. Existing candidate is untouched.
 
+## 26 October security-update addendum
+
+On detached worktree `/private/tmp/dg-checkout-next-security-20261026`, the pinned
+candidate at `e9f6b865b098f44db4d0449c46d33a159fe83964` received a targeted update
+to Next.js 16.4.1 for GHSA-p3m5-59mp-jv5r. This correction is committed locally
+in the detached worktree but not published, so PR #1025 remains at its old head.
+Local evidence: 389/389 checkout-release tests, TypeScript, the
+declared Webpack production build with all 457 pages, and whitespace validation
+passed. See `NEXT-SECURITY-UPDATE-20261026.md` for the exact dependency closure,
+image advisory disposition, warnings and remaining operational gates.
+
+The build skipped npm's unrelated `prebuild` lifecycle suite intentionally; the
+build script's own three checks ran. Exact-head GitHub CI must be rerun on the
+updated commit after publication. Current deployment/runtime, webhook invocation
+termination, recovery-point acceptance, live Stripe readiness and signed purchase
+reconciliation remain unverified operational gates; this local change does not
+authorize Production release.
+
 ## VERIFIED — implementation, local validation and GitHub CI
 
 PR #1025 remains draft, mergeable, with no check runs at review. Its 177-path delta
