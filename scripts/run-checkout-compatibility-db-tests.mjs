@@ -21,9 +21,10 @@ for (const key of ["PATH", "HOME", "TMPDIR", "SystemRoot"]) {
 }
 const suite = process.argv[3] ?? "compatibility";
 const suites = {
-  compatibility: ["test-checkout-compatibility-db.mjs", "test-legacy-app-entitlement-reconciliation.mjs", "test-platform-subscription-webhook-cutover-db.mjs", "test-checkout-release-operator-sql-db.mjs"],
+  compatibility: ["test-single-use-checkout-admission-db.mjs", "test-checkout-compatibility-db.mjs", "test-legacy-app-entitlement-reconciliation.mjs", "test-platform-subscription-webhook-cutover-db.mjs", "test-checkout-release-operator-sql-db.mjs"],
   operator: ["test-checkout-release-operator-sql-db.mjs"],
   coordinator: ["test-checkout-coordinator-db.mjs"],
+  admission: ["test-single-use-checkout-admission-db.mjs"],
   guard: ["test-platform-subscription-webhook-cutover-db.mjs"],
 };
 if (!Object.hasOwn(suites, suite) || process.argv.length > 4) throw new Error("Unknown disposable checkout test suite");
@@ -77,6 +78,8 @@ try {
   run(path.join(pgBin, "psql"), [...psql, "-f", "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql"]);
   run(path.join(pgBin, "psql"), [...psql, "-f", appEntitlementsMigration]);
   run(path.join(pgBin, "psql"), [...psql, "-f", subscriptionWebhookHoldMigration]);
+  const { rehearseAdmissionMigration } = await import("./rehearse-checkout-admission-migration.mjs");
+  await rehearseAdmissionMigration({ pgBin, psql, env, root, marker });
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-url", databaseUrl, "--to-schema-datamodel", "packages/database/prisma", "--exit-code"], { env });
   for (const file of suites[suite]) {
     run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", `scripts/${file}`], { env });
@@ -85,6 +88,6 @@ try {
 } finally {
   if (existsSync(path.join(data, "postmaster.pid"))) run(path.join(pgBin, "pg_ctl"), ["-D", data, "-m", "immediate", "-w", "stop"]);
   rmSync(owned, { recursive: true, force: true });
-  writeFileSync(path.join(tmpdir(), `dg-${suite}-db-evidence.json`), JSON.stringify({ passed, suite, baselineRef, migrations: [migration, "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql", appEntitlementsMigration, subscriptionWebhookHoldMigration], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
+  writeFileSync(path.join(tmpdir(), `dg-${suite}-db-evidence.json`), JSON.stringify({ passed, suite, baselineRef, migrations: [migration, "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql", appEntitlementsMigration, subscriptionWebhookHoldMigration, "packages/database/prisma/migrations/20261027_single_use_checkout_admission/migration.sql"], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
   console.log("Disposable checkout PostgreSQL cluster stopped and destroyed");
 }

@@ -943,3 +943,45 @@ pre-existing `react-hooks/set-state-in-effect` warning at line 69; the file was 
 changed. Candidate is ready for final independent review and the authorised
 publication, then exact-head CI. Existing `finish/checkout-entitlements` deployment suppression is
 unchanged. No Production or provider changes.
+
+### P0 `platform.auth` / `detach.portal_billing` — scoped pilot admission, 27 October 2026
+
+Owner authorised isolated local development only after certified #1025 deployment.
+Branch `fix/single-use-checkout-admission-20261027`, baseline deployed merge
+`8d639743352b9e980afb7e156fc9ac9cff1308b2`; no new commercial policy.
+Implementation: `billing/checkout-admission.ts`, existing coordinator/gate and
+server-authenticated routes; additive `20261027_single_use_checkout_admission`.
+Global checkout remains blocked; no Live grant or customer selection is imposed.
+Verification: local automated/disposable evidence only, not Production verified.
+Operational boundary and approval sequence: [scoped admission runbook](commerce/release-1025/SINGLE-USE-CHECKOUT-ADMISSION.md).
+Publication, migration, deployment, grant/revocation, customer contact and Live
+checkout each remain separately gated. Final results are recorded in the local
+validation report; prior #1025 certification remains historical evidence.
+
+27 October local evidence for the scoped admission change (uncommitted diff against
+`8d639743`): **COMPLETE AND VERIFIED** for authorised local implementation/tests;
+**IMPLEMENTED BUT UNVERIFIED** for hosted/Production activation. Existing CI commands
+now include the new units and disposable cases: release **399/399**, coordinator
+**44/44**, combined DB **40+128+27+6+3**, total **647 passed, zero failed/skipped**.
+Prisma validation/parity, TypeScript, changed-file ESLint and whitespace passed.
+Commands, review findings, final build result and remaining approvals are preserved
+in [local validation evidence](commerce/release-1025/SINGLE-USE-CHECKOUT-ADMISSION-VALIDATION.md).
+No Production access or actual Stripe customer/session creation performed.
+
+### P0 scoped admission — final targeted remediation, 27 October 2026
+
+Supersedes the earlier 647-test scoped-admission certification above. Requirement
+`platform.auth` / `detach.portal_billing`, same isolated branch/base `8d639743`.
+Removed unscoped closed-gate resumption, added composite attempt/tenant FK,
+TRUNCATE/audit protection, verified least-privilege runtime/membership policy,
+atomic migration failure/retry rehearsal and branch deployment suppression.
+Current local checks: `test:checkout-release` **400/400**, coordinator DB **44/44**,
+combined DB **57+128+27+6+3**, **665 passed, zero failed/skipped**, plus five SQL
+failure/retry phases. Prisma validation/parity, TypeScript, lint, whitespace and
+canonical build **457/457 pages, exit 0** passed. Code is uncommitted against the
+same exact base. **COMPLETE AND VERIFIED** applies only to authorised local
+implementation/testing; hosted/Production activation is **IMPLEMENTED BUT
+UNVERIFIED**. Fresh independent review and actual Production non-owner role
+verification, publication, migration, policy provisioning, deployment and pilot
+remain explicit owner gates. No Production/provider changes made.
+Evidence and limitations: [final remediation](commerce/release-1025/SINGLE-USE-CHECKOUT-ADMISSION-REMEDIATION.md).
