@@ -37,6 +37,7 @@ before(async () => {
   const grants = psqlFile("scripts/sql/runtime-role-grants.sql", "runtime_permissions");
   assert.equal(grants.status, 0, grants.stderr);
   await control.$executeRaw`CREATE TABLE IF NOT EXISTS public._prisma_migrations (id text)`;
+  await control.$executeRaw`CREATE TABLE IF NOT EXISTS public.playing_with_neon (id bigserial PRIMARY KEY, name text)`;
   const verify = psqlFile("scripts/sql/runtime-role-verify.sql", "runtime_permissions");
   assert.equal(verify.status, 0, verify.stderr);
   const runtimeUrl = new URL(url);
@@ -125,6 +126,17 @@ test("tenant-scoped application queries remain isolated while the database role 
   assert.equal(await runtime.contact.count({ where: { organisationId: second.id } }), 1);
   assert.equal(await runtime.contact.count({ where: { organisationId: { in: [first.id, second.id] } } }), 2);
   assert.equal(await runtime.contact.count({ where: { organisationId: "nonexistent" } }), 0);
+});
+
+test("excluded Neon sample table and sequence remain zero-privilege", async () => {
+  for (const statement of [
+    "SELECT * FROM playing_with_neon",
+    "INSERT INTO playing_with_neon (name) VALUES ('synthetic')",
+    "UPDATE playing_with_neon SET name='synthetic'",
+    "DELETE FROM playing_with_neon",
+    "TRUNCATE playing_with_neon",
+    "SELECT nextval('playing_with_neon_id_seq')",
+  ]) await assert.rejects(runtime.$executeRawUnsafe(statement));
 });
 
 test("checkout admission and gate boundaries remain exact", async () => {
@@ -228,6 +240,20 @@ test("verifier rejects missing or unexpected privileges and tables", async () =>
     assert.notEqual(extra.status, 0);
   } finally {
     await control.$executeRaw`REVOKE TRUNCATE ON organisations FROM runtime_permissions`;
+  }
+  await control.$executeRaw`GRANT SELECT ON playing_with_neon TO runtime_permissions`;
+  try {
+    const excludedTable = psqlFile("scripts/sql/runtime-role-verify.sql", "runtime_permissions");
+    assert.notEqual(excludedTable.status, 0);
+  } finally {
+    await control.$executeRaw`REVOKE SELECT ON playing_with_neon FROM runtime_permissions`;
+  }
+  await control.$executeRaw`GRANT USAGE ON SEQUENCE playing_with_neon_id_seq TO runtime_permissions`;
+  try {
+    const excludedSequence = psqlFile("scripts/sql/runtime-role-verify.sql", "runtime_permissions");
+    assert.notEqual(excludedSequence.status, 0);
+  } finally {
+    await control.$executeRaw`REVOKE USAGE ON SEQUENCE playing_with_neon_id_seq FROM runtime_permissions`;
   }
   await control.$executeRaw`CREATE TABLE runtime_unexpected_table (id text)`;
   try {

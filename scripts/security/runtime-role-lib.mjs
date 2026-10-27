@@ -154,6 +154,7 @@ const SEQUENCE_OVERRIDES = {
 
 const DENIED_SEQUENCES = {
   platform_checkout_admission_audit_id_seq: "Reserved for the admission audit trigger owner; runtime must not allocate audit identifiers.",
+  playing_with_neon_id_seq: "Neon sample/legacy object; explicitly excluded from runtime with zero privileges.",
 };
 
 const FUNCTION_ENTRIES = {
@@ -286,6 +287,7 @@ export function buildManifest(root) {
     functions: FUNCTION_ENTRIES,
     excludedRelations: {
       _prisma_migrations: "Prisma's migration ledger is written only by the migration operator; the runtime role must have no access.",
+      playing_with_neon: "Neon sample/legacy table is not referenced by DigitalGate runtime code; explicitly excluded with zero runtime privileges while all other unknown tables remain rejected.",
     },
     prohibitedTablePrivileges: ["TRUNCATE", "REFERENCES", "TRIGGER", "MAINTAIN"],
     prohibitedSchemaPrivileges: ["CREATE"],
@@ -441,8 +443,14 @@ export function validateManifest(root, manifest) {
   for (const table of manifestTables) {
     if (!schemaTables.has(table)) errors.push(`manifest table not present in Prisma schema: ${table}`);
   }
-  if (!manifest.excludedRelations?._prisma_migrations) errors.push("_prisma_migrations must be explicitly excluded");
-  if (manifestTables.has("_prisma_migrations")) errors.push("_prisma_migrations must not be granted");
+  for (const requiredExclusion of ["_prisma_migrations", "playing_with_neon"]) {
+    if (!manifest.excludedRelations?.[requiredExclusion]) errors.push(`${requiredExclusion} must be explicitly excluded`);
+    if (manifestTables.has(requiredExclusion)) errors.push(`${requiredExclusion} must not be granted`);
+  }
+  for (const [name, reason] of Object.entries(manifest.excludedRelations ?? {})) {
+    if (!reason) errors.push(`excluded relation ${name} must document a reason`);
+    if (manifestTables.has(name)) errors.push(`${name} cannot be both granted and excluded`);
+  }
 
   for (const table of ["platform_checkout_admissions", "platform_checkout_admission_audit", "platform_checkout_creation_gate"]) {
     if (!manifest.tables[table]) errors.push(`missing checkout security table: ${table}`);
@@ -472,6 +480,9 @@ export function validateManifest(root, manifest) {
     for (const privilege of entry.privileges ?? []) {
       if (!SEQUENCE_PRIVILEGES.includes(privilege)) errors.push(`${name}: unknown sequence privilege ${privilege}`);
     }
+  }
+  for (const requiredDenied of ["platform_checkout_admission_audit_id_seq", "playing_with_neon_id_seq"]) {
+    if (!manifest.deniedSequences?.[requiredDenied]) errors.push(`${requiredDenied} must be explicitly denied`);
   }
   for (const name of Object.keys(manifest.deniedSequences ?? {})) {
     if (manifest.sequences?.[name]) errors.push(`${name}: sequence cannot be both granted and denied`);
@@ -592,6 +603,11 @@ export function renderVerifySql(manifest) {
     const columns = JSON.stringify(entry.columnPrivileges ?? {}).replaceAll("'", "''");
     lines.push(`INSERT INTO dg_runtime_expected_tables VALUES ('${table}', ARRAY[${privileges}]::text[], '${columns}'::jsonb);`);
   }
+  lines.push("CREATE TEMP TABLE dg_runtime_excluded_relations (relation_name text PRIMARY KEY, reason text NOT NULL) ON COMMIT DROP;");
+  for (const [name, reason] of Object.entries(manifest.excludedRelations ?? {})) {
+    const escaped = reason.replaceAll("'", "''");
+    lines.push(`INSERT INTO dg_runtime_excluded_relations VALUES ('${name}', '${escaped}');`);
+  }
   lines.push("CREATE TEMP TABLE dg_runtime_expected_sequences (sequence_name text PRIMARY KEY, sequence_privileges text[] NOT NULL) ON COMMIT DROP;");
   for (const [name, entry] of Object.entries(manifest.sequences)) {
     const privileges = entry.privileges.map((privilege) => `'${privilege}'`).join(",");
@@ -608,6 +624,7 @@ export function renderVerifySql(manifest) {
   lines.push("  v_oid oid;");
   lines.push("  v_table record;");
   lines.push("  v_sequence record;");
+  lines.push("  v_excluded record;");
   lines.push("  v_column record;");
   lines.push("  v_privilege text;");
   lines.push("  v_all text[] := ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'];");
@@ -647,12 +664,15 @@ export function renderVerifySql(manifest) {
   lines.push("      END LOOP;");
   lines.push("    END IF;");
   lines.push("  END LOOP;");
-  lines.push("  IF to_regclass('public._prisma_migrations') IS NOT NULL THEN");
-  lines.push("    FOREACH v_privilege IN ARRAY v_all LOOP");
-  lines.push("      IF has_table_privilege(v_oid,'public._prisma_migrations',v_privilege) THEN RAISE EXCEPTION 'runtime has % on _prisma_migrations', v_privilege; END IF;");
-  lines.push("    END LOOP;");
-  lines.push("  END IF;");
-  lines.push("  IF EXISTS (SELECT 1 FROM pg_catalog.pg_class c WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p') AND c.relname<>'_prisma_migrations' AND c.relname NOT IN (SELECT table_name FROM dg_runtime_expected_tables)) THEN RAISE EXCEPTION 'unexpected public table not covered by manifest'; END IF;");
+  lines.push("  FOR v_excluded IN SELECT * FROM dg_runtime_excluded_relations LOOP");
+  lines.push("    IF to_regclass(format('public.%I', v_excluded.relation_name)) IS NOT NULL THEN");
+  lines.push("      FOREACH v_privilege IN ARRAY v_all LOOP");
+  lines.push("        IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege) THEN RAISE EXCEPTION 'runtime has % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;");
+  lines.push("        IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;");
+  lines.push("      END LOOP;");
+  lines.push("    END IF;");
+  lines.push("  END LOOP;");
+  lines.push("  IF EXISTS (SELECT 1 FROM pg_catalog.pg_class c WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p') AND c.relname NOT IN (SELECT table_name FROM dg_runtime_expected_tables) AND c.relname NOT IN (SELECT relation_name FROM dg_runtime_excluded_relations)) THEN RAISE EXCEPTION 'unexpected public table not covered by manifest'; END IF;");
   lines.push("  FOR v_sequence IN SELECT * FROM dg_runtime_expected_sequences LOOP");
   lines.push("    IF to_regclass(format('public.%I', v_sequence.sequence_name)) IS NULL THEN RAISE EXCEPTION 'expected sequence is absent: %', v_sequence.sequence_name; END IF;");
   lines.push("    FOREACH v_privilege IN ARRAY v_sequence.sequence_privileges LOOP");

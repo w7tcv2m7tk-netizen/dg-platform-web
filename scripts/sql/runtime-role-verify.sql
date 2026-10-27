@@ -87,10 +87,14 @@ INSERT INTO dg_runtime_expected_tables VALUES ('support_messages', ARRAY['SELECT
 INSERT INTO dg_runtime_expected_tables VALUES ('tasks', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('website_pages', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('websites', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
+CREATE TEMP TABLE dg_runtime_excluded_relations (relation_name text PRIMARY KEY, reason text NOT NULL) ON COMMIT DROP;
+INSERT INTO dg_runtime_excluded_relations VALUES ('_prisma_migrations', 'Prisma''s migration ledger is written only by the migration operator; the runtime role must have no access.');
+INSERT INTO dg_runtime_excluded_relations VALUES ('playing_with_neon', 'Neon sample/legacy table is not referenced by DigitalGate runtime code; explicitly excluded with zero runtime privileges while all other unknown tables remain rejected.');
 CREATE TEMP TABLE dg_runtime_expected_sequences (sequence_name text PRIMARY KEY, sequence_privileges text[] NOT NULL) ON COMMIT DROP;
 INSERT INTO dg_runtime_expected_sequences VALUES ('support_messages_id_seq', ARRAY['USAGE','SELECT']::text[]);
 CREATE TEMP TABLE dg_runtime_denied_sequences (sequence_name text PRIMARY KEY) ON COMMIT DROP;
 INSERT INTO dg_runtime_denied_sequences VALUES ('platform_checkout_admission_audit_id_seq');
+INSERT INTO dg_runtime_denied_sequences VALUES ('playing_with_neon_id_seq');
 
 DO $runtime_role_verify$
 DECLARE
@@ -98,6 +102,7 @@ DECLARE
   v_oid oid;
   v_table record;
   v_sequence record;
+  v_excluded record;
   v_column record;
   v_privilege text;
   v_all text[] := ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'];
@@ -137,12 +142,15 @@ BEGIN
       END LOOP;
     END IF;
   END LOOP;
-  IF to_regclass('public._prisma_migrations') IS NOT NULL THEN
-    FOREACH v_privilege IN ARRAY v_all LOOP
-      IF has_table_privilege(v_oid,'public._prisma_migrations',v_privilege) THEN RAISE EXCEPTION 'runtime has % on _prisma_migrations', v_privilege; END IF;
-    END LOOP;
-  END IF;
-  IF EXISTS (SELECT 1 FROM pg_catalog.pg_class c WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p') AND c.relname<>'_prisma_migrations' AND c.relname NOT IN (SELECT table_name FROM dg_runtime_expected_tables)) THEN RAISE EXCEPTION 'unexpected public table not covered by manifest'; END IF;
+  FOR v_excluded IN SELECT * FROM dg_runtime_excluded_relations LOOP
+    IF to_regclass(format('public.%I', v_excluded.relation_name)) IS NOT NULL THEN
+      FOREACH v_privilege IN ARRAY v_all LOOP
+        IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege) THEN RAISE EXCEPTION 'runtime has % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;
+        IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;
+      END LOOP;
+    END IF;
+  END LOOP;
+  IF EXISTS (SELECT 1 FROM pg_catalog.pg_class c WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p') AND c.relname NOT IN (SELECT table_name FROM dg_runtime_expected_tables) AND c.relname NOT IN (SELECT relation_name FROM dg_runtime_excluded_relations)) THEN RAISE EXCEPTION 'unexpected public table not covered by manifest'; END IF;
   FOR v_sequence IN SELECT * FROM dg_runtime_expected_sequences LOOP
     IF to_regclass(format('public.%I', v_sequence.sequence_name)) IS NULL THEN RAISE EXCEPTION 'expected sequence is absent: %', v_sequence.sequence_name; END IF;
     FOREACH v_privilege IN ARRAY v_sequence.sequence_privileges LOOP
