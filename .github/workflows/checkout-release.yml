@@ -36,6 +36,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run db:generate
       - run: npm run test:checkout-release
+      - run: npm run test:security-certification
       - name: Install isolated PostgreSQL tools
         run: sudo apt-get update && sudo apt-get install -y postgresql-16 postgresql-server-dev-16
       - name: Disposable PostgreSQL checkout, reconciliation and concurrency

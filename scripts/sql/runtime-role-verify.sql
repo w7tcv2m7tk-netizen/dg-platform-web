@@ -19,7 +19,7 @@ INSERT INTO dg_runtime_expected_tables VALUES ('ai_visibility_observations', ARR
 INSERT INTO dg_runtime_expected_tables VALUES ('ai_visibility_prompts', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('ai_worker_claim_receipts', ARRAY['SELECT','INSERT','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('ai_worker_principals', ARRAY['SELECT','INSERT','UPDATE']::text[], '{}'::jsonb);
-INSERT INTO dg_runtime_expected_tables VALUES ('ai_worker_provisioning_receipts', ARRAY['SELECT','INSERT','UPDATE']::text[], '{}'::jsonb);
+INSERT INTO dg_runtime_expected_tables VALUES ('ai_worker_provisioning_receipts', ARRAY['SELECT']::text[], '{"INSERT":["nonce","fingerprint","window_id","operation","outcome"],"UPDATE":["outcome","worker_id","deployment_id","completed_at"]}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('aida_conversations', ARRAY['SELECT','INSERT','UPDATE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('app_installations', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('audit_logs', ARRAY['SELECT','INSERT']::text[], '{}'::jsonb);
@@ -87,10 +87,14 @@ INSERT INTO dg_runtime_expected_tables VALUES ('support_messages', ARRAY['SELECT
 INSERT INTO dg_runtime_expected_tables VALUES ('tasks', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('website_pages', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('websites', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
+CREATE TEMP TABLE dg_runtime_excluded_relations (relation_name text PRIMARY KEY, reason text NOT NULL) ON COMMIT DROP;
+INSERT INTO dg_runtime_excluded_relations VALUES ('_prisma_migrations', 'Prisma''s migration ledger is written only by the migration operator; the runtime role must have no access.');
+INSERT INTO dg_runtime_excluded_relations VALUES ('playing_with_neon', 'Neon sample/legacy table is not referenced by DigitalGate runtime code; explicitly excluded with zero runtime privileges while all other unknown tables remain rejected.');
 CREATE TEMP TABLE dg_runtime_expected_sequences (sequence_name text PRIMARY KEY, sequence_privileges text[] NOT NULL) ON COMMIT DROP;
 INSERT INTO dg_runtime_expected_sequences VALUES ('support_messages_id_seq', ARRAY['USAGE','SELECT']::text[]);
 CREATE TEMP TABLE dg_runtime_denied_sequences (sequence_name text PRIMARY KEY) ON COMMIT DROP;
 INSERT INTO dg_runtime_denied_sequences VALUES ('platform_checkout_admission_audit_id_seq');
+INSERT INTO dg_runtime_denied_sequences VALUES ('playing_with_neon_id_seq');
 
 DO $runtime_role_verify$
 DECLARE
@@ -98,6 +102,7 @@ DECLARE
   v_oid oid;
   v_table record;
   v_sequence record;
+  v_excluded record;
   v_column record;
   v_privilege text;
   v_all text[] := ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'];
@@ -127,22 +132,30 @@ BEGIN
       IF has_table_privilege(v_oid, format('public.%I', v_table.table_name), v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option % on %', v_privilege, v_table.table_name; END IF;
     END LOOP;
     FOR v_column IN SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid=format('public.%I', v_table.table_name)::regclass AND attnum>0 AND NOT attisdropped LOOP
-      IF NOT (v_table.column_privileges ? 'UPDATE') THEN CONTINUE; END IF;
-      IF NOT (v_column.attname = ANY(ARRAY(SELECT jsonb_array_elements_text(v_table.column_privileges->'UPDATE')))) AND has_column_privilege(v_oid, format('public.%I', v_table.table_name), v_column.attname, 'UPDATE') THEN RAISE EXCEPTION 'unexpected UPDATE on %.%', v_table.table_name, v_column.attname; END IF;
+      FOREACH v_privilege IN ARRAY ARRAY['SELECT','INSERT','UPDATE','REFERENCES'] LOOP
+        IF v_privilege = ANY(v_table.table_privileges) OR coalesce((v_table.column_privileges->v_privilege) ? v_column.attname,false) THEN
+          IF NOT has_column_privilege(v_oid,format('public.%I',v_table.table_name),v_column.attname,v_privilege) THEN RAISE EXCEPTION 'missing column % on %.%',v_privilege,v_table.table_name,v_column.attname; END IF;
+        ELSIF has_column_privilege(v_oid,format('public.%I',v_table.table_name),v_column.attname,v_privilege) THEN
+          RAISE EXCEPTION 'unexpected column % on %.%',v_privilege,v_table.table_name,v_column.attname;
+        END IF;
+        IF has_column_privilege(v_oid,format('public.%I',v_table.table_name),v_column.attname,v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'column grant option % on %.%',v_privilege,v_table.table_name,v_column.attname; END IF;
+      END LOOP;
     END LOOP;
-    IF v_table.column_privileges ? 'UPDATE' THEN
-      FOR v_privilege IN SELECT jsonb_array_elements_text(v_table.column_privileges->'UPDATE') LOOP
-        IF NOT has_column_privilege(v_oid, format('public.%I', v_table.table_name), v_privilege, 'UPDATE') THEN RAISE EXCEPTION 'missing UPDATE on %.%', v_table.table_name, v_privilege; END IF;
-        IF has_column_privilege(v_oid, format('public.%I', v_table.table_name), v_privilege, 'UPDATE WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option UPDATE on %.%', v_table.table_name, v_privilege; END IF;
+  END LOOP;
+  FOR v_excluded IN SELECT * FROM dg_runtime_excluded_relations LOOP
+    IF to_regclass(format('public.%I', v_excluded.relation_name)) IS NOT NULL THEN
+      FOREACH v_privilege IN ARRAY v_all LOOP
+        IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege) THEN RAISE EXCEPTION 'runtime has % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;
+        IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;
+      END LOOP;
+      FOR v_column IN SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid=format('public.%I',v_excluded.relation_name)::regclass AND attnum>0 AND NOT attisdropped LOOP
+        FOREACH v_privilege IN ARRAY ARRAY['SELECT','INSERT','UPDATE','REFERENCES'] LOOP
+          IF has_column_privilege(v_oid,format('public.%I',v_excluded.relation_name),v_column.attname,v_privilege) OR has_column_privilege(v_oid,format('public.%I',v_excluded.relation_name),v_column.attname,v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'runtime has excluded column % on %.%',v_privilege,v_excluded.relation_name,v_column.attname; END IF;
+        END LOOP;
       END LOOP;
     END IF;
   END LOOP;
-  IF to_regclass('public._prisma_migrations') IS NOT NULL THEN
-    FOREACH v_privilege IN ARRAY v_all LOOP
-      IF has_table_privilege(v_oid,'public._prisma_migrations',v_privilege) THEN RAISE EXCEPTION 'runtime has % on _prisma_migrations', v_privilege; END IF;
-    END LOOP;
-  END IF;
-  IF EXISTS (SELECT 1 FROM pg_catalog.pg_class c WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p') AND c.relname<>'_prisma_migrations' AND c.relname NOT IN (SELECT table_name FROM dg_runtime_expected_tables)) THEN RAISE EXCEPTION 'unexpected public table not covered by manifest'; END IF;
+  IF EXISTS (SELECT 1 FROM pg_catalog.pg_class c WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p') AND c.relname NOT IN (SELECT table_name FROM dg_runtime_expected_tables) AND c.relname NOT IN (SELECT relation_name FROM dg_runtime_excluded_relations)) THEN RAISE EXCEPTION 'unexpected public table not covered by manifest'; END IF;
   FOR v_sequence IN SELECT * FROM dg_runtime_expected_sequences LOOP
     IF to_regclass(format('public.%I', v_sequence.sequence_name)) IS NULL THEN RAISE EXCEPTION 'expected sequence is absent: %', v_sequence.sequence_name; END IF;
     FOREACH v_privilege IN ARRAY v_sequence.sequence_privileges LOOP

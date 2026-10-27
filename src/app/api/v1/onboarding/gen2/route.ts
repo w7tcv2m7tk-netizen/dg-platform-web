@@ -1,3 +1,4 @@
+import { assertGen2OnboardingCompletionAllowed, OnboardingCompletionNotConfirmed } from "@dg/platform-core/onboarding/gen2-completion";
 import { CheckoutTemporarilyUnavailable } from "@dg/platform-core/billing/checkout-creation-gate";
 import { createCustomCommercialCheckoutSession, createPlatformCheckoutSession } from "@dg/platform-core/billing/platform-checkout";
 import { CheckoutCoordinationError } from "@dg/platform-core/billing/checkout-coordinator";
@@ -176,6 +177,13 @@ export async function PATCH(req: Request) {
     if (!isVerifiedStripeBilling(billing)) {
       return NextResponse.json({ error: { code: "checkout_not_confirmed", message: "Your Stripe checkout has not been confirmed yet. Please try again in a moment." } }, { status: 409 });
     }
+  }
+  // Check before profile, goal or progress mutations; an unpaid save remains valid.
+  try {
+    await assertGen2OnboardingCompletionAllowed(resolvedOrganisationId, { ...body.progress, markStepComplete });
+  } catch (error) {
+    if (!(error instanceof OnboardingCompletionNotConfirmed)) throw error;
+    return NextResponse.json({ error: { code: "checkout_not_confirmed", message: error.message } }, { status: 409 });
   }
   if (body.profile && typeof body.profile === "object") {
     const profileDenied = requirePermission(session, { module: "settings", action: "manage", scope: "organisation" }); if (profileDenied) return profileDenied;

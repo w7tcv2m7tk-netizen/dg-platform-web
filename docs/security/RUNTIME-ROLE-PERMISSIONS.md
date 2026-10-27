@@ -36,10 +36,12 @@ Run `npm run security:runtime-manifest` after a schema change. Run `npm run secu
 
 - 83 application tables.
 - 1 granted sequence: `support_messages_id_seq` (`USAGE`, `SELECT`).
-- 1 explicitly denied sequence: `platform_checkout_admission_audit_id_seq`.
+- 2 explicitly denied sequences: `platform_checkout_admission_audit_id_seq` and `playing_with_neon_id_seq`.
+- 2 explicitly excluded relations: `_prisma_migrations` and `playing_with_neon`.
 - 5 application-owned functions, all trigger-only.
-- `_prisma_migrations` explicitly excluded from runtime access.
-- Every table is classified by module and by privilege rationale.
+- Every table is classified by module and by privilege rationale; excluded objects are explicitly classified with zero runtime privileges.
+
+`playing_with_neon` and its sequence are Neon sample/legacy objects not referenced by DigitalGate runtime code. They are explicitly excluded so the Production verifier can tolerate their presence without granting access. This is not a broad unknown-object allowance: any other unclassified public table or sequence still fails the verifier.
 
 Most business tables receive table-level `SELECT`, `INSERT`, `UPDATE` and `DELETE` because Prisma relation traversal and normal module operations require them. Append-only/evidence and security-sensitive tables are narrower.
 
@@ -58,7 +60,7 @@ Most business tables receive table-level `SELECT`, `INSERT`, `UPDATE` and `DELET
 | `growth_prospect_engagements` | `SELECT`, `INSERT` only |
 | `agent_actions` | `SELECT`, `INSERT` only |
 | `stripe_webhook_receipts` | `SELECT`, `INSERT`, `UPDATE` |
-| `ai_worker_provisioning_receipts` | `SELECT`, `INSERT`, `UPDATE` |
+| `ai_worker_provisioning_receipts` | `SELECT`; `INSERT(nonce,fingerprint,window_id,operation,outcome)`; `UPDATE(outcome,worker_id,deployment_id,completed_at)` |
 | `platform_checkout_attempts` | `SELECT`, `INSERT`, `UPDATE` |
 | `platform_api_keys` | `SELECT`, `INSERT`, `UPDATE` |
 | `platform_referrals` | `SELECT`, `INSERT`, `UPDATE` |
@@ -79,11 +81,17 @@ The runtime remains unable to:
 - create, alter, drop or truncate persistent schema objects;
 - create roles, alter role attributes or assume another role;
 - grant database privileges or grant options;
-- read `_prisma_migrations`.
+- read `_prisma_migrations` or the explicitly excluded `playing_with_neon` relation/sequence.
 
 The runtime can read the gate/admission/audit tables, bind an unused permit to one attempt, and advance only `last_admission_expires_at`. Those are the existing approved runtime behaviours required by the checkout coordinator.
 
-## Role policy
+## Role policy and topology
+
+The approved topology is **one non-owner LOGIN role** (`dg_app_runtime`) with direct object/column grants and **no role memberships**.
+
+The older proposal for a `NOLOGIN` permission group plus a separate login identity is superseded for this cutover. It would introduce a membership path, require different membership/allowlist verification and is not used by the certified grants/verifier. The single-login design does not broaden privileges; it preserves the tested fail-closed no-membership boundary.
+
+The separate reviewable Production role-creation and grants approval package is [PRODUCTION-RUNTIME-ROLE-PACKAGE.md](PRODUCTION-RUNTIME-ROLE-PACKAGE.md). It is proposed only and has not been executed.
 
 The grants script requires:
 
@@ -181,9 +189,10 @@ The rehearsal creates the full Prisma datamodel plus the certified checkout migr
 ## PASS/FAIL assessment
 
 - **PASS**: manifest covers all 83 Prisma tables across 19 modules.
+- **PASS**: `_prisma_migrations`, `playing_with_neon` and `playing_with_neon_id_seq` are explicitly excluded/denied with zero runtime privileges.
 - **PASS**: generated grant and verification SQL are current.
-- **PASS**: static verification rejects missing coverage, prohibited privileges, migration-ledger access and unclassified DDL.
-- **PASS**: disposable PostgreSQL 18 rehearsal: 7/7 tests.
+- **PASS**: static verification rejects missing coverage, prohibited privileges, migration-ledger access, excluded-object grants and unclassified DDL.
+- **PASS**: disposable PostgreSQL 18 rehearsal: 8/8 tests.
 - **PASS**: representative operations across every major module.
 - **PASS**: checkout admission/gate/audit boundaries, inherited membership, helper-role escalation, grant-option and DDL denial.
 - **HOLD**: Production runtime role identity is not yet confirmed.
@@ -199,3 +208,8 @@ The rehearsal creates the full Prisma datamodel plus the certified checkout migr
 - Application-owned trigger functions remain trigger-only. PUBLIC execute on non-`SECURITY DEFINER` trigger functions is not a privilege escalation, but the admission audit definer function is explicitly denied.
 - The #991 remediation and legacy reconciliation paths require separate owner authority; they are not part of the restricted runtime.
 - The manifest assumes the application uses the single pooled `DATABASE_URL`. A separate privileged maintenance credential must not be exposed to the runtime.
+- `DATABASE_URL_UNPOOLED` is configured as an encrypted/integration-managed Production variable, not a Secret/sensitive variable. It may be readable to authorized members/automation and can be read by any code in the serving function. Removing or replacing it with restricted authority requires separate approval and integration-sync review; it is not safe to leave an owner-valued binding accessible.
+
+### Effective-column enforcement
+
+All SELECT/INSERT/UPDATE/REFERENCES column privileges and grant options are checked against table plus explicit-column authority for every manifest and excluded table. PUBLIC permissions are effective permissions and do not escape validation. Exact security policy is validated against the reviewed generator; an edited JSON manifest cannot create a new authority boundary. Provisioning receipt identity and audit evidence remain immutable to the runtime.

@@ -1016,3 +1016,129 @@ Next: review draft PR, run exact-head CI, then separately approve Production
 runtime-role provisioning, credential change, serving-role verification and
 deployment. Global checkout remains blocked. Remaining risks and rollback are in the
 permissions document. No Production/database/provider changes made.
+
+### P0 Production deployment and runtime cutover readiness — 27 October 2026
+
+Requirement `platform.auth` / `detach.portal_billing`; preparation only. Branch
+`docs/production-cutover-readiness-20261027`, stacked on PR #1029 head
+`f07ba2a755d2262eaa7b082cde151eb8e46300c2`; PR #1028 remains `f1e199de`.
+No Production writes, credential changes, role grants, deployments, merges,
+Stripe changes, checkout activation or customer contact were performed.
+
+Implementation: `docs/security/PRODUCTION-RUNTIME-CUTOVER-RUNBOOK.md` and
+`scripts/sql/runtime-identity-readonly.sql`; static deployment-boundary coverage
+in `scripts/test-runtime-deployment-boundaries.mjs` confirms runtime code uses
+`DATABASE_URL` only, shared Prisma client boundaries, no runtime migrations/DDL,
+Vercel cron/webhook route coverage, Mac AI worker HTTP-only access, and documented
+operator-only exceptions.
+
+Verification: `test:runtime-deployment-boundaries` **8/8**; `test:security-certification`
+passed including runtime permissions **7/7**; TypeScript, ESLint and
+`git diff --check` passed. Status **PREPARED / HOLD**. Remaining blockers: actual
+serving deployment capture and runtime role/endpoint unverified, Vercel/Neon
+read-only token unavailable in session, Production runtime role not provisioned,
+`DATABASE_URL_UNPOOLED` owner exposure unresolved, admission migration execution
+unconfirmed, recovery/RPO acceptance unrecorded, and #1028/#1029 unmerged.
+Next: owner/operator read-only preflight and separate approvals; no deployment.
+
+### P0 restricted runtime — explicit Neon sample exclusions and role package, 27 October 2026
+
+Requirement `platform.auth` / `detach.portal_billing`. Branch
+`fix/runtime-excluded-objects-20261027`, stacked on PR #1029 head `f07ba2a7`;
+PR #1028 certifications and migration files unchanged.
+
+The Production manifest/verifier now explicitly exclude `_prisma_migrations`,
+`playing_with_neon` and `playing_with_neon_id_seq` with zero runtime privileges,
+while still rejecting any other unknown public table or sequence. The single
+non-owner LOGIN role topology is documented as superseding the older NOLOGIN
+permission-group proposal, without broadening privileges. A separate proposed
+role-creation/grants approval package and no-secret role-creation SQL were added;
+they were not executed.
+
+Verification: static manifest tests **10/10**, disposable PostgreSQL runtime
+rehearsal **8/8**, including excluded-object denial and unclassified-object
+rejection. Status **PREPARED / HOLD** for Production role creation, grants,
+credential installation and cutover. No Production/database/Vercel/credential
+change was made.
+
+### P0 checkout security integration — 27 October 2026
+
+Branch `integration/checkout-security-20261027`, based on PR #1029 head
+`f07ba2a7`; integrates PR #1030 head `154e2001` and PR #1031 head `9bfaa7ff`
+without modifying any existing PR head. The runbook now records the independently
+verified 26 finished/zero unfinished migrations, 85 public tables, three public
+sequences and absent `dg_app_runtime`, while explicitly declining to claim fresh
+gate/admission counts.
+
+The consolidated manifest/verifier excludes `_prisma_migrations`,
+`playing_with_neon` and `playing_with_neon_id_seq` with zero runtime privileges;
+the single non-owner LOGIN role package, separate owner approvals and the
+`DATABASE_URL_UNPOOLED` encrypted/integration-managed owner-credential risk are
+included. Local static, disposable PostgreSQL, security, checkout, TypeScript,
+ESLint, build and diff checks passed. Status **PREPARED / HOLD** for Production
+role creation, grants, credential installation and cutover. Checkout remains
+blocked; no Production/database/Vercel/credential change was made.
+
+
+### P0 checkout P1 security repair — 27 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`. Isolated branch
+`fix/checkout-security-p1-20261027`, based exactly on PR #1032 head
+`fb7a9594bd398cf66d735585c3d68e7f179d9cbd`; existing PRs/branches unchanged.
+
+Implementation: effective column privilege/grant-option verification for all
+permitted/excluded relations including PUBLIC; exact manifest security policy;
+column-scoped provisioning receipt insertion/completion with immutable identity;
+selective #1015 unpaid onboarding exemption/completion guard/ordered-save recovery;
+corrected superseded-PR, merge-base and rollback instructions. No migration or
+Production/provider change. Repair branch has explicit deployment suppression.
+
+Local verification: focused manifest/deployment/onboarding **58/58**; security
+**84/84** plus manifest **34/34** and deployment **8/8**; checkout **450/450**;
+PostgreSQL 18 permission regressions **48/48**; coordinator **44/44**; compatibility
+suites **57/57**, **128/128**, **27/27**, **6/6**, **3/3**. Prisma validation,
+owned-DB schema parity, TypeScript and canonical `npm run build` **457/457** pages
+passed. New-code ESLint passed. Full changed component ESLint reports two
+`react-hooks/set-state-in-effect` errors reproduced on identical unchanged effects
+at the original #1032 head; no lint rule was disabled. The recovered #1015 UX
+regression assertion was included so prebuild tests cover the ordered save queue.
+
+State: VERIFIED LOCALLY / READY FOR INDEPENDENT REVIEW and exact-head CI, not
+Production certified. Next: publish a draft correction against #1032, require
+exact-head CI and independent owner review; keep all provisioning, credentials,
+merge/deploy and pilot approvals separate. Runtime identity/integration resync and
+Live session inventory remain operational gates. No admission or customer invitation.
+
+### Final onboarding reconciliation — 27 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`; existing #1034 repair
+branch based on `14919a5`. Compared #1033 `fc7b7c4` against its exact main base:
+all production changes already present; restored only its missing expired/unpaid
+checkout-return rejection regression. All seven onboarding code/test files now
+match #1033, with #1034 security controls untouched. See
+`docs/security/CHECKOUT-P1-REPAIR-VALIDATION.md` for coverage and handoff.
+Local: route/queue **17/17**; checkout **451/451**; security **84/84 + 34/34 +
+8/8**; disposable permissions **48/48** and compatibility **57/57 + 128/128 +
+27/27 + 6/6 + 3/3**; TypeScript, changed-test lint, schema parity, full build
+**457/457** and diff checks passed. Exact-head CI required after publication.
+Baseline component lint errors remain separately disclosed.
+State: READY FOR VERIFICATION / Production HOLD. Next: independent certification
+of the new exact #1034 head; #1033 supersession requires explicit owner approval.
+No Production or provider change; existing PRs and branches preserved.
+
+### Shared onboarding completion authority — 27 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`; existing #1034 repair
+branch, based on `67025243`. Independent review found the legacy PATCH completion
+bypass. Shared canonical billing/explicit-exemption enforcement now protects both
+PATCH routes, operator setup and Gen2 persistence; completion timestamps are
+server-assigned. Unpaid profile/basket/navigation saves remain available. No
+migration or Production change. See the existing P1 validation document.
+
+Local: route **42/42**, checkout **480/480**, security **84/84 + 34/34 + 8/8**,
+disposable permissions **56/56**, compatibility **57/57 + 142/142 + 27/27 + 6/6 +
+3/3**, authority **6/6**, TypeScript and changed-code lint (zero errors; baseline
+warnings disclosed). Full canonical build passed (**457/457** pages); exact-head CI required after
+publication. State READY FOR VERIFICATION / Production HOLD. Next: DeepSeek
+independent acceptance on the new exact head, then separately approved integration;
+no merge/deploy, credentials, roles, admissions or Live Stripe action authorised.
