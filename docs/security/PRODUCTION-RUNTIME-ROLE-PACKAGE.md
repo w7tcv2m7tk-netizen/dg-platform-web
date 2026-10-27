@@ -59,6 +59,7 @@ Assumptions requiring operator confirmation:
 - [ ] Manifest/verifier commit is fixed and hash-pinned.
 - [ ] `playing_with_neon` and `playing_with_neon_id_seq` are confirmed excluded/denied.
 - [ ] Owner approves private credential creation/installation.
+- [ ] `DATABASE_URL_UNPOOLED` runtime exposure is reviewed; removal/replacement is separately approved before cutover.
 - [ ] A rollback decision-maker and attended window are named.
 - [ ] No other migration, role or ACL change runs concurrently.
 
@@ -147,7 +148,26 @@ After private credential installation, use the exact runtime credential with the
 
 Do not change Vercel `DATABASE_URL`, remove/alter `DATABASE_URL_UNPOOLED`, deploy, merge, open checkout or issue an admission in this package. Those require separate approvals.
 
-## 5. Failure stops
+
+## 5. `DATABASE_URL_UNPOOLED` runtime exposure
+
+No value was retrieved. The configured Production metadata describes `DATABASE_URL_UNPOOLED` as an encrypted, integration-managed variable rather than a Secret/sensitive variable.
+
+Implications:
+
+- Encrypted/Config values are readable to authorized project members and automation; Secret values are write-only after saving.
+- Any source code or dependency running in the serving function can read any environment variable injected at runtime, even if the current source does not reference `DATABASE_URL_UNPOOLED`.
+- An integration-managed variable may be synchronized, rotated or re-added by the Neon/Vercel integration.
+- Switching only `DATABASE_URL` to `dg_app_runtime` does not remove an owner-valued escape path if `DATABASE_URL_UNPOOLED` remains available to the runtime.
+
+Required before cutover:
+
+- Remove `DATABASE_URL_UNPOOLED` from runtime scope, or replace it with the same restricted runtime authority through a supported Neon/Vercel integration procedure.
+- Confirm integration synchronisation ownership before changing any binding; do not reconnect integrations automatically.
+- Verify the serving deployment's captured scope/metadata and runtime environment, without retrieving or displaying values.
+- This removal/replacement requires separate owner approval and is not performed by this package.
+
+## 6. Failure stops
 
 - Role exists or name mismatch.
 - Role is `SUPERUSER`, has `CREATEDB`/`CREATEROLE`/`REPLICATION`/`BYPASSRLS`, or cannot log in.
@@ -159,7 +179,7 @@ Do not change Vercel `DATABASE_URL`, remove/alter `DATABASE_URL_UNPOOLED`, deplo
 - Wrong Neon endpoint/branch/database.
 - Concurrent migration/role/ACL change or uncertain outcome.
 
-## 6. Rollback
+## 7. Rollback
 
 - If the role was created but grants were not applied: owner-approved `DROP ROLE dg_app_runtime` only after confirming no dependencies and no sessions.
 - If grants were applied: revoke grants first, verify no application uses the role, then drop only under separate approval.
@@ -168,7 +188,7 @@ Do not change Vercel `DATABASE_URL`, remove/alter `DATABASE_URL_UNPOOLED`, deplo
 - Preserve the migration schema, ledger and audit.
 - Do not automatically restore an owner credential.
 
-## 7. Owner approval checkpoints
+## 8. Owner approval checkpoints
 
 1. Role creation SQL and exact role name.
 2. Private authentication installation.
@@ -177,7 +197,7 @@ Do not change Vercel `DATABASE_URL`, remove/alter `DATABASE_URL_UNPOOLED`, deplo
 5. Runtime credential/cutover and deployment — separate package.
 6. Checkout/pilot — separate later gate.
 
-## 8. Evidence required
+## 9. Evidence required
 
 - Role absence preflight.
 - Role creation receipt.
@@ -187,6 +207,6 @@ Do not change Vercel `DATABASE_URL`, remove/alter `DATABASE_URL_UNPOOLED`, deplo
 - Sanitised timestamps, role name, endpoint classification and commit/hash references.
 - No secrets.
 
-## 9. Current assessment
+## 10. Current assessment
 
 **HOLD** for role creation, grants, credential installation and cutover. The package is reviewable, but the Production actions require separate owner approvals and a valid attended operator window.
