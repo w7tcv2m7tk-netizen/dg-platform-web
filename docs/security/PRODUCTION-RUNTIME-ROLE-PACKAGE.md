@@ -34,12 +34,14 @@ Verified locally in this workstream:
 - Static tests and disposable PostgreSQL tests passed.
 - PR #1028 migration files were not modified.
 
-Owner-provided Production findings, not independently re-queried in this worktree:
+Independently verified Production facts (operator-provided; not re-queried in this worktree):
 
-- 26 finished migrations and a blocked checkout gate.
+- 26 finished migrations, zero unfinished.
 - 85 public tables, including `_prisma_migrations` and `playing_with_neon`.
 - Three public sequences: `support_messages_id_seq`, `platform_checkout_admission_audit_id_seq` and `playing_with_neon_id_seq`.
 - `dg_app_runtime` does not yet exist.
+
+Gate/admission counts are not freshly verified in this worktree; recheck `blocked`, hold, revision and admission/audit counts read-only at the execution window.
 
 Assumptions requiring operator confirmation:
 

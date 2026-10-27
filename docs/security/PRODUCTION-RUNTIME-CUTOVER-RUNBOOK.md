@@ -2,20 +2,26 @@
 
 Status: **HOLD for Production deployment, role provisioning, credential cutover, merge and checkout activation.**  
 Prepared: 27 October 2026  
-Scope: PR #1028 (single-use checkout admission) and PR #1029 (restricted runtime database permissions)
+Scope: PR #1028 (single-use checkout admission), PR #1029 (restricted runtime permissions), PR #1030 (cutover readiness), PR #1031 (exclusions/role package) and the integration PR
 
 This runbook prepares the operator sequence. It does not authorise any Production write, credential change, role grant, deployment, merge, Stripe change or customer action. Each numbered approval gate is separate.
 
 ## 1. Current state
 
 - PR #1028: draft, head `f1e199de7d77762183894fe7e0a8d4f72b50bb8c`.
-- PR #1029: draft, head `f07ba2a755d2262eaa7b082cde151eb8e46300c2`, stacked on PR #1028.
-- PR #1029 exact-head CI: **SUCCESS** — run `40444279801`.
-- The admission migration is approved for execution by Codex but execution is **not confirmed**.
-- The private Direct database credential injection is unresolved.
+- PR #1029: draft, head `f07ba2a755d2262eaa7b082cde151eb8e46300c2`, stacked on PR #1028; exact-head CI `40444279801` SUCCESS.
+- PR #1030: draft, head `154e20014201e57bde5f50a8a40045077ab76cc7`; runbook and deployment-boundary tests.
+- PR #1031: draft, head `9bfaa7fff088030e6a0e2915fecf0d3e15f554a6`; excluded Neon sample objects and role package.
+- Integration branch `integration/checkout-security-20261027` combines #1030 and #1031 on #1029; a draft integration PR is the intended merge vehicle.
+- Independently verified Production state (operator-provided; not re-queried in this worktree):
+  - 26 finished migrations, zero unfinished.
+  - 85 public tables: 83 manifest tables plus `_prisma_migrations` and `playing_with_neon`.
+  - Three public sequences: `support_messages_id_seq`, `platform_checkout_admission_audit_id_seq` and `playing_with_neon_id_seq`.
+  - `dg_app_runtime` is absent.
+- Gate/admission counts are **not** freshly verified here. Recheck `blocked`, hold, revision and admission/audit counts read-only at the execution window.
 - The last verified serving deployment was `dpl_2bpF6uUfYhe1xB8ytCHAmjVfzikN` at source `8d639743352b9e980afb7e156fc9ac9cff1308b2`.
-- The actual current serving deployment, captured environment-variable version, endpoint and runtime role are **UNVERIFIED** in this session.
-- No Vercel or Neon read-only API token/CLI was available to this session. Do not ask the owner to disclose a secret; an authorised operator must perform the provider-read steps privately.
+- The actual current serving deployment, captured environment-variable version, endpoint and runtime role are **UNVERIFIED**.
+- No valid Vercel or Neon read-only API token/CLI was available to this session. Do not ask the owner to disclose a secret; an authorised operator must perform provider-read steps privately.
 
 Global checkout must remain `blocked=true` throughout this runbook.
 
@@ -24,7 +30,7 @@ Global checkout must remain `blocked=true` throughout this runbook.
 | Role | Responsibility |
 |---|---|
 | Owner | Approves migration, role provisioning/grants, credential cutover, merges/deployments and later pilot |
-| Codex migration operator | Executes only the approved admission migration capsule |
+| Migration verifier (Codex) | Verifies the completed 26-row migration state; does not re-execute SQL |
 | Runtime cutover operator | Applies role grants, changes the private runtime credential and verifies the serving role |
 | Read-only observer | Verifies receipts, deployment identity, logs and rollback readiness; no writes |
 | Recovery decision-maker | Owns snapshot/RPO acceptance and any separately approved restore decision |
@@ -39,6 +45,8 @@ Complete every item read-only before requesting the next write approval.
 
 - [ ] PR #1028 is still draft/open at `f1e199de`; required CI is green.
 - [ ] PR #1029 is still draft/open at `f07ba2a7`; required CI is green.
+- [ ] PR #1030 is draft/open at `154e2001`; PR #1031 is draft/open at `9bfaa7ff`.
+- [ ] The integration branch/PR still contains the complete #1030 and #1031 changes.
 - [ ] No PR head has changed since this runbook was prepared.
 - [ ] Approved migration files are unchanged.
 - [ ] No newer `main` commit creates a merge/rebase dependency.
@@ -46,8 +54,9 @@ Complete every item read-only before requesting the next write approval.
 ### 3.2 Production database state
 
 - [ ] Confirm Neon project/branch/database and direct/pooled endpoint privately.
-- [ ] Confirm the migration ledger count: 25 with target absent, or 26 with target present.
-- [ ] If target is present, do not rerun SQL; inspect the exact ledger/catalog state.
+- [ ] Confirm 26 finished migrations and zero unfinished; do not rerun any migration.
+- [ ] Confirm the admission migration target and admission objects are present; if state differs, STOP.
+- [ ] Recheck gate/admission state read-only; do not assume the counts are unchanged from prior certification.
 - [ ] Confirm gate `blocked=true`, `hold=false`, expected revision and admission horizon.
 - [ ] Confirm no active migration/DDL statement and no conflicting lock waits.
 - [ ] Confirm six subscription exemptions and no unexpected paid-status changes.
@@ -61,8 +70,8 @@ Complete every item read-only before requesting the next write approval.
 - [ ] Record deployment ID, source SHA, creation time and target environment.
 - [ ] Confirm the deployment's captured `DATABASE_URL` variable version or provider attestation.
 - [ ] Confirm the captured `DATABASE_URL` host/database maps to the intended Neon endpoint.
-- [ ] Confirm whether `DATABASE_URL_UNPOOLED` is exposed to the serving function.
-- [ ] If `DATABASE_URL_UNPOOLED` is owner-valued and exposed, STOP until it is removed/replaced or proven inaccessible under separate approval.
+- [ ] Confirm `DATABASE_URL_UNPOOLED` metadata and scope. It is encrypted/integration-managed, not a Secret/sensitive variable; it may be readable to authorised members/automation and any serving code, and an integration may resynchronise it.
+- [ ] If `DATABASE_URL_UNPOOLED` is owner-valued and exposed, STOP until it is removed/replaced with restricted authority or proven inaccessible under separate approval.
 - [ ] Confirm `DATABASE_URL` is the only runtime database URL used by application code.
 - [ ] Confirm no Production database credential is visible in build logs, deployment metadata or error output.
 
@@ -85,6 +94,7 @@ Vercel dashboard/API methods that may be used privately:
 - [ ] Role has no `CREATE` on the current database.
 - [ ] Role has no migration-ledger access.
 - [ ] Role has no grant option on tables, columns, sequences, schema, database or functions.
+- [ ] Confirm `_prisma_migrations`, `playing_with_neon` and `playing_with_neon_id_seq` are explicitly excluded/denied with zero privileges; any other unknown public table/sequence must still fail.
 
 ### 3.5 Application and worker dependency audit
 
@@ -164,41 +174,54 @@ Complete section 3. Record sanitised evidence only.
 **Approval:** none for read-only checks.  
 **STOP:** any identity, ledger, role, recovery, endpoint or credential ambiguity.
 
-### Step 1 — Admission migration (Codex)
+### Step 1 — Admission migration — already completed; verify only
 
-Codex executes only the already-approved admission migration with the verified capsule and private Direct credential. This runbook does not duplicate those instructions.
+The admission migration is independently reported complete: 26 finished migrations, zero unfinished. Do **not** execute or re-resolve the migration.
 
-Verify:
+Verify read-only:
 
-- Exact SQL hash and capsule manifest.
-- Post-SQL catalog/trigger/FK/ACL inspection.
-- Zero admissions/audit rows.
-- Original 25 ledger rows unchanged.
-- Gate/subscriptions/exemptions/receipts unchanged.
-- Exactly 26 finished ledger rows after resolve.
-- No automatic retry, repair or ledger fabrication.
+- The target migration and its admission tables/triggers/FK/ACL objects are present.
+- 26 finished ledger rows and zero unfinished rows.
+- The previous 25 records are unchanged.
+- No admission/audit rows, no unexpected gate/hold/revision change.
+- No snapshot restore or manual ledger repair is proposed.
 
-**Approval:** owner migration approval already recorded; capture the execution receipt.  
-**STOP:** any hash, ledger, catalog, lock or uncertainty mismatch.
+**Approval:** none for read-only verification.
+**STOP:** any missing/extra ledger row, catalog mismatch, admission row, gate change or uncertainty; do not re-run SQL or fabricate ledger entries.
 
-### Step 2 — Restricted role grants and verification
+### Step 2 — Restricted role creation, grants and verification
 
-Use PR #1029's reviewed scripts:
+The approved topology is one non-owner LOGIN role, `dg_app_runtime`, with direct grants and no memberships. The older NOLOGIN permission-group proposal is superseded and is not used.
+
+Preconditions:
+
+- `dg_app_runtime` is absent.
+- The exact role package is reviewed: `docs/security/PRODUCTION-RUNTIME-ROLE-PACKAGE.md`.
+- Owner approves role creation, private authentication, grants and verification separately.
+
+Role creation:
 
 ```sh
-psql -X -v ON_ERROR_STOP=1 -v runtime_role=<runtime-role> -f scripts/sql/runtime-role-grants.sql
-psql -X -v ON_ERROR_STOP=1 -v runtime_role=<runtime-role> -f scripts/sql/runtime-role-verify.sql
+psql -X -v ON_ERROR_STOP=1 -f scripts/sql/production-runtime-role-create.sql
 ```
 
-Use an owner/admin connection and private credential injection. Do not put a URL/password in arguments or history.
+The SQL creates one `LOGIN` role with `NOINHERIT`, no admin attributes, no memberships and **no password**. Install authentication only through the approved private provider/secret-store mechanism; never put a password in SQL, arguments, history, logs or reports.
+
+Then apply grants and verify using an owner/admin connection:
+
+```sh
+psql -X -v ON_ERROR_STOP=1 -v runtime_role=dg_app_runtime -f scripts/sql/runtime-role-grants.sql
+psql -X -v ON_ERROR_STOP=1 -v runtime_role=dg_app_runtime -f scripts/sql/runtime-role-verify.sql
+```
 
 Require:
 
 - `runtime_role_grants_applied`
 - `runtime_role_verified`
 - No missing/extra privilege, unexpected table/sequence, membership, ownership, grant option or schema/database CREATE.
+- Zero privileges on `_prisma_migrations`, `playing_with_neon` and `playing_with_neon_id_seq`.
 
-**Approval:** separate owner approval for role provisioning/grants.  
+**Approval:** separate owner approvals for role creation, private authentication, grants and verifier acceptance.
 **STOP:** verifier failure; do not broaden the role to fix it.
 
 ### Step 3 — Runtime identity and endpoint verification
@@ -220,7 +243,7 @@ The `/api/health/db` `SELECT 1` response is not proof of role or endpoint.
 With checkout blocked and no permit:
 
 - Change only the Production runtime `DATABASE_URL` to the approved runtime role on the same pooled endpoint/database.
-- Remove/replace any owner-valued `DATABASE_URL_UNPOOLED` binding exposed to the serving function, or prove it is inaccessible. This requires separate approval and Neon/Vercel integration review.
+- Remove/replace any owner-valued `DATABASE_URL_UNPOOLED` binding exposed to the serving function, or prove it is inaccessible. Because it is encrypted/integration-managed rather than Secret/sensitive, it may be readable to authorised members/automation and any serving code; an integration may resynchronise it. This requires separate approval and Neon/Vercel integration review.
 - Redeploy/restart under separate deployment approval.
 - Verify the new serving deployment's captured variable version and `current_user`/`session_user`.
 - Verify pooled endpoint/database and non-privileged reachability.
@@ -248,19 +271,19 @@ Only after Step 4 is verified:
 **Approval:** separate merge/deploy approval.  
 **STOP:** any runtime role regression, admission write, gate change or old-instance uncertainty.
 
-### Step 6 — Integrate PR #1029
+### Step 6 — Integrate PR #1030/#1031 via the integration PR
 
-PR #1029 is a docs/scripts/tests and CI change; it does not add application runtime behaviour.
+The integration branch/PR combines the PR #1030 runbook/deployment-boundary work and PR #1031 exclusions/role-package work on top of PR #1029. It does not add application runtime behaviour.
 
-After PR #1028 is merged:
+After PR #1028 and PR #1029 are merged:
 
-- Retarget PR #1029's base to `main` as a metadata-only change, or create an equivalent integration PR without modifying either approved head.
-- Merge under separate approval.
+- Merge the integration PR under separate approval, or retarget it to `main` as a metadata-only base change.
+- Do not merge #1030 or #1031 separately; the integration PR is the consolidated merge vehicle.
 - Deploy; verify no runtime behaviour change and no database permission regression.
-- Do not merge reporting output; PR #1029 is not reporting output.
+- Do not merge reporting output.
 
-**Approval:** separate merge/deploy approval.  
-**DO NOT** merge #1029 before #1028; it carries #1028 commits as ancestors.
+**Approval:** separate merge/deploy approval.
+**DO NOT** merge the integration PR before #1028 and #1029; it carries their commits as ancestors.
 
 ### Step 7 — Post-cutover smoke and observation
 
@@ -336,11 +359,11 @@ Snapshot restore is a separate last-resort operation. It loses post-snapshot wri
 
 ## 8. Owner approval checkpoints
 
-1. Migration execution/receipt acceptance.
+1. Completion/receipt acceptance for the already-completed migration; no re-execution.
 2. Role provisioning and grants.
 3. Runtime credential cutover and `DATABASE_URL_UNPOOLED` handling.
 4. PR #1028 merge/deploy.
-5. PR #1029 merge/deploy (after #1028).
+5. Integration PR (#1030/#1031) merge/deploy after #1028/#1029.
 6. Post-cutover smoke acceptance.
 7. Single-customer pilot/admission/contact (separate, later).
 
@@ -348,11 +371,11 @@ Snapshot restore is a separate last-resort operation. It loses post-snapshot wri
 
 - Actual serving Vercel deployment, captured `DATABASE_URL` version, endpoint and role are unverified.
 - No Vercel/Neon read-only API token or CLI was available in this session.
-- The runtime role has not been provisioned or verified in Production.
-- `DATABASE_URL_UNPOOLED` may still expose an owner-valued credential to the serving function.
-- The admission migration is not confirmed executed; private Direct credential injection remains unresolved.
+- `dg_app_runtime` is absent; no Production role creation, private authentication or grants have been performed.
+- `DATABASE_URL_UNPOOLED` may still expose an owner-valued credential to the serving function; encrypted/integration-managed status and integration resynchronisation require separate review.
+- Actual serving `DATABASE_URL` credential, role and endpoint remain unverified.
 - Recovery snapshot/RPO/protected-restore acceptance is not recorded.
-- PR #1028 and PR #1029 remain unmerged; #1029 is stacked on #1028.
+- PR #1028, #1029, #1030 and #1031 remain unmerged; the integration PR is the consolidated merge vehicle.
 - Vercel build/prebuild production DB access has not been observed in the release window; CI build passed without a database.
 - Production smoke and old-instance cutoff evidence do not yet exist.
 - Global checkout remains blocked; no customer pilot is authorised.
@@ -371,6 +394,22 @@ Snapshot restore is a separate last-resort operation. It loses post-snapshot wri
 - Read-only provider/deployment/database metadata collection by authorised operators.
 - Local static/deployment-boundary tests and runbook review.
 - Owner approval preparation.
-- Execution of the already-approved migration by Codex, subject to the existing migration approval and receipt checks.
+- Read-only verification of the completed migration and receipt.
 
 The platform is **not ready for a Production deployment or restricted-runtime cutover** until the serving identity/endpoint, role suitability, `DATABASE_URL_UNPOOLED` handling, migration state and recovery acceptance are verified and separately approved.
+
+## 11. Integration verification — local
+
+Local verification for the consolidated integration branch:
+
+- `npm run test:runtime-permissions` — 10/10.
+- `npm run test:runtime-deployment-boundaries` — 8/8.
+- `npm run test:runtime-permissions-db` — 8/8 on disposable PostgreSQL 18.
+- `npm run test:security-certification` — 84/84 plus runtime permissions 10/10 plus deployment boundaries 8/8.
+- `npm run test:checkout-release` — 410/410.
+- `npx tsc --noEmit --incremental false` — pass.
+- ESLint on changed scripts — pass.
+- `npm run build` — exit 0.
+- `git diff --check` — pass.
+
+These are disposable/local checks only. They do not prove the Production role, captured credential, endpoint or admission readiness.

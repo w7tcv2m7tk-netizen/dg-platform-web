@@ -1061,3 +1061,20 @@ rejection. Status **PREPARED / HOLD** for Production role creation, grants,
 credential installation and cutover. No Production/database/Vercel/credential
 change was made.
 
+### P0 checkout security integration — 27 October 2026
+
+Branch `integration/checkout-security-20261027`, based on PR #1029 head
+`f07ba2a7`; integrates PR #1030 head `154e2001` and PR #1031 head `9bfaa7ff`
+without modifying any existing PR head. The runbook now records the independently
+verified 26 finished/zero unfinished migrations, 85 public tables, three public
+sequences and absent `dg_app_runtime`, while explicitly declining to claim fresh
+gate/admission counts.
+
+The consolidated manifest/verifier excludes `_prisma_migrations`,
+`playing_with_neon` and `playing_with_neon_id_seq` with zero runtime privileges;
+the single non-owner LOGIN role package, separate owner approvals and the
+`DATABASE_URL_UNPOOLED` encrypted/integration-managed owner-credential risk are
+included. Local static, disposable PostgreSQL, security, checkout, TypeScript,
+ESLint, build and diff checks passed. Status **PREPARED / HOLD** for Production
+role creation, grants, credential installation and cutover. Checkout remains
+blocked; no Production/database/Vercel/credential change was made.
