@@ -19,7 +19,7 @@ INSERT INTO dg_runtime_expected_tables VALUES ('ai_visibility_observations', ARR
 INSERT INTO dg_runtime_expected_tables VALUES ('ai_visibility_prompts', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('ai_worker_claim_receipts', ARRAY['SELECT','INSERT','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('ai_worker_principals', ARRAY['SELECT','INSERT','UPDATE']::text[], '{}'::jsonb);
-INSERT INTO dg_runtime_expected_tables VALUES ('ai_worker_provisioning_receipts', ARRAY['SELECT','INSERT','UPDATE']::text[], '{}'::jsonb);
+INSERT INTO dg_runtime_expected_tables VALUES ('ai_worker_provisioning_receipts', ARRAY['SELECT']::text[], '{"INSERT":["nonce","fingerprint","window_id","operation","outcome"],"UPDATE":["outcome","worker_id","deployment_id","completed_at"]}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('aida_conversations', ARRAY['SELECT','INSERT','UPDATE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('app_installations', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('audit_logs', ARRAY['SELECT','INSERT']::text[], '{}'::jsonb);
@@ -132,21 +132,26 @@ BEGIN
       IF has_table_privilege(v_oid, format('public.%I', v_table.table_name), v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option % on %', v_privilege, v_table.table_name; END IF;
     END LOOP;
     FOR v_column IN SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid=format('public.%I', v_table.table_name)::regclass AND attnum>0 AND NOT attisdropped LOOP
-      IF NOT (v_table.column_privileges ? 'UPDATE') THEN CONTINUE; END IF;
-      IF NOT (v_column.attname = ANY(ARRAY(SELECT jsonb_array_elements_text(v_table.column_privileges->'UPDATE')))) AND has_column_privilege(v_oid, format('public.%I', v_table.table_name), v_column.attname, 'UPDATE') THEN RAISE EXCEPTION 'unexpected UPDATE on %.%', v_table.table_name, v_column.attname; END IF;
-    END LOOP;
-    IF v_table.column_privileges ? 'UPDATE' THEN
-      FOR v_privilege IN SELECT jsonb_array_elements_text(v_table.column_privileges->'UPDATE') LOOP
-        IF NOT has_column_privilege(v_oid, format('public.%I', v_table.table_name), v_privilege, 'UPDATE') THEN RAISE EXCEPTION 'missing UPDATE on %.%', v_table.table_name, v_privilege; END IF;
-        IF has_column_privilege(v_oid, format('public.%I', v_table.table_name), v_privilege, 'UPDATE WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option UPDATE on %.%', v_table.table_name, v_privilege; END IF;
+      FOREACH v_privilege IN ARRAY ARRAY['SELECT','INSERT','UPDATE','REFERENCES'] LOOP
+        IF v_privilege = ANY(v_table.table_privileges) OR coalesce((v_table.column_privileges->v_privilege) ? v_column.attname,false) THEN
+          IF NOT has_column_privilege(v_oid,format('public.%I',v_table.table_name),v_column.attname,v_privilege) THEN RAISE EXCEPTION 'missing column % on %.%',v_privilege,v_table.table_name,v_column.attname; END IF;
+        ELSIF has_column_privilege(v_oid,format('public.%I',v_table.table_name),v_column.attname,v_privilege) THEN
+          RAISE EXCEPTION 'unexpected column % on %.%',v_privilege,v_table.table_name,v_column.attname;
+        END IF;
+        IF has_column_privilege(v_oid,format('public.%I',v_table.table_name),v_column.attname,v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'column grant option % on %.%',v_privilege,v_table.table_name,v_column.attname; END IF;
       END LOOP;
-    END IF;
+    END LOOP;
   END LOOP;
   FOR v_excluded IN SELECT * FROM dg_runtime_excluded_relations LOOP
     IF to_regclass(format('public.%I', v_excluded.relation_name)) IS NOT NULL THEN
       FOREACH v_privilege IN ARRAY v_all LOOP
         IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege) THEN RAISE EXCEPTION 'runtime has % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;
         IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;
+      END LOOP;
+      FOR v_column IN SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid=format('public.%I',v_excluded.relation_name)::regclass AND attnum>0 AND NOT attisdropped LOOP
+        FOREACH v_privilege IN ARRAY ARRAY['SELECT','INSERT','UPDATE','REFERENCES'] LOOP
+          IF has_column_privilege(v_oid,format('public.%I',v_excluded.relation_name),v_column.attname,v_privilege) OR has_column_privilege(v_oid,format('public.%I',v_excluded.relation_name),v_column.attname,v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'runtime has excluded column % on %.%',v_privilege,v_excluded.relation_name,v_column.attname; END IF;
+        END LOOP;
       END LOOP;
     END IF;
   END LOOP;

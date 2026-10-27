@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import test, { after, before } from "node:test";
 import { PrismaClient } from "@dg/database";
+import { executeProvision } from "../packages/platform-core/src/ai/local-worker-provisioning.ts";
 
 const pgBin = process.env.DG_CHECKOUT_PG_BIN || "/opt/homebrew/opt/postgresql@18/bin";
 const databaseUrl = process.env.DATABASE_URL;
@@ -11,12 +12,12 @@ const control = new PrismaClient();
 let runtime;
 let url;
 
-function psqlFile(file, role) {
+function psqlFile(file, role, login = url.username) {
   return spawnSync(path.join(pgBin, "psql"), [
     "-X",
     "-h", url.hostname,
     "-p", url.port,
-    "-U", url.username,
+    "-U", login,
     "-d", url.pathname.slice(1),
     "-v", "ON_ERROR_STOP=1",
     "-v", `runtime_role=${role}`,
@@ -57,6 +58,20 @@ async function organisation(suffix) {
   return control.organisation.create({ data: { name: `Runtime ${suffix}`, slug: `runtime-${suffix}-${randomUUID()}` } });
 }
 
+test("legitimate provisioning inserts and completes under restricted columns; replay stays denied", async () => {
+  const now=Date.now(), nonce="1".repeat(64), fingerprint="2".repeat(64), windowId="3".repeat(32);
+  const request={operation:"provision",nonce,fingerprint,timestamp:now};
+  const config={fingerprint,windowId,start:now-1000,end:now+60000};
+  const result=await executeProvision(request,config,runtime);
+  assert.ok(result.workerId); assert.ok(result.deploymentId);
+  // Synthetic local worker credential is never printed or persisted outside this disposable DB.
+  const receipt=await runtime.aiWorkerProvisioningReceipt.findUnique({where:{nonce}});
+  assert.equal(receipt.outcome,"succeeded"); assert.equal(receipt.fingerprint,fingerprint);
+  assert.equal(receipt.windowId,windowId); assert.equal(receipt.workerId,result.workerId);
+  assert.ok(receipt.completedAt);
+  assert.deepEqual(await executeProvision(request,config,runtime),{code:"replay"});
+});
+
 test("runtime can perform representative module operations", async () => {
   const org = await organisation("modules");
   const contact = await runtime.contact.create({ data: { organisationId: org.id, firstName: "Synthetic" } });
@@ -96,7 +111,7 @@ test("runtime can perform representative module operations", async () => {
   await runtime.aiLocalRecipientApproval.create({ data: { id: approvalId, organisationId: org.id, deploymentId, approvedByActorType: "user", policyVersion: 1, classificationCeiling: "public" } });
   const jobId = randomUUID();
   await runtime.aiInferenceJob.create({ data: { id: jobId, organisationId: org.id, actorType: "user", actorId: "user_synthetic", correlationId: randomUUID(), task: "synthetic", taskVersion: 1, policyVersion: 1, classification: "public", executionLane: "local_routine", deploymentId, approvalId, idempotencyKey: randomUUID(), requestHash: "b".repeat(64), resultContract: "synthetic", resultContractVersion: 1, contextBudgetTokens: 100, maxOutputTokens: 100, deadlineAt: new Date(Date.now() + 3600000), expiresAt: new Date(Date.now() + 3600000) } });
-  await runtime.aiWorkerProvisioningReceipt.create({ data: { nonce: "c".repeat(64), fingerprint: "d".repeat(64), windowId: "e".repeat(32), operation: "provision", outcome: "attempt" } });
+  await runtime.$executeRaw`INSERT INTO ai_worker_provisioning_receipts (nonce,fingerprint,window_id,operation,outcome) VALUES (${"c".repeat(64)},${"d".repeat(64)},${"e".repeat(32)},'provision','attempt')`;
   await runtime.task.update({ where: { id: task.id }, data: { title: "Updated task" } });
   await runtime.task.delete({ where: { id: task.id } });
   assert.equal(await runtime.contact.count({ where: { organisationId: org.id } }), 1);
@@ -264,4 +279,134 @@ test("verifier rejects missing or unexpected privileges and tables", async () =>
   }
   const final = psqlFile("scripts/sql/runtime-role-verify.sql", "runtime_permissions");
   assert.equal(final.status, 0, final.stderr);
+});
+
+// Each case commits a synthetic ACL change only in the owned local cluster;
+// the verifier must reject it, and cleanup restores the original column ACL.
+async function withUnexpectedColumnGrant({table,operation,columns,grantee="runtime_permissions",grantOption=false}, check) {
+  assert.match(table,/^[a-z_]+$/); for(const column of columns)assert.match(column,/^[a-z_]+$/);
+  const columnSql=columns.map(column=>`"${column}"`).join(",");
+  const target=grantee==="PUBLIC"?"PUBLIC":'"runtime_permissions"';
+  await control.$executeRawUnsafe(`GRANT ${operation}(${columnSql}) ON public."${table}" TO ${target}${grantOption?" WITH GRANT OPTION":""}`);
+  try { await check(); }
+  finally {await control.$executeRawUnsafe(`REVOKE ${operation}(${columnSql}) ON public."${table}" FROM ${target} CASCADE`);}
+}
+
+for(const grantee of ["runtime_permissions","PUBLIC"]) {
+  for(const operation of ["SELECT","INSERT","UPDATE","REFERENCES"]) {
+    test(`verifier rejects ${grantee} ${operation} on excluded ledger column`,async()=>{
+      await withUnexpectedColumnGrant({table:"_prisma_migrations",operation,columns:["id"],grantee},async()=>{
+        const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");
+        assert.notEqual(result.status,0);assert.match(result.stderr,/excluded column/);
+      });
+    });
+  }
+  for(const operation of ["INSERT","UPDATE","REFERENCES"]) {
+    test(`verifier rejects ${grantee} ${operation} on audit column`,async()=>{
+      await withUnexpectedColumnGrant({table:"platform_checkout_admission_audit",operation,columns:["evidence"],grantee},async()=>{
+        const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");
+        assert.notEqual(result.status,0);assert.match(result.stderr,/unexpected column/);
+      });
+    });
+  }
+}
+
+test("review counterexample: forged admission column INSERT is rejected before acceptance",async()=>{
+  const columns=["id","organisation_id","active_organisation_id","clerk_user_id","provider_scope","terms_hash","terms","expires_at","approved_by","approval_reference"];
+  await withUnexpectedColumnGrant({table:"platform_checkout_admissions",operation:"INSERT",columns},async()=>{
+    const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");
+    assert.notEqual(result.status,0);assert.match(result.stderr,/unexpected column INSERT/);
+    const identity=psqlFile("scripts/sql/runtime-identity-readonly.sql","runtime_permissions","runtime_permissions");
+    assert.equal(identity.status,0,identity.stderr);
+    const [authority]=await runtime.$queryRaw`SELECT has_table_privilege(current_user,'platform_checkout_admissions','INSERT') AS table_insert, has_any_column_privilege(current_user,'platform_checkout_admissions','INSERT') AS column_insert`;
+    assert.deepEqual(authority,{table_insert:false,column_insert:true});
+    // No admission is issued merely to test an unsafe role; acceptance stops first.
+  });
+  const org=await organisation("no-forged-admission");
+  await assert.rejects(runtime.platformCheckoutAdmission.create({data:{id:randomUUID(),organisationId:org.id,clerkUserId:"synthetic",providerScope:"synthetic",termsHash:"a".repeat(64),terms:{},expiresAt:new Date(Date.now()+60000),approvedBy:"forged",approvalReference:"forged"}}));
+});
+
+test("review counterexample: PUBLIC INSERT cannot forge audit despite explicit ID",async()=>{
+  await withUnexpectedColumnGrant({table:"platform_checkout_admission_audit",operation:"INSERT",columns:["id","admission_id","action","evidence"],grantee:"PUBLIC"},async()=>{
+    const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");
+    assert.notEqual(result.status,0);assert.match(result.stderr,/unexpected column INSERT/);
+  });
+  await assert.rejects(runtime.$executeRaw`INSERT INTO platform_checkout_admission_audit(id,admission_id,action,evidence) VALUES (900000000,'synthetic','forged','{}')`);
+});
+
+for(const [table,operation,columns] of [
+  ["organisations","SELECT",["id"]],
+  ["ai_worker_provisioning_receipts","INSERT",["nonce"]],
+  ["platform_checkout_admissions","UPDATE",["attempt_id"]],
+  ["platform_checkout_creation_gate","UPDATE",["last_admission_expires_at"]],
+]) test(`verifier rejects column grant option ${operation} on ${table}`,async()=>{
+  await withUnexpectedColumnGrant({table,operation,columns,grantOption:true},async()=>{
+    const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");
+    assert.notEqual(result.status,0);assert.match(result.stderr,/column grant option/);
+  });
+  // Restore the allowed base privilege removed with the grant option.
+  const grants=psqlFile("scripts/sql/runtime-role-grants.sql","runtime_permissions");
+  assert.equal(grants.status,0,grants.stderr);
+});
+
+for(const [column,value] of [["nonce","4".repeat(64)],["fingerprint","5".repeat(64)],["window_id","forged-window"],["operation","recover"],["created_at",new Date(0)]])
+test(`review counterexample: provisioning identity ${column} cannot be rewritten`,async()=>{
+  await assert.rejects(runtime.aiWorkerProvisioningReceipt.update({where:{nonce:"c".repeat(64)},data:{[column==="window_id"?"windowId":column==="created_at"?"createdAt":column]:value}}));
+});
+
+test("final exact-role verifier still passes after all negative cases",()=>{
+  const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");
+  assert.equal(result.status,0,result.stderr);
+});
+
+for(const grantee of ["runtime_permissions","PUBLIC"]) for(const operation of ["SELECT","INSERT","UPDATE","REFERENCES"])
+test(`verifier rejects ${grantee} ${operation} on excluded sample column`,async()=>{
+  await withUnexpectedColumnGrant({table:"playing_with_neon",operation,columns:["id"],grantee},async()=>{
+    const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");
+    assert.notEqual(result.status,0);assert.match(result.stderr,/excluded column/);
+  });
+});
+for(const operation of ["SELECT","INSERT","UPDATE","REFERENCES"])
+test(`verifier rejects excluded column ${operation} WITH GRANT OPTION`,async()=>{
+  await withUnexpectedColumnGrant({table:"_prisma_migrations",operation,columns:["id"],grantOption:true},async()=>{
+    assert.notEqual(psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions").status,0);
+  });
+});
+test("restored excluded column SELECT is denied and exact verifier passes",async()=>{
+  await assert.rejects(runtime.$queryRaw`SELECT id FROM public._prisma_migrations`);
+  await assert.rejects(runtime.$queryRaw`SELECT id FROM public.playing_with_neon`);
+  const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.equal(result.status,0,result.stderr);
+});
+
+
+test("PUBLIC admission INSERT columns are rejected by effective privilege checks",async()=>{
+  await withUnexpectedColumnGrant({table:"platform_checkout_admissions",operation:"INSERT",columns:["id","organisation_id"],grantee:"PUBLIC"},async()=>{
+    const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");
+    assert.notEqual(result.status,0);assert.match(result.stderr,/unexpected column INSERT/);
+  });
+});
+for(const grantee of ["runtime_permissions","PUBLIC"]) test(grantee+" broad provisioning receipt UPDATE is rejected",async()=>{
+  await control.$executeRawUnsafe(`GRANT UPDATE ON ai_worker_provisioning_receipts TO ${grantee}`);
+  try {const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.notEqual(result.status,0);}
+  finally {
+    await control.$executeRawUnsafe(`REVOKE UPDATE ON ai_worker_provisioning_receipts FROM ${grantee}`);
+    const grants=psqlFile("scripts/sql/runtime-role-grants.sql","runtime_permissions");assert.equal(grants.status,0,grants.stderr);
+  }
+});
+for(const grantee of ["runtime_permissions","PUBLIC"]) test(grantee+" SECURITY DEFINER EXECUTE is rejected",async()=>{
+  await control.$executeRawUnsafe(`GRANT EXECUTE ON FUNCTION public.audit_platform_checkout_admission() TO ${grantee}`);
+  try {const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.notEqual(result.status,0);assert.match(result.stderr,/execute admission audit definer/);}
+  finally {await control.$executeRawUnsafe(`REVOKE EXECUTE ON FUNCTION public.audit_platform_checkout_admission() FROM ${grantee}`);}
+});
+for(const object of ["TABLE public.platform_checkout_admissions","FUNCTION public.audit_platform_checkout_admission()"]) test("runtime ownership is rejected: "+object,async()=>{
+  await control.$executeRawUnsafe(`ALTER ${object} OWNER TO runtime_permissions`);
+  try {const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.notEqual(result.status,0);assert.match(result.stderr,/owns or inherits ownership/);}
+  finally {
+    await control.$executeRawUnsafe(`ALTER ${object} OWNER TO checkout_test`);
+    // Ownership transfer replaces the prior grantee ACL; restore the reviewed policy.
+    const grants=psqlFile("scripts/sql/runtime-role-grants.sql","runtime_permissions");assert.equal(grants.status,0,grants.stderr);
+  }
+});
+test("final verifier passes after restored ownership and EXECUTE controls",()=>{
+  const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.equal(result.status,0,result.stderr);
 });

@@ -86,3 +86,38 @@ test("operator-only schema remediation is not treated as runtime SQL", () => {
   assert.ok(manifest.operatorOnly.some((entry) => entry.path === "src/lib/remediate-991-physical.ts"));
   assert.ok(manifest.operatorOnly.some((entry) => entry.path === "packages/platform-core/src/billing/legacy-app-entitlement-reconciliation.ts"));
 });
+
+for (const table of ["platform_checkout_admissions", "platform_checkout_admission_audit", "platform_checkout_creation_gate", "ai_worker_provisioning_receipts"]) {
+  for (const operation of ["SELECT", "INSERT", "UPDATE", "REFERENCES"]) {
+    test(`manifest rejects unexpected ${operation} columns on ${table}`, () => {
+      const manifest = structuredClone(readManifest(root));
+      manifest.tables[table].columnPrivileges[operation] = ["forged_authority"];
+      assert.ok(validateManifest(root, manifest).some(error => error.includes(table)));
+    });
+  }
+}
+for (const [name, mutate] of [
+  ["excluded relation escape", m => { m.excludedRelations.unreviewed_table = "forged exclusion"; }],
+  ["privileged role policy", m => { m.policy.allowRoleMemberships = true; }],
+  ["removed deny list", m => { m.prohibitedTablePrivileges = []; }],
+  ["audit execute", m => { m.functions.audit_platform_checkout_admission.runtimeExecute = true; }],
+  ["sequence escalation", m => { m.sequences.support_messages_id_seq.privileges.push("UPDATE"); }],
+  ["receipt table UPDATE", m => { m.tables.ai_worker_provisioning_receipts.privileges.push("UPDATE"); }],
+]) test(`manifest rejects ${name}`, () => {
+  const manifest = structuredClone(readManifest(root)); mutate(manifest);
+  assert.notDeepEqual(validateManifest(root, manifest), []);
+});
+
+test("provisioning receipt authority is explicit and identity is immutable", () => {
+  const {privileges, columnPrivileges} = readManifest(root).tables.ai_worker_provisioning_receipts;
+  assert.deepEqual(privileges, ["SELECT"]);
+  assert.deepEqual(columnPrivileges.INSERT, ["nonce", "fingerprint", "window_id", "operation", "outcome"]);
+  assert.deepEqual(columnPrivileges.UPDATE, ["outcome", "worker_id", "deployment_id", "completed_at"]);
+});
+
+test("repair publication branch has explicit deployment suppression", () => {
+  const config=JSON.parse(readFileSync(path.join(root,"vercel.json"),"utf8"));
+  assert.equal(config.git.deploymentEnabled["fix/checkout-security-p1-20261027"],false);
+  assert.equal(config.git.deploymentEnabled["fix/single-use-checkout-admission-20261027"],false);
+  assert.notEqual(config.git.deploymentEnabled.main,false);
+});

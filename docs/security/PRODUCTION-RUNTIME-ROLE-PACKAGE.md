@@ -1,7 +1,7 @@
 # Production restricted runtime role — review and approval package
 
-Status: **PROPOSED — not executed.**  
-Prepared: 27 October 2026  
+Status: **PROPOSED — not executed.**
+Prepared: 27 October 2026
 Target: DigitalGate Production, Neon `gentle-sky-35028642`, branch `br-old-shadow-a7ffezls`, database `neondb`.
 
 This package is a review artefact. It does not authorise role creation, credential changes, Vercel changes, deployment, merge, checkout opening or admission.
@@ -95,7 +95,7 @@ The SQL:
 - verifies the role attributes and absence of memberships;
 - commits only on success.
 
-**Approval:** separate owner approval for role creation.  
+**Approval:** separate owner approval for role creation.
 **STOP:** role exists, attribute/membership mismatch, lock timeout or uncertainty.
 
 ### Step 3 — Install authentication privately
@@ -104,7 +104,7 @@ Set the role password/authentication only through the approved private provider 
 
 If using an interactive `psql` `\password dg_app_runtime`, first confirm server statement logging does not capture the credential. Otherwise use the provider's private secret-setting mechanism.
 
-**Approval:** separate owner approval for private credential installation.  
+**Approval:** separate owner approval for private credential installation.
 **STOP:** any credential disclosure or inability to install privately.
 
 ### Step 4 — Apply grants
@@ -117,7 +117,7 @@ psql -X -v ON_ERROR_STOP=1 -v runtime_role=dg_app_runtime -f scripts/sql/runtime
 
 Require `runtime_role_grants_applied`.
 
-**Approval:** separate owner approval for grants.  
+**Approval:** separate owner approval for grants.
 **STOP:** preflight/ownership/membership/unsafe-role failure.
 
 ### Step 5 — Verify required and denied privileges
@@ -130,8 +130,8 @@ Require `runtime_role_verified`.
 
 The verifier must confirm:
 
-- required table/column/sequence privileges;
-- no admission `INSERT`, `DELETE`, `TRUNCATE` or audit mutation;
+- required table/column/sequence privileges, with effective SELECT/INSERT/UPDATE/REFERENCES and grant-option checks on every column of permitted and excluded relations;
+- no admission `INSERT`, `DELETE`, `TRUNCATE` or audit mutation, including individual-column and PUBLIC grants;
 - no gate control (`blocked`, hold, revision);
 - no migration-ledger access;
 - no access to `playing_with_neon` or `playing_with_neon_id_seq`;
@@ -139,7 +139,7 @@ The verifier must confirm:
 - no memberships, ownership, schema/database `CREATE` or grant options;
 - no privileged reachable role.
 
-**Approval:** verification evidence acceptance.  
+**Approval:** verification evidence acceptance.
 **STOP:** any mismatch; do not broaden grants.
 
 ### Step 6 — Optional read-only role connectivity proof
@@ -212,3 +212,11 @@ Required before cutover:
 ## 10. Current assessment
 
 **HOLD** for role creation, grants, credential installation and cutover. The package is reviewable, but the Production actions require separate owner approvals and a valid attended operator window.
+
+## Targeted permission repair requirements
+
+Use only the corrected generator/manifest/grants/verifier at the accepted correction head. The original #1032 head was rejected by independent review; passing its old CI is insufficient.
+
+`ai_worker_provisioning_receipts` permits table SELECT, INSERT(nonce,fingerprint,window_id,operation,outcome), and UPDATE(outcome,worker_id,deployment_id,completed_at). Do not grant table-wide INSERT/UPDATE, identity changes or grant options. The source caller is `executeProvision`; its initial insert and completion update need exactly these columns. The existing owner-pinned provisioning API configuration guard is unchanged; a restricted serving role does not automatically authorise that operator-only endpoint.
+
+The verifier rejects unexpected effective column privileges or grant options inherited from PUBLIC, even when table-level privilege functions return false. Manifest edits cannot add protected column permissions or change exclusions, functions, sequences or role policy without a reviewed source-policy change.

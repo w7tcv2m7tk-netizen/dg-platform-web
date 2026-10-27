@@ -60,7 +60,7 @@ Most business tables receive table-level `SELECT`, `INSERT`, `UPDATE` and `DELET
 | `growth_prospect_engagements` | `SELECT`, `INSERT` only |
 | `agent_actions` | `SELECT`, `INSERT` only |
 | `stripe_webhook_receipts` | `SELECT`, `INSERT`, `UPDATE` |
-| `ai_worker_provisioning_receipts` | `SELECT`, `INSERT`, `UPDATE` |
+| `ai_worker_provisioning_receipts` | `SELECT`; `INSERT(nonce,fingerprint,window_id,operation,outcome)`; `UPDATE(outcome,worker_id,deployment_id,completed_at)` |
 | `platform_checkout_attempts` | `SELECT`, `INSERT`, `UPDATE` |
 | `platform_api_keys` | `SELECT`, `INSERT`, `UPDATE` |
 | `platform_referrals` | `SELECT`, `INSERT`, `UPDATE` |
@@ -209,3 +209,7 @@ The rehearsal creates the full Prisma datamodel plus the certified checkout migr
 - The #991 remediation and legacy reconciliation paths require separate owner authority; they are not part of the restricted runtime.
 - The manifest assumes the application uses the single pooled `DATABASE_URL`. A separate privileged maintenance credential must not be exposed to the runtime.
 - `DATABASE_URL_UNPOOLED` is configured as an encrypted/integration-managed Production variable, not a Secret/sensitive variable. It may be readable to authorized members/automation and can be read by any code in the serving function. Removing or replacing it with restricted authority requires separate approval and integration-sync review; it is not safe to leave an owner-valued binding accessible.
+
+### Effective-column enforcement
+
+All SELECT/INSERT/UPDATE/REFERENCES column privileges and grant options are checked against table plus explicit-column authority for every manifest and excluded table. PUBLIC permissions are effective permissions and do not escape validation. Exact security policy is validated against the reviewed generator; an edited JSON manifest cannot create a new authority boundary. Provisioning receipt identity and audit evidence remain immutable to the runtime.

@@ -42,6 +42,7 @@
       "fix/checkout-release-readiness-20261023": false,
       "finish/checkout-entitlements": false,
       "fix/single-use-checkout-admission-20261027": false,
+      "fix/checkout-security-p1-20261027": false,
       "integration/checkout-security-20261027": false
     }
   }

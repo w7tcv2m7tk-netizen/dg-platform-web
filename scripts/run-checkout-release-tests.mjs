@@ -6,6 +6,8 @@ const env = { NODE_ENV: "test", LC_ALL: "C", LANG: "C" };
 for (const key of ["PATH", "HOME", "TMPDIR", "SystemRoot"]) if (process.env[key]) env[key] = process.env[key];
 const files = [
   "scripts/test-runtime-permissions-manifest.mjs",
+  "scripts/test-onboarding-save-queue.mjs",
+  "scripts/test-onboarding-state-before-checkout.mjs",
   "scripts/test-checkout-admission-unit.mjs",
   "scripts/test-checkout-release-preflight.mjs",
   "scripts/test-legacy-checkout-inventory.mjs",
