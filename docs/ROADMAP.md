@@ -943,3 +943,34 @@ pre-existing `react-hooks/set-state-in-effect` warning at line 69; the file was 
 changed. Candidate is ready for final independent review and the authorised
 publication, then exact-head CI. Existing `finish/checkout-entitlements` deployment suppression is
 unchanged. No Production or provider changes.
+
+### 27 October 2026 — unpaid onboarding save recovery
+
+Requirements `platform.auth`, `detach.portal_billing`, `founding.onboarding`;
+branch `fix/onboarding-recovery-20261027` from main `8d639743`, DRAFT PR #1033.
+The pre-purchase 403 was caused by `/api/v1/onboarding/gen2/state` remaining
+inside the tenant write-entitlement gate while only `/api/v1/onboarding/gen2`
+was exempt. The fix adds the exact state-path recovery exemption, a canonical
+billing completion guard in the state route, and a serialised onboarding save
+queue so profile/state writes cannot race or overwrite a later basket/stage.
+Unpaid tenants can save permitted progress but cannot set completion, forge
+billing fields, obtain platform access, create a subscription, bypass checkout
+or receive unearned entitlements. Authentication, permission, demo, operator
+and tenant-target checks remain intact; adjacent tenant writes remain gated.
+
+Local verification on code commit `f67a0dd5`: new queue/route regressions
+17/17; onboarding checkout/handoff, resume, plan, support, UX and shell handoff
+passed; write-entitlement guard 24/24; security 84/84; checkout compatibility
+171/171; checkout release 389/389; owned disposable PostgreSQL
+checkout/lifecycle 126/126, reconciliation 27/27, atomic hold 6/6, operator SQL
+3/3 (162/162), including expired-session replacement/resume, retries and tenant
+isolation; standalone TypeScript passed; complete `npm run build` (prebuild,
+TypeScript, 457/457 static pages) passed; `git diff --check` passed. Changed-file
+ESLint introduced zero errors; two pre-existing `react-hooks/set-state-in-effect`
+errors remain on unchanged lines and reproduce on main.
+
+Verification is **VERIFIED IN ISOLATION** for the local scope. PR #1033 remains
+DRAFT and unmerged; Production, deployment, provider configuration, checkout
+admission/opening and customer activation remain **BLOCKED** pending exact-head
+CI, independent review and separate approvals. No Production/provider/database
+write, credential, Vercel, Stripe, checkout admission or activation was performed.
