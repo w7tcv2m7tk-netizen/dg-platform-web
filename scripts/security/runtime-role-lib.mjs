@@ -10,6 +10,7 @@ export const SCHEMA_FILES = [
 export const MIGRATION_DIR = "packages/database/prisma/migrations";
 
 const TABLE_PRIVILEGES = ["SELECT", "INSERT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER", "MAINTAIN"];
+const COLUMN_PRIVILEGES = ["SELECT", "INSERT", "UPDATE", "REFERENCES"];
 const SEQUENCE_PRIVILEGES = ["USAGE", "SELECT", "UPDATE"];
 const REQUIRED_MODULES = [
   "CRM",
@@ -119,7 +120,14 @@ const PRIVILEGE_OVERRIDES = {
   ai_worker_claim_receipts: { privileges: ["SELECT", "INSERT", "DELETE"], rationale: "Claim receipts require create/read and retention cleanup; no update path is used." },
   ai_inference_jobs: { privileges: ["SELECT", "INSERT", "UPDATE", "DELETE"], rationale: "AI job lifecycle requires create/read/update plus bounded retention cleanup." },
   ai_accounting_outbox: { privileges: ["SELECT", "INSERT", "UPDATE", "DELETE"], rationale: "Outbox delivery requires create/read/update plus delivered-row retention cleanup." },
-  ai_worker_provisioning_receipts: { privileges: ["SELECT", "INSERT", "UPDATE"], rationale: "Provisioning receipts are created, read and completed by a constrained UPDATE; never deleted at runtime." },
+  ai_worker_provisioning_receipts: {
+    privileges: ["SELECT"],
+    columnPrivileges: {
+      INSERT: ["nonce", "fingerprint", "window_id", "operation", "outcome"],
+      UPDATE: ["outcome", "worker_id", "deployment_id", "completed_at"],
+    },
+    rationale: "Authenticated provisioning inserts replay/budget identity once; completion may update only outcome and result columns. Nonce, fingerprint, window, operation and creation time are immutable to runtime.",
+  },
   ai_worker_principals: { privileges: ["SELECT", "INSERT", "UPDATE"], rationale: "Worker principals require create/read/update; revocation is an update, not a delete." },
   ai_local_deployments: { privileges: ["SELECT", "INSERT", "UPDATE"], rationale: "Local deployments require create/read/update; no runtime delete path exists." },
   ai_local_recipient_approvals: { privileges: ["SELECT", "INSERT", "UPDATE"], rationale: "Recipient authority is approved/revoked by update; no runtime delete path exists." },
@@ -324,8 +332,12 @@ function tableUsage(root) {
     for (const match of source.matchAll(/\b(?:prisma|tx|db|database|client)\.([a-zA-Z][A-Za-z0-9_]*)\.(findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|findMany|create|createMany|createManyAndReturn|update|updateMany|upsert|delete|deleteMany|count|aggregate|groupBy)\b/g)) {
       const table = byCamel.get(match[1]);
       if (!table) continue;
-      const entry = usage.get(table) ?? { privileges: new Set(), updateColumns: new Set() };
-      for (const privilege of requiredPrivilegesForMethod(match[2])) entry.privileges.add(privilege);
+      const entry = usage.get(table) ?? { privileges: new Set(), updateColumns: new Set(), insertColumns: new Set(), unscopedInsert: false, unscopedUpdate: false };
+      for (const privilege of requiredPrivilegesForMethod(match[2])) {
+        entry.privileges.add(privilege);
+        if (privilege === "INSERT") entry.unscopedInsert = true;
+        if (privilege === "UPDATE") entry.unscopedUpdate = true;
+      }
       usage.set(table, entry);
     }
     if (!source.includes("queryRaw") && !source.includes("executeRaw")) continue;
@@ -334,9 +346,16 @@ function tableUsage(root) {
         ddl.push({ file: relative, statement: sql.slice(0, 160).replace(/\s+/g, " ") });
       }
       for (const ref of sqlTableReferences(sql)) {
-        const entry = usage.get(ref.table) ?? { privileges: new Set(), updateColumns: new Set() };
+        const entry = usage.get(ref.table) ?? { privileges: new Set(), updateColumns: new Set(), insertColumns: new Set(), unscopedInsert: false, unscopedUpdate: false };
         entry.privileges.add(ref.privilege);
-        if (ref.privilege === "UPDATE") for (const column of ref.columns ?? []) entry.updateColumns.add(column);
+        if (ref.privilege === "UPDATE") {
+          if (!ref.columns?.length) entry.unscopedUpdate = true;
+          for (const column of ref.columns ?? []) entry.updateColumns.add(column);
+        }
+        if (ref.privilege === "INSERT") {
+          if (!ref.columns?.length) entry.unscopedInsert = true;
+          for (const column of ref.columns ?? []) entry.insertColumns.add(column);
+        }
         usage.set(ref.table, entry);
       }
     }
@@ -413,7 +432,10 @@ function sqlTableReferences(sql) {
     if (!table || /^(?:select|where|set|values|dual|lateral|unnest)$/i.test(table) || ctes.has(table)) return;
     refs.push({ table, privilege, columns });
   };
-  for (const match of parseSql.matchAll(/\bINSERT\s+INTO\s+(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?/gi)) add(match[1], "INSERT");
+  for (const match of parseSql.matchAll(/\bINSERT\s+INTO\s+(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?\s*(?:\(([^)]*)\))?/gi)) {
+    const columns = match[2]?.split(",").map(column => column.trim().replace(/^"|"$/g, ""));
+    add(match[1], "INSERT", columns);
+  }
   for (const match of parseSql.matchAll(/\bDELETE\s+FROM\s+(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?/gi)) add(match[1], "DELETE");
   for (const match of parseSql.matchAll(/\bUPDATE\s+(?!OF\b)(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?(?:\s+(?:AS\s+)?["]?[a-zA-Z_][a-zA-Z0-9_]*["]?)?\s+SET\s+([\s\S]*?)(?=\bWHERE\b|\bFROM\b|\bRETURNING\b|;|$)/gi)) {
     const columns = splitTopLevel(match[2]).map((part) => part.trim().match(/^["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?\s*=/)?.[1]).filter(Boolean);
@@ -435,6 +457,26 @@ export function validateManifest(root, manifest) {
   const models = parsePrismaModels(root);
   const schemaTables = new Set(models.map(({ table }) => table));
   const manifestTables = new Set(Object.keys(manifest.tables));
+  // JSON is an auditable policy artifact, not an independent authority to widen
+  // permissions. Security-bearing edits must change reviewed source policy too.
+  const approved = buildManifest(root);
+  for (const key of ["policy", "excludedRelations", "deniedSequences", "sequences", "functions",
+    "prohibitedTablePrivileges", "prohibitedSchemaPrivileges", "operatorOnly", "requiredModules"]) {
+    if (JSON.stringify(manifest[key]) !== JSON.stringify(approved[key])) errors.push(`${key}: differs from reviewed policy`);
+  }
+  for (const [table, entry] of Object.entries(manifest.tables)) {
+    const policy = approved.tables[table];
+    if (policy && (JSON.stringify(entry.privileges) !== JSON.stringify(policy.privileges)
+      || JSON.stringify(entry.columnPrivileges) !== JSON.stringify(policy.columnPrivileges))) {
+      errors.push(`${table}: privilege policy differs from reviewed source`);
+    }
+    for (const [operation, columns] of Object.entries(entry.columnPrivileges ?? {})) {
+      if (!COLUMN_PRIVILEGES.includes(operation) || !Array.isArray(columns) || !columns.length
+        || columns.some(column => typeof column !== "string" || !/^[a-z_][a-z0-9_]*$/.test(column))
+        || new Set(columns).size !== columns.length) errors.push(`${table}: invalid column privilege policy`);
+    }
+  }
+
 
   for (const table of schemaTables) {
     if (table === "_prisma_migrations") continue;
@@ -507,12 +549,13 @@ export function validateManifest(root, manifest) {
       continue;
     }
     for (const privilege of used.privileges) {
-      if (privilege === "UPDATE") {
-        if ((entry.privileges ?? []).includes("UPDATE")) continue;
-        const allowed = new Set(entry.columnPrivileges?.UPDATE ?? []);
-        const columns = [...used.updateColumns];
-        if (columns.length === 0) errors.push(`${table}: runtime uses UPDATE but manifest grants no table-level UPDATE`);
-        for (const column of columns) if (!allowed.has(column)) errors.push(`${table}: runtime updates ${column} but manifest does not grant it`);
+      if (privilege === "UPDATE" || privilege === "INSERT") {
+        if ((entry.privileges ?? []).includes(privilege)) continue;
+        const allowed = new Set(entry.columnPrivileges?.[privilege] ?? []);
+        const columns = [...(privilege === "UPDATE" ? used.updateColumns : used.insertColumns)];
+        const unscoped = privilege === "UPDATE" ? used.unscopedUpdate : used.unscopedInsert;
+        if (unscoped || columns.length === 0) errors.push(`${table}: runtime uses unscoped ${privilege} without table-level authority`);
+        for (const column of columns) if (!allowed.has(column)) errors.push(`${table}: runtime ${privilege} column ${column} is not granted`);
       } else if (!hasPrivilege(entry, privilege)) {
         errors.push(`${table}: runtime uses ${privilege} but manifest does not grant it`);
       }
@@ -654,21 +697,26 @@ export function renderVerifySql(manifest) {
   lines.push("      IF has_table_privilege(v_oid, format('public.%I', v_table.table_name), v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option % on %', v_privilege, v_table.table_name; END IF;");
   lines.push("    END LOOP;");
   lines.push("    FOR v_column IN SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid=format('public.%I', v_table.table_name)::regclass AND attnum>0 AND NOT attisdropped LOOP");
-  lines.push("      IF NOT (v_table.column_privileges ? 'UPDATE') THEN CONTINUE; END IF;");
-  lines.push("      IF NOT (v_column.attname = ANY(ARRAY(SELECT jsonb_array_elements_text(v_table.column_privileges->'UPDATE')))) AND has_column_privilege(v_oid, format('public.%I', v_table.table_name), v_column.attname, 'UPDATE') THEN RAISE EXCEPTION 'unexpected UPDATE on %.%', v_table.table_name, v_column.attname; END IF;");
-  lines.push("    END LOOP;");
-  lines.push("    IF v_table.column_privileges ? 'UPDATE' THEN");
-  lines.push("      FOR v_privilege IN SELECT jsonb_array_elements_text(v_table.column_privileges->'UPDATE') LOOP");
-  lines.push("        IF NOT has_column_privilege(v_oid, format('public.%I', v_table.table_name), v_privilege, 'UPDATE') THEN RAISE EXCEPTION 'missing UPDATE on %.%', v_table.table_name, v_privilege; END IF;");
-  lines.push("        IF has_column_privilege(v_oid, format('public.%I', v_table.table_name), v_privilege, 'UPDATE WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option UPDATE on %.%', v_table.table_name, v_privilege; END IF;");
+  lines.push("      FOREACH v_privilege IN ARRAY ARRAY['SELECT','INSERT','UPDATE','REFERENCES'] LOOP");
+  lines.push("        IF v_privilege = ANY(v_table.table_privileges) OR coalesce((v_table.column_privileges->v_privilege) ? v_column.attname,false) THEN");
+  lines.push("          IF NOT has_column_privilege(v_oid,format('public.%I',v_table.table_name),v_column.attname,v_privilege) THEN RAISE EXCEPTION 'missing column % on %.%',v_privilege,v_table.table_name,v_column.attname; END IF;");
+  lines.push("        ELSIF has_column_privilege(v_oid,format('public.%I',v_table.table_name),v_column.attname,v_privilege) THEN");
+  lines.push("          RAISE EXCEPTION 'unexpected column % on %.%',v_privilege,v_table.table_name,v_column.attname;");
+  lines.push("        END IF;");
+  lines.push("        IF has_column_privilege(v_oid,format('public.%I',v_table.table_name),v_column.attname,v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'column grant option % on %.%',v_privilege,v_table.table_name,v_column.attname; END IF;");
   lines.push("      END LOOP;");
-  lines.push("    END IF;");
+  lines.push("    END LOOP;");
   lines.push("  END LOOP;");
   lines.push("  FOR v_excluded IN SELECT * FROM dg_runtime_excluded_relations LOOP");
   lines.push("    IF to_regclass(format('public.%I', v_excluded.relation_name)) IS NOT NULL THEN");
   lines.push("      FOREACH v_privilege IN ARRAY v_all LOOP");
   lines.push("        IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege) THEN RAISE EXCEPTION 'runtime has % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;");
   lines.push("        IF has_table_privilege(v_oid, format('public.%I', v_excluded.relation_name), v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'grant option % on excluded relation %', v_privilege, v_excluded.relation_name; END IF;");
+  lines.push("      END LOOP;");
+  lines.push("      FOR v_column IN SELECT attname FROM pg_catalog.pg_attribute WHERE attrelid=format('public.%I',v_excluded.relation_name)::regclass AND attnum>0 AND NOT attisdropped LOOP");
+  lines.push("        FOREACH v_privilege IN ARRAY ARRAY['SELECT','INSERT','UPDATE','REFERENCES'] LOOP");
+  lines.push("          IF has_column_privilege(v_oid,format('public.%I',v_excluded.relation_name),v_column.attname,v_privilege) OR has_column_privilege(v_oid,format('public.%I',v_excluded.relation_name),v_column.attname,v_privilege || ' WITH GRANT OPTION') THEN RAISE EXCEPTION 'runtime has excluded column % on %.%',v_privilege,v_excluded.relation_name,v_column.attname; END IF;");
+  lines.push("        END LOOP;");
   lines.push("      END LOOP;");
   lines.push("    END IF;");
   lines.push("  END LOOP;");

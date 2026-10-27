@@ -194,12 +194,24 @@
     "ai_worker_provisioning_receipts": {
       "module": "AI",
       "privileges": [
-        "SELECT",
-        "INSERT",
-        "UPDATE"
+        "SELECT"
       ],
-      "columnPrivileges": {},
-      "rationale": "Provisioning receipts are created, read and completed by a constrained UPDATE; never deleted at runtime."
+      "columnPrivileges": {
+        "INSERT": [
+          "nonce",
+          "fingerprint",
+          "window_id",
+          "operation",
+          "outcome"
+        ],
+        "UPDATE": [
+          "outcome",
+          "worker_id",
+          "deployment_id",
+          "completed_at"
+        ]
+      },
+      "rationale": "Authenticated provisioning inserts replay/budget identity once; completion may update only outcome and result columns. Nonce, fingerprint, window, operation and creation time are immutable to runtime."
     },
     "aida_conversations": {
       "module": "Aida",

@@ -1,7 +1,7 @@
 # Production deployment and restricted runtime cutover runbook
 
-Status: **HOLD for Production deployment, role provisioning, credential cutover, merge and checkout activation.**  
-Prepared: 27 October 2026  
+Status: **HOLD for Production deployment, role provisioning, credential cutover, merge and checkout activation.**
+Prepared: 27 October 2026
 Scope: PR #1028 (single-use checkout admission), PR #1029 (restricted runtime permissions), PR #1030 (cutover readiness), PR #1031 (exclusions/role package) and the integration PR
 
 This runbook prepares the operator sequence. It does not authorise any Production write, credential change, role grant, deployment, merge, Stripe change or customer action. Each numbered approval gate is separate.
@@ -10,9 +10,10 @@ This runbook prepares the operator sequence. It does not authorise any Productio
 
 - PR #1028: draft, head `f1e199de7d77762183894fe7e0a8d4f72b50bb8c`.
 - PR #1029: draft, head `f07ba2a755d2262eaa7b082cde151eb8e46300c2`, stacked on PR #1028; exact-head CI `40444279801` SUCCESS.
-- PR #1030: draft, head `154e20014201e57bde5f50a8a40045077ab76cc7`; runbook and deployment-boundary tests.
-- PR #1031: draft, head `9bfaa7fff088030e6a0e2915fecf0d3e15f554a6`; excluded Neon sample objects and role package.
-- Integration branch `integration/checkout-security-20261027` combines #1030 and #1031 on #1029; a draft integration PR is the intended merge vehicle.
+- PR #1030: CLOSED as superseded, retained head `154e20014201e57bde5f50a8a40045077ab76cc7`; runbook and deployment-boundary tests.
+- PR #1031: CLOSED as superseded, retained head `9bfaa7fff088030e6a0e2915fecf0d3e15f554a6`; excluded Neon sample objects and role package.
+- PR #1032, branch `integration/checkout-security-20261027`, combines #1030 and #1031 on #1029; reviewed original head `fb7a9594bd398cf66d735585c3d68e7f179d9cbd`.
+- The targeted security correction branch `fix/checkout-security-p1-20261027` is stacked on #1032. Its draft PR does not authorise any merge or deployment. Use the final correction SHA and exact-head CI, never the superseded security acceptance.
 - Independently verified Production state (operator-provided; not re-queried in this worktree):
   - 26 finished migrations, zero unfinished.
   - 85 public tables: 83 manifest tables plus `_prisma_migrations` and `playing_with_neon`.
@@ -45,9 +46,10 @@ Complete every item read-only before requesting the next write approval.
 
 - [ ] PR #1028 is still draft/open at `f1e199de`; required CI is green.
 - [ ] PR #1029 is still draft/open at `f07ba2a7`; required CI is green.
-- [ ] PR #1030 is draft/open at `154e2001`; PR #1031 is draft/open at `9bfaa7ff`.
+- [ ] PR #1030/#1031 remain CLOSED as superseded, with retained heads `154e2001`/`9bfaa7ff`; do not reopen or merge them.
+- [ ] PR #1032 and its correction PR remain at the reviewed heads with passing exact-head CI; all P1 corrections are accepted.
 - [ ] The integration branch/PR still contains the complete #1030 and #1031 changes.
-- [ ] No PR head has changed since this runbook was prepared.
+- [ ] No PR head has changed since the latest accepted certification. The old `fb7a9594` security FAIL is superseded only by review of the correction, not by its CI alone.
 - [ ] Approved migration files are unchanged.
 - [ ] No newer `main` commit creates a merge/rebase dependency.
 
@@ -170,8 +172,8 @@ Each numbered step requires its own approval. Do not batch approvals.
 
 ### Step 0 — Read-only preflight
 
-Complete section 3. Record sanitised evidence only.  
-**Approval:** none for read-only checks.  
+Complete section 3. Record sanitised evidence only.
+**Approval:** none for read-only checks.
 **STOP:** any identity, ledger, role, recovery, endpoint or credential ambiguity.
 
 ### Step 1 — Admission migration — already completed; verify only
@@ -257,33 +259,34 @@ Why cut over before #1028 deployment:
 
 If the owner requires #1028 to deploy first, the owner window is explicit; checkout remains blocked and no permit is issued.
 
-### Step 5 — Deploy PR #1028
+### Step 5 — Integrate the security correction into PR #1032
 
-Only after Step 4 is verified:
+Only after Step 4 is verified and the corrected permission package is accepted:
 
-- Merge PR #1028 to `main` under separate approval; do not alter its head.
-- Deploy the resulting main source.
-- Verify deployment/source/alias and captured runtime role.
-- Keep checkout globally blocked.
-- Verify admission code fails closed without a permit.
-- Verify no permit/audit rows were created.
+- Owner separately approves merging the correction PR into #1032's integration branch.
+- Verify the resulting #1032 tree contains #1028 admission code, #1029 permissions, #1030/#1031 documentation/exclusions and all P1/onboarding corrections.
+- Confirm feature-branch deployment suppression before any authorised merge/push; no Preview or Neon branch is authorised.
+- Rerun required exact-head CI at the resulting integration head. Keep #1028/#1029 drafts and branches preserved.
 
-**Approval:** separate merge/deploy approval.  
-**STOP:** any runtime role regression, admission write, gate change or old-instance uncertainty.
+**Approval:** correction merge only. This is not a Production release approval.
+**STOP:** source divergence, missing corrections, deployment suppression uncertainty or failed checks.
 
-### Step 6 — Integrate PR #1030/#1031 via the integration PR
+### Step 6 — Owner-approved consolidated release or explicit dependency merges
 
-The integration branch/PR combines the PR #1030 runbook/deployment-boundary work and PR #1031 exclusions/role-package work on top of PR #1029. It does not add application runtime behaviour.
+Recommended minimum-deployment route, requiring a separate owner decision:
 
-After PR #1028 and PR #1029 are merged:
+1. Approve retargeting #1032 from #1029's feature branch to protected `main`. This consolidates the already reviewed dependency stack; it is not a wholesale merge of stale #1006/#1015.
+2. Verify current main/base, full tree, protection requirements and exact-head/merge-result checks after retargeting. Do not assume old CI certifies a new merge base.
+3. Obtain explicit owner approval to merge #1032 and allow its normal Production deployment. Deploy no unreviewed main commits; never bypass protections.
+4. Verify source/tree, READY state, all routing and restricted serving role, blocked checkout, hold state and zero admission/audit rows.
+5. Only after acceptance, request separate disposition of superseded #1028/#1029. Do not close them or delete any branch automatically.
 
-- Merge the integration PR under separate approval, or retarget it to `main` as a metadata-only base change.
-- Do not merge #1030 or #1031 separately; the integration PR is the consolidated merge vehicle.
-- Deploy; verify no runtime behaviour change and no database permission regression.
-- Do not merge reporting output.
+If the owner instead retains separate dependency merges: merge #1028 to main under approval, retarget #1029 explicitly to main and reverify before its approved merge, then retarget #1032 to main and reverify before its approved merge. Each deployment needs its own approval and checkpoint. Do not mix the two strategies or merge into an already-merged feature branch and assume main was updated.
 
-**Approval:** separate merge/deploy approval.
-**DO NOT** merge the integration PR before #1028 and #1029; it carries their commits as ancestors.
+Do not deploy admission code before restricted-runtime verification. No permit, checkout opening or customer contact is included in either release path.
+
+**Approval:** base changes, merge/deployment and later supersession are separate owner decisions.
+**STOP:** role regression, gate/admission change, unexpected claims or uncertain old-instance cutoff.
 
 ### Step 7 — Post-cutover smoke and observation
 
@@ -300,7 +303,7 @@ Only after all shared gates pass, obtain separate approval for one terms-bound a
 | Deployment | Alias/source/deployment ID | Intended READY deployment | No |
 | Runtime role | `current_user` / `session_user` with serving credential | Runtime role | No |
 | Runtime endpoint | Private `\conninfo` correlation | Intended pooled Neon endpoint/database | No |
-| Privileges | `runtime-role-verify.sql` | `runtime_role_verified` | No |
+| Privileges | Approved `runtime-role-verify.sql` under operator authority (creates temporary tables, not a Stage 0 pure read-only query) | `runtime_role_verified` | Temporary only; separate approval |
 | Health | `/api/health/db` | 200, `ok:true` | No |
 | Public site | Home, pricing, public website pages | 200, expected content | No |
 | Auth | Login page, existing session | 200, valid redirect | No |
@@ -308,7 +311,7 @@ Only after all shared gates pass, obtain separate approval for one terms-bound a
 | CRM | Contacts/companies/leads/tasks read pages | 200, tenant-scoped data | No |
 | Prospecting | Prospect/report/audit read pages | 200, expected data | No |
 | Industry apps | Finance/accommodation/commercial/PM read pages | 200, expected data | No |
-| Onboarding | Resume/read onboarding page | 200, no write | No |
+| Onboarding | Read authenticated state API only; do not open an autosaving form during read-only smoke | 200, tenant-scoped state | No |
 | Commerce | Invoices/quotes read pages | 200, expected data | No |
 | Billing | Subscription status/read path | 200, expected state | No |
 | Checkout | Attempt creation without permit | Fail closed, no session | No |
@@ -333,7 +336,8 @@ Do not create a Live Checkout Session, charge, subscription, customer record, pe
 
 ### 7.2 Credential cutover failure
 
-- Revert only the Production `DATABASE_URL` binding/deployment to the prior approved credential under separate approval.
+- Revert only to a previously verified safe restricted-runtime binding/deployment under separate approval. An owner/privileged credential is not an automatic rollback target; if no safe target exists, keep checkout blocked and request an explicit bounded owner decision.
+- Coordinate both pooled and unpooled binding authority and integration-selected role; a partial rollback must not silently restore an owner-valued secondary URL.
 - Keep checkout blocked.
 - Do not drop the runtime role or delete audit evidence.
 - Do not restore a database snapshot as a credential rollback.
@@ -362,8 +366,8 @@ Snapshot restore is a separate last-resort operation. It loses post-snapshot wri
 1. Completion/receipt acceptance for the already-completed migration; no re-execution.
 2. Role provisioning and grants.
 3. Runtime credential cutover and `DATABASE_URL_UNPOOLED` handling.
-4. PR #1028 merge/deploy.
-5. Integration PR (#1030/#1031) merge/deploy after #1028/#1029.
+4. Correction PR merge into #1032.
+5. Explicit consolidated #1032-to-main release decision (or the fully specified separate dependency strategy), then protected merge/deployment approval.
 6. Post-cutover smoke acceptance.
 7. Single-customer pilot/admission/contact (separate, later).
 
@@ -375,7 +379,7 @@ Snapshot restore is a separate last-resort operation. It loses post-snapshot wri
 - `DATABASE_URL_UNPOOLED` may still expose an owner-valued credential to the serving function; encrypted/integration-managed status and integration resynchronisation require separate review.
 - Actual serving `DATABASE_URL` credential, role and endpoint remain unverified.
 - Recovery snapshot/RPO/protected-restore acceptance is not recorded.
-- PR #1028, #1029, #1030 and #1031 remain unmerged; the integration PR is the consolidated merge vehicle.
+- PR #1028/#1029/#1032 and the correction remain unmerged. #1030/#1031 are CLOSED as superseded with preserved ancestry. Owner must select the explicit consolidated or separate-dependency release procedure.
 - Vercel build/prebuild production DB access has not been observed in the release window; CI build passed without a database.
 - Production smoke and old-instance cutoff evidence do not yet exist.
 - Global checkout remains blocked; no customer pilot is authorised.
@@ -413,3 +417,9 @@ Local verification for the consolidated integration branch:
 - `git diff --check` — pass.
 
 These are disposable/local checks only. They do not prove the Production role, captured credential, endpoint or admission readiness.
+
+## Targeted P1 corrections — release prerequisite
+
+The correction enforces effective SELECT/INSERT/UPDATE/REFERENCES column privileges and grant options on every permitted/excluded relation, including PUBLIC grants. Protected manifest security fields must match source policy. Provisioning receipt INSERT/UPDATE is column-limited; replay and budget identity cannot be rewritten. The unpaid onboarding-state exemption is exact, paired with canonical completion checks and ordered saves.
+
+Stage 0 is management and exact-serving-credential read-only identity evidence only. It must not invoke grants, role creation, the temporary-table verifier, migrations or customer mutation routes. Existing role creation/private authentication/grants/cutover/pilot approvals remain separate.

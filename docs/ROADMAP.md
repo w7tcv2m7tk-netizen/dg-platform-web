@@ -1078,3 +1078,33 @@ included. Local static, disposable PostgreSQL, security, checkout, TypeScript,
 ESLint, build and diff checks passed. Status **PREPARED / HOLD** for Production
 role creation, grants, credential installation and cutover. Checkout remains
 blocked; no Production/database/Vercel/credential change was made.
+
+
+### P0 checkout P1 security repair — 27 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`. Isolated branch
+`fix/checkout-security-p1-20261027`, based exactly on PR #1032 head
+`fb7a9594bd398cf66d735585c3d68e7f179d9cbd`; existing PRs/branches unchanged.
+
+Implementation: effective column privilege/grant-option verification for all
+permitted/excluded relations including PUBLIC; exact manifest security policy;
+column-scoped provisioning receipt insertion/completion with immutable identity;
+selective #1015 unpaid onboarding exemption/completion guard/ordered-save recovery;
+corrected superseded-PR, merge-base and rollback instructions. No migration or
+Production/provider change. Repair branch has explicit deployment suppression.
+
+Local verification: focused manifest/deployment/onboarding **58/58**; security
+**84/84** plus manifest **34/34** and deployment **8/8**; checkout **450/450**;
+PostgreSQL 18 permission regressions **48/48**; coordinator **44/44**; compatibility
+suites **57/57**, **128/128**, **27/27**, **6/6**, **3/3**. Prisma validation,
+owned-DB schema parity, TypeScript and canonical `npm run build` **457/457** pages
+passed. New-code ESLint passed. Full changed component ESLint reports two
+`react-hooks/set-state-in-effect` errors reproduced on identical unchanged effects
+at the original #1032 head; no lint rule was disabled. The recovered #1015 UX
+regression assertion was included so prebuild tests cover the ordered save queue.
+
+State: VERIFIED LOCALLY / READY FOR INDEPENDENT REVIEW and exact-head CI, not
+Production certified. Next: publish a draft correction against #1032, require
+exact-head CI and independent owner review; keep all provisioning, credentials,
+merge/deploy and pilot approvals separate. Runtime identity/integration resync and
+Live session inventory remain operational gates. No admission or customer invitation.

@@ -41,7 +41,8 @@
       "release/stripe-webhook-guard-only-20261019": false,
       "fix/checkout-release-readiness-20261023": false,
       "finish/checkout-entitlements": false,
-      "fix/single-use-checkout-admission-20261027": false
+      "fix/single-use-checkout-admission-20261027": false,
+      "fix/checkout-security-p1-20261027": false
     }
   }
 }
