@@ -63,3 +63,57 @@ subscription lifecycle. The owner-pinned AI provisioning API configuration guard
 is unchanged; DB-level service tests are not approval to enable that endpoint
 under a different Production identity. Production remains on HOLD pending separate
 Stage 0 identity evidence, role/credential approvals, controlled release and pilot.
+
+## Final onboarding reconciliation — 27 October 2026
+
+Compared #1033 `fc7b7c44eb733de2ec5af11af69ac86eb6715a26` against its
+main base `8d639743352b9e980afb7e156fc9ac9cff1308b2`, and #1034
+`14919a519805d1104b21dae16cc0c686c6386577` against #1032
+`fb7a9594bd398cf66d735585c3d68e7f179d9cbd`. All production onboarding
+changes and save-queue coverage were already identical. The only missing test
+was #1033's explicit expired/unpaid Stripe-return completion rejection. That
+exact five-line test is now recovered; all seven onboarding code/test files
+match #1033 byte-for-byte. Roadmap records differ by workstream, as expected.
+
+No production code, permissions, manifest, SQL, migration, dependencies, CI or
+deployment suppression changed in this follow-up. All P1 security corrections
+remain in the parent commit. The restored test runs in existing checkout CI.
+
+Coverage distinguishes mocked route/queue behavior from disposable integration:
+
+- Route tests: exact-path unpaid save, forged-field removal, canonical paid/exempt
+  completion, expired/unpaid return rejection, authentication, permission/demo
+  checks, tenant targeting and adjacent-path entitlement denial.
+- Queue tests: serialized profile/state saves, superseded-draft cancellation,
+  failed-save reporting and network-failure/retry recovery.
+- Existing disposable checkout tests: persisted synthetic onboarding selections,
+  saved/expired-session resumption, one owned Checkout Session, canonical payment
+  activation, duplicate delivery and verified entitlement authority.
+- Permission tests: real local provisioning service success/replay rejection and
+  direct/PUBLIC column privilege and grant-option negative controls.
+
+This is local/CI evidence, not new authenticated-browser or Live Stripe evidence.
+The previous two full-component set-state-in-effect lint errors remain baseline
+debt; component code is unchanged, no rules are suppressed.
+
+Review handoff: the previous independent review target `14919a5` is superseded
+for final acceptance by this follow-up head. Do not alter the independent review
+worktree. Rerun independent certification on the published exact head. Preserve
+#1033 until that review passes and the owner explicitly approves supersession.
+
+Dependency order remains: independently accept #1034, then owner-approved merge
+into #1032; explicitly choose consolidated #1032 retarget-to-main or the runbook's
+separate #1028 → #1029 → #1032 sequence, with fresh merge-base checks and separate
+merge/deployment approvals. Verify suppression before any integration merge.
+No merge, retarget, closure, deployment or runtime cutover is authorised here.
+
+Refreshed local validation for this follow-up: route/queue **17/17**; security
+**84/84 + 34/34 + 8/8**; checkout **451/451**; disposable PostgreSQL permissions
+**48/48**, compatibility/admission/reconciliation/guard/operator
+**57/57 + 128/128 + 27/27 + 6/6 + 3/3**, with both owned clusters destroyed
+and datamodel parity showing no differences. TypeScript and changed-test lint
+passed. Full canonical `npm run build` passed (Next 16.4.1, existing Webpack
+command, **457/457** pages). Existing middleware/cache-control/module-type and
+dynamic-render diagnostics remain nonfatal; no build configuration was changed.
+Git diff checks passed. Exact-head CI must pass after the normal push; these
+results are not independent security acceptance or Production certification.

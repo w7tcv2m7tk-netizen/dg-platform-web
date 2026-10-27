@@ -48,6 +48,11 @@ for(const body of [{vipSetup:{completedAt:'2026-10-23T00:00:00Z'}},{currentStep:
 test('unpaid tenant cannot forge onboarding completion: '+JSON.stringify(body),async()=>{const r=route();assert.equal((await r.patch(body)).status,409);assert.equal(r.writes.length,0);});
 for(const billing of [{kind:'stripe',verified:true},{kind:'platform_exempt'}])
 test('verified billing or explicit platform exemption permits completion: '+billing.kind,async()=>{const r=route({billing});assert.equal((await r.patch({vipSetup:{completedAt:'2026-10-23T00:00:00Z'}})).status,200);assert.equal(r.writes.length,1);});
+test('expired or unpaid checkout return cannot complete setup',async()=>{
+  const r=route({billing:{kind:'stripe',verified:false,status:'expired'}});
+  assert.equal((await r.patch({vipSetup:{completedAt:'2026-10-23T00:00:00Z'}})).status,409);
+  assert.equal(r.writes.length,0);
+});
 for(const [options,status] of [[{unauthenticated:true},401],[{permissionDenied:true},403],[{demo:true},403],[{target:'victim'},403],[{target:'victim',operator:true},409]])
 test('onboarding state retains authentication, role, demo and target checks: '+JSON.stringify(options),async()=>{const r=route(options);assert.equal((await r.patch({currentStep:'order_summary'})).status,status);assert.equal(r.writes.length,0);});
 test('onboarding exemption is exact and leaves adjacent tenant writes gated',()=>{

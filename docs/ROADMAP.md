@@ -1108,3 +1108,20 @@ Production certified. Next: publish a draft correction against #1032, require
 exact-head CI and independent owner review; keep all provisioning, credentials,
 merge/deploy and pilot approvals separate. Runtime identity/integration resync and
 Live session inventory remain operational gates. No admission or customer invitation.
+
+### Final onboarding reconciliation — 27 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`; existing #1034 repair
+branch based on `14919a5`. Compared #1033 `fc7b7c4` against its exact main base:
+all production changes already present; restored only its missing expired/unpaid
+checkout-return rejection regression. All seven onboarding code/test files now
+match #1033, with #1034 security controls untouched. See
+`docs/security/CHECKOUT-P1-REPAIR-VALIDATION.md` for coverage and handoff.
+Local: route/queue **17/17**; checkout **451/451**; security **84/84 + 34/34 +
+8/8**; disposable permissions **48/48** and compatibility **57/57 + 128/128 +
+27/27 + 6/6 + 3/3**; TypeScript, changed-test lint, schema parity, full build
+**457/457** and diff checks passed. Exact-head CI required after publication.
+Baseline component lint errors remain separately disclosed.
+State: READY FOR VERIFICATION / Production HOLD. Next: independent certification
+of the new exact #1034 head; #1033 supersession requires explicit owner approval.
+No Production or provider change; existing PRs and branches preserved.
