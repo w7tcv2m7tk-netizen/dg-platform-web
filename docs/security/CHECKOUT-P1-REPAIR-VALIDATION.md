@@ -117,3 +117,59 @@ command, **457/457** pages). Existing middleware/cache-control/module-type and
 dynamic-render diagnostics remain nonfatal; no build configuration was changed.
 Git diff checks passed. Exact-head CI must pass after the normal push; these
 results are not independent security acceptance or Production certification.
+
+## Completion-authority bypass repair — 27 October 2026
+
+The independent review of `67025243` found that legacy `/gen2` PATCH accepted
+VIP completion and implementation markers despite the state route guard. That
+head is not final security acceptance. This repair applies one shared canonical
+completion policy at both routes and the single Gen2 persistence helper.
+
+Trace: `/gen2` PATCH, `/gen2/state` PATCH and `/gen2/operator` POST all write
+through `saveGen2OnboardingProgress`; the only canonical Gen2 settings assignment
+is in that helper. `markGen2SubscriptionActivated` already requires verified
+Stripe billing and continues to do so. Founding intake writes a separate
+`foundingOnboarding` record, not Gen2 completion. PlatformShellLoader reads Gen2
+root/VIP timestamps; it is not a completion writer. No subscription or paid
+entitlement is granted by these onboarding timestamps.
+
+`assertGen2OnboardingCompletionAllowed` requires the organisation-scoped canonical
+billing resolver to confirm verified Stripe billing or both `kind=platform_exempt`
+and explicit `platformExempt=true`. Slug, operator status, profile flags, customer
+ID alone, checkout-return URLs and submitted timestamps do not confer authority.
+
+The legacy route checks before profile/goal/progress side effects; both state
+and operator routes use the same rule. The persistence helper independently
+checks all callers and derived completion. Guarded inputs include root/VIP
+completion, handover/activation timestamps, implementation navigation, completed
+steps/checklist markers, Stripe proof and the checklist step that advances to
+implementation. Accepted completion timestamps are assigned server-side, retaining
+an existing completion time on legitimate retries. Unpaid profile, basket and
+pre-checkout navigation saves remain permitted. No retrospective data cleanup or
+Production assessment was performed.
+
+Regression coverage now exercises both PATCH routes and operator setup, expired
+checkout, absent/unverified billing, forged timestamps/markers, failed lookups,
+canonical exemptions, tenant boundaries and legitimate unpaid saves. Disposable
+DB tests exercise the real persistence helper, canonical billing, server timestamps
+and unchanged settings on rejection. Additional committed permission negatives
+cover PUBLIC admission INSERT, broad direct/PUBLIC provisioning UPDATE, direct/
+PUBLIC SECURITY DEFINER EXECUTE and runtime table/function ownership.
+
+First validation exposed test-fixture-only failures: the POST route harness
+needed its new import mapped, and synthetic ownership transfer replaced existing
+ACL entries. The harness now imports the real policy, and negative-test cleanup
+restores the exact reviewed grant script. No verifier or policy was weakened.
+
+Validation at this repair: route tests **42/42**, checkout **480/480**; security
+**84/84 + 34/34 + 8/8**; owned disposable permissions **56/56**; compatibility
+**57/57 + 142/142 + 27/27 + 6/6 + 3/3**, with schema parity and owned-cluster
+cleanup. Organisation settings authority **6/6**. TypeScript passed; changed-code
+ESLint has zero errors and three unchanged unused-variable warnings in the
+persistence helper. The two pre-existing component lint errors remain separately
+disclosed; no component change or rule suppression. Canonical full `npm run build` passed: compilation, TypeScript and **457/457**
+static pages; exact-head CI must pass after publication.
+
+No migration, grant policy, manifest, dependencies or deployment configuration
+changes. Production remains HOLD. DeepSeek must independently certify the new
+exact published head; prior-head reviews are superseded for final acceptance.

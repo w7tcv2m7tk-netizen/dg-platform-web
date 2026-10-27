@@ -1,3 +1,4 @@
+import { saveGen2OnboardingProgress } from "../packages/platform-core/src/onboarding/gen2-progress.ts";
 import assert from "node:assert/strict";
 import { before, beforeEach, after, test, mock } from "node:test";
 import { randomUUID } from "node:crypto";
@@ -1286,4 +1287,46 @@ test("operator preparation uses actual standard builder and never creates sessio
   assert.equal(plan.terms.line_items.reduce((s,l) => s + l.quantity * l.price_data.unit_amount, 0), 39800);
   assert.equal(requests.length,0); assert.equal(await prisma.platformCheckoutAttempt.count(),0);
   assert.equal(await prisma.platformCheckoutAdmission.count(),existingAdmissions);
+});
+
+for(const patch of [
+  {completedAt:'2000-01-01T00:00:00Z'},
+  {vipSetup:{completedAt:'2000-01-01T00:00:00Z'}},
+  {markStepComplete:'implementation'},
+  {markStepComplete:'checklist'},
+  {completedSteps:['implementation']},
+  // Duplicate non-billing steps must not manufacture derived root completion.
+  {completedSteps:Array(15).fill('welcome')},
+  {journeyPosition:{stage:'implementation'}},
+  {currentStep:'implementation'},
+  {checklist:{implementation:true}},
+  {subscriptionActivatedAt:'forged'},
+]) test('persistence helper rejects unpaid completion without any settings write '+JSON.stringify(patch),async()=>{
+  const before=await prisma.organisation.findUniqueOrThrow({where:{id:org.id}});
+  await assert.rejects(saveGen2OnboardingProgress(org.id,patch),/Confirm your subscription/);
+  assert.deepEqual((await prisma.organisation.findUniqueOrThrow({where:{id:org.id}})).settings,before.settings);
+});
+test('unpaid progress saves persist and reload without completion or paid access',async()=>{
+  const progress=await saveGen2OnboardingProgress(org.id,{premiumApps:['reviews'],platformTier:'professional',markStepComplete:'order_summary'});
+  assert.equal(progress.completedAt,null);assert.equal(progress.vipSetup.completedAt,undefined);
+  const row=await prisma.organisation.findUniqueOrThrow({where:{id:org.id}});
+  assert.deepEqual(row.settings.gen2Onboarding.premiumApps,['reviews']);
+  assert.equal(await prisma.platformSubscription.count({where:{organisationId:org.id}}),0);
+});
+for(const exempt of [false,true]) test('canonical '+(exempt?'exemption':'paid subscription')+' permits completion with server timestamps',async()=>{
+  await prisma.organisation.update({where:{id:org.id},data:{billingCustomerId:exempt?null:'cus_synthetic_completion'}});
+  await prisma.platformSubscription.create({data:{organisationId:org.id,status:'ACTIVE',entitlement:'FULL',planTier:'professional',platformExempt:exempt,stripeStatus:exempt?null:'active',stripeCustomerId:exempt?null:'cus_synthetic_completion',stripeSubscriptionId:exempt?null:'sub_synthetic_completion'}});
+  const before=Date.now();
+  const progress=await saveGen2OnboardingProgress(org.id,{completedAt:'2000-01-01T00:00:00Z',vipSetup:{completedAt:'2000-01-01T00:00:00Z'},markStepComplete:'implementation'});
+  assert.ok(Date.parse(progress.completedAt)>=before);assert.ok(Date.parse(progress.vipSetup.completedAt)>=before);
+  const repeated=await saveGen2OnboardingProgress(org.id,{vipSetup:{completedAt:'1999-01-01T00:00:00Z'}});
+  assert.equal(repeated.vipSetup.completedAt,progress.vipSetup.completedAt);
+});
+test('another organisation exemption or profile flags cannot authorise completion',async()=>{
+  const other=await prisma.organisation.create({data:{name:'Synthetic exempt',slug:'synthetic-exempt-'+randomUUID()}});
+  try {
+    await prisma.platformSubscription.create({data:{organisationId:other.id,status:'ACTIVE',entitlement:'FULL',platformExempt:true,planTier:'professional'}});
+    await prisma.organisation.update({where:{id:org.id},data:{settings:{profile:{platformExempt:true},gen2Onboarding:{platformExempt:true}}}});
+    await assert.rejects(saveGen2OnboardingProgress(org.id,{markStepComplete:'implementation'}),/Confirm your subscription/);
+  } finally {await prisma.platformSubscription.deleteMany({where:{organisationId:other.id}});await prisma.organisation.delete({where:{id:other.id}});}
 });

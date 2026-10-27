@@ -377,3 +377,36 @@ test("restored excluded column SELECT is denied and exact verifier passes",async
   await assert.rejects(runtime.$queryRaw`SELECT id FROM public.playing_with_neon`);
   const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.equal(result.status,0,result.stderr);
 });
+
+
+test("PUBLIC admission INSERT columns are rejected by effective privilege checks",async()=>{
+  await withUnexpectedColumnGrant({table:"platform_checkout_admissions",operation:"INSERT",columns:["id","organisation_id"],grantee:"PUBLIC"},async()=>{
+    const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");
+    assert.notEqual(result.status,0);assert.match(result.stderr,/unexpected column INSERT/);
+  });
+});
+for(const grantee of ["runtime_permissions","PUBLIC"]) test(grantee+" broad provisioning receipt UPDATE is rejected",async()=>{
+  await control.$executeRawUnsafe(`GRANT UPDATE ON ai_worker_provisioning_receipts TO ${grantee}`);
+  try {const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.notEqual(result.status,0);}
+  finally {
+    await control.$executeRawUnsafe(`REVOKE UPDATE ON ai_worker_provisioning_receipts FROM ${grantee}`);
+    const grants=psqlFile("scripts/sql/runtime-role-grants.sql","runtime_permissions");assert.equal(grants.status,0,grants.stderr);
+  }
+});
+for(const grantee of ["runtime_permissions","PUBLIC"]) test(grantee+" SECURITY DEFINER EXECUTE is rejected",async()=>{
+  await control.$executeRawUnsafe(`GRANT EXECUTE ON FUNCTION public.audit_platform_checkout_admission() TO ${grantee}`);
+  try {const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.notEqual(result.status,0);assert.match(result.stderr,/execute admission audit definer/);}
+  finally {await control.$executeRawUnsafe(`REVOKE EXECUTE ON FUNCTION public.audit_platform_checkout_admission() FROM ${grantee}`);}
+});
+for(const object of ["TABLE public.platform_checkout_admissions","FUNCTION public.audit_platform_checkout_admission()"]) test("runtime ownership is rejected: "+object,async()=>{
+  await control.$executeRawUnsafe(`ALTER ${object} OWNER TO runtime_permissions`);
+  try {const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.notEqual(result.status,0);assert.match(result.stderr,/owns or inherits ownership/);}
+  finally {
+    await control.$executeRawUnsafe(`ALTER ${object} OWNER TO checkout_test`);
+    // Ownership transfer replaces the prior grantee ACL; restore the reviewed policy.
+    const grants=psqlFile("scripts/sql/runtime-role-grants.sql","runtime_permissions");assert.equal(grants.status,0,grants.stderr);
+  }
+});
+test("final verifier passes after restored ownership and EXECUTE controls",()=>{
+  const result=psqlFile("scripts/sql/runtime-role-verify.sql","runtime_permissions");assert.equal(result.status,0,result.stderr);
+});

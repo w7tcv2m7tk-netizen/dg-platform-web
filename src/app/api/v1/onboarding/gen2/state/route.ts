@@ -1,8 +1,7 @@
+import { assertGen2OnboardingCompletionAllowed, OnboardingCompletionNotConfirmed } from "@dg/platform-core/onboarding/gen2-completion";
 import {
   getGen2OnboardingProgress,
   getOrganisationCommercialOffer,
-  getOrganisationBillingStatus,
-  isVerifiedStripeBilling,
   assertPlatformOperator,
   INDUSTRY_TAXONOMY,
   isGen2OnboardingStep,
@@ -126,16 +125,13 @@ export async function PATCH(req: Request) {
     getOrganisationCommercialOffer(targetOrganisationId),
   ]);
   const vipSetup = sanitiseVipSetup(body.vipSetup, current.vipSetup!);
-  // Saving selections must work before purchase. Completing setup still needs
-  // canonical billing authority; editable profile flags never establish it.
-  const requestedPosition = body.journeyPosition && typeof body.journeyPosition === "object"
-    ? body.journeyPosition as Record<string, unknown>
-    : {};
-  if (vipSetup.completedAt || body.currentStep === "implementation" || requestedPosition.stage === "implementation") {
-    const billing = await getOrganisationBillingStatus(targetOrganisationId);
-    if (billing?.kind !== "platform_exempt" && !isVerifiedStripeBilling(billing)) {
-      return NextResponse.json({ error: { code: "checkout_not_confirmed", message: "Confirm your subscription before completing setup." } }, { status: 409 });
-    }
+  try {
+    await assertGen2OnboardingCompletionAllowed(targetOrganisationId, body);
+    // Existing completion cannot be carried into a new write without authority.
+    await assertGen2OnboardingCompletionAllowed(targetOrganisationId, { vipSetup });
+  } catch (error) {
+    if (!(error instanceof OnboardingCompletionNotConfirmed)) throw error;
+    return NextResponse.json({ error: { code: "checkout_not_confirmed", message: error.message } }, { status: 409 });
   }
   const onboardingCompleted = Boolean(current.vipSetup?.completedAt || vipSetup.completedAt);
   const journeyPosition = onboardingCompleted

@@ -1125,3 +1125,20 @@ Baseline component lint errors remain separately disclosed.
 State: READY FOR VERIFICATION / Production HOLD. Next: independent certification
 of the new exact #1034 head; #1033 supersession requires explicit owner approval.
 No Production or provider change; existing PRs and branches preserved.
+
+### Shared onboarding completion authority — 27 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`; existing #1034 repair
+branch, based on `67025243`. Independent review found the legacy PATCH completion
+bypass. Shared canonical billing/explicit-exemption enforcement now protects both
+PATCH routes, operator setup and Gen2 persistence; completion timestamps are
+server-assigned. Unpaid profile/basket/navigation saves remain available. No
+migration or Production change. See the existing P1 validation document.
+
+Local: route **42/42**, checkout **480/480**, security **84/84 + 34/34 + 8/8**,
+disposable permissions **56/56**, compatibility **57/57 + 142/142 + 27/27 + 6/6 +
+3/3**, authority **6/6**, TypeScript and changed-code lint (zero errors; baseline
+warnings disclosed). Full canonical build passed (**457/457** pages); exact-head CI required after
+publication. State READY FOR VERIFICATION / Production HOLD. Next: DeepSeek
+independent acceptance on the new exact head, then separately approved integration;
+no merge/deploy, credentials, roles, admissions or Live Stripe action authorised.
