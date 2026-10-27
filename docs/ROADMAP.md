@@ -969,8 +969,13 @@ TypeScript, 457/457 static pages) passed; `git diff --check` passed. Changed-fil
 ESLint introduced zero errors; two pre-existing `react-hooks/set-state-in-effect`
 errors remain on unchanged lines and reproduce on main.
 
-Verification is **VERIFIED IN ISOLATION** for the local scope. PR #1033 remains
-DRAFT and unmerged; Production, deployment, provider configuration, checkout
-admission/opening and customer activation remain **BLOCKED** pending exact-head
-CI, independent review and separate approvals. No Production/provider/database
-write, credential, Vercel, Stripe, checkout admission or activation was performed.
+Verification is **VERIFIED IN ISOLATION** for the local scope. Exact-head CI run
+`40488943417` passed `checkout-release` on `ebe15666`, including disposable
+PostgreSQL, TypeScript, build, artifact/client-boundary and diff checks. PR #1033
+remains DRAFT and unmerged. The Codex security worktree has overlapping,
+currently uncommitted onboarding changes in the same production files; do not
+merge both branches without owner/reviewer reconciliation. Production,
+deployment, provider configuration, checkout admission/opening and customer
+activation remain **BLOCKED** pending that reconciliation, independent review
+and separate approvals. No Production/provider/database write, credential,
+Vercel, Stripe, checkout admission or activation was performed.
