@@ -43,6 +43,7 @@ jobs:
           PG_BIN="/usr/lib/postgresql/16/bin"
           node scripts/run-checkout-coordinator-db-tests.mjs "$PG_BIN"
           node scripts/run-checkout-compatibility-db-tests.mjs "$PG_BIN"
+          node scripts/run-checkout-compatibility-db-tests.mjs "$PG_BIN" permissions
       - run: npx tsc --noEmit
       - run: npm run build
       - run: npm run test:checkout-compatibility-artifacts && npm run test:checkout-client-boundary

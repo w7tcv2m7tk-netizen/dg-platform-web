@@ -1,0 +1,1012 @@
+{
+  "schemaVersion": 1,
+  "name": "DigitalGate restricted runtime database role",
+  "generatedFrom": [
+    "packages/database/prisma/schema.prisma",
+    "packages/database/prisma/models/ai-visibility.prisma",
+    "packages/database/prisma/models/business-brain.prisma"
+  ],
+  "policy": {
+    "roleMustExist": true,
+    "loginManagedSeparately": true,
+    "roleAttributes": {
+      "rolsuper": false,
+      "rolcreaterole": false,
+      "rolcreatedb": false,
+      "rolreplication": false,
+      "rolbypassrls": false
+    },
+    "allowRoleMemberships": false,
+    "allowObjectOwnership": false,
+    "database": {
+      "connect": true,
+      "create": false,
+      "temp": "inherited-public-baseline"
+    },
+    "schema": {
+      "public": {
+        "usage": true,
+        "create": false
+      }
+    },
+    "migrationLedgerAccess": false
+  },
+  "tables": {
+    "accommodation_guest_profiles": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "accommodation_units": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "activities": {
+      "module": "CRM",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "agent_actions": {
+      "module": "Aida",
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Aida action history is append-only."
+    },
+    "ai_accounting_outbox": {
+      "module": "AI",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Outbox delivery requires create/read/update plus delivered-row retention cleanup."
+    },
+    "ai_inference_jobs": {
+      "module": "AI",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "AI job lifecycle requires create/read/update plus bounded retention cleanup."
+    },
+    "ai_local_deployments": {
+      "module": "AI",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Local deployments require create/read/update; no runtime delete path exists."
+    },
+    "ai_local_recipient_approvals": {
+      "module": "AI",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Recipient authority is approved/revoked by update; no runtime delete path exists."
+    },
+    "ai_visibility_citations": {
+      "module": "AI Visibility",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "ai_visibility_competitor_mentions": {
+      "module": "AI Visibility",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "ai_visibility_competitors": {
+      "module": "AI Visibility",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "ai_visibility_observations": {
+      "module": "AI Visibility",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "ai_visibility_prompts": {
+      "module": "AI Visibility",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "ai_worker_claim_receipts": {
+      "module": "AI",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Claim receipts require create/read and retention cleanup; no update path is used."
+    },
+    "ai_worker_principals": {
+      "module": "AI",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Worker principals require create/read/update; revocation is an update, not a delete."
+    },
+    "ai_worker_provisioning_receipts": {
+      "module": "AI",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Provisioning receipts are created, read and completed by a constrained UPDATE; never deleted at runtime."
+    },
+    "aida_conversations": {
+      "module": "Aida",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Conversation creation/read/update is required; no runtime delete path exists."
+    },
+    "app_installations": {
+      "module": "Apps",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "audit_logs": {
+      "module": "Audit",
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Append-only business audit history; the application creates and reads evidence but cannot rewrite or erase it."
+    },
+    "business_knowledge_items": {
+      "module": "Business Brain",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "business_knowledge_links": {
+      "module": "Business Brain",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "business_knowledge_sources": {
+      "module": "Business Brain",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "commerce_invoices": {
+      "module": "Commerce & Payments",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "commerce_payment_requests": {
+      "module": "Commerce & Payments",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "commerce_payments": {
+      "module": "Commerce & Payments",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "commerce_products": {
+      "module": "Commerce & Payments",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "commerce_quotes": {
+      "module": "Commerce & Payments",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "commerce_refunds": {
+      "module": "Commerce & Payments",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "commerce_subscriptions": {
+      "module": "Commerce & Payments",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "commercial_leases": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "commercial_properties": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "communication_agents": {
+      "module": "Communications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "communication_messages": {
+      "module": "Communications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "communication_sessions": {
+      "module": "Communications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "communication_usages": {
+      "module": "Communications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "companies": {
+      "module": "CRM",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "contacts": {
+      "module": "CRM",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "customer_partner_attributions": {
+      "module": "Partners & Delivery",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "delivery_blockers": {
+      "module": "Partners & Delivery",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "delivery_milestones": {
+      "module": "Partners & Delivery",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "delivery_projects": {
+      "module": "Partners & Delivery",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "delivery_tasks": {
+      "module": "Partners & Delivery",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "dreamscape_customer_links": {
+      "module": "Websites & Content",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "dreamscape_webhook_events": {
+      "module": "Websites & Content",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "finance_applications": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "growth_prospect_audits": {
+      "module": "Prospecting & Acquisition",
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Append-only prospect audit evidence; corrections use new evidence rather than mutation."
+    },
+    "growth_prospect_engagements": {
+      "module": "Prospecting & Acquisition",
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Engagement evidence is appended and read; no runtime mutation path exists."
+    },
+    "growth_prospect_reports": {
+      "module": "Prospecting & Acquisition",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "growth_prospects": {
+      "module": "Prospecting & Acquisition",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "infrastructure_domains": {
+      "module": "Websites & Content",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "leads": {
+      "module": "CRM",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "memberships": {
+      "module": "Identity & Tenancy",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "notifications": {
+      "module": "Tasks & Automation",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "opportunities": {
+      "module": "CRM",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "org_communications": {
+      "module": "Communications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "org_documents": {
+      "module": "CRM",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "organisations": {
+      "module": "Identity & Tenancy",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "partner_commission_events": {
+      "module": "Partners & Delivery",
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Commission event ledger is append-only."
+    },
+    "partner_commissions": {
+      "module": "Partners & Delivery",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "partner_referrals": {
+      "module": "Partners & Delivery",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "partners": {
+      "module": "Partners & Delivery",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "payment_connector_installations": {
+      "module": "Commerce & Payments",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "platform_api_keys": {
+      "module": "Platform",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "API keys are created, read and revoked by update; runtime does not delete key history."
+    },
+    "platform_checkout_admission_audit": {
+      "module": "Checkout",
+      "privileges": [
+        "SELECT"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Audit evidence is append-only and written only by the fixed-search-path SECURITY DEFINER trigger."
+    },
+    "platform_checkout_admissions": {
+      "module": "Checkout",
+      "privileges": [
+        "SELECT"
+      ],
+      "columnPrivileges": {
+        "UPDATE": [
+          "attempt_id"
+        ]
+      },
+      "rationale": "Runtime may read authority and bind an unused permit to one attempt; it cannot create, approve, revoke or rewrite permit terms."
+    },
+    "platform_checkout_attempts": {
+      "module": "Checkout",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Durable checkout attempt creation/read/update; attempts are retained for recovery and containment."
+    },
+    "platform_checkout_creation_gate": {
+      "module": "Checkout",
+      "privileges": [
+        "SELECT"
+      ],
+      "columnPrivileges": {
+        "UPDATE": [
+          "last_admission_expires_at"
+        ]
+      },
+      "rationale": "Runtime may read the singleton and advance only the admission horizon; blocked, hold and revision remain operator-controlled."
+    },
+    "platform_referral_ledger": {
+      "module": "Platform",
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Commercial ledger is append-only."
+    },
+    "platform_referrals": {
+      "module": "Platform",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Referral lifecycle requires create/read/update; no runtime delete path exists."
+    },
+    "platform_subscription_events": {
+      "module": "Billing & Entitlements",
+      "privileges": [
+        "SELECT",
+        "INSERT"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Append-only billing event/audit history; webhook and reconciliation code only creates and reads events."
+    },
+    "platform_subscriptions": {
+      "module": "Billing & Entitlements",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "pm_leases": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "pm_maintenance_requests": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "pm_properties": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "properties": {
+      "module": "CRM",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "service_jobs": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "stay_bookings": {
+      "module": "Industry Applications",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "stripe_webhook_receipts": {
+      "module": "Billing & Entitlements",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Webhook claim/reclaim state requires create, read and conditional update; runtime never deletes receipts."
+    },
+    "support_conversations": {
+      "module": "Support",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "support_messages": {
+      "module": "Support",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Support messages require create/read/update and cascade/merge cleanup."
+    },
+    "tasks": {
+      "module": "Tasks & Automation",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "website_pages": {
+      "module": "Websites & Content",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    },
+    "websites": {
+      "module": "Websites & Content",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE",
+        "DELETE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
+    }
+  },
+  "sequences": {
+    "support_messages_id_seq": {
+      "privileges": [
+        "USAGE",
+        "SELECT"
+      ],
+      "module": "Support",
+      "rationale": "Required for the SERIAL support message identifier."
+    }
+  },
+  "deniedSequences": {
+    "platform_checkout_admission_audit_id_seq": "Reserved for the admission audit trigger owner; runtime must not allocate audit identifiers."
+  },
+  "functions": {
+    "audit_platform_checkout_admission": {
+      "securityDefiner": true,
+      "runtimeExecute": false,
+      "module": "Checkout",
+      "rationale": "Trigger-only audit writer; runtime must not execute it directly."
+    },
+    "preserve_checkout_admission_audit": {
+      "securityDefiner": false,
+      "runtimeExecute": false,
+      "module": "Checkout",
+      "rationale": "Trigger-only append-only guard; runtime must not execute it directly."
+    },
+    "ai_accounting_outbox_job_scope_check": {
+      "securityDefiner": false,
+      "runtimeExecute": "trigger-only",
+      "module": "AI",
+      "rationale": "Trigger function validates outbox job scope; it is not a runtime-callable procedure."
+    },
+    "ai_inference_jobs_terminal_immutable": {
+      "securityDefiner": false,
+      "runtimeExecute": "trigger-only",
+      "module": "AI",
+      "rationale": "Trigger function preserves terminal AI job state; it is not a runtime-callable procedure."
+    },
+    "ai_inference_jobs_completion_deadline_check": {
+      "securityDefiner": false,
+      "runtimeExecute": "trigger-only",
+      "module": "AI",
+      "rationale": "Deferred constraint trigger validates completion deadlines; it is not a runtime-callable procedure."
+    }
+  },
+  "excludedRelations": {
+    "_prisma_migrations": "Prisma's migration ledger is written only by the migration operator; the runtime role must have no access."
+  },
+  "prohibitedTablePrivileges": [
+    "TRUNCATE",
+    "REFERENCES",
+    "TRIGGER",
+    "MAINTAIN"
+  ],
+  "prohibitedSchemaPrivileges": [
+    "CREATE"
+  ],
+  "operatorOnly": [
+    {
+      "path": "src/lib/remediate-991-physical.ts",
+      "reason": "One-time #991 schema remediation requires table locks, DDL and the migration ledger. It must run with separate owner/operator authority, never the runtime role."
+    },
+    {
+      "path": "src/lib/remediate-991-sql.ts",
+      "reason": "Reviewed #991 remediation SQL parser is part of the owner-only schema operation."
+    },
+    {
+      "path": "src/lib/remediate-991-sql-generated.ts",
+      "reason": "Generated #991 DDL is owner-only and excluded from runtime SQL analysis."
+    },
+    {
+      "path": "packages/platform-core/src/billing/legacy-app-entitlement-reconciliation.ts",
+      "reason": "Signed legacy reconciliation is an operator-only billing repair path; runtime tables it touches remain granted for normal billing operations."
+    }
+  ],
+  "requiredModules": [
+    "CRM",
+    "Prospecting & Acquisition",
+    "Business Brain",
+    "AI",
+    "Websites & Content",
+    "Tasks & Automation",
+    "Billing & Entitlements",
+    "Commerce & Payments",
+    "Industry Applications",
+    "Checkout",
+    "Identity & Tenancy"
+  ]
+}

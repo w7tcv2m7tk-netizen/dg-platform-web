@@ -985,3 +985,34 @@ UNVERIFIED**. Fresh independent review and actual Production non-owner role
 verification, publication, migration, policy provisioning, deployment and pilot
 remain explicit owner gates. No Production/provider changes made.
 Evidence and limitations: [final remediation](commerce/release-1025/SINGLE-USE-CHECKOUT-ADMISSION-REMEDIATION.md).
+
+### P0 restricted database runtime role — application-wide permissions, 27 October 2026
+
+Requirement `platform.auth` / `detach.portal_billing`; security prerequisite for the
+approved non-owner Production database cutover. Branch
+`feat/restricted-runtime-permissions-20261027`, stacked on PR #1028 commit
+`f1e199de7d77762183894fe7e0a8d4f72b50bb8c`. No application behaviour or approved
+migration file changed. The manifest covers all 83 Prisma tables across 19 modules,
+with narrowed append-only/evidence tables, exact checkout admission/gate/audit
+boundaries, one runtime sequence grant, explicit `_prisma_migrations` denial and
+operator-only #991/signed-reconciliation exceptions.
+
+Implementation: `scripts/security/runtime-role-manifest.json`,
+`runtime-role-lib.mjs`, `generate-runtime-role-manifest.mjs`,
+`verify-runtime-role-manifest.mjs`, `scripts/sql/runtime-role-grants.sql`,
+`scripts/sql/runtime-role-verify.sql`, `scripts/test-runtime-permissions-manifest.mjs`,
+`scripts/test-runtime-permissions-db.mjs`, disposable harness suite and
+`docs/security/RUNTIME-ROLE-PERMISSIONS.md`.
+
+Verification: static manifest 7/7; disposable PostgreSQL 18 runtime rehearsal 7/7;
+generated SQL/current-manifest check; representative CRM, commerce, billing, support,
+Business Brain, AI, partner/delivery, finance and accommodation operations; checkout
+permit/audit/gate boundaries; owner/unknown/inherited-membership/helper-role, missing/
+extra privilege, unexpected table, DDL, `SET ROLE`, migration-ledger, grant-option and
+PUBLIC-grant denial. Status **COMPLETE AND VERIFIED — IMPLEMENTATION ONLY**;
+**HOLD** for Production role/credential cutover, deployment and PR #1028 merge.
+
+Next: review draft PR, run exact-head CI, then separately approve Production
+runtime-role provisioning, credential change, serving-role verification and
+deployment. Global checkout remains blocked. Remaining risks and rollback are in the
+permissions document. No Production/database/provider changes made.

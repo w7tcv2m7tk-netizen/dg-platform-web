@@ -24,6 +24,7 @@ const suites = {
   compatibility: ["test-single-use-checkout-admission-db.mjs", "test-checkout-compatibility-db.mjs", "test-legacy-app-entitlement-reconciliation.mjs", "test-platform-subscription-webhook-cutover-db.mjs", "test-checkout-release-operator-sql-db.mjs"],
   operator: ["test-checkout-release-operator-sql-db.mjs"],
   coordinator: ["test-checkout-coordinator-db.mjs"],
+  permissions: ["test-runtime-permissions-db.mjs"],
   admission: ["test-single-use-checkout-admission-db.mjs"],
   guard: ["test-platform-subscription-webhook-cutover-db.mjs"],
 };
