@@ -1016,3 +1016,27 @@ Next: review draft PR, run exact-head CI, then separately approve Production
 runtime-role provisioning, credential change, serving-role verification and
 deployment. Global checkout remains blocked. Remaining risks and rollback are in the
 permissions document. No Production/database/provider changes made.
+
+### P0 Production deployment and runtime cutover readiness — 27 October 2026
+
+Requirement `platform.auth` / `detach.portal_billing`; preparation only. Branch
+`docs/production-cutover-readiness-20261027`, stacked on PR #1029 head
+`f07ba2a755d2262eaa7b082cde151eb8e46300c2`; PR #1028 remains `f1e199de`.
+No Production writes, credential changes, role grants, deployments, merges,
+Stripe changes, checkout activation or customer contact were performed.
+
+Implementation: `docs/security/PRODUCTION-RUNTIME-CUTOVER-RUNBOOK.md` and
+`scripts/sql/runtime-identity-readonly.sql`; static deployment-boundary coverage
+in `scripts/test-runtime-deployment-boundaries.mjs` confirms runtime code uses
+`DATABASE_URL` only, shared Prisma client boundaries, no runtime migrations/DDL,
+Vercel cron/webhook route coverage, Mac AI worker HTTP-only access, and documented
+operator-only exceptions.
+
+Verification: `test:runtime-deployment-boundaries` **8/8**; `test:security-certification`
+passed including runtime permissions **7/7**; TypeScript, ESLint and
+`git diff --check` passed. Status **PREPARED / HOLD**. Remaining blockers: actual
+serving deployment capture and runtime role/endpoint unverified, Vercel/Neon
+read-only token unavailable in session, Production runtime role not provisioned,
+`DATABASE_URL_UNPOOLED` owner exposure unresolved, admission migration execution
+unconfirmed, recovery/RPO acceptance unrecorded, and #1028/#1029 unmerged.
+Next: owner/operator read-only preflight and separate approvals; no deployment.
