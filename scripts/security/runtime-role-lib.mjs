@@ -610,8 +610,9 @@ export function renderVerifySql(manifest) {
   lines.push("  v_sequence record;");
   lines.push("  v_column record;");
   lines.push("  v_privilege text;");
-  lines.push("  v_all text[] := ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN'];");
+  lines.push("  v_all text[] := ARRAY['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER'];");
   lines.push("BEGIN");
+  lines.push("  IF current_setting('server_version_num')::int >= 170000 THEN v_all := array_append(v_all,'MAINTAIN'); END IF;");
   lines.push("  IF v_role IS NULL OR length(v_role)=0 THEN RAISE EXCEPTION 'runtime_role is required'; END IF;");
   lines.push("  SELECT oid INTO v_oid FROM pg_catalog.pg_roles WHERE rolname=v_role;");
   lines.push("  IF v_oid IS NULL THEN RAISE EXCEPTION 'runtime role does not exist: %', v_role; END IF;");
