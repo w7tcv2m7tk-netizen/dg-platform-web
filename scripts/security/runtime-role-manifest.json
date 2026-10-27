@@ -932,7 +932,8 @@
     }
   },
   "deniedSequences": {
-    "platform_checkout_admission_audit_id_seq": "Reserved for the admission audit trigger owner; runtime must not allocate audit identifiers."
+    "platform_checkout_admission_audit_id_seq": "Reserved for the admission audit trigger owner; runtime must not allocate audit identifiers.",
+    "playing_with_neon_id_seq": "Neon sample/legacy object; explicitly excluded from runtime with zero privileges."
   },
   "functions": {
     "audit_platform_checkout_admission": {
@@ -967,7 +968,8 @@
     }
   },
   "excludedRelations": {
-    "_prisma_migrations": "Prisma's migration ledger is written only by the migration operator; the runtime role must have no access."
+    "_prisma_migrations": "Prisma's migration ledger is written only by the migration operator; the runtime role must have no access.",
+    "playing_with_neon": "Neon sample/legacy table is not referenced by DigitalGate runtime code; explicitly excluded with zero runtime privileges while all other unknown tables remain rejected."
   },
   "prohibitedTablePrivileges": [
     "TRUNCATE",

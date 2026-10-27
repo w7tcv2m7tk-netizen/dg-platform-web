@@ -1040,3 +1040,24 @@ read-only token unavailable in session, Production runtime role not provisioned,
 `DATABASE_URL_UNPOOLED` owner exposure unresolved, admission migration execution
 unconfirmed, recovery/RPO acceptance unrecorded, and #1028/#1029 unmerged.
 Next: owner/operator read-only preflight and separate approvals; no deployment.
+
+### P0 restricted runtime — explicit Neon sample exclusions and role package, 27 October 2026
+
+Requirement `platform.auth` / `detach.portal_billing`. Branch
+`fix/runtime-excluded-objects-20261027`, stacked on PR #1029 head `f07ba2a7`;
+PR #1028 certifications and migration files unchanged.
+
+The Production manifest/verifier now explicitly exclude `_prisma_migrations`,
+`playing_with_neon` and `playing_with_neon_id_seq` with zero runtime privileges,
+while still rejecting any other unknown public table or sequence. The single
+non-owner LOGIN role topology is documented as superseding the older NOLOGIN
+permission-group proposal, without broadening privileges. A separate proposed
+role-creation/grants approval package and no-secret role-creation SQL were added;
+they were not executed.
+
+Verification: static manifest tests **10/10**, disposable PostgreSQL runtime
+rehearsal **8/8**, including excluded-object denial and unclassified-object
+rejection. Status **PREPARED / HOLD** for Production role creation, grants,
+credential installation and cutover. No Production/database/Vercel/credential
+change was made.
+
