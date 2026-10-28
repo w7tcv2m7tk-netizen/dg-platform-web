@@ -20,6 +20,24 @@ opening are authorised by this procedure.
 - The offline CLI refuses to verify a current capture while `freshCapturePending`
   is true.
 
+
+## Executable SQL (authoritative)
+
+The complete executable statement set is
+`docs/commerce/release-1025/production-readonly-preflight-26.sql`.
+The SQL snippets below are explanatory excerpts and must not be run as separate
+files. Do not use the older `production-readonly-preflight.sql` for the 26-row
+capture; it lacks full ledger fields, admission catalog, aggregate and runtime
+identity queries.
+
+Proposed execution command for later separate approval (credentials supplied only
+through the private operator environment; never in arguments):
+
+```sh
+env -u PGOPTIONS PGCONNECT_TIMEOUT=5 psql -X -v ON_ERROR_STOP=1 \
+  -f docs/commerce/release-1025/production-readonly-preflight-26.sql
+```
+
 ## A. Serving deployment and routing
 
 Use provider/GitHub read-only metadata only:
@@ -85,12 +103,9 @@ expected capture must be supplied before the CLI can verify current evidence.
 
 ## D. Gate, hold and aggregate state
 
-Use the existing read-only preflight:
-
-```sh
-# Credentials remain in the private operator environment; never in arguments.
-psql -X -v ON_ERROR_STOP=1 -f docs/commerce/release-1025/production-readonly-preflight.sql
-```
+Use the complete read-only preflight `production-readonly-preflight-26.sql`.
+Do not use the older 25-row SQL file. All statements are inside one `BEGIN READ ONLY`
+transaction with local timeouts.
 
 Record the singleton gate (`blocked`, `subscription_webhooks_held`, `revision`,
 `last_admission_expires_at`), subscription count, exemption count, checkout
