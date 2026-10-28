@@ -38,6 +38,29 @@ env -u PGOPTIONS PGCONNECT_TIMEOUT=5 psql -X -v ON_ERROR_STOP=1 \
   -f docs/commerce/release-1025/production-readonly-preflight-26.sql
 ```
 
+## Execution wrapper and mandatory gates
+
+The reviewed wrapper is `scripts/run-production-readonly-preflight-26.sh`. It:
+
+- Verifies `production-readonly-preflight-26.sql` SHA-256 immediately before execution.
+- Uses `psql -X` and `ON_ERROR_STOP`.
+- Removes inherited `PGOPTIONS`, `PGSERVICE`, `PGSERVICEFILE`, `PSQLRC`,
+  `PSQL_HISTORY` and `DATABASE_URL` from the child process.
+- Writes only to a private `0700` directory and `0600` capture/error/metadata files.
+- Records timestamp, SQL SHA-256, exit status, byte count and completion marker.
+- Requires the `DG_PREFLIGHT_COMPLETE` marker and stops on SQL error, partial output,
+  missing marker or connection uncertainty.
+- Never retries and never prints captured database output.
+
+The SQL assertions stop before evidence output if the operator is superuser, owns
+public objects, has elevated membership or write authority, the transaction is not
+read-only, the ledger is not exactly 26 finished/unique entries, the certified
+admission checksum is missing, the gate is not blocked at revision 2 with hold
+inactive, the subscription/exemption baseline changed, or attempt/admission/audit
+baselines changed. Full 25-row base identity/checksum parity remains subject to the
+offline verifier and a fresh reviewed expected-evidence file; `freshCapturePending`
+remains true.
+
 ## A. Serving deployment and routing
 
 Use provider/GitHub read-only metadata only:

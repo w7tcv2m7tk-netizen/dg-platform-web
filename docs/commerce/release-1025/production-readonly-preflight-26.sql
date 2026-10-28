@@ -7,6 +7,121 @@ SET LOCAL lock_timeout = '3s';
 SET LOCAL idle_in_transaction_session_timeout = '10s';
 SET LOCAL search_path = pg_catalog, public;
 
+-- Fail closed before any evidence output if the operator or expected state is unsafe.
+DO $dg_preflight_gate$
+DECLARE
+  v_role pg_roles%ROWTYPE;
+  v_oid oid;
+  v_total integer;
+BEGIN
+  IF current_setting('transaction_read_only') <> 'on' THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: transaction is not read-only';
+  END IF;
+  IF current_user <> session_user THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: SET ROLE/session identity mismatch';
+  END IF;
+  SELECT * INTO v_role FROM pg_roles WHERE rolname = current_user;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: current role is not registered';
+  END IF;
+  v_oid := v_role.oid;
+  IF v_role.rolsuper OR v_role.rolcreaterole OR v_role.rolcreatedb OR v_role.rolreplication OR v_role.rolbypassrls THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: operator has elevated role attributes';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_roles r
+    WHERE r.oid <> v_oid
+      AND pg_has_role(v_oid, r.oid, 'MEMBER')
+      AND (r.rolsuper OR r.rolcreaterole OR r.rolcreatedb OR r.rolreplication OR r.rolbypassrls)
+  ) THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: operator inherits an elevated role';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_class c
+    WHERE c.relnamespace = 'public'::regnamespace
+      AND c.relkind IN ('r','p','v','m','S','f')
+      AND pg_has_role(v_oid, c.relowner, 'MEMBER')
+  ) THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: operator owns a public relation';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_proc p
+    WHERE p.pronamespace = 'public'::regnamespace
+      AND pg_has_role(v_oid, p.proowner, 'MEMBER')
+  ) THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: operator owns a public function';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_namespace n
+    WHERE n.nspname = 'public'
+      AND pg_has_role(v_oid, n.nspowner, 'MEMBER')
+  ) THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: operator owns schema public';
+  END IF;
+  IF has_schema_privilege(v_oid, 'public', 'CREATE') OR has_database_privilege(v_oid, current_database(), 'CREATE') THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: operator has CREATE authority';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_class c
+    WHERE c.relnamespace = 'public'::regnamespace
+      AND c.relkind IN ('r','p','v','m','f')
+      AND (has_table_privilege(v_oid, c.oid, 'INSERT')
+        OR has_table_privilege(v_oid, c.oid, 'UPDATE')
+        OR has_table_privilege(v_oid, c.oid, 'DELETE')
+        OR has_table_privilege(v_oid, c.oid, 'TRUNCATE')
+        OR has_table_privilege(v_oid, c.oid, 'TRIGGER')
+        OR has_table_privilege(v_oid, c.oid, 'REFERENCES'))
+  ) THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: operator has write-capable table authority';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_class c
+    WHERE c.relnamespace = 'public'::regnamespace
+      AND c.relkind = 'S'
+      AND (has_sequence_privilege(v_oid, c.oid, 'USAGE')
+        OR has_sequence_privilege(v_oid, c.oid, 'UPDATE'))
+  ) THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: operator has sequence allocation authority';
+  END IF;
+
+  SELECT count(*) INTO v_total FROM public._prisma_migrations;
+  IF v_total <> 26 THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: expected exactly 26 migration rows, found %', v_total;
+  END IF;
+  IF (SELECT count(*) FROM (SELECT migration_name FROM public._prisma_migrations GROUP BY migration_name HAVING count(*) > 1) d) > 0 THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: duplicate migration identity';
+  END IF;
+  IF (SELECT count(*) FROM public._prisma_migrations WHERE finished_at IS NULL OR rolled_back_at IS NOT NULL) > 0 THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: unfinished or rolled-back migration';
+  END IF;
+  IF (SELECT count(*) FROM public._prisma_migrations WHERE migration_name = '20261027_single_use_checkout_admission') <> 1 THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: certified admission migration is missing or duplicated';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public._prisma_migrations
+    WHERE migration_name = '20261027_single_use_checkout_admission'
+      AND checksum = 'a60c03ab49b4b1969e52c4edccb06f73117faac577271400c63eea9e2ec472f6'
+  ) THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: certified admission checksum mismatch';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM public.platform_checkout_creation_gate
+    WHERE id = 1 AND blocked = true AND subscription_webhooks_held = false AND revision = 2
+  ) THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: gate is not blocked at the certified revision';
+  END IF;
+  IF (SELECT count(*) FROM public.platform_subscriptions) <> 6
+     OR (SELECT count(*) FROM public.platform_subscriptions WHERE platform_exempt) <> 6 THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: certified subscription/exemption aggregate changed';
+  END IF;
+  IF (SELECT count(*) FROM public.platform_checkout_attempts) <> 0
+     OR (SELECT count(*) FROM public.platform_checkout_admissions) <> 0
+     OR (SELECT count(*) FROM public.platform_checkout_admission_audit) <> 0 THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_STOP: admission/attempt/audit baseline changed';
+  END IF;
+END
+$dg_preflight_gate$;
+
 -- Read-only transaction and operator identity.
 SELECT current_database() AS database_name,
        current_user AS operator_role,
@@ -158,5 +273,7 @@ WHERE c.relnamespace = 'public'::regnamespace
                     'platform_checkout_admission_audit')
 GROUP BY l.locktype, l.mode, l.granted
 ORDER BY l.locktype, l.mode, l.granted;
+
+SELECT 'DG_PREFLIGHT_COMPLETE' AS capture_marker;
 
 COMMIT;
