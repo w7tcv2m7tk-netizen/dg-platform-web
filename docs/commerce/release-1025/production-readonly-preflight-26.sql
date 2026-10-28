@@ -240,7 +240,9 @@ ORDER BY table_name, ordinal_position;
 SELECT p.oid::regprocedure::text AS function_name,
        p.prosecdef,
        p.proowner::regrole::text AS owner,
-       p.proconfig
+       p.proconfig IS NULL AS proconfig_null,
+       coalesce(cardinality(p.proconfig), 0) AS proconfig_entries,
+       coalesce(p.proconfig @> ARRAY['search_path=pg_catalog'], false) AS has_pg_catalog_search_path
 FROM pg_proc p
 WHERE p.pronamespace = 'public'::regnamespace
   AND p.proname IN ('audit_platform_checkout_admission',
@@ -274,6 +276,6 @@ WHERE c.relnamespace = 'public'::regnamespace
 GROUP BY l.locktype, l.mode, l.granted
 ORDER BY l.locktype, l.mode, l.granted;
 
-SELECT 'DG_PREFLIGHT_COMPLETE' AS capture_marker;
-
 COMMIT;
+
+SELECT 'DG_PREFLIGHT_COMPLETE' AS capture_marker;

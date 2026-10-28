@@ -1,9 +1,15 @@
 # Production read-only preflight — 26-row migration baseline
 
 Prepared: 2026-10-28
+Stage 2C correction: 2026-10-28
 Scope: read-only evidence collection only. No SQL writes, migrations, role/grant
 changes, secret retrieval, Vercel changes, Stripe mutations, deployments or checkout
 opening are authorised by this procedure.
+
+Final reviewed SQL SHA-256:
+`8c9cd9a317be3d804b04e62d109cf77ac67c3d42291f52b084159ebf6310b063`.
+Final execution-wrapper SHA-256:
+`3316f97b7afa886032370dae5d65cad2cdb938d7caf49633c9148ec21b71828a`.
 
 ## Preconditions
 
@@ -30,27 +36,54 @@ files. Do not use the older `production-readonly-preflight.sql` for the 26-row
 capture; it lacks full ledger fields, admission catalog, aggregate and runtime
 identity queries.
 
-Proposed execution command for later separate approval (credentials supplied only
-through the private operator environment; never in arguments):
+Proposed execution command for later separate approval. The production branch is
+the default; do not set `PREFLIGHT_ENVIRONMENT` for an approved production run.
+Credentials come only from an approved private `PGPASSFILE` or `PGPASSWORD`
+environment source and are never placed in arguments or output.
 
 ```sh
-env -u PGOPTIONS PGCONNECT_TIMEOUT=5 psql -X -v ON_ERROR_STOP=1 \
-  -f docs/commerce/release-1025/production-readonly-preflight-26.sql
+PREFLIGHT_PROJECT=gentle-sky-35028642 \
+PREFLIGHT_BRANCH=br-old-shadow-a7ffezls \
+PREFLIGHT_PGHOST=ep-bold-tree-a7bny92m.ap-southeast-2.aws.neon.tech \
+PREFLIGHT_PGPORT=5432 \
+PREFLIGHT_PGDATABASE=neondb \
+PREFLIGHT_PGUSER=<approved-read-only-operator-role> \
+PGPASSFILE=/private/operator/<approved-pgpass-file> \
+PREFLIGHT_DEST_DIR=/private/operator/dg-production-preflight \
+sh scripts/run-production-readonly-preflight-26.sh
 ```
+
+The wrapper rejects any project, branch, host, port or database other than the
+fixed production identity above. `dg_app_runtime` is not an approved substitute for
+this operator capture; the operator role and its privileges are checked by the SQL.
 
 ## Execution wrapper and mandatory gates
 
 The reviewed wrapper is `scripts/run-production-readonly-preflight-26.sh`. It:
 
-- Verifies `production-readonly-preflight-26.sql` SHA-256 immediately before execution.
-- Uses `psql -X` and `ON_ERROR_STOP`.
-- Removes inherited `PGOPTIONS`, `PGSERVICE`, `PGSERVICEFILE`, `PSQLRC`,
-  `PSQL_HISTORY` and `DATABASE_URL` from the child process.
+- Verifies the pinned SQL SHA-256 immediately before execution.
+- Requires explicit project, branch, host, port, database and role inputs and
+  rejects any mismatch against the fixed production identity.
+- Rejects `neondb_owner` as the operator role before connecting.
+- Removes inherited host, port, database, user, host-address, service, options,
+  `.psqlrc`, history, connection-URL, target-session, SSL and related PostgreSQL
+  environment variables from the child process.
+- Uses `psql -X`, `ON_ERROR_STOP`, an explicit `-h/-p/-U/-d` connection, a
+  five-second connect timeout and `sslmode=verify-full`.
+- Requires an approved private `PGPASSWORD` or `PGPASSFILE`; it never prints the
+  credential and never places it in arguments.
+- Performs a read-only database/role identity query before the main capture and
+  aborts on any actual `current_database()`/`current_user` mismatch.
 - Writes only to a private `0700` directory and `0600` capture/error/metadata files.
-- Records timestamp, SQL SHA-256, exit status, byte count and completion marker.
-- Requires the `DG_PREFLIGHT_COMPLETE` marker and stops on SQL error, partial output,
-  missing marker or connection uncertainty.
+- Records timestamp, environment, project, branch, database, role, SQL SHA-256,
+  exit status, byte count and completion-marker state.
+- Requires both a zero psql exit status and a final `DG_PREFLIGHT_COMPLETE` marker
+  occurring after the final `COMMIT`.
+- Stops on SQL error, lock timeout, interruption, partial output, missing/misordered
+  marker or connection uncertainty.
 - Never retries and never prints captured database output.
+- Has a `disposable-test` branch only for a loopback local cluster and the
+  `dg_preflight_test` database; it cannot use that branch for a non-loopback host.
 
 The SQL assertions stop before evidence output if the operator is superuser, owns
 public objects, has elevated membership or write authority, the transaction is not
@@ -60,6 +93,20 @@ inactive, the subscription/exemption baseline changed, or attempt/admission/audi
 baselines changed. Full 25-row base identity/checksum parity remains subject to the
 offline verifier and a fresh reviewed expected-evidence file; `freshCapturePending`
 remains true.
+
+The successful `DG_PREFLIGHT_COMPLETE` marker is now emitted only after `COMMIT`.
+A SQL error, failed transaction/interruption, or capture missing the post-COMMIT
+marker cannot pass the wrapper.
+
+## Metadata disclosure
+
+Function metadata no longer returns raw `pg_proc.proconfig`. The capture returns only
+`proconfig_null`, `proconfig_entries` and a boolean indicating whether the exact
+expected `search_path=pg_catalog` setting is present. This preserves the security
+check without disclosing configuration values. The remaining catalogue output was
+reviewed and contains role/table/index/constraint/trigger/sequence/lock metadata and
+aggregate counts only: no passwords, tokens, connection strings, customer PII,
+function bodies or raw migration logs.
 
 ## A. Serving deployment and routing
 
