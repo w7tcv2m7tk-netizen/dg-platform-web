@@ -73,8 +73,10 @@ chmod 600 "$capture" "$error_file" "$identity_error" 2>/dev/null || true
 # files, options, target-session settings and connection URLs from the child.
 if [ "$ENVIRONMENT" = production ]; then
   SSL_MODE=verify-full
+  SSL_ROOT_CERT=system
 else
   SSL_MODE=disable
+  SSL_ROOT_CERT=
 fi
 set -- env \
   -u PGHOST -u PGPORT -u PGUSER -u PGDATABASE -u PGHOSTADDR \
@@ -84,6 +86,7 @@ set -- env \
   -u PGSSLCRLDIR -u PGSSLSNI -u PGCHANNELBINDING -u PGKRBSRVNAME \
   -u PGGSSENCMODE -u PGAPPNAME -u PGCLIENTENCODING -u PGGSSLIB \
   PGCONNECT_TIMEOUT=5 PGSSLMODE="$SSL_MODE"
+if [ -n "$SSL_ROOT_CERT" ]; then set -- "$@" "PGSSLROOTCERT=$SSL_ROOT_CERT"; fi
 if [ -n "${PGPASSWORD:-}" ]; then set -- "$@" "PGPASSWORD=$PGPASSWORD"; fi
 if [ -n "${PGPASSFILE:-}" ]; then set -- "$@" "PGPASSFILE=$PGPASSFILE"; fi
 set -- "$@" psql -X -h "$PREFLIGHT_PGHOST" -p "$PREFLIGHT_PGPORT" \
