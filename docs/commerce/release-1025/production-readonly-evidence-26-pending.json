@@ -1,5 +1,5 @@
 {
-  "status": "PENDING_FRESH_26_ROW_CAPTURE",
+  "status": "CERTIFIED_26_ROW_OFFLINE_EXPECTED",
   "baseEvidence": "production-readonly-evidence.json",
   "baseLedgerCount": 25,
   "expectedLedgerCount": 26,
@@ -27,6 +27,13 @@
       "logs_fingerprint"
     ]
   },
-  "freshCapturePending": true,
-  "limitations": "The 25-row base is the reviewed 23 October capture. The 26th entry is supported only by the independently certified 27 October migration receipts; its per-row ledger fields were not preserved in a fresh 26-row sanitised capture. This file is not a current Production capture and must not be relabelled as one. The preflight CLI must refuse to accept a live capture until a fresh reviewed 26-row evidence file is supplied."
+  "freshCapturePending": false,
+  "limitations": "Offline Stage 2C certification. The exact 26th ledger finished_at is not present in the signed receipts; the signed receipt window is used and the reader capture timestamp is not promoted to authority. Default ACL absence is unverified. The reader capture cannot expose audit sequence last_value; the approved expected-catalog and independent receipt establish it. Production deployment, runtime identity, credentials and checkout remain out of scope.",
+  "certifiedEvidence": "production-readonly-evidence-26.json",
+  "certifiedAt": "2026-10-28T00:00:00.000Z",
+  "certificationLimitations": {
+    "defaultPrivileges": "UNVERIFIED: no pg_default_acl capture in Stage 2C evidence; does not establish default privileges for future objects.",
+    "exactTwentySixthFinishedAt": "UNVERIFIED: exact ledger-row timestamp is absent from signed receipts; observed value is checked within the signed receipt window.",
+    "auditSequenceReaderVisibility": "UNVERIFIED_IN_READER_CAPTURE: dg_preflight_reader has no sequence SELECT; independent expected-catalog and receipt establish last_value=1, is_called=false."
+  }
 }
