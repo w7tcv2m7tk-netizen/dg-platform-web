@@ -1,0 +1,32 @@
+{
+  "status": "PENDING_FRESH_26_ROW_CAPTURE",
+  "baseEvidence": "production-readonly-evidence.json",
+  "baseLedgerCount": 25,
+  "expectedLedgerCount": 26,
+  "historicalBaseLedgerSha256": "37335ced25ee826ca227f6e1cd0941ed5d4f1cb63e4c3a067cb4ecda355e777c",
+  "applicationMigrationDirectories": 24,
+  "historicalEntriesAbsentFromApplication": [
+    "20260805_legacy_schema_baseline",
+    "20261020_aida_conversation_schema_alignment"
+  ],
+  "certifiedAddition": {
+    "migration_name": "20261027_single_use_checkout_admission",
+    "checksum": "a60c03ab49b4b1969e52c4edccb06f73117faac577271400c63eea9e2ec472f6",
+    "certifiedAt": "2026-10-27T05:36:18.673367Z",
+    "old25Unchanged": true,
+    "sourceReceipts": [
+      "Verification/Checkout-Certification-20261018/admission-production-operator-checks-20261027/owner-assisted-terminal/receipts/20261027T053221Z-46222259.json",
+      "Verification/Checkout-Certification-20261018/admission-production-operator-checks-20261027/owner-assisted-terminal/receipts/independent-post-migration-certification-20261027T053618Z.json"
+    ],
+    "unavailableRowFields": [
+      "id",
+      "started_at",
+      "finished_at",
+      "applied_steps_count",
+      "logs_null",
+      "logs_fingerprint"
+    ]
+  },
+  "freshCapturePending": true,
+  "limitations": "The 25-row base is the reviewed 23 October capture. The 26th entry is supported only by the independently certified 27 October migration receipts; its per-row ledger fields were not preserved in a fresh 26-row sanitised capture. This file is not a current Production capture and must not be relabelled as one. The preflight CLI must refuse to accept a live capture until a fresh reviewed 26-row evidence file is supplied."
+}

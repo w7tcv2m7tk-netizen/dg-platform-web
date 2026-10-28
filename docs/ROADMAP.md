@@ -1142,3 +1142,19 @@ warnings disclosed). Full canonical build passed (**457/457** pages); exact-head
 publication. State READY FOR VERIFICATION / Production HOLD. Next: DeepSeek
 independent acceptance on the new exact head, then separately approved integration;
 no merge/deploy, credentials, roles, admissions or Live Stripe action authorised.
+
+
+### Production preflight verifier correction — 28 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`. Isolated branch
+`fix/migration-verifier-20261028` from #1032 `e10b2475`; reviewed base 25-row
+evidence remains immutable. The verifier now explicitly requires the certified
+26th admission migration, validates the original 25 rows, rejects the stale
+25-row capture and fails closed on missing, unexpected, duplicate, checksum,
+unfinished or rolled-back entries. A fresh 26-row expected capture remains pending;
+the offline CLI refuses to accept current evidence until it is supplied. The
+read-only preflight procedure was added. Local verifier tests 14/14; checkout
+480/480; security 84/84 + 34/34 + 8/8; disposable permissions 56/56. No
+application migration, Production SQL, credentials, roles, deployment, Stripe or
+checkout change. State READY FOR VERIFICATION / Production HOLD. Next: owner
+approves the fresh 26-row read-only capture and reviewed expected evidence.
