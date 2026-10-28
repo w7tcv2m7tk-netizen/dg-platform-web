@@ -90,6 +90,11 @@ psql -X -h 127.0.0.1 -p "$PORT" -U owner -d dg_preflight_test \
   >"$TMP/verify.out" 2>&1 || fail "independent privilege verification failed"
 grep -q 'dg_preflight_reader_verified' "$TMP/verify.out" \
   || fail "verification completion marker missing"
+last_commit_line=$(grep -n '^COMMIT$' "$TMP/verify.out" | tail -1 | cut -d: -f1 || true)
+marker_line=$(grep -n 'dg_preflight_reader_verified' "$TMP/verify.out" | tail -1 | cut -d: -f1 || true)
+[ -n "$last_commit_line" ] && [ -n "$marker_line" ] && [ "$marker_line" -gt "$last_commit_line" ] \
+  || fail "verification marker is not after COMMIT"
+printf 'PASS: verification marker is after COMMIT\n'
 printf 'PASS: independent privilege verification\n'
 public_temp=$(psql -X -h 127.0.0.1 -p "$PORT" -U owner -d dg_preflight_test -qAt \
   -c "SELECT has_database_privilege('dg_preflight_reader', current_database(), 'TEMP')::text")
@@ -273,6 +278,12 @@ allowed_still=$(psql -X -h 127.0.0.1 -p "$PORT" -U owner -d dg_preflight_test -q
   -c "SELECT has_table_privilege('dg_preflight_reader','public.platform_subscriptions','SELECT')::text")
 [ "$allowed_still" = "true" ] || fail "missing-table failure did not roll back"
 printf 'PASS: missing target table rolled back without privilege change\n'
+if psql -X -h 127.0.0.1 -p "$PORT" -U owner -d dg_preflight_test \
+  -v ON_ERROR_STOP=1 -f "$ROOT/docs/commerce/release-1025/production-preflight-reader-verify.sql" \
+  >"$TMP/verify-missing-table.out" 2>&1; then
+  fail "verifier accepted a missing approved table"
+fi
+printf 'PASS: verifier rejects a missing approved table\n'
 
 psql -X -h 127.0.0.1 -p "$PORT" -U owner -d dg_preflight_test -v ON_ERROR_STOP=1 \
   -f "$ROOT/docs/commerce/release-1025/production-preflight-reader-rollback.sql" \

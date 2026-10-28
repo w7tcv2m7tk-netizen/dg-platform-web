@@ -95,6 +95,21 @@ BEGIN
     RAISE EXCEPTION 'DG_PREFLIGHT_READER_STOP: role owns schema public';
   END IF;
 
+  IF EXISTS (
+    SELECT 1
+    FROM unnest(v_allowed) AS expected(name)
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM pg_class c
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname = 'public'
+        AND c.relname = expected.name
+        AND c.relkind IN ('r','p')
+    )
+  ) THEN
+    RAISE EXCEPTION 'DG_PREFLIGHT_READER_STOP: an approved table is missing or is not an ordinary/partitioned table';
+  END IF;
+
   FOR v_table IN
     SELECT c.oid, c.relname, c.relkind, c.relrowsecurity, c.relforcerowsecurity
     FROM pg_class c
@@ -186,6 +201,6 @@ SELECT count(*) FILTER (WHERE p.prosecdef) AS executable_security_definer_functi
 FROM pg_proc p
 WHERE has_function_privilege('dg_preflight_reader', p.oid, 'EXECUTE');
 
-SELECT 'dg_preflight_reader_verified' AS result;
-
 COMMIT;
+
+SELECT 'dg_preflight_reader_verified' AS result;
