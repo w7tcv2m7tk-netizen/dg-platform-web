@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 
@@ -313,6 +314,13 @@ function requiredPrivilegesForMethod(method) {
   return [];
 }
 
+// Exact reviewed catalogue SELECT only. No application table policy/grants change.
+// A different path or any SQL edit falls back to ordinary fail-closed analysis.
+export function reviewedIdentityMetadataSql(file,sql) {
+  return file === "src/lib/runtime-identity-probe.ts" &&
+    createHash("sha256").update(sql).digest("hex") === "acf8c5b40cd5e33a2e19fce534b7eec01b7dcf73ed47a4ea11abe2e7ef601d27";
+}
+
 function tableUsage(root) {
   const models = parsePrismaModels(root);
   const byCamel = new Map(models.map(({ model, table }) => [model[0].toLowerCase() + model.slice(1), table]));
@@ -342,6 +350,7 @@ function tableUsage(root) {
     }
     if (!source.includes("queryRaw") && !source.includes("executeRaw")) continue;
     for (const sql of extractSqlTemplates(source)) {
+      if (reviewedIdentityMetadataSql(relative,sql)) continue;
       if (/\b(?:ALTER|CREATE|DROP|GRANT|REVOKE|TRUNCATE|SET\s+ROLE|SET\s+SESSION\s+AUTHORIZATION)\b/i.test(sql)) {
         ddl.push({ file: relative, statement: sql.slice(0, 160).replace(/\s+/g, " ") });
       }

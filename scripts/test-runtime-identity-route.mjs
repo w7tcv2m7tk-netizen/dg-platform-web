@@ -1,0 +1,14 @@
+import {test,mock} from 'node:test';
+import assert from 'node:assert/strict';
+let user=null,authCalls=0,probeCalls=0,claims=0,options;
+const b={project:'prj_RzOMts2AdqpKtbAgZ72GLKs55AJ2',deployment:'dpl_'+'d'.repeat(24),revision:'a'.repeat(40),environment:'production'};
+const g={...b,actor:'user_synthetic',grantId:'10000000-0000-4000-8000-000000000001'};
+mock.module('@clerk/nextjs/server',{namedExports:{auth:async o=>{authCalls++;options=o;return{userId:user};}}});
+mock.module('../src/lib/runtime-identity-control.ts',{namedExports:{getIdentityControl:()=>({claim:async()=>{claims++;return g;},finish:async()=>{}})}});
+mock.module('../src/lib/runtime-identity-probe.ts',{namedExports:{probeApprovedIdentity:async()=>{probeCalls++;return{status:'ok',role:'synthetic',sessionRole:'synthetic',database:'synthetic',revision:b.revision};}}});
+const route=await import('../src/app/api/admin/runtime-database-identity/route.ts');
+const request=()=>new Request('https://app.digitalgate.com.au/api/admin/runtime-database-identity',{method:'POST',headers:{Origin:'https://app.digitalgate.com.au','X-DG-Identity-Token':'t'.repeat(43)}});
+test('disabled route cannot authenticate, access store or database',async()=>{delete process.env.DG_RUNTIME_IDENTITY_ENABLED;assert.equal((await route.POST(request())).status,403);assert.equal(authCalls+claims+probeCalls,0);});
+test('actual enabled route denies anonymous/API-key and authenticates session tokens only',async()=>{Object.assign(process.env,{DG_RUNTIME_IDENTITY_ENABLED:'1',VERCEL_ENV:'production',VERCEL_PROJECT_ID:b.project,VERCEL_DEPLOYMENT_ID:b.deployment,VERCEL_GIT_COMMIT_SHA:b.revision});for(user of [null,'api_key:synthetic'])assert.equal((await route.POST(request())).status,403);assert.equal(claims+probeCalls,0);assert.deepEqual(options,{acceptsToken:'session_token'});});
+test('actual route uses claim then authorised probe without page helpers',async()=>{user='user_synthetic';assert.equal((await route.POST(request())).status,200);assert.equal(claims,1);assert.equal(probeCalls,1);});
+test('all non-POST methods refuse with no identity or extra auth',async()=>{const n=authCalls;for(const method of ['GET','PUT','PATCH','DELETE','HEAD','OPTIONS']){const r=await route[method]();assert.equal(r.status,403);assert.deepEqual(await r.json(),{status:'denied'});}assert.equal(authCalls,n);});

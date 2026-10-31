@@ -23,8 +23,12 @@ function runtimeFiles() {
   return files;
 }
 
-test("runtime code uses DATABASE_URL only", () => {
+test("application runtime uses DATABASE_URL only; isolated identity validator may reject extra credentials", () => {
   for (const file of runtimeFiles()) {
+    if (file === "src/lib/runtime-identity-credentials.ts") {
+      assert.doesNotMatch(read(file), /Prisma|queryRaw|executeRaw|fetch\s*\(|\$connect|datasourceUrl/);
+      continue;
+    }
     assert.doesNotMatch(read(file), /DATABASE_URL_UNPOOLED|RECONCILIATION_DATABASE_URL|SHADOW_DATABASE_URL|DIRECT_URL/, file);
   }
 });
@@ -34,6 +38,7 @@ test("runtime code does not instantiate a separate Prisma client outside the sha
     "packages/database/src/index.ts",
     "src/app/(shell)/command/remediate-991/actions.ts",
     "src/app/api/admin/remediate-991-physical/route.ts",
+    "src/lib/runtime-identity-control.ts",
   ]);
   for (const file of runtimeFiles()) {
     if (allowed.has(file)) continue;
@@ -111,4 +116,14 @@ test("operator-only database paths are explicitly documented", () => {
     "runtime-role-grants.sql",
     "runtime-role-verify.sql",
   ]) assert.match(runbook, new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
+
+test("the additional client can reach only the separately validated control database",()=>{
+ const source=read('src/lib/runtime-identity-control.ts');
+ assert.equal([...source.matchAll(/new\s+PrismaClient\s*\(/g)].length,1);
+ assert.match(source,/isolatedControlUrl\(process.env.DG_RUNTIME_IDENTITY_CONTROL_URL,process.env.DATABASE_URL\)/);
+ assert.match(source,/new PrismaClient\(\{datasourceUrl:url,log:\[\]\}\)/);
+ assert.doesNotMatch(source,/DATABASE_URL_UNPOOLED|RECONCILIATION_DATABASE_URL|SHADOW_DATABASE_URL|DIRECT_URL|@dg\/database|\.membership\.|\.organisation\./);
+ assert.match(source,/runtime_identity_control\.claim/);assert.match(source,/runtime_identity_control\.finish/);
 });

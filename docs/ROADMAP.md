@@ -1158,3 +1158,62 @@ read-only preflight procedure was added. Local verifier tests 14/14; checkout
 application migration, Production SQL, credentials, roles, deployment, Stripe or
 checkout change. State READY FOR VERIFICATION / Production HOLD. Next: owner
 approves the fresh 26-row read-only capture and reviewed expected evidence.
+
+### 29 October 2026 — operator runtime identity diagnostic (local only)
+
+Requirements `platform.auth` / `detach.portal_billing`; owner-approved local-only
+implementation. Isolated detached worktree `/private/tmp/dg-runtime-identity-20261029`
+on `f859bbc56aba2e1322dccd6c18661cff1c1b7cf0`, canonical shared Git store
+`/Users/okcomputers/Documents/dg-platform-current/.git`. No PR or commit created.
+Implementation: `src/lib/runtime-identity.ts` and
+`src/app/(shell)/command/runtime-identity/actions.ts`. Tests:
+`node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-runtime-identity.mjs scripts/test-platform-authority.mjs scripts/test-api-key-authority.mjs`:
+24 passed, zero failed/skipped on 29 October 2026 against this local diff.
+Verification: **IMPLEMENTED BUT UNVERIFIED** beyond mock/static local security
+checks. No database or hosted authentication calls occurred. See
+`commerce/release-1025/LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md` for boundaries and gates.
+Production remains HOLD/NO-GO. Next: review this local diff, then separately approve
+any hosted verification/release. No checkout activation authorised.
+
+29 October 2026 follow-up, same requirements/worktree/base: owner-approved layered
+containment replaces the superseded universal-cancellation criterion. Diagnostic
+now uses the checkout-serving singleton, no lifecycle calls, retained per-worker
+slot and 6.5s response limit; read-only SQL/transaction limits retained. Explicit
+Command Centre operator page/button added; shared Prisma engine logging sanitised.
+28/28 unit/security tests, 2/2 actual-action mocked-boundary tests and 6/6 disposable
+PostgreSQL checks passed. TypeScript/lint interrupted (130); build/prebuild blocked
+on non-resident local dependencies, exit 1 following interruption. Actual Clerk,
+built route, full build and independent review remain incomplete. State remains
+IMPLEMENTED BUT UNVERIFIED for integrated readiness; Production HOLD. Next: restore
+local dependency availability, finish static/build and authenticated local checks,
+then independent review. No Production or external credentials accessed.
+
+29 October 2026 local certification continuation (same requirements/base): restored
+private lock-matching dependencies without touching shared sources. Prisma generation,
+TypeScript, changed-code lint and full npm build PASS (457 pages); 28 unit/security,
+2 action-boundary and 6 disposable DB checks PASS. Built route/action inclusion
+verified. Real Clerk HTTP validation remains UNVERIFIED (no secrets accessed).
+Independent review: no P0/P1; shared logging P2 observability disposition remains
+required; late-phase test assertions strengthened and re-reviewed. Separate one-use
+requirements source missing; no durable store implemented. State remains
+IMPLEMENTED BUT UNVERIFIED for complete auth/release readiness, Production HOLD.
+See LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md; next approvals concern Development auth
+verification and safe logging correction/tradeoff disposition.
+
+30 October 2026, same platform.auth / detach.portal_billing workstream/base: owner
+approved Option B globally sanitised structured Prisma logs. Added safe severity,
+allowlisted categories and independent event evidence; shared singleton/pool and
+query arguments/results preserved. 22 logging + existing30 focused tests PASS;
+6 existing DB checks +1 cold-start check PASS; TypeScript, changed-code lint, full
+npm build (457 pages), route/action inclusion, whitespace and secret-pattern scans
+PASS. Independent read-only security review PASS, no confirmed P0/P1. Raw engine
+detail loss is intentional; event counts not unique failure counts; cold process
+required. State IMPLEMENTED BUT UNVERIFIED for hosted readiness. Real Clerk, durable
+one-use and deployment identity remain separate gates, Production HOLD/NO-GO.
+Next: owner reviews local Option B diff/evidence; no commit/publication authorised.
+
+31 October 2026 — platform.auth / detach.portal_billing: local runtime-identity revision retires the Command Centre action/page, adds a disabled-by-default standalone session-only POST, separate durable control database CAS/audit, actor/deployment binding, effective-privilege negative guards and telemetry token containment. No application migration or 83-table grant expansion. Local disposable multi-process tests demonstrate one use across workers and no target provisioning. Actual Production identity/full permissions/provider binding, new-route real Clerk acceptance, independent review and deployment suppression remain gates. No remote actions, commit, deployment, billing change or publication authorised. See LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md for current versus historical evidence. Production HOLD.
+
+31 October 2026 — platform.auth / detach.portal_billing: suppression-only follow-up adds exact false rule for proposed review/runtime-identity-one-use-20261031-46926786; no branch or commit created. Nine JSON/preservation assertions, exact minimatch/main/sibling checks and diff checks PASS. Existing 29-file hashes verified before edit; current inventory 30 files, only vercel.json added plus existing documentation updates. App source/tests unchanged; prior full build/regressions reused. Current remote main 8d639743 is ancestor of base, 28 inherited commits ahead/zero behind. GitHub webhook inventory empty; workflow verification remains deployment-free in inspected revisions. Effective Vercel ignored-build and explicit Production-branch settings/external automation evidence remain incomplete. Local preparation PASS; publication, deployment and invocation HOLD. No remote mutations authorised. Full evidence in LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md.
+
+31 October 2026 — platform.auth / detach.portal_billing: CI/documentation follow-up integrates diagnostic, safe logging, credential boundary and one-use tests into release runner; exact-head GitHub checkout and both disposable identity DB suites wired. Added portable tool discovery (argument/PG_BIN/PATH), fail-closed negatives; historical Stage 3 proposal preserved with explicit d15310 supersession and local hash-only verification. Release 559, security 84+35+9, pairing 34, coordinator 44, compatibility 235, permission DB 56, shared-client 7 groups and durable control 33 PASS; TypeScript, 29-file lint, YAML/diff checks and canonical Production-mode 457-page full build PASS. Initial path-alias assertions corrected; initial test-mode build not used for canonical certification. Candidate 35 files / effective main diff 100; same 28 inherited commits require separate stack/base approval. No application runtime, schema, migration or grant changes in this follow-up. CI Linux/PG16 and new-route real Clerk acceptance remain unverified. No commit/push/PR/history rewrite, Production access, deployment or invocation; publication and Production HOLD. Evidence: LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md and ignored coverage/runtime-identity-ci-20261031 receipts.

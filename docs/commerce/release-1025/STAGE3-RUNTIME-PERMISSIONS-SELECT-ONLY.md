@@ -1,5 +1,33 @@
 # DigitalGate — Stage 3 SELECT-Only Runtime-Permissions Supplement
 
+## Historical proposal — superseded, not an execution source
+
+31 October 2026 clarification: the original proposal and SQL below are retained
+unchanged as historical evidence. Its `247eef5d…` hash is **not** the later
+owner-approved supplement. Do not execute or use the embedded proposal as current
+Production permission certification. In particular, its function inspection is
+limited to `public`; it does not establish the later required coverage of
+accessible non-system schemas and exact routine signatures.
+
+The subsequently approved standalone supplement is identified by SHA-256
+`d15310c70223ed7cd543bf254ebe95f1e8a1deae5795de2d3878a1bd9b8ca558`.
+That approval and its original validation evidence do not transfer to this older
+SQL block or to the new runtime identity diagnostic. The corrected standalone SQL
+and its test harness are not included in this candidate. A local read-only hash
+check on 31 October verified that the actual standalone artifact at
+`/Users/okcomputers/Developer/DigitalGate/Worktrees/dg-preflight-sql-review-20261028/scripts/sql/runtime-permissions-select-only.sql`
+matches the full `d15310…` hash above. This is artifact-identity evidence only:
+no SQL was executed and no earlier execution or test result was rerun or changed.
+Before any separately authorised use, verify the complete hash again and
+re-establish its identity, permissions and execution prerequisites. Never
+reconstruct the corrected SQL from this historical proposal.
+
+The current local diagnostic and its separate control database have their own
+implementation, tests and approval gates documented in
+`LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md`. No Production SQL execution is authorised.
+
+## Original proposal (preserved below)
+
 Prepared: 2026-10-28  
 Status: **PROPOSED — NOT EXECUTED — owner approval required**  
 Scope: SELECT-only catalog verification of the serving runtime role against the approved runtime-role manifest  

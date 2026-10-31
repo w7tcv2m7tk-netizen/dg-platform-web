@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { readManifest, validateManifest } from "./security/runtime-role-lib.mjs";
+import { readManifest, validateManifest, reviewedIdentityMetadataSql } from "./security/runtime-role-lib.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -120,4 +120,13 @@ test("repair publication branch has explicit deployment suppression", () => {
   assert.equal(config.git.deploymentEnabled["fix/checkout-security-p1-20261027"],false);
   assert.equal(config.git.deploymentEnabled["fix/single-use-checkout-admission-20261027"],false);
   assert.notEqual(config.git.deploymentEnabled.main,false);
+});
+
+
+test("only exact reviewed identity metadata SELECT is recognised; SQL edits cannot escape manifest",()=>{
+ const source=readFileSync(path.join(root,'src/lib/runtime-identity-probe.ts'),'utf8');
+ const sql=source.split('const checks = await tx.$queryRaw')[1].split('`')[1].replace(/\/\*[\s\S]*?\*\//g,' ').replace(/--[^\n]*/g,' ').trim();
+ assert.equal(reviewedIdentityMetadataSql('src/lib/runtime-identity-probe.ts',sql),true);
+ for(const edited of [sql+';DROP TABLE memberships',sql.replace('pg_roles','pg_shadow'),sql.replace('SELECT (','UPDATE memberships SET role=')])assert.equal(reviewedIdentityMetadataSql('src/lib/runtime-identity-probe.ts',edited),false);
+ assert.equal(reviewedIdentityMetadataSql('src/lib/unrelated.ts',sql),false);
 });
