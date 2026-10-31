@@ -1,3 +1,4 @@
+import { assertGen2OnboardingCompletionAllowed, OnboardingCompletionNotConfirmed } from "@dg/platform-core/onboarding/gen2-completion";
 import {
   getGen2OnboardingProgress,
   getOrganisationCommercialOffer,
@@ -124,6 +125,14 @@ export async function PATCH(req: Request) {
     getOrganisationCommercialOffer(targetOrganisationId),
   ]);
   const vipSetup = sanitiseVipSetup(body.vipSetup, current.vipSetup!);
+  try {
+    await assertGen2OnboardingCompletionAllowed(targetOrganisationId, body);
+    // Existing completion cannot be carried into a new write without authority.
+    await assertGen2OnboardingCompletionAllowed(targetOrganisationId, { vipSetup });
+  } catch (error) {
+    if (!(error instanceof OnboardingCompletionNotConfirmed)) throw error;
+    return NextResponse.json({ error: { code: "checkout_not_confirmed", message: error.message } }, { status: 409 });
+  }
   const onboardingCompleted = Boolean(current.vipSetup?.completedAt || vipSetup.completedAt);
   const journeyPosition = onboardingCompleted
     ? { stage: "implementation" as const, substep: undefined, updatedAt: new Date().toISOString() }

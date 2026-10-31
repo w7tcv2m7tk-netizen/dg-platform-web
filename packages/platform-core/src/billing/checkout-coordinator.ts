@@ -3,7 +3,14 @@ import { createHash, randomUUID } from "node:crypto";
 import type { Prisma, PrismaClient } from "@dg/database";
 import type Stripe from "stripe";
 import { admitPlatformCheckout, CheckoutTemporarilyUnavailable } from "./checkout-creation-gate";
+import { verifyCheckoutAdmission as inspectCheckoutAdmission, resolveCheckoutAdmissionTerms, checkoutAdmissionRequestTerms, checkoutAdmissionTermsHash } from "./checkout-admission";
 import { createAdmittedPlatformSession } from "./checkout-session-create";
+
+// Preserve the existing retryable closed-gate response contract.
+async function verifyCheckoutAdmission(...args: Parameters<typeof inspectCheckoutAdmission>) {
+  try { return await inspectCheckoutAdmission(...args); }
+  catch { throw new CheckoutTemporarilyUnavailable(); }
+}
 
 // Keep the existing SDK/API contract; retries must retain this version as well as the body.
 const API_VERSION = "2025-02-24.acacia";
@@ -64,6 +71,8 @@ function assertOwned(session: Stripe.Checkout.Session, organisationId: string) {
  */
 export async function coordinatePlatformCheckout(input: {
   organisationId: string;
+  /** Server-authenticated Clerk identity only; never read from request JSON. */
+  clerkUserId?: string;
   stripe: Stripe;
   parameters: Stripe.Checkout.SessionCreateParams;
   // Dependency injection is used only by isolated behavioural tests.
@@ -83,6 +92,14 @@ export async function coordinatePlatformCheckout(input: {
   const balance = await stripe.balance.retrieve();
   const scope = `${account.id}:${balance.livemode ? "live" : "test"}:${API_VERSION}`;
 
+  const [admissionState] = await db.$queryRaw<Array<{ requires_terms: boolean }>>`
+    SELECT (SELECT blocked FROM platform_checkout_creation_gate WHERE id=1) OR
+      EXISTS(SELECT 1 FROM platform_checkout_admissions WHERE organisation_id=${input.organisationId}) AS requires_terms`.catch(() => { throw new CheckoutTemporarilyUnavailable(); });
+  if (!admissionState || admissionState.requires_terms == null) throw new CheckoutTemporarilyUnavailable();
+  const terms = admissionState.requires_terms && input.clerkUserId
+    ? await resolveCheckoutAdmissionTerms(stripe, input.parameters) : undefined;
+  const admission = { organisationId: input.organisationId, clerkUserId: input.clerkUserId, providerScope: scope, terms };
+
   recovery: for (let pass = 0; pass < 3; pass++) {
     const token = randomUUID();
     const reserved = await db.$transaction(async (tx) => {
@@ -92,6 +109,15 @@ export async function coordinatePlatformCheckout(input: {
       // Local cancellation/restriction is not proof that a remote subscription ended.
       const customerIds = [...new Set([org.billingCustomerId, sub?.stripeCustomerId].filter((v): v is string => Boolean(v)))];
       let attempt = await tx.platformCheckoutAttempt.findUnique({ where: { currentOrganisationId: input.organisationId } });
+      const scopedAdmission = await verifyCheckoutAdmission(tx, { ...admission, attemptId: attempt?.id });
+      if (scopedAdmission && attempt && checkoutAdmissionTermsHash(checkoutAdmissionRequestTerms(
+        attempt.requestParameters as unknown as Stripe.Checkout.SessionCreateParams)) !==
+        checkoutAdmissionTermsHash(checkoutAdmissionRequestTerms(input.parameters))) {
+        blocked("checkout_admission_terms_mismatch", "The existing checkout requires independent recovery before admission.");
+      }
+      if (scopedAdmission && (attempt ? (attempt.legacySessionIds as string[]).length : legacyIds(org.settings).length)) {
+        blocked("checkout_admission_legacy_session", "Legacy checkout evidence requires operator recovery before admission.");
+      }
       const timestamp = now();
       if (attempt?.leaseUntil && attempt.leaseUntil > timestamp) {
         blocked("checkout_in_progress", "Checkout is being recovered. Please try again shortly.");
@@ -111,14 +137,15 @@ export async function coordinatePlatformCheckout(input: {
           legacySessionIds: legacyIds(org.settings),
         } });
       }
+      await verifyCheckoutAdmission(tx, { ...admission, attemptId: attempt.id, hasProviderEvidence: Boolean(attempt.firstRequestedAt || attempt.sessionId) }, true);
       if (attempt.providerScope !== scope) blocked("checkout_provider_changed", "Checkout requires recovery in its original Stripe account and mode.");
       const storedCustomer = (attempt.requestParameters as { customer?: string }).customer;
       if (storedCustomer && !customerIds.includes(storedCustomer)) customerIds.push(storedCustomer);
       attempt = await tx.platformCheckoutAttempt.update({ where: { id: attempt.id }, data: {
         leaseToken: token, leaseUntil: new Date(timestamp.getTime() + LEASE_MS),
       } });
-      return { attempt, customerIds, subscriptionId: sub?.stripeSubscriptionId };
-    });
+      return { attempt, customerIds, subscriptionId: sub?.stripeSubscriptionId, scopedAdmission };
+    }, { maxWait: 1000, timeout: 5000 });
     let attempt = reserved.attempt;
     const save = async (data: Prisma.PlatformCheckoutAttemptUpdateManyMutationInput) => {
       const result = await db.platformCheckoutAttempt.updateMany({
@@ -228,8 +255,8 @@ export async function coordinatePlatformCheckout(input: {
             data: { firstRequestedAt, state: "UNCERTAIN", recoveryReason: "stripe_outcome_unknown" },
           });
           if (claimed.count !== 1) blocked("checkout_lease_lost", "Checkout recovery is already in progress. Please try again shortly.");
-          await admitPlatformCheckout({ expiresAt: storedParams.expires_at, database: tx });
-        });
+          await admitPlatformCheckout({ expiresAt: storedParams.expires_at, database: tx, admission: { ...admission, attemptId: attempt.id } });
+        }, { maxWait: 1000, timeout: 5000 });
         attempt = { ...attempt, firstRequestedAt };
         try {
           session = await createAdmittedPlatformSession(stripe, storedParams,
@@ -264,6 +291,10 @@ export async function coordinatePlatformCheckout(input: {
       }
       if (session.status !== "open" || !session.url) await requireRecovery("session_not_resumable");
       await save({ state: "OPEN", recoveryReason: null });
+      // Re-check after provider I/O: revocation/expiry must not yield late success.
+      // The existing durable attempt retains any issued session for containment.
+      await db.$transaction(tx => verifyCheckoutAdmission(tx, { ...admission, attemptId: attempt.id, mustBeBound: true }),
+        { maxWait: 1000, timeout: 5000 });
       return { url: session.url, sessionId: session.id };
     } finally {
       // A process crash leaves a bounded lease; normal errors retain the attempt but release it.

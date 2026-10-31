@@ -10,6 +10,7 @@ on:
       - 'package*.json'
       - 'tsconfig.json'
       - 'next.config.*'
+      - 'vercel.json'
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -36,6 +38,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run db:generate
       - run: npm run test:checkout-release
+      - run: npm run test:security-certification
       - name: Install isolated PostgreSQL tools
         run: sudo apt-get update && sudo apt-get install -y postgresql-16 postgresql-server-dev-16
       - name: Disposable PostgreSQL checkout, reconciliation and concurrency
@@ -43,6 +46,9 @@ jobs:
           PG_BIN="/usr/lib/postgresql/16/bin"
           node scripts/run-checkout-coordinator-db-tests.mjs "$PG_BIN"
           node scripts/run-checkout-compatibility-db-tests.mjs "$PG_BIN"
+          node scripts/run-checkout-compatibility-db-tests.mjs "$PG_BIN" permissions
+          node scripts/test-runtime-identity-db.mjs "$PG_BIN"
+          node scripts/run-runtime-identity-control-db-tests.mjs "$PG_BIN"
       - run: npx tsc --noEmit
       - run: npm run build
       - run: npm run test:checkout-compatibility-artifacts && npm run test:checkout-client-boundary

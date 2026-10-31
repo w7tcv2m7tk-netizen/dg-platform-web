@@ -922,6 +922,9 @@ model PlatformCheckoutAttempt {
   organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 
   @@index([organisationId, createdAt])
+  admissions PlatformCheckoutAdmission[]
+
+  @@unique([id, organisationId], map: "platform_checkout_attempts_id_organisation_id_key")
   @@map("platform_checkout_attempts")
 }
 
@@ -2134,4 +2137,35 @@ model PlatformCheckoutCreationGate {
   lastAdmissionExpiresAt DateTime? @map("last_admission_expires_at") @db.Timestamptz(6)
 
   @@map("platform_checkout_creation_gate")
+}
+
+/// Operator-issued authority only. No customer-facing creation/update API.
+model PlatformCheckoutAdmission {
+  id                   String   @id
+  organisationId       String   @map("organisation_id")
+  activeOrganisationId String?  @unique @map("active_organisation_id")
+  clerkUserId          String   @map("clerk_user_id")
+  providerScope        String   @map("provider_scope")
+  termsHash            String   @map("terms_hash")
+  terms                Json
+  expiresAt            DateTime @map("expires_at") @db.Timestamptz(6)
+  revokedAt            DateTime? @map("revoked_at") @db.Timestamptz(6)
+  revokedBy            String?  @map("revoked_by")
+  revocationReference  String?  @map("revocation_reference")
+  attemptId            String?  @unique @map("attempt_id")
+  approvedBy           String   @map("approved_by")
+  approvalReference    String   @map("approval_reference")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  attempt PlatformCheckoutAttempt? @relation(fields: [attemptId, organisationId], references: [id, organisationId], onDelete: Restrict, onUpdate: Restrict, map: "platform_checkout_admissions_attempt_owner_fkey")
+  @@map("platform_checkout_admissions")
+}
+
+model PlatformCheckoutAdmissionAudit {
+  id          BigInt   @id @default(autoincrement())
+  admissionId String   @map("admission_id")
+  action      String
+  evidence    Json
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  @@index([admissionId, createdAt])
+  @@map("platform_checkout_admission_audit")
 }
