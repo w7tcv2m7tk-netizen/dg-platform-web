@@ -8,6 +8,7 @@ import { admitPlatformCheckout, CheckoutTemporarilyUnavailable } from "../packag
 import { createPlatformCheckoutSession, createCustomCommercialCheckoutSession, createNegotiatedCommercialCheckoutSession } from "../packages/platform-core/src/billing/platform-checkout.ts";
 import { provisionFromPlatformCheckout, handlePlatformSubscriptionLifecycle } from "../packages/platform-core/src/billing/platform-stripe.ts";
 import { getOrganisationCommercialOffer } from "../packages/platform-core/src/billing/commercial-offer.ts";
+import { financeAppAccessDenial, resolveFinanceAppAccessState } from "../src/lib/finance-app-access-policy.ts";
 import { expectedPurchasedLineItems } from "../packages/platform-core/src/billing/purchased-line-items.ts";
 import { StripePaymentConnector } from "../packages/platform-core/src/commerce/connectors/stripe/index.ts";
 import { processPaymentWebhookEvent } from "../packages/platform-core/src/commerce/payment-engine.ts";
@@ -459,6 +460,105 @@ test("existing completed checkout provisions through webhook authority while gat
 const completedSession = () => ({ id: "cs_paid_fixture", mode: "subscription", status: "complete", payment_status: "paid", livemode: false,
   customer: providerSubscription.customer, subscription: providerSubscription.id,
   metadata: { dg_platform_checkout: "true", organisation_id: org.id, dg_platform_tier: "professional" } });
+
+test("paid Finance checkout enrols the beta flag and authorizes the purchased app", async () => {
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"] });
+  providerSubscription.trial_end = Math.floor(Date.now() / 1000) + 86400;
+  providerSubscription.current_period_end = providerSubscription.trial_end;
+  const session = { ...completedSession(), metadata: { ...completedSession().metadata, dg_industry_apps: "finance" } };
+  await provisionFromPlatformCheckout(session);
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.deepEqual(state, { industryEntitled: true, betaEnrolled: true, selectedForOrganisation: true });
+});
+
+test("checkout without Finance does not enrol the Finance beta flag", async () => {
+  await provisionFromPlatformCheckout(completedSession());
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.deepEqual(state, { industryEntitled: false, betaEnrolled: false, selectedForOrganisation: false });
+  assert.notEqual(financeAppAccessDenial(state), null);
+});
+
+test("active paid Finance checkout enrols beta and remains authorised", async () => {
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"] });
+  providerSubscription.status = "active";
+  providerSubscription.trial_start = null;
+  providerSubscription.trial_end = null;
+  providerSubscription.current_period_end = Math.floor(Date.now() / 1000) + 86400;
+  const session = { ...completedSession(), metadata: { ...completedSession().metadata, dg_industry_apps: "finance" } };
+  await provisionFromPlatformCheckout(session);
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.deepEqual(state, { industryEntitled: true, betaEnrolled: true, selectedForOrganisation: true });
+});
+
+test("cancelled Finance subscription keeps the flag but denies Finance access", async () => {
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"] });
+  providerSubscription.trial_end = Math.floor(Date.now() / 1000) + 86400;
+  providerSubscription.current_period_end = providerSubscription.trial_end;
+  const session = { ...completedSession(), metadata: { ...completedSession().metadata, dg_industry_apps: "finance" } };
+  await provisionFromPlatformCheckout(session);
+  providerSubscription.status = "canceled";
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_finance_cancelled");
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.equal(state.betaEnrolled, true);
+  assert.equal(state.industryEntitled, false);
+  assert.equal(financeAppAccessDenial(state), "industry_app_purchase_required");
+});
+
+test("explicitly revoked Finance beta flag is not re-enabled by checkout provisioning", async () => {
+  await prisma.organisation.update({
+    where: { id: org.id },
+    data: { settings: { featureFlags: { "finance.beta": false } } },
+  });
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"] });
+  providerSubscription.trial_end = Math.floor(Date.now() / 1000) + 86400;
+  providerSubscription.current_period_end = providerSubscription.trial_end;
+  const session = { ...completedSession(), metadata: { ...completedSession().metadata, dg_industry_apps: "finance" } };
+  await provisionFromPlatformCheckout(session);
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.equal(owner.settings.featureFlags["finance.beta"], false);
+  assert.equal(state.industryEntitled, true);
+  assert.equal(state.betaEnrolled, false);
+  assert.equal(financeAppAccessDenial(state), "beta_required");
+});
 
 function customOfferMetadata() {
   return {

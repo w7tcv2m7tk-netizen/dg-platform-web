@@ -70,6 +70,7 @@ test("expired, cancelled, mismatched and legacy-empty authority fails closed", (
   t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-25T00:00:00.000Z") });
   const cases = [
     { stripeStatus: "canceled", status: "CANCELLED" },
+    { status: "SUSPENDED", entitlement: "NONE" },
     { entitlement: "NONE" },
     { industryApps: [] },
     { trialEnd: new Date("2026-10-17T00:00:00.000Z") },
