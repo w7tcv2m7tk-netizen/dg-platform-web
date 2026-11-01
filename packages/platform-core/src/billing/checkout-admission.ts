@@ -71,7 +71,7 @@ export async function verifyCheckoutAdmission(tx: Prisma.TransactionClient, inpu
   await tx.$executeRaw`SET LOCAL lock_timeout='1s'`;
   await tx.$executeRaw`SET LOCAL statement_timeout='3s'`;
   const gates = await tx.$queryRaw<Array<{blocked:boolean;subscription_webhooks_held:boolean}>>`SELECT blocked,subscription_webhooks_held FROM platform_checkout_creation_gate WHERE id=1 FOR UPDATE`;
-  if (gates.length !== 1) throw new CheckoutAdmissionDenied();
+  if (gates.length !== 1 || gates[0].subscription_webhooks_held) throw new CheckoutAdmissionDenied();
   const rows = await tx.$queryRaw<Array<{id:string; clerk_user_id:string; provider_scope:string; terms_hash:string;
     terms:unknown; attempt_id:string|null; usable:boolean}>>`
     SELECT id,clerk_user_id,provider_scope,terms_hash,terms,attempt_id,
@@ -81,7 +81,7 @@ export async function verifyCheckoutAdmission(tx: Prisma.TransactionClient, inpu
       (active_organisation_id=${input.organisationId} OR (attempt_id IS NOT NULL AND attempt_id=${input.attemptId ?? null}))
     ORDER BY id FOR UPDATE`;
   if (rows.length === 0 && !gates[0].blocked) return null;
-  if (rows.length !== 1 || gates[0].subscription_webhooks_held) throw new CheckoutAdmissionDenied();
+  if (rows.length !== 1) throw new CheckoutAdmissionDenied();
   // Reject accidental use with a root Prisma client: FOR UPDATE must still be
   // held by the SAME explicit transaction, not an already-committed query.
   const [transaction] = await tx.$queryRaw<Array<{ transaction_id: string | null }>>`

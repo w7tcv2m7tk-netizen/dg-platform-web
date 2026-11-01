@@ -12,3 +12,6 @@ test('unsupported externally priced product fails closed',async()=>{const p=para
 test('both HTTP creators forward the authenticated actor; no body actor or permit accepted',()=>{for(const path of ['src/app/api/v1/billing/checkout/route.ts','src/app/api/v1/onboarding/gen2/route.ts']){const s=readFileSync(path,'utf8');assert.match(s,/clerkUserId: session.clerkUserId/);assert.doesNotMatch(s,/clerkUserId: body\.|admissionId: body\./)}});
 
 test('release branch and existing release branches remain deployment-suppressed; main is not disabled',()=>{const c=JSON.parse(readFileSync('vercel.json','utf8'));for(const b of ['fix/single-use-checkout-admission-20261027','finish/checkout-entitlements','release/stripe-webhook-guard-only-20261019'])assert.equal(c.git.deploymentEnabled[b],false);assert.notEqual(c.git.deploymentEnabled.main,false)});
+
+// Keep the fail-closed hold matrix in the standard release regression command.
+await import('./test-checkout-hold-boundary.mjs');

@@ -1217,3 +1217,36 @@ Next: owner reviews local Option B diff/evidence; no commit/publication authoris
 31 October 2026 — platform.auth / detach.portal_billing: suppression-only follow-up adds exact false rule for proposed review/runtime-identity-one-use-20261031-46926786; no branch or commit created. Nine JSON/preservation assertions, exact minimatch/main/sibling checks and diff checks PASS. Existing 29-file hashes verified before edit; current inventory 30 files, only vercel.json added plus existing documentation updates. App source/tests unchanged; prior full build/regressions reused. Current remote main 8d639743 is ancestor of base, 28 inherited commits ahead/zero behind. GitHub webhook inventory empty; workflow verification remains deployment-free in inspected revisions. Effective Vercel ignored-build and explicit Production-branch settings/external automation evidence remain incomplete. Local preparation PASS; publication, deployment and invocation HOLD. No remote mutations authorised. Full evidence in LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md.
 
 31 October 2026 — platform.auth / detach.portal_billing: CI/documentation follow-up integrates diagnostic, safe logging, credential boundary and one-use tests into release runner; exact-head GitHub checkout and both disposable identity DB suites wired. Added portable tool discovery (argument/PG_BIN/PATH), fail-closed negatives; historical Stage 3 proposal preserved with explicit d15310 supersession and local hash-only verification. Release 559, security 84+35+9, pairing 34, coordinator 44, compatibility 235, permission DB 56, shared-client 7 groups and durable control 33 PASS; TypeScript, 29-file lint, YAML/diff checks and canonical Production-mode 457-page full build PASS. Initial path-alias assertions corrected; initial test-mode build not used for canonical certification. Candidate 35 files / effective main diff 100; same 28 inherited commits require separate stack/base approval. No application runtime, schema, migration or grant changes in this follow-up. CI Linux/PG16 and new-route real Clerk acceptance remain unverified. No commit/push/PR/history rewrite, Production access, deployment or invocation; publication and Production HOLD. Evidence: LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md and ignored coverage/runtime-identity-ci-20261031 receipts.
+
+
+### 1 November 2026 — local PR #1035 hold/authority remediation certification
+
+Existing requirements: `platform.auth` and `detach.portal_billing` (catalogue:
+`packages/platform-core/src/roadmap/index.ts`). Branch
+`remediation/pr1035-hold-authority-20261101`, certified parent
+`5230ad92f8144028838ca692d561e12da21d8033`. Implementation: fail closed on the
+subscription-webhook hold in both admission paths; use canonical platform operator
+authority on the Gen2 operator route. Finance test-only Date mocks preserve valid
+and expired trial cases without changing entitlement logic. Include the imported
+hold-boundary test and direct PostgreSQL admission UPDATE regressions.
+
+Local verification on 1 November 2026: release `npm run test:checkout-release`
+574/574, security `npm run test:security-certification` 84+35+9/128, disposable
+compatibility DB 242/242 (admission 64, compatibility 142, reconciliation 27,
+webhook 6, operator SQL 3), coordinator DB 44/44, permission DB 56/56. No skips.
+`tsc --noEmit`, changed-file ESLint, runtime manifest and diff checks PASS.
+Full ESLint fails with 149 errors/151 warnings, matching untouched certified parent.
+Initial combined DB run failed because admission fixture cleanup left the gate
+open; test cleanup now restores the synthetic closed state and the full rerun passes.
+Complete build status and tested commit/tree are recorded in
+`LOCAL-PR1035-REMEDIATION-CERTIFICATION.md` and the local exact-head receipt.
+Environment: credential-free unit/mock checks and owned disposable loopback
+PostgreSQL 18 only. No hosted/Production verification claimed.
+
+State: READY FOR VERIFICATION; Production HOLD. Next action: independent review of
+the complete local commit, then separately authorised publication/exact-head hosted
+CI. Remaining release gates: inherited full lint debt, canonical operator
+configuration, real Clerk acceptance, effective Vercel deployment suppression and
+release binding, actual runtime database permissions/identity, Neon connectivity,
+and explicit release/checkout approval. No push, PR, merge, deployment, Production
+access, Production migration or credential changes authorised by this local task.

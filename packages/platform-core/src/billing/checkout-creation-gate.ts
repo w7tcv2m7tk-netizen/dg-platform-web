@@ -46,7 +46,8 @@ export async function admitPlatformCheckout(input: {
         COALESCE(to_timestamp(${input.expiresAt ?? null}::double precision),
           date_trunc('second', clock_timestamp()) + interval '35 minutes')
       )
-      WHERE id = 1 AND (blocked = false OR ${permit}::text IS NOT NULL)
+      WHERE id = 1 AND subscription_webhooks_held = false
+        AND (blocked = false OR ${permit}::text IS NOT NULL)
       RETURNING EXTRACT(EPOCH FROM last_admission_expires_at)::bigint AS "expiresAt"
     `;
     if (rows.length !== 1) throw new CheckoutTemporarilyUnavailable();

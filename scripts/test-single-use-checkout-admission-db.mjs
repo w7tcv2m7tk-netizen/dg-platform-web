@@ -5,6 +5,7 @@ import {spawnSync} from 'node:child_process';
 import path from 'node:path';
 import {prisma,PrismaClient} from '@dg/database';
 import {coordinatePlatformCheckout} from '../packages/platform-core/src/billing/checkout-coordinator.ts';
+import {admitPlatformCheckout,CheckoutTemporarilyUnavailable} from '../packages/platform-core/src/billing/checkout-creation-gate.ts';
 import {checkoutAdmissionTermsHash,resolveCheckoutAdmissionTerms,verifyCheckoutAdmission} from '../packages/platform-core/src/billing/checkout-admission.ts';
 const control=new PrismaClient();
 let runtime;
@@ -57,7 +58,10 @@ beforeEach(async()=>{await resetOwnedAdmissionFixture();
  org=await prisma.organisation.create({data:{name:'Synthetic provisional AIM fixture',slug:'synthetic-aim'}});other=await prisma.organisation.create({data:{name:'Synthetic other',slug:'synthetic-other'}});
  actor='user_synthetic';await prisma.membership.create({data:{organisationId:org.id,clerkUserId:actor,role:'owner',status:'active'}});
  remote=new Map();subscriptions=new Map();creates=0;keys=[];requests=[];failCreate=false;waiting=null;entered=null});
-after(async()=>{await runtime?.$disconnect();await resetOwnedAdmissionFixture();await Promise.all([prisma.$disconnect(),control.$disconnect()])});
+after(async()=>{await runtime?.$disconnect();await resetOwnedAdmissionFixture();
+ // Restore the shared synthetic gate for the next suite in the owned runner.
+ await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked=true,subscription_webhooks_held=false,revision=2,last_admission_expires_at=NULL WHERE id=1`;
+ await Promise.all([prisma.$disconnect(),control.$disconnect()])});
 
 test('closed global gate denies without permit and sends no Stripe create',async()=>{await assert.rejects(checkout());assert.equal(creates,0)});
 test('one authorised user, org and terms gets one durable session while global gate stays closed',async()=>{const g=await grant();const s=await checkout();const a=await attempt();assert.equal(a.sessionId,s.sessionId);assert.equal((await prisma.platformCheckoutAdmission.findUnique({where:{id:g.id}})).attemptId,a.id);
@@ -137,3 +141,23 @@ for(const [label,grantSql,revokeSql] of [
  ['audit TRIGGER',`GRANT TRIGGER ON platform_checkout_admission_audit TO checkout_runtime`,`REVOKE TRIGGER ON platform_checkout_admission_audit FROM checkout_runtime`],
  ['global gate mutation',`GRANT UPDATE(blocked) ON platform_checkout_creation_gate TO checkout_runtime`,`REVOKE UPDATE(blocked) ON platform_checkout_creation_gate FROM checkout_runtime`]
 ])test(`runtime policy rejects ${label} escalation`,async()=>{await control.$executeRawUnsafe(grantSql);try{const p=runRuntimePolicy();assert.notEqual(p.status,0);assert.match(p.stderr,/division by zero/)}finally{await control.$executeRawUnsafe(revokeSql)}});
+
+for(const blocked of [false,true]) for(const permit of [false,true]) test(`webhook hold denies checkout: blocked=${blocked}, permit=${permit}`,async()=>{
+ if(permit) await grant();
+ await prisma.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked=${blocked},subscription_webhooks_held=true`;
+ await assert.rejects(checkout());assert.equal(creates,0);
+});
+test('global-open checkout with valid permit remains allowed without webhook hold',async()=>{
+ await grant();await prisma.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked=false`;
+ assert.ok((await checkout()).sessionId);assert.equal(creates,1);
+});
+
+for(const held of [false,true]) test(`direct unscoped admission UPDATE: webhook hold=${held}`,async()=>{
+ await prisma.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked=false,subscription_webhooks_held=${held}`;
+ const call=()=>admitPlatformCheckout({database:prisma});
+ if(held) await assert.rejects(call,CheckoutTemporarilyUnavailable);
+ else assert.ok((await call()).expiresAt>Math.floor(Date.now()/1000));
+ const [gate]=await prisma.$queryRaw`SELECT last_admission_expires_at FROM platform_checkout_creation_gate WHERE id=1`;
+ assert.equal(gate.last_admission_expires_at===null,held);
+ assert.equal(creates,0);
+});
