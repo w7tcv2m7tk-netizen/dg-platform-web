@@ -22,7 +22,7 @@ export interface ResolveSessionInput {
   name: string;
   clerkOrgId?: string;
   orgName?: string;
-  /** Active tenant from cookie — must match a membership or falls back to first org. */
+  /** Active tenant from cookie — must match a current membership; otherwise session resolution fails. */
   activeOrganisationId?: string;
   /** Platform Refer & Earn code from /r/{code} cookie */
   referralCode?: string | null;
@@ -39,7 +39,7 @@ export async function resolvePlatformSession(
   const { resolveUserMembership, listUserOrganisations } = await import("../org/memberships");
   const { prisma } = await import("@dg/database");
 
-  // Session resolution is read-only with respect to organisation provisioning.
+  // Session resolution is read-only; it never updates membership caches or grants roles.
   // Organisation creation belongs to the explicit onboarding/create flow.
   const membership = await resolveUserMembership(
     input.clerkUserId,
@@ -68,16 +68,6 @@ export async function resolvePlatformSession(
   } catch {
     // A failed authority read denies paid application features while preserving
     // access to the authenticated core platform.
-  }
-
-  if (input.email && membership.email !== input.email) {
-    // Keep login email cache in sync — never overwrite displayName / publicEmail here.
-    await prisma.membership.update({
-      where: { id: membership.id },
-      data: {
-        email: input.email,
-      },
-    });
   }
 
   return {

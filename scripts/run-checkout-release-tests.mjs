@@ -5,6 +5,8 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const env = { NODE_ENV: "test", LC_ALL: "C", LANG: "C" };
 for (const key of ["PATH", "HOME", "TMPDIR", "SystemRoot"]) if (process.env[key]) env[key] = process.env[key];
 const files = [
+  "scripts/test-session-tenant-isolation.mjs",
+  "scripts/test-auth-p1-recovery.mjs",
   "scripts/test-owned-postgres-tools.mjs",
   "scripts/test-safe-prisma-logging.mjs",
   "scripts/test-runtime-identity.mjs",

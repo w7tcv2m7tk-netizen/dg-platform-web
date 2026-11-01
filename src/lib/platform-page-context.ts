@@ -34,16 +34,21 @@ export const getPlatformPageContext = cache(async (): Promise<PlatformPageContex
     return { user, email, name, clerkUserId, portal: null, session: null };
   }
 
-  // Native Gen 2 runtime is Neon-only. Legacy WordPress profile reads belong to
-  // explicit migration/onboarding connector flows, never implicit shell fallback.
-  const portal = await resolveNativePortalProfile(email, clerkUserId);
+  // Resolve the authoritative tenant session before anywhere that could use a
+  // cached email or a different membership. A stale tenant cookie yields no
+  // portal profile until an explicit valid switch repairs the cookie.
   const session = await resolveActivePlatformSession({
     clerkUserId,
     email,
     name,
-    orgName: portal?.org_name,
   });
+  if (!session) {
+    return { user, email, name, clerkUserId, portal: null, session: null };
+  }
 
+  // Native Gen 2 runtime is Neon-only. Bind the profile to the exact active
+  // membership; never infer identity from cached email.
+  const portal = await resolveNativePortalProfile(email, clerkUserId, session.organisationId);
   return { user, email, name, clerkUserId, portal, session };
 });
 

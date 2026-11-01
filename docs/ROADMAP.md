@@ -1250,3 +1250,29 @@ configuration, real Clerk acceptance, effective Vercel deployment suppression an
 release binding, actual runtime database permissions/identity, Neon connectivity,
 and explicit release/checkout approval. No push, PR, merge, deployment, Production
 access, Production migration or credential changes authorised by this local task.
+
+### 2 November 2026 — local session/tenant isolation remediation
+
+Existing requirements `platform.auth` and `detach.portal_billing`; catalogue IDs
+remain in `packages/platform-core/src/roadmap/index.ts`. Exact PR #1036 parent
+470f3a3c4b8788f12a5d138e2cf196f827fe9000 reconstructed in local
+`isolation-remediation-470f3a3c`; no branch, commit or remote change. Removed
+implicit staff/demo provisioning from org/memberships.ts and email cache writes
+from session/index.ts; explicit invalid selections fail closed and org/switch
+requires exact membership ID and interactive principal. Regression suite
+scripts/test-session-tenant-isolation.mjs wired into release runner; superseded
+old automatic-grant assertion in test-operator-demo-partner-cancel.mjs.
+
+State: **IMPLEMENTED BUT UNVERIFIED** for hosted/Production acceptance. Local
+credential-free unit/mock verification: new suite 22/22, final checkout-release
+596/596, zero skips; TypeScript and six-file ESLint PASS; operator-demo source
+checks PASS. Same new suite on untouched parent: 7 PASS / 15 expected FAIL.
+No fresh build, PostgreSQL integration, hosted CI or Clerk/Stripe E2E for patch.
+Evidence and source hashes: ../ISOLATION-REMEDIATION-2026-11-02.md and
+../isolation-evidence-2026-11-02/manifest.json. Next action: independent source
+review and fresh build/CI/hosted synthetic acceptance, then owner-supplied runtime
+identity/permissions/TLS/migration/hold and recovery evidence. Historical staff
+grants and sandbox webhook routing need independent owner disposition. Production
+HOLD; no credentials/customer records/diagnostic invocation/migrations/merge/
+deploy/Production writes. Publication and Production authorisation remain outside
+this local remediation approval.

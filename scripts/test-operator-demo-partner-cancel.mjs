@@ -12,7 +12,7 @@ const workspace = fs.readFileSync("packages/platform-core/src/partners/dashboard
 
 assert.match(demoSeed, /access: "customer" \| "partner" \| "staff"/);
 assert.match(demoSeed, /input\.access === "staff" \? "dg:staff"/);
-assert.match(memberships, /grantDemoAccess\(\{ clerkUserId, access: "staff" \}\)/);
+assert.doesNotMatch(memberships, /grantDemoAccess/);
 assert.match(memberships, /isPlatformOperatorOrganisationId/);
 
 assert.match(invitations, /withdrawPartnerInvitation/);
