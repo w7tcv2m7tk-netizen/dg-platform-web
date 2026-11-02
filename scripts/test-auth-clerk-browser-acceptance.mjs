@@ -15,6 +15,8 @@ const orgBId = process.env.DG_AUTH_ACCEPTANCE_ORG_B_ID;
 const clerkUserA = process.env.DG_AUTH_ACCEPTANCE_CLERK_USER_A_ID;
 const revokeOrgId = process.env.DG_AUTH_ACCEPTANCE_REVOKE_ORG_ID;
 const allowDbMutation = process.env.DG_AUTH_ACCEPTANCE_ALLOW_DB_MUTATION === "1";
+const databaseUrl = process.env.DATABASE_URL;
+const databaseMarker = process.env.DG_CHECKOUT_DB_MARKER;
 
 function requireIsolation() {
   if (!enabled) throw new Error("Set DG_AUTH_ACCEPTANCE=1 for isolated browser acceptance");
@@ -31,9 +33,16 @@ function requireIsolation() {
     DG_AUTH_ACCEPTANCE_ORG_B: orgB,
     DG_AUTH_ACCEPTANCE_ORG_A_ID: orgAId,
     DG_AUTH_ACCEPTANCE_ORG_B_ID: orgBId,
+    DG_AUTH_ACCEPTANCE_CLERK_USER_A_ID: clerkUserA,
+    DG_AUTH_ACCEPTANCE_REVOKE_ORG_ID: revokeOrgId,
+    DG_CHECKOUT_DB_MARKER: databaseMarker,
   })) {
     if (!value) throw new Error(`Set ${name}`);
   }
+  if (!allowDbMutation) throw new Error("Set DG_AUTH_ACCEPTANCE_ALLOW_DB_MUTATION=1 for full acceptance");
+  if (!databaseUrl) throw new Error("Set DATABASE_URL to an owned disposable database");
+  const databaseTarget = new URL(databaseUrl);
+  if (!["localhost", "127.0.0.1"].includes(databaseTarget.hostname)) throw new Error("Refusing non-local acceptance database");
 }
 
 async function submitClerkLogin(page, email, password) {
@@ -115,48 +124,40 @@ async function main() {
     console.log("PASS same-origin tenant switching");
 
     await context.addCookies([{ name: "dg_active_org", value: "stale-auth-acceptance-cookie", domain: target.hostname, path: "/" }]);
-    await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded" });
-    const staleRecovery = await page.evaluate(async organisationId => {
-      const response = await fetch("/api/v1/org/switch", {
+    await page.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded" });
+    await page.getByTestId("session-recovery").waitFor({ state: "visible", timeout: 20_000 });
+    const recoveryResponse = page.waitForResponse(
+      response => response.url().endsWith("/api/v1/org/switch"),
+      { timeout: 20_000 },
+    );
+    await page.getByRole("button", { name: `Open ${orgA}` }).click();
+    assert.equal((await recoveryResponse).status(), 200, "stale-cookie recovery switch failed");
+    await page.waitForURL(url => url.pathname === "/dashboard", { timeout: 30_000 });
+    assert.match(await activeOrgName(page), new RegExp(orgA.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), "visible recovery did not open the chosen organisation");
+    assert.equal(await readOrgCookie(context), orgAId);
+    console.log("PASS visible stale-cookie recovery");
+
+    const database = await import("@dg/database");
+    prisma = database.prisma;
+    const row = await prisma.membership.findFirst({
+      where: { clerkUserId: clerkUserA, organisationId: revokeOrgId, status: "active" },
+    });
+    if (!row) throw new Error("No isolated active membership available for revocation acceptance");
+    membershipId = row.id;
+    await prisma.membership.update({ where: { id: membershipId }, data: { status: "revoked" } });
+    const before = await readOrgCookie(context);
+    const response = await page.evaluate(async organisationId => {
+      const result = await fetch("/api/v1/org/switch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ organisationId }),
       });
-      return { status: response.status, body: await response.text() };
-    }, orgAId);
-    assert.equal(staleRecovery.status, 200, `stale-cookie recovery failed: ${staleRecovery.body}`);
-    assert.equal(await readOrgCookie(context), orgAId);
-    console.log("PASS stale-cookie recovery");
-
-    if (allowDbMutation && revokeOrgId && clerkUserA) {
-      const databaseUrl = process.env.DATABASE_URL;
-      if (!databaseUrl) throw new Error("Set DATABASE_URL for isolated membership-revocation acceptance");
-      const dbTarget = new URL(databaseUrl);
-      if (!["localhost", "127.0.0.1"].includes(dbTarget.hostname)) throw new Error("Refusing non-local membership mutation");
-      const database = await import("@dg/database");
-      prisma = database.prisma;
-      const row = await prisma.membership.findFirst({
-        where: { clerkUserId: clerkUserA, organisationId: revokeOrgId, status: "active" },
-      });
-      if (!row) throw new Error("No isolated active membership available for revocation acceptance");
-      membershipId = row.id;
-      await prisma.membership.update({ where: { id: membershipId }, data: { status: "revoked" } });
-      const before = await readOrgCookie(context);
-      const response = await page.evaluate(async organisationId => {
-        const result = await fetch("/api/v1/org/switch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ organisationId }),
-        });
-        return { status: result.status, body: await result.text() };
-      }, revokeOrgId);
-      assert.equal(response.status, 403, `revoked membership switch was not denied: ${response.body}`);
-      assert.equal(await readOrgCookie(context), before);
-      await prisma.membership.update({ where: { id: membershipId }, data: { status: "active" } });
-      console.log("PASS revoked membership rejected");
-    } else {
-      console.log("SKIP revoked membership rejected (enable isolated DB fixture)");
-    }
+      return { status: result.status, body: await result.text() };
+    }, revokeOrgId);
+    assert.equal(response.status, 403, `revoked membership switch was not denied: ${response.body}`);
+    assert.equal(await readOrgCookie(context), before);
+    await prisma.membership.update({ where: { id: membershipId }, data: { status: "active" } });
+    console.log("PASS revoked membership rejected");
 
     const pageTwo = await context.newPage();
     await pageTwo.goto(`${baseUrl}/dashboard`, { waitUntil: "domcontentloaded" });
@@ -196,6 +197,13 @@ async function main() {
     assert.equal(await readOrgCookie(context), cookieBefore);
     await new Promise(resolve => crossOriginServer.close(resolve));
     console.log("PASS cross-origin request rejection");
+
+    const contextB = await browser.newContext();
+    const pageB = await contextB.newPage();
+    await submitClerkLogin(pageB, emailB, passwordB);
+    assert.match(await activeOrgName(pageB), new RegExp(orgB.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), "second user did not land on the expected organisation");
+    await contextB.close();
+    console.log("PASS second-user login");
 
     await context.close();
   } finally {

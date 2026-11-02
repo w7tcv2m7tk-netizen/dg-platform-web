@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { before, test } from "node:test";
 import { prisma } from "@dg/database";
 import { resolveUserMembership } from "../packages/platform-core/src/org/memberships.ts";
 import { fetchPortalMe } from "../src/lib/dg-api.ts";
@@ -15,6 +15,19 @@ let orgB;
 let archivedOrg;
 let membershipA;
 let archivedMembership;
+
+before(async () => {
+  const marker = process.env.DG_CHECKOUT_DB_MARKER?.trim();
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  assert.ok(marker, "Refusing auth DB test without a disposable PostgreSQL marker");
+  assert.ok(databaseUrl, "Refusing auth DB test without an explicit disposable DATABASE_URL");
+  const url = new URL(databaseUrl);
+  assert.equal(url.hostname, "127.0.0.1", "Auth DB test requires a local disposable host");
+  assert.notEqual(url.port, "5432", "Auth DB test refuses the default PostgreSQL port");
+  assert.equal(url.pathname, "/dg_checkout_test", "Auth DB test requires the owned disposable database");
+  const [row] = await prisma.$queryRaw`SELECT current_setting('dg.checkout_test_cluster') AS nonce`;
+  assert.equal(row.nonce, marker, "Auth DB test marker does not match the server marker");
+});
 
 function snapshot(rows) {
   return rows.map(({ id, status, role, organisationId, clerkUserId, updatedAt }) => ({

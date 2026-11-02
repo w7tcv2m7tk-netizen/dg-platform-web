@@ -203,6 +203,9 @@ test('shell resolves the active session before binding the profile to that exact
     },
     '@dg/platform-core': { getDefaultEnabledAppIds: () => [], resolveEnabledAppIds: () => [] },
     react: { cache: fn => fn },
+    '@/lib/active-org-cookie': {
+      readActiveOrganisationId: async () => 'active-org',
+    },
     '@/lib/active-platform-session': {
       resolveActivePlatformSession: async input => {
         calls.push(['session', input]);
@@ -220,6 +223,34 @@ test('shell resolves the active session before binding the profile to that exact
   const page = load('src/lib/platform-page-context.ts', modules);
   const result = await page.getPlatformPageContext();
   assert.equal(result.session.organisationId, 'active-org');
+  assert.equal(result.activeOrganisationId, 'active-org');
   assert.deepEqual(calls[0][0], 'session');
   assert.deepEqual(calls[1], ['portal', 'current@fixture.invalid', 'user_current', 'active-org']);
+});
+
+test('stale tenant context exposes the invalid selection without inventing a session', async () => {
+  const modules = {
+    '@clerk/nextjs/server': {
+      currentUser: async () => ({
+        id: 'user_current',
+        primaryEmailAddress: { emailAddress: 'current@fixture.invalid' },
+        fullName: 'Current User',
+      }),
+    },
+    '@dg/platform-core': { getDefaultEnabledAppIds: () => [], resolveEnabledAppIds: () => [] },
+    react: { cache: fn => fn },
+    '@/lib/active-org-cookie': {
+      readActiveOrganisationId: async () => 'stale-org',
+    },
+    '@/lib/active-platform-session': {
+      resolveActivePlatformSession: async () => null,
+    },
+    '@/lib/native-portal-profile': {},
+    '@/lib/industry-app-selection': { organisationIndustrySelectionIds: () => [] },
+  };
+  const page = load('src/lib/platform-page-context.ts', modules);
+  const result = await page.getPlatformPageContext();
+  assert.equal(result.session, null);
+  assert.equal(result.activeOrganisationId, 'stale-org');
+  assert.equal(result.portal, null);
 });

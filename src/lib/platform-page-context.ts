@@ -7,6 +7,7 @@ import {
 import { cache } from "react";
 import { organisationIndustrySelectionIds } from "@/lib/industry-app-selection";
 
+import { readActiveOrganisationId } from "@/lib/active-org-cookie";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import type { PortalProfile } from "@/lib/dg-api";
 import { resolveNativePortalProfile } from "@/lib/native-portal-profile";
@@ -16,6 +17,7 @@ export type PlatformPageContext = {
   email: string;
   name: string;
   clerkUserId: string | undefined;
+  activeOrganisationId: string | null;
   portal: PortalProfile | null;
   session: PlatformSession | null;
 };
@@ -29,9 +31,10 @@ export const getPlatformPageContext = cache(async (): Promise<PlatformPageContex
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
+  const activeOrganisationId = await readActiveOrganisationId().catch(() => undefined) ?? null;
 
   if (!clerkUserId || !email) {
-    return { user, email, name, clerkUserId, portal: null, session: null };
+    return { user, email, name, clerkUserId, activeOrganisationId, portal: null, session: null };
   }
 
   // Resolve the authoritative tenant session before anywhere that could use a
@@ -43,13 +46,13 @@ export const getPlatformPageContext = cache(async (): Promise<PlatformPageContex
     name,
   });
   if (!session) {
-    return { user, email, name, clerkUserId, portal: null, session: null };
+    return { user, email, name, clerkUserId, activeOrganisationId, portal: null, session: null };
   }
 
   // Native Gen 2 runtime is Neon-only. Bind the profile to the exact active
   // membership; never infer identity from cached email.
   const portal = await resolveNativePortalProfile(email, clerkUserId, session.organisationId);
-  return { user, email, name, clerkUserId, portal, session };
+  return { user, email, name, clerkUserId, activeOrganisationId, portal, session };
 });
 
 /** Org enabled apps — uses cached native session. */

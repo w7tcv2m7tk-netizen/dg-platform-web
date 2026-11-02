@@ -31,6 +31,19 @@ export function stripeMode(secretKey) {
   throw new Error("STRIPE_SECRET_KEY must be an sk_test_ or sk_live_ key");
 }
 
+export function missingWebhookEvents(enabled) {
+  const current = enabled ?? [];
+  if (current.includes("*")) return [];
+  const set = new Set(current);
+  return PLATFORM_EVENTS.filter((event) => !set.has(event));
+}
+
+export function mergeWebhookEvents(enabled) {
+  const current = enabled ?? [];
+  if (current.includes("*")) return [...current];
+  return [...new Set([...current, ...PLATFORM_EVENTS])];
+}
+
 function validateWebhookUrl(webhookUrl) {
   const raw = webhookUrl?.trim();
   if (!raw) throw new Error("WEBHOOK_URL is required");
@@ -51,24 +64,44 @@ function validateWebhookUrl(webhookUrl) {
   return url.toString();
 }
 
+function normalizeApprovedOrigin(value) {
+  try {
+    const url = new URL(value?.trim() ?? "");
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) return null;
+    if (url.pathname !== "/" && url.pathname !== "") return null;
+    if (url.hostname.includes("*")) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
 export function isProductionWebhookUrl(webhookUrl) {
   const host = new URL(webhookUrl).hostname.toLowerCase();
   return (
     PRODUCTION_WEBHOOK_HOSTS.has(host) ||
+    host.startsWith("dg-platform-web-git-main-") ||
     host.endsWith(".digitalgate.com.au")
   );
 }
 
-export function resolveWebhookDestination({ secretKey, webhookUrl }) {
+export function resolveWebhookDestination({ secretKey, webhookUrl, approvedOrigins = [] }) {
   const mode = stripeMode(secretKey);
   const supplied = webhookUrl?.trim();
   if (mode === "test") {
     if (!supplied) {
-      throw new Error("WEBHOOK_URL is required for Stripe test mode; supply an isolated preview endpoint");
+      throw new Error("WEBHOOK_URL is required for Stripe test mode; supply an owner-approved isolated preview endpoint");
     }
     const url = validateWebhookUrl(supplied);
     if (isProductionWebhookUrl(url)) {
       throw new Error("Refusing to configure a Production webhook endpoint in Stripe test mode");
+    }
+    const approved = new Set(approvedOrigins.map(normalizeApprovedOrigin).filter(Boolean));
+    if (approved.size === 0) {
+      throw new Error("DG_STRIPE_SANDBOX_WEBHOOK_ORIGINS must explicitly approve the isolated test destination");
+    }
+    if (!approved.has(new URL(url).origin)) {
+      throw new Error("WEBHOOK_URL origin is not owner-approved for Stripe test mode");
     }
     return { mode, url };
   }
