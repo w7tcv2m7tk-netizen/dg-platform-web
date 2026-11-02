@@ -58,9 +58,10 @@ function route(membership,principal='synthetic',authenticated=true){
     'next/server':{NextResponse:{json:(body,init)=>Response.json(body,init)}},
     '@/lib/active-org-cookie':{writeActiveOrganisationId:async id=>writes.push(id)},
     '@/lib/platform-api':{requirePlatformAuth:async()=>authenticated?{clerkUserId:principal}:Response.json({},{status:401}),isNextResponse:r=>r instanceof Response},
+    '@/lib/same-origin':{isTrustedSameOriginRequest:()=>true},
     '@clerk/nextjs/server':{auth:async()=>({userId:authenticated?principal:null})},
   });
-  return {writes,invalidations,post:body=>api.POST(new Request('https://fixture.invalid/api/v1/org/switch',{method:'POST',body:JSON.stringify(body)}))};
+  return {writes,invalidations,post:body=>api.POST(new Request('https://app.digitalgate.com.au/api/v1/org/switch',{method:'POST',headers:{Origin:'https://app.digitalgate.com.au','Sec-Fetch-Site':'same-origin'},body:JSON.stringify(body)}))};
 }
 for(const body of [null,{}, {organisationId:3},{organisationId:[]},{organisationId:' ' }])test('invalid switch body rejected '+JSON.stringify(body),async()=>{const r=route(row());assert.equal((await r.post(body)).status,422);assert.equal(r.writes.length,0);});
 for(const [label,m,p,auth,status] of [['missing',null,'synthetic',true,403],['fallback mismatch',row('other'),'synthetic',true,403],['api key',row(),'api_key:fixture',true,403],['absent session',row(),'synthetic',false,401]])test('switch rejects '+label,async()=>{

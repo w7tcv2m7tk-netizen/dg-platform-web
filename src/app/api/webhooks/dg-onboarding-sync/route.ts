@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const portal = await fetchPortalMe(email, membership.clerkUserId);
+  const portal = await fetchPortalMe(email, membership.clerkUserId, organisationId);
   const result = await syncOrganisationFromPortal({
     organisationId,
     organisationName: membership.organisation.name,

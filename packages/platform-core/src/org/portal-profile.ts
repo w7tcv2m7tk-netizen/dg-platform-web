@@ -146,7 +146,7 @@ export function computePortalSetup(input: {
 export async function resolvePortalProfileFromNeon(input: {
   email: string;
   clerkUserId?: string;
-  organisationId?: string;
+  organisationId: string | null;
 }): Promise<NeonPortalProfile | null> {
   if (!process.env.DATABASE_URL) return null;
 
@@ -164,13 +164,27 @@ export async function resolvePortalProfileFromNeon(input: {
     };
   }
 
+  if (!input.organisationId) {
+    return {
+      linked: false,
+      email,
+      clerk_user_id: input.clerkUserId,
+      setup: {
+        account_created: true,
+        payment_done: false,
+        onboarding_done: false,
+        platform_live: false,
+      },
+    };
+  }
+
   const { prisma } = await import("@dg/database");
 
   const membership = input.clerkUserId
     ? await prisma.membership.findFirst({
         where: {
           clerkUserId: input.clerkUserId,
-          ...(input.organisationId ? { organisationId: input.organisationId } : {}),
+          organisationId: input.organisationId,
           status: "active",
           organisation: { status: { not: "archived" } },
         },

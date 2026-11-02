@@ -6,7 +6,6 @@ import { PersonalisedAppsOverview } from "@/components/platform/PersonalisedApps
 import { PostPurchaseSyncBanner } from "@/components/platform/PostPurchaseSyncBanner";
 import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
 import { getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
 
 export default async function AppsPage() {
@@ -16,13 +15,11 @@ export default async function AppsPage() {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,
-        orgName: portal?.org_name,
       })
     : null;
   const industrySelectionIds = session ? await getOrgIndustrySelectionIdsCached() : [];

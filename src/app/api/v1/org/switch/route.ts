@@ -4,6 +4,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { writeActiveOrganisationId } from "@/lib/active-org-cookie";
+import { isTrustedSameOriginRequest } from "@/lib/same-origin";
 const hasApiKeyCredential = (req: Request): boolean => {
   const apiKey = req.headers.get("X-API-Key")?.trim();
   const authorization = req.headers.get("Authorization")?.trim();
@@ -11,6 +12,14 @@ const hasApiKeyCredential = (req: Request): boolean => {
 };
 
 export async function POST(req: Request) {
+  // A state-changing tenant switch must be an exact same-origin browser request.
+  if (!isTrustedSameOriginRequest(req)) {
+    return NextResponse.json(
+      { error: { code: "forbidden", message: "Same-origin request required" } },
+      { status: 403 },
+    );
+  }
+
   // Authenticate the Clerk human independently of the stale active-tenant cookie.
   // Tenant recovery must not require resolving the invalid old tenant first.
   if (hasApiKeyCredential(req)) {

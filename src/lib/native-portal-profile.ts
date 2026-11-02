@@ -23,8 +23,8 @@ function unlinkedProfile(email: string): PortalProfile {
  */
 export async function resolveNativePortalProfile(
   email: string,
-  clerkUserId?: string,
-  organisationId?: string,
+  clerkUserId: string | undefined,
+  organisationId: string | null,
 ): Promise<PortalProfile> {
   if (!process.env.DATABASE_URL) {
     return unlinkedProfile(email);

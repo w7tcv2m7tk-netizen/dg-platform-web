@@ -13,6 +13,7 @@ function load(path, modules, env = { DATABASE_URL: 'synthetic-only' }) {
     exports,
     process: { env },
     Response,
+    URL,
     require: name => {
       if (!(name in modules)) throw new Error('Unexpected import ' + name);
       return modules[name];
@@ -29,7 +30,7 @@ const membership = (organisationId = 'target-org', role = 'member', status = 'ac
   organisation: { name: 'Synthetic target', slug: 'synthetic-target', status: 'active' },
 });
 
-function switchHarness({ authenticated = true, membershipRow = membership(), apiKey = false } = {}) {
+function switchHarness({ authenticated = true, membershipRow = membership(), apiKey = false, origin = 'https://app.digitalgate.com.au', fetchSite = 'same-origin' } = {}) {
   const writes = [];
   const invalidations = [];
   const modules = {
@@ -41,15 +42,21 @@ function switchHarness({ authenticated = true, membershipRow = membership(), api
       isNextResponse: value => value instanceof Response,
       requirePlatformAuth: async () => Response.json({ error: { code: 'database_not_configured' } }, { status: 503 }),
     },
+    '@/lib/same-origin': { isTrustedSameOriginRequest: load('src/lib/same-origin.ts', {}).isTrustedSameOriginRequest },
     '@clerk/nextjs/server': { auth: async () => ({ userId: authenticated ? 'user_valid' : null }) },
   };
   const route = load('src/app/api/v1/org/switch/route.ts', modules);
   return {
     writes,
     invalidations,
-    post: body => route.POST(new Request('https://fixture.invalid/api/v1/org/switch', {
+    post: body => route.POST(new Request('https://app.digitalgate.com.au/api/v1/org/switch', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(apiKey ? { 'X-API-Key': 'synthetic' } : {}) },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(origin ? { Origin: origin } : {}),
+        ...(fetchSite ? { 'Sec-Fetch-Site': fetchSite } : {}),
+        ...(apiKey ? { 'X-API-Key': 'synthetic' } : {}),
+      },
       body: JSON.stringify(body),
     })),
   };
@@ -80,6 +87,26 @@ test('switch denies API-key requests without a cookie write', async () => {
   const h = switchHarness({ membershipRow: membership('target-org'), apiKey: true });
   assert.equal((await h.post({ organisationId: 'target-org' })).status, 403);
   assert.equal(h.writes.length, 0);
+});
+
+test('switch rejects missing Origin without a cookie write', async () => {
+  const h = switchHarness({ membershipRow: membership('target-org'), origin: null });
+  assert.equal((await h.post({ organisationId: 'target-org' })).status, 403);
+  assert.equal(h.writes.length, 0);
+});
+
+test('switch rejects a cross-origin request without a cookie write', async () => {
+  const h = switchHarness({ membershipRow: membership('target-org'), origin: 'https://attacker.invalid' });
+  assert.equal((await h.post({ organisationId: 'target-org' })).status, 403);
+  assert.equal(h.writes.length, 0);
+});
+
+test('switch rejects cross-site fetch metadata without a cookie write', async () => {
+  for (const fetchSite of ['cross-site', 'same-site']) {
+    const h = switchHarness({ membershipRow: membership('target-org'), fetchSite });
+    assert.equal((await h.post({ organisationId: 'target-org' })).status, 403);
+    assert.equal(h.writes.length, 0);
+  }
 });
 
 test('switch rejects malformed tenant IDs without a cookie write', async () => {
@@ -131,10 +158,17 @@ test('cached email cannot link another Clerk user to a profile', async () => {
   const h = portalHarness({
     byEmail: { clerkUserId: 'user_other', email: 'cached@fixture.invalid', displayName: 'Other' },
   });
-  const result = await h.profile.resolvePortalProfileFromNeon({ email: 'cached@fixture.invalid', clerkUserId: 'user_current' });
+  const result = await h.profile.resolvePortalProfileFromNeon({ email: 'cached@fixture.invalid', clerkUserId: 'user_current', organisationId: 'target-org' });
   assert.equal(result.linked, false);
   assert.equal(result.org_name, undefined);
   assert.ok(!h.calls.some(call => call.where?.email));
+});
+
+test('missing exact organisation never falls back to a membership lookup', async () => {
+  const h = portalHarness({ byClerk: { clerkUserId: 'user_current', organisationId: 'target-org', email: 'current@fixture.invalid' } });
+  const result = await h.profile.resolvePortalProfileFromNeon({ email: 'current@fixture.invalid', clerkUserId: 'user_current', organisationId: null });
+  assert.equal(result.linked, false);
+  assert.equal(h.calls.length, 0);
 });
 
 test('active exact membership links the authenticated Clerk user', async () => {

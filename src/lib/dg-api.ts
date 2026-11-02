@@ -130,34 +130,16 @@ const DEFAULT_UNLINKED_PROFILE = (email: string): PortalProfile => ({
   },
 });
 
-function apiHeaders(clerkUserId?: string, email?: string): HeadersInit | null {
-  const apiKey = process.env.DG_API_KEY;
-  if (!apiKey) {
-    return null;
-  }
-
-  const headers: HeadersInit = {
-    Accept: "application/json",
-    "X-API-Key": apiKey,
-  };
-  if (email) {
-    headers["X-Portal-Email"] = email;
-  }
-  if (clerkUserId) {
-    headers["X-Clerk-User-Id"] = clerkUserId;
-  }
-  return headers;
-}
-
 export async function fetchPortalMe(
   email: string,
-  clerkUserId?: string,
+  clerkUserId: string | undefined,
+  organisationId: string | null,
 ): Promise<PortalProfile> {
   const fallback = DEFAULT_UNLINKED_PROFILE(email);
 
-  if (process.env.DATABASE_URL) {
+  if (process.env.DATABASE_URL && organisationId) {
     const { resolvePortalProfileFromNeon } = await import("@dg/platform-core");
-    const neon = await resolvePortalProfileFromNeon({ email, clerkUserId });
+    const neon = await resolvePortalProfileFromNeon({ email, clerkUserId, organisationId });
     if (neon) {
       return neon as PortalProfile;
     }

@@ -12,7 +12,6 @@ import {
 
 import { BuyerLeadStageSelect } from "@/components/re/BuyerLeadStageSelect";
 import { ConvertToOpportunityButton } from "@/components/re/ConvertToOpportunityButton";
-import { fetchPortalMe } from "@/lib/dg-api";
 
 const STAGE_LABELS: Record<string, string> = {
   inquiry: "Inquiry",
@@ -34,14 +33,11 @@ export default async function BuyerLeadDetailPage({ params }: PageProps) {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,
-        orgName: portal?.org_name,
       })
     : null;
 
