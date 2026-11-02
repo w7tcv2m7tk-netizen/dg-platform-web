@@ -82,6 +82,19 @@ async function readOrgCookie(context) {
   return (await context.cookies()).find(cookie => cookie.name === "dg_active_org")?.value ?? null;
 }
 
+async function signOut(page) {
+  const signedOut = await page.evaluate(async () => {
+    const clerk = window.Clerk;
+    if (!clerk?.signOut) return false;
+    await clerk.signOut();
+    return true;
+  });
+  if (!signedOut) {
+    await page.locator('.cl-userButtonTrigger, button[aria-label*="account" i]').first().click();
+    await page.getByRole("menuitem", { name: /sign out|log out/i }).click();
+  }
+}
+
 async function main() {
   requireIsolation();
   const target = new URL(baseUrl);
@@ -156,11 +169,7 @@ async function main() {
     await pageTwo.close();
     console.log("PASS multi-tab switching");
 
-    await page.evaluate(async () => {
-      const clerk = window.Clerk;
-      if (!clerk?.signOut) throw new Error("Clerk client is not available for sign-out");
-      await clerk.signOut();
-    });
+    await signOut(page);
     await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded" });
     await page.locator('input[name="identifier"], input[type="email"]').first().waitFor({ state: "visible", timeout: 20_000 });
     await submitClerkLogin(page, emailA, passwordA);

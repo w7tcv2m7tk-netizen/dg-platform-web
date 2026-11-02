@@ -10,8 +10,10 @@ const cancelButton = fs.readFileSync("src/components/partner/PartnerInvitationCa
 const detail = fs.readFileSync("src/components/partner/PartnerAdminActions.tsx","utf8");
 const workspace = fs.readFileSync("packages/platform-core/src/partners/dashboard-workspace.ts","utf8");
 
-assert.match(demoSeed, /access: "customer" \| "partner" \| "staff"/);
-assert.match(demoSeed, /input\.access === "staff" \? "dg:staff"/);
+assert.match(demoSeed, /access: DemoAccessGrant/);
+assert.doesNotMatch(demoSeed, /access === "staff"/);
+assert.doesNotMatch(demoSeed, /"dg:staff"/);
+assert.match(demoSeed, /demoMembershipRole\(input\.access\)/);
 assert.doesNotMatch(memberships, /grantDemoAccess/);
 assert.match(memberships, /isPlatformOperatorOrganisationId/);
 
