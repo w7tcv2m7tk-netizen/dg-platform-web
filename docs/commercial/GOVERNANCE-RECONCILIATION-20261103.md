@@ -111,3 +111,38 @@ entitlements. The existing runtime/DB/provider gates remain necessary. No access
 provider, billing, price, permission, schema/migration or production changes are
 included. Owner release HOLD and disabled Vercel Preview remain in force. This is
 a governance review branch, not a release candidate; no merge/deploy is requested.
+
+## Phase 2 reconciliation — 3 November 2026
+
+Owner continuation of DigitalGate Production Hold Review authorised resolution of
+the three findings on an isolated branch based on PR #1037 commit
+`7815c59ab82b1de0991f39bb18bf864d057c5425`. Approval evidence was traced to the
+current Roadmap commercial lock and historical implementation commit
+`94dea226b47abf7695c2b0cdc19f87c7717a591a`, which introduced Growth Suite $399
+and Growth Suite + Industry $499 checkout constants and behaviour.
+
+Resolved without changing billing code, Stripe configuration, entitlements,
+migrations or checkout state:
+
+- restored the public Starter $99/month card and Starter in the Core tier summary;
+- corrected public metadata from Core Platform from $249 to from $99;
+- added the approved $399 and $499 bundle definitions and boundaries to the staff lock;
+- expanded safeguard mutations so regression tests fail if any resolved contract drifts.
+
+Local isolated verification on Node 24.4.1:
+
+- Prisma Client 6.19.3 generated during `npm ci` in the isolated worktree;
+- `npm run test:commercial-contract-safeguard`: **14 passed**;
+- `npm run test:commercial-contract`: **53 checks, 0 findings**;
+- pricing-entitlement assertions: **all five groups passed**;
+- marketing/Roadmap/Business Brain regression suites: **21 passed**;
+- complete `NODE_OPTIONS=--max-old-space-size=4096 npm run build`: **passed**,
+  including prebuild, TypeScript and **457/457** static pages. The first default-heap
+  attempt passed prebuild but stopped in Next.js compilation with local heap exhaustion.
+
+This establishes local repository consistency only. The npm install reported 34
+dependency audit findings (22 moderate, 11 high, 1 critical); no dependency upgrade
+was made because it is outside this commercial-only scope. Live Stripe, deployed
+website, hosted onboarding, live approved Brain coverage and aggregate tenant
+entitlement behaviour remain unverified. Release HOLD and disabled Vercel Preview
+remain unchanged. Exact-head hosted CI and independent review are still required.
