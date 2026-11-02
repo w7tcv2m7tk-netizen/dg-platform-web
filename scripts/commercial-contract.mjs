@@ -38,14 +38,14 @@ export function reconcile(read = path => readFileSync(resolve(root, path), 'utf8
       const input = { platformTier: plan.id, platformPriceId: `fixture_${plan.id}`, cadence, industryApps: [], premiumApps: [] };
       const expected = expectedPurchasedLineItems(input);
       const item = { quantity: 1, price: { id: input.platformPriceId, unit_amount: plan.monthlyCents * (cadence === 'annual' ? billing.annualMonthsEquivalent : 1), currency: 'aud', recurring: { interval: cadence === 'annual' ? 'year' : 'month' }, product: 'fixture_product' } };
-      check(`stripe-${plan.id}-${cadence}`, ['packages/platform-core/src/billing/purchased-line-items.ts'], expected.length === 1 && stripeItemsMatchPurchasedSelections([item], input) && !stripeItemsMatchPurchasedSelections([{ ...item, price: { ...item.price, unit_amount: item.price.unit_amount + 1 } }], input), 'Synthetic Stripe price mapping/amount acceptance or rejection differs');
+      check(`stripe-${plan.id}-${cadence}`, ['packages/platform-core/src/billing/purchased-line-items.ts'], expected.length === 1 && stripeItemsMatchPurchasedSelections([item], input) && [{ unit_amount: item.price.unit_amount + 1 }, { id: 'wrong_price' }, { currency: 'usd' }, { recurring: { interval: 'week' } }].every(change => !stripeItemsMatchPurchasedSelections([{ ...item, price: { ...item.price, ...change } }], input)), 'Synthetic Stripe price mapping/amount acceptance or rejection differs');
     }
   }
   for (const app of apps) {
     const label = app.appId === 'reviews' ? 'Reputation' : app.appId === 'prospecting' ? 'Prospecting & Opportunity Engine' : app.label.replace('DigitalGate ', '');
     check(`growth-${app.appId}`, [lockPath, 'packages/platform-core/src/billing/paid-apps.ts'], lock.includes(`| ${label} | **${app.monthlyCents ? `$${app.monthlyCents / 100}/mo` : 'Free'}** |`) && (!app.key || appPrices[app.key] === app.monthlyCents), 'Growth App lock, catalogue or billed price differs');
   }
-  check('scale-document-limits', [lockPath, modelPath], /Scale supports up to 20 users/.test(lock) && /up to 5 businesses total/.test(lock) && /scale=20, enterprise=custom/.test(model), 'Scale 20 users / 5 businesses not reconciled');
+  check('scale-document-limits', [lockPath, modelPath], lock.includes(`Scale supports up to ${plans.find(p => p.id === 'business')?.maxUsers} users`) && lock.includes(`up to ${plans.find(p => p.id === 'business')?.maxActiveBusinesses} businesses total`) && model.includes(`scale=${plans.find(p => p.id === 'business')?.maxUsers}, enterprise=custom`), 'Scale 20 users / 5 businesses not reconciled');
   check('trial-annual', [lockPath, 'packages/platform-core/src/billing/subscription-types.ts', publicPath], lock.includes(`free for ${billing.trialDays} days`) && text.includes(`${billing.trialDays}-day`) && lock.includes(`**${billing.annualMonthsEquivalent} months**`), 'Trial/annual copy differs');
   const checkout = source('packages/platform-core/src/billing/platform-checkout.ts');
   const wizard = source('src/components/onboarding/Gen2OnboardingWizard.tsx');
