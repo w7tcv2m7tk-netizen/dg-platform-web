@@ -943,3 +943,27 @@ pre-existing `react-hooks/set-state-in-effect` warning at line 69; the file was 
 changed. Candidate is ready for final independent review and the authorised
 publication, then exact-head CI. Existing `finish/checkout-entitlements` deployment suppression is
 unchanged. No Production or provider changes.
+
+### Commercial governance safeguards — 3 November 2026
+
+Requirements: `platform.roadmap`, `detach.portal_billing`, `platform.auth`.
+Owner assignment continuing Production Hold Review authorises isolated guidance,
+read-only tests and reporting only. Implementation `617c53356b29f0c2be45bf7a552c9cd245ffdafe`
+on `governance/commercial-reconciliation-20261103`: strengthened existing
+`AGENTS.md`; pure commercial reconciliation runner, mutation tests, npm commands
+and read-only PR workflow. [Full evidence and discrepancies](commercial/GOVERNANCE-RECONCILIATION-20261103.md).
+
+Local Node 24.4.1: safeguard 11/11; reconciliation 53 checks / 3 existing findings
+(exit 1, intentionally blocking); existing pricing assertions passed; marketing
+and Roadmap 12/12; Brain 9/9; diff check passed. Full `npm run build` stopped in
+prebuild on missing `@prisma/client` after policy 34/34; no compile/build success
+claimed. Tests use source contracts and synthetic Stripe items, no live providers.
+
+Status: **IMPLEMENTED BUT UNVERIFIED** operational enforcement; commercial
+consistency **BLOCKED**. Public Starter omission, from-$249 metadata and missing
+staff-lock bundle definitions require owner reconciliation, not automatic pricing
+changes. Next: inspect exact PR-head CI, resolve commercial authority with approval,
+and satisfy existing hosted/release gates separately. Live Brain/Stripe/deployed
+site/tenant-wide entitlements remain unverified. Owner release HOLD, disabled
+Vercel Preview and all existing release gates remain unchanged. No release approval,
+production readiness, migration, checkout activation or deployment is established.
