@@ -44,3 +44,45 @@ fixtures for database tests. Run the complete `npm run build` (including prebuil
 before publishing a release branch; `next build` alone is not equivalent evidence.
 The existing Development Register remains authoritative for local workspace
 ownership, preservation and retirement; the Roadmap governs product requirements.
+
+## Mandatory source-of-truth preflight and reporting
+
+Applies to every agent (including Codex and DeepSeek), before development,
+review, summaries, commercial decisions, recommendations and reports:
+1. Read this existing `AGENTS.md` at the current repository revision.
+2. Read `docs/ROADMAP.md` and identify applicable existing requirement IDs in
+   `packages/platform-core/src/roadmap/`; record scope and approval evidence.
+3. Check relevant approved, current Business Brain rules with provenance and
+   approval/supersession status. Repository seeds defaulting to proposed are not
+   approved knowledge. If live Brain is unavailable, explicitly say so; do not
+   access Production or promote seed records merely to complete this check.
+4. Read `docs/commercial/PRICING-AND-PACKAGING.md`, its linked
+   `docs/foundations/COMMERCIAL-MODEL.md` and applicable linked commercial locks.
+5. Inspect current catalogue, public pricing, onboarding, billing/Stripe mappings,
+   trials and server entitlement code, plus dated reports and test evidence.
+
+Conversation memory, cached summaries, old checkouts and tests are not substitutes
+for current authority. Record consulted paths/revision and unavailable sources.
+This reference order does not silently resolve contradictory commercial rules.
+Report both conflicting values, paths/lines, affected requirement IDs, impact,
+missing approval and the owner's next decision; stop dependent commercial changes.
+Never alter prices, Stripe products/prices, billing, permissions, migrations or
+Production to make a reconciliation test pass. Preserve the owner release HOLD
+and disabled Vercel Preview until separately and explicitly authorised.
+
+Every substantive assessment must distinguish **approved** (scope authorised),
+**implemented** (exists in code), **tested** (named checks and actual results),
+**verified** (acceptance checked in a named environment) and **production-ready**
+(all applicable release gates and owner release approval satisfied). Use these
+claims alongside, not instead of, the Roadmap's six verification states. Include
+requirement IDs, approval/source evidence, exact tested commit, commands/counts,
+failures/skips, environment, remaining blockers and next action. Missing evidence
+means unverified; mocks/local tests do not establish hosted or Production success.
+
+Run `npm run test:commercial-contract` before reporting commercial consistency.
+It is read-only and deliberately fails on discrepancies or missing source evidence;
+report its failures separately from safeguard self-test results. Never suppress or
+baseline an unresolved conflict as approval. Live Stripe IDs, product state and
+approved live Brain coverage remain unverified without separately authorised
+read-only evidence. Do not claim this repository check certifies the live website,
+provider configuration or customer journeys.
