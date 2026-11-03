@@ -40,11 +40,12 @@ export async function PlatformShellLoader({
   if (!session) {
     const organisations = clerkUserId ? await listUserOrganisations(clerkUserId) : [];
     const recovery = resolveSessionRecovery({ session, clerkUserId, activeOrganisationId, organisations });
-    if (recovery.kind !== "none") {
+    // A genuinely memberless user must reach the existing first-business
+    // onboarding page, even when another login left a stale selection cookie.
+    if (recovery.kind === "stale") {
       return (
         <SessionRecovery
-          organisations={recovery.kind === "stale" ? recovery.organisations : []}
-          noMembership={recovery.kind === "no_membership"}
+          organisations={recovery.organisations}
         />
       );
     }

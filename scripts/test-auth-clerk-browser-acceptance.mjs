@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import http from "node:http";
 import { chromium } from "playwright";
+import { assertOwnedAcceptanceDatabase } from "./lib/auth-acceptance-database.mjs";
 
 const enabled = process.env.DG_AUTH_ACCEPTANCE === "1";
 const baseUrl = process.env.DG_AUTH_ACCEPTANCE_BASE_URL?.replace(/\/$/, "");
@@ -17,6 +18,7 @@ const revokeOrgId = process.env.DG_AUTH_ACCEPTANCE_REVOKE_ORG_ID;
 const allowDbMutation = process.env.DG_AUTH_ACCEPTANCE_ALLOW_DB_MUTATION === "1";
 const databaseUrl = process.env.DATABASE_URL;
 const databaseMarker = process.env.DG_CHECKOUT_DB_MARKER;
+const databasePort = process.env.DG_AUTH_ACCEPTANCE_DB_PORT;
 
 function requireIsolation() {
   if (!enabled) throw new Error("Set DG_AUTH_ACCEPTANCE=1 for isolated browser acceptance");
@@ -36,6 +38,7 @@ function requireIsolation() {
     DG_AUTH_ACCEPTANCE_CLERK_USER_A_ID: clerkUserA,
     DG_AUTH_ACCEPTANCE_REVOKE_ORG_ID: revokeOrgId,
     DG_CHECKOUT_DB_MARKER: databaseMarker,
+    DG_AUTH_ACCEPTANCE_DB_PORT: databasePort,
   })) {
     if (!value) throw new Error(`Set ${name}`);
   }
@@ -108,9 +111,22 @@ async function main() {
   requireIsolation();
   const target = new URL(baseUrl);
   let membershipId = null;
-  let prisma = null;
-  const browser = await chromium.launch({ headless: true });
+  const { prisma } = await import("@dg/database");
+  const verifyDatabase = () => assertOwnedAcceptanceDatabase({
+    databaseUrl, marker: databaseMarker, expectedPort: databasePort,
+    query: () => prisma.$queryRaw`SELECT current_database() AS database,
+      inet_server_addr()::text AS host, inet_server_port() AS port,
+      current_user AS role, current_setting('dg.checkout_test_cluster', true) AS marker`,
+  });
+  const updateFixtureMembership = async status => {
+    await verifyDatabase();
+    return prisma.membership.update({ where: { id: membershipId }, data: { status } });
+  };
+  // Establish database-side identity before browser/provider access or fixture writes.
+  let browser;
   try {
+    await verifyDatabase();
+    browser = await chromium.launch({ headless: true });
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -137,14 +153,12 @@ async function main() {
     assert.equal(await readOrgCookie(context), orgAId);
     console.log("PASS visible stale-cookie recovery");
 
-    const database = await import("@dg/database");
-    prisma = database.prisma;
     const row = await prisma.membership.findFirst({
       where: { clerkUserId: clerkUserA, organisationId: revokeOrgId, status: "active" },
     });
     if (!row) throw new Error("No isolated active membership available for revocation acceptance");
     membershipId = row.id;
-    await prisma.membership.update({ where: { id: membershipId }, data: { status: "revoked" } });
+    await updateFixtureMembership("revoked");
     const before = await readOrgCookie(context);
     const response = await page.evaluate(async organisationId => {
       const result = await fetch("/api/v1/org/switch", {
@@ -156,7 +170,7 @@ async function main() {
     }, revokeOrgId);
     assert.equal(response.status, 403, `revoked membership switch was not denied: ${response.body}`);
     assert.equal(await readOrgCookie(context), before);
-    await prisma.membership.update({ where: { id: membershipId }, data: { status: "active" } });
+    await updateFixtureMembership("active");
     console.log("PASS revoked membership rejected");
 
     const pageTwo = await context.newPage();
@@ -207,10 +221,11 @@ async function main() {
 
     await context.close();
   } finally {
-    if (prisma && membershipId) {
-      await prisma.membership.update({ where: { id: membershipId }, data: { status: "active" } }).catch(() => {});
+    try {
+      if (membershipId) await updateFixtureMembership("active");
+    } finally {
+      try { await browser?.close(); } finally { await prisma.$disconnect(); }
     }
-    await browser.close();
   }
 }
 
