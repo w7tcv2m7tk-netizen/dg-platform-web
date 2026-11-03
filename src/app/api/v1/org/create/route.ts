@@ -1,4 +1,4 @@
-import { createOrganisationForUser, type OrgTemplate } from "@dg/platform-core";
+import { createOrganisationForUser, listUserOrganisations, type OrgTemplate } from "@dg/platform-core";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
@@ -57,6 +57,16 @@ export async function POST(req: Request) {
       { error: { code: "already_has_organisation", message: "This account already has an organisation" } },
       { status: 409 },
     );
+  }
+
+  if (firstOrganisation && !existingSession) {
+    const memberships = await listUserOrganisations(userId);
+    if (memberships.length > 0) {
+      return NextResponse.json(
+        { error: { code: "invalid_active_organisation", message: "Choose an existing organisation before creating another business" } },
+        { status: 409 },
+      );
+    }
   }
 
   try {

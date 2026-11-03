@@ -5,7 +5,11 @@
  * Usage:
  *   STRIPE_SECRET_KEY=sk_test_... node scripts/setup-stripe-webhook.mjs
  *
- * Optional:
+ * Required for test mode:
+ *   WEBHOOK_URL=https://<isolated-preview>/api/webhooks/stripe
+ *   DG_STRIPE_SANDBOX_WEBHOOK_ORIGINS=https://<isolated-preview>
+ *
+ * Optional for live mode:
  *   WEBHOOK_URL=https://app.digitalgate.com.au/api/webhooks/stripe
  *
  * Events include commerce checkout + Platform Refer & Earn monthly credits
@@ -14,34 +18,11 @@
  * in Stripe Dashboard (or rely on Settings → Refer & Earn sync after return).
  */
 
+import { pathToFileURL } from "node:url";
+
+import { mergeWebhookEvents, missingWebhookEvents, PLATFORM_EVENTS, resolveWebhookDestination } from "./stripe-webhook-setup-safety.mjs";
+
 const secretKey = process.env.STRIPE_SECRET_KEY?.trim();
-const webhookUrl =
-  process.env.WEBHOOK_URL?.trim() ??
-  "https://app.digitalgate.com.au/api/webhooks/stripe";
-
-const platformEvents = [
-  "checkout.session.completed",
-  "checkout.session.async_payment_succeeded",
-  "checkout.session.expired",
-  "payment_intent.succeeded",
-  "payment_intent.payment_failed",
-  "invoice.paid",
-  "invoice.payment_failed",
-  "invoice.payment_action_required",
-  "customer.subscription.created",
-  "customer.subscription.deleted",
-  "customer.subscription.updated",
-  "customer.updated",
-  "transfer.failed",
-  "transfer.reversed",
-  "account.updated",
-];
-
-if (!secretKey) {
-  console.error("Missing STRIPE_SECRET_KEY.");
-  console.error("Copy sk_test_… or sk_live_… from Stripe Dashboard → Developers → API keys");
-  process.exit(1);
-}
 
 const auth = Buffer.from(`${secretKey}:`).toString("base64");
 
@@ -73,16 +54,15 @@ function encodeForm(params) {
   return form;
 }
 
-function missingEvents(enabled) {
-  const set = new Set(enabled ?? []);
-  return platformEvents.filter((e) => !set.has(e));
-}
-
 async function main() {
-  const mode = secretKey.startsWith("sk_live_") ? "live" : "test";
+  const { mode, url: webhookUrl } = resolveWebhookDestination({
+    secretKey,
+    webhookUrl: process.env.WEBHOOK_URL,
+    approvedOrigins: (process.env.DG_STRIPE_SANDBOX_WEBHOOK_ORIGINS ?? "").split(","),
+  });
   console.log(`Stripe mode: ${mode}`);
   console.log(`Target URL: ${webhookUrl}`);
-  console.log(`Required events: ${platformEvents.join(", ")}`);
+  console.log(`Required events: ${PLATFORM_EVENTS.join(", ")}`);
 
   const existing = await stripeRequest(`/webhook_endpoints?limit=100`);
 
@@ -90,7 +70,7 @@ async function main() {
     (endpoint) => endpoint.url === webhookUrl && !endpoint.application,
   );
   if (match) {
-    const missing = missingEvents(match.enabled_events);
+    const missing = missingWebhookEvents(match.enabled_events);
     console.log("\n✓ Webhook already exists:");
     console.log(`  ID: ${match.id}`);
     console.log(`  Status: ${match.status}`);
@@ -101,7 +81,7 @@ async function main() {
       const updated = await stripeRequest(
         `/webhook_endpoints/${match.id}`,
         "POST",
-        encodeForm({ enabled_events: platformEvents }),
+        encodeForm({ enabled_events: mergeWebhookEvents(match.enabled_events) }),
       );
       console.log(`  Events now: ${(updated.enabled_events ?? []).join(", ")}`);
       console.log("\n✓ Endpoint updated. No need to rotate STRIPE_WEBHOOK_SECRET.");
@@ -124,7 +104,7 @@ async function main() {
   const body = encodeForm({
     url: webhookUrl,
     description: "DigitalGate Gen 2 (commerce + Refer & Earn + Connect)",
-    enabled_events: platformEvents,
+    enabled_events: PLATFORM_EVENTS,
   });
 
   const created = await stripeRequest("/webhook_endpoints", "POST", body);
@@ -132,18 +112,19 @@ async function main() {
   console.log("\n✓ Webhook created:");
   console.log(`  ID: ${created.id}`);
   console.log(`  URL: ${created.url}`);
-  console.log(`  Events: ${platformEvents.join(", ")}`);
-  console.log(`\nAdd to Vercel (Production + Preview for test mode):`);
-  console.log(`  STRIPE_SECRET_KEY=${secretKey.slice(0, 12)}...`);
-  console.log(`  STRIPE_WEBHOOK_SECRET=${created.secret}`);
-  console.log(`  STRIPE_CONNECT_ENABLED=true`);
+  console.log(`  Events: ${PLATFORM_EVENTS.join(", ")}`);
+  console.log(`\nAdd the endpoint to the isolated Vercel environment (never Production for test mode):`);
+  console.log("  Retrieve the signing secret from the owner-controlled private secret store; it is not printed.");
+  console.log("  STRIPE_CONNECT_ENABLED=true");
   console.log(
     "\nIn Stripe Dashboard → Webhooks → this endpoint, enable Connected account events",
   );
   console.log("for account.updated (Express onboarding status).");
 }
 
-main().catch((err) => {
-  console.error("\nFailed:", err.message);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error("\nFailed:", err.message);
+    process.exit(1);
+  });
+}

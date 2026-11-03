@@ -107,7 +107,7 @@ export async function listUserOrganisations(
 
   const { prisma } = await import("@dg/database");
 
-  let memberships = await prisma.membership.findMany({
+  const memberships = await prisma.membership.findMany({
     where: {
       clerkUserId,
       status: "active",
@@ -117,25 +117,7 @@ export async function listUserOrganisations(
     orderBy: { createdAt: "asc" },
   });
 
-  const isPlatformOperator = memberships.some((membership) =>
-    isPlatformOperatorOrganisationId(membership.organisationId),
-  );
-
-  // Platform operators always receive staff membership in the canonical demo tenant.
-  // Legacy DigitalGate demo organisations remain excluded.
-  if (isPlatformOperator) {
-    const { grantDemoAccess } = await import("../demo/seed");
-    await grantDemoAccess({ clerkUserId, access: "staff" });
-    memberships = await prisma.membership.findMany({
-      where: {
-        clerkUserId,
-        status: "active",
-        organisation: { status: { not: "archived" } },
-      },
-      include: { organisation: true },
-      orderBy: { createdAt: "asc" },
-    });
-  }
+  // Membership discovery must never provision demo access or elevate roles.
 
   return sortPlatformOperatorFirst(
     memberships.filter(
@@ -155,7 +137,7 @@ export async function listUserOrganisations(
   }));
 }
 
-/** Resolve membership for session — honours active org when valid. */
+/** Resolve membership for session — rejects an explicit tenant without a current visible membership. */
 export async function resolveUserMembership(
   clerkUserId: string,
   activeOrganisationId?: string,
@@ -183,6 +165,8 @@ export async function resolveUserMembership(
     ) {
       return active;
     }
+    // Never silently resolve a different tenant for an explicit selection.
+    return null;
   }
 
   const memberships = await prisma.membership.findMany({

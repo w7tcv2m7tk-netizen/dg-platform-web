@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 
 import { PlatformHubPage } from "@/components/platform/PlatformHubPage";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
 
 async function requireStaffNetwork() {
   const user = await currentUser();
@@ -13,13 +12,11 @@ async function requireStaffNetwork() {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,
-        orgName: portal?.org_name,
       })
     : null;
 

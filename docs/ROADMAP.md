@@ -1217,3 +1217,175 @@ Next: owner reviews local Option B diff/evidence; no commit/publication authoris
 31 October 2026 — platform.auth / detach.portal_billing: suppression-only follow-up adds exact false rule for proposed review/runtime-identity-one-use-20261031-46926786; no branch or commit created. Nine JSON/preservation assertions, exact minimatch/main/sibling checks and diff checks PASS. Existing 29-file hashes verified before edit; current inventory 30 files, only vercel.json added plus existing documentation updates. App source/tests unchanged; prior full build/regressions reused. Current remote main 8d639743 is ancestor of base, 28 inherited commits ahead/zero behind. GitHub webhook inventory empty; workflow verification remains deployment-free in inspected revisions. Effective Vercel ignored-build and explicit Production-branch settings/external automation evidence remain incomplete. Local preparation PASS; publication, deployment and invocation HOLD. No remote mutations authorised. Full evidence in LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md.
 
 31 October 2026 — platform.auth / detach.portal_billing: CI/documentation follow-up integrates diagnostic, safe logging, credential boundary and one-use tests into release runner; exact-head GitHub checkout and both disposable identity DB suites wired. Added portable tool discovery (argument/PG_BIN/PATH), fail-closed negatives; historical Stage 3 proposal preserved with explicit d15310 supersession and local hash-only verification. Release 559, security 84+35+9, pairing 34, coordinator 44, compatibility 235, permission DB 56, shared-client 7 groups and durable control 33 PASS; TypeScript, 29-file lint, YAML/diff checks and canonical Production-mode 457-page full build PASS. Initial path-alias assertions corrected; initial test-mode build not used for canonical certification. Candidate 35 files / effective main diff 100; same 28 inherited commits require separate stack/base approval. No application runtime, schema, migration or grant changes in this follow-up. CI Linux/PG16 and new-route real Clerk acceptance remain unverified. No commit/push/PR/history rewrite, Production access, deployment or invocation; publication and Production HOLD. Evidence: LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md and ignored coverage/runtime-identity-ci-20261031 receipts.
+
+
+### 1 November 2026 — local PR #1035 hold/authority remediation certification
+
+Existing requirements: `platform.auth` and `detach.portal_billing` (catalogue:
+`packages/platform-core/src/roadmap/index.ts`). Branch
+`remediation/pr1035-hold-authority-20261101`, certified parent
+`5230ad92f8144028838ca692d561e12da21d8033`. Implementation: fail closed on the
+subscription-webhook hold in both admission paths; use canonical platform operator
+authority on the Gen2 operator route. Finance test-only Date mocks preserve valid
+and expired trial cases without changing entitlement logic. Include the imported
+hold-boundary test and direct PostgreSQL admission UPDATE regressions.
+
+Local verification on 1 November 2026: release `npm run test:checkout-release`
+574/574, security `npm run test:security-certification` 84+35+9/128, disposable
+compatibility DB 242/242 (admission 64, compatibility 142, reconciliation 27,
+webhook 6, operator SQL 3), coordinator DB 44/44, permission DB 56/56. No skips.
+`tsc --noEmit`, changed-file ESLint, runtime manifest and diff checks PASS.
+Full ESLint fails with 149 errors/151 warnings, matching untouched certified parent.
+Initial combined DB run failed because admission fixture cleanup left the gate
+open; test cleanup now restores the synthetic closed state and the full rerun passes.
+Complete build status and tested commit/tree are recorded in
+`LOCAL-PR1035-REMEDIATION-CERTIFICATION.md` and the local exact-head receipt.
+Environment: credential-free unit/mock checks and owned disposable loopback
+PostgreSQL 18 only. No hosted/Production verification claimed.
+
+State: READY FOR VERIFICATION; Production HOLD. Next action: independent review of
+the complete local commit, then separately authorised publication/exact-head hosted
+CI. Remaining release gates: inherited full lint debt, canonical operator
+configuration, real Clerk acceptance, effective Vercel deployment suppression and
+release binding, actual runtime database permissions/identity, Neon connectivity,
+and explicit release/checkout approval. No push, PR, merge, deployment, Production
+access, Production migration or credential changes authorised by this local task.
+
+### 2 November 2026 — local session/tenant isolation remediation
+
+Existing requirements `platform.auth` and `detach.portal_billing`; catalogue IDs
+remain in `packages/platform-core/src/roadmap/index.ts`. Exact PR #1036 parent
+470f3a3c4b8788f12a5d138e2cf196f827fe9000 reconstructed in local
+`isolation-remediation-470f3a3c`; no branch, commit or remote change. Removed
+implicit staff/demo provisioning from org/memberships.ts and email cache writes
+from session/index.ts; explicit invalid selections fail closed and org/switch
+requires exact membership ID and interactive principal. Regression suite
+scripts/test-session-tenant-isolation.mjs wired into release runner; superseded
+old automatic-grant assertion in test-operator-demo-partner-cancel.mjs.
+
+State: **IMPLEMENTED BUT UNVERIFIED** for hosted/Production acceptance. Local
+credential-free unit/mock verification: new suite 22/22, final checkout-release
+596/596, zero skips; TypeScript and six-file ESLint PASS; operator-demo source
+checks PASS. Same new suite on untouched parent: 7 PASS / 15 expected FAIL.
+No fresh build, PostgreSQL integration, hosted CI or Clerk/Stripe E2E for patch.
+Evidence and source hashes: ../ISOLATION-REMEDIATION-2026-11-02.md and
+../isolation-evidence-2026-11-02/manifest.json. Next action: independent source
+review and fresh build/CI/hosted synthetic acceptance, then owner-supplied runtime
+identity/permissions/TLS/migration/hold and recovery evidence. Historical staff
+grants and sandbox webhook routing need independent owner disposition. Production
+HOLD; no credentials/customer records/diagnostic invocation/migrations/merge/
+deploy/Production writes. Publication and Production authorisation remain outside
+this local remediation approval.
+### Commercial governance safeguards — 3 November 2026
+
+Requirements: `platform.roadmap`, `detach.portal_billing`, `platform.auth`.
+Owner assignment continuing Production Hold Review authorises isolated guidance,
+read-only tests and reporting only. Implementation `617c53356b29f0c2be45bf7a552c9cd245ffdafe`
+on `governance/commercial-reconciliation-20261103`: strengthened existing
+`AGENTS.md`; pure commercial reconciliation runner, mutation tests, npm commands
+and read-only PR workflow. [Full evidence and discrepancies](commercial/GOVERNANCE-RECONCILIATION-20261103.md).
+
+Local Node 24.4.1: safeguard 11/11; reconciliation 53 checks / 3 existing findings
+(exit 1, intentionally blocking); existing pricing assertions passed; marketing
+and Roadmap 12/12; Brain 9/9; diff check passed. Full `npm run build` stopped in
+prebuild on missing `@prisma/client` after policy 34/34; no compile/build success
+claimed. Tests use source contracts and synthetic Stripe items, no live providers.
+
+Status: **IMPLEMENTED BUT UNVERIFIED** operational enforcement; commercial
+consistency **BLOCKED**. Public Starter omission, from-$249 metadata and missing
+staff-lock bundle definitions require owner reconciliation, not automatic pricing
+changes. Next: inspect exact PR-head CI, resolve commercial authority with approval,
+and satisfy existing hosted/release gates separately. Live Brain/Stripe/deployed
+site/tenant-wide entitlements remain unverified. Owner release HOLD, disabled
+Vercel Preview and all existing release gates remain unchanged. No release approval,
+production readiness, migration, checkout activation or deployment is established.
+
+**3 November 2026 — Phase 2 commercial reconciliation:** Owner continuation of
+Production Hold Review authorised resolving the three PR #1037 findings without
+Production, provider, migration, checkout or release-gate changes. Based on exact
+PR head `7815c59ab82b1de0991f39bb18bf864d057c5425`, the public Starter $99 card and
+from-$99 metadata are restored, and the staff lock now records the already-approved
+Growth Suite $399 and Growth Suite + Industry $499 bundles. Approval provenance:
+this Roadmap's current commercial lock and implementation commit `94dea226`.
+Local isolated results: Prisma Client 6.19.3 generated; safeguard 14/14;
+reconciliation 53/53 with zero findings; pricing assertions passed; marketing,
+Roadmap and Brain 21/21; complete 4 GB-heap `npm run build` passed prebuild,
+TypeScript and 457/457 static pages after the default-heap attempt exhausted local
+memory during compilation. Status remains **IMPLEMENTED BUT UNVERIFIED** pending
+exact-head hosted CI and independent review. Live providers, deployed UI, hosted
+onboarding and customer journeys remain unverified; release HOLD is unchanged.
+
+Exact-head hosted commercial reconciliation run `41527159571` passed. Checkout
+run `41527159586` exposed an expired hard-coded Finance test fixture (the purported
+valid trial ended 1 November 2026); 388/389 passed and later stages were skipped.
+The valid fixture now uses a stable future boundary, the explicit expired case is
+preserved, and local checkout release tests pass 389/389. This is test determinism,
+not an entitlement or runtime policy change. A fresh exact-head hosted run remains
+required. Independent review remains unverified because the requested reviewer
+could not run within its usage limit.
+
+Corrected head `00f10c8e` then passed hosted commercial reconciliation run
+`41561810025` and complete checkout release run `41561810118`, including Prisma,
+389 release tests, disposable PostgreSQL reconciliation/concurrency, TypeScript,
+full build, compatibility/client-boundary and clean artifact/diff checks. Hosted CI
+is verified for that exact head; this does not certify Production or customer journeys.
+
+
+**3 November 2026 — targeted PR #1037 safeguard remediation (local):**
+Requirements `platform.roadmap`, `detach.portal_billing`, `platform.auth`. Owner
+authorised correction of the three P2 findings in Codex's independent review of
+`c137ad08e2938d190a016204a30e2c90f413ea34`. Isolated branch
+`fix/commercial-safeguards-20261103`, exact reviewed base preserved. Named bundle
+rows/cards now reconcile canonical $399/$499 constants and Core/template
+boundaries; starting metadata positively matches the lowest Core amount; the real
+checkout builder is executed with synthetic dependencies to reject disabled
+amount/active/currency/interval enforcement and wrong trial/line items. No runtime
+pricing, billing, onboarding or entitlement code changed.
+Local validation: reconciliation57/57; mutation safeguards32/32; checkout389/389;
+pricing five groups; marketing/Roadmap/Brain21/21; compatibility171/171; TypeScript,
+changed-code lint and whitespace checks passed. Full build result and detailed
+limitations are recorded in the appended remediation section of
+`docs/commercial/GOVERNANCE-RECONCILIATION-20261103.md`.
+Status **IMPLEMENTED BUT UNVERIFIED** for hosted/independent acceptance: local
+synthetic verification is not provider or Production certification. Live approved
+Business Brain unavailable, proposed seeds not promoted. Next: independent review
+of this local diff, then separate publication/CI approval. Production/release HOLD
+and disabled automatic Preview remain unchanged.
+
+
+**3 November 2026 — final two P2 safeguard corrections (local):**
+Same owner-approved requirements `platform.roadmap`, `detach.portal_billing`,
+`platform.auth`; branch `fix/commercial-safeguards-20261103`, base `c137ad08`.
+The independent acceptance findings are addressed by excluding HTML comments
+from extraction and observing fake Stripe session creation with expected-error
+validation. Mutation safeguards44/44, reconciliation57/57, real-builder matrix24
+scenarios, checkout389/389, compatibility171/171, governance21/21, pricing,
+TypeScript, changed-code lint and whitespace checks passed. Full build and exact
+file fingerprints are recorded in the final-two-P2 section of the existing
+governance evidence. Runtime pricing/billing/entitlements, migrations, lockfile and
+provider configuration are unchanged. **IMPLEMENTED BUT UNVERIFIED** pending fresh
+independent acceptance; no commit/publication or Production action authorised.
+Next: independently accept the final uncommitted patch before publication approval.
+
+
+### Local consolidated checkout candidate — 3 November 2026
+
+Requirements `platform.auth`, `detach.portal_billing`, `platform.roadmap`. Owner
+authorised local-only two-P1 correction and integration, not publication/release.
+Auth base3c0281ef and its six commits preserved. Fix `8cccff1b`, normal merge
+`a8e0484f` of exact certifiedcommercial4928b8ea (Roadmap-only conflict; both
+histories retained), source `15f3a96ccb5bcee4dd1bba1385bd91cfeb338076`. Memberless stale-cookie onboarding is
+reachable without automatic access/provisioning; destructive browser fixture writes
+require exact DB identity and marker before browser/mutations/cleanup. Initial
+PostgreSQL inet text/32 mismatch failed closed, diagnosed in owned cluster and
+corrected to host(inet_server_addr()); retained red evidence and reran green.
+Commercial57/44; checkout657; security128; pairing34; auth71; coordinator44;
+compatibilityDB256; permissions56; identity7groups/control33; compatibility mocks171;
+governance21; pricing, Prisma/schema parity, TypeScript and53-file lint passed
+(2 inherited warnings); full production build457pages passed. Fresh scoped
+independent review PASS. See [local certification](commerce/release-1025/LOCAL-CHECKOUT-CONSOLIDATION-20261103.md).
+Status **IMPLEMENTED BUT UNVERIFIED** for hosted/Production: exact-head remoteCI,
+real Clerk/Stripe acceptance and current runtime/DB/recovery evidence still pending.
+Existing concurrency/account-wide and provider-binding limits are documented; no
+Production readiness inferred. Next: owner-approved controlled publication only
+after final source review and suppression/remote-head checks. Production HOLD.

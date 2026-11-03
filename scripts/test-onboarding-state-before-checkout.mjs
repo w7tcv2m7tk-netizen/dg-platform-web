@@ -27,14 +27,14 @@ function route(options={}) {
       createOrganisationGoal:async()=>{writes.push({goal:true});},
       GROWTH_APP_CATALOGUE:[],
       saveGen2OnboardingProgress:async(id,patch)=>{writes.push({id,patch});return patch;},
-      assertPlatformOperator:()=>options.operator===true,
+      assertPlatformOperator:()=>options.canonicalOperator??options.operator===true,
     },
     '@/lib/platform-api':{
       requirePlatformAuth:async req=>{
         if(options.unauthenticated)return next.json({error:{code:'unauthorised'}},{status:401});
         // Exercise the real central entitlement policy: an unpaid tenant gets
         // no blanket write exemption from this route's authentication stub.
-        if(shouldCheckTenantWriteEntitlement({method:req.method,pathname:new URL(req.url).pathname,isPlatformOperator:options.operator===true}))
+        if(shouldCheckTenantWriteEntitlement({method:req.method,pathname:new URL(req.url).pathname,isPlatformOperator:options.operator===true}) && !options.writeEntitled)
           return next.json({error:{code:'entitlement_write_blocked'}},{status:403});
         return {organisationId:'owner',organisationSlug:options.slug??'digitalgate',clerkUserId:'fixture',role:'owner'};
       },
@@ -118,4 +118,13 @@ for(const endpoint of ['state','legacy']) test(endpoint+' rejects a platform-exe
  const r=route({endpoint,billing:{kind:'platform_exempt',platformExempt:false}});
  const body=endpoint==='legacy'?{markStepComplete:'implementation'}:{vipSetup:{completedAt:'forged'}};
  assert.equal((await r.patch(body)).status,409);assert.equal(r.writes.length,0);
+});
+
+for(const slug of ['digitalgate','ordinary-tenant']) test('slug cannot grant operator authority: '+slug,async()=>{
+ const r=route({endpoint:'operator',writeEntitled:true,canonicalOperator:false,slug,billing:{kind:'platform_exempt',platformExempt:true}});
+ const response=await r.patch({});assert.equal(response.status,403);assert.equal((await response.json()).error.code,'operator_only');assert.equal(r.writes.length,0);assert.equal(r.billingReads.length,0);
+});
+test('canonical operator is accepted independently of slug',async()=>{
+ const r=route({endpoint:'operator',operator:true,canonicalOperator:true,slug:'renamed-platform',billing:{kind:'platform_exempt',platformExempt:true}});
+ assert.equal((await r.patch({})).status,200);assert.equal(r.writes.length,1);
 });

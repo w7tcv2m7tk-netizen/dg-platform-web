@@ -1,15 +1,13 @@
 import { assertGen2OnboardingCompletionAllowed, OnboardingCompletionNotConfirmed } from "@dg/platform-core/onboarding/gen2-completion";
-import { GROWTH_APP_CATALOGUE, saveGen2OnboardingProgress } from "@dg/platform-core";
+import { assertPlatformOperator, GROWTH_APP_CATALOGUE, saveGen2OnboardingProgress } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
-const PLATFORM_OPERATOR_SLUG = "digitalgate";
-
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  if (session.organisationSlug !== PLATFORM_OPERATOR_SLUG) {
+  if (!assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email })) {
     return NextResponse.json({ error: { code: "operator_only", message: "This setup is reserved for the DigitalGate platform operator." } }, { status: 403 });
   }
 

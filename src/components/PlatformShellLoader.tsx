@@ -4,15 +4,18 @@ import {
   getGen2OnboardingProgress,
   getPartnerByClerkUserId,
   isDemoOrganisationId,
+  listUserOrganisations,
   isDigitalGateStaffEmail,
   resolveEntitlement,
   type PartnerType,
 } from "@dg/platform-core";
 
 import { PlatformShell } from "@/components/PlatformShell";
+import { SessionRecovery } from "@/components/platform/SessionRecovery";
 import { getOrgEnabledAppIdsCached, getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
 import { getOrgBrandThemeCached } from "@/lib/org-brand-theme";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { resolveSessionRecovery } from "@/lib/session-recovery";
 import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
 import { getFinanceAppAccessState } from "@/lib/finance-app-access";
 import type { FinanceAppAccessState } from "@/lib/finance-app-access-policy";
@@ -26,7 +29,7 @@ export async function PlatformShellLoader({
   children: React.ReactNode;
   showFloatingChat?: boolean;
 }) {
-  const [{ user, session, clerkUserId, email }, enabledIds, industrySelectionIds, brandTheme] =
+  const [{ user, session, clerkUserId, email, activeOrganisationId }, enabledIds, industrySelectionIds, brandTheme] =
     await Promise.all([
       getPlatformPageContext(),
       getOrgEnabledAppIdsCached(),
@@ -34,9 +37,24 @@ export async function PlatformShellLoader({
       getOrgBrandThemeCached(),
     ]);
 
+  if (!session) {
+    const organisations = clerkUserId ? await listUserOrganisations(clerkUserId) : [];
+    const recovery = resolveSessionRecovery({ session, clerkUserId, activeOrganisationId, organisations });
+    // A genuinely memberless user must reach the existing first-business
+    // onboarding page, even when another login left a stale selection cookie.
+    if (recovery.kind === "stale") {
+      return (
+        <SessionRecovery
+          organisations={recovery.organisations}
+        />
+      );
+    }
+  }
+
   // Public recovery entry points such as /onboarding deliberately live in the
   // shell route group so authenticated customers keep the native app chrome.
-  // Signed-out visitors must not see default member navigation before login.
+  // Signed-out or genuinely memberless visitors must not see default member
+  // navigation before login. A stale explicit tenant is handled above.
   if (!session) {
     return <>{children}</>;
   }

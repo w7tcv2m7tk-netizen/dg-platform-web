@@ -146,6 +146,7 @@ export function computePortalSetup(input: {
 export async function resolvePortalProfileFromNeon(input: {
   email: string;
   clerkUserId?: string;
+  organisationId: string | null;
 }): Promise<NeonPortalProfile | null> {
   if (!process.env.DATABASE_URL) return null;
 
@@ -163,25 +164,7 @@ export async function resolvePortalProfileFromNeon(input: {
     };
   }
 
-  const { prisma } = await import("@dg/database");
-
-  const membership = input.clerkUserId
-    ? await prisma.membership.findFirst({
-        where: { clerkUserId: input.clerkUserId },
-        include: { organisation: true },
-        orderBy: { createdAt: "desc" },
-      })
-    : null;
-
-  const membershipByEmail =
-    membership ??
-    (await prisma.membership.findFirst({
-      where: { email },
-      include: { organisation: true },
-      orderBy: { createdAt: "desc" },
-    }));
-
-  if (!membershipByEmail) {
+  if (!input.organisationId) {
     return {
       linked: false,
       email,
@@ -195,7 +178,36 @@ export async function resolvePortalProfileFromNeon(input: {
     };
   }
 
-  const org = membershipByEmail.organisation;
+  const { prisma } = await import("@dg/database");
+
+  const membership = input.clerkUserId
+    ? await prisma.membership.findFirst({
+        where: {
+          clerkUserId: input.clerkUserId,
+          organisationId: input.organisationId,
+          status: "active",
+          organisation: { status: { not: "archived" } },
+        },
+        include: { organisation: true },
+        orderBy: { createdAt: "desc" },
+      })
+    : null;
+
+  if (!membership) {
+    return {
+      linked: false,
+      email,
+      clerk_user_id: input.clerkUserId,
+      setup: {
+        account_created: true,
+        payment_done: false,
+        onboarding_done: false,
+        platform_live: false,
+      },
+    };
+  }
+
+  const org = membership.organisation;
   const settings = (org.settings as OrgSettings | null) ?? {};
   const profile = settings.profile;
   const onboarding = profileToOnboarding(profile, email);
@@ -212,7 +224,7 @@ export async function resolvePortalProfileFromNeon(input: {
   });
 
   const displayName =
-    membershipByEmail.displayName?.trim() ||
+    membership.displayName?.trim() ||
     profile?.contactName?.trim() ||
     email.split("@")[0];
 
@@ -223,7 +235,7 @@ export async function resolvePortalProfileFromNeon(input: {
     org_name: org.name,
     purchase_label: purchaseLabel,
     purchase,
-    clerk_user_id: input.clerkUserId ?? membershipByEmail.clerkUserId,
+    clerk_user_id: input.clerkUserId,
     setup,
     onboarding,
   };

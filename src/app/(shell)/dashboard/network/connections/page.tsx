@@ -3,7 +3,6 @@ import { listCompanies } from "@dg/platform-core";
 import { currentUser } from "@clerk/nextjs/server";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function NetworkConnectionsPage() {
   const user = await currentUser();
@@ -12,13 +11,11 @@ export default async function NetworkConnectionsPage() {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,
-        orgName: portal?.org_name,
       })
     : null;
 

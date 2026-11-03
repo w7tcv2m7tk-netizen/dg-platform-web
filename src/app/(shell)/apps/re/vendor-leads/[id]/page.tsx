@@ -19,7 +19,6 @@ import { LeadCommercePanel } from "@/components/re/LeadCommercePanel";
 import { RequestPaymentButton } from "@/components/re/RequestPaymentButton";
 import { LeadStageSelect } from "@/components/re/LeadStageSelect";
 import { StartAppraisalButton } from "@/components/re/StartAppraisalButton";
-import { fetchPortalMe } from "@/lib/dg-api";
 
 const STAGE_LABELS: Record<string, string> = {
   vendor_lead: "Vendor Lead",
@@ -42,14 +41,11 @@ export default async function VendorLeadDetailPage({ params }: PageProps) {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,
-        orgName: portal?.org_name,
       })
     : null;
 

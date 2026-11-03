@@ -11,7 +11,6 @@ import { TeamPermissionsEditor } from "@/components/platform/TeamPermissionsEdit
 import { TeamProfileEditor } from "@/components/platform/TeamProfileEditor";
 import { TeamRoleSelect } from "@/components/platform/TeamRoleSelect";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
 
 type TeamManagementViewProps = {
   /** Controls back-link chrome — Business keeps Core context; Settings keeps Platform. */
@@ -25,14 +24,11 @@ export async function TeamManagementView({ context }: TeamManagementViewProps) {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,
-        orgName: portal?.org_name,
       })
     : null;
 

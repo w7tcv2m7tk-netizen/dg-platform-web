@@ -7,6 +7,7 @@ import { IDENTITY_PATH, identityEnvelope, identityAuthResponse, identityRefusal 
 import { AUTH_AFTER_SIGN_IN_URL, AUTH_SIGN_IN_URL } from "@/lib/auth-routes";
 import { OAUTH_RETURN_COOKIE, isDashboardOverviewPath, sanitizeOAuthReturnDestination } from "@/lib/oauth-return-path";
 import { CLERK_PROXY_PATH, clerkFrontendApiOrigin, inAppSignInUrl, isClerkProxyPath, isOffAppClerkNavigationUrl, shouldEnableClerkFrontendApiProxy } from "@/lib/clerk-proxy";
+import { authorizedClerkOrigins } from "@/lib/same-origin";
 import { PUBLIC_ROUTE_PATTERNS } from "@/lib/public-routes";
 import { applyPublicLegacyResponse, canonicalPublicHostRedirect } from "@/lib/public-site-legacy";
 import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
@@ -42,7 +43,7 @@ function hasPlatformApiKey(req: Request) {
   const auth = req.headers.get("Authorization")?.trim();
   return Boolean(auth?.toLowerCase().startsWith("bearer "));
 }
-const authorizedParties = ["https://app.digitalgate.com.au", "https://dg-platform-web.vercel.app", "http://localhost:3000", process.env.NEXT_PUBLIC_APP_URL].filter((url): url is string => Boolean(url));
+const authorizedParties = authorizedClerkOrigins();
 const clerkHandler = clerkMiddleware(async (auth, req) => {
   // The temporary physical-remediation endpoint authenticates Clerk identity and operator
   // membership itself; prevent login redirects from masking fixed refusals.

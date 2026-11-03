@@ -4,7 +4,6 @@ import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 import { currentUser } from "@clerk/nextjs/server";
 import { getAppSetupHref } from "@dg/platform-core";
 
-import { fetchPortalMe } from "@/lib/dg-api";
 
 export default async function AutomationPage() {
   const user = await currentUser();
@@ -13,14 +12,11 @@ export default async function AutomationPage() {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,
-        orgName: portal?.org_name,
       })
     : null;
 
