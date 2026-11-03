@@ -1366,3 +1366,26 @@ governance evidence. Runtime pricing/billing/entitlements, migrations, lockfile 
 provider configuration are unchanged. **IMPLEMENTED BUT UNVERIFIED** pending fresh
 independent acceptance; no commit/publication or Production action authorised.
 Next: independently accept the final uncommitted patch before publication approval.
+
+
+### Local consolidated checkout candidate — 3 November 2026
+
+Requirements `platform.auth`, `detach.portal_billing`, `platform.roadmap`. Owner
+authorised local-only two-P1 correction and integration, not publication/release.
+Auth base3c0281ef and its six commits preserved. Fix `8cccff1b`, normal merge
+`a8e0484f` of exact certifiedcommercial4928b8ea (Roadmap-only conflict; both
+histories retained), source `15f3a96ccb5bcee4dd1bba1385bd91cfeb338076`. Memberless stale-cookie onboarding is
+reachable without automatic access/provisioning; destructive browser fixture writes
+require exact DB identity and marker before browser/mutations/cleanup. Initial
+PostgreSQL inet text/32 mismatch failed closed, diagnosed in owned cluster and
+corrected to host(inet_server_addr()); retained red evidence and reran green.
+Commercial57/44; checkout657; security128; pairing34; auth71; coordinator44;
+compatibilityDB256; permissions56; identity7groups/control33; compatibility mocks171;
+governance21; pricing, Prisma/schema parity, TypeScript and53-file lint passed
+(2 inherited warnings); full production build457pages passed. Fresh scoped
+independent review PASS. See [local certification](commerce/release-1025/LOCAL-CHECKOUT-CONSOLIDATION-20261103.md).
+Status **IMPLEMENTED BUT UNVERIFIED** for hosted/Production: exact-head remoteCI,
+real Clerk/Stripe acceptance and current runtime/DB/recovery evidence still pending.
+Existing concurrency/account-wide and provider-binding limits are documented; no
+Production readiness inferred. Next: owner-approved controlled publication only
+after final source review and suppression/remote-head checks. Production HOLD.
