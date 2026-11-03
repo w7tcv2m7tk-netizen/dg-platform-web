@@ -6,7 +6,7 @@ const input = () => ({ databaseUrl: process.env.DATABASE_URL,
   marker: process.env.DG_CHECKOUT_DB_MARKER,
   expectedPort: new URL(process.env.DATABASE_URL).port,
   query: () => prisma.$queryRaw`SELECT current_database() AS database,
-    inet_server_addr()::text AS host, inet_server_port() AS port,
+    host(inet_server_addr()) AS host, inet_server_port() AS port,
     current_user AS role, current_setting('dg.checkout_test_cluster', true) AS marker`,
 });
 test('real disposable PostgreSQL connection matches all fixture identities', async () => {
