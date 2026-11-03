@@ -156,3 +156,11 @@ future boundary while the separate explicit expired-trial case remains unchanged
 local `npm run test:checkout-release` passes **389/389**. A new exact-head hosted
 run is required. The attempted independent reviewer was unavailable because its
 agent usage limit was exhausted; independent review is not claimed.
+
+The corrected remote head `00f10c8eb9f36d4a28a0bd2fe87142b8639d6bfb`
+subsequently passed hosted commercial reconciliation run `41561810025` and the
+complete checkout release workflow run `41561810118`: dependency install, Prisma
+generation, 389 release tests, disposable PostgreSQL reconciliation/concurrency,
+TypeScript, full build, compatibility/client-boundary checks, generated-artifact
+cleanliness and diff checks. This is hosted CI evidence, not Production or customer
+journey certification.

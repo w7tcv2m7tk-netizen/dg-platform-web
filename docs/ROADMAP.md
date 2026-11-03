@@ -991,3 +991,9 @@ preserved, and local checkout release tests pass 389/389. This is test determini
 not an entitlement or runtime policy change. A fresh exact-head hosted run remains
 required. Independent review remains unverified because the requested reviewer
 could not run within its usage limit.
+
+Corrected head `00f10c8e` then passed hosted commercial reconciliation run
+`41561810025` and complete checkout release run `41561810118`, including Prisma,
+389 release tests, disposable PostgreSQL reconciliation/concurrency, TypeScript,
+full build, compatibility/client-boundary and clean artifact/diff checks. Hosted CI
+is verified for that exact head; this does not certify Production or customer journeys.
