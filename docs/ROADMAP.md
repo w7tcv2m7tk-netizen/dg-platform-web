@@ -982,3 +982,12 @@ TypeScript and 457/457 static pages after the default-heap attempt exhausted loc
 memory during compilation. Status remains **IMPLEMENTED BUT UNVERIFIED** pending
 exact-head hosted CI and independent review. Live providers, deployed UI, hosted
 onboarding and customer journeys remain unverified; release HOLD is unchanged.
+
+Exact-head hosted commercial reconciliation run `41527159571` passed. Checkout
+run `41527159586` exposed an expired hard-coded Finance test fixture (the purported
+valid trial ended 1 November 2026); 388/389 passed and later stages were skipped.
+The valid fixture now uses a stable future boundary, the explicit expired case is
+preserved, and local checkout release tests pass 389/389. This is test determinism,
+not an entitlement or runtime policy change. A fresh exact-head hosted run remains
+required. Independent review remains unverified because the requested reviewer
+could not run within its usage limit.

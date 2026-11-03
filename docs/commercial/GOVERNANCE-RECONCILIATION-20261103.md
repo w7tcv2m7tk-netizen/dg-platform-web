@@ -146,3 +146,13 @@ was made because it is outside this commercial-only scope. Live Stripe, deployed
 website, hosted onboarding, live approved Brain coverage and aggregate tenant
 entitlement behaviour remain unverified. Release HOLD and disabled Vercel Preview
 remain unchanged. Exact-head hosted CI and independent review are still required.
+
+Hosted run `41527159571` passed the read-only commercial reconciliation on exact
+head `2a7c385cfe514b8e89b3f457b7864bb4785cae39`. Checkout run `41527159586`
+then exposed a time-dependent Finance test fixture: the case labelled as a valid
+trial hard-coded 1 November 2026 and therefore expired before the 3 November run.
+No Finance runtime code failed or changed. The valid fixture now uses a stable
+future boundary while the separate explicit expired-trial case remains unchanged;
+local `npm run test:checkout-release` passes **389/389**. A new exact-head hosted
+run is required. The attempted independent reviewer was unavailable because its
+agent usage limit was exhausted; independent review is not claimed.
