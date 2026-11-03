@@ -8,12 +8,14 @@ import { PLATFORM_TIER_CATALOG as pricing } from '../src/lib/pricing-catalog.ts'
 import { maxUsersForTier, maxActiveBusinessesForTier, canUseIndustryIntegrations } from '../src/lib/plans.ts';
 import { BILLING_COMMERCIAL_CONFIG as billing } from '../packages/platform-core/src/billing/subscription-types.ts';
 import { expectedPurchasedLineItems, stripeItemsMatchPurchasedSelections } from '../packages/platform-core/src/billing/purchased-line-items.ts';
-import { GROWTH_APP_CATALOGUE as apps, PAID_APP_PRICES_CENTS as appPrices } from '../packages/platform-core/src/billing/paid-apps.ts';
+import { GROWTH_APP_CATALOGUE as apps, PAID_APP_PRICES_CENTS as appPrices, GROWTH_SUITE_MONTHLY_CENTS, GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS } from '../packages/platform-core/src/billing/paid-apps.ts';
 
 import { INDUSTRY_COMMERCIAL_LOCK as industry, INDUSTRY_PLATFORMS, industryCheckoutLines } from '../packages/platform-core/src/industry/platform.ts';
 
+import { checkoutBehaviourFindings } from './checkout-behaviour-contract.mjs';
+
 const root = fileURLToPath(new URL('../', import.meta.url));
-export function reconcile(read = path => readFileSync(resolve(root, path), 'utf8')) {
+export async function reconcile(read = path => readFileSync(resolve(root, path), 'utf8')) {
   const findings = [];
   let checks = 0;
   const check = (id, sources, ok, detail) => { checks++; if (!ok) findings.push({ id, sources, detail }); };
@@ -21,7 +23,9 @@ export function reconcile(read = path => readFileSync(resolve(root, path), 'utf8
   const lockPath = 'docs/commercial/PRICING-AND-PACKAGING.md';
   const modelPath = 'docs/foundations/COMMERCIAL-MODEL.md';
   const publicPath = 'marketing/pages/pricing-page.html';
-  const lock = source(lockPath), model = source(modelPath), html = source(publicPath);
+  const lock = source(lockPath), model = source(modelPath);
+  // Commented or unterminated-comment content is not active browser markup.
+  const html = source(publicPath).replace(/<!--[\s\S]*?(?:--!?>|$)/g, '');
   const publicCards = [...html.matchAll(/<div class="plan-name">([\s\S]*?)<\/div>[\s\S]*?<div class="plan-price">([^<]+)/g)].map(m => ({ name: m[1].replace(/<[^>]+>/g, '').replace(/^[^A-Za-z]+/, '').trim(), price: m[2].trim() }));
   const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
   for (const plan of plans) {
@@ -51,8 +55,36 @@ export function reconcile(read = path => readFileSync(resolve(root, path), 'utf8
   const wizard = source('src/components/onboarding/Gen2OnboardingWizard.tsx');
   check('trial-consumers', ['packages/platform-core/src/billing/platform-checkout.ts', 'src/components/onboarding/Gen2OnboardingWizard.tsx'], checkout.includes('trial_period_days: BILLING_COMMERCIAL_CONFIG.trialDays') && wizard.includes('BILLING_COMMERCIAL_CONFIG.trialDays'), 'Checkout or onboarding bypasses trial configuration');
   check('stripe-config-validation', ['packages/platform-core/src/billing/platform-checkout.ts'], ['STRIPE_PRICE_STARTER', 'STRIPE_PRICE_GROWTH', 'STRIPE_PRICE_SCALE', 'price.active !== true', 'price.unit_amount !== expectedAmountCents', 'price.currency.toLowerCase() !== "aud"'].every(s => checkout.includes(s)), 'Configured Stripe mapping validation missing (source contract only)');
-  check('bundle-lock', [lockPath, 'packages/platform-core/src/billing/paid-apps.ts', publicPath], /Growth Suite.*399/.test(lock) && /499/.test(lock), 'Code/public pricing offer Growth Suite $399 and Suite + Industry $499, but staff lock lacks bundle definition; owner reconciliation required');
-  check('public-from-price', [publicPath, lockPath], !/Core Platform from \$249/.test(html), 'Public metadata says Core Platform from $249 while Starter is $99');
+  const cleanText = value => value.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+  // Bind each price/boundary to its own named row/card; unrelated numbers cannot satisfy it.
+  for (const [name, cents] of [['Growth Suite', GROWTH_SUITE_MONTHLY_CENTS], ['Growth Suite + Industry', GROWTH_SUITE_WITH_INDUSTRY_MONTHLY_CENTS]]) {
+    const rows = lock.split('\n').filter(line => line.startsWith(`| **${name}** |`));
+    const cells = rows[0]?.split('|').map(cell => cell.trim());
+    const marker = `<div class="plan-name">${name}</div>`;
+    const segments = html.split(marker);
+    const card = segments.length === 2 ? segments[1].split('<div class="pricing-card')[0] : '';
+    const cardText = cleanText(card);
+    const cardPrices = [...card.matchAll(/<div class="plan-price">([^<]+)/g)];
+    check(`bundle-lock-${name}`, [lockPath], rows.length === 1 && cells[2] === `**$${cents / 100}/mo**`
+      && cells[4]?.startsWith('Add-on to the selected Core Platform plan;')
+      && (name === 'Growth Suite' ? cells[4]?.includes('does not replace or include Starter, Growth, Scale or Enterprise')
+        : cells[3]?.includes('one Industry App and its included primary Industry Template') && cells[4]?.includes(`additional Industry Templates remain **+$${industry.additionalTemplatePriceCents / 100}/mo** each`)), 'Named bundle price, Core boundary or included/additional template contract differs');
+    check(`bundle-public-${name}`, [publicPath], cardPrices.length === 1 && cardPrices[0][1] === `$${cents / 100}`
+      && cardText.includes('Add-on to your selected Core Platform plan')
+      && (name !== 'Growth Suite + Industry' || cardText.includes('One Industry App') && cardText.includes('One primary sub-industry App included')
+        && cardText.includes(`Additional sub-industry Apps +$${industry.additionalTemplatePriceCents / 100}/mo each`)), 'Public named bundle price/boundary differs');
+  }
+  const descriptions = [...html.matchAll(/<meta\s+name="description"\s+content="([^"]*)"\s*\/?\s*>/g)];
+  const lowest = Math.min(...plans.map(plan => plan.monthlyCents)) / 100;
+  check('public-from-price', [publicPath, lockPath], descriptions.length === 1
+    && descriptions[0][1].startsWith(`Core Platform from $${lowest}/mo.`), 'Starting-price metadata must explicitly match the lowest approved Core amount');
+  try {
+    const failures = await checkoutBehaviourFindings(checkout);
+    check('checkout-behaviour', ['packages/platform-core/src/billing/platform-checkout.ts'], failures.length === 0,
+      `Real checkout builder rejected/accepted incorrectly: ${failures.join(', ')}`);
+  } catch {
+    check('checkout-behaviour', ['packages/platform-core/src/billing/platform-checkout.ts'], false, 'Checkout behavioural verification could not complete');
+  }
   check('industry-documents', [lockPath, modelPath, 'packages/platform-core/src/industry/platform.ts'], lock.includes(`| **Industry App** | **$${industry.industryPriceCents / 100}/mo**`) && model.includes(`**$${industry.industryPriceCents / 100}/mo**`) && lock.includes(`**+\$${industry.additionalTemplatePriceCents / 100}/mo**`) && industry.includedTemplates === 1, 'Industry price, included template or expansion price differs');
   for (const platform of INDUSTRY_PLATFORMS) {
     const ids = platform.specialisations.slice(0, 2).map(s => s.id);
@@ -64,7 +96,7 @@ export function reconcile(read = path => readFileSync(resolve(root, path), 'utf8
   return { checks, findings, unverified: ['Live Stripe products/Price IDs/active state and configured environment mappings', 'Live approved Business Brain coverage and supersession', 'Deployed website, hosted onboarding and subscription/account-wide entitlement enforcement'] };
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const result = reconcile();
+  const result = await reconcile();
   console.log(JSON.stringify(result, null, 2));
   process.exitCode = result.findings.length ? 1 : 0;
 }

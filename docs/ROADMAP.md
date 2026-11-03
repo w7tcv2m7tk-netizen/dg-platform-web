@@ -997,3 +997,40 @@ Corrected head `00f10c8e` then passed hosted commercial reconciliation run
 389 release tests, disposable PostgreSQL reconciliation/concurrency, TypeScript,
 full build, compatibility/client-boundary and clean artifact/diff checks. Hosted CI
 is verified for that exact head; this does not certify Production or customer journeys.
+
+
+**3 November 2026 — targeted PR #1037 safeguard remediation (local):**
+Requirements `platform.roadmap`, `detach.portal_billing`, `platform.auth`. Owner
+authorised correction of the three P2 findings in Codex's independent review of
+`c137ad08e2938d190a016204a30e2c90f413ea34`. Isolated branch
+`fix/commercial-safeguards-20261103`, exact reviewed base preserved. Named bundle
+rows/cards now reconcile canonical $399/$499 constants and Core/template
+boundaries; starting metadata positively matches the lowest Core amount; the real
+checkout builder is executed with synthetic dependencies to reject disabled
+amount/active/currency/interval enforcement and wrong trial/line items. No runtime
+pricing, billing, onboarding or entitlement code changed.
+Local validation: reconciliation57/57; mutation safeguards32/32; checkout389/389;
+pricing five groups; marketing/Roadmap/Brain21/21; compatibility171/171; TypeScript,
+changed-code lint and whitespace checks passed. Full build result and detailed
+limitations are recorded in the appended remediation section of
+`docs/commercial/GOVERNANCE-RECONCILIATION-20261103.md`.
+Status **IMPLEMENTED BUT UNVERIFIED** for hosted/independent acceptance: local
+synthetic verification is not provider or Production certification. Live approved
+Business Brain unavailable, proposed seeds not promoted. Next: independent review
+of this local diff, then separate publication/CI approval. Production/release HOLD
+and disabled automatic Preview remain unchanged.
+
+
+**3 November 2026 — final two P2 safeguard corrections (local):**
+Same owner-approved requirements `platform.roadmap`, `detach.portal_billing`,
+`platform.auth`; branch `fix/commercial-safeguards-20261103`, base `c137ad08`.
+The independent acceptance findings are addressed by excluding HTML comments
+from extraction and observing fake Stripe session creation with expected-error
+validation. Mutation safeguards44/44, reconciliation57/57, real-builder matrix24
+scenarios, checkout389/389, compatibility171/171, governance21/21, pricing,
+TypeScript, changed-code lint and whitespace checks passed. Full build and exact
+file fingerprints are recorded in the final-two-P2 section of the existing
+governance evidence. Runtime pricing/billing/entitlements, migrations, lockfile and
+provider configuration are unchanged. **IMPLEMENTED BUT UNVERIFIED** pending fresh
+independent acceptance; no commit/publication or Production action authorised.
+Next: independently accept the final uncommitted patch before publication approval.

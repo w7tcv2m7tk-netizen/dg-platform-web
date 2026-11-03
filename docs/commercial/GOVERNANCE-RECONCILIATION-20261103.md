@@ -164,3 +164,120 @@ generation, 389 release tests, disposable PostgreSQL reconciliation/concurrency,
 TypeScript, full build, compatibility/client-boundary checks, generated-artifact
 cleanliness and diff checks. This is hosted CI evidence, not Production or customer
 journey certification.
+
+
+## Codex targeted P2 remediation — 3 November 2026 (local, unpublished)
+
+Approval: owner assignment to correct the three independently confirmed safeguard
+defects, requirements `platform.roadmap`, `detach.portal_billing`, `platform.auth`.
+Base `c137ad08e2938d190a016204a30e2c90f413ea34`; isolated branch
+`fix/commercial-safeguards-20261103`. The received task text ends partway through
+Defect C; its scope is the linked independent review's amount-comparison/comment
+bypass and real checkout-builder rejection/trial verification. No additional
+publication or Production authority is inferred.
+
+Changes are confined to reconciliation, test harness/tests, its CI dependency
+installation and existing evidence/Roadmap. No commercial constants, public
+pricing, checkout runtime, Finance fixture, provider config or lockfile changed.
+
+- Named, unique staff rows and public bundle cards must match canonical $399/$499
+  constants, Core add-on boundaries and included/additional template rules.
+- Unique description metadata must positively begin with the lowest approved Core
+  starting amount; absent/incorrect/reworded metadata fails closed.
+- `checkout-behaviour-contract.mjs` transpiles the real current checkout builder
+  (or in-memory mutation) and runs it against an explicit dependency map. Stripe
+  price retrieval, database reads and coordinator are synthetic stubs. Unexpected
+  imports fail; real Stripe/Prisma clients and provider credentials are not loaded.
+  For all three tiers, wrong amount/active/currency/interval/count must reject
+  before reaching the coordinator; valid prices must reach it once with the
+  canonical14-day trial, Core line and correct bundle/template line amounts.
+  This validates the builder-to-coordinator contract, not live Stripe sessions,
+  coordinator durability or webhook fulfilment. Existing regression suites cover
+  those separate local boundaries.
+- Literal source checks are supplementary; retaining their text in comments
+  cannot make the new behavioural checks pass. This is not exhaustive program
+  verification or resilience against an adversarial rewrite of the test harness.
+- CI now installs the pinned lock using `npm ci --ignore-scripts` because the
+  behavioural test uses existing TypeScript transpilation. No new dependency,
+  lifecycle hook, migration, provider secret or deployment step is introduced.
+
+Validation on Bens-Mac-mini.local, Node24.4.1, owned local worktree, minimal
+subprocess environment without provider credentials; existing exact-lock installed
+dependencies reused from the independent review worktree:
+
+- reconciliation:57 checks, zero findings;
+- safeguard mutations:32/32, including $499→$498 with unrelated Scale$499 intact,
+  $99→$100/$249, missing/reworded metadata, missing bundle/Core/template terms,
+  commented disabled validation/trial, removed Core line and wrong bundle amount;
+- checkout389/389; pricing five assertion groups; marketing/Roadmap/Brain21/21;
+- compatibility171/171 (mocked, not disposable PostgreSQL rerun);
+- TypeScript, changed-code lint and `git diff --check`:PASS.
+
+Live approved Brain coverage remains unavailable/unverified; proposed repository
+seeds are not approvals. No credentials accessed, provider calls, Production SQL,
+migrations, Stripe changes, checkout activation, commit, push or deployment.
+Hosted CI on the changed diff and final independent acceptance remain pending.
+Logs: `/private/tmp/dg-commercial-remediation-evidence`.
+
+Final full `NODE_ENV=production NODE_OPTIONS=--max-old-space-size=4096 npm run build`
+completed successfully, including prebuild, TypeScript and457/457 pages. Existing
+module-type/Cache-Control/middleware warnings and compilation warnings involving
+symlinked Next dependency paths were emitted; none failed the build. Final
+governance regression rerun passed21/21 after documentation changes.
+
+
+## Final two P2 corrections — 3 November 2026 (local, uncommitted)
+
+Owner-authorised scope: fix the independent acceptance's HTML-comment and
+unexpected-exception false positives only. Same six-file inventory and exact
+base `c137ad08e2938d190a016204a30e2c90f413ea34`; no new dependency. Prior
+32-test/coordinator-only evidence above is historical, superseded by these checks.
+
+- HTML comments are removed before all public metadata/card extraction, including
+  unterminated comments (fail closed). Active markup remains valid; conflicting
+  duplicate description, named bundle or bundle-price elements fail. No broad
+  application HTML/parser or runtime change.
+- Fake Stripe `checkout.sessions.create` now records every attempt. Invalid prices
+  require the intended validation Error and exact message, zero coordinator calls
+  and zero provider-create calls. TypeError and unrelated Error fail verification.
+- Valid builder requests pass through the synthetic coordinator to the fake Stripe
+  create spy exactly once, with the same request, subscription mode, correct Core
+  price, bundle/template line amounts and canonical14-day trial. The actual
+  platform-checkout.ts is transpiled/executed, not a parallel checkout algorithm.
+  Coordinator durability, real Stripe delivery and live subscription lifecycle are
+  intentionally not claimed. No real Stripe client or database is imported.
+
+One controlled verification pass, minimal test environment without provider secrets:
+
+- reconciliation57 checks / zero findings; safeguards44/44;
+- direct real-builder acceptance test1/1 exercising24 scenarios across3 tiers
+  (5 invalid prices +3 valid baskets per tier);
+- checkout389/389; compatibility171/171; governance21/21;
+- pricing/entitlement five assertion groups; TypeScript; changed-code lint;
+  `git diff --check`:PASS.
+
+All five independent counterexample families are rejected: named499→498 despite
+unrelated Scale499; advertised99→100/249 or missing metadata; commented-out amount
+validation; commented metadata/bundle elements; and provider-create attempts before
+rejection. Additional tests reject unexpected exceptions, conflicting duplicates
+and missing template/Core terms. Existing32 safeguards remain green.
+
+No runtime checkout, commercial constants, pricing markup, entitlement policy,
+Finance fixture, migration, lockfile or provider config change. Production HOLD.
+Live approved Brain remains unavailable/unverified; proposed seeds are not approval.
+No commit/push/publication or final independent certification performed. Next gate:
+fresh independent acceptance of this exact local snapshot.
+
+Logs and immutable snapshot inventory: `/private/tmp/dg-final-two-p2-evidence`.
+File hashes below cover the five other candidate files; this evidence file's own
+hash is in external snapshot.json to avoid a self-referential hash.
+
+Full `NODE_ENV=production NODE_OPTIONS=--max-old-space-size=4096 npm run build`: **PASS**, including complete prebuild, TypeScript and457/457 pages. Existing module-type, middleware, Cache-Control and symlinked Next dependency compilation warnings remain non-fatal.
+
+Final file SHA-256 fingerprints:
+
+- `.github/workflows/commercial-contract.yml`: `38a27a688c9f7677319611c9a3c684b1a092d8da482d14086f4edce00d8b13ad`
+- `docs/ROADMAP.md`: `7381939a2341da692a89a13621bd09a99b99f26b5382efdcd8f67ff2ce0317a8`
+- `scripts/checkout-behaviour-contract.mjs`: `9d54c58804a48978a2dea4f08a21130a089f313f68f609289b0a2c870df46a35`
+- `scripts/commercial-contract.mjs`: `d4614ed0f2c7dbfd6d9cf80074c22347b515572b14bb122040a8c0dd9f630446`
+- `scripts/test-commercial-contract.mjs`: `4ca52897699b623b7babc4b04a9ab0ed2458421af1240afa81c651e7c64dda9e`
