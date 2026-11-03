@@ -3,6 +3,8 @@
   "version": "0.3.0",
   "private": true,
   "scripts": {
+    "test:commercial-contract": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/commercial-contract.mjs",
+    "test:commercial-contract-safeguard": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-commercial-contract.mjs",
     "test:checkout-release": "node scripts/run-checkout-release-tests.mjs",
     "test:checkout-coordinator-db": "node scripts/run-checkout-coordinator-db-tests.mjs",
     "test:billing-exemption-boundary": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-billing-exemption-boundary.mjs",
