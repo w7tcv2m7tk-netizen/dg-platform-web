@@ -21,7 +21,8 @@ for (const key of ["PATH", "HOME", "TMPDIR", "SystemRoot"]) {
 }
 const suite = process.argv[3] ?? "compatibility";
 const suites = {
-  compatibility: ["test-checkout-compatibility-db.mjs", "test-legacy-app-entitlement-reconciliation.mjs", "test-platform-subscription-webhook-cutover-db.mjs", "test-checkout-release-operator-sql-db.mjs"],
+  business: ["test-business-provisioning-db.mjs"],
+  compatibility: ["test-checkout-compatibility-db.mjs", "test-legacy-app-entitlement-reconciliation.mjs", "test-platform-subscription-webhook-cutover-db.mjs", "test-checkout-release-operator-sql-db.mjs", "test-business-provisioning-db.mjs"],
   operator: ["test-checkout-release-operator-sql-db.mjs"],
   coordinator: ["test-checkout-coordinator-db.mjs"],
   guard: ["test-platform-subscription-webhook-cutover-db.mjs"],

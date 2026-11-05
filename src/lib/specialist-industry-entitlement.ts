@@ -1,3 +1,4 @@
+import { hasCanonicalSubscriptionExemption } from "@dg/platform-core/access/application-authority";
 import { NextResponse } from "next/server";
 
 import { canUseIndustryIntegrations, type PlatformTier } from "@/lib/plans";
@@ -13,13 +14,14 @@ export async function specialistIndustryEntitlementBlock(
   const { prisma } = await import("@dg/database");
   const subscription = await prisma.platformSubscription.findUnique({
       where: { organisationId },
-      select: { organisationId: true, planTier: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
+      select: { organisationId: true, platformExempt: true, planTier: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
         stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true,
         currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
     });
 
   const tier = subscription?.planTier as PlatformTier | null;
-  if (!canUseIndustryIntegrations(tier)) {
+  const exempt = hasCanonicalSubscriptionExemption(subscription, organisationId);
+  if (!exempt && !canUseIndustryIntegrations(tier)) {
     return NextResponse.json(
       { error: { code: "industry_integration_plan_required", message: "Specialist Industry integrations require the Scale or Enterprise Core Platform plan." } },
       { status: 403 },
@@ -32,7 +34,7 @@ export async function specialistIndustryEntitlementBlock(
   }
 
   const purchased = isIndustryAppPurchased(subscription, organisationId, requiredIndustryId);
-  if (!purchased) {
+  if (!exempt && !purchased) {
     return NextResponse.json(
       { error: { code: "industry_app_purchase_required", message: "Purchase the relevant Industry App before using this specialist integration." } },
       { status: 403 },

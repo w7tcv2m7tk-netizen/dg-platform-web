@@ -12,6 +12,8 @@ export interface PlatformSession {
   /** Server-resolved canonical purchase projections; never populated from profile settings. */
   industryPurchaseIds?: string[];
   premiumPurchaseKeys?: string[];
+  /** Server-only projection from the matching canonical subscription. */
+  subscriptionExempt?: boolean;
   dbConfigured: boolean;
   organisations: import("../org/memberships").UserOrganisationSummary[];
 }
@@ -22,7 +24,7 @@ export interface ResolveSessionInput {
   name: string;
   clerkOrgId?: string;
   orgName?: string;
-  /** Active tenant from cookie — must match a membership or falls back to first org. */
+  /** Active tenant from cookie — must match a current membership; otherwise session resolution fails. */
   activeOrganisationId?: string;
   /** Platform Refer & Earn code from /r/{code} cookie */
   referralCode?: string | null;
@@ -39,7 +41,7 @@ export async function resolvePlatformSession(
   const { resolveUserMembership, listUserOrganisations } = await import("../org/memberships");
   const { prisma } = await import("@dg/database");
 
-  // Session resolution is read-only with respect to organisation provisioning.
+  // Session resolution is read-only; it never updates membership caches or grants roles.
   // Organisation creation belongs to the explicit onboarding/create flow.
   const membership = await resolveUserMembership(
     input.clerkUserId,
@@ -50,6 +52,7 @@ export async function resolvePlatformSession(
 
   const organisations = await listUserOrganisations(input.clerkUserId);
 
+  let subscriptionExempt = false;
   let industryPurchaseIds: string[] = [];
   let premiumPurchaseKeys: string[] = [];
   try {
@@ -57,27 +60,18 @@ export async function resolvePlatformSession(
     const subscription = await prisma.platformSubscription.findUnique({
       where: { organisationId: membership.organisationId },
       select: {
-        organisationId: true, industryApps: true, premiumApps: true, status: true,
+        organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true,
         entitlement: true, stripeStatus: true, stripeSubscriptionId: true,
         stripeCustomerId: true, trialEnd: true, currentPeriodEnd: true,
         gracePeriodEndsAt: true, cancelAtPeriodEnd: true,
       },
     });
+    subscriptionExempt = subscription?.organisationId === membership.organisationId && subscription.platformExempt === true;
     industryPurchaseIds = authorisedIndustryPurchaseIds(subscription, membership.organisationId);
     premiumPurchaseKeys = authorisedPremiumPurchaseKeys(subscription, membership.organisationId);
   } catch {
     // A failed authority read denies paid application features while preserving
     // access to the authenticated core platform.
-  }
-
-  if (input.email && membership.email !== input.email) {
-    // Keep login email cache in sync — never overwrite displayName / publicEmail here.
-    await prisma.membership.update({
-      where: { id: membership.id },
-      data: {
-        email: input.email,
-      },
-    });
   }
 
   return {
@@ -93,6 +87,7 @@ export async function resolvePlatformSession(
       (membership as { permissions?: unknown }).permissions ??
       ((membership.externalRefs as { permissionGrants?: unknown } | null)?.permissionGrants ??
         undefined),
+    subscriptionExempt,
     industryPurchaseIds,
     premiumPurchaseKeys,
     dbConfigured: true,
