@@ -147,3 +147,9 @@ test('actual premium page accepts operator owner or canonical exempt customer an
     }
   }finally {if(previous===undefined)delete process.env.DG_COMMAND_CENTRE_ORG_IDS;else process.env.DG_COMMAND_CENTRE_ORG_IDS=previous;}
 });
+
+test('Industry workspace and business-profile guidance avoids obsolete customer beta labels',()=>{
+  for(const file of ['src/components/accommodation/AccommodationBookingsTable.tsx','src/app/(shell)/dashboard/business/page.tsx','src/app/(shell)/apps/services/page.tsx']) {
+    const source=readFileSync(file,'utf8');assert.doesNotMatch(source,/for this beta|Real Estate beta onboarding|Services beta launch checklist/);
+  }
+});
