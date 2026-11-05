@@ -29,7 +29,7 @@ export async function IndustryBetaAppLayout({
     const { prisma } = await import("@dg/database");
     authority = await prisma.platformSubscription.findUnique({
       where: { organisationId: session.organisationId },
-      select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true, stripeStatus: true,
+      select: { organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true, entitlement: true, stripeStatus: true,
         stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true, currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
     });
   } catch {
@@ -51,6 +51,7 @@ export async function IndustryBetaAppLayout({
   );
   const accessDecision = industryAppAccessDecision({
     authority,
+    actor: { organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId },
     organisationId: session.organisationId,
     appId,
     betaEnrolled: allowed,
@@ -84,10 +85,9 @@ export async function IndustryBetaAppLayout({
   return (
     <main className="dg-page-main">
       <div className="dg-card space-y-3">
-        <p className="font-medium text-white">Closed beta</p>
+        <p className="font-medium text-white">Not enabled for this organisation</p>
         <p className="text-sm text-slate-400">
-          {title} is enrolled per organisation via feature flags — not open to every customer by
-          default. Ask DigitalGate to enable the beta for this workspace.
+          {title} requires organisation-specific activation. Contact DigitalGate to review availability for this workspace.
         </p>
         <p className="text-xs text-slate-500">{session.organisationName}</p>
         <Link
@@ -104,7 +104,7 @@ export async function IndustryBetaAppLayout({
 function AccessClosed({ title }: { title: string }) {
   return <main className="dg-page-main"><div className="dg-card space-y-3">
     <p className="font-medium text-white">Industry App access unavailable</p>
-    <p className="text-sm text-slate-400">{title} requires a verified subscription entitlement and organisation beta access.</p>
+    <p className="text-sm text-slate-400">{title} requires verified application access and organisation-specific activation.</p>
     <Link href="/dashboard/apps" className="inline-flex min-h-11 items-center text-sm text-sky-400 hover:underline">← Back to Apps</Link>
   </div></main>;
 }

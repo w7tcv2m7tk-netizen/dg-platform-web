@@ -46,7 +46,8 @@
       "integration/checkout-security-20261027": false,
       "review/runtime-identity-one-use-20261031-46926786": false,
       "review/pr1035-finance-beta-20261101": false,
-      "integration/p0-release-reconciliation-20261105": false
+      "integration/p0-release-reconciliation-20261105": false,
+      "fix/platform-access-policy-20261105": false
     }
   }
 }

@@ -1,3 +1,4 @@
+import { INDUSTRY_APP_BETA_FLAGS } from "@dg/platform-core/features/access";
 import {
   canAccessCommandCentre,
   canAccessPartnerPortal,
@@ -59,6 +60,7 @@ export async function PlatformShellLoader({
     return <>{children}</>;
   }
 
+  let industryUnavailableAppIds = Object.keys(INDUSTRY_APP_BETA_FLAGS);
   let financeAccess: FinanceAppAccessState = { industryEntitled: false, betaEnrolled: false, selectedForOrganisation: false };
   let industryEntitlementIds: string[] = [];
   let premiumEntitlementKeys: string[] = [];
@@ -67,13 +69,16 @@ export async function PlatformShellLoader({
       const { prisma } = await import("@dg/database");
       const canonical = await prisma.platformSubscription.findUnique({
         where: { organisationId: session.organisationId },
-        select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
+        select: { organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
           stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true,
           currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
       });
+      const organisation = await prisma.organisation.findUnique({ where: { id: session.organisationId }, select: { settings: true } });
+      const flags = (organisation?.settings as { featureFlags?: Record<string, boolean> } | null)?.featureFlags ?? {};
+      industryUnavailableAppIds = Object.entries(INDUSTRY_APP_BETA_FLAGS).filter(([, flag]) => flags[flag] !== true).map(([appId]) => appId);
       industryEntitlementIds = authorisedIndustryPurchaseIds(canonical, session.organisationId);
       premiumEntitlementKeys = authorisedPremiumPurchaseKeys(canonical, session.organisationId);
-      financeAccess = await getFinanceAppAccessState(session.organisationId);
+      financeAccess = await getFinanceAppAccessState(session.organisationId, { organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId });
     } catch {
       // Finance navigation stays hidden if its access state cannot be verified.
     }
@@ -160,11 +165,13 @@ export async function PlatformShellLoader({
       industrySelectionIds={industrySelectionIds}
       industryEntitlementIds={industryEntitlementIds}
       premiumEntitlementKeys={premiumEntitlementKeys}
+      industryUnavailableAppIds={industryUnavailableAppIds}
       financeAccessEnabled={financeAccess.industryEntitled && financeAccess.betaEnrolled && financeAccess.selectedForOrganisation}
       userName={userName ?? undefined}
       showFloatingChat={showFloatingChat && !isDemo}
       showCommandCentre={showCommandCentreNav}
       isPlatformOperator={isPlatformOperator}
+      subscriptionExempt={session.subscriptionExempt === true}
       showPartnerPortal={showPartnerPortal && !isDemo}
       showResellerAdmin={showResellerAdmin && !isDemo}
       partnerType={partnerType}

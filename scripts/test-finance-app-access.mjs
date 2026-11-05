@@ -124,14 +124,14 @@ test("Finance page and every direct applications API method enforce access", () 
     const body = api.slice(start, next === -1 ? undefined : next);
     assert.ok(start >= 0, `${method} handler exists`);
     assert.match(body, /requirePlatformAuth/);
-    assert.match(body, /requireFinanceAppAccess\(session\.organisationId\)/);
+    assert.match(body, /requireFinanceAppAccess\(session\.organisationId, \{ organisationId: session\.organisationId, role: session\.role, principalId: session\.clerkUserId \}\)/);
     const operation = {
       GET: "listFinanceApplications(",
       POST: "createFinanceApplication(",
       PATCH: "updateFinanceApplication(",
     }[method];
     assert.ok(
-      body.indexOf("requireFinanceAppAccess(session.organisationId)") < body.indexOf(operation),
+      body.indexOf("requireFinanceAppAccess(session.organisationId,") < body.indexOf(operation),
       `${method} checks access before reaching application data operations`,
     );
   }
@@ -162,7 +162,7 @@ test("every identified subscription entitlement query selects the grace-period d
 
 test("supported Finance activation paths enrol beta only through app selection", () => {
   assert.match(appSelection, /enrolIndustryBetasForEnabled/);
-  assert.match(appSelection, /const featureFlags = enrolIndustryBetasForEnabled\(settings\.featureFlags, enabled\)/);
+  assert.match(appSelection, /const featureFlags = canonicalExempt && !operatorAuthority[\s\S]*?settings\.featureFlags[\s\S]*?: enrolIndustryBetasForEnabled\(settings\.featureFlags, enabled\)/);
   assert.match(appSelection, /const unpaidIndustry = unpaidIndustryApps\(requested, canonicalIndustryApps, staffOrOperator\)/);
   assert.match(templateSelection, /enrolIndustryBetasForAppIds/);
   assert.match(templateSelection, /action === "activate" && template\.appId/);

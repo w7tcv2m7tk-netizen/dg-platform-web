@@ -12,6 +12,8 @@ export interface PlatformSession {
   /** Server-resolved canonical purchase projections; never populated from profile settings. */
   industryPurchaseIds?: string[];
   premiumPurchaseKeys?: string[];
+  /** Server-only projection from the matching canonical subscription. */
+  subscriptionExempt?: boolean;
   dbConfigured: boolean;
   organisations: import("../org/memberships").UserOrganisationSummary[];
 }
@@ -50,6 +52,7 @@ export async function resolvePlatformSession(
 
   const organisations = await listUserOrganisations(input.clerkUserId);
 
+  let subscriptionExempt = false;
   let industryPurchaseIds: string[] = [];
   let premiumPurchaseKeys: string[] = [];
   try {
@@ -57,12 +60,13 @@ export async function resolvePlatformSession(
     const subscription = await prisma.platformSubscription.findUnique({
       where: { organisationId: membership.organisationId },
       select: {
-        organisationId: true, industryApps: true, premiumApps: true, status: true,
+        organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true,
         entitlement: true, stripeStatus: true, stripeSubscriptionId: true,
         stripeCustomerId: true, trialEnd: true, currentPeriodEnd: true,
         gracePeriodEndsAt: true, cancelAtPeriodEnd: true,
       },
     });
+    subscriptionExempt = subscription?.organisationId === membership.organisationId && subscription.platformExempt === true;
     industryPurchaseIds = authorisedIndustryPurchaseIds(subscription, membership.organisationId);
     premiumPurchaseKeys = authorisedPremiumPurchaseKeys(subscription, membership.organisationId);
   } catch {
@@ -83,6 +87,7 @@ export async function resolvePlatformSession(
       (membership as { permissions?: unknown }).permissions ??
       ((membership.externalRefs as { permissionGrants?: unknown } | null)?.permissionGrants ??
         undefined),
+    subscriptionExempt,
     industryPurchaseIds,
     premiumPurchaseKeys,
     dbConfigured: true,

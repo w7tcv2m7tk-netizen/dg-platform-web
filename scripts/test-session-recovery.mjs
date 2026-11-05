@@ -80,6 +80,7 @@ function loaderFixture(organisations, clerkUserId = "user-a") {
     "@/lib/session-recovery": { resolveSessionRecovery },
     "@/lib/onboarding/vip-customer-presets": {}, "@/lib/finance-app-access": {},
     "@dg/platform-core/industry/purchase-authority": {},
+    "@dg/platform-core/features/access": { INDUSTRY_APP_BETA_FLAGS: {} },
   };
   const exports = {};
   vm.runInNewContext(ts.transpileModule(readFileSync("src/components/PlatformShellLoader.tsx", "utf8"), {

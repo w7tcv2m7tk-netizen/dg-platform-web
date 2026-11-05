@@ -1,9 +1,12 @@
+import { hasApplicationCommercialExemption } from "../access/application-authority";
+import type { PlatformAuthorityInput } from "../access/platform-authority";
 import { industryIdForAppOrTemplate, INDUSTRY_PLATFORMS } from "./platform";
 import { normalisePaidAppKeys, paidAppKeyForAppId, PAID_APP_TO_APP_IDS } from "../billing/paid-apps";
 
 /** Minimal canonical subscription projection required by paid app gates. */
 export type IndustryPurchaseAuthority = {
   organisationId: string;
+  platformExempt?: boolean;
   industryApps: string[];
   premiumApps: string[];
   status: string;
@@ -80,9 +83,10 @@ export function industryAppAccessDecision(input: {
   appId: string;
   betaEnrolled: boolean;
   selectedForOrganisation: boolean;
+  actor?: PlatformAuthorityInput;
   now?: Date;
 }): "allowed" | "industry_app_purchase_required" | "beta_required" | "industry_app_not_selected" {
-  if (!isIndustryAppPurchased(input.authority, input.organisationId, input.appId, input.now)) return "industry_app_purchase_required";
+  if (!hasApplicationCommercialExemption(input) && !isIndustryAppPurchased(input.authority, input.organisationId, input.appId, input.now)) return "industry_app_purchase_required";
   if (!input.betaEnrolled) return "beta_required";
   if (!input.selectedForOrganisation) return "industry_app_not_selected";
   return "allowed";

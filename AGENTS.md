@@ -90,3 +90,11 @@ baseline an unresolved conflict as approval. Live Stripe IDs, product state and
 approved live Brain coverage remain unverified without separately authorised
 read-only evidence. Do not claim this repository check certifies the live website,
 provider configuration or customer journeys.
+
+## Platform access invariants — owner approval 5 November 2026
+
+Before changing navigation, Industry selection, entitlement or operator access, read
+[PLATFORM-APPLICATION-ACCESS-POLICY.md](docs/foundations/PLATFORM-APPLICATION-ACCESS-POLICY.md).
+Preserve the approved nine-app Growth order and parent/child Industry taxonomy.
+Canonical subscription exemption never grants platform authority or bypasses rollout,
+tenant selection, API-key or membership restrictions. Run the policy regression suite.

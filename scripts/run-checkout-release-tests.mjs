@@ -31,6 +31,7 @@ const files = [
   "scripts/test-checkout-delayed-create.mjs",
   "scripts/test-checkout-webhook-origin.mjs",
   "scripts/test-platform-subscription-webhook-cutover.mjs",
+  "scripts/test-application-access-policy.mjs",
   "scripts/test-platform-subscription-webhook-drain-report.mjs",
   "scripts/test-webhook-receipt-state.mjs",
   "scripts/test-stripe-subscription-routing.mjs",
