@@ -1,3 +1,4 @@
+import { hasCanonicalSubscriptionExemption } from "@dg/platform-core/access/application-authority";
 import { NextResponse } from "next/server";
 import {
   appIdsFromPlanSelection,
@@ -294,7 +295,7 @@ export async function PATCH(req: Request) {
   let enabled = resolveEnabledAppIds(settings);
   const canonicalSubscription = await prisma.platformSubscription.findUnique({
     where: { organisationId: session.organisationId },
-    select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
+    select: { organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
       stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true,
       currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
   });
@@ -304,11 +305,14 @@ export async function PATCH(req: Request) {
   // Platform authority only — organisation slug is tenant-editable (see
   // packages/platform-core/src/access/platform-authority.ts). API-key sessions
   // are explicitly excluded by principalId even for an allowlisted operator org.
-  const staffOrOperator = hasPlatformAuthority({
+  const operatorAuthority = hasPlatformAuthority({
     organisationId: session.organisationId,
     role: session.role,
     principalId: session.clerkUserId,
   });
+
+  const canonicalExempt = hasCanonicalSubscriptionExemption(canonicalSubscription, session.organisationId);
+  const staffOrOperator = operatorAuthority || canonicalExempt;
 
   const paidActivation =
     body.action === "apply_plan" ||
@@ -440,7 +444,9 @@ export async function PATCH(req: Request) {
         ? undefined
         : settings.apps?.planPreview;
 
-  const featureFlags = enrolIndustryBetasForEnabled(settings.featureFlags, enabled);
+  const featureFlags = canonicalExempt && !operatorAuthority
+    ? { ...(settings.featureFlags ?? {}) }
+    : enrolIndustryBetasForEnabled(settings.featureFlags, enabled);
 
   let nextIndustry = settings.industry;
   let nextServices = settings.services;

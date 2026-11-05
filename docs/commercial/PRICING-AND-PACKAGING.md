@@ -22,6 +22,15 @@ This page is the Platform Docs entry for **how DigitalGate is sold**. Product UI
 | **Customer Success plans** | Standard included; Priority / Success Partner optional |
 | **AI / Twin / Intelligence** | Across the platform — not sold as separate Apps |
 
+### Growth Suite bundles
+
+| Bundle | Price | Included | Commercial boundary |
+|--------|-------|----------|---------------------|
+| **Growth Suite** | **$399/mo** | Advertising, Marketing, Prospecting & Opportunity Engine, AI Visibility, SEO, Automation, Analytics, Social and Reputation | Add-on to the selected Core Platform plan; does not replace or include Starter, Growth, Scale or Enterprise |
+| **Growth Suite + Industry** | **$499/mo** | Complete Growth Suite plus one Industry App and its included primary Industry Template | Add-on to the selected Core Platform plan; additional Industry Templates remain **+$29/mo** each |
+
+Growth Suite + Industry combines list-price components of $399 + $149 ($548) for $499/month. These bundle definitions preserve the approved implementation introduced in commit `94dea226b47abf7695c2b0cdc19f87c7717a591a` and the current Roadmap commercial lock; they do not change individual App prices or Core Platform entitlements.
+
 ### Industry integration entitlement
 
 Native integrations between DigitalGate Industry Apps / Templates and specialist third-party industry platforms are a **Scale ($499/mo) or Enterprise** platform entitlement. Industry App access by itself does not grant specialist industry API access.

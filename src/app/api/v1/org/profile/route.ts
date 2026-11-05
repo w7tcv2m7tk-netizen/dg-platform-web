@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   });
   if (denied) return denied;
 
-  const portal = await fetchPortalMe(session.email, session.clerkUserId);
+  const portal = await fetchPortalMe(session.email, session.clerkUserId, session.organisationId);
   const result = await syncOrganisationFromPortal({
     organisationId: session.organisationId,
     organisationName: session.organisationName,

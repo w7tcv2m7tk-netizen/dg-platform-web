@@ -943,3 +943,483 @@ pre-existing `react-hooks/set-state-in-effect` warning at line 69; the file was 
 changed. Candidate is ready for final independent review and the authorised
 publication, then exact-head CI. Existing `finish/checkout-entitlements` deployment suppression is
 unchanged. No Production or provider changes.
+
+### P0 `platform.auth` / `detach.portal_billing` — scoped pilot admission, 27 October 2026
+
+Owner authorised isolated local development only after certified #1025 deployment.
+Branch `fix/single-use-checkout-admission-20261027`, baseline deployed merge
+`8d639743352b9e980afb7e156fc9ac9cff1308b2`; no new commercial policy.
+Implementation: `billing/checkout-admission.ts`, existing coordinator/gate and
+server-authenticated routes; additive `20261027_single_use_checkout_admission`.
+Global checkout remains blocked; no Live grant or customer selection is imposed.
+Verification: local automated/disposable evidence only, not Production verified.
+Operational boundary and approval sequence: [scoped admission runbook](commerce/release-1025/SINGLE-USE-CHECKOUT-ADMISSION.md).
+Publication, migration, deployment, grant/revocation, customer contact and Live
+checkout each remain separately gated. Final results are recorded in the local
+validation report; prior #1025 certification remains historical evidence.
+
+27 October local evidence for the scoped admission change (uncommitted diff against
+`8d639743`): **COMPLETE AND VERIFIED** for authorised local implementation/tests;
+**IMPLEMENTED BUT UNVERIFIED** for hosted/Production activation. Existing CI commands
+now include the new units and disposable cases: release **399/399**, coordinator
+**44/44**, combined DB **40+128+27+6+3**, total **647 passed, zero failed/skipped**.
+Prisma validation/parity, TypeScript, changed-file ESLint and whitespace passed.
+Commands, review findings, final build result and remaining approvals are preserved
+in [local validation evidence](commerce/release-1025/SINGLE-USE-CHECKOUT-ADMISSION-VALIDATION.md).
+No Production access or actual Stripe customer/session creation performed.
+
+### P0 scoped admission — final targeted remediation, 27 October 2026
+
+Supersedes the earlier 647-test scoped-admission certification above. Requirement
+`platform.auth` / `detach.portal_billing`, same isolated branch/base `8d639743`.
+Removed unscoped closed-gate resumption, added composite attempt/tenant FK,
+TRUNCATE/audit protection, verified least-privilege runtime/membership policy,
+atomic migration failure/retry rehearsal and branch deployment suppression.
+Current local checks: `test:checkout-release` **400/400**, coordinator DB **44/44**,
+combined DB **57+128+27+6+3**, **665 passed, zero failed/skipped**, plus five SQL
+failure/retry phases. Prisma validation/parity, TypeScript, lint, whitespace and
+canonical build **457/457 pages, exit 0** passed. Code is uncommitted against the
+same exact base. **COMPLETE AND VERIFIED** applies only to authorised local
+implementation/testing; hosted/Production activation is **IMPLEMENTED BUT
+UNVERIFIED**. Fresh independent review and actual Production non-owner role
+verification, publication, migration, policy provisioning, deployment and pilot
+remain explicit owner gates. No Production/provider changes made.
+Evidence and limitations: [final remediation](commerce/release-1025/SINGLE-USE-CHECKOUT-ADMISSION-REMEDIATION.md).
+
+### P0 restricted database runtime role — application-wide permissions, 27 October 2026
+
+Requirement `platform.auth` / `detach.portal_billing`; security prerequisite for the
+approved non-owner Production database cutover. Branch
+`feat/restricted-runtime-permissions-20261027`, stacked on PR #1028 commit
+`f1e199de7d77762183894fe7e0a8d4f72b50bb8c`. No application behaviour or approved
+migration file changed. The manifest covers all 83 Prisma tables across 19 modules,
+with narrowed append-only/evidence tables, exact checkout admission/gate/audit
+boundaries, one runtime sequence grant, explicit `_prisma_migrations` denial and
+operator-only #991/signed-reconciliation exceptions.
+
+Implementation: `scripts/security/runtime-role-manifest.json`,
+`runtime-role-lib.mjs`, `generate-runtime-role-manifest.mjs`,
+`verify-runtime-role-manifest.mjs`, `scripts/sql/runtime-role-grants.sql`,
+`scripts/sql/runtime-role-verify.sql`, `scripts/test-runtime-permissions-manifest.mjs`,
+`scripts/test-runtime-permissions-db.mjs`, disposable harness suite and
+`docs/security/RUNTIME-ROLE-PERMISSIONS.md`.
+
+Verification: static manifest 7/7; disposable PostgreSQL 18 runtime rehearsal 7/7;
+generated SQL/current-manifest check; representative CRM, commerce, billing, support,
+Business Brain, AI, partner/delivery, finance and accommodation operations; checkout
+permit/audit/gate boundaries; owner/unknown/inherited-membership/helper-role, missing/
+extra privilege, unexpected table, DDL, `SET ROLE`, migration-ledger, grant-option and
+PUBLIC-grant denial. Status **COMPLETE AND VERIFIED — IMPLEMENTATION ONLY**;
+**HOLD** for Production role/credential cutover, deployment and PR #1028 merge.
+
+Next: review draft PR, run exact-head CI, then separately approve Production
+runtime-role provisioning, credential change, serving-role verification and
+deployment. Global checkout remains blocked. Remaining risks and rollback are in the
+permissions document. No Production/database/provider changes made.
+
+### P0 Production deployment and runtime cutover readiness — 27 October 2026
+
+Requirement `platform.auth` / `detach.portal_billing`; preparation only. Branch
+`docs/production-cutover-readiness-20261027`, stacked on PR #1029 head
+`f07ba2a755d2262eaa7b082cde151eb8e46300c2`; PR #1028 remains `f1e199de`.
+No Production writes, credential changes, role grants, deployments, merges,
+Stripe changes, checkout activation or customer contact were performed.
+
+Implementation: `docs/security/PRODUCTION-RUNTIME-CUTOVER-RUNBOOK.md` and
+`scripts/sql/runtime-identity-readonly.sql`; static deployment-boundary coverage
+in `scripts/test-runtime-deployment-boundaries.mjs` confirms runtime code uses
+`DATABASE_URL` only, shared Prisma client boundaries, no runtime migrations/DDL,
+Vercel cron/webhook route coverage, Mac AI worker HTTP-only access, and documented
+operator-only exceptions.
+
+Verification: `test:runtime-deployment-boundaries` **8/8**; `test:security-certification`
+passed including runtime permissions **7/7**; TypeScript, ESLint and
+`git diff --check` passed. Status **PREPARED / HOLD**. Remaining blockers: actual
+serving deployment capture and runtime role/endpoint unverified, Vercel/Neon
+read-only token unavailable in session, Production runtime role not provisioned,
+`DATABASE_URL_UNPOOLED` owner exposure unresolved, admission migration execution
+unconfirmed, recovery/RPO acceptance unrecorded, and #1028/#1029 unmerged.
+Next: owner/operator read-only preflight and separate approvals; no deployment.
+
+### P0 restricted runtime — explicit Neon sample exclusions and role package, 27 October 2026
+
+Requirement `platform.auth` / `detach.portal_billing`. Branch
+`fix/runtime-excluded-objects-20261027`, stacked on PR #1029 head `f07ba2a7`;
+PR #1028 certifications and migration files unchanged.
+
+The Production manifest/verifier now explicitly exclude `_prisma_migrations`,
+`playing_with_neon` and `playing_with_neon_id_seq` with zero runtime privileges,
+while still rejecting any other unknown public table or sequence. The single
+non-owner LOGIN role topology is documented as superseding the older NOLOGIN
+permission-group proposal, without broadening privileges. A separate proposed
+role-creation/grants approval package and no-secret role-creation SQL were added;
+they were not executed.
+
+Verification: static manifest tests **10/10**, disposable PostgreSQL runtime
+rehearsal **8/8**, including excluded-object denial and unclassified-object
+rejection. Status **PREPARED / HOLD** for Production role creation, grants,
+credential installation and cutover. No Production/database/Vercel/credential
+change was made.
+
+### P0 checkout security integration — 27 October 2026
+
+Branch `integration/checkout-security-20261027`, based on PR #1029 head
+`f07ba2a7`; integrates PR #1030 head `154e2001` and PR #1031 head `9bfaa7ff`
+without modifying any existing PR head. The runbook now records the independently
+verified 26 finished/zero unfinished migrations, 85 public tables, three public
+sequences and absent `dg_app_runtime`, while explicitly declining to claim fresh
+gate/admission counts.
+
+The consolidated manifest/verifier excludes `_prisma_migrations`,
+`playing_with_neon` and `playing_with_neon_id_seq` with zero runtime privileges;
+the single non-owner LOGIN role package, separate owner approvals and the
+`DATABASE_URL_UNPOOLED` encrypted/integration-managed owner-credential risk are
+included. Local static, disposable PostgreSQL, security, checkout, TypeScript,
+ESLint, build and diff checks passed. Status **PREPARED / HOLD** for Production
+role creation, grants, credential installation and cutover. Checkout remains
+blocked; no Production/database/Vercel/credential change was made.
+
+
+### P0 checkout P1 security repair — 27 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`. Isolated branch
+`fix/checkout-security-p1-20261027`, based exactly on PR #1032 head
+`fb7a9594bd398cf66d735585c3d68e7f179d9cbd`; existing PRs/branches unchanged.
+
+Implementation: effective column privilege/grant-option verification for all
+permitted/excluded relations including PUBLIC; exact manifest security policy;
+column-scoped provisioning receipt insertion/completion with immutable identity;
+selective #1015 unpaid onboarding exemption/completion guard/ordered-save recovery;
+corrected superseded-PR, merge-base and rollback instructions. No migration or
+Production/provider change. Repair branch has explicit deployment suppression.
+
+Local verification: focused manifest/deployment/onboarding **58/58**; security
+**84/84** plus manifest **34/34** and deployment **8/8**; checkout **450/450**;
+PostgreSQL 18 permission regressions **48/48**; coordinator **44/44**; compatibility
+suites **57/57**, **128/128**, **27/27**, **6/6**, **3/3**. Prisma validation,
+owned-DB schema parity, TypeScript and canonical `npm run build` **457/457** pages
+passed. New-code ESLint passed. Full changed component ESLint reports two
+`react-hooks/set-state-in-effect` errors reproduced on identical unchanged effects
+at the original #1032 head; no lint rule was disabled. The recovered #1015 UX
+regression assertion was included so prebuild tests cover the ordered save queue.
+
+State: VERIFIED LOCALLY / READY FOR INDEPENDENT REVIEW and exact-head CI, not
+Production certified. Next: publish a draft correction against #1032, require
+exact-head CI and independent owner review; keep all provisioning, credentials,
+merge/deploy and pilot approvals separate. Runtime identity/integration resync and
+Live session inventory remain operational gates. No admission or customer invitation.
+
+### Final onboarding reconciliation — 27 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`; existing #1034 repair
+branch based on `14919a5`. Compared #1033 `fc7b7c4` against its exact main base:
+all production changes already present; restored only its missing expired/unpaid
+checkout-return rejection regression. All seven onboarding code/test files now
+match #1033, with #1034 security controls untouched. See
+`docs/security/CHECKOUT-P1-REPAIR-VALIDATION.md` for coverage and handoff.
+Local: route/queue **17/17**; checkout **451/451**; security **84/84 + 34/34 +
+8/8**; disposable permissions **48/48** and compatibility **57/57 + 128/128 +
+27/27 + 6/6 + 3/3**; TypeScript, changed-test lint, schema parity, full build
+**457/457** and diff checks passed. Exact-head CI required after publication.
+Baseline component lint errors remain separately disclosed.
+State: READY FOR VERIFICATION / Production HOLD. Next: independent certification
+of the new exact #1034 head; #1033 supersession requires explicit owner approval.
+No Production or provider change; existing PRs and branches preserved.
+
+### Shared onboarding completion authority — 27 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`; existing #1034 repair
+branch, based on `67025243`. Independent review found the legacy PATCH completion
+bypass. Shared canonical billing/explicit-exemption enforcement now protects both
+PATCH routes, operator setup and Gen2 persistence; completion timestamps are
+server-assigned. Unpaid profile/basket/navigation saves remain available. No
+migration or Production change. See the existing P1 validation document.
+
+Local: route **42/42**, checkout **480/480**, security **84/84 + 34/34 + 8/8**,
+disposable permissions **56/56**, compatibility **57/57 + 142/142 + 27/27 + 6/6 +
+3/3**, authority **6/6**, TypeScript and changed-code lint (zero errors; baseline
+warnings disclosed). Full canonical build passed (**457/457** pages); exact-head CI required after
+publication. State READY FOR VERIFICATION / Production HOLD. Next: DeepSeek
+independent acceptance on the new exact head, then separately approved integration;
+no merge/deploy, credentials, roles, admissions or Live Stripe action authorised.
+
+
+### Production preflight verifier correction — 28 October 2026
+
+Requirements `platform.auth` / `detach.portal_billing`. Isolated branch
+`fix/migration-verifier-20261028` from #1032 `e10b2475`; reviewed base 25-row
+evidence remains immutable. The verifier now explicitly requires the certified
+26th admission migration, validates the original 25 rows, rejects the stale
+25-row capture and fails closed on missing, unexpected, duplicate, checksum,
+unfinished or rolled-back entries. A fresh 26-row expected capture remains pending;
+the offline CLI refuses to accept current evidence until it is supplied. The
+read-only preflight procedure was added. Local verifier tests 14/14; checkout
+480/480; security 84/84 + 34/34 + 8/8; disposable permissions 56/56. No
+application migration, Production SQL, credentials, roles, deployment, Stripe or
+checkout change. State READY FOR VERIFICATION / Production HOLD. Next: owner
+approves the fresh 26-row read-only capture and reviewed expected evidence.
+
+### 29 October 2026 — operator runtime identity diagnostic (local only)
+
+Requirements `platform.auth` / `detach.portal_billing`; owner-approved local-only
+implementation. Isolated detached worktree `/private/tmp/dg-runtime-identity-20261029`
+on `f859bbc56aba2e1322dccd6c18661cff1c1b7cf0`, canonical shared Git store
+`/Users/okcomputers/Documents/dg-platform-current/.git`. No PR or commit created.
+Implementation: `src/lib/runtime-identity.ts` and
+`src/app/(shell)/command/runtime-identity/actions.ts`. Tests:
+`node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-runtime-identity.mjs scripts/test-platform-authority.mjs scripts/test-api-key-authority.mjs`:
+24 passed, zero failed/skipped on 29 October 2026 against this local diff.
+Verification: **IMPLEMENTED BUT UNVERIFIED** beyond mock/static local security
+checks. No database or hosted authentication calls occurred. See
+`commerce/release-1025/LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md` for boundaries and gates.
+Production remains HOLD/NO-GO. Next: review this local diff, then separately approve
+any hosted verification/release. No checkout activation authorised.
+
+29 October 2026 follow-up, same requirements/worktree/base: owner-approved layered
+containment replaces the superseded universal-cancellation criterion. Diagnostic
+now uses the checkout-serving singleton, no lifecycle calls, retained per-worker
+slot and 6.5s response limit; read-only SQL/transaction limits retained. Explicit
+Command Centre operator page/button added; shared Prisma engine logging sanitised.
+28/28 unit/security tests, 2/2 actual-action mocked-boundary tests and 6/6 disposable
+PostgreSQL checks passed. TypeScript/lint interrupted (130); build/prebuild blocked
+on non-resident local dependencies, exit 1 following interruption. Actual Clerk,
+built route, full build and independent review remain incomplete. State remains
+IMPLEMENTED BUT UNVERIFIED for integrated readiness; Production HOLD. Next: restore
+local dependency availability, finish static/build and authenticated local checks,
+then independent review. No Production or external credentials accessed.
+
+29 October 2026 local certification continuation (same requirements/base): restored
+private lock-matching dependencies without touching shared sources. Prisma generation,
+TypeScript, changed-code lint and full npm build PASS (457 pages); 28 unit/security,
+2 action-boundary and 6 disposable DB checks PASS. Built route/action inclusion
+verified. Real Clerk HTTP validation remains UNVERIFIED (no secrets accessed).
+Independent review: no P0/P1; shared logging P2 observability disposition remains
+required; late-phase test assertions strengthened and re-reviewed. Separate one-use
+requirements source missing; no durable store implemented. State remains
+IMPLEMENTED BUT UNVERIFIED for complete auth/release readiness, Production HOLD.
+See LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md; next approvals concern Development auth
+verification and safe logging correction/tradeoff disposition.
+
+30 October 2026, same platform.auth / detach.portal_billing workstream/base: owner
+approved Option B globally sanitised structured Prisma logs. Added safe severity,
+allowlisted categories and independent event evidence; shared singleton/pool and
+query arguments/results preserved. 22 logging + existing30 focused tests PASS;
+6 existing DB checks +1 cold-start check PASS; TypeScript, changed-code lint, full
+npm build (457 pages), route/action inclusion, whitespace and secret-pattern scans
+PASS. Independent read-only security review PASS, no confirmed P0/P1. Raw engine
+detail loss is intentional; event counts not unique failure counts; cold process
+required. State IMPLEMENTED BUT UNVERIFIED for hosted readiness. Real Clerk, durable
+one-use and deployment identity remain separate gates, Production HOLD/NO-GO.
+Next: owner reviews local Option B diff/evidence; no commit/publication authorised.
+
+31 October 2026 — platform.auth / detach.portal_billing: local runtime-identity revision retires the Command Centre action/page, adds a disabled-by-default standalone session-only POST, separate durable control database CAS/audit, actor/deployment binding, effective-privilege negative guards and telemetry token containment. No application migration or 83-table grant expansion. Local disposable multi-process tests demonstrate one use across workers and no target provisioning. Actual Production identity/full permissions/provider binding, new-route real Clerk acceptance, independent review and deployment suppression remain gates. No remote actions, commit, deployment, billing change or publication authorised. See LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md for current versus historical evidence. Production HOLD.
+
+31 October 2026 — platform.auth / detach.portal_billing: suppression-only follow-up adds exact false rule for proposed review/runtime-identity-one-use-20261031-46926786; no branch or commit created. Nine JSON/preservation assertions, exact minimatch/main/sibling checks and diff checks PASS. Existing 29-file hashes verified before edit; current inventory 30 files, only vercel.json added plus existing documentation updates. App source/tests unchanged; prior full build/regressions reused. Current remote main 8d639743 is ancestor of base, 28 inherited commits ahead/zero behind. GitHub webhook inventory empty; workflow verification remains deployment-free in inspected revisions. Effective Vercel ignored-build and explicit Production-branch settings/external automation evidence remain incomplete. Local preparation PASS; publication, deployment and invocation HOLD. No remote mutations authorised. Full evidence in LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md.
+
+31 October 2026 — platform.auth / detach.portal_billing: CI/documentation follow-up integrates diagnostic, safe logging, credential boundary and one-use tests into release runner; exact-head GitHub checkout and both disposable identity DB suites wired. Added portable tool discovery (argument/PG_BIN/PATH), fail-closed negatives; historical Stage 3 proposal preserved with explicit d15310 supersession and local hash-only verification. Release 559, security 84+35+9, pairing 34, coordinator 44, compatibility 235, permission DB 56, shared-client 7 groups and durable control 33 PASS; TypeScript, 29-file lint, YAML/diff checks and canonical Production-mode 457-page full build PASS. Initial path-alias assertions corrected; initial test-mode build not used for canonical certification. Candidate 35 files / effective main diff 100; same 28 inherited commits require separate stack/base approval. No application runtime, schema, migration or grant changes in this follow-up. CI Linux/PG16 and new-route real Clerk acceptance remain unverified. No commit/push/PR/history rewrite, Production access, deployment or invocation; publication and Production HOLD. Evidence: LOCAL-RUNTIME-IDENTITY-DIAGNOSTIC.md and ignored coverage/runtime-identity-ci-20261031 receipts.
+
+
+### 1 November 2026 — local PR #1035 hold/authority remediation certification
+
+Existing requirements: `platform.auth` and `detach.portal_billing` (catalogue:
+`packages/platform-core/src/roadmap/index.ts`). Branch
+`remediation/pr1035-hold-authority-20261101`, certified parent
+`5230ad92f8144028838ca692d561e12da21d8033`. Implementation: fail closed on the
+subscription-webhook hold in both admission paths; use canonical platform operator
+authority on the Gen2 operator route. Finance test-only Date mocks preserve valid
+and expired trial cases without changing entitlement logic. Include the imported
+hold-boundary test and direct PostgreSQL admission UPDATE regressions.
+
+Local verification on 1 November 2026: release `npm run test:checkout-release`
+574/574, security `npm run test:security-certification` 84+35+9/128, disposable
+compatibility DB 242/242 (admission 64, compatibility 142, reconciliation 27,
+webhook 6, operator SQL 3), coordinator DB 44/44, permission DB 56/56. No skips.
+`tsc --noEmit`, changed-file ESLint, runtime manifest and diff checks PASS.
+Full ESLint fails with 149 errors/151 warnings, matching untouched certified parent.
+Initial combined DB run failed because admission fixture cleanup left the gate
+open; test cleanup now restores the synthetic closed state and the full rerun passes.
+Complete build status and tested commit/tree are recorded in
+`LOCAL-PR1035-REMEDIATION-CERTIFICATION.md` and the local exact-head receipt.
+Environment: credential-free unit/mock checks and owned disposable loopback
+PostgreSQL 18 only. No hosted/Production verification claimed.
+
+State: READY FOR VERIFICATION; Production HOLD. Next action: independent review of
+the complete local commit, then separately authorised publication/exact-head hosted
+CI. Remaining release gates: inherited full lint debt, canonical operator
+configuration, real Clerk acceptance, effective Vercel deployment suppression and
+release binding, actual runtime database permissions/identity, Neon connectivity,
+and explicit release/checkout approval. No push, PR, merge, deployment, Production
+access, Production migration or credential changes authorised by this local task.
+
+### 2 November 2026 — local session/tenant isolation remediation
+
+Existing requirements `platform.auth` and `detach.portal_billing`; catalogue IDs
+remain in `packages/platform-core/src/roadmap/index.ts`. Exact PR #1036 parent
+470f3a3c4b8788f12a5d138e2cf196f827fe9000 reconstructed in local
+`isolation-remediation-470f3a3c`; no branch, commit or remote change. Removed
+implicit staff/demo provisioning from org/memberships.ts and email cache writes
+from session/index.ts; explicit invalid selections fail closed and org/switch
+requires exact membership ID and interactive principal. Regression suite
+scripts/test-session-tenant-isolation.mjs wired into release runner; superseded
+old automatic-grant assertion in test-operator-demo-partner-cancel.mjs.
+
+State: **IMPLEMENTED BUT UNVERIFIED** for hosted/Production acceptance. Local
+credential-free unit/mock verification: new suite 22/22, final checkout-release
+596/596, zero skips; TypeScript and six-file ESLint PASS; operator-demo source
+checks PASS. Same new suite on untouched parent: 7 PASS / 15 expected FAIL.
+No fresh build, PostgreSQL integration, hosted CI or Clerk/Stripe E2E for patch.
+Evidence and source hashes: ../ISOLATION-REMEDIATION-2026-11-02.md and
+../isolation-evidence-2026-11-02/manifest.json. Next action: independent source
+review and fresh build/CI/hosted synthetic acceptance, then owner-supplied runtime
+identity/permissions/TLS/migration/hold and recovery evidence. Historical staff
+grants and sandbox webhook routing need independent owner disposition. Production
+HOLD; no credentials/customer records/diagnostic invocation/migrations/merge/
+deploy/Production writes. Publication and Production authorisation remain outside
+this local remediation approval.
+### Commercial governance safeguards — 3 November 2026
+
+Requirements: `platform.roadmap`, `detach.portal_billing`, `platform.auth`.
+Owner assignment continuing Production Hold Review authorises isolated guidance,
+read-only tests and reporting only. Implementation `617c53356b29f0c2be45bf7a552c9cd245ffdafe`
+on `governance/commercial-reconciliation-20261103`: strengthened existing
+`AGENTS.md`; pure commercial reconciliation runner, mutation tests, npm commands
+and read-only PR workflow. [Full evidence and discrepancies](commercial/GOVERNANCE-RECONCILIATION-20261103.md).
+
+Local Node 24.4.1: safeguard 11/11; reconciliation 53 checks / 3 existing findings
+(exit 1, intentionally blocking); existing pricing assertions passed; marketing
+and Roadmap 12/12; Brain 9/9; diff check passed. Full `npm run build` stopped in
+prebuild on missing `@prisma/client` after policy 34/34; no compile/build success
+claimed. Tests use source contracts and synthetic Stripe items, no live providers.
+
+Status: **IMPLEMENTED BUT UNVERIFIED** operational enforcement; commercial
+consistency **BLOCKED**. Public Starter omission, from-$249 metadata and missing
+staff-lock bundle definitions require owner reconciliation, not automatic pricing
+changes. Next: inspect exact PR-head CI, resolve commercial authority with approval,
+and satisfy existing hosted/release gates separately. Live Brain/Stripe/deployed
+site/tenant-wide entitlements remain unverified. Owner release HOLD, disabled
+Vercel Preview and all existing release gates remain unchanged. No release approval,
+production readiness, migration, checkout activation or deployment is established.
+
+**3 November 2026 — Phase 2 commercial reconciliation:** Owner continuation of
+Production Hold Review authorised resolving the three PR #1037 findings without
+Production, provider, migration, checkout or release-gate changes. Based on exact
+PR head `7815c59ab82b1de0991f39bb18bf864d057c5425`, the public Starter $99 card and
+from-$99 metadata are restored, and the staff lock now records the already-approved
+Growth Suite $399 and Growth Suite + Industry $499 bundles. Approval provenance:
+this Roadmap's current commercial lock and implementation commit `94dea226`.
+Local isolated results: Prisma Client 6.19.3 generated; safeguard 14/14;
+reconciliation 53/53 with zero findings; pricing assertions passed; marketing,
+Roadmap and Brain 21/21; complete 4 GB-heap `npm run build` passed prebuild,
+TypeScript and 457/457 static pages after the default-heap attempt exhausted local
+memory during compilation. Status remains **IMPLEMENTED BUT UNVERIFIED** pending
+exact-head hosted CI and independent review. Live providers, deployed UI, hosted
+onboarding and customer journeys remain unverified; release HOLD is unchanged.
+
+Exact-head hosted commercial reconciliation run `41527159571` passed. Checkout
+run `41527159586` exposed an expired hard-coded Finance test fixture (the purported
+valid trial ended 1 November 2026); 388/389 passed and later stages were skipped.
+The valid fixture now uses a stable future boundary, the explicit expired case is
+preserved, and local checkout release tests pass 389/389. This is test determinism,
+not an entitlement or runtime policy change. A fresh exact-head hosted run remains
+required. Independent review remains unverified because the requested reviewer
+could not run within its usage limit.
+
+Corrected head `00f10c8e` then passed hosted commercial reconciliation run
+`41561810025` and complete checkout release run `41561810118`, including Prisma,
+389 release tests, disposable PostgreSQL reconciliation/concurrency, TypeScript,
+full build, compatibility/client-boundary and clean artifact/diff checks. Hosted CI
+is verified for that exact head; this does not certify Production or customer journeys.
+
+
+**3 November 2026 — targeted PR #1037 safeguard remediation (local):**
+Requirements `platform.roadmap`, `detach.portal_billing`, `platform.auth`. Owner
+authorised correction of the three P2 findings in Codex's independent review of
+`c137ad08e2938d190a016204a30e2c90f413ea34`. Isolated branch
+`fix/commercial-safeguards-20261103`, exact reviewed base preserved. Named bundle
+rows/cards now reconcile canonical $399/$499 constants and Core/template
+boundaries; starting metadata positively matches the lowest Core amount; the real
+checkout builder is executed with synthetic dependencies to reject disabled
+amount/active/currency/interval enforcement and wrong trial/line items. No runtime
+pricing, billing, onboarding or entitlement code changed.
+Local validation: reconciliation57/57; mutation safeguards32/32; checkout389/389;
+pricing five groups; marketing/Roadmap/Brain21/21; compatibility171/171; TypeScript,
+changed-code lint and whitespace checks passed. Full build result and detailed
+limitations are recorded in the appended remediation section of
+`docs/commercial/GOVERNANCE-RECONCILIATION-20261103.md`.
+Status **IMPLEMENTED BUT UNVERIFIED** for hosted/independent acceptance: local
+synthetic verification is not provider or Production certification. Live approved
+Business Brain unavailable, proposed seeds not promoted. Next: independent review
+of this local diff, then separate publication/CI approval. Production/release HOLD
+and disabled automatic Preview remain unchanged.
+
+
+**3 November 2026 — final two P2 safeguard corrections (local):**
+Same owner-approved requirements `platform.roadmap`, `detach.portal_billing`,
+`platform.auth`; branch `fix/commercial-safeguards-20261103`, base `c137ad08`.
+The independent acceptance findings are addressed by excluding HTML comments
+from extraction and observing fake Stripe session creation with expected-error
+validation. Mutation safeguards44/44, reconciliation57/57, real-builder matrix24
+scenarios, checkout389/389, compatibility171/171, governance21/21, pricing,
+TypeScript, changed-code lint and whitespace checks passed. Full build and exact
+file fingerprints are recorded in the final-two-P2 section of the existing
+governance evidence. Runtime pricing/billing/entitlements, migrations, lockfile and
+provider configuration are unchanged. **IMPLEMENTED BUT UNVERIFIED** pending fresh
+independent acceptance; no commit/publication or Production action authorised.
+Next: independently accept the final uncommitted patch before publication approval.
+
+
+### Local consolidated checkout candidate — 3 November 2026
+
+Requirements `platform.auth`, `detach.portal_billing`, `platform.roadmap`. Owner
+authorised local-only two-P1 correction and integration, not publication/release.
+Auth base3c0281ef and its six commits preserved. Fix `8cccff1b`, normal merge
+`a8e0484f` of exact certifiedcommercial4928b8ea (Roadmap-only conflict; both
+histories retained), source `15f3a96ccb5bcee4dd1bba1385bd91cfeb338076`. Memberless stale-cookie onboarding is
+reachable without automatic access/provisioning; destructive browser fixture writes
+require exact DB identity and marker before browser/mutations/cleanup. Initial
+PostgreSQL inet text/32 mismatch failed closed, diagnosed in owned cluster and
+corrected to host(inet_server_addr()); retained red evidence and reran green.
+Commercial57/44; checkout657; security128; pairing34; auth71; coordinator44;
+compatibilityDB256; permissions56; identity7groups/control33; compatibility mocks171;
+governance21; pricing, Prisma/schema parity, TypeScript and53-file lint passed
+(2 inherited warnings); full production build457pages passed. Fresh scoped
+independent review PASS. See [local certification](commerce/release-1025/LOCAL-CHECKOUT-CONSOLIDATION-20261103.md).
+Status **IMPLEMENTED BUT UNVERIFIED** for hosted/Production: exact-head remoteCI,
+real Clerk/Stripe acceptance and current runtime/DB/recovery evidence still pending.
+Existing concurrency/account-wide and provider-binding limits are documented; no
+Production readiness inferred. Next: owner-approved controlled publication only
+after final source review and suppression/remote-head checks. Production HOLD.
+
+
+### P0 consolidation and business-creation authority — 5 November 2026
+
+Requirements `platform.auth`, `detach.portal_billing`, `crm.companies`,
+`platform.roadmap`. Owner authorised consolidation/development and suppressed
+draft publication, not Production release. Exact accessible base d747148f retained;
+missing c025378d is explicitly unrecovered. Ten open PRs reconciled by ancestry
+and actual diffs; no stale branches merged or closed. New isolated branch
+`integration/p0-release-reconciliation-20261105` adds atomic actor/parent-locked
+business creation, current canonical provisioning authority, preserved Enterprise
+null limit and same-origin/session-only first-business writes. No pricing,
+migration or grant change. New negative and real PostgreSQL regressions cover
+concurrency, cancellation, rollback, legacy recovery and non-owner execution.
+Independent narrow source review PASS; local release682, commercial57/44,
+security128, compatibility171, existing disposable compatibility256 + final new
+business18, coordinator44, permissions56, identity7groups/control33, TypeScript,
+lint and full prebuild/build457 pages passed. Counts overlap. See
+[reconciliation evidence](commerce/release-1025/P0-RECONCILIATION-20261105.md).
+Status **IMPLEMENTED BUT UNVERIFIED** for full hosted/Production: Scale acceptance,
+exact new-head CI and fresh serving-role/ledger/gate/recovery remain gates. Actual
+shared subscription-account/unique-user licensing is not certified by actor-count
+controls. Current owner-approved synthetic identity budget is one user/organisation
+for Scale only; no Production, Live payment, provider infrastructure or customer
+activation is authorised. Next: exact-source acceptance and controlled suppressed
+draft publication, then separately approved operational verification.
+
+## 5 November 2026 — platform access restoration
+
+Requirements `platform.auth`, `crm.companies`, `detach.portal_billing`, `platform.roadmap`. Owner approved local implementation, verification, isolated commit and a draft PR only if deployment suppression is established. Branch `fix/platform-access-policy-20261105`, based on preserved consolidation `8cc9f4db`. Status: IN PROGRESS; source implementation does not establish Production correction. Canonical specification: [Platform application access policy](foundations/PLATFORM-APPLICATION-ACCESS-POLICY.md). Shared operator/exemption decisions, session projection, navigation, Industry/Finance/page/API gates and customer wording are reconciled; canonical purchase projections and commercial prices remain unchanged. Exact Production roster IDs/flags, serving runtime identity, hosted acceptance and recovery readiness remain unverified. No Production database access or changes are authorised by this record. Final test evidence and revision belong in the private completion report.
+
+Local verification on the 5 November correction snapshot: checkout release 701/701 (including 19 new policy tests), security 128, compatibility 171, navigation/industry isolation 14, disposable PostgreSQL 274 (64+147+27+6+3+6+3+18), TypeScript and changed-code lint (zero errors; existing warnings), commercial 57, full prebuild/build 457 pages, and whitespace checks passed. Independent focused security review passed 50 checks. Initial obsolete static-test expectations and closed mock import maps were updated to the current actor-aware contract; the first PostgreSQL invocation stopped before starting because its tool directory argument was omitted, then the explicit local PostgreSQL 18 invocation passed and removed its cluster. Production remains IMPLEMENTED BUT UNVERIFIED; no organisation-specific flags or selections were changed.
+
+Final wording-only follow-up removes three remaining customer-facing Industry beta labels in accommodation bookings, business-profile onboarding and Services guidance. Local checkout suite now 702/702 including 20 policy tests; independent follow-up policy suite 20/20 and changed-file lint/whitespace checks passed. The preceding full build remains applicable to unchanged executable logic; hosted CI must build the final published head before merge acceptance.

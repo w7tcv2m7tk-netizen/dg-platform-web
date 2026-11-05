@@ -11,7 +11,6 @@ import {
   tenantWriteEntitlementBlock,
   writeEntitlementResponse,
 } from "@/lib/write-entitlement";
-import { fetchPortalMe } from "@/lib/dg-api";
 import { createLinkedInOAuthState } from "@/lib/linkedin-oauth-state";
 
 export const dynamic = "force-dynamic";
@@ -54,12 +53,10 @@ export async function GET(req: Request) {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = await resolveActivePlatformSession({
     clerkUserId: userId,
     email,
     name,
-    orgName: portal?.org_name,
   });
   if (!session) {
     return NextResponse.json(

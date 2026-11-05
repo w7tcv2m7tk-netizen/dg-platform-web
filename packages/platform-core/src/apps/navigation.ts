@@ -699,12 +699,14 @@ function buildIndustryNavApps(
   industrySelectionIds: string[] = [],
   industryEntitlementIds: string[] = [],
   hiddenAppIds: ReadonlySet<string> = new Set(),
+  commercialExempt = false,
 ): AppNavTreeItem[] {
   const enabledAppIds = enabledIndustryApps.map((a) => a.id);
   const byAppId = new Map(enabledIndustryApps.map((a) => [a.id, a]));
   const { industries } = resolveIndustryEntitlements({
     enabledAppIds,
     verifiedPurchasedApps: industryEntitlementIds,
+    commercialExempt,
   });
 
   const items: AppNavTreeItem[] = [];
@@ -926,6 +928,7 @@ export function getCategorizedPlatformNavigation(
     industryEntitlementIds?: string[];
     /** App ids hidden from navigation when their separate access gate is not satisfied. */
     hiddenAppIds?: string[];
+    commercialExempt?: boolean;
   },
 ): CategorizedPlatformNavigation {
   const foundingCustomerMode =
@@ -991,6 +994,7 @@ export function getCategorizedPlatformNavigation(
     options?.industrySelectionIds ?? [],
     options?.industryEntitlementIds ?? [],
     hiddenAppIds,
+    options?.commercialExempt === true,
   );
 
   const tiers: AppNavTierGroup[] = APP_TIER_ORDER.map((tier) => ({

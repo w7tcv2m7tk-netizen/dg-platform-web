@@ -2,10 +2,12 @@ import { clerkFrontendApiProxy, clerkMiddleware, createRouteMatcher } from "@cle
 import { NextResponse, type NextRequest } from "next/server";
 
 import { PHYSICAL_991_PATH, physical991Envelope, physical991AuthResponse, refusePhysical991 } from "@/lib/remediate-991-request";
+import { IDENTITY_PATH, identityEnvelope, identityAuthResponse, identityRefusal } from "@/lib/runtime-identity-request";
 
 import { AUTH_AFTER_SIGN_IN_URL, AUTH_SIGN_IN_URL } from "@/lib/auth-routes";
 import { OAUTH_RETURN_COOKIE, isDashboardOverviewPath, sanitizeOAuthReturnDestination } from "@/lib/oauth-return-path";
 import { CLERK_PROXY_PATH, clerkFrontendApiOrigin, inAppSignInUrl, isClerkProxyPath, isOffAppClerkNavigationUrl, shouldEnableClerkFrontendApiProxy } from "@/lib/clerk-proxy";
+import { authorizedClerkOrigins } from "@/lib/same-origin";
 import { PUBLIC_ROUTE_PATTERNS } from "@/lib/public-routes";
 import { applyPublicLegacyResponse, canonicalPublicHostRedirect } from "@/lib/public-site-legacy";
 import { isAetherraPublicHost } from "@/lib/aetherra-legacy-urls";
@@ -41,11 +43,11 @@ function hasPlatformApiKey(req: Request) {
   const auth = req.headers.get("Authorization")?.trim();
   return Boolean(auth?.toLowerCase().startsWith("bearer "));
 }
-const authorizedParties = ["https://app.digitalgate.com.au", "https://dg-platform-web.vercel.app", "http://localhost:3000", process.env.NEXT_PUBLIC_APP_URL].filter((url): url is string => Boolean(url));
+const authorizedParties = authorizedClerkOrigins();
 const clerkHandler = clerkMiddleware(async (auth, req) => {
   // The temporary physical-remediation endpoint authenticates Clerk identity and operator
   // membership itself; prevent login redirects from masking fixed refusals.
-  if (req.nextUrl.pathname === PHYSICAL_991_PATH) return;
+  if (req.nextUrl.pathname === PHYSICAL_991_PATH || req.nextUrl.pathname === IDENTITY_PATH) return;
   if (isApiV1Route(req) && hasPlatformApiKey(req)) return;
   const authState = await auth();
   if (authState.userId && isAuthEntryRoute(req)) {
@@ -79,6 +81,11 @@ const BRAND_TO_FUNNEL_REDIRECTS: Array<{ hostRe: RegExp; pathRe: RegExp; destina
 export default async function middleware(req: NextRequest, event: unknown) {
   const hostname = req.headers.get("host")?.split(":")[0]?.toLowerCase() ?? "";
   const path = req.nextUrl.pathname;
+  if (path === IDENTITY_PATH) {
+    if (process.env.DG_RUNTIME_IDENTITY_ENABLED !== '1' || !await identityEnvelope(req)) return identityRefusal();
+    try { return identityAuthResponse(await clerkHandler(req,event as never)) ?? NextResponse.next(); }
+    catch { return identityRefusal(); }
+  }
   if (path === PHYSICAL_991_PATH) {
     if (!await physical991Envelope(req)) return refusePhysical991();
     try { return physical991AuthResponse(await clerkHandler(req, event as never)) ?? NextResponse.next(); }

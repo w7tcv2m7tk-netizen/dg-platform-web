@@ -12,9 +12,11 @@ export function PlatformShell({
   industryEntitlementIds = [],
   premiumEntitlementKeys = [],
   financeAccessEnabled = false,
+  industryUnavailableAppIds = [],
   userName,
   showCommandCentre = false,
   isPlatformOperator = false,
+  subscriptionExempt = false,
   showPartnerPortal = false,
   showResellerAdmin = false,
   partnerType = null,
@@ -36,9 +38,11 @@ export function PlatformShell({
   industryEntitlementIds?: string[];
   premiumEntitlementKeys?: string[];
   financeAccessEnabled?: boolean;
+  industryUnavailableAppIds?: string[];
   userName?: string;
   showCommandCentre?: boolean;
   isPlatformOperator?: boolean;
+  subscriptionExempt?: boolean;
   showPartnerPortal?: boolean;
   showResellerAdmin?: boolean;
   partnerType?: import("@dg/platform-core").PartnerType | null;
@@ -61,8 +65,10 @@ export function PlatformShell({
         industryEntitlementIds={industryEntitlementIds}
         premiumEntitlementKeys={premiumEntitlementKeys}
         financeAccessEnabled={financeAccessEnabled}
+        industryUnavailableAppIds={industryUnavailableAppIds}
         showCommandCentre={showCommandCentre}
         isPlatformOperator={isPlatformOperator}
+        subscriptionExempt={subscriptionExempt}
         showPartnerPortal={showPartnerPortal}
         showResellerAdmin={showResellerAdmin}
         partnerType={partnerType}

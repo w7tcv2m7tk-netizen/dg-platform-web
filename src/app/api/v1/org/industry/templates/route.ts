@@ -1,3 +1,4 @@
+import { hasCanonicalSubscriptionExemption } from "@dg/platform-core/access/application-authority";
 import { NextResponse } from "next/server";
 import {
   assertEntitlement,
@@ -108,11 +109,12 @@ function industrySettingsForOrg(settings: OrgSettings) {
     : null;
 }
 
-function entitlementsForOrg(settings: OrgSettings, canonicalIndustryApps: string[] = []) {
+function entitlementsForOrg(settings: OrgSettings, canonicalIndustryApps: string[] = [], commercialExempt = false) {
   const enabled = resolveEnabledAppIds(settings);
   return resolveIndustryEntitlements({
     enabledAppIds: enabled,
     verifiedPurchasedApps: canonicalIndustryApps,
+    commercialExempt,
     industrySettings: industrySettingsForOrg(settings),
   });
 }
@@ -135,13 +137,13 @@ export async function GET() {
   const [org, canonicalSubscription] = await Promise.all([
     prisma.organisation.findUnique({ where: { id: session.organisationId }, select: { settings: true } }),
     prisma.platformSubscription.findUnique({ where: { organisationId: session.organisationId },
-      select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true, stripeStatus: true,
+      select: { organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true, entitlement: true, stripeStatus: true,
         stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true, currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true } }),
   ]);
 
   const settings = (org?.settings as OrgSettings | null) ?? {};
   const enabled = resolveEnabledAppIds(settings);
-  const entitlements = entitlementsForOrg(settings, authorisedIndustryPurchaseIds(canonicalSubscription, session.organisationId));
+  const entitlements = entitlementsForOrg(settings, authorisedIndustryPurchaseIds(canonicalSubscription, session.organisationId), hasCanonicalSubscriptionExemption(canonicalSubscription, session.organisationId) || hasPlatformAuthority({ organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId }));
 
   return NextResponse.json({
     data: { entitlements, enabled, persisted: true },
@@ -223,6 +225,7 @@ export async function PATCH(req: Request) {
   const staffOrOperator = hasPlatformAuthority({
     organisationId: session.organisationId,
     role: session.role,
+    principalId: session.clerkUserId,
   });
 
   if (action === "activate" && !staffOrOperator) {
@@ -250,18 +253,20 @@ export async function PATCH(req: Request) {
   });
   const canonicalSubscription = await prisma.platformSubscription.findUnique({
     where: { organisationId: session.organisationId },
-    select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true, stripeStatus: true,
+    select: { organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true, entitlement: true, stripeStatus: true,
       stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true, currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
   });
   const canonicalIndustryApps = authorisedIndustryPurchaseIds(canonicalSubscription, session.organisationId);
+  const commercialExempt = staffOrOperator || hasCanonicalSubscriptionExemption(canonicalSubscription, session.organisationId);
 
   const settings = (org?.settings as OrgSettings | null) ?? {};
 
   // Customer activation configures an Industry App; it must not create the
   // commercial entitlement. Purchase truth is provisioned by Stripe.
-  if (action === "activate" && !staffOrOperator) {
+  if (action === "activate" && !commercialExempt) {
     const purchased = resolveIndustryEntitlements({
       verifiedPurchasedApps: canonicalIndustryApps,
+    commercialExempt,
     });
     const purchasedIndustry = purchased.industries.find(
       (item) => item.industryId === template.industryId,
@@ -295,6 +300,7 @@ export async function PATCH(req: Request) {
     const afterDeactivate = resolveIndustryEntitlements({
       enabledAppIds: enabled,
       verifiedPurchasedApps: canonicalIndustryApps,
+    commercialExempt,
       industrySettings: industryPatch,
     });
     const otherActiveSharesAppId = afterDeactivate.activeTemplateIds.some((id) => {
@@ -307,7 +313,7 @@ export async function PATCH(req: Request) {
   }
 
   const featureFlags =
-    action === "activate" && template.appId
+    action === "activate" && template.appId && (!hasCanonicalSubscriptionExemption(canonicalSubscription, session.organisationId) || staffOrOperator)
       ? enrolIndustryBetasForAppIds(settings.featureFlags, [template.appId])
       : (settings.featureFlags ?? {});
 
@@ -331,6 +337,7 @@ export async function PATCH(req: Request) {
   const resolvedAfterPatch = resolveIndustryEntitlements({
     enabledAppIds: enabled,
     verifiedPurchasedApps: canonicalIndustryApps,
+    commercialExempt,
     industrySettings: industryPatch,
   });
   const activeServiceTemplateKeys = Array.from(new Set(
@@ -377,7 +384,7 @@ export async function PATCH(req: Request) {
     },
   });
 
-  const entitlements = entitlementsForOrg(nextSettings, canonicalIndustryApps);
+  const entitlements = entitlementsForOrg(nextSettings, canonicalIndustryApps, commercialExempt);
 
   return NextResponse.json({
     data: { entitlements, enabled },

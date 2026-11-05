@@ -5,12 +5,33 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const env = { NODE_ENV: "test", LC_ALL: "C", LANG: "C" };
 for (const key of ["PATH", "HOME", "TMPDIR", "SystemRoot"]) if (process.env[key]) env[key] = process.env[key];
 const files = [
+  "scripts/test-session-tenant-isolation.mjs",
+  "scripts/test-auth-p1-recovery.mjs",
+  "scripts/test-auth-origin-config.mjs",
+  "scripts/test-auth-p2-db-guard.mjs",
+  "scripts/test-demo-authority.mjs",
+  "scripts/test-session-recovery.mjs",
+  "scripts/test-business-provisioning-authority.mjs",
+  "scripts/test-org-create-boundary.mjs",
+  "scripts/test-auth-acceptance-database.mjs",
+  "scripts/test-stripe-webhook-setup-safety.mjs",
+  "scripts/test-owned-postgres-tools.mjs",
+  "scripts/test-safe-prisma-logging.mjs",
+  "scripts/test-runtime-identity.mjs",
+  "scripts/test-runtime-identity-invocation.mjs",
+  "scripts/test-runtime-identity-route.mjs",
+  "scripts/test-runtime-identity-action.mjs",
+  "scripts/test-runtime-permissions-manifest.mjs",
+  "scripts/test-onboarding-save-queue.mjs",
+  "scripts/test-onboarding-state-before-checkout.mjs",
+  "scripts/test-checkout-admission-unit.mjs",
   "scripts/test-checkout-release-preflight.mjs",
   "scripts/test-legacy-checkout-inventory.mjs",
   "scripts/test-checkout-compatibility-boundaries.mjs",
   "scripts/test-checkout-delayed-create.mjs",
   "scripts/test-checkout-webhook-origin.mjs",
   "scripts/test-platform-subscription-webhook-cutover.mjs",
+  "scripts/test-application-access-policy.mjs",
   "scripts/test-platform-subscription-webhook-drain-report.mjs",
   "scripts/test-webhook-receipt-state.mjs",
   "scripts/test-stripe-subscription-routing.mjs",
@@ -38,6 +59,6 @@ const files = [
   "scripts/test-write-entitlement.mjs",
   "scripts/test-tenant-write-entitlement-guard.mjs"
 ];
-const result = spawnSync(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=60000", ...files], { cwd: root, env, stdio: "inherit" });
+const result = spawnSync(process.execPath, ["--conditions=react-server", "--experimental-test-module-mocks", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=60000", ...files], { cwd: root, env, stdio: "inherit" });
 if (result.error) throw result.error;
 process.exitCode = result.status ?? 1;

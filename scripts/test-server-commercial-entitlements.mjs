@@ -15,10 +15,14 @@ assert.ok(invite.includes('status: { in: ["active", "invited"] }'));
 assert.ok(invite.includes("occupiedSeats >= maxUsers"));
 assert.ok(invite.includes('code: "plan_user_limit"'));
 
-assert.ok(memberships.includes("starter: 1"));
-assert.ok(memberships.includes("professional: 1"));
-assert.ok(memberships.includes("business: 5"));
-assert.ok(memberships.includes("ownedActiveOrganisations.length >= limit"));
+const { activeBusinessLimitForTier } = await import("../packages/platform-core/src/org/business-provisioning-authority.ts");
+for (const tier of ["starter", "professional", "business", "enterprise"]) {
+  assert.equal(activeBusinessLimitForTier(tier), PLATFORM_TIER_LIMITS[tier].maxActiveBusinesses);
+}
+assert.ok(memberships.includes("ownedIds.length >= limit"));
+assert.ok(memberships.includes("activeBusinessProvisioningTier(subscription"));
+assert.ok(memberships.includes("prisma.$transaction"));
+assert.ok(memberships.includes("pg_advisory_xact_lock"));
 assert.ok(memberships.includes("plan_business_limit"));
 
 console.log("Server user/business entitlement regression checks passed");

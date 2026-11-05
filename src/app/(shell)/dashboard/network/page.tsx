@@ -7,7 +7,6 @@ import {
 import { currentUser } from "@clerk/nextjs/server";
 
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
 import { requireStaffNetwork } from "@/lib/network-staff-gate";
 
 export default async function NetworkHomePage() {
@@ -71,13 +70,11 @@ export default async function NetworkHomePage() {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,
-        orgName: portal?.org_name,
       })
     : null;
 

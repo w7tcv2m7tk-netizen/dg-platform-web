@@ -124,23 +124,24 @@ export async function requirePlatformAuth(
 }
 
 async function withCanonicalAppPurchases(session: PlatformSession): Promise<PlatformSession> {
-  if (session.industryPurchaseIds !== undefined && session.premiumPurchaseKeys !== undefined) return session;
+  if (session.industryPurchaseIds !== undefined && session.premiumPurchaseKeys !== undefined && session.subscriptionExempt !== undefined) return session;
   try {
     const { prisma } = await import("@dg/database");
     const subscription = await prisma.platformSubscription.findUnique({
       where: { organisationId: session.organisationId },
-      select: { organisationId: true, industryApps: true, premiumApps: true, status: true,
+      select: { organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true,
         entitlement: true, stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true,
         trialEnd: true, currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
     });
     const { authorisedIndustryPurchaseIds, authorisedPremiumPurchaseKeys } = await import("@dg/platform-core/industry/purchase-authority");
     return {
       ...session,
+      subscriptionExempt: subscription?.organisationId === session.organisationId && subscription.platformExempt === true,
       industryPurchaseIds: authorisedIndustryPurchaseIds(subscription, session.organisationId),
       premiumPurchaseKeys: authorisedPremiumPurchaseKeys(subscription, session.organisationId),
     };
   } catch {
-    return { ...session, industryPurchaseIds: [], premiumPurchaseKeys: [] };
+    return { ...session, subscriptionExempt: false, industryPurchaseIds: [], premiumPurchaseKeys: [] };
   }
 }
 
@@ -286,17 +287,17 @@ export async function requireIndustryAppBeta(
     const { prisma } = await import("@dg/database");
     const [subscription, organisation] = await Promise.all([prisma.platformSubscription.findUnique({
       where: { organisationId: session.organisationId },
-      select: { organisationId: true, industryApps: true, premiumApps: true, status: true,
+      select: { organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true,
         entitlement: true, stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true,
         trialEnd: true, currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
     }), prisma.organisation.findUnique({ where: { id: session.organisationId }, select: { settings: true } })]);
     const { industryAppAccessDecision } = await import("@dg/platform-core/industry/purchase-authority");
     const betaEnrolled = await organisationHasIndustryAppBeta(session.organisationId, appId);
-    const decision = industryAppAccessDecision({ authority: subscription, organisationId: session.organisationId, appId, betaEnrolled,
+    const decision = industryAppAccessDecision({ actor: { organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId }, authority: subscription, organisationId: session.organisationId, appId, betaEnrolled,
       selectedForOrganisation: organisationHasSelectedIndustryApp(organisation?.settings as IndustrySelectionSettings | null, appId) });
     if (decision === "allowed") return null;
     const code = decision === "beta_required" ? "beta_required" : decision === "industry_app_not_selected" ? decision : "industry_app_purchase_required";
-    const message = decision === "beta_required" ? `${appId} beta enrolment is required.` : decision === "industry_app_not_selected" ? `${appId} is not selected for this organisation.` : `A verified ${appId} Industry App purchase is required.`;
+    const message = decision === "beta_required" ? `${appId} is not enabled for this organisation. Contact DigitalGate.` : decision === "industry_app_not_selected" ? `${appId} is not selected for this organisation.` : `A verified ${appId} Industry App purchase is required.`;
     return NextResponse.json({ error: { code, message } }, { status: 403 });
   } catch {
     return NextResponse.json({ error: { code: "industry_entitlement_unavailable", message: "Industry App access could not be verified." } }, { status: 503 });

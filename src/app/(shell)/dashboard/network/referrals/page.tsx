@@ -11,7 +11,6 @@ import { currentUser } from "@clerk/nextjs/server";
 
 import { PlatformHubPage, requireStaffNetwork } from "@/lib/network-staff-gate";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
-import { fetchPortalMe } from "@/lib/dg-api";
 
 /**
  * Customer Network → Referrals = B2B business referrals.
@@ -52,13 +51,11 @@ export default async function NetworkReferralsPage() {
     user?.fullName ??
     [user?.firstName, user?.lastName].filter(Boolean).join(" ") ??
     email;
-  const portal = email ? await fetchPortalMe(email, user?.id) : null;
   const session = user?.id
     ? await resolveActivePlatformSession({
         clerkUserId: user.id,
         email,
         name,
-        orgName: portal?.org_name,
       })
     : null;
 
