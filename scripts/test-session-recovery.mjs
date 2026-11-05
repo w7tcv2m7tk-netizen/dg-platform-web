@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import { test } from "node:test";
+import { isTrustedSameOriginRequest } from "../src/lib/same-origin.ts";
 import { resolveSessionRecovery } from "../src/lib/session-recovery.ts";
 
 const memberships = [
@@ -108,12 +109,13 @@ test("signed-out stale-cookie shell cannot acquire tenant context", async () => 
 function firstOrganisationFixture({ organisations = [], authenticated = true, existingSession = null } = {}) {
   const creates = []; const cookies = [];
   const modules = {
+    '@/lib/same-origin': { isTrustedSameOriginRequest },
     '@dg/platform-core': {
       listUserOrganisations: async () => organisations,
       createOrganisationForUser: async input => { creates.push(input); return { organisationId: 'new-fixture-org' }; },
     },
     '@clerk/nextjs/server': { auth: async () => ({ userId: authenticated ? 'user-a' : null }),
-      currentUser: async () => authenticated ? { primaryEmailAddress: { emailAddress: 'fixture@example.invalid' }, fullName: 'Fixture' } : null },
+      currentUser: async () => authenticated ? { id: 'user-a', primaryEmailAddress: { emailAddress: 'fixture@example.invalid' }, fullName: 'Fixture' } : null },
     'next/server': { NextResponse: { json: (body, init) => Response.json(body, init) } },
     '@/lib/active-org-cookie': { writeActiveOrganisationId: async id => cookies.push(id) },
     '@/lib/active-platform-session': { resolveActivePlatformSession: async () => existingSession },
@@ -122,8 +124,8 @@ function firstOrganisationFixture({ organisations = [], authenticated = true, ex
   vm.runInNewContext(ts.transpileModule(readFileSync('src/app/api/v1/org/create/route.ts', 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText, { exports, require: name => { if (!Object.hasOwn(modules, name)) throw Error('Unexpected dependency'); return modules[name]; } });
-  return { creates, cookies, post: () => exports.POST(new Request('https://fixture.invalid/api/v1/org/create', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+  return { creates, cookies, post: () => exports.POST(new Request('https://app.digitalgate.com.au/api/v1/org/create', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', Origin: 'https://app.digitalgate.com.au', 'Sec-Fetch-Site': 'same-origin' },
     body: JSON.stringify({ firstOrganisation: true, name: 'Explicit fixture', template: 'default' }),
   })) };
 }

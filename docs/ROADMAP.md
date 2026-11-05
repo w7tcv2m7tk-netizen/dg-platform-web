@@ -1389,3 +1389,29 @@ real Clerk/Stripe acceptance and current runtime/DB/recovery evidence still pend
 Existing concurrency/account-wide and provider-binding limits are documented; no
 Production readiness inferred. Next: owner-approved controlled publication only
 after final source review and suppression/remote-head checks. Production HOLD.
+
+
+### P0 consolidation and business-creation authority — 5 November 2026
+
+Requirements `platform.auth`, `detach.portal_billing`, `crm.companies`,
+`platform.roadmap`. Owner authorised consolidation/development and suppressed
+draft publication, not Production release. Exact accessible base d747148f retained;
+missing c025378d is explicitly unrecovered. Ten open PRs reconciled by ancestry
+and actual diffs; no stale branches merged or closed. New isolated branch
+`integration/p0-release-reconciliation-20261105` adds atomic actor/parent-locked
+business creation, current canonical provisioning authority, preserved Enterprise
+null limit and same-origin/session-only first-business writes. No pricing,
+migration or grant change. New negative and real PostgreSQL regressions cover
+concurrency, cancellation, rollback, legacy recovery and non-owner execution.
+Independent narrow source review PASS; local release682, commercial57/44,
+security128, compatibility171, existing disposable compatibility256 + final new
+business18, coordinator44, permissions56, identity7groups/control33, TypeScript,
+lint and full prebuild/build457 pages passed. Counts overlap. See
+[reconciliation evidence](commerce/release-1025/P0-RECONCILIATION-20261105.md).
+Status **IMPLEMENTED BUT UNVERIFIED** for full hosted/Production: Scale acceptance,
+exact new-head CI and fresh serving-role/ledger/gate/recovery remain gates. Actual
+shared subscription-account/unique-user licensing is not certified by actor-count
+controls. Current owner-approved synthetic identity budget is one user/organisation
+for Scale only; no Production, Live payment, provider infrastructure or customer
+activation is authorised. Next: exact-source acceptance and controlled suppressed
+draft publication, then separately approved operational verification.

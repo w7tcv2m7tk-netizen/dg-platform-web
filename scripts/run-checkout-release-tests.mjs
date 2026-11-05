@@ -11,6 +11,8 @@ const files = [
   "scripts/test-auth-p2-db-guard.mjs",
   "scripts/test-demo-authority.mjs",
   "scripts/test-session-recovery.mjs",
+  "scripts/test-business-provisioning-authority.mjs",
+  "scripts/test-org-create-boundary.mjs",
   "scripts/test-auth-acceptance-database.mjs",
   "scripts/test-stripe-webhook-setup-safety.mjs",
   "scripts/test-owned-postgres-tools.mjs",

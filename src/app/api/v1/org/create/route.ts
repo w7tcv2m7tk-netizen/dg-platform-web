@@ -2,6 +2,8 @@ import { createOrganisationForUser, listUserOrganisations, type OrgTemplate } fr
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+import { isTrustedSameOriginRequest } from "@/lib/same-origin";
+
 import { writeActiveOrganisationId } from "@/lib/active-org-cookie";
 import { resolveActivePlatformSession } from "@/lib/active-platform-session";
 
@@ -14,11 +16,20 @@ const VALID_TEMPLATES = new Set<OrgTemplate>([
 ]);
 
 export async function POST(req: Request) {
+  if (!isTrustedSameOriginRequest(req)) {
+    return NextResponse.json({ error: { code: "forbidden", message: "Same-origin request required" } }, { status: 403 });
+  }
+  if (req.headers.get("X-API-Key")?.trim() || req.headers.get("Authorization")?.trim().toLowerCase().startsWith("bearer ")) {
+    return NextResponse.json({ error: { code: "forbidden", message: "Interactive session required" } }, { status: 403 });
+  }
+  if (req.headers.get("Content-Type")?.split(";")[0].trim().toLowerCase() !== "application/json") {
+    return NextResponse.json({ error: { code: "unsupported_media_type", message: "JSON body required" } }, { status: 415 });
+  }
   // This is the explicit first-tenant boundary used by onboarding. Authentication
   // establishes identity; this route intentionally permits a memberless Clerk user.
-  const { userId } = await auth();
+  const { userId } = await auth({ acceptsToken: "session_token" });
   const user = await currentUser();
-  if (!userId || !user) {
+  if (!userId || !user || user.id !== userId || userId.startsWith("api_key:")) {
     return NextResponse.json(
       { error: { code: "unauthorized", message: "Sign in required" } },
       { status: 401 },
@@ -76,6 +87,7 @@ export async function POST(req: Request) {
       name: displayName,
       orgName: name,
       template,
+      firstOrganisation,
     });
 
     await writeActiveOrganisationId(created.organisationId);

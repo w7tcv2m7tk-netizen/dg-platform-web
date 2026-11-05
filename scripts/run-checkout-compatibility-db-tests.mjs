@@ -21,11 +21,12 @@ for (const key of ["PATH", "HOME", "TMPDIR", "SystemRoot"]) {
 }
 const suite = process.argv[3] ?? "compatibility";
 const suites = {
-  compatibility: ["test-single-use-checkout-admission-db.mjs", "test-checkout-compatibility-db.mjs", "test-legacy-app-entitlement-reconciliation.mjs", "test-platform-subscription-webhook-cutover-db.mjs", "test-checkout-release-operator-sql-db.mjs", "test-auth-p2-db.mjs", "test-auth-acceptance-database-db.mjs"],
+  compatibility: ["test-single-use-checkout-admission-db.mjs", "test-checkout-compatibility-db.mjs", "test-legacy-app-entitlement-reconciliation.mjs", "test-platform-subscription-webhook-cutover-db.mjs", "test-checkout-release-operator-sql-db.mjs", "test-auth-p2-db.mjs", "test-auth-acceptance-database-db.mjs", "test-business-provisioning-db.mjs"],
   operator: ["test-checkout-release-operator-sql-db.mjs"],
   coordinator: ["test-checkout-coordinator-db.mjs"],
   permissions: ["test-runtime-permissions-db.mjs"],
   admission: ["test-single-use-checkout-admission-db.mjs"],
+  business: ["test-business-provisioning-db.mjs"],
   guard: ["test-platform-subscription-webhook-cutover-db.mjs"],
 };
 if (!Object.hasOwn(suites, suite) || process.argv.length > 4) throw new Error("Unknown disposable checkout test suite");

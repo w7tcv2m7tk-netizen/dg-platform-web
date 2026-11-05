@@ -31,8 +31,12 @@ Platform Docs describe supported technical architecture and verified behaviour.
 Neither is a second approved development backlog.
 
 Current delivery order: P0 commercial launch; P1 prospecting; P1 Aida and Business
-Brain; P1 Daily Business Briefings; P1 AI Voice. PR #1006 is the sole checkout release
-candidate; #1008 compatibility was merged into main. Production releases, configuration,
+Brain; P1 Daily Business Briefings; P1 AI Voice. Historical #1006-only release
+instructions are superseded by the owner-approved P0 consolidation of 5 November 2026.
+The current integration branch is `integration/p0-release-reconciliation-20261105`,
+based on preserved #1036 head `d747148f`; the missing `c025378d` is not reconstructed
+or certified. Existing PRs remain preserved until owner-approved disposition.
+Production releases, configuration,
 migrations, Stripe changes, Payment Link deactivation and checkout activation
 require explicit operator approval. Preserve the current Core products: Starter
 AUD $99/month, Growth $249/month and Scale $499/month, all with a 14-day trial.
