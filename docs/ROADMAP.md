@@ -130,6 +130,35 @@ Exact next action: operator supplies the missing test webhook routing/secrets an
 
 ---
 
+
+### 6 November 2026: platform operator role verification
+
+Requirement `platform.auth`. The isolated local branch `fix/operator-role-authority`
+is based on PR #1039 at `ea88c25a2169215e4fea7d246df6b5dfdc783911`.
+Permission evaluation now passes the persisted role to the canonical authority
+check before applying legacy display normalization. Canonical `dg:staff` and
+allowlisted owners retain existing authority. The original candidate is untouched.
+
+**IMPLEMENTED BUT UNVERIFIED** in the serving environment. Local authority,
+session, tenant, audit and checkout guard tests passed 106/106. The server
+application access policy suite passed 20/20 with Node's `react-server`
+condition. A hosted synthetic canonical operator reached Command Centre on the
+original candidate. Serving credential evidence and live operator attestation
+remain open. Production deployment and checkout remain HOLD.
+
+Requirements `platform.auth` and `platform.apps`: keep the Creator scaffold
+closed in shell navigation, direct app and setup pages, and the shared Industry
+API decision while Music & Artists is Coming Soon. Preserve saved selections.
+
+6 November 2026 local candidate based on PR #1039: `npm run test:checkout-release`
+493/493, `npm run test:security-certification` 85/85, and
+`npm run test:tenant-access-policy-invariants` passed with synthetic fixtures.
+Independent role review confirmed the raw-role boundary and identified a
+line-ending issue corrected in this candidate. GitHub CI passed on the original
+PR head. Updated-head CI and Production identity, grants and recovery remain
+unverified. Confirm the serving binding and recovery containment before the
+Roe Realty correction or any request to approve Production release.
+
 ## AI Gateway slice roadmap
 
 **Approved direction: 7 October 2026.** This extends the canonical AI and Business Brain architecture; it does not expand the founding ship list or authorise implementing the whole future roadmap.

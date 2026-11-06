@@ -46,6 +46,19 @@ test('industry exemption preserves selection and rollout; missing or mismatched 
   assert.equal(industryAppAccessDecision({...input,authority:null}),'industry_app_purchase_required');
   assert.deepEqual(authorisedPremiumPurchaseKeys(exempt,tenant),[]);
 });
+test('Music & Artists selection survives while Creator runtime is closed', () => {
+  const settings = { gen2Onboarding: { operatingProfile: { templates: ['music-artists'] } } };
+  const selectedForOrganisation = organisationHasSelectedIndustryApp(settings, 'creator');
+  assert.equal(selectedForOrganisation, true);
+  assert.equal(industryAppAccessDecision({
+    authority: exempt, organisationId: tenant, appId: 'creator',
+    betaEnrolled: true, selectedForOrganisation,
+  }), 'beta_required');
+  const navigation = core.getCategorizedPlatformNavigation(['creator'], {
+    commercialExempt: true, industrySelectionIds: ['music-artists'],
+  });
+  assert.doesNotMatch(JSON.stringify(navigation), /"\/apps\/creator(?:[\/"])/);
+});
 test('Finance exemptions preserve exact tenant, selection and staged availability',()=>{
   const input={organisationId:tenant,canonicalSubscription:exempt,featureFlags:{'finance.beta':true},organisationSettings:{industry:{templates:{finance:{active:true}}}}};
   assert.deepEqual(resolveFinanceAppAccessState(input),{industryEntitled:true,betaEnrolled:true,selectedForOrganisation:true});

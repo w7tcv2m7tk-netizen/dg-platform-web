@@ -9,6 +9,7 @@ import {
 } from "./org-apps";
 import { platformApps } from "./registry";
 import { getSidebarIcon } from "./sidebar-icons";
+import { COMING_SOON_INDUSTRY_RUNTIME_APP_IDS } from "../industry/platform";
 import {
   getIndustry,
   getIndustryPrimaryHref,
@@ -937,7 +938,7 @@ export function getCategorizedPlatformNavigation(
   const customerApps = platformApps
     .list()
     .filter((a) => (a.manifest.visibility ?? "customer") === "customer");
-  const hiddenAppIds = new Set(options?.hiddenAppIds ?? []);
+  const hiddenAppIds = new Set([...COMING_SOON_INDUSTRY_RUNTIME_APP_IDS, ...(options?.hiddenAppIds ?? [])]);
 
   const enabledApps = customerApps
     .filter((a) => isAppEnabled(a.manifest.id, enabledIds))
