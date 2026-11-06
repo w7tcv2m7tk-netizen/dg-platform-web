@@ -57,7 +57,7 @@ test('Music & Artists selection survives while Creator runtime is closed', () =>
   const navigation = core.getCategorizedPlatformNavigation(['creator'], {
     commercialExempt: true, industrySelectionIds: ['music-artists'],
   });
-  assert.doesNotMatch(JSON.stringify(navigation), /"\/apps\/creator(?:[\/"])/);
+  assert.doesNotMatch(JSON.stringify(navigation), /industry--creator-media--music-artists|"\/apps\/creator(?:[\/"])/);
 });
 test('Finance exemptions preserve exact tenant, selection and staged availability',()=>{
   const input={organisationId:tenant,canonicalSubscription:exempt,featureFlags:{'finance.beta':true},organisationSettings:{industry:{templates:{finance:{active:true}}}}};
@@ -95,7 +95,7 @@ import vm from 'node:vm';
 import * as core from '../packages/platform-core/src/index.ts';
 import * as applicationAuthority from '../packages/platform-core/src/access/application-authority.ts';
 import * as purchaseAuthority from '../packages/platform-core/src/industry/purchase-authority.ts';
-async function invokeActivation(file, body, flags = {}) {
+async function invokeActivation(file, body, flags = {}, expectedStatus = 200) {
   let saved;
   const prisma={ platformSubscription:{findUnique:async()=>exempt}, organisation:{findUnique:async()=>({settings:{apps:{enabled:[]},featureFlags:flags}}),update:async args=>{assert.equal(args.where.id,tenant);saved=args.data.settings;return {};}} };
   const modules={
@@ -103,6 +103,7 @@ async function invokeActivation(file, body, flags = {}) {
     '@dg/platform-core':{...core,assertEntitlement:async()=>({ok:true})},
     '@dg/platform-core/access/application-authority':applicationAuthority,
     '@dg/platform-core/industry/purchase-authority':purchaseAuthority,
+    '@dg/platform-core/industry/platform':core,
     '@/lib/platform-api':{requirePlatformSession:async()=>session,isNextResponse:r=>r instanceof Response,requirePermission:()=>null},
     '@/lib/write-entitlement':{tenantWriteEntitlementBlock:async()=>null,writeEntitlementResponse:()=>{throw Error('Unexpected write block');}},
     '@dg/database':{prisma},
@@ -111,11 +112,17 @@ async function invokeActivation(file, body, flags = {}) {
   const code=ts.transpileModule(readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   vm.runInNewContext(code,{exports,process:{env:{DATABASE_URL:'synthetic-fixture-only'}},require:name=>{if(!(name in modules))throw Error('Unexpected module '+name);return modules[name];}});
   const response=await exports.PATCH(new Request('https://fixture.invalid/api',{method:'PATCH',headers:{'content-type':'application/json'},body:JSON.stringify(body)}));
-  assert.equal(response.status,200,JSON.stringify(await response.json()));return saved;
+  assert.equal(response.status,expectedStatus,JSON.stringify(await response.json()));return saved;
 }
 test('actual exempt app activation cannot enrol missing rollout flags',async()=>{
   const saved=await invokeActivation('src/app/api/v1/org/apps/route.ts',{action:'toggle',appId:'finance',enabled:true});
   assert.deepEqual(JSON.parse(JSON.stringify(saved.featureFlags)),{});assert.ok(saved.apps.enabled.includes('finance'));
+});
+test('organisation app settings cannot enable the closed Creator runtime', async () => {
+  for (const body of [{ action: 'toggle', appId: 'creator', enabled: true }, { action: 'set', enabled: ['creator'] }]) {
+    const saved = await invokeActivation('src/app/api/v1/org/apps/route.ts', body, {}, 403);
+    assert.equal(saved, undefined);
+  }
 });
 test('actual exempt template activation preserves explicitly disabled rollout flags',async()=>{
   const saved=await invokeActivation('src/app/api/v1/org/industry/templates/route.ts',{action:'activate',templateId:'real-estate'},{'re.beta':false});

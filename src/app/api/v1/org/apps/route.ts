@@ -19,6 +19,7 @@ import {
 } from "@dg/platform-core";
 
 import { isNextResponse, requirePermission, requirePlatformSession } from "@/lib/platform-api";
+import { COMING_SOON_INDUSTRY_RUNTIME_APP_IDS } from "@dg/platform-core/industry/platform";
 import { authorisedIndustryPurchaseIds, authorisedPremiumPurchaseKeys } from "@dg/platform-core/industry/purchase-authority";
 import {
   tenantWriteEntitlementBlock,
@@ -433,6 +434,13 @@ export async function PATCH(req: Request) {
     return NextResponse.json(
       { error: { code: "unknown_action", message: "Unsupported action" } },
       { status: 400 },
+    );
+  }
+
+  if (enabled.some((appId) => COMING_SOON_INDUSTRY_RUNTIME_APP_IDS.includes(appId))) {
+    return NextResponse.json(
+      { error: { code: "industry_app_coming_soon", message: "This Industry App is Coming Soon." } },
+      { status: 403 },
     );
   }
 

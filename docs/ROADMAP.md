@@ -151,7 +151,7 @@ closed in shell navigation, direct app and setup pages, and the shared Industry
 API decision while Music & Artists is Coming Soon. Preserve saved selections.
 
 6 November 2026 local candidate based on PR #1039: `npm run test:checkout-release`
-493/493, `npm run test:security-certification` 85/85, and
+494/494, `npm run test:security-certification` 85/85, and
 `npm run test:tenant-access-policy-invariants` passed with synthetic fixtures.
 Independent role review confirmed the raw-role boundary and identified a
 line-ending issue corrected in this candidate. GitHub CI passed on the original

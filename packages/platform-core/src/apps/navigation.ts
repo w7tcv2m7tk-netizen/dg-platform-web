@@ -9,7 +9,7 @@ import {
 } from "./org-apps";
 import { platformApps } from "./registry";
 import { getSidebarIcon } from "./sidebar-icons";
-import { COMING_SOON_INDUSTRY_RUNTIME_APP_IDS } from "../industry/platform";
+import { COMING_SOON_INDUSTRY_RUNTIME_APP_IDS, INDUSTRY_PLATFORMS } from "../industry/platform";
 import {
   getIndustry,
   getIndustryPrimaryHref,
@@ -718,6 +718,7 @@ function buildIndustryNavApps(
   // Catalogue order matches INDUSTRY_PLATFORMS; child order follows each parent.
   for (const industry of listIndustries()) {
     const entitlement = industries.find((e) => e.industryId === industry.id);
+    const specialisations = INDUSTRY_PLATFORMS.find((platform) => platform.id === industry.id)?.specialisations;
     const explicitActiveTemplateIds = industry.templates
       .filter((template) => exactSelectionIds.has(template.id) || exactSelectionIds.has(template.slug))
       .map((template) => template.id);
@@ -731,6 +732,8 @@ function buildIndustryNavApps(
       const template = getTemplate(templateId);
       if (!template || template.industryId !== industry.id) continue;
       if (template.appId && hiddenAppIds.has(template.appId)) continue;
+      const scaffoldAppId = specialisations?.find((spec) => spec.id === template.id)?.appId;
+      if (scaffoldAppId && COMING_SOON_INDUSTRY_RUNTIME_APP_IDS.includes(scaffoldAppId)) continue;
 
       const app = template.appId ? byAppId.get(template.appId) : undefined;
       if (template.appId) consumedAppIds.add(template.appId);
