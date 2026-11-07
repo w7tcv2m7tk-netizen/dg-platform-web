@@ -1,3 +1,4 @@
+import { assertGen2OnboardingCompletionAllowed, OnboardingCompletionNotConfirmed } from "@dg/platform-core/onboarding/gen2-completion";
 import { CheckoutTemporarilyUnavailable } from "@dg/platform-core/billing/checkout-creation-gate";
 import { createCustomCommercialCheckoutSession, createPlatformCheckoutSession } from "@dg/platform-core/billing/platform-checkout";
 import { CheckoutCoordinationError } from "@dg/platform-core/billing/checkout-coordinator";
@@ -177,6 +178,13 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: { code: "checkout_not_confirmed", message: "Your Stripe checkout has not been confirmed yet. Please try again in a moment." } }, { status: 409 });
     }
   }
+  // Check before profile, goal or progress mutations; an unpaid save remains valid.
+  try {
+    await assertGen2OnboardingCompletionAllowed(resolvedOrganisationId, { ...body.progress, markStepComplete });
+  } catch (error) {
+    if (!(error instanceof OnboardingCompletionNotConfirmed)) throw error;
+    return NextResponse.json({ error: { code: "checkout_not_confirmed", message: error.message } }, { status: 409 });
+  }
   if (body.profile && typeof body.profile === "object") {
     const profileDenied = requirePermission(session, { module: "settings", action: "manage", scope: "organisation" }); if (profileDenied) return profileDenied;
     await updateOrganisationBusinessProfile(resolvedOrganisationId, body.profile);
@@ -251,8 +259,8 @@ export async function POST(req: Request) {
     const targetProfile = operatorPreview ? await getOrganisationBusinessProfile(resolvedOrganisationId) : null;
     const checkoutEmail = operatorPreview ? (targetProfile?.businessEmail || targetProfile?.contactEmail || session.email) : session.email;
     const checkoutBusinessName = operatorPreview ? (targetProfile?.businessName || targetProfile?.tradingName || "Customer") : session.organisationName;
-    const checkout = effectiveOffer ? await createCustomCommercialCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, businessName: checkoutBusinessName, offer: effectiveOffer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
-      : await createPlatformCheckoutSession({ organisationId: resolvedOrganisationId, email: checkoutEmail, platformTier, industryApps, premiumApps, supportPlan, businessName: checkoutBusinessName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
+    const checkout = effectiveOffer ? await createCustomCommercialCheckoutSession({ organisationId: resolvedOrganisationId, clerkUserId: session.clerkUserId, email: checkoutEmail, businessName: checkoutBusinessName, offer: effectiveOffer, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" })
+      : await createPlatformCheckoutSession({ organisationId: resolvedOrganisationId, clerkUserId: session.clerkUserId, email: checkoutEmail, platformTier, industryApps, premiumApps, supportPlan, businessName: checkoutBusinessName, billingCadence, successPath: "/onboarding?checkout=success", cancelPath: "/onboarding?checkout=cancelled" });
     if (!operatorPreview) await saveGen2OnboardingProgress(resolvedOrganisationId, { platformTier: platformTier as "starter" | "professional" | "business", billingCadence, industryApps, premiumApps, supportPlan, stripeCheckoutSessionId: checkout.sessionId, markStepComplete: "order_summary" });
     return NextResponse.json({ data: checkout });
   } catch (error) {

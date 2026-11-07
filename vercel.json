@@ -41,7 +41,12 @@
       "release/stripe-webhook-guard-only-20261019": false,
       "fix/checkout-release-readiness-20261023": false,
       "finish/checkout-entitlements": false,
-      "release/access-restoration-only-20261105": false
+      "release/access-restoration-only-20261105": false,
+      "fix/checkout-security-p1-20261027": false,
+      "fix/single-use-checkout-admission-20261027": false,
+      "integration/checkout-security-20261027": false,
+      "feat/restricted-runtime-permissions-20261027": false,
+      "review/pr1035-finance-beta-20261101": false
     }
   }
 }

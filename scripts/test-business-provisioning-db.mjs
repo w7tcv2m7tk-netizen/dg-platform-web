@@ -1,4 +1,4 @@
-import {spawnSync} from 'node:child_process';
+import {spawnSync} from 'node:child_process';import path from 'node:path';
 import assert from 'node:assert/strict';import {before,after,test} from 'node:test';import {randomUUID} from 'node:crypto';
 import {prisma,PrismaClient} from '@dg/database';import {createOrganisationForUser} from '../packages/platform-core/src/org/memberships.ts';
 const control=new PrismaClient();const prefix='business_fixture_'+randomUUID();let serial=0;const actor=()=>prefix+'_'+(++serial);
@@ -34,14 +34,10 @@ test('parent lock timeout fails closed without creating or reserving tenant',asy
 test('hidden legacy demo member can still explicitly create first real business',async()=>{const u=actor();await prisma.organisation.create({data:{name:'DigitalGate Demo Business',slug:'digitalgate-demo-'+actor(),memberships:{create:{clerkUserId:u,role:'member',status:'active'}}}});await create(u,undefined,true);assert.equal(await count(u),1)});
 test('renaming an owned business to legacy demo cannot evade capacity',async()=>{const u=actor();await seed(u,{tier:'starter'});const m=await prisma.membership.findFirst({where:{clerkUserId:u}});await prisma.organisation.update({where:{id:m.organisationId},data:{name:'DigitalGate Demo Business'}});await assert.rejects(create(u),/plan_business_limit/);assert.equal(await count(u),1)});
 
-test('restricted non-owner factory uses explicit local fixture grants (not full Production manifest)',async()=>{
- const user=actor();await seed(user);const role='business_runtime_fixture';await control.$executeRawUnsafe(`CREATE ROLE ${role} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS NOINHERIT`);
+test('actual restricted non-owner runtime can execute the atomic factory with existing manifest grants',async()=>{
+ const user=actor();await seed(user);const role='business_runtime_fixture';await control.$executeRawUnsafe(`CREATE ROLE ${role} LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS`);
  const u=new URL(process.env.DATABASE_URL);const env={PATH:process.env.PATH,HOME:process.env.TMPDIR,TMPDIR:process.env.TMPDIR,NODE_ENV:'test'};
- // Only the factory's local fixture surface. No Production role is provisioned;
- // full deployed runtime/83-table certification remains a separate release gate.
- await control.$executeRawUnsafe(`GRANT USAGE ON SCHEMA public TO ${role}`);
- await control.$executeRawUnsafe(`GRANT SELECT, INSERT, UPDATE ON organisations, memberships, app_installations TO ${role}`);
- await control.$executeRawUnsafe(`GRANT SELECT ON platform_subscriptions TO ${role}`);
+ const grants=spawnSync(path.join(process.env.DG_CHECKOUT_PG_BIN,'psql'),['-X','-w','-h',u.hostname,'-p',u.port,'-U',u.username,'-d',u.pathname.slice(1),'-v','ON_ERROR_STOP=1','-v',`runtime_role=${role}`,'-f','scripts/sql/runtime-role-grants.sql'],{env,encoding:'utf8',timeout:15000});assert.equal(grants.status,0,grants.stderr);
  u.username=role;env.DATABASE_URL=u.toString();
  const code=`import {createOrganisationForUser} from './packages/platform-core/src/org/memberships.ts';import {prisma} from '@dg/database';try{const [r]=await prisma.$queryRaw\`SELECT current_user AS role\`;if(r.role!==${JSON.stringify(role)})throw Error('wrong role');const created=await createOrganisationForUser({clerkUserId:${JSON.stringify(user)},email:'runtime@fixture.invalid',name:'Synthetic',orgName:'Runtime owned creation'});console.log(JSON.stringify({created:created.created,role:r.role}))}finally{await prisma.$disconnect()}`;
  const child=spawnSync(process.execPath,['--conditions=react-server','--experimental-strip-types','--import','./scripts/register-ts-resolver.mjs','--input-type=module','-e',code],{env,encoding:'utf8',timeout:15000});assert.equal(child.status,0,child.stderr);assert.ok(child.stdout.includes('"created":true'));assert.equal(await count(user),2);

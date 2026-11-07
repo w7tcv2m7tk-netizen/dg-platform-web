@@ -5,6 +5,13 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const env = { NODE_ENV: "test", LC_ALL: "C", LANG: "C" };
 for (const key of ["PATH", "HOME", "TMPDIR", "SystemRoot"]) if (process.env[key]) env[key] = process.env[key];
 const files = [
+  "scripts/test-onboarding-save-queue.mjs",
+  "scripts/test-onboarding-state-before-checkout.mjs",
+  "scripts/test-checkout-admission-unit.mjs",
+  "scripts/test-checkout-hold-boundary.mjs",
+  "scripts/test-runtime-permissions-manifest.mjs",
+  "scripts/test-auth-origin-config.mjs",
+
   "scripts/test-demo-authority.mjs",
   "scripts/test-restoration-profile-boundary.mjs",
   "scripts/test-session-tenant-isolation.mjs",

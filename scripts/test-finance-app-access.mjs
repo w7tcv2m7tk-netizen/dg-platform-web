@@ -28,6 +28,7 @@ const publicSync = read("scripts/sync-digitalgate-apps-pages.mjs");
 const lendConnector = read("src/app/api/v1/connectors/lend/route.ts");
 const specialistEntitlement = read("src/lib/specialist-industry-entitlement.ts");
 
+// The authority tests freeze Date before evaluating these fixed trial boundaries.
 function verifiedFinanceAuthority(overrides = {}) {
   return {
     organisationId: "org-a",
@@ -51,7 +52,8 @@ function verifiedFinanceAuthority(overrides = {}) {
   };
 }
 
-test("canonical verified trial projection authorizes Finance only for its tenant", () => {
+test("canonical verified trial projection authorizes Finance only for its tenant", (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-25T00:00:00.000Z") });
   const valid = resolveFinanceAppAccessState(verifiedFinanceAuthority());
   assert.deepEqual(valid, { industryEntitled: true, betaEnrolled: true, selectedForOrganisation: true });
   assert.equal(financeAppAccessDenial(valid), null);
@@ -64,9 +66,11 @@ test("canonical verified trial projection authorizes Finance only for its tenant
   assert.equal(financeAppAccessDenial(resolveFinanceAppAccessState(verifiedFinanceAuthority({ featureFlags: {} }))), "beta_required");
 });
 
-test("expired, cancelled, mismatched and legacy-empty authority fails closed", () => {
+test("expired, cancelled, mismatched and legacy-empty authority fails closed", (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-25T00:00:00.000Z") });
   const cases = [
     { stripeStatus: "canceled", status: "CANCELLED" },
+    { status: "SUSPENDED", entitlement: "NONE" },
     { entitlement: "NONE" },
     { industryApps: [] },
     { trialEnd: new Date("2026-10-17T00:00:00.000Z") },

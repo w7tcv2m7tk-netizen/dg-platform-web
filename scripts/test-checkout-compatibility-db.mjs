@@ -1,3 +1,4 @@
+import { saveGen2OnboardingProgress } from "../packages/platform-core/src/onboarding/gen2-progress.ts";
 import assert from "node:assert/strict";
 import { before, beforeEach, after, test, mock } from "node:test";
 import { randomUUID } from "node:crypto";
@@ -7,6 +8,7 @@ import { admitPlatformCheckout, CheckoutTemporarilyUnavailable } from "../packag
 import { createPlatformCheckoutSession, createCustomCommercialCheckoutSession, createNegotiatedCommercialCheckoutSession } from "../packages/platform-core/src/billing/platform-checkout.ts";
 import { provisionFromPlatformCheckout, handlePlatformSubscriptionLifecycle } from "../packages/platform-core/src/billing/platform-stripe.ts";
 import { getOrganisationCommercialOffer } from "../packages/platform-core/src/billing/commercial-offer.ts";
+import { financeAppAccessDenial, resolveFinanceAppAccessState } from "../src/lib/finance-app-access-policy.ts";
 import { expectedPurchasedLineItems } from "../packages/platform-core/src/billing/purchased-line-items.ts";
 import { StripePaymentConnector } from "../packages/platform-core/src/commerce/connectors/stripe/index.ts";
 import { processPaymentWebhookEvent } from "../packages/platform-core/src/commerce/payment-engine.ts";
@@ -428,8 +430,8 @@ test("overlapping compatible instances observe closure; old admitted worker keep
   createWait = deferred(); const started = standard();
   await waitFor(() => requests.length > 0);
   const original = requests[0].expires_at;
-  await close(); await assert.rejects(custom(), error => error.code === "checkout_in_progress");
-  createWait.resolve(); await started;
+  await close(); await assert.rejects(custom(), CheckoutTemporarilyUnavailable);
+  createWait.resolve(); await assert.rejects(started, CheckoutTemporarilyUnavailable);
   assert.equal(requests.length, 1); assert.equal(requests[0].expires_at, original);
   const [row] = await control.$queryRaw`SELECT EXTRACT(EPOCH FROM last_admission_expires_at)::bigint AS expires FROM platform_checkout_creation_gate`;
   assert.equal(Number(row.expires), original);
@@ -458,6 +460,105 @@ test("existing completed checkout provisions through webhook authority while gat
 const completedSession = () => ({ id: "cs_paid_fixture", mode: "subscription", status: "complete", payment_status: "paid", livemode: false,
   customer: providerSubscription.customer, subscription: providerSubscription.id,
   metadata: { dg_platform_checkout: "true", organisation_id: org.id, dg_platform_tier: "professional" } });
+
+test("paid Finance checkout enrols the beta flag and authorizes the purchased app", async () => {
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"] });
+  providerSubscription.trial_end = Math.floor(Date.now() / 1000) + 86400;
+  providerSubscription.current_period_end = providerSubscription.trial_end;
+  const session = { ...completedSession(), metadata: { ...completedSession().metadata, dg_industry_apps: "finance" } };
+  await provisionFromPlatformCheckout(session);
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.deepEqual(state, { industryEntitled: true, betaEnrolled: true, selectedForOrganisation: true });
+});
+
+test("checkout without Finance does not enrol the Finance beta flag", async () => {
+  await provisionFromPlatformCheckout(completedSession());
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.deepEqual(state, { industryEntitled: false, betaEnrolled: false, selectedForOrganisation: false });
+  assert.notEqual(financeAppAccessDenial(state), null);
+});
+
+test("active paid Finance checkout enrols beta and remains authorised", async () => {
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"] });
+  providerSubscription.status = "active";
+  providerSubscription.trial_start = null;
+  providerSubscription.trial_end = null;
+  providerSubscription.current_period_end = Math.floor(Date.now() / 1000) + 86400;
+  const session = { ...completedSession(), metadata: { ...completedSession().metadata, dg_industry_apps: "finance" } };
+  await provisionFromPlatformCheckout(session);
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.deepEqual(state, { industryEntitled: true, betaEnrolled: true, selectedForOrganisation: true });
+});
+
+test("cancelled Finance subscription keeps the flag but denies Finance access", async () => {
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"] });
+  providerSubscription.trial_end = Math.floor(Date.now() / 1000) + 86400;
+  providerSubscription.current_period_end = providerSubscription.trial_end;
+  const session = { ...completedSession(), metadata: { ...completedSession().metadata, dg_industry_apps: "finance" } };
+  await provisionFromPlatformCheckout(session);
+  providerSubscription.status = "canceled";
+  await handlePlatformSubscriptionLifecycle(providerSubscription, "deleted", "evt_finance_cancelled");
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.equal(state.betaEnrolled, true);
+  assert.equal(state.industryEntitled, false);
+  assert.equal(financeAppAccessDenial(state), "industry_app_purchase_required");
+});
+
+test("explicitly revoked Finance beta flag is not re-enabled by checkout provisioning", async () => {
+  await prisma.organisation.update({
+    where: { id: org.id },
+    data: { settings: { featureFlags: { "finance.beta": false } } },
+  });
+  providerSubscription.metadata.dg_industry_apps = "finance";
+  providerSubscription.items.data = providerItems({ industryApps: ["finance"] });
+  providerSubscription.trial_end = Math.floor(Date.now() / 1000) + 86400;
+  providerSubscription.current_period_end = providerSubscription.trial_end;
+  const session = { ...completedSession(), metadata: { ...completedSession().metadata, dg_industry_apps: "finance" } };
+  await provisionFromPlatformCheckout(session);
+  const owner = await prisma.organisation.findUniqueOrThrow({ where: { id: org.id } });
+  const subscription = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+  const state = resolveFinanceAppAccessState({
+    organisationId: org.id,
+    featureFlags: owner.settings.featureFlags,
+    organisationSettings: owner.settings,
+    canonicalSubscription: subscription,
+  });
+  assert.equal(owner.settings.featureFlags["finance.beta"], false);
+  assert.equal(state.industryEntitled, true);
+  assert.equal(state.betaEnrolled, false);
+  assert.equal(financeAppAccessDenial(state), "beta_required");
+});
 
 function customOfferMetadata() {
   return {
@@ -812,8 +913,11 @@ for (const [label, entry, route] of [["standard billing", standard, "billing"], 
     await waitFor(() => acceptedSessions.length > 0);
     const accepted = structuredClone(acceptedSessions[0]);
     await close(); remainingAtAcceptance = 0; createWait.resolve();
-    assert.equal((await started).sessionId, accepted.id);
-    assert.equal((await entry()).sessionId, accepted.id);
+    await assert.rejects(started, CheckoutTemporarilyUnavailable);
+    await assert.rejects(entry(), CheckoutTemporarilyUnavailable);
+    assert.equal(acceptedSessions[0].status, "open", "the provider session was not revoked");
+    await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked=false`;
+    assert.equal((await entry()).sessionId, accepted.id, "same session resumes only after gate reopens");
     assert.deepEqual(acceptedSessions, [accepted]); assert.equal(requests.length, 1);
     assert.equal(await horizon(), accepted.expires_at);
   });
@@ -1262,4 +1366,67 @@ for (const state of ["paused", "resumed"]) test(`signed Dahlia subscription ${st
     assert.equal(row.entitlement, state === "paused" ? "NONE" : "FULL"); assert.equal(row.stripeStatus, providerSubscription.status);
     assert.equal(await prisma.platformSubscriptionEvent.count({ where: { stripeEventId: `${event.providerEventId}:subscription` } }), 1);
   } finally { if (previousSecret === undefined) delete process.env.STRIPE_WEBHOOK_SECRET; else process.env.STRIPE_WEBHOOK_SECRET = previousSecret; }
+});
+
+
+test("real standard builder derives five canonical Growth seats in admission evidence", async () => {
+  await control.$executeRaw`UPDATE platform_checkout_creation_gate SET blocked=false`;
+  await createPlatformCheckoutSession({ organisationId: org.id, email: "synthetic@example.test", platformTier: "professional", industryApps: ["finance"], premiumApps: [] });
+  const { resolveCheckoutAdmissionTerms } = await import("../packages/platform-core/src/billing/checkout-admission.ts");
+  const terms = await resolveCheckoutAdmissionTerms(new Stripe("sk_test_no_network_allowed"), requests[0]);
+  assert.equal(terms.seatCount, 5);
+  assert.equal(terms.subscription_data.trial_period_days, 14);
+  assert.equal(terms.metadata.dg_platform_tier, "professional");
+});
+
+test("operator preparation uses actual standard builder and never creates session or attempt", async () => {
+  const { prepareStandardCheckoutAdmission } = await import("../packages/platform-core/src/billing/checkout-admission.ts");
+  const existingAdmissions = await prisma.platformCheckoutAdmission.count();
+  const plan = await prepareStandardCheckoutAdmission({ organisationId: org.id, clerkUserId: "user_synthetic", email: "synthetic@example.test", platformTier: "professional", industryApps: ["finance"] });
+  assert.equal(plan.terms.seatCount, 5); assert.equal(plan.terms.subscription_data.trial_period_days, 14);
+  assert.equal(plan.terms.line_items.reduce((s,l) => s + l.quantity * l.price_data.unit_amount, 0), 39800);
+  assert.equal(requests.length,0); assert.equal(await prisma.platformCheckoutAttempt.count(),0);
+  assert.equal(await prisma.platformCheckoutAdmission.count(),existingAdmissions);
+});
+
+for(const patch of [
+  {completedAt:'2000-01-01T00:00:00Z'},
+  {vipSetup:{completedAt:'2000-01-01T00:00:00Z'}},
+  {markStepComplete:'implementation'},
+  {markStepComplete:'checklist'},
+  {completedSteps:['implementation']},
+  // Duplicate non-billing steps must not manufacture derived root completion.
+  {completedSteps:Array(15).fill('welcome')},
+  {journeyPosition:{stage:'implementation'}},
+  {currentStep:'implementation'},
+  {checklist:{implementation:true}},
+  {subscriptionActivatedAt:'forged'},
+]) test('persistence helper rejects unpaid completion without any settings write '+JSON.stringify(patch),async()=>{
+  const before=await prisma.organisation.findUniqueOrThrow({where:{id:org.id}});
+  await assert.rejects(saveGen2OnboardingProgress(org.id,patch),/Confirm your subscription/);
+  assert.deepEqual((await prisma.organisation.findUniqueOrThrow({where:{id:org.id}})).settings,before.settings);
+});
+test('unpaid progress saves persist and reload without completion or paid access',async()=>{
+  const progress=await saveGen2OnboardingProgress(org.id,{premiumApps:['reviews'],platformTier:'professional',markStepComplete:'order_summary'});
+  assert.equal(progress.completedAt,null);assert.equal(progress.vipSetup.completedAt,undefined);
+  const row=await prisma.organisation.findUniqueOrThrow({where:{id:org.id}});
+  assert.deepEqual(row.settings.gen2Onboarding.premiumApps,['reviews']);
+  assert.equal(await prisma.platformSubscription.count({where:{organisationId:org.id}}),0);
+});
+for(const exempt of [false,true]) test('canonical '+(exempt?'exemption':'paid subscription')+' permits completion with server timestamps',async()=>{
+  await prisma.organisation.update({where:{id:org.id},data:{billingCustomerId:exempt?null:'cus_synthetic_completion'}});
+  await prisma.platformSubscription.create({data:{organisationId:org.id,status:'ACTIVE',entitlement:'FULL',planTier:'professional',platformExempt:exempt,stripeStatus:exempt?null:'active',stripeCustomerId:exempt?null:'cus_synthetic_completion',stripeSubscriptionId:exempt?null:'sub_synthetic_completion'}});
+  const before=Date.now();
+  const progress=await saveGen2OnboardingProgress(org.id,{completedAt:'2000-01-01T00:00:00Z',vipSetup:{completedAt:'2000-01-01T00:00:00Z'},markStepComplete:'implementation'});
+  assert.ok(Date.parse(progress.completedAt)>=before);assert.ok(Date.parse(progress.vipSetup.completedAt)>=before);
+  const repeated=await saveGen2OnboardingProgress(org.id,{vipSetup:{completedAt:'1999-01-01T00:00:00Z'}});
+  assert.equal(repeated.vipSetup.completedAt,progress.vipSetup.completedAt);
+});
+test('another organisation exemption or profile flags cannot authorise completion',async()=>{
+  const other=await prisma.organisation.create({data:{name:'Synthetic exempt',slug:'synthetic-exempt-'+randomUUID()}});
+  try {
+    await prisma.platformSubscription.create({data:{organisationId:other.id,status:'ACTIVE',entitlement:'FULL',platformExempt:true,planTier:'professional'}});
+    await prisma.organisation.update({where:{id:org.id},data:{settings:{profile:{platformExempt:true},gen2Onboarding:{platformExempt:true}}}});
+    await assert.rejects(saveGen2OnboardingProgress(org.id,{markStepComplete:'implementation'}),/Confirm your subscription/);
+  } finally {await prisma.platformSubscription.deleteMany({where:{organisationId:other.id}});await prisma.organisation.delete({where:{id:other.id}});}
 });

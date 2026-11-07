@@ -298,8 +298,8 @@ const drainExpiry = async () => {
 test("closed gate denies initial create and rolls back the send marker", async () => {
   await closeGate();
   await assert.rejects(checkout(), error => error.outcome === "gate_denied");
-  assert.equal(calls, 0); assert.equal((await current()).firstRequestedAt, null);
-  assert.equal((await current()).state, "PREPARED"); assert.equal(await drainExpiry(), null);
+  assert.equal(calls, 0); assert.equal(await current(), null, "closed gate reserves no unscoped attempt");
+  assert.equal(await drainExpiry(), null);
   await openGate(); await checkout(); assert.equal(calls, 1);
 });
 
@@ -309,8 +309,10 @@ test("closure during provider I/O retains a horizon covering the immutable one-h
   const expiry = requests[0].expires_at;
   assert.ok(expiry * 1000 - clock > 59 * 60_000);
   assert.equal(await drainExpiry(), expiry);
-  await closeGate(); createGate.resolve(); const result = await started;
-  assert.equal((await checkout()).sessionId, result.sessionId, "known session retrieval remains permitted");
+  await closeGate(); createGate.resolve(); await assert.rejects(started, error => error.outcome === "gate_denied");
+  await assert.rejects(checkout(), error => error.outcome === "gate_denied", "closed gate cannot resume an unscoped session");
+  assert.equal([...remote.values()][0].status, "open", "no claim that issued links were revoked");
+  await openGate(); assert.equal((await checkout()).sessionId, [...remote.values()][0].id, "open-gate resumption keeps the same session");
   assert.equal(calls, 1); assert.equal(await drainExpiry(), expiry);
 });
 
