@@ -1,4 +1,5 @@
 import { shouldShowIndustryApp } from "@dg/platform-core";
+import { COMING_SOON_INDUSTRY_RUNTIME_APP_IDS } from "@dg/platform-core/industry/platform";
 import { notFound, redirect } from "next/navigation";
 
 import { AppSetupGuideView } from "@/components/platform/AppSetupGuideView";
@@ -16,7 +17,7 @@ export default async function AppSetupPage({ params }: PageProps) {
   const { appId } = await params;
   const guide = getNativeAppSetupGuide(appId);
 
-  if (!guide) notFound();
+  if (!guide || COMING_SOON_INDUSTRY_RUNTIME_APP_IDS.includes(appId)) notFound();
 
   const [enabledIds, industrySelectionIds] = await Promise.all([
     getOrgEnabledAppIdsCached(),

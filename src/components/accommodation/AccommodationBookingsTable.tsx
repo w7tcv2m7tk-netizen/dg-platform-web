@@ -173,7 +173,7 @@ export function AccommodationBookingsTable({
           <h2 className="text-lg font-semibold text-white">Add your first booking</h2>
           <p className="mt-2 text-sm text-slate-500">
             Sync StayBookings from WordPress, or create an ops booking on Availability. Public
-            book-now stays on the website for this beta.
+            online booking remains on the website.
           </p>
           <div className="mt-4 flex flex-wrap gap-3 text-sm">
             <a

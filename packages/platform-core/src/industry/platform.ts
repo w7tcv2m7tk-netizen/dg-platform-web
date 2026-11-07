@@ -167,6 +167,9 @@ export const INDUSTRY_LAYER_STACK = [
 ] as const;
 
 /** Canonical twelve Industry Platforms. */
+/** Scaffolds whose product rollout has not opened. Saved selections are independent. */
+export const COMING_SOON_INDUSTRY_RUNTIME_APP_IDS: readonly string[] = ["creator"];
+
 export const INDUSTRY_PLATFORMS: IndustryPlatform[] = [
   {
     id: "property",

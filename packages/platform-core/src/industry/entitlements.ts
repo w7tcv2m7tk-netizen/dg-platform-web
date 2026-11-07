@@ -200,6 +200,8 @@ export function resolveIndustryEntitlements(input: {
   enabledAppIds?: string[];
   /** IDs projected from the canonical verified subscription, never profile JSON. */
   verifiedPurchasedApps?: string[];
+  /** Server-derived commercial exemption; does not activate or select templates. */
+  commercialExempt?: boolean;
   industrySettings?: OrgIndustrySettings | null;
 }): { industries: ResolvedIndustryEntitlement[]; activeTemplateIds: string[] } {
   const enabledAppIds = new Set(
@@ -251,7 +253,7 @@ export function resolveIndustryEntitlements(input: {
     const entitledFromKeys = industry.templates.some((t) => knownFromPurchase.has(t.id));
     // Activation and plan-preview settings describe configuration only. A
     // purchase must come from the server-controlled subscription projection.
-    const entitled = entitledFromKeys;
+    const entitled = input.commercialExempt === true || entitledFromKeys;
 
     for (const template of industry.templates) {
       if (!isTemplateActivatable(template.status)) continue;
