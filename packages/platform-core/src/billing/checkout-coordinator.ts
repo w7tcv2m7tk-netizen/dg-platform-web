@@ -103,7 +103,11 @@ export async function coordinatePlatformCheckout(input: {
   recovery: for (let pass = 0; pass < 3; pass++) {
     const token = randomUUID();
     const reserved = await db.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM organisations WHERE id = ${input.organisationId} FOR UPDATE`;
+      // Preserve the existing organisation row lock without granting the runtime
+      // any UPDATE privilege on customer organisation data. The narrowly scoped
+      // SECURITY DEFINER function returns no organisation attributes and is
+      // executable only by an independently audited checkout runtime role.
+      await tx.$executeRaw`SELECT public.lock_checkout_organisation_for_checkout(${input.organisationId})`;
       const org = await tx.organisation.findUniqueOrThrow({ where: { id: input.organisationId } });
       const sub = await tx.platformSubscription.findUnique({ where: { organisationId: input.organisationId } });
       // Local cancellation/restriction is not proof that a remote subscription ended.
