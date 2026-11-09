@@ -76,6 +76,10 @@ export function paidAppIdsFromKeys(values: unknown): string[] {
 }
 
 export function paidAppKeyForAppId(appId: string): PaidAppKey | null {
-  for (const [key, appIds] of Object.entries(PAID_APP_TO_APP_IDS) as Array<[PaidAppKey, readonly string[]]>) if (appIds.includes(appId)) return key;
+  // Prefer the individual SKU. Bundle expansion must never turn free Reputation
+  // into a paid app or hide a legitimately purchased individual Growth App.
+  const app = GROWTH_APP_CATALOGUE.find((item) => item.appId === appId);
+  if (app) return app.key;
+  if (appId === "ai-communications") return "voice_ai";
   return null;
 }

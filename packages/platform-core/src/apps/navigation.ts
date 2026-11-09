@@ -9,6 +9,7 @@ import {
 } from "./org-apps";
 import { platformApps } from "./registry";
 import { getSidebarIcon } from "./sidebar-icons";
+import { COMING_SOON_INDUSTRY_RUNTIME_APP_IDS, INDUSTRY_PLATFORMS } from "../industry/platform";
 import {
   getIndustry,
   getIndustryPrimaryHref,
@@ -699,12 +700,14 @@ function buildIndustryNavApps(
   industrySelectionIds: string[] = [],
   industryEntitlementIds: string[] = [],
   hiddenAppIds: ReadonlySet<string> = new Set(),
+  commercialExempt = false,
 ): AppNavTreeItem[] {
   const enabledAppIds = enabledIndustryApps.map((a) => a.id);
   const byAppId = new Map(enabledIndustryApps.map((a) => [a.id, a]));
   const { industries } = resolveIndustryEntitlements({
     enabledAppIds,
     verifiedPurchasedApps: industryEntitlementIds,
+    commercialExempt,
   });
 
   const items: AppNavTreeItem[] = [];
@@ -715,6 +718,7 @@ function buildIndustryNavApps(
   // Catalogue order matches INDUSTRY_PLATFORMS; child order follows each parent.
   for (const industry of listIndustries()) {
     const entitlement = industries.find((e) => e.industryId === industry.id);
+    const specialisations = INDUSTRY_PLATFORMS.find((platform) => platform.id === industry.id)?.specialisations;
     const explicitActiveTemplateIds = industry.templates
       .filter((template) => exactSelectionIds.has(template.id) || exactSelectionIds.has(template.slug))
       .map((template) => template.id);
@@ -728,6 +732,8 @@ function buildIndustryNavApps(
       const template = getTemplate(templateId);
       if (!template || template.industryId !== industry.id) continue;
       if (template.appId && hiddenAppIds.has(template.appId)) continue;
+      const scaffoldAppId = specialisations?.find((spec) => spec.id === template.id)?.appId;
+      if (scaffoldAppId && COMING_SOON_INDUSTRY_RUNTIME_APP_IDS.includes(scaffoldAppId)) continue;
 
       const app = template.appId ? byAppId.get(template.appId) : undefined;
       if (template.appId) consumedAppIds.add(template.appId);
@@ -926,6 +932,7 @@ export function getCategorizedPlatformNavigation(
     industryEntitlementIds?: string[];
     /** App ids hidden from navigation when their separate access gate is not satisfied. */
     hiddenAppIds?: string[];
+    commercialExempt?: boolean;
   },
 ): CategorizedPlatformNavigation {
   const foundingCustomerMode =
@@ -934,7 +941,7 @@ export function getCategorizedPlatformNavigation(
   const customerApps = platformApps
     .list()
     .filter((a) => (a.manifest.visibility ?? "customer") === "customer");
-  const hiddenAppIds = new Set(options?.hiddenAppIds ?? []);
+  const hiddenAppIds = new Set([...COMING_SOON_INDUSTRY_RUNTIME_APP_IDS, ...(options?.hiddenAppIds ?? [])]);
 
   const enabledApps = customerApps
     .filter((a) => isAppEnabled(a.manifest.id, enabledIds))
@@ -991,6 +998,7 @@ export function getCategorizedPlatformNavigation(
     options?.industrySelectionIds ?? [],
     options?.industryEntitlementIds ?? [],
     hiddenAppIds,
+    options?.commercialExempt === true,
   );
 
   const tiers: AppNavTierGroup[] = APP_TIER_ORDER.map((tier) => ({

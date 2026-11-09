@@ -31,8 +31,10 @@ Platform Docs describe supported technical architecture and verified behaviour.
 Neither is a second approved development backlog.
 
 Current delivery order: P0 commercial launch; P1 prospecting; P1 Aida and Business
-Brain; P1 Daily Business Briefings; P1 AI Voice. PR #1006 is the sole checkout release
-candidate; #1008 compatibility was merged into main. Production releases, configuration,
+Brain; P1 Daily Business Briefings; P1 AI Voice. The owner-approved isolated restoration candidate is based on serving main
+8d639743 and remains separate from the consolidated PR #1038. Historical #1006-only
+release instructions are superseded for this bounded restoration; no checkout activation
+is authorised. Production releases, configuration,
 migrations, Stripe changes, Payment Link deactivation and checkout activation
 require explicit operator approval. Preserve the current Core products: Starter
 AUD $99/month, Growth $249/month and Scale $499/month, all with a 14-day trial.
@@ -44,3 +46,5 @@ fixtures for database tests. Run the complete `npm run build` (including prebuil
 before publishing a release branch; `next build` alone is not equivalent evidence.
 The existing Development Register remains authoritative for local workspace
 ownership, preservation and retirement; the Roadmap governs product requirements.
+
+Before application-access changes read docs/foundations/PLATFORM-APPLICATION-ACCESS-POLICY.md. Preserve the approved Growth order, tenant-bound canonical exemptions and independently verified operator authority.

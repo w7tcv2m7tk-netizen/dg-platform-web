@@ -6,6 +6,7 @@ import { platformApps } from "@dg/platform-core/apps/registry";
 import { useEnabledApps } from "@/components/platform/EnabledAppsProvider";
 import { GROWTH_APP_CATALOG, INDUSTRY_PLATFORM_CATALOG } from "@/lib/pricing-catalog";
 import { listTemplates } from "@dg/platform-core/industry";
+import { COMING_SOON_INDUSTRY_RUNTIME_APP_IDS } from "@dg/platform-core/industry/platform";
 
 type PersonalisedAppsOverviewProps = {
   industrySelectionIds: string[];
@@ -26,6 +27,9 @@ export function PersonalisedAppsOverview({ industrySelectionIds, organisationNam
   const hasExplicitIndustrySelection = selectedIds.size > 0;
 
   const industryPlatforms = INDUSTRY_PLATFORM_CATALOG.flatMap((platform) => {
+    const comingSoon = platform.roadmap === "coming" && platform.specialisations.some(
+      (spec) => spec.appId && COMING_SOON_INDUSTRY_RUNTIME_APP_IDS.includes(spec.appId),
+    );
     // A shared Industry App id (for example `services`) is an umbrella entitlement,
     // not permission to expose every trade that happens to use the same engine.
     // Only exact sub-industry/template ids are rendered as specialisations.
@@ -35,7 +39,7 @@ export function PersonalisedAppsOverview({ industrySelectionIds, organisationNam
     );
 
     if (explicitSpecialisations.length > 0) {
-      return [{ platform, specialisations: explicitSpecialisations, needsTemplate: false }];
+      return [{ platform, specialisations: explicitSpecialisations, needsTemplate: false, comingSoon }];
     }
 
     const enabledForPlatform = platform.specialisations.some(
@@ -43,7 +47,7 @@ export function PersonalisedAppsOverview({ industrySelectionIds, organisationNam
     );
 
     if (umbrellaSelected || (!hasExplicitIndustrySelection && enabledForPlatform)) {
-      return [{ platform, specialisations: [], needsTemplate: true }];
+      return [{ platform, specialisations: [], needsTemplate: true, comingSoon }];
     }
 
     return [];
@@ -75,7 +79,7 @@ export function PersonalisedAppsOverview({ industrySelectionIds, organisationNam
 
         {industryPlatforms.length ? (
           <div className="space-y-5">
-            {industryPlatforms.map(({ platform, specialisations, needsTemplate }) => (
+            {industryPlatforms.map(({ platform, specialisations, needsTemplate, comingSoon }) => (
               <div key={platform.platformId} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -85,7 +89,7 @@ export function PersonalisedAppsOverview({ industrySelectionIds, organisationNam
                     </div>
                     <p className="mt-1 max-w-2xl text-sm text-slate-400">{platform.description}</p>
                   </div>
-                  <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">Active</span>
+                  <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-300">{comingSoon ? "Coming Soon" : "Active"}</span>
                 </div>
 
                 {specialisations.length ? (
@@ -94,7 +98,7 @@ export function PersonalisedAppsOverview({ industrySelectionIds, organisationNam
                       // Route by exact sub-industry identity first. A shared runtime appId
                       // (services, finance, creator, automotive, etc.) must never collapse
                       // distinct child Apps onto the same generic entry point.
-                      const href = industryTemplateHrefById.get(spec.id) ?? appHref(spec.appId);
+                      const href = comingSoon ? undefined : (industryTemplateHrefById.get(spec.id) ?? appHref(spec.appId));
                       return (
                         <div key={spec.id} className="flex flex-col rounded-xl border border-slate-800 bg-slate-950/60 p-4">
                           <h4 className="font-semibold text-white">{spec.label}</h4>
@@ -106,7 +110,7 @@ export function PersonalisedAppsOverview({ industrySelectionIds, organisationNam
                   </div>
                 ) : needsTemplate ? (
                   <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/50 p-4">
-                    <p className="text-sm text-slate-300">This Industry App is active. Choose the sub-industry App you operate so DigitalGate can tailor the workspace instead of showing every available sibling.</p>
+                    <p className="text-sm text-slate-300">{comingSoon ? "This Industry App is Coming Soon. Choose the sub-industry App you operate to save your selection." : "This Industry App is active. Choose the sub-industry App you operate so DigitalGate can tailor the workspace instead of showing every available sibling."}</p>
                     <Link href="/dashboard/apps/catalogue#industry-apps" className="mt-2 inline-flex text-xs font-semibold text-blue-400 hover:text-blue-300">Choose sub-industry →</Link>
                   </div>
                 ) : null}

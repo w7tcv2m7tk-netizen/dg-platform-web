@@ -1,3 +1,5 @@
+import type { PlatformAuthorityInput } from "@dg/platform-core/access/platform-authority";
+import { hasApplicationCommercialExemption } from "@dg/platform-core/access/application-authority";
 import { industryIdForAppOrTemplate } from "@dg/platform-core/industry/platform";
 import { authorisedIndustryPurchaseIds, type IndustryPurchaseAuthority } from "@dg/platform-core/industry/purchase-authority";
 import { organisationHasSelectedIndustryApp } from "@/lib/industry-app-selection";
@@ -10,6 +12,7 @@ export type FinanceAppAccessState = {
 
 export type FinanceEntitlementAuthority = {
   organisationId: string;
+  platformExempt?: boolean;
   stripeSubscriptionId: string | null;
   stripeCustomerId: string | null;
   stripeStatus: string | null;
@@ -38,13 +41,14 @@ export function resolveFinanceAppAccessState(input: {
   organisationId: string;
   featureFlags?: Record<string, boolean>;
   canonicalSubscription: FinanceEntitlementAuthority | null;
+  actor?: PlatformAuthorityInput;
   organisationSettings?: Parameters<typeof organisationHasSelectedIndustryApp>[0] | null;
 }): FinanceAppAccessState {
   const canonical = input.canonicalSubscription;
   const industrySelections = authorisedIndustryPurchaseIds(canonical as IndustryPurchaseAuthority | null, input.organisationId);
 
   return {
-    industryEntitled: Boolean(canonical) && industrySelections.some((key) => industryIdForAppOrTemplate(key) === "finance"),
+    industryEntitled: hasApplicationCommercialExemption({ authority: canonical, organisationId: input.organisationId, actor: input.actor }) || (Boolean(canonical) && industrySelections.some((key) => industryIdForAppOrTemplate(key) === "finance")),
     betaEnrolled: input.featureFlags?.["finance.beta"] === true,
     selectedForOrganisation: organisationHasSelectedIndustryApp(input.organisationSettings, "finance"),
   };

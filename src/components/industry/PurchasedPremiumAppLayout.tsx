@@ -1,3 +1,4 @@
+import { hasPlatformAuthority } from "@dg/platform-core/access/platform-authority";
 import Link from "next/link";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
 import { hasAuthorisedPremiumApp } from "@dg/platform-core/industry/purchase-authority";
@@ -12,7 +13,7 @@ export async function PurchasedPremiumAppLayout({
   children: React.ReactNode;
 }) {
   const { session } = await getPlatformPageContext();
-  if (session && (session.role === "dg:staff" || hasAuthorisedPremiumApp(session.premiumPurchaseKeys, appId))) {
+  if (session && (hasPlatformAuthority({ organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId }) || session.subscriptionExempt === true || hasAuthorisedPremiumApp(session.premiumPurchaseKeys, appId))) {
     return children;
   }
   return <main className="dg-page-main"><div className="dg-card space-y-3">

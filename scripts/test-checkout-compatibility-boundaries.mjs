@@ -7,7 +7,7 @@ const creators = read("packages/platform-core/src/billing/platform-checkout.ts")
 test("both platform session creators use the fenced coordinator and durable admission", () => {
   assert.equal((creators.match(/coordinatePlatformCheckout\(/g) ?? []).length, 2);
   const coordinator = read("packages/platform-core/src/billing/checkout-coordinator.ts");
-  assert.match(coordinator, /await admitPlatformCheckout\(\{ expiresAt: storedParams.expires_at, database: tx \}\)/);
+  assert.match(coordinator, /await admitPlatformCheckout\(\{ expiresAt: storedParams.expires_at, database: tx, admission: \{ \.\.\.admission, attemptId: attempt.id \} \}\)/);
   assert.match(coordinator, /await createAdmittedPlatformSession\(stripe, storedParams/);
   assert.match(creators, /^import "server-only"/);
   assert.match(coordinator, /^import "server-only"/);
