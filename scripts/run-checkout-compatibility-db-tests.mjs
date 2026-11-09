@@ -82,6 +82,8 @@ try {
   run(path.join(pgBin, "psql"), [...psql, "-f", subscriptionWebhookHoldMigration]);
   const { rehearseAdmissionMigration } = await import("./rehearse-checkout-admission-migration.mjs");
   await rehearseAdmissionMigration({ pgBin, psql, env, root, marker });
+  // The coordinator now uses an owner-scoped locking function, not organisation UPDATE rights.
+  run(path.join(pgBin, "psql"), [...psql, "-f", "packages/database/prisma/migrations/20261110_checkout_organisation_lock_privilege_boundary/migration.sql"]);
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-url", databaseUrl, "--to-schema-datamodel", "packages/database/prisma", "--exit-code"], { env });
   for (const file of suites[suite]) {
     run(process.execPath, ["--conditions=react-server", "--experimental-strip-types", "--import", "./scripts/register-ts-resolver.mjs", "--test", "--test-timeout=30000", `scripts/${file}`], { env });
@@ -90,6 +92,6 @@ try {
 } finally {
   if (existsSync(path.join(data, "postmaster.pid"))) run(path.join(pgBin, "pg_ctl"), ["-D", data, "-m", "immediate", "-w", "stop"]);
   rmSync(owned, { recursive: true, force: true });
-  writeFileSync(path.join(tmpdir(), `dg-${suite}-db-evidence.json`), JSON.stringify({ passed, suite, baselineRef, migrations: [migration, "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql", appEntitlementsMigration, subscriptionWebhookHoldMigration, "packages/database/prisma/migrations/20261027_single_use_checkout_admission/migration.sql"], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
+  writeFileSync(path.join(tmpdir(), `dg-${suite}-db-evidence.json`), JSON.stringify({ passed, suite, baselineRef, migrations: [migration, "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql", appEntitlementsMigration, subscriptionWebhookHoldMigration, "packages/database/prisma/migrations/20261027_single_use_checkout_admission/migration.sql", "packages/database/prisma/migrations/20261110_checkout_organisation_lock_privilege_boundary/migration.sql"], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
   console.log("Disposable checkout PostgreSQL cluster stopped and destroyed");
 }
