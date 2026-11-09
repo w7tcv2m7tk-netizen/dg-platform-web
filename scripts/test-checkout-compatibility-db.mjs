@@ -1415,7 +1415,7 @@ test('unpaid progress saves persist and reload without completion or paid access
 });
 for(const exempt of [false,true]) test('canonical '+(exempt?'exemption':'paid subscription')+' permits completion with server timestamps',async()=>{
   await prisma.organisation.update({where:{id:org.id},data:{billingCustomerId:exempt?null:'cus_synthetic_completion'}});
-  await prisma.platformSubscription.create({data:{organisationId:org.id,status:'ACTIVE',entitlement:'FULL',planTier:'professional',platformExempt:exempt,stripeStatus:exempt?null:'active',stripeCustomerId:exempt?null:'cus_synthetic_completion',stripeSubscriptionId:exempt?null:'sub_synthetic_completion'}});
+  await prisma.platformSubscription.create({data:{organisationId:org.id,status:'ACTIVE',entitlement:'FULL',planTier:'professional',platformExempt:exempt,stripeStatus:exempt?null:'active',stripeCustomerId:exempt?null:'cus_synthetic_completion',stripeSubscriptionId:exempt?null:'sub_synthetic_completion',currentPeriodEnd:exempt?null:new Date(Date.now()+7*24*60*60*1000)}});
   const before=Date.now();
   const progress=await saveGen2OnboardingProgress(org.id,{completedAt:'2000-01-01T00:00:00Z',vipSetup:{completedAt:'2000-01-01T00:00:00Z'},markStepComplete:'implementation'});
   assert.ok(Date.parse(progress.completedAt)>=before);assert.ok(Date.parse(progress.vipSetup.completedAt)>=before);
