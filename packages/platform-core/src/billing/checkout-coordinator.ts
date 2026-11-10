@@ -107,7 +107,7 @@ export async function coordinatePlatformCheckout(input: {
       // or privileged SECURITY DEFINER functions. This transaction-scoped lock
       // releases automatically on commit/rollback and is shared by all checkout
       // coordinator instances using the same organisation ID.
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${input.organisationId}, 0))`;
+      await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${input.organisationId}, 0))`;
       const org = await tx.organisation.findUniqueOrThrow({ where: { id: input.organisationId } });
       const sub = await tx.platformSubscription.findUnique({ where: { organisationId: input.organisationId } });
       // Local cancellation/restriction is not proof that a remote subscription ended.
