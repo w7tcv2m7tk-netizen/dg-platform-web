@@ -167,6 +167,7 @@ const DENIED_SEQUENCES = {
 };
 
 const FUNCTION_ENTRIES = {
+  lock_checkout_organisation_for_checkout: { securityDefiner: true, runtimeExecute: "scoped-checkout-only", module: "Checkout", rationale: "Single purpose organisation row-lock wrapper; PUBLIC execution revoked by migration. Only separately approved checkout runtime may EXECUTE; no organisation UPDATE privileges." },
   audit_platform_checkout_admission: { securityDefiner: true, runtimeExecute: false, module: "Checkout", rationale: "Trigger-only audit writer; runtime must not execute it directly." },
   preserve_checkout_admission_audit: { securityDefiner: false, runtimeExecute: false, module: "Checkout", rationale: "Trigger-only append-only guard; runtime must not execute it directly." },
   ai_accounting_outbox_job_scope_check: { securityDefiner: false, runtimeExecute: "trigger-only", module: "AI", rationale: "Trigger function validates outbox job scope; it is not a runtime-callable procedure." },
@@ -231,7 +232,9 @@ export function parseMigrationFunctions(root) {
     } catch {
       continue;
     }
-    for (const match of source.matchAll(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:"([^"]+)"|([a-zA-Z_][a-zA-Z0-9_]*))/gi)) {
+    // A migration may schema-qualify a function; capture the function name,
+    // not the schema name (e.g. public). Preserve quoted/unquoted spellings.
+    for (const match of source.matchAll(/CREATE\\s+(?:OR\\s+REPLACE\\s+)?FUNCTION\\s+(?:(?:\"[^\"]+\"|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\.\\s*)?(?:\"([^\"]+)\"|([a-zA-Z_][a-zA-Z0-9_]*))\\s*\\(/gi)) {
       functions.add(match[1] ?? match[2]);
     }
   }
@@ -547,7 +550,13 @@ export function validateManifest(root, manifest) {
     if (!migrationFunctions.includes(name)) errors.push(`manifest function not present in migrations: ${name}`);
   }
   for (const [name, entry] of Object.entries(manifest.functions ?? {})) {
-    if (entry.securityDefiner && entry.runtimeExecute !== false) errors.push(`${name}: SECURITY DEFINER function must deny runtime execution`);
+    // Only the explicitly reviewed checkout lock may be invoked by its
+    // independently controlled checkout runtime role. All other
+    // SECURITY DEFINER functions must remain non-executable by runtime.
+    const scopedCheckoutLock = name === "lock_checkout_organisation_for_checkout"
+      && entry.securityDefiner === true && entry.runtimeExecute === "scoped-checkout-only";
+    if (entry.securityDefiner && entry.runtimeExecute !== false && !scopedCheckoutLock)
+      errors.push(`${name}: SECURITY DEFINER function must deny runtime execution`);
   }
 
   const { usage, ddl } = tableUsage(root);
