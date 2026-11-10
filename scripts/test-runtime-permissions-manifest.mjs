@@ -22,6 +22,14 @@ test("manifest passes static coverage and boundary validation", () => {
   assert.ok(manifest.requiredModules.includes("Checkout"));
 });
 
+test("transaction advisory lock is a reviewed PostgreSQL function, not an application relation", () => {
+  const coordinator = readFileSync(path.join(root, "packages/platform-core/src/billing/checkout-coordinator.ts"), "utf8");
+  assert.match(coordinator, /pg_advisory_xact_lock/);
+  assert.doesNotMatch(coordinator, /SELECT id FROM organisations[^\n]*FOR UPDATE/);
+  assert.equal(readManifest(root).tables.pg_advisory_xact_lock, undefined);
+  assert.deepEqual(validateManifest(root, readManifest(root)), []);
+});
+
 test("checkout admission authority remains column-limited and append-only", () => {
   const manifest = readManifest(root);
   assert.deepEqual(manifest.tables.platform_checkout_admissions.privileges, ["SELECT"]);
