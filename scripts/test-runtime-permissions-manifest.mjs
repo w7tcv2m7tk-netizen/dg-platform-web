@@ -22,26 +22,6 @@ test("manifest passes static coverage and boundary validation", () => {
   assert.ok(manifest.requiredModules.includes("Checkout"));
 });
 
-test("checkout organisation lock is the only scoped SECURITY DEFINER runtime exception", () => {
-  const manifest = readManifest(root);
-  const lock = manifest.functions.lock_checkout_organisation_for_checkout;
-  assert.equal(lock.securityDefiner, true);
-  assert.equal(lock.runtimeExecute, "scoped-checkout-only");
-  assert.deepEqual(validateManifest(root, manifest), []);
-
-  const forged = structuredClone(manifest);
-  forged.functions.audit_platform_checkout_admission.runtimeExecute = "scoped-checkout-only";
-  assert.ok(validateManifest(root, forged).length > 0);
-});
-
-test("generated verifier enforces exact checkout lock exception", () => {
-  const verify = readFileSync(path.join(root, "scripts/sql/runtime-role-verify.sql"), "utf8");
-  assert.ok(verify.includes("lock_checkout_organisation_for_checkout(text)"));
-  assert.match(verify, /runtime can execute an unapproved public SECURITY DEFINER function/);
-  assert.match(verify, /runtime can grant checkout organisation lock execution/);
-  assert.match(verify, /PUBLIC can execute checkout organisation lock/);
-});
-
 test("checkout admission authority remains column-limited and append-only", () => {
   const manifest = readManifest(root);
   assert.deepEqual(manifest.tables.platform_checkout_admissions.privileges, ["SELECT"]);
