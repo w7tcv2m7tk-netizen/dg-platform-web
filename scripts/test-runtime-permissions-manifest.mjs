@@ -36,7 +36,7 @@ test("checkout organisation lock is the only scoped SECURITY DEFINER runtime exc
 
 test("generated verifier enforces exact checkout lock exception", () => {
   const verify = readFileSync(path.join(root, "scripts/sql/runtime-role-verify.sql"), "utf8");
-  assert.match(verify, /lock_checkout_organisation_for_checkout\\(text\\)/);
+  assert.ok(verify.includes("lock_checkout_organisation_for_checkout(text)"));
   assert.match(verify, /runtime can execute an unapproved public SECURITY DEFINER function/);
   assert.match(verify, /runtime can grant checkout organisation lock execution/);
   assert.match(verify, /PUBLIC can execute checkout organisation lock/);
