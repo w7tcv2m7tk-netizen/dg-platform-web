@@ -70,6 +70,25 @@ beforeEach(async () => {
 });
 after(async () => { await Promise.all([prisma.$disconnect(), control.$disconnect()]); });
 
+test("checkout advisory lock is tenant-keyed, nonblocking for other tenants, and released on rollback", async () => {
+  await assert.rejects(
+    prisma.$transaction(async tx => {
+      const [locked] = await tx.$queryRaw`SELECT pg_try_advisory_xact_lock(hashtextextended(${org.id}, 0)) AS acquired`;
+      assert.equal(locked.acquired, true);
+      await control.$transaction(async independent => {
+        const [same] = await independent.$queryRaw`SELECT pg_try_advisory_xact_lock(hashtextextended(${org.id}, 0)) AS acquired`;
+        const [otherTenant] = await independent.$queryRaw`SELECT pg_try_advisory_xact_lock(hashtextextended(${other.id}, 0)) AS acquired`;
+        assert.equal(same.acquired, false, "same-organisation checkout must serialise across clients");
+        assert.equal(otherTenant.acquired, true, "a different organisation must not share this lock");
+      });
+      throw new Error("synthetic forced rollback");
+    }),
+    /synthetic forced rollback/,
+  );
+  const [released] = await control.$queryRaw`SELECT pg_try_advisory_xact_lock(hashtextextended(${org.id}, 0)) AS acquired`;
+  assert.equal(released.acquired, true, "a rolled-back checkout transaction must release its lock");
+});
+
 test("concurrent callers across independent DB clients create one current attempt/session", async () => {
   createGate = deferred();
   const started = checkout();
