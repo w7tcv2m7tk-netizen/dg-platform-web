@@ -11,8 +11,6 @@ WHERE r.rolname=:'runtime_role' AND NOT r.rolsuper AND NOT r.rolcreaterole
    WHERE c.oid IN ('public.platform_checkout_admissions'::regclass,'public.platform_checkout_admission_audit'::regclass,'public.platform_checkout_creation_gate'::regclass)
      AND pg_catalog.pg_has_role(r.oid,c.relowner,'MEMBER'));
 GRANT USAGE ON SCHEMA public TO :"runtime_role";
--- Scoped organisation row lock; no organisation UPDATE privilege is granted.
-GRANT EXECUTE ON FUNCTION public.lock_checkout_organisation_for_checkout(text) TO :"runtime_role";
 GRANT SELECT ON public.platform_checkout_admissions,public.platform_checkout_admission_audit TO :"runtime_role";
 GRANT UPDATE(attempt_id) ON public.platform_checkout_admissions TO :"runtime_role";
 GRANT SELECT ON public.platform_checkout_creation_gate TO :"runtime_role";
@@ -44,7 +42,6 @@ SELECT 1/(CASE WHEN NOT EXISTS(SELECT 1 FROM violations)
  AND has_table_privilege(:'runtime_role','public.platform_checkout_admissions','SELECT')
  AND has_column_privilege(:'runtime_role','public.platform_checkout_admissions','attempt_id','UPDATE')
  AND has_table_privilege(:'runtime_role','public.platform_checkout_admission_audit','SELECT')
- AND has_function_privilege(:'runtime_role','public.lock_checkout_organisation_for_checkout(text)','EXECUTE')
  AND has_column_privilege(:'runtime_role','public.platform_checkout_creation_gate','last_admission_expires_at','UPDATE')
  THEN 1 ELSE 0 END) AS runtime_privileges_verified;
 COMMIT;
