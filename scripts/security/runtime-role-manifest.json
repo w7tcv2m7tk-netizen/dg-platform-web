@@ -948,12 +948,6 @@
     "playing_with_neon_id_seq": "Neon sample/legacy object; explicitly excluded from runtime with zero privileges."
   },
   "functions": {
-    "lock_checkout_organisation_for_checkout": {
-      "securityDefiner": true,
-      "runtimeExecute": "scoped-checkout-only",
-      "module": "Checkout",
-      "rationale": "Single purpose organisation row-lock wrapper; PUBLIC execution revoked by migration. Only separately approved checkout runtime may EXECUTE; no organisation UPDATE privileges."
-    },
     "audit_platform_checkout_admission": {
       "securityDefiner": true,
       "runtimeExecute": false,
