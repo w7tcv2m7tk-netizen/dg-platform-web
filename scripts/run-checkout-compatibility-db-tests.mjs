@@ -32,10 +32,21 @@ const suites = {
 if (!Object.hasOwn(suites, suite) || process.argv.length > 4) throw new Error("Unknown disposable checkout test suite");
 const pgSharedir = spawnSync(path.join(pgBin, "pg_config"), ["--sharedir"], { env: safeEnv, encoding: "utf8" });
 if (pgSharedir.status !== 0 || !path.isAbsolute(pgSharedir.stdout.trim())) throw new Error("Cannot resolve PostgreSQL installation data");
+// Each child is independently bounded so a stalled psql/Prisma/test process
+// cannot obscure the failing stage until the workflow's overall timeout.
+const CHILD_TIMEOUT_MS = 8 * 60_000;
+let stage = 0;
 const run = (command, args, extra = {}) => {
-  const result = spawnSync(command, args, { cwd: root, stdio: "inherit", env: safeEnv, ...extra });
-  if (result.error) throw result.error;
-  if (result.status !== 0) throw new Error(`${path.basename(command)} failed (${result.status})`);
+  const label = `${++stage}:${path.basename(command)}`;
+  console.log(`[checkout-db] START ${label}`);
+  // Do not print args: they can contain connection strings or test fixtures.
+  const result = spawnSync(command, args, {
+    cwd: root, stdio: "inherit", env: safeEnv, timeout: CHILD_TIMEOUT_MS,
+    ...extra,
+  });
+  if (result.error) throw new Error(`[checkout-db] ${label} failed: ${result.error.code ?? result.error.name}`);
+  if (result.status !== 0) throw new Error(`[checkout-db] ${label} exited with status ${result.status}, signal ${result.signal ?? "none"}`);
+  console.log(`[checkout-db] PASS ${label}`);
 };
 const port = await new Promise((resolve, reject) => {
   const probe = createServer();
