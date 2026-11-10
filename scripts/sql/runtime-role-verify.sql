@@ -178,7 +178,10 @@ BEGIN
   IF has_function_privilege(v_oid,'public.audit_platform_checkout_admission()','EXECUTE WITH GRANT OPTION') THEN RAISE EXCEPTION 'runtime can grant admission audit execution'; END IF;
   IF has_function_privilege(v_oid,'public.preserve_checkout_admission_audit()','EXECUTE') THEN RAISE EXCEPTION 'runtime can execute admission audit guard function'; END IF;
   IF has_function_privilege(v_oid,'public.preserve_checkout_admission_audit()','EXECUTE WITH GRANT OPTION') THEN RAISE EXCEPTION 'runtime can grant admission audit guard execution'; END IF;
-  IF EXISTS (SELECT 1 FROM pg_catalog.pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosecdef AND has_function_privilege(v_oid,p.oid,'EXECUTE')) THEN RAISE EXCEPTION 'runtime can execute a public SECURITY DEFINER function'; END IF;
+  -- Only the reviewed checkout row-lock may be executable by runtime; no other SECURITY DEFINER function.
+  IF EXISTS (SELECT 1 FROM pg_catalog.pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.prosecdef AND p.oid <> 'public.lock_checkout_organisation_for_checkout(text)'::regprocedure AND has_function_privilege(v_oid,p.oid,'EXECUTE')) THEN RAISE EXCEPTION 'runtime can execute an unapproved public SECURITY DEFINER function'; END IF;
+  IF has_function_privilege(v_oid,'public.lock_checkout_organisation_for_checkout(text)','EXECUTE WITH GRANT OPTION') THEN RAISE EXCEPTION 'runtime can grant checkout organisation lock execution'; END IF;
+  IF has_function_privilege('public','public.lock_checkout_organisation_for_checkout(text)','EXECUTE') THEN RAISE EXCEPTION 'PUBLIC can execute checkout organisation lock'; END IF;
 END
 $runtime_role_verify$;
 SELECT 'runtime_role_verified' AS result;
