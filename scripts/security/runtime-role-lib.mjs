@@ -234,7 +234,7 @@ export function parseMigrationFunctions(root) {
     }
     // A migration may schema-qualify a function; capture the function name,
     // not the schema name (e.g. public). Preserve quoted/unquoted spellings.
-    for (const match of source.matchAll(/CREATE\\s+(?:OR\\s+REPLACE\\s+)?FUNCTION\\s+(?:(?:\"[^\"]+\"|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\.\\s*)?(?:\"([^\"]+)\"|([a-zA-Z_][a-zA-Z0-9_]*))\\s*\\(/gi)) {
+    for (const match of source.matchAll(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:(?:"[^"]+"|[a-zA-Z_][a-zA-Z0-9_]*)\s*\.\s*)?(?:"([^"]+)"|([a-zA-Z_][a-zA-Z0-9_]*))\s*\(/gi)) {
       functions.add(match[1] ?? match[2]);
     }
   }
