@@ -1,4 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
+import { randomUUID } from "node:crypto";
+import { prepareStandardPlatformCheckout } from "@dg/platform-core/billing/platform-checkout";
+import { checkoutPurchaseFingerprint } from "@dg/platform-core/billing/checkout-coordinator";
+import { admitPlatformCheckout } from "@dg/platform-core/billing/checkout-creation-gate";
 import { NextResponse } from "next/server";
 import { getGen2OnboardingProgress } from "@dg/platform-core/onboarding/gen2-progress";
 import { prepareStandardCheckoutAdmission, verifyCheckoutAdmission } from "@dg/platform-core/billing/checkout-admission";
@@ -77,7 +81,70 @@ export async function GET(req: Request) {
       admissionCheck = "database_error";
     }
 
+    // Transactional rollback rehearsal: evaluates the real checkout reservation
+    // sequence, creates no persistent attempt/admission and never calls Stripe.create.
+    // Deliberate rollback happens regardless of success. Do not reuse outside staging.
+    let reservationStage = "not_run";
+    class RehearsalRollback extends Error {}
+    try {
+      const { prisma } = await import("@dg/database");
+      const { parameters } = await prepareStandardPlatformCheckout({
+        organisationId: "cert-tenant-a", clerkUserId: userId, email: session.email,
+        businessName: "Synthetic A", platformTier: progress.platformTier,
+        industryApps: progress.industryApps, premiumApps: progress.premiumApps,
+        supportPlan: progress.supportPlan, billingCadence: progress.billingCadence,
+      });
+      const fingerprint = checkoutPurchaseFingerprint(parameters);
+      await prisma.$transaction(async tx => {
+        reservationStage = "advisory_lock";
+        await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${prepared.organisationId}, 0))`;
+        reservationStage = "organisation_lookup";
+        const org = await tx.organisation.findUniqueOrThrow({ where: { id: prepared.organisationId } });
+        reservationStage = "subscription_lookup";
+        await tx.platformSubscription.findUnique({ where: { organisationId: prepared.organisationId } });
+        reservationStage = "attempt_lookup";
+        const current = await tx.platformCheckoutAttempt.findUnique({ where: { currentOrganisationId: prepared.organisationId } });
+        if (current) { reservationStage = "existing_attempt"; throw new RehearsalRollback(); }
+        reservationStage = "admission_lock";
+        await verifyCheckoutAdmission(tx, { organisationId: prepared.organisationId,
+          clerkUserId: prepared.clerkUserId, providerScope: prepared.providerScope, terms: prepared.terms });
+        reservationStage = "attempt_create";
+        const now = new Date(), params = structuredClone(parameters);
+        delete params.metadata?.contact_email; delete params.metadata?.business_name;
+        params.expires_at = Math.floor((now.getTime() + 3600000) / 1000);
+        const attempt = await tx.platformCheckoutAttempt.create({ data: {
+          organisationId: org.id, currentOrganisationId: org.id,
+          purchaseFingerprint: fingerprint,
+          requestParameters: params as never,
+          idempotencyKey: `platform-checkout-rehearsal-${randomUUID()}`,
+          providerScope: prepared.providerScope,
+          expiresAt: new Date(params.expires_at * 1000),
+          replayUntil: new Date(now.getTime() + 23 * 3600000),
+          legacySessionIds: [],
+        } });
+        reservationStage = "admission_bind";
+        await verifyCheckoutAdmission(tx, {
+          organisationId: prepared.organisationId, clerkUserId: prepared.clerkUserId,
+          providerScope: prepared.providerScope, terms: prepared.terms,
+          attemptId: attempt.id,
+        }, true);
+        reservationStage = "gate_admit";
+        await admitPlatformCheckout({ expiresAt: params.expires_at, database: tx,
+          admission: { organisationId: prepared.organisationId,
+            clerkUserId: prepared.clerkUserId, providerScope: prepared.providerScope,
+            terms: prepared.terms, attemptId: attempt.id } });
+        reservationStage = "lease_update";
+        await tx.platformCheckoutAttempt.update({ where: { id: attempt.id },
+          data: { leaseToken: randomUUID(), leaseUntil: new Date(now.getTime() + 60000) } });
+        reservationStage = "all_passed_rolled_back";
+        throw new RehearsalRollback();
+      }, { maxWait: 1000, timeout: 5000 });
+    } catch {
+      // Expected rollback; reservationStage reports last attempted boundary.
+    }
+
     return NextResponse.json({
+      reservationStage,
       admissionCheck,
       ok: admissionCheck === "passed",
       organisationId: prepared.organisationId,
