@@ -131,7 +131,7 @@ export async function GET(req: Request) {
           attemptId: attempt.id,
         }, true);
         reservationStage = "gate_reverify";
-        await verifyCheckoutAdmission(tx, {
+        const permit = await verifyCheckoutAdmission(tx, {
           organisationId: prepared.organisationId, clerkUserId: prepared.clerkUserId,
           providerScope: prepared.providerScope, terms: prepared.terms,
           attemptId: attempt.id,
@@ -145,7 +145,7 @@ export async function GET(req: Request) {
               date_trunc('second', clock_timestamp()) + interval '35 minutes')
           )
           WHERE id = 1 AND subscription_webhooks_held = false
-            AND (blocked = false OR ${"rehearsal-authorized"}::text IS NOT NULL)
+            AND (blocked = false OR ${permit}::text IS NOT NULL)
           RETURNING EXTRACT(EPOCH FROM last_admission_expires_at)::bigint AS "expiresAt"
         `;
         if (gate.length !== 1) { reservationStage = "gate_no_row"; throw new Error("gate_no_row"); }
