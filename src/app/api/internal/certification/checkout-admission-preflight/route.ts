@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { getGen2OnboardingProgress } from "@dg/platform-core/onboarding/gen2-progress";
-import { prepareStandardCheckoutAdmission } from "@dg/platform-core/billing/checkout-admission";
+import { prepareStandardCheckoutAdmission, verifyCheckoutAdmission } from "@dg/platform-core/billing/checkout-admission";
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
 /**
@@ -58,8 +58,28 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: false, code: "commercial_preflight_failed" }, { status: 409, headers });
     }
 
+    // Read-only, transactional admission verification, same code path as the
+    // checkout coordinator. No admission binding, attempt, or Stripe session.
+    let admissionCheck: "passed" | "denied" | "database_error" = "database_error";
+    try {
+      const { prisma } = await import("@dg/database");
+      const confirmed = await prisma.$transaction(async tx =>
+        verifyCheckoutAdmission(tx, {
+          organisationId: prepared.organisationId,
+          clerkUserId: prepared.clerkUserId,
+          providerScope: prepared.providerScope,
+          terms: prepared.terms,
+        }),
+        { maxWait: 1000, timeout: 5000 },
+      );
+      admissionCheck = confirmed ? "passed" : "denied";
+    } catch {
+      admissionCheck = "database_error";
+    }
+
     return NextResponse.json({
-      ok: true,
+      admissionCheck,
+      ok: admissionCheck === "passed",
       organisationId: prepared.organisationId,
       clerkUserId: prepared.clerkUserId,
       providerScope: prepared.providerScope,
