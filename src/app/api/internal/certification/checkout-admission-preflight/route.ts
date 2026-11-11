@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { randomUUID } from "node:crypto";
 import { prepareStandardPlatformCheckout } from "@dg/platform-core/billing/platform-checkout";
 import { checkoutPurchaseFingerprint } from "@dg/platform-core/billing/checkout-coordinator";
-import { admitPlatformCheckout } from "@dg/platform-core/billing/checkout-creation-gate";
+
 import { NextResponse } from "next/server";
 import { getGen2OnboardingProgress } from "@dg/platform-core/onboarding/gen2-progress";
 import { prepareStandardCheckoutAdmission, verifyCheckoutAdmission } from "@dg/platform-core/billing/checkout-admission";
@@ -85,6 +85,8 @@ export async function GET(req: Request) {
     // sequence, creates no persistent attempt/admission and never calls Stripe.create.
     // Deliberate rollback happens regardless of success. Do not reuse outside staging.
     let reservationStage = "not_run";
+    let reservationErrorCode = "none";
+    const reservationStarted = Date.now();
     class RehearsalRollback extends Error {}
     try {
       const { prisma } = await import("@dg/database");
@@ -128,23 +130,43 @@ export async function GET(req: Request) {
           providerScope: prepared.providerScope, terms: prepared.terms,
           attemptId: attempt.id,
         }, true);
-        reservationStage = "gate_admit";
-        await admitPlatformCheckout({ expiresAt: params.expires_at, database: tx,
-          admission: { organisationId: prepared.organisationId,
-            clerkUserId: prepared.clerkUserId, providerScope: prepared.providerScope,
-            terms: prepared.terms, attemptId: attempt.id } });
+        reservationStage = "gate_reverify";
+        await verifyCheckoutAdmission(tx, {
+          organisationId: prepared.organisationId, clerkUserId: prepared.clerkUserId,
+          providerScope: prepared.providerScope, terms: prepared.terms,
+          attemptId: attempt.id,
+        }, true);
+        reservationStage = "gate_sql_update";
+        const gate = await tx.$queryRaw<Array<{ expiresAt: bigint }>>`
+          UPDATE platform_checkout_creation_gate
+          SET last_admission_expires_at = GREATEST(
+            last_admission_expires_at,
+            COALESCE(to_timestamp(${params.expires_at}::double precision),
+              date_trunc('second', clock_timestamp()) + interval '35 minutes')
+          )
+          WHERE id = 1 AND subscription_webhooks_held = false
+            AND (blocked = false OR ${"rehearsal-authorized"}::text IS NOT NULL)
+          RETURNING EXTRACT(EPOCH FROM last_admission_expires_at)::bigint AS "expiresAt"
+        `;
+        if (gate.length !== 1) { reservationStage = "gate_no_row"; throw new Error("gate_no_row"); }
         reservationStage = "lease_update";
         await tx.platformCheckoutAttempt.update({ where: { id: attempt.id },
           data: { leaseToken: randomUUID(), leaseUntil: new Date(now.getTime() + 60000) } });
         reservationStage = "all_passed_rolled_back";
         throw new RehearsalRollback();
       }, { maxWait: 1000, timeout: 5000 });
-    } catch {
-      // Expected rollback; reservationStage reports last attempted boundary.
+    } catch (error: unknown) {
+      if (!(error instanceof RehearsalRollback)) {
+        const candidate = error as { code?: unknown; meta?: { code?: unknown } };
+        const code = String(candidate?.code ?? candidate?.meta?.code ?? "");
+        reservationErrorCode = /^(P20[0-9]{2}|P10[0-9]{2}|42501|55P03|57014)$/.test(code) ? code : "other";
+      }
     }
 
     return NextResponse.json({
       reservationStage,
+      reservationErrorCode,
+      reservationDurationMs: Date.now() - reservationStarted,
       admissionCheck,
       ok: admissionCheck === "passed",
       organisationId: prepared.organisationId,
