@@ -149,7 +149,7 @@ export async function coordinatePlatformCheckout(input: {
         leaseToken: token, leaseUntil: new Date(timestamp.getTime() + LEASE_MS),
       } });
       return { attempt, customerIds, subscriptionId: sub?.stripeSubscriptionId, scopedAdmission };
-    }, { maxWait: 1000, timeout: 5000 });
+    }, { maxWait: 1000, timeout: 15000 });
     let attempt = reserved.attempt;
     const save = async (data: Prisma.PlatformCheckoutAttemptUpdateManyMutationInput) => {
       const result = await db.platformCheckoutAttempt.updateMany({
@@ -260,7 +260,7 @@ export async function coordinatePlatformCheckout(input: {
           });
           if (claimed.count !== 1) blocked("checkout_lease_lost", "Checkout recovery is already in progress. Please try again shortly.");
           await admitPlatformCheckout({ expiresAt: storedParams.expires_at, database: tx, admission: { ...admission, attemptId: attempt.id } });
-        }, { maxWait: 1000, timeout: 5000 });
+        }, { maxWait: 1000, timeout: 15000 });
         attempt = { ...attempt, firstRequestedAt };
         try {
           session = await createAdmittedPlatformSession(stripe, storedParams,
@@ -298,7 +298,7 @@ export async function coordinatePlatformCheckout(input: {
       // Re-check after provider I/O: revocation/expiry must not yield late success.
       // The existing durable attempt retains any issued session for containment.
       await db.$transaction(tx => verifyCheckoutAdmission(tx, { ...admission, attemptId: attempt.id, mustBeBound: true }),
-        { maxWait: 1000, timeout: 5000 });
+        { maxWait: 1000, timeout: 15000 });
       return { url: session.url, sessionId: session.id };
     } finally {
       // A process crash leaves a bounded lease; normal errors retain the attempt but release it.
