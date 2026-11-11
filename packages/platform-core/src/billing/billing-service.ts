@@ -236,8 +236,10 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
   const purchaseMetadataComplete = Boolean(
     subscription.metadata.dg_billing_cadence &&
     subscription.metadata.dg_platform_tier &&
-    (Object.hasOwn(subscription.metadata, "dg_industry_apps") || Object.hasOwn(subscription.metadata, "dg_industry_templates")) &&
-    Object.hasOwn(subscription.metadata, "dg_premium_apps"),
+    (Object.hasOwn(subscription.metadata, "dg_industry_apps") || Object.hasOwn(subscription.metadata, "dg_industry_templates")),
+    // Stripe omits empty-string metadata values in some subscription events.
+    // Missing premium selection means [] ONLY when the complete live Stripe
+    // line-item set exactly matches that selection; unmatched paid lines fail closed.
   );
   if (!purchaseMetadataComplete && !existing) {
     throw new Error("New subscription purchase metadata is incomplete or lacks a verifiable catalogue cadence or platform tier");
