@@ -74,7 +74,7 @@ export async function GET(req: Request) {
           providerScope: prepared.providerScope,
           terms: prepared.terms,
         }),
-        { maxWait: 1000, timeout: 5000 },
+        { maxWait: 1000, timeout: 15000 },
       );
       admissionCheck = confirmed ? "passed" : "denied";
     } catch {
@@ -154,7 +154,7 @@ export async function GET(req: Request) {
           data: { leaseToken: randomUUID(), leaseUntil: new Date(now.getTime() + 60000) } });
         reservationStage = "all_passed_rolled_back";
         throw new RehearsalRollback();
-      }, { maxWait: 1000, timeout: 5000 });
+      }, { maxWait: 1000, timeout: 15000 });
     } catch (error: unknown) {
       if (!(error instanceof RehearsalRollback)) {
         const candidate = error as { code?: unknown; meta?: { code?: unknown } };
