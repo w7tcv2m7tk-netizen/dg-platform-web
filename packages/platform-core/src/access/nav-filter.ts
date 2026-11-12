@@ -44,6 +44,9 @@ function filterSettingsRoutes(
   const list = routes ?? [];
   return list.filter((route) => {
     const path = route.path;
+    // Authenticated members can reach their account preferences. Administrative
+    // sub-pages retain their own permission checks below and on the server.
+    if (path === "/dashboard/settings") return true;
     if (path.includes("/billing")) {
       return hasPermission(ctx, { module: "billing", action: "view", scope: "organisation" });
     }
@@ -70,7 +73,7 @@ function filterSettingsRoutes(
       // Customer organisations use Connected Services instead.
       return isPlatformStaff(ctx);
     }
-    return canView(ctx, "settings");
+    return hasPermission(ctx, { module: "settings", action: "view", scope: "organisation" });
   });
 }
 

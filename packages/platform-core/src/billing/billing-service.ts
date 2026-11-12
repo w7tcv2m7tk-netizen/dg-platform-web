@@ -230,16 +230,12 @@ async function projectStripeSubscription(input: SubscriptionProjectionInput, dat
     (org.billingCustomerId && org.billingCustomerId !== authoritativeCustomer)) {
     throw new Error("Subscription projection ownership is unconfirmed");
   }
-  // Empty arrays are meaningful only when the provider explicitly supplied the
-  // selection fields. Missing fields on an existing subscription are not proof
-  // that previously verified app purchases were removed.
+  // Stripe can omit empty app-selection fields. Treat those as empty only after
+  // the complete authoritative line-item set matches the canonical selections.
+  // Tier and cadence must still be explicit, including for Core-only purchases.
   const purchaseMetadataComplete = Boolean(
     subscription.metadata.dg_billing_cadence &&
-    subscription.metadata.dg_platform_tier &&
-    (Object.hasOwn(subscription.metadata, "dg_industry_apps") || Object.hasOwn(subscription.metadata, "dg_industry_templates")),
-    // Stripe omits empty-string metadata values in some subscription events.
-    // Missing premium selection means [] ONLY when the complete live Stripe
-    // line-item set exactly matches that selection; unmatched paid lines fail closed.
+    subscription.metadata.dg_platform_tier,
   );
   if (!purchaseMetadataComplete && !existing) {
     throw new Error("New subscription purchase metadata is incomplete or lacks a verifiable catalogue cadence or platform tier");

@@ -989,3 +989,27 @@ Requirements `platform.auth`, `crm.companies`, `detach.portal_billing`, `platfor
 ### 7 November 2026 — single launch recovery candidate (#1039)
 
 Requirements `platform.auth`, `crm.companies`, `detach.portal_billing`, `platform.roadmap`. Owner explicitly requested one coordinated launch recovery. Continue #1039 from dc843d58; preserve all local work and avoid another PR. Bounded admission/runtime-role tooling, ordered unpaid onboarding saves, strict canonical completion, verified operator setup, purchased Finance beta projection and Clerk origin consistency integrated from reviewed #1038 stack. Diagnostic control database/routes excluded; latest #1039 tenant/role/Creator safeguards retained. Independent review found and corrected stale legacy completion fallback and expired-trial authority. Operational state remains BLOCKED for Production; local code IMPLEMENTED BUT UNVERIFIED in hosted acceptance. Authoritative remaining gate/action list: [release blockers](commerce/release-1025/RELEASE-BLOCKERS.md). Ancestry/file evidence: [PR reconciliation](commerce/release-1025/PR-RECONCILIATION-20261107.json). No Production mutation or activation. Test evidence and exact-head CI are recorded in the continued PR; do not substitute historical counts for new-head CI.
+
+### 13 November 2026 — PR1040 local certification follow-up
+
+Requirements `platform.auth`, `crm.companies`, `detach.portal_billing`, `platform.roadmap`.
+Owner requested certification of existing #1040 and its #1039 dependency.
+Reviewed baseline `2d6555c25937d71ed6ed2fdc1f81a6a343d30b89` over #1039
+`db400cda61597d57d4e90641dee556c6cfd735ac`. Local correction fixes founding-mode
+Settings omission, filters overview cards using existing permissions and preserves
+member role/route enforcement. Core-only subscription metadata may omit empty app
+keys only when the entire canonical Stripe item set matches. Regression evidence
+uses actual navigation, rendered Settings component and disposable lifecycle
+projection. `npm run test:checkout-release`639/639; security85/85; owned PostgreSQL
+compatibility runner268/268 including three Core-only tiers; TypeScript, lint
+(zero errors/three existing warnings), manifest verifier and full prebuild/build
+457 pages PASS. Independent review reran169 focused tests and268 database cases,
+with no P0/P1/P2 finding in the final targeted source diff. Initial stale generated
+Prisma client was regenerated from the unchanged schema before final TypeScript
+and build. A source-text sidebar expectation was updated for the approved
+founding-mode behaviour, with new executable navigation tests retaining coverage.
+Hosted A/B negative checks and staging read-only privileges pass on the published
+baseline, not the unpublished follow-up. Source is IMPLEMENTED locally; hosted
+follow-up and Production verification remain BLOCKED. Publish existing #1040 only
+under the controlled release gate, require fresh CI and protected hosted
+acceptance, then separately approve dependency merges/Production deployment.

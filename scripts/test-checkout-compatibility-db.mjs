@@ -377,10 +377,25 @@ test("new subscription cannot omit app selections while charging their catalogue
   providerSubscription.items.data = providerItems({ premiumApps: ["voice_ai"] });
   await assert.rejects(
     handlePlatformSubscriptionLifecycle(providerSubscription, "created", "evt_missing_app_selections"),
-    /purchase metadata is incomplete/,
+    /purchase metadata does not match the canonical Stripe line items/,
   );
   assert.equal(await prisma.platformSubscription.count({ where: { organisationId: org.id } }), 0);
 });
+
+for (const platformTier of ["starter", "professional", "business"]) {
+  test(`Core-only ${platformTier} subscription accepts omitted empty app metadata after exact item verification`, async () => {
+    providerSubscription.metadata.dg_platform_tier = platformTier;
+    delete providerSubscription.metadata.dg_industry_apps;
+    delete providerSubscription.metadata.dg_industry_templates;
+    delete providerSubscription.metadata.dg_premium_apps;
+    providerSubscription.items.data = providerItems({ platformTier });
+    await handlePlatformSubscriptionLifecycle(providerSubscription, "created", `evt_core_only_${platformTier}`);
+    const row = await prisma.platformSubscription.findUniqueOrThrow({ where: { organisationId: org.id } });
+    assert.equal(row.planTier, platformTier);
+    assert.deepEqual(row.industryApps, []);
+    assert.deepEqual(row.premiumApps, []);
+  });
+}
 
 test("checkout selection cannot create an Industry entitlement absent from the verified subscription", async () => {
   const session = completedSession();
