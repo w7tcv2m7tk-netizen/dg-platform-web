@@ -103,7 +103,11 @@ export async function coordinatePlatformCheckout(input: {
   recovery: for (let pass = 0; pass < 3; pass++) {
     const token = randomUUID();
     const reserved = await db.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM organisations WHERE id = ${input.organisationId} FOR UPDATE`;
+      // Serialize checkout reservations per organisation without UPDATE privileges
+      // or privileged SECURITY DEFINER functions. This transaction-scoped lock
+      // releases automatically on commit/rollback and is shared by all checkout
+      // coordinator instances using the same organisation ID.
+      await tx.$queryRaw`SELECT 1 AS locked FROM pg_advisory_xact_lock(hashtextextended(${input.organisationId}, 0))`;
       const org = await tx.organisation.findUniqueOrThrow({ where: { id: input.organisationId } });
       const sub = await tx.platformSubscription.findUnique({ where: { organisationId: input.organisationId } });
       // Local cancellation/restriction is not proof that a remote subscription ended.
@@ -145,7 +149,7 @@ export async function coordinatePlatformCheckout(input: {
         leaseToken: token, leaseUntil: new Date(timestamp.getTime() + LEASE_MS),
       } });
       return { attempt, customerIds, subscriptionId: sub?.stripeSubscriptionId, scopedAdmission };
-    }, { maxWait: 1000, timeout: 5000 });
+    }, { maxWait: 1000, timeout: 15000 });
     let attempt = reserved.attempt;
     const save = async (data: Prisma.PlatformCheckoutAttemptUpdateManyMutationInput) => {
       const result = await db.platformCheckoutAttempt.updateMany({
@@ -256,7 +260,7 @@ export async function coordinatePlatformCheckout(input: {
           });
           if (claimed.count !== 1) blocked("checkout_lease_lost", "Checkout recovery is already in progress. Please try again shortly.");
           await admitPlatformCheckout({ expiresAt: storedParams.expires_at, database: tx, admission: { ...admission, attemptId: attempt.id } });
-        }, { maxWait: 1000, timeout: 5000 });
+        }, { maxWait: 1000, timeout: 15000 });
         attempt = { ...attempt, firstRequestedAt };
         try {
           session = await createAdmittedPlatformSession(stripe, storedParams,
@@ -294,7 +298,7 @@ export async function coordinatePlatformCheckout(input: {
       // Re-check after provider I/O: revocation/expiry must not yield late success.
       // The existing durable attempt retains any issued session for containment.
       await db.$transaction(tx => verifyCheckoutAdmission(tx, { ...admission, attemptId: attempt.id, mustBeBound: true }),
-        { maxWait: 1000, timeout: 5000 });
+        { maxWait: 1000, timeout: 15000 });
       return { url: session.url, sessionId: session.id };
     } finally {
       // A process crash leaves a bounded lease; normal errors retain the attempt but release it.

@@ -430,12 +430,10 @@ function getPlatformAdminSection(options?: {
   const foundingCustomerMode = options?.foundingCustomerMode ?? false;
   const showCommandCentre = options?.showCommandCentre ?? false;
 
-  const apps = foundingCustomerMode
-    ? [platformAppsNavItem(true)]
-    : [
-        platformAppsNavItem(false),
-        platformSettingsNavItem(),
-      ];
+  const apps = [
+    platformAppsNavItem(foundingCustomerMode),
+    platformSettingsNavItem(),
+  ];
 
   const trailingLinks: PlatformShellNavItem[] = options?.showCommandCentre
     ? []

@@ -231,7 +231,9 @@ export function parseMigrationFunctions(root) {
     } catch {
       continue;
     }
-    for (const match of source.matchAll(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:"([^"]+)"|([a-zA-Z_][a-zA-Z0-9_]*))/gi)) {
+    // A migration may schema-qualify a function; capture the function name,
+    // not the schema name (e.g. public). Preserve quoted/unquoted spellings.
+    for (const match of source.matchAll(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:(?:"[^"]+"|[a-zA-Z_][a-zA-Z0-9_]*)\s*\.\s*)?(?:"([^"]+)"|([a-zA-Z_][a-zA-Z0-9_]*))\s*\(/gi)) {
       functions.add(match[1] ?? match[2]);
     }
   }
@@ -438,7 +440,10 @@ function sqlTableReferences(sql) {
   for (const match of sql.matchAll(/,\s*([a-zA-Z_][a-zA-Z0-9_]*)\s+AS\s*\(/gi)) ctes.add(match[1]);
   const parseSql = sql.replace(/\bEXTRACT\s*\([\s\S]*?\bFROM\b[\s\S]*?\)/gi, "EXTRACT()");
   const add = (table, privilege, columns) => {
-    if (!table || /^(?:select|where|set|values|dual|lateral|unnest)$/i.test(table) || ctes.has(table)) return;
+    // PostgreSQL's built-in transaction advisory lock is a table-returning
+    // function in SELECT ... FROM syntax, not an application table. Keep the
+    // exception exact; unrecognised FROM relations must remain fail-closed.
+    if (!table || /^(?:select|where|set|values|dual|lateral|unnest|pg_advisory_xact_lock)$/i.test(table) || ctes.has(table)) return;
     refs.push({ table, privilege, columns });
   };
   for (const match of parseSql.matchAll(/\bINSERT\s+INTO\s+(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?\s*(?:\(([^)]*)\))?/gi)) {

@@ -1,10 +1,51 @@
 # DigitalGate launch recovery — authoritative blocker register
 
-Updated 7 November 2026 (Australia/Brisbane). Requirements: `platform.auth`, `crm.companies`, `detach.portal_billing`, `platform.roadmap`.
+Updated 13 November 2026 (Australia/Brisbane). Requirements: `platform.auth`, `crm.companies`, `detach.portal_billing`, `platform.roadmap`.
 This register supersedes the operational ordering in the historical PR #1025 register; historical evidence remains in Git. Roadmap remains the requirements authority.
 
-**Production checkout: HOLD. Release candidate: existing PR #1039, continued from dc843d58. Serving main: 8d639743. No second PR.**
+**Production checkout: HOLD. Controlled candidate stack: existing PR #1039 at db400cda, then existing PR #1040 at 2d6555c2 plus the locally reviewed follow-up. Serving main reference: 8d639743.**
 Neither local results nor GitHub CI certify Production access or authorize deployment.
+
+## 13 November certification checkpoint
+
+The existing protected staging source at `2d6555c25937d71ed6ed2fdc1f81a6a343d30b89`
+has successful commercial and checkout CI. Authenticated Synthetic A/B probes
+reject cross-tenant switching and privileged subscription access. Restricted B
+also receives403 for billing-portal and checkout requests. Ignored tenant query
+parameters return only the authenticated tenant's data. B remains a member.
+
+Local follow-up corrects founding-mode Settings omission and exposes only the
+member's permitted overview/preferences. Billing and administrative cards retain
+server permission checks. It also accepts omitted empty Industry selection
+metadata for Core-only subscriptions only after complete canonical Stripe
+line-item verification. Local639 checkout,85 security,268 disposable database,
+TypeScript and complete457-page build checks pass. The independent reviewer
+reproduced169 focused checks and268 disposable database checks with no remaining
+P0/P1/P2 finding in the targeted correction. Publication CI and hosted acceptance
+of this follow-up remain outstanding.
+
+Read-only staging privilege verification matches the83-table manifest across664
+table and4892 column checks, including grant options and effective inherited/
+PUBLIC access. Accessible non-system schemas contain no executable SECURITY
+DEFINER routine. This records the certification role and database, not current
+Production serving credentials or grants.
+
+Synthetic A's completed test Session, exact canonical Growth/Finance14-day trial
+and processed webhook receipts reconcile to its existing OPEN attempt. Preserve
+the original attempt, payment, admission and audit records. OPEN is not evidence
+of an uncompleted provider Session and must not justify a duplicate checkout or
+retirement as expired. This is an evidence reconciliation; no terminal attempt
+state is invented. Historical HTTP delivery logs exceed the available retention.
+
+Release order is to publish the reviewed follow-up to existing #1040 with fresh
+commercial/checkout CI, obtain approval for protected staging verification, then
+complete fresh Production identity/privilege/recovery/schema preflight. Obtain
+separate owner approval for merging the reviewed #1039 dependency followed by
+#1040, refreshing base/CI after each dependency integration. An approved normal
+Production deployment and guarded post-deployment acceptance precede any separate
+checkout admission or activation approval. Preserve both rollback sources and
+all audit/payment history. Do not reapply migrations or grants from source
+publication alone.
 
 ## Completed code corrections
 
