@@ -30,6 +30,9 @@ const specialistEntitlement = read("src/lib/specialist-industry-entitlement.ts")
 
 // The authority tests freeze Date before evaluating these fixed trial boundaries.
 function verifiedFinanceAuthority(overrides = {}) {
+  // Keep an active-trial fixture valid as calendar time advances.
+  // Explicit expired-trial rejection cases below remain unchanged.
+  const activeTrialDeadline = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
   return {
     organisationId: "org-a",
     featureFlags: { "finance.beta": true },
@@ -43,8 +46,8 @@ function verifiedFinanceAuthority(overrides = {}) {
       status: "TRIALING",
       industryApps: ["finance"],
       premiumApps: [],
-      trialEnd: new Date("2099-11-01T00:00:00.000Z"),
-      currentPeriodEnd: new Date("2099-11-01T00:00:00.000Z"),
+      trialEnd: activeTrialDeadline,
+      currentPeriodEnd: activeTrialDeadline,
       cancelAtPeriodEnd: false,
     },
     stripeSubscription: null,
