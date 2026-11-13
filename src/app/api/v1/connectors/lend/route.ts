@@ -30,7 +30,7 @@ function publicState(settings: LendSettings | null) {
 async function authorise(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  const blocked = await requireFinanceAppAccess(session.organisationId);
+  const blocked = await requireFinanceAppAccess(session.organisationId, { organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId });
   if (blocked) return blocked;
   return session;
 }

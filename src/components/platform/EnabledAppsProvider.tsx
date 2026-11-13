@@ -57,8 +57,10 @@ export function EnabledAppsProvider({
   industryEntitlementIds = [],
   premiumEntitlementKeys = [],
   financeAccessEnabled = false,
+  industryUnavailableAppIds = [],
   showCommandCentre = false,
   isPlatformOperator = false,
+  subscriptionExempt = false,
   showPartnerPortal = false,
   showResellerAdmin = false,
   partnerType = null,
@@ -73,8 +75,10 @@ export function EnabledAppsProvider({
   premiumEntitlementKeys?: string[];
   /** Finance is omitted from customer navigation unless both beta and paid-app access are present. */
   financeAccessEnabled?: boolean;
+  industryUnavailableAppIds?: string[];
   showCommandCentre?: boolean;
   isPlatformOperator?: boolean;
+  subscriptionExempt?: boolean;
   showPartnerPortal?: boolean;
   showResellerAdmin?: boolean;
   partnerType?: PartnerType | null;
@@ -178,15 +182,16 @@ export function EnabledAppsProvider({
   const nav = useMemo(() => {
     const entitledPaidAppIds = new Set(paidAppIdsFromKeys(premiumEntitlementKeys));
     const paidAppIds = ["advertising", "marketing", "prospecting", "ai-visibility", "seo", "automation", "analytics", "social", "ai-communications"];
-    const hiddenPaidApps = paidAppIds.filter((id) => paidAppKeyForAppId(id) && !entitledPaidAppIds.has(id));
+    const hiddenPaidApps = (isPlatformOperator || subscriptionExempt) ? [] : paidAppIds.filter((id) => paidAppKeyForAppId(id) && !entitledPaidAppIds.has(id));
     const base = getCategorizedPlatformNavigation(enabledIds, {
       showCommandCentre,
+      commercialExempt: isPlatformOperator || subscriptionExempt,
       showPartnerPortal,
       showResellerAdmin,
       partnerType,
       industrySelectionIds,
       industryEntitlementIds,
-      hiddenAppIds: [...hiddenPaidApps, ...(financeAccessEnabled ? [] : ["finance"])],
+      hiddenAppIds: [...hiddenPaidApps, ...industryUnavailableAppIds, ...(financeAccessEnabled ? [] : ["finance"])],
     });
     const ctx = buildAccessContext({
       role: membershipRole,
@@ -202,6 +207,7 @@ export function EnabledAppsProvider({
     industryEntitlementIds,
     premiumEntitlementKeys,
     financeAccessEnabled,
+    industryUnavailableAppIds,
     showCommandCentre,
     showPartnerPortal,
     showResellerAdmin,
@@ -209,8 +215,8 @@ export function EnabledAppsProvider({
     membershipRole,
     organisationId,
     isPlatformOperator,
+    subscriptionExempt,
     permissionGrants,
-    premiumEntitlementKeys,
   ]);
 
   const value = useMemo(

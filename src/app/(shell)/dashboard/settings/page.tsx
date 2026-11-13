@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getOrganisationBusinessProfile } from "@dg/platform-core";
+import { getOrganisationBusinessProfile, sessionCan } from "@dg/platform-core";
 
 import { AppearanceSettings } from "@/components/settings/AppearanceSettings";
 import { SectionPageHeader } from "@/components/ui/SectionPageHeader";
@@ -13,6 +13,18 @@ export default async function PlatformSettingsPage() {
   const profile = session
     ? await getOrganisationBusinessProfile(session.organisationId)
     : null;
+  const canViewSettings = Boolean(session && sessionCan(session, {
+    module: "settings", action: "view", scope: "organisation",
+  }));
+  const canViewBilling = Boolean(session && sessionCan(session, {
+    module: "billing", action: "view", scope: "organisation",
+  }));
+  const canViewTeam = Boolean(session && sessionCan(session, {
+    module: "team", action: "view", scope: "organisation",
+  }));
+  const canManageApps = canViewSettings || canViewBilling || Boolean(session && sessionCan(session, {
+    module: "team", action: "manage", scope: "organisation",
+  }));
 
   return (
     <>
@@ -32,7 +44,7 @@ export default async function PlatformSettingsPage() {
         <AppearanceSettings />
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Link
+          {canViewSettings ? <Link
             href="/dashboard/settings/connected-services"
             className="dg-card block border-sky-500/20 bg-gradient-to-br from-slate-900 to-sky-950/20 hover:border-sky-500/40 lg:col-span-2"
           >
@@ -47,7 +59,7 @@ export default async function PlatformSettingsPage() {
             <span className="mt-4 inline-block text-sm font-medium text-sky-400">
               Manage connected services →
             </span>
-          </Link>
+          </Link> : null}
 
           <div className="dg-card">
             <h2 className="font-semibold text-white">Organisation</h2>
@@ -71,11 +83,11 @@ export default async function PlatformSettingsPage() {
               href="/dashboard/business"
               className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
             >
-              Edit Business Profile →
+              View Business Profile →
             </Link>
           </div>
 
-          <div className="dg-card">
+          {canManageApps ? <div className="dg-card">
             <h2 className="font-semibold text-white">Apps</h2>
             <p className="mt-2 text-sm text-slate-400">
               {enabledIds.length} app{enabledIds.length === 1 ? "" : "s"} enabled for your organisation.
@@ -86,9 +98,9 @@ export default async function PlatformSettingsPage() {
             >
               Manage apps &amp; plan →
             </Link>
-          </div>
+          </div> : null}
 
-          <div className="dg-card">
+          {canViewTeam ? <div className="dg-card">
             <h2 className="font-semibold text-white">Team</h2>
             <p className="mt-2 text-sm text-slate-400">
               People, invitations, roles and permissions are managed with your business team.
@@ -97,11 +109,11 @@ export default async function PlatformSettingsPage() {
               href="/dashboard/team"
               className="mt-4 inline-block text-sm font-medium text-blue-400 hover:underline"
             >
-              Manage Team →
+              View Team →
             </Link>
-          </div>
+          </div> : null}
 
-          <div className="dg-card">
+          {canViewBilling ? <div className="dg-card">
             <h2 className="font-semibold text-white">Billing</h2>
             <p className="mt-2 text-sm text-slate-400">
               Review your plan, subscription and invoices.
@@ -112,14 +124,14 @@ export default async function PlatformSettingsPage() {
             >
               Billing &amp; invoices →
             </Link>
-          </div>
+          </div> : null}
 
           <div className="dg-card lg:col-span-2">
             <h2 className="font-semibold text-white">More settings</h2>
             <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3 text-sm">
-              <Link href="/dashboard/settings/referrals" className="text-blue-400 hover:underline">
+              {canViewSettings ? <Link href="/dashboard/settings/referrals" className="text-blue-400 hover:underline">
                 Referral Programme →
-              </Link>
+              </Link> : null}
               <Link href="/support" className="text-blue-400 hover:underline">
                 Help &amp; support →
               </Link>

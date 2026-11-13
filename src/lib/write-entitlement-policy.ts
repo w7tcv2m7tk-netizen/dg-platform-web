@@ -33,6 +33,7 @@ export const WRITE_ENTITLEMENT_EXEMPT_PATHS: readonly string[] = [
   "/api/v1/org/switch",
   "/api/v1/org/create",
   "/api/v1/onboarding/gen2",
+  "/api/v1/onboarding/gen2/state",
   "/api/v1/founding/onboarding",
   "/api/v1/founding/onboarding/submit",
 ];

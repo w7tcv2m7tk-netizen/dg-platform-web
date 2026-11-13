@@ -1,18 +1,22 @@
+import { INDUSTRY_APP_BETA_FLAGS } from "@dg/platform-core/features/access";
 import {
   canAccessCommandCentre,
   canAccessPartnerPortal,
   getGen2OnboardingProgress,
   getPartnerByClerkUserId,
   isDemoOrganisationId,
+  listUserOrganisations,
   isDigitalGateStaffEmail,
   resolveEntitlement,
   type PartnerType,
 } from "@dg/platform-core";
 
 import { PlatformShell } from "@/components/PlatformShell";
+import { SessionRecovery } from "@/components/platform/SessionRecovery";
 import { getOrgEnabledAppIdsCached, getOrgIndustrySelectionIdsCached } from "@/lib/org-apps";
 import { getOrgBrandThemeCached } from "@/lib/org-brand-theme";
 import { getPlatformPageContext } from "@/lib/platform-page-context";
+import { resolveSessionRecovery } from "@/lib/session-recovery";
 import { getVipCustomerPreset } from "@/lib/onboarding/vip-customer-presets";
 import { getFinanceAppAccessState } from "@/lib/finance-app-access";
 import type { FinanceAppAccessState } from "@/lib/finance-app-access-policy";
@@ -26,7 +30,7 @@ export async function PlatformShellLoader({
   children: React.ReactNode;
   showFloatingChat?: boolean;
 }) {
-  const [{ user, session, clerkUserId, email }, enabledIds, industrySelectionIds, brandTheme] =
+  const [{ user, session, clerkUserId, email, activeOrganisationId }, enabledIds, industrySelectionIds, brandTheme] =
     await Promise.all([
       getPlatformPageContext(),
       getOrgEnabledAppIdsCached(),
@@ -34,13 +38,29 @@ export async function PlatformShellLoader({
       getOrgBrandThemeCached(),
     ]);
 
+  if (!session) {
+    const organisations = clerkUserId ? await listUserOrganisations(clerkUserId) : [];
+    const recovery = resolveSessionRecovery({ session, clerkUserId, activeOrganisationId, organisations });
+    // A genuinely memberless user must reach the existing first-business
+    // onboarding page, even when another login left a stale selection cookie.
+    if (recovery.kind === "stale") {
+      return (
+        <SessionRecovery
+          organisations={recovery.organisations}
+        />
+      );
+    }
+  }
+
   // Public recovery entry points such as /onboarding deliberately live in the
   // shell route group so authenticated customers keep the native app chrome.
-  // Signed-out visitors must not see default member navigation before login.
+  // Signed-out or genuinely memberless visitors must not see default member
+  // navigation before login. A stale explicit tenant is handled above.
   if (!session) {
     return <>{children}</>;
   }
 
+  let industryUnavailableAppIds = Object.keys(INDUSTRY_APP_BETA_FLAGS);
   let financeAccess: FinanceAppAccessState = { industryEntitled: false, betaEnrolled: false, selectedForOrganisation: false };
   let industryEntitlementIds: string[] = [];
   let premiumEntitlementKeys: string[] = [];
@@ -49,13 +69,16 @@ export async function PlatformShellLoader({
       const { prisma } = await import("@dg/database");
       const canonical = await prisma.platformSubscription.findUnique({
         where: { organisationId: session.organisationId },
-        select: { organisationId: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
+        select: { organisationId: true, platformExempt: true, industryApps: true, premiumApps: true, status: true, entitlement: true,
           stripeStatus: true, stripeSubscriptionId: true, stripeCustomerId: true, trialEnd: true,
           currentPeriodEnd: true, gracePeriodEndsAt: true, cancelAtPeriodEnd: true },
       });
+      const organisation = await prisma.organisation.findUnique({ where: { id: session.organisationId }, select: { settings: true } });
+      const flags = (organisation?.settings as { featureFlags?: Record<string, boolean> } | null)?.featureFlags ?? {};
+      industryUnavailableAppIds = Object.entries(INDUSTRY_APP_BETA_FLAGS).filter(([, flag]) => flags[flag] !== true).map(([appId]) => appId);
       industryEntitlementIds = authorisedIndustryPurchaseIds(canonical, session.organisationId);
       premiumEntitlementKeys = authorisedPremiumPurchaseKeys(canonical, session.organisationId);
-      financeAccess = await getFinanceAppAccessState(session.organisationId);
+      financeAccess = await getFinanceAppAccessState(session.organisationId, { organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId });
     } catch {
       // Finance navigation stays hidden if its access state cannot be verified.
     }
@@ -142,11 +165,13 @@ export async function PlatformShellLoader({
       industrySelectionIds={industrySelectionIds}
       industryEntitlementIds={industryEntitlementIds}
       premiumEntitlementKeys={premiumEntitlementKeys}
+      industryUnavailableAppIds={industryUnavailableAppIds}
       financeAccessEnabled={financeAccess.industryEntitled && financeAccess.betaEnrolled && financeAccess.selectedForOrganisation}
       userName={userName ?? undefined}
       showFloatingChat={showFloatingChat && !isDemo}
       showCommandCentre={showCommandCentreNav}
       isPlatformOperator={isPlatformOperator}
+      subscriptionExempt={session.subscriptionExempt === true}
       showPartnerPortal={showPartnerPortal && !isDemo}
       showResellerAdmin={showResellerAdmin && !isDemo}
       partnerType={partnerType}
