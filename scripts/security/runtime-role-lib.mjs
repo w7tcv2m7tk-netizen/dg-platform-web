@@ -455,8 +455,17 @@ function sqlTableReferences(sql) {
     const columns = splitTopLevel(match[2]).map((part) => part.trim().match(/^["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?\s*=/)?.[1]).filter(Boolean);
     add(match[1], "UPDATE", columns);
   }
-  for (const match of parseSql.matchAll(/\bFROM\s+(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?/gi)) add(match[1], "SELECT");
-  for (const match of parseSql.matchAll(/\bJOIN\s+(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?/gi)) add(match[1], "SELECT");
+  for (const match of parseSql.matchAll(/\bFROM\s+(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?/gi)) {
+    // Only the exact, schema-qualified PostgreSQL role catalog view is
+    // exempt. An unknown pg_catalog relation or an unqualified name still
+    // fails the application-table manifest policy.
+    if (/^FROM\s+pg_catalog\.pg_roles\b/i.test(match[0])) continue;
+    add(match[1], "SELECT");
+  }
+  for (const match of parseSql.matchAll(/\bJOIN\s+(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?/gi)) {
+    if (/^JOIN\s+pg_catalog\.pg_roles\b/i.test(match[0])) continue;
+    add(match[1], "SELECT");
+  }
   return refs;
 }
 
