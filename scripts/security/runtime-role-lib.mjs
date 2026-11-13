@@ -459,11 +459,11 @@ function sqlTableReferences(sql) {
     // Only the exact, schema-qualified PostgreSQL role catalog view is
     // exempt. An unknown pg_catalog relation or an unqualified name still
     // fails the application-table manifest policy.
-    if (/^FROM\s+pg_catalog\.pg_roles\b/i.test(match[0])) continue;
+    if (/^FROM\s+pg_catalog\.pg_roles\b/i.test(parseSql.slice(match.index))) continue;
     add(match[1], "SELECT");
   }
   for (const match of parseSql.matchAll(/\bJOIN\s+(?:public\.)?["]?([a-zA-Z_][a-zA-Z0-9_]*)["]?/gi)) {
-    if (/^JOIN\s+pg_catalog\.pg_roles\b/i.test(match[0])) continue;
+    if (/^JOIN\s+pg_catalog\.pg_roles\b/i.test(parseSql.slice(match.index))) continue;
     add(match[1], "SELECT");
   }
   return refs;
