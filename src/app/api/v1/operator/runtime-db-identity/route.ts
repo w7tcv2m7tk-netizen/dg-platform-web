@@ -9,7 +9,7 @@ export const revalidate = 0;
 const NO_STORE = { "Cache-Control": "private, no-store, max-age=0" };
 const EXPECTED_ROLE = "dg_app_runtime";
 const EXPECTED_DATABASE = "neondb";
-const EXPECTED_ENDPOINT = /^ep-bold-tree-a7bny92m(?:-pooler)?\./;
+const EXPECTED_NEON_HOSTS = new Set([\n  "ep-bold-tree-a7bny92m.ap-southeast-2.aws.neon.tech",\n  "ep-bold-tree-a7bny92m-pooler.ap-southeast-2.aws.neon.tech",\n]);
 
 function response(body: Record<string, unknown>, status: number) {
   return NextResponse.json(body, { status, headers: NO_STORE });
@@ -66,7 +66,7 @@ export async function GET() {
     let endpointMatches = false;
     try {
       const host = new URL(process.env.DATABASE_URL || "").hostname;
-      endpointMatches = EXPECTED_ENDPOINT.test(host);
+      endpointMatches = EXPECTED_NEON_HOSTS.has(host);
     } catch {
       endpointMatches = false;
     }
