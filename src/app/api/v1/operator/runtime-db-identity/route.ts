@@ -9,7 +9,10 @@ export const revalidate = 0;
 const NO_STORE = { "Cache-Control": "private, no-store, max-age=0" };
 const EXPECTED_ROLE = "dg_app_runtime";
 const EXPECTED_DATABASE = "neondb";
-const EXPECTED_NEON_HOSTS = new Set([\n  "ep-bold-tree-a7bny92m.ap-southeast-2.aws.neon.tech",\n  "ep-bold-tree-a7bny92m-pooler.ap-southeast-2.aws.neon.tech",\n]);
+const EXPECTED_NEON_HOSTS = new Set([
+  "ep-bold-tree-a7bny92m.ap-southeast-2.aws.neon.tech",
+  "ep-bold-tree-a7bny92m-pooler.ap-southeast-2.aws.neon.tech",
+]);
 
 function response(body: Record<string, unknown>, status: number) {
   return NextResponse.json(body, { status, headers: NO_STORE });
