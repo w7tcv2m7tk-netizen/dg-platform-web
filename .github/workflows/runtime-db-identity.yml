@@ -1,0 +1,41 @@
+name: Production runtime identity diagnostic verification
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/runtime-db-identity.yml'
+      - 'src/app/api/v1/operator/runtime-db-identity/**'
+      - 'scripts/test-runtime-db-identity-route.mjs'
+      - 'scripts/run-checkout-release-tests.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: runtime-db-identity-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  runtime-db-identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      LC_ALL: C
+      LANG: C
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run db:generate
+      - name: Isolated diagnostic guard regression
+        run: node --test scripts/test-runtime-db-identity-route.mjs
+      - name: TypeScript
+        run: npx tsc --noEmit
+      - name: Next.js production compilation (no unrelated prebuild tests)
+        run: npx next build
+      - run: git diff --exit-code -- package-lock.json packages/database/prisma
+      - run: git diff --check
