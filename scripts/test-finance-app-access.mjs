@@ -29,6 +29,9 @@ const lendConnector = read("src/app/api/v1/connectors/lend/route.ts");
 const specialistEntitlement = read("src/lib/specialist-industry-entitlement.ts");
 
 function verifiedFinanceAuthority(overrides = {}) {
+  // A valid-trial fixture must remain active as calendar time advances.
+  // Expiry rejection is tested separately with an explicitly past date.
+  const activeTrialDeadline = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
   return {
     organisationId: "org-a",
     featureFlags: { "finance.beta": true },
@@ -42,8 +45,8 @@ function verifiedFinanceAuthority(overrides = {}) {
       status: "TRIALING",
       industryApps: ["finance"],
       premiumApps: [],
-      trialEnd: new Date("2026-11-01T00:00:00.000Z"),
-      currentPeriodEnd: new Date("2026-11-01T00:00:00.000Z"),
+      trialEnd: activeTrialDeadline,
+      currentPeriodEnd: activeTrialDeadline,
       cancelAtPeriodEnd: false,
     },
     stripeSubscription: null,
