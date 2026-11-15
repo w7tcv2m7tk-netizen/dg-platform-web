@@ -23,6 +23,27 @@ export function isIndustryBetaGatedApp(appId: string): boolean {
   return GATED_APPS.some((g) => g.appId === appId);
 }
 
+/** Additional beta flags enrolled when an app is enabled through the app catalogue. */
+export const APP_ENABLE_BETA_FLAGS: Record<string, string> = {
+  "real-estate": "re.beta",
+  accommodation: "acc.beta",
+};
+
+/** Enrol closed-beta flags only for apps that are actually enabled for the org. */
+export function enrolIndustryBetasForEnabled(
+  featureFlags: Record<string, boolean> | undefined,
+  enabled: string[],
+): Record<string, boolean> {
+  const next = { ...(featureFlags && typeof featureFlags === "object" ? featureFlags : {}) };
+  for (const appId of enabled) {
+    const flag = industryBetaFlagForAppId(appId);
+    if (flag && next[flag] !== false) next[flag] = true;
+    const extra = APP_ENABLE_BETA_FLAGS[appId];
+    if (extra && next[extra] !== false) next[extra] = true;
+  }
+  return next;
+}
+
 /**
  * Optional filter: Industry floors only when their beta flag is on.
  * Do not use for Apps install / sidebar enabled list — those toggle independently;

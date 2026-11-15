@@ -1,3 +1,4 @@
+import type { PlatformAuthorityInput } from "@dg/platform-core/access/platform-authority";
 import { NextResponse } from "next/server";
 import { cache } from "react";
 
@@ -15,6 +16,7 @@ type FinanceOrganisationSettings = {
 
 export const getFinanceAppAccessState = cache(async function getFinanceAppAccessState(
   organisationId: string,
+  actor?: PlatformAuthorityInput,
 ): Promise<FinanceAppAccessState> {
   const { prisma } = await import("@dg/database");
   const [organisation, canonicalSubscription] = await Promise.all([
@@ -26,6 +28,7 @@ export const getFinanceAppAccessState = cache(async function getFinanceAppAccess
       where: { organisationId },
       select: {
         organisationId: true,
+        platformExempt: true,
         stripeSubscriptionId: true,
         stripeCustomerId: true,
         stripeStatus: true,
@@ -43,6 +46,7 @@ export const getFinanceAppAccessState = cache(async function getFinanceAppAccess
   const settings = (organisation?.settings ?? {}) as FinanceOrganisationSettings;
   const base = {
     organisationId,
+    actor,
     featureFlags: settings.featureFlags,
     organisationSettings: organisation?.settings as Parameters<typeof resolveFinanceAppAccessState>[0]["organisationSettings"],
     canonicalSubscription: canonicalSubscription as FinanceEntitlementAuthority | null,
@@ -52,16 +56,17 @@ export const getFinanceAppAccessState = cache(async function getFinanceAppAccess
 
 export async function requireFinanceAppAccess(
   organisationId: string,
+  actor?: PlatformAuthorityInput,
 ): Promise<NextResponse | null> {
   const denial = financeAppAccessDenial(
-    await financeAppAccessStateOrDenied(() => getFinanceAppAccessState(organisationId)),
+    await financeAppAccessStateOrDenied(() => getFinanceAppAccessState(organisationId, actor)),
   );
   if (denial === "beta_required") {
     return NextResponse.json(
       {
         error: {
           code: denial,
-          message: "Finance requires beta enrolment for this organisation.",
+          message: "Finance is not enabled for this organisation. Contact DigitalGate.",
         },
       },
       { status: 403 },

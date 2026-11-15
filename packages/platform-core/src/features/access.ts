@@ -1,3 +1,4 @@
+import { hasPlatformAuthority } from "../access/platform-authority";
 import type { PlatformSession } from "../session";
 import {
   buildAccessContext,
@@ -21,13 +22,14 @@ export function sessionHasFeature(
   session: PlatformSession,
   featureId: string,
 ): boolean {
-  if (session.role !== "dg:staff" && !hasPremiumPurchaseForFeature(session, featureId)) return false;
+  if (!hasPlatformAuthority({ organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId }) && session.subscriptionExempt !== true && !hasPremiumPurchaseForFeature(session, featureId)) return false;
   if (ADMIN_ROLES.has(session.role) || session.role === "dg:staff") {
     const check = featureIdToPermissionCheck(featureId);
     if (!check) return true;
     const ctx = buildAccessContext({
       role: session.role,
       organisationId: session.organisationId,
+      principalId: session.clerkUserId,
       enabledAppIds: [],
       grants: session.permissionGrants,
     });
@@ -42,6 +44,7 @@ export function sessionHasFeature(
   const ctx = buildAccessContext({
     role: session.role,
     organisationId: session.organisationId,
+    principalId: session.clerkUserId,
     enabledAppIds: [],
     grants: session.permissionGrants,
   });

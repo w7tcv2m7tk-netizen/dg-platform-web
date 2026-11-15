@@ -24,7 +24,7 @@ export default async function FinanceLayout({
     }
     let access;
     try {
-      access = await getFinanceAppAccessState(session.organisationId);
+      access = await getFinanceAppAccessState(session.organisationId, { organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId });
     } catch {
       return (
         <main className="dg-page-main">

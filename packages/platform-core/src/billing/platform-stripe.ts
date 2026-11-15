@@ -13,6 +13,7 @@ import {
 } from "./paid-apps";
 import { stripeItemsMatchPurchasedSelections } from "./purchased-line-items";
 import { customOfferPurchaseMatches } from "./custom-offer-line-items";
+import { enrolIndustryBetasForEnabled } from "../industry/beta-gates";
 
 const TIER_AMOUNTS_CENTS: Record<string, number> = Object.fromEntries(
   PLATFORM_COMMERCIAL_PLANS.map((plan) => [plan.id, plan.monthlyCents]),
@@ -316,6 +317,10 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
     premiumApps,
   };
   const enabled = appIdsFromPlanSelection(selection);
+  const featureFlags = enrolIndustryBetasForEnabled(
+    settings.featureFlags as Record<string, boolean> | undefined,
+    enabled,
+  );
   const billing = (settings.billing as Record<string, unknown> | undefined) ?? {};
   const founding =
     billing.foundingCustomer === true ||
@@ -356,6 +361,7 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
       billingCustomerId: customerId,
       settings: {
         ...settings,
+        featureFlags,
         billing: {
           ...billing,
           platformExempt: exempt,

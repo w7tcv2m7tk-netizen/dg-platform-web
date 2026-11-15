@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';import {test} from 'node:test';import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';
+import {isTrustedSameOriginRequest} from '../src/lib/same-origin.ts';
+function fixture({userId='user_owned',currentUserId=userId}={}) {
+ const creates=[],cookies=[],authOptions=[];const modules={
+  '@clerk/nextjs/server':{auth:async options=>{authOptions.push(options);return {userId}},currentUser:async()=>currentUserId?{id:currentUserId,primaryEmailAddress:{emailAddress:'synthetic@fixture.invalid'},fullName:'Synthetic'}:null},
+  '@dg/platform-core':{createOrganisationForUser:async input=>{creates.push(input);return {organisationId:'org_new'}},listUserOrganisations:async()=>[]},
+  'next/server':{NextResponse:{json:(data,init)=>Response.json(data,init)}},
+  '@/lib/same-origin':{isTrustedSameOriginRequest},'@/lib/active-org-cookie':{writeActiveOrganisationId:async id=>cookies.push(id)},'@/lib/active-platform-session':{resolveActivePlatformSession:async()=>null},
+ };const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/app/api/v1/org/create/route.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:name=>{assert.ok(Object.hasOwn(modules,name));return modules[name]}});
+ return {creates,cookies,authOptions,post:(headers={})=>exports.POST(new Request('https://app.digitalgate.com.au/api/v1/org/create',{method:'POST',headers:{Origin:'https://app.digitalgate.com.au','Sec-Fetch-Site':'same-origin','Content-Type':'application/json',...headers},body:JSON.stringify({firstOrganisation:true,name:'Explicit synthetic'})}))};
+}
+for(const [name,headers,status] of [['cross-site',{'Origin':'https://untrusted.example','Sec-Fetch-Site':'cross-site'},403],['missing origin',{'Origin':''},403],['foreign fetch metadata',{'Sec-Fetch-Site':'cross-site'},403],['text/plain form submission',{'Content-Type':'text/plain'},415],['API key',{'X-API-Key':'synthetic'},403],['bearer key',{'Authorization':'Bearer synthetic'},403]])test(name+' cannot create or change tenant context',async()=>{const h=fixture();assert.equal((await h.post(headers)).status,status);assert.equal(h.creates.length,0);assert.equal(h.cookies.length,0);assert.equal(h.authOptions.length,0)});
+test('memberless session-only identity may explicitly create first business',async()=>{const h=fixture();assert.equal((await h.post()).status,200);assert.equal(h.creates.length,1);assert.equal(h.creates[0].firstOrganisation,true);assert.equal(h.authOptions[0].acceptsToken,'session_token')});
+for(const options of [{userId:null},{currentUserId:'user_other'},{userId:'api_key:forged'}])test('unconfirmed Clerk identity denied '+JSON.stringify(options),async()=>{const h=fixture(options);assert.equal((await h.post()).status,401);assert.equal(h.creates.length,0);assert.equal(h.cookies.length,0)});

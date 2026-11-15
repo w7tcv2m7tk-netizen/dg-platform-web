@@ -154,6 +154,18 @@ describe("C-2: genuine operators retain access", () => {
     );
   });
 
+  it("does not turn legacy staff aliases into operator permission grants", async () => {
+    const { buildAccessContext } = await load("access/evaluate.ts");
+    const { hasPlatformAuthority } = await load("access/platform-authority.ts");
+
+    for (const role of ["staff", "dg_staff", "dg:staff"]) {
+      const actor = { organisationId: VICTIM_ORG, role, principalId: "user_fixture" };
+      const context = buildAccessContext({ ...actor, enabledAppIds: [] });
+      assert.equal(hasPlatformAuthority(actor), role === "dg:staff");
+      assert.equal(context.platformUserType, role === "dg:staff" ? "digitalgate_admin" : null);
+    }
+  });
+
   it("fails closed when no allowlist is configured and role is ordinary", async () => {
     const { hasPlatformAuthority } = await load("access/platform-authority.ts");
     assert.equal(hasPlatformAuthority({}), false);

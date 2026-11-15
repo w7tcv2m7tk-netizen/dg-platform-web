@@ -1,3 +1,4 @@
+import * as completion from "../packages/platform-core/src/onboarding/gen2-completion.ts";
 /** Execute the real route exports with isolated auth/business dependencies. */
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
@@ -7,6 +8,7 @@ import { CheckoutTemporarilyUnavailable } from "../packages/platform-core/src/bi
 
 export function checkoutPost(kind, create) {
   const modules = {
+    "@dg/platform-core/onboarding/gen2-completion": completion,
     "@dg/platform-core/billing/checkout-coordinator": { CheckoutCoordinationError },
     "@dg/platform-core/billing/checkout-creation-gate": { CheckoutTemporarilyUnavailable },
     "@dg/platform-core/billing/platform-checkout": {

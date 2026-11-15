@@ -25,14 +25,11 @@ export async function GET() {
       code: "up",
       ms: Date.now() - started,
     });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "database_unreachable";
-    const brief = message.split("\n").find((l) => l.trim())?.slice(0, 200) ?? message;
+  } catch {
     return NextResponse.json(
       {
         ok: false,
         code: "database_unreachable",
-        message: brief,
         ms: Date.now() - started,
       },
       { status: 503 },

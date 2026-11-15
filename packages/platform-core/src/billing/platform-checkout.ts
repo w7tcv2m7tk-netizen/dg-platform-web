@@ -72,6 +72,7 @@ function appBaseUrl() {
 
 export interface PlatformCheckoutInput {
   organisationId: string;
+  clerkUserId?: string;
   email: string;
   platformTier: string;
   industryApps?: string[];
@@ -85,7 +86,7 @@ export interface PlatformCheckoutInput {
   cancelPath?: string;
 }
 
-export async function createPlatformCheckoutSession(input: PlatformCheckoutInput) {
+export async function prepareStandardPlatformCheckout(input: PlatformCheckoutInput) {
   const stripe = getStripeClient();
   const tier = input.platformTier;
   const monthlyAmount = TIER_AMOUNTS_CENTS[tier];
@@ -285,11 +286,17 @@ export async function createPlatformCheckoutSession(input: PlatformCheckoutInput
     };
   }
 
-  return coordinatePlatformCheckout({ organisationId: input.organisationId, stripe, parameters: sessionParams });
+  return { stripe, parameters: sessionParams };
+}
+
+export async function createPlatformCheckoutSession(input: PlatformCheckoutInput) {
+  const { stripe, parameters } = await prepareStandardPlatformCheckout(input);
+  return coordinatePlatformCheckout({ organisationId: input.organisationId, clerkUserId: input.clerkUserId, stripe, parameters });
 }
 
 export async function createCustomCommercialCheckoutSession(input: {
   organisationId: string;
+  clerkUserId?: string;
   email: string;
   businessName?: string;
   offer: CustomCommercialOffer;
@@ -400,7 +407,7 @@ export async function createCustomCommercialCheckoutSession(input: {
     sessionParams.customer_email = input.email;
   }
 
-  const checkout = await coordinatePlatformCheckout({ organisationId: input.organisationId, stripe, parameters: sessionParams });
+  const checkout = await coordinatePlatformCheckout({ organisationId: input.organisationId, clerkUserId: input.clerkUserId, stripe, parameters: sessionParams });
   return { ...checkout, offer };
 }
 

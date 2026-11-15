@@ -23,7 +23,7 @@ assert.doesNotMatch(templates, /verifiedPurchasedApps: settings\.profile/);
 assert.match(authority, /authority\.organisationId !== organisationId/);
 assert.match(authority, /trialEnd && authority\.trialEnd > now/);
 assert.match(authority, /currentPeriodEnd && authority\.currentPeriodEnd > now/);
-assert.match(apiGuard, /industryAppAccessDecision\(\{ authority: subscription, organisationId: session\.organisationId, appId/);
+assert.match(apiGuard, /industryAppAccessDecision\(\{ actor: \{ organisationId: session\.organisationId, role: session\.role, principalId: session\.clerkUserId \}, authority: subscription, organisationId: session\.organisationId, appId/);
 assert.match(apiGuard, /industry_app_purchase_required/);
 assert.match(apiGuard, /industry_entitlement_unavailable/);
 assert.match(pageGuard, /industryAppAccessDecision\(\{/);

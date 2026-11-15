@@ -37,12 +37,12 @@ export async function POST(req: Request) {
 
   const { prisma } = await import("@dg/database");
   const membership = await prisma.membership.findFirst({
-    where: { email },
+    where: { email, status: "active", organisation: { status: { not: "archived" } } },
     include: { organisation: true },
     orderBy: { createdAt: "desc" },
   });
 
-  if (!membership) {
+  if (!membership || !membership.clerkUserId) {
     return NextResponse.json(
       { error: { code: "not_found", message: "No platform account for this email yet — sign up at app.digitalgate.com.au first" } },
       { status: 404 },
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const portal = await fetchPortalMe(email, membership.clerkUserId);
+  const portal = await fetchPortalMe(email, membership.clerkUserId, organisationId);
   const result = await syncOrganisationFromPortal({
     organisationId,
     organisationName: membership.organisation.name,

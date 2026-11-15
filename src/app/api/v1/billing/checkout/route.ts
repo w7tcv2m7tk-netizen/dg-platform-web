@@ -26,6 +26,7 @@ export async function POST(req: Request) {
   try {
     const checkout = await createPlatformCheckoutSession({
       organisationId: session.organisationId,
+      clerkUserId: session.clerkUserId,
       email: session.email,
       platformTier,
       industryApps: body.industryApps,

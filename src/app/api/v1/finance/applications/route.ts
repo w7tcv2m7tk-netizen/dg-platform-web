@@ -17,7 +17,7 @@ import { tenantWriteEntitlementBlock, writeEntitlementResponse } from "@/lib/wri
 export async function GET(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  const accessDenied = await requireFinanceAppAccess(session.organisationId);
+  const accessDenied = await requireFinanceAppAccess(session.organisationId, { organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId });
   if (accessDenied) return accessDenied;
 
   const { searchParams } = new URL(req.url);
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  const accessDenied = await requireFinanceAppAccess(session.organisationId);
+  const accessDenied = await requireFinanceAppAccess(session.organisationId, { organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId });
   if (accessDenied) return accessDenied;
   const permissionDenied = requirePermission(session, {
     module: "industry",
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  const accessDenied = await requireFinanceAppAccess(session.organisationId);
+  const accessDenied = await requireFinanceAppAccess(session.organisationId, { organisationId: session.organisationId, role: session.role, principalId: session.clerkUserId });
   if (accessDenied) return accessDenied;
   const permissionDenied = requirePermission(session, {
     module: "industry",

@@ -1,17 +1,22 @@
-import { GROWTH_APP_CATALOGUE, saveGen2OnboardingProgress } from "@dg/platform-core";
+import { assertGen2OnboardingCompletionAllowed, OnboardingCompletionNotConfirmed } from "@dg/platform-core/onboarding/gen2-completion";
+import { assertPlatformOperator, GROWTH_APP_CATALOGUE, saveGen2OnboardingProgress } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
 import { isNextResponse, requirePlatformAuth } from "@/lib/platform-api";
 
-const PLATFORM_OPERATOR_SLUG = "digitalgate";
-
 export async function POST(req: Request) {
   const session = await requirePlatformAuth(req);
   if (isNextResponse(session)) return session;
-  if (session.organisationSlug !== PLATFORM_OPERATOR_SLUG) {
+  if (!assertPlatformOperator({ clerkUserId: session.clerkUserId, organisationId: session.organisationId, role: session.role, email: session.email })) {
     return NextResponse.json({ error: { code: "operator_only", message: "This setup is reserved for the DigitalGate platform operator." } }, { status: 403 });
   }
 
+  try {
+    await assertGen2OnboardingCompletionAllowed(session.organisationId, { currentStep: "implementation" });
+  } catch (error) {
+    if (!(error instanceof OnboardingCompletionNotConfirmed)) throw error;
+    return NextResponse.json({ error: { code: "checkout_not_confirmed", message: error.message } }, { status: 409 });
+  }
   const now = new Date().toISOString();
   const premiumApps = GROWTH_APP_CATALOGUE.map((app) => app.appId);
   const progress = await saveGen2OnboardingProgress(session.organisationId, {

@@ -65,7 +65,7 @@ export default async function ServicesOverviewPage({
         <p className="text-xs text-slate-500">
           Staff:{" "}
           <Link href="/command/docs/services-beta-launch" className="inline-flex min-h-11 items-center text-sky-400 hover:underline">
-            Services beta launch checklist
+            Services activation checklist
           </Link>
         </p>
       ) : null}

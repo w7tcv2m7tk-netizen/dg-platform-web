@@ -3,6 +3,7 @@ import { createCompany } from "../companies";
 import { createContact } from "../contacts";
 import { createOpportunity } from "../opportunities";
 import { createTask } from "../tasks";
+import { assertDemoResetTarget, demoMembershipRole, type DemoAccessGrant } from "./authority";
 import { DEMO_ORG_NAME, DEMO_ORG_SLUG, DEMO_SEED_VERSION } from "./types";
 
 const DEMO_APPS = [
@@ -75,13 +76,13 @@ export async function grantDemoAccess(input: {
   clerkUserId: string;
   email?: string;
   displayName?: string;
-  access: "customer" | "partner" | "staff";
+  access: DemoAccessGrant;
 }): Promise<{ organisationId: string }> {
+  const role = demoMembershipRole(input.access);
   const { organisationId } = await ensureDemoOrganisation();
   await resetDemoOrganisationIfEmpty(organisationId);
 
   const { prisma } = await import("@dg/database");
-  const role = input.access === "staff" ? "dg:staff" : input.access === "partner" ? "demo:partner" : "demo:customer";
   const existing = await prisma.membership.findUnique({
     where: {
       organisationId_clerkUserId: {
@@ -136,6 +137,7 @@ export async function resetDemoOrganisation(organisationId?: string): Promise<{
     const created = await ensureDemoOrganisation();
     return resetDemoOrganisation(created.organisationId);
   }
+  assertDemoResetTarget(ensured);
 
   const id = ensured.id;
 

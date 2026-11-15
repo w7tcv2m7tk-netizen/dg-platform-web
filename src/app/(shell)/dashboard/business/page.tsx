@@ -64,7 +64,7 @@ export default async function BusinessProfilePage({
         {reOnboarding ? (
           <section className="dg-card border border-sky-500/30 bg-sky-500/5">
             <p className="text-xs font-medium uppercase tracking-wide text-sky-400">
-              Real Estate beta onboarding
+              Real Estate onboarding
             </p>
             <h2 className="mt-1 text-lg font-semibold text-white">
               Welcome — finish these steps next

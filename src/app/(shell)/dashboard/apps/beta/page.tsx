@@ -3,8 +3,8 @@ import { PlatformHubPage } from "@/components/platform/PlatformHubPage";
 export default function AppsBetaProgrammesPage() {
   return (
     <PlatformHubPage
-      title="Beta Programmes"
-      description="Enrol this organisation in closed beta capabilities before general availability — Infrastructure Domains, Industry modules, and Growth experiments."
+      title="Application availability"
+      description="Review organisation-specific application availability and staged capabilities. Contact DigitalGate for activation."
       links={[
         {
           href: "/dashboard/apps",
@@ -14,7 +14,7 @@ export default function AppsBetaProgrammesPage() {
         {
           href: "/dashboard/settings/connectors",
           label: "Connectors",
-          detail: "Connector betas often gate alongside app enrolment.",
+          detail: "Connector availability also depends on application activation.",
         },
         {
           href: "/dashboard/marketplace",

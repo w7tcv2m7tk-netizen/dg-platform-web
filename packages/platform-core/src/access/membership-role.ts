@@ -68,7 +68,7 @@ export function toPlatformUserType(input: {
 
   const authorised =
     input.hasAuthority ??
-    hasPlatformAuthority({ organisationId: input.organisationId, role: r });
+    hasPlatformAuthority({ organisationId: input.organisationId, role: input.role });
   if (!authorised) {
     return null;
   }

@@ -152,12 +152,21 @@ function apiHeaders(clerkUserId?: string, email?: string): HeadersInit | null {
 export async function fetchPortalMe(
   email: string,
   clerkUserId?: string,
+  organisationId?: string | null,
 ): Promise<PortalProfile> {
   const fallback = DEFAULT_UNLINKED_PROFILE(email);
 
   if (process.env.DATABASE_URL) {
     const { resolvePortalProfileFromNeon } = await import("@dg/platform-core");
-    const neon = await resolvePortalProfileFromNeon({ email, clerkUserId });
+    // Compatibility callers must resolve the same active membership; never
+    // recover a profile by cached email or by an arbitrary first organisation.
+    let exactOrganisationId = organisationId;
+    if (exactOrganisationId === undefined && clerkUserId) {
+      const { resolveActivePlatformSession } = await import("@/lib/active-platform-session");
+      const session = await resolveActivePlatformSession({ clerkUserId, email, name: "" });
+      exactOrganisationId = session?.organisationId ?? null;
+    }
+    const neon = await resolvePortalProfileFromNeon({ email, clerkUserId, organisationId: exactOrganisationId ?? null });
     if (neon) {
       return neon as PortalProfile;
     }

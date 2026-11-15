@@ -23,12 +23,13 @@ function unlinkedProfile(email: string): PortalProfile {
  */
 export async function resolveNativePortalProfile(
   email: string,
-  clerkUserId?: string,
+  clerkUserId: string | undefined,
+  organisationId: string | null,
 ): Promise<PortalProfile> {
   if (!process.env.DATABASE_URL) {
     return unlinkedProfile(email);
   }
 
-  const neon = await resolvePortalProfileFromNeon({ email, clerkUserId });
+  const neon = await resolvePortalProfileFromNeon({ email, clerkUserId, organisationId });
   return neon ? (neon as PortalProfile) : unlinkedProfile(email);
 }

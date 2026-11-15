@@ -28,9 +28,10 @@ const publicSync = read("scripts/sync-digitalgate-apps-pages.mjs");
 const lendConnector = read("src/app/api/v1/connectors/lend/route.ts");
 const specialistEntitlement = read("src/lib/specialist-industry-entitlement.ts");
 
+// The authority tests freeze Date before evaluating these fixed trial boundaries.
 function verifiedFinanceAuthority(overrides = {}) {
-  // A valid-trial fixture must remain active as calendar time advances.
-  // Expiry rejection is tested separately with an explicitly past date.
+  // Keep an active-trial fixture valid as calendar time advances.
+  // Explicit expired-trial rejection cases below remain unchanged.
   const activeTrialDeadline = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
   return {
     organisationId: "org-a",
@@ -54,7 +55,8 @@ function verifiedFinanceAuthority(overrides = {}) {
   };
 }
 
-test("canonical verified trial projection authorizes Finance only for its tenant", () => {
+test("canonical verified trial projection authorizes Finance only for its tenant", (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-25T00:00:00.000Z") });
   const valid = resolveFinanceAppAccessState(verifiedFinanceAuthority());
   assert.deepEqual(valid, { industryEntitled: true, betaEnrolled: true, selectedForOrganisation: true });
   assert.equal(financeAppAccessDenial(valid), null);
@@ -67,9 +69,11 @@ test("canonical verified trial projection authorizes Finance only for its tenant
   assert.equal(financeAppAccessDenial(resolveFinanceAppAccessState(verifiedFinanceAuthority({ featureFlags: {} }))), "beta_required");
 });
 
-test("expired, cancelled, mismatched and legacy-empty authority fails closed", () => {
+test("expired, cancelled, mismatched and legacy-empty authority fails closed", (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-25T00:00:00.000Z") });
   const cases = [
     { stripeStatus: "canceled", status: "CANCELLED" },
+    { status: "SUSPENDED", entitlement: "NONE" },
     { entitlement: "NONE" },
     { industryApps: [] },
     { trialEnd: new Date("2026-10-17T00:00:00.000Z") },
@@ -123,14 +127,14 @@ test("Finance page and every direct applications API method enforce access", () 
     const body = api.slice(start, next === -1 ? undefined : next);
     assert.ok(start >= 0, `${method} handler exists`);
     assert.match(body, /requirePlatformAuth/);
-    assert.match(body, /requireFinanceAppAccess\(session\.organisationId\)/);
+    assert.match(body, /requireFinanceAppAccess\(session\.organisationId, \{ organisationId: session\.organisationId, role: session\.role, principalId: session\.clerkUserId \}\)/);
     const operation = {
       GET: "listFinanceApplications(",
       POST: "createFinanceApplication(",
       PATCH: "updateFinanceApplication(",
     }[method];
     assert.ok(
-      body.indexOf("requireFinanceAppAccess(session.organisationId)") < body.indexOf(operation),
+      body.indexOf("requireFinanceAppAccess(session.organisationId,") < body.indexOf(operation),
       `${method} checks access before reaching application data operations`,
     );
   }
@@ -161,7 +165,7 @@ test("every identified subscription entitlement query selects the grace-period d
 
 test("supported Finance activation paths enrol beta only through app selection", () => {
   assert.match(appSelection, /enrolIndustryBetasForEnabled/);
-  assert.match(appSelection, /const featureFlags = enrolIndustryBetasForEnabled\(settings\.featureFlags, enabled\)/);
+  assert.match(appSelection, /const featureFlags = canonicalExempt && !operatorAuthority[\s\S]*?settings\.featureFlags[\s\S]*?: enrolIndustryBetasForEnabled\(settings\.featureFlags, enabled\)/);
   assert.match(appSelection, /const unpaidIndustry = unpaidIndustryApps\(requested, canonicalIndustryApps, staffOrOperator\)/);
   assert.match(templateSelection, /enrolIndustryBetasForAppIds/);
   assert.match(templateSelection, /action === "activate" && template\.appId/);

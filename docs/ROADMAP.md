@@ -130,6 +130,35 @@ Exact next action: operator supplies the missing test webhook routing/secrets an
 
 ---
 
+
+### 6 November 2026: platform operator role verification
+
+Requirement `platform.auth`. The isolated local branch `fix/operator-role-authority`
+is based on PR #1039 at `ea88c25a2169215e4fea7d246df6b5dfdc783911`.
+Permission evaluation now passes the persisted role to the canonical authority
+check before applying legacy display normalization. Canonical `dg:staff` and
+allowlisted owners retain existing authority. The original candidate is untouched.
+
+**IMPLEMENTED BUT UNVERIFIED** in the serving environment. Local authority,
+session, tenant, audit and checkout guard tests passed 106/106. The server
+application access policy suite passed 20/20 with Node's `react-server`
+condition. A hosted synthetic canonical operator reached Command Centre on the
+original candidate. Serving credential evidence and live operator attestation
+remain open. Production deployment and checkout remain HOLD.
+
+Requirements `platform.auth` and `platform.apps`: keep the Creator scaffold
+closed in shell navigation, direct app and setup pages, and the shared Industry
+API decision while Music & Artists is Coming Soon. Preserve saved selections.
+
+6 November 2026 local candidate based on PR #1039: `npm run test:checkout-release`
+494/494, `npm run test:security-certification` 85/85, and
+`npm run test:tenant-access-policy-invariants` passed with synthetic fixtures.
+Independent role review confirmed the raw-role boundary and identified a
+line-ending issue corrected in this candidate. GitHub CI passed on the original
+PR head. Updated-head CI and Production identity, grants and recovery remain
+unverified. Confirm the serving binding and recovery containment before the
+Roe Realty correction or any request to approve Production release.
+
 ## AI Gateway slice roadmap
 
 **Approved direction: 7 October 2026.** This extends the canonical AI and Business Brain architecture; it does not expand the founding ship list or authorise implementing the whole future roadmap.
@@ -943,3 +972,44 @@ pre-existing `react-hooks/set-state-in-effect` warning at line 69; the file was 
 changed. Candidate is ready for final independent review and the authorised
 publication, then exact-head CI. Existing `finish/checkout-entitlements` deployment suppression is
 unchanged. No Production or provider changes.
+
+## 5 November 2026 — isolated Production access restoration preparation
+
+Owner-approved scope: implement and validate the smallest safe restoration candidate, read-only Production preflight, then stop for explicit release approval. Requirements `platform.auth`, `crm.companies`, `detach.portal_billing`, `platform.roadmap`. Branch `release/access-restoration-only-20261105` starts at actual serving/main `8d639743`, separate from consolidated #1038. See [restoration release plan](commerce/release-1025/ACCESS-RESTORATION-ONLY-20261105.md) and [canonical application access policy](foundations/PLATFORM-APPLICATION-ACCESS-POLICY.md). Preserve commercial locks, separate operator authority/exemption, exact tenant/Clerk identities, Industry selections and rollout controls. Newer owner restoration authority supersedes historical #1006-only instructions for this bounded candidate only. No admission migration, permission provisioning, diagnostic deployment or customer checkout is authorised.
+
+Read-only Production preflight:26 finished migration entries; original25 recorded fields match frozen evidence; approved admission checksum matches; gate blocked, holdfalse, revision2; zero admissions/audit/processing or failed receipts; six canonical exemption rows. Restricted reader is unprivileged but cannot read organisation identities; actual serving role unverified and intended dg_app_runtime absent. Six-hour retention/old manual recovery point do not certify required recovery objectives. Status IN PROGRESS locally / BLOCKED for Production; no Production changes. Hosted authenticated acceptance requires a new explicit identity allowance. Final validation counts and exact local commit belong in the private completion receipt.
+
+Isolated restoration local validation:489 checkout,84 security,171 compatibility,14 navigation/Industry and180 disposable PostgreSQL cases; TypeScript, lint (zero errors/eight existing warnings), schema parity and full457-page build passed. External certified commercial reconciliation against isolated sources:57/57. Four profile-compatibility boundary tests cover the only new runtime adapter; other runtime extractions match reviewed source. Fresh whole-candidate independent acceptance, exact-head hosted CI and authenticated hosted acceptance remain unverified. No source publication or Production change is authorised by this record. Current serving/main remains8d639743; consolidated PR1038 remains unchanged.
+
+## 6 November 2026 — continuation independent acceptance correction
+
+Requirements `platform.auth`, `crm.companies`, `detach.portal_billing`, `platform.roadmap`. Independent review of isolated59aa4ac4 found a P1 in the profile compatibility path: a noninteractive onboarding sync selected target B but omitted its organisation ID when resolving the native profile, allowing the no-cookie default A to be copied into B. Corrected only the established webhook/profile callers: exact target/session organisation, active/nonarchived membership, missing Clerk identity denial. Actual webhook regression forces default A and asserts B-only sync, ignoring body tenant injection. Independent acceptance:491/491 checkout and6/6 boundary tests PASS; TypeScript, changed-code lint, whitespace and complete457-page build pass. Prior59aa remains preserved as parent; normal follow-up only. Publish suppressed review branch and exact-head CI under the6November continuation scope, not merge/deploy. Hosted identity allowance exhausted; Production serving identity, owner immutable roster attestation, Roe primary-only data correction and recovery objectives remain separate HOLD gates. No Production writes.
+
+
+### 7 November 2026 — single launch recovery candidate (#1039)
+
+Requirements `platform.auth`, `crm.companies`, `detach.portal_billing`, `platform.roadmap`. Owner explicitly requested one coordinated launch recovery. Continue #1039 from dc843d58; preserve all local work and avoid another PR. Bounded admission/runtime-role tooling, ordered unpaid onboarding saves, strict canonical completion, verified operator setup, purchased Finance beta projection and Clerk origin consistency integrated from reviewed #1038 stack. Diagnostic control database/routes excluded; latest #1039 tenant/role/Creator safeguards retained. Independent review found and corrected stale legacy completion fallback and expired-trial authority. Operational state remains BLOCKED for Production; local code IMPLEMENTED BUT UNVERIFIED in hosted acceptance. Authoritative remaining gate/action list: [release blockers](commerce/release-1025/RELEASE-BLOCKERS.md). Ancestry/file evidence: [PR reconciliation](commerce/release-1025/PR-RECONCILIATION-20261107.json). No Production mutation or activation. Test evidence and exact-head CI are recorded in the continued PR; do not substitute historical counts for new-head CI.
+
+### 13 November 2026 — PR1040 local certification follow-up
+
+Requirements `platform.auth`, `crm.companies`, `detach.portal_billing`, `platform.roadmap`.
+Owner requested certification of existing #1040 and its #1039 dependency.
+Reviewed baseline `2d6555c25937d71ed6ed2fdc1f81a6a343d30b89` over #1039
+`db400cda61597d57d4e90641dee556c6cfd735ac`. Local correction fixes founding-mode
+Settings omission, filters overview cards using existing permissions and preserves
+member role/route enforcement. Core-only subscription metadata may omit empty app
+keys only when the entire canonical Stripe item set matches. Regression evidence
+uses actual navigation, rendered Settings component and disposable lifecycle
+projection. `npm run test:checkout-release`639/639; security85/85; owned PostgreSQL
+compatibility runner268/268 including three Core-only tiers; TypeScript, lint
+(zero errors/three existing warnings), manifest verifier and full prebuild/build
+457 pages PASS. Independent review reran169 focused tests and268 database cases,
+with no P0/P1/P2 finding in the final targeted source diff. Initial stale generated
+Prisma client was regenerated from the unchanged schema before final TypeScript
+and build. A source-text sidebar expectation was updated for the approved
+founding-mode behaviour, with new executable navigation tests retaining coverage.
+Hosted A/B negative checks and staging read-only privileges pass on the published
+baseline, not the unpublished follow-up. Source is IMPLEMENTED locally; hosted
+follow-up and Production verification remain BLOCKED. Publish existing #1040 only
+under the controlled release gate, require fresh CI and protected hosted
+acceptance, then separately approve dependency merges/Production deployment.
