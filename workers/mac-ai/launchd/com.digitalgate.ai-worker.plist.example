@@ -28,7 +28,7 @@
     <key>DG_AI_WORKER_ID</key>
     <string>dg-mac-1</string>
     <key>DG_FAST_OLLAMA_DIGEST</key>
-    <string>sha256:bb416f08ee253472fdb015ecc32db5ad8fbf0baf76226781fb62b711835c0f7d</string>
+    <string>bb416f08ee253472fdb015ecc32db5ad8fbf0baf76226781fb62b711835c0f7d</string>
   </dict>
 
   <key>RunAtLoad</key>

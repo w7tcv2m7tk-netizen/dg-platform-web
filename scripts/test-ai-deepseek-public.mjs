@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
 import { llmChat, llmConfigured, llmConfiguredForPublicData, resolveLlmTransports } from "../packages/platform-core/src/ai/llm.ts";
 import { runPublicAidaTurn } from "../packages/platform-core/src/aida/public-turns.ts";
+import { describeAiDeployments, validateDisclosurePolicy } from "../packages/platform-core/src/ai/policy.ts";
 
 const names = ["AI_GATEWAY_API_KEY", "VERCEL_OIDC_TOKEN", "OPENAI_API_KEY", "OPENAI_MODEL", "ANTHROPIC_API_KEY", "DG_LLM_PROVIDER", "DEEPSEEK_API_KEY", "DEEPSEEK_MODEL", "DEEPSEEK_BASE_URL"];
 let saved;
@@ -21,7 +22,7 @@ test("DeepSeek is public-data-only and absent from the default internal chain", 
   assert.equal(resolveLlmTransports("standard", true).some((transport) => transport.provider === "deepseek"), true);
 });
 
-test("explicit public Data only call can use the OpenAI-compatible DeepSeek transport", async (t) => {
+test("explicit public-data-only call can use the OpenAI-compatible DeepSeek transport", async (t) => {
   let calls = 0;
   t.mock.method(globalThis, "fetch", async (url, options) => {
     calls += 1;
@@ -58,6 +59,18 @@ test("public Aida explicitly requests the public-only provider scope", async () 
   );
   assert.equal(call.publicDataOnly, true);
   assert.equal(call.allowedProviders, undefined);
+});
+
+test("gateway policy cannot certify or approve a DeepSeek recipient", () => {
+  assert.deepEqual(describeAiDeployments([{ provider: "deepseek", model: "deepseek-chat" }]), []);
+  assert.throws(() => validateDisclosurePolicy({
+    version: 1,
+    classification: "public",
+    cloudPermitted: true,
+    approvedRecipients: [{ transport: "deepseek", upstream: "openai", model: "deepseek-chat" }],
+    localRequired: false,
+    cloudFallbackPermitted: false,
+  }));
 });
 
 test("invalid or non-HTTPS DeepSeek configuration fails closed", () => {

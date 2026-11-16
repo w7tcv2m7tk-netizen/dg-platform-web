@@ -47,6 +47,7 @@ Required assertions:
 - Public Aida sends `publicDataOnly: true`.
 - Invalid/non-HTTPS base URL fails closed.
 - No tenant/Business Brain payload reaches DeepSeek.
+- The AI Gateway model variables must never be set to a DeepSeek upstream; DeepSeek is not an approved gateway recipient.
 
 ### Activation and rollback
 
@@ -81,12 +82,13 @@ The plist must contain only non-secret configuration:
 - working directory;
 - `DG_AI_GATEWAY_URL=https://app.digitalgate.com.au`;
 - `DG_AI_WORKER_ID=dg-mac-1`;
-- `DG_FAST_OLLAMA_DIGEST=sha256:...`;
+- `DG_FAST_OLLAMA_DIGEST=bb416f08...` (bare Ollama digest; do not add a `sha256:` prefix; the worker compares the pinned server value verbatim);
 - bounded log paths.
 
 It must not contain a worker bearer, database URL, encryption key, provisioning public key, API key or shell profile.
 
 ```sh
+mkdir -p "$HOME/Library/Logs/DigitalGate"
 plutil -lint "$HOME/Library/LaunchAgents/com.digitalgate.ai-worker.plist"
 launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.digitalgate.ai-worker.plist"
 launchctl print "gui/$(id -u)/com.digitalgate.ai-worker"
