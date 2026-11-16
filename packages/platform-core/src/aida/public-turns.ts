@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { llmChat, llmConfigured } from "../ai/llm";
+import { llmChat, llmConfiguredForPublicData } from "../ai/llm";
 import { retrievePlatformDocChunks } from "../ai/platform-intelligence";
 import type { PlatformDocCorpusEntry } from "../ai/platform-intelligence";
 import { AIDA_OPENING_MESSAGE } from "./identity";
@@ -83,7 +83,7 @@ export async function runPublicAidaTurn(
   }
 
   const chat = deps?.llmChat ?? llmChat;
-  const configured = deps?.llmConfigured ?? llmConfigured;
+  const configured = deps?.llmConfigured ?? llmConfiguredForPublicData;
   if (!configured()) {
     return {
       reply:
@@ -116,6 +116,8 @@ export async function runPublicAidaTurn(
     const result = await chat({
       tier: "standard",
       maxTokens: 700,
+      publicDataOnly: true,
+      safeErrors: true,
       messages: [
         { role: "system", content: systemPrompt(retrievedBlock, input.pricingBrief) },
         ...recent,

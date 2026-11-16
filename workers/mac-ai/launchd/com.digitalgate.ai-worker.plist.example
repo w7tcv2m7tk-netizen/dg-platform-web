@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Example only. Do not install until the isolated activation approval is recorded.
+  Replace __NODE_BIN__, __REPO_ROOT__ and __HOME__ with absolute local paths.
+  Never add a worker bearer, database URL, encryption key, provider API key or other secret.
+  The worker reads its credential directly from the current user's Keychain.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.digitalgate.ai-worker</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>__NODE_BIN__</string>
+    <string>--experimental-strip-types</string>
+    <string>__REPO_ROOT__/workers/mac-ai/src/index.ts</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__REPO_ROOT__</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>DG_AI_GATEWAY_URL</key>
+    <string>https://app.digitalgate.com.au</string>
+    <key>DG_AI_WORKER_ID</key>
+    <string>dg-mac-1</string>
+    <key>DG_FAST_OLLAMA_DIGEST</key>
+    <string>sha256:bb416f08ee253472fdb015ecc32db5ad8fbf0baf76226781fb62b711835c0f7d</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ProcessType</key>
+  <string>Background</string>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+
+  <key>StandardOutPath</key>
+  <string>__HOME__/Library/Logs/DigitalGate/ai-worker.log</string>
+  <key>StandardErrorPath</key>
+  <string>__HOME__/Library/Logs/DigitalGate/ai-worker.error.log</string>
+</dict>
+</plist>
