@@ -31,7 +31,7 @@ export const prospectingApp: AppManifest = {
   ],
   navigation: [
     {
-      href: "/apps/prospecting",
+      href: "/apps/prospecting/overview",
       label: "Prospecting",
       icon: "◎",
     },

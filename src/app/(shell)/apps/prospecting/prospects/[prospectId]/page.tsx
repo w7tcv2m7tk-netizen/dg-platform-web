@@ -77,6 +77,11 @@ export default async function ProspectResearchPage({ params }: { params: Promise
     where: { prospectId: prospect.id, prospect: { organisationId: session.organisationId } },
     orderBy: { auditedAt: "desc" },
   });
+  const existingReport = await prisma.growthProspectReport.findFirst({
+    where: { prospectId: prospect.id, revokedAt: null },
+    orderBy: { generatedAt: "desc" },
+    select: { id: true, shareToken: true, generatedAt: true },
+  });
   const findings = findingsFrom(audit?.findings);
   const probes = probesFrom(audit?.findings);
   const businessIntelligence = businessIntelligenceFrom(audit?.findings);
@@ -99,12 +104,48 @@ export default async function ProspectResearchPage({ params }: { params: Promise
     audit: audit && contentAccessible ? { businessHealth: audit.businessHealth, aiVisibility: audit.aiVisibility, seoScore: audit.seoScore, websiteHealth: audit.websiteHealth, findings: audit.findings } : null,
   });
   const [companies, contacts, memberships] = await Promise.all([
-    sessionHasFeature(session, "crm.companies.write") ? prisma.company.findMany({ where: { organisationId: session.organisationId, deletedAt: null }, orderBy: { name: "asc" }, take: 200, select: { id: true, name: true } }) : [],
-    sessionHasFeature(session, "crm.contacts.write") ? prisma.contact.findMany({ where: { organisationId: session.organisationId, deletedAt: null }, orderBy: { firstName: "asc" }, take: 200, select: { id: true, firstName: true, lastName: true } }) : [],
+    sessionHasFeature(session, "crm.companies.write") ? prisma.company.findMany({ where: { organisationId: session.organisationId, deletedAt: null }, orderBy: { name: "asc" }, take: 200, select: { id: true, name: true, abn: true, website: true, email: true, phone: true, identityProvenance: true } }) : [],
+    sessionHasFeature(session, "crm.contacts.write") ? prisma.contact.findMany({ where: { organisationId: session.organisationId, deletedAt: null }, orderBy: { firstName: "asc" }, take: 200, select: { id: true, firstName: true, lastName: true, email: true, phone: true, companyId: true } }) : [],
     prisma.membership.findMany({ where: { clerkUserId: session.clerkUserId, status: "active", role: { in: ["owner", "admin"] } }, select: { organisation: { select: { id: true, name: true } } } }),
   ]);
   const canWrite = sessionHasFeature(session, "prospecting.prospects.write");
   const canQualify = Boolean(prospect.contactName && (prospect.contactPhone || prospect.contactEmail));
+  const normaliseDomain = (value?: string | null) => {
+    try { return new URL(value?.includes("://") ? value : `https://${value ?? ""}`).hostname.replace(/^www\./, "").toLowerCase(); } catch { return ""; }
+  };
+  const normaliseName = (value?: string | null) => (value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const provenance = (value: unknown) => {
+    if (!value || typeof value !== "object") return "";
+    const record = value as { provider?: string; verifiedAt?: string };
+    return [record.provider ? `provider ${record.provider}` : "", record.verifiedAt ? `verified ${new Date(record.verifiedAt).toLocaleDateString("en-AU")}` : ""].filter(Boolean).join(" · ");
+  };
+  const prospectDomain = normaliseDomain(prospect.websiteUrl);
+  const companySuggestions = companies.flatMap((company) => {
+    const evidence: string[] = [];
+    if (prospect.abn && company.abn === prospect.abn) evidence.push(`ABN match${provenance(company.identityProvenance) ? ` (${provenance(company.identityProvenance)})` : ""}`);
+    if (prospectDomain && normaliseDomain(company.website) === prospectDomain) evidence.push("Website domain matches");
+    if (normaliseName(company.name) === normaliseName(prospect.businessName)) evidence.push("Business name matches");
+    if (prospect.contactEmail && company.email?.toLowerCase() === prospect.contactEmail.toLowerCase()) evidence.push("Email matches");
+    if (prospect.contactPhone && company.phone && prospect.contactPhone.replace(/\s/g, "") === company.phone.replace(/\s/g, "")) evidence.push("Phone matches");
+    if (evidence.length && (company.website || company.phone || company.email)) evidence.push("CRM has additional contact details");
+    return evidence.length ? [{ id: company.id, label: company.name, evidence: evidence.join(" · ") }] : [];
+  });
+  const contactSuggestions = contacts.flatMap((contact) => {
+    const evidence: string[] = [];
+    if (prospect.contactEmail && contact.email?.toLowerCase() === prospect.contactEmail.toLowerCase()) evidence.push("Email matches prospect contact");
+    if (prospect.contactPhone && contact.phone && prospect.contactPhone.replace(/\s/g, "") === contact.phone.replace(/\s/g, "")) evidence.push("Phone matches prospect contact");
+    if (normaliseName(`${contact.firstName} ${contact.lastName}`) === normaliseName(prospect.contactName)) evidence.push("Contact name matches");
+    return evidence.length ? [{ id: contact.id, label: [contact.firstName, contact.lastName].filter(Boolean).join(" "), evidence: evidence.join(" · ") }] : [];
+  });
+  const canGenerateReport = Boolean(audit && contentAccessible);
+  const reportUrl = existingReport ? `/opportunity-report/${existingReport.shareToken}?preview=1` : null;
+  const reportReadiness = existingReport
+    ? { label: "Existing report available", detail: `A snapshot generated ${new Date(existingReport.generatedAt).toLocaleDateString("en-AU")} can be previewed without regenerating it.` }
+    : !audit
+      ? { label: "No report yet", detail: !prospect.websiteUrl?.trim() ? "Add the business website and complete research before preparing a report." : "Complete research before preparing a report." }
+      : !contentAccessible
+        ? { label: "Report unavailable", detail: "The website blocked the research probe. A prospect-facing report cannot be prepared from unverified content." }
+        : { label: "Ready to prepare", detail: "The audit evidence is available. Prepare a snapshot when you are ready to review the prospect-facing version." };
   const isResearch = prospect.stage === "audit_created";
   const isDiscovered = prospect.stage === "prospect";
   const researchDisabledReason = !prospect.websiteUrl?.trim()
@@ -122,7 +163,6 @@ export default async function ProspectResearchPage({ params }: { params: Promise
     <>
       <ProspectingPageHeader title="Research prospect" description="Review evidence, identify the decision-maker and make a deliberate qualification decision." />
       <main className="dg-page-main space-y-6">
-        {canWrite ? <ProspectRelationshipForm prospectId={prospect.id} abn={prospect.abn} companies={companies.map((c) => ({ id: c.id, label: c.name }))} contacts={contacts.map((c) => ({ id: c.id, label: [c.firstName, c.lastName].filter(Boolean).join(" ") }))} organisations={memberships.map((m) => ({ id: m.organisation.id, label: m.organisation.name }))} /> : null}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <Link href="/apps/prospecting/today" className="text-xs text-violet-300 hover:underline">← Back to Today</Link>
@@ -130,7 +170,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
             <p className="mt-1 text-sm text-slate-400">{[prospect.industry, prospect.location].filter(Boolean).join(" · ") || "Business details incomplete"}</p>
           </div>
           <div className="flex flex-wrap items-start gap-3">
-            <Link href={`/apps/prospecting/prospects/${prospect.id}#opportunity-report`} className="rounded-lg border border-violet-500/40 px-3 py-2 text-sm font-medium text-violet-200 hover:bg-violet-500/10">Preview report</Link>
+            {reportUrl ? <a href={reportUrl} target="_blank" rel="noreferrer" className="rounded-lg border border-violet-500/40 px-3 py-2 text-sm font-medium text-violet-200 hover:bg-violet-500/10">Open existing report</a> : canGenerateReport ? <a href="#opportunity-report" className="rounded-lg border border-violet-500/40 px-3 py-2 text-sm font-medium text-violet-200 hover:bg-violet-500/10">Prepare report</a> : <span role="status" className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-medium text-amber-100" title={reportReadiness.detail}>Report not ready</span>}
             <div className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-right">
             <p className="text-xs uppercase tracking-wide text-violet-200">{score.contactPriority != null ? "Contact priority" : "Research priority"}</p>
             <p className="mt-1 text-2xl font-semibold text-white">{score.score}</p>
@@ -138,6 +178,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
             </div>
           </div>
         </div>
+        {!reportUrl && !canGenerateReport ? <p className="text-xs leading-5 text-amber-200/90">{reportReadiness.detail}</p> : null}
 
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="dg-card">
@@ -216,6 +257,12 @@ export default async function ProspectResearchPage({ params }: { params: Promise
           ) : <p className="mt-3 text-sm text-slate-400">No audit has been created for this prospect yet.</p>}
         </section>
 
+        {canWrite ? <details className="dg-card">
+          <summary className="cursor-pointer text-sm font-semibold text-white">Business identity &amp; existing relationships</summary>
+          <p className="mt-2 text-xs leading-5 text-slate-400">Administrative identity verification and CRM linking. Review suggested matches and confirm before linking; suggestions never mutate records automatically.</p>
+          <div className="mt-3"><ProspectRelationshipForm prospectId={prospect.id} abn={prospect.abn} companies={companies.map((c) => ({ id: c.id, label: c.name }))} contacts={contacts.map((c) => ({ id: c.id, label: [c.firstName, c.lastName].filter(Boolean).join(" ") }))} organisations={memberships.map((m) => ({ id: m.organisation.id, label: m.organisation.name }))} companySuggestions={companySuggestions} contactSuggestions={contactSuggestions} /></div>
+        </details> : null}
+
         <section className="dg-card">
           <p className="text-xs uppercase tracking-wide text-violet-300">Research intelligence</p>
           <h2 className="mt-2 text-lg font-semibold text-white">Evidence provenance & acquisition signals</h2>
@@ -278,7 +325,11 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               <h2 className="mt-2 text-lg font-semibold text-white">{prospect.businessName}</h2>
               <p className="mt-1 max-w-2xl text-sm text-slate-400">Prospect-facing preview generated from verified research evidence. Internal qualification, contact strategy and sales notes stay private.</p>
             </div>
-            <span className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-400">Report v1 · preview</span>
+            <span className={`rounded-full border px-3 py-1 text-xs ${existingReport ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200" : canGenerateReport ? "border-violet-500/30 bg-violet-500/10 text-violet-200" : "border-amber-500/30 bg-amber-500/10 text-amber-100"}`}>{reportReadiness.label}</span>
+          </div>
+          <div className={`mt-4 rounded-lg border p-3 text-sm ${existingReport ? "border-emerald-500/20 bg-emerald-500/5 text-emerald-100" : canGenerateReport ? "border-violet-500/20 bg-violet-500/5 text-violet-100" : "border-amber-500/25 bg-amber-500/5 text-amber-100"}`}>
+            <p className="font-medium">{reportReadiness.label}</p><p className="mt-1 text-xs leading-5 opacity-90">{reportReadiness.detail}</p>
+            {!prospect.websiteUrl?.trim() && canWrite ? <Link href={`/apps/prospecting/prospects/${prospect.id}#business-identity`} className="mt-2 inline-block text-xs font-semibold text-violet-300 hover:underline">Add website details</Link> : null}
           </div>
           {audit && contentAccessible ? (
             <>
@@ -317,7 +368,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               </div>
             </>
           ) : <p className="mt-4 text-sm text-slate-400">A verified, accessible audit is required before a prospect-facing report can be generated.</p>}
-          <ProspectReportActions prospectId={prospect.id} canGenerate={Boolean(audit && contentAccessible)} recipientName={prospect.contactName} recipientEmail={prospect.contactEmail} businessName={prospect.businessName} />
+          <ProspectReportActions prospectId={prospect.id} canGenerate={canGenerateReport} initialReport={existingReport ? { id: existingReport.id, url: `/opportunity-report/${existingReport.shareToken}` } : null} recipientName={prospect.contactName} recipientEmail={prospect.contactEmail} businessName={prospect.businessName} />
         </section>
 
         <section className="dg-card">

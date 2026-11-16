@@ -150,7 +150,7 @@ test('default Priorities page renders retry/help recovery for missing database a
   },{process:{env:{DATABASE_URL:database}},console:{error(){}}}).default;
   const html=renderToStaticMarkup(await page());
   assert.match(html,/Try again/);assert.match(html,/Get help/);assert.match(html,/rather than estimating/);
-  assert.match(html,/href="\/apps\/prospecting"/);assert.equal(queries,database?1:0);
+  assert.match(html,/href="\/apps\/prospecting\/today"/);assert.equal(queries,database?1:0);
  }
 });
 
@@ -219,7 +219,7 @@ test('prospect detail distinguishes Discover, Research without website, and qual
   const page=load('src/app/(shell)/apps/prospecting/prospects/[prospectId]/page.tsx',{
    'react/jsx-runtime':require('react/jsx-runtime'),'next/link':({children})=>children,'next/navigation':{notFound(){throw Error('not_found');}},
    '@dg/platform-core':{computeProspectOpportunityScore:score,getGrowthProspect:async()=>prospect,organisationGrowthScope:id=>({organisationId:id}),sessionHasFeature:()=>canWrite},
-   '@dg/database':{prisma:{growthProspectAudit:{findFirst:async()=>null},company:{findMany:async()=>[]},contact:{findMany:async()=>[]},membership:{findMany:async()=>[]}}},
+   '@dg/database':{prisma:{growthProspectAudit:{findFirst:async()=>null},growthProspectReport:{findFirst:async()=>null},company:{findMany:async()=>[]},contact:{findMany:async()=>[]},membership:{findMany:async()=>[]}}},
    '@/components/prospecting/ProspectRelationshipForm':{ProspectRelationshipForm:()=>null},
    '@/components/prospecting/ProspectingCustomerActions':{ProspectEditControl:()=>react.createElement('button',null,'Edit')},
    '@/components/prospecting/ProspectingPageHeader':{ProspectingPageHeader:()=>null},
@@ -262,11 +262,32 @@ test('explicit Google and ABR combinations preserve selected listing fields and 
  tree=render();assert.equal(input(tree,'businessName').props.value,'Registry synthetic');assert.equal(input(tree,'abn').props.value,'10000000003');assert.equal(input(tree,'websiteUrl').props.value,'https://other.test');assert.equal(button(tree,'Add to pipeline').props.disabled,true);
 });
 
-test('Prospecting entry redirects to Today and preserves the legacy Overview URL',async()=>{
+test('prospect report readiness and CRM suggestions are explicit; sidebar defaults to Overview',()=>{
+ const detail=fs.readFileSync('src/app/(shell)/apps/prospecting/prospects/[prospectId]/page.tsx','utf8');
+ const actions=fs.readFileSync('src/components/prospecting/ProspectReportActions.tsx','utf8');
+ const relationship=fs.readFileSync('src/components/prospecting/ProspectRelationshipForm.tsx','utf8');
+ const manifest=fs.readFileSync('packages/platform-core/src/apps/builtins/prospecting.ts','utf8');
+ assert.match(detail,/No report yet/);
+ assert.match(detail,/Existing report available/);
+ assert.match(detail,/Report not ready/);
+ assert.match(detail,/existingReport/);
+ assert.match(detail,/initialReport=/);
+ assert.doesNotMatch(detail,/>Preview report</);
+ assert.match(actions,/initialReport/);
+ assert.match(actions,/canShare/);
+ assert.match(actions,/readiness/);
+ assert.match(detail,/companySuggestions/);
+ assert.match(detail,/contactSuggestions/);
+ assert.match(relationship,/Possible CRM matches/);
+ assert.match(relationship,/nothing is linked until you confirm/);
+ assert.match(manifest,/href: "\/apps\/prospecting\/overview"/);
+});
+
+test('Prospecting entry opens Overview by default and preserves explicit Today links',async()=>{
  const urls=[];
  const {default:page}=load('src/app/(shell)/apps/prospecting/page.tsx',{'next/navigation':{redirect:url=>urls.push(url)}});
- await page({searchParams:Promise.resolve({})});await page({searchParams:Promise.resolve({view:'overview'})});
- assert.deepEqual(urls,['/apps/prospecting/today','/apps/prospecting/overview']);
+ await page({searchParams:Promise.resolve({})});await page({searchParams:Promise.resolve({view:'overview'})});await page({searchParams:Promise.resolve({view:'today'})});
+ assert.deepEqual(urls,['/apps/prospecting/overview','/apps/prospecting/overview','/apps/prospecting/today']);
 });
 
 test('existing prospect Edit fills available Google details without changing identity or contact name',()=>{

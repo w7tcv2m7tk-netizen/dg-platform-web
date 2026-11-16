@@ -8,11 +8,14 @@ type Props = {
   recipientName?: string | null;
   recipientEmail?: string | null;
   businessName: string;
+  initialReport?: { url: string; id: string } | null;
+  readiness?: { label: string; detail: string } | null;
 };
 
-export function ProspectReportActions({ prospectId, canGenerate, recipientName, recipientEmail, businessName }: Props) {
-  const [report,setReport]=useState<{ url: string; id: string }|null>(null);
+export function ProspectReportActions({ prospectId, canGenerate, recipientName, recipientEmail, businessName, initialReport = null, readiness = null }: Props) {
+  const [report,setReport]=useState<{ url: string; id: string }|null>(initialReport);
   const shareUrl=report?.url ?? null;
+  const canShare=Boolean(shareUrl || canGenerate);
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState<string|null>(null);
   const [emailOpen,setEmailOpen]=useState(false);
@@ -84,10 +87,11 @@ DigitalGate`);
   }
 
   return <div className="mt-5">
+    {!shareUrl && readiness ? <p role="status" className="mb-3 text-xs leading-5 text-slate-400"><span className="font-medium text-slate-300">{readiness.label}.</span> {readiness.detail}</p> : null}
     <div className="flex flex-wrap gap-2">
       <button type="button" onClick={()=>void generate()} disabled={!canGenerate||loading} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40">{loading?"Generating…":shareUrl?"Generate latest snapshot":"Generate share link"}</button>
       {shareUrl ? <><a href={`${shareUrl}?preview=1`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500">Open report</a><button type="button" onClick={()=>void copy()} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500">Copy link</button></> : null}
-      <button type="button" onClick={()=>void exportPdf()} disabled={!canGenerate||loading} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-40">Export PDF</button>
+      <button type="button" onClick={()=>void exportPdf()} disabled={!canShare||loading} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-40">Export PDF</button>
       <button type="button" onClick={()=>setEmailOpen(true)} disabled={!canGenerate} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-40">Email report</button>
     </div>
     {shareUrl ? <p className="mt-3 break-all text-xs text-slate-400">{shareUrl}</p> : null}
