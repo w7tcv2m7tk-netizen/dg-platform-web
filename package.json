@@ -21,7 +21,7 @@
     "test:ai-model-registry": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-model-registry.mjs",
     "test:ai-gateway-policy": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-gateway-policy.mjs",
     "test:ai-gateway": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-gateway.mjs",
-    "test:safe-prisma-logging": "node --experimental-strip-types --test scripts/test-safe-prisma-logging.mjs",
+    "test:safe-prisma-logging": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-safe-prisma-logging.mjs",
     "test:stripe-webhook-setup-safety": "node --test scripts/test-stripe-webhook-setup-safety.mjs",
     "test:ai-local-crypto": "node --experimental-strip-types --test scripts/test-ai-local-crypto.mjs",
     "test:ai-worker-auth": "node --experimental-strip-types --test scripts/test-ai-worker-auth.mjs",

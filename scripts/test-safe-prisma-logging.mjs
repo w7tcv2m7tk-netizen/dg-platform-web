@@ -32,3 +32,11 @@ test('concurrent diagnostic and checkout failures never fabricate request attrib
 test('sink failure neither exposes error nor replaces the original operation result',()=>{
  const log=createSafeDatabaseLogger(()=>{throw Error(secret);});assert.doesNotThrow(()=>log.engineError());assert.doesNotThrow(()=>log.operationFailure(known('P1000')));
 });
+
+test('shared client preserves the public $on contract and installs safe query observation', async () => {
+  const { prisma } = await import('../packages/database/src/index.ts');
+  assert.equal(typeof prisma.$on, 'function');
+  assert.equal(typeof prisma.$transaction, 'function');
+  assert.doesNotThrow(() => prisma.$on('error', () => {}));
+  await prisma.$disconnect();
+});

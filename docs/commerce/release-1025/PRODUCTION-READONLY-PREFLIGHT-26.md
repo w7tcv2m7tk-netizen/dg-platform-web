@@ -1,5 +1,12 @@
 # Production read-only preflight — 26-row migration baseline
 
+> **Tooling status:** this focused extraction contains documentation and the
+> read-only SQL only. The historical 26-row wrapper, updated offline verifier/test
+> and pending evidence files are **not included**. Do not execute this as a
+> complete procedure or claim a verified 26-row capture until those artefacts are
+> added and independently reviewed. Hashes and current-state wording below are
+> historical #1038 evidence, not claims about this branch.
+
 Prepared: 2026-10-28
 Stage 2C correction: 2026-10-28
 Scope: read-only evidence collection only. No SQL writes, migrations, role/grant
@@ -8,23 +15,21 @@ opening are authorised by this procedure.
 
 Final reviewed SQL SHA-256:
 `8c9cd9a317be3d804b04e62d109cf77ac67c3d42291f52b084159ebf6310b063`.
-Final execution-wrapper SHA-256:
+Historical execution-wrapper SHA-256 from #1038 (wrapper not included in this extraction):
 `3316f97b7afa886032370dae5d65cad2cdb938d7caf49633c9148ec21b71828a`.
 
 ## Preconditions
 
 - PR #1032 exact head: `e10b24752db743447d9456c94577c54fb36cdb3d`.
-- Current main: `8d639743352b9e980afb7e156fc9ac9cff1308b2`.
+- Historical main at preparation: `8d639743352b9e980afb7e156fc9ac9cff1308b2`; this extraction is based on `79cc1353ff2002a8fe5587dcfd0b61a7a0c571b4`.
 - Historical migration baseline: 25 independently captured rows plus the certified
   `20261027_single_use_checkout_admission` addition = 26.
 - The pending descriptor is `production-readonly-evidence-26-pending.json`; it is
   **not** a current capture. `production-readonly-evidence.json` remains the
   reviewed 25-row base.
-- `scripts/verify-checkout-release-preflight.mjs` explicitly rejects a 25-row
-  capture as stale, rejects missing/unexpected/duplicate/unfinished/rolled-back
-  entries, and requires the exact certified addition name/checksum/completion.
-- The offline CLI refuses to verify a current capture while `freshCapturePending`
-  is true.
+- The verifier currently in the repository still requires the reviewed 25-row
+  base. The 26-row verifier/test and `freshCapturePending` guard are not included
+  in this extraction; do not treat the historical procedure below as executable.
 
 
 ## Executable SQL (authoritative)
@@ -59,7 +64,7 @@ this operator capture; the operator role and its privileges are checked by the S
 
 ## Execution wrapper and mandatory gates
 
-The reviewed wrapper is `scripts/run-production-readonly-preflight-26.sh`. It:
+The historical #1038 wrapper description below is retained for review. The wrapper itself is not included in this extraction and must not be executed here. It:
 
 - Verifies the pinned SQL SHA-256 immediately before execution.
 - Requires explicit project, branch, host, port, database and role inputs and

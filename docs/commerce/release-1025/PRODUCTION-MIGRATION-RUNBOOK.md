@@ -98,9 +98,10 @@ The 23 October 25-row capture remains the immutable historical base. The
 27 October `20261027_single_use_checkout_admission` entry is certified separately
 by the admission operator and independent post-migration receipts (checksum
 `a60c03ab49b4b1969e52c4edccb06f73117faac577271400c63eea9e2ec472f6`).
-The offline verifier now requires 26 entries and rejects a 25-row capture as
-stale; it validates the original 25 rows, the certified addition identity/checksum,
-and rejects missing, unexpected, duplicate, unfinished or rolled-back entries.
-A fresh 26-row sanitised capture is pending and must not be substituted with the
-pending descriptor. See `PRODUCTION-READONLY-PREFLIGHT-26.md`. No migration was
-executed; no Production state was queried.
+The 26-row baseline is documented here as a follow-up. The repository verifier
+included in this focused extraction still validates the reviewed 25-row base; it
+must not be described as a 26-row verifier. The updated verifier/wrapper and
+pending evidence are separate artefacts and are not included here. Do not execute
+the 26-row procedure until those are committed and independently verified. See
+`PRODUCTION-READONLY-PREFLIGHT-26.md`. No migration was executed; no Production
+state was queried.

@@ -58,6 +58,7 @@ function validateWebhookUrl(webhookUrl) {
     throw new Error("WEBHOOK_URL must not contain credentials, query or fragment");
   }
   if (url.hostname.includes("*")) throw new Error("WEBHOOK_URL must not contain a wildcard host");
+  if (url.hostname.endsWith(".")) throw new Error("WEBHOOK_URL host must not end with a dot");
   if (url.pathname !== "/api/webhooks/stripe") {
     throw new Error("WEBHOOK_URL must target /api/webhooks/stripe");
   }
@@ -69,7 +70,7 @@ function normalizeApprovedOrigin(value) {
     const url = new URL(value?.trim() ?? "");
     if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) return null;
     if (url.pathname !== "/" && url.pathname !== "") return null;
-    if (url.hostname.includes("*")) return null;
+    if (url.hostname.includes("*") || url.hostname.endsWith(".")) return null;
     return url.origin;
   } catch {
     return null;
@@ -81,9 +82,12 @@ export function isProductionWebhookUrl(webhookUrl) {
   return (
     PRODUCTION_WEBHOOK_HOSTS.has(host) ||
     host.startsWith("dg-platform-web-git-main-") ||
+    /^dg-platform-web-[a-z0-9]{6,}\.vercel\.app$/.test(host) ||
     host.endsWith(".digitalgate.com.au")
   );
 }
+
+const LIVE_WEBHOOK_HOSTS = new Set(["app.digitalgate.com.au", "digitalgate.com.au", "www.digitalgate.com.au"]);
 
 export function resolveWebhookDestination({ secretKey, webhookUrl, approvedOrigins = [] }) {
   const mode = stripeMode(secretKey);
@@ -105,8 +109,9 @@ export function resolveWebhookDestination({ secretKey, webhookUrl, approvedOrigi
     }
     return { mode, url };
   }
-  return {
-    mode,
-    url: validateWebhookUrl(supplied || DEFAULT_PRODUCTION_WEBHOOK_URL),
-  };
+  const liveUrl = validateWebhookUrl(supplied || DEFAULT_PRODUCTION_WEBHOOK_URL);
+  if (!LIVE_WEBHOOK_HOSTS.has(new URL(liveUrl).hostname.toLowerCase())) {
+    throw new Error("Live Stripe webhooks must target the Production DigitalGate host");
+  }
+  return { mode, url: liveUrl };
 }

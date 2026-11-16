@@ -33,10 +33,11 @@ test("test mode rejects Production, main and immutable aliases even when explici
     "https://staging.digitalgate.com.au/api/webhooks/stripe",
     "https://dg-platform-web-git-main-team.vercel.app/api/webhooks/stripe",
     "https://dg-platform-web-abc123.vercel.app/api/webhooks/stripe",
+    "https://app.digitalgate.com.au./api/webhooks/stripe",
   ]) {
     assert.throws(
       () => resolveWebhookDestination({ secretKey: testKey, webhookUrl: url }),
-      /Production webhook|DG_STRIPE_SANDBOX_WEBHOOK_ORIGINS/,
+      /Production webhook|DG_STRIPE_SANDBOX_WEBHOOK_ORIGINS|must not end with a dot/,
     );
   }
   assert.throws(
@@ -47,6 +48,15 @@ test("test mode rejects Production, main and immutable aliases even when explici
     }),
     /Production webhook/,
   );
+});
+
+test("test mode rejects approved immutable aliases and trailing-dot Production hosts", () => {
+  for (const [url, origin] of [
+    ["https://dg-platform-web-abc123.vercel.app/api/webhooks/stripe", "https://dg-platform-web-abc123.vercel.app"],
+    ["https://app.digitalgate.com.au./api/webhooks/stripe", "https://app.digitalgate.com.au."],
+  ]) {
+    assert.throws(() => resolveWebhookDestination({ secretKey: testKey, webhookUrl: url, approvedOrigins: [origin] }), /Production webhook|must not end with a dot/);
+  }
 });
 
 test("test mode rejects unapproved Vercel aliases and wildcard approvals", () => {
@@ -93,15 +103,12 @@ test("setup output cannot emit the signing secret or key prefix", () => {
   assert.doesNotMatch(source, /STRIPE_WEBHOOK_SECRET=\$\{/);
 });
 
-test("live mode retains the explicit Production default and accepts an explicit URL", () => {
+test("live mode retains the Production default and rejects non-Production destinations", () => {
   assert.deepEqual(resolveWebhookDestination({ secretKey: liveKey }), {
     mode: "live",
     url: "https://app.digitalgate.com.au/api/webhooks/stripe",
   });
-  assert.deepEqual(resolveWebhookDestination({ secretKey: liveKey, webhookUrl: isolated }), {
-    mode: "live",
-    url: isolated,
-  });
+  assert.throws(() => resolveWebhookDestination({ secretKey: liveKey, webhookUrl: isolated }), /Production DigitalGate host/);
 });
 
 test("unknown keys fail closed", () => {

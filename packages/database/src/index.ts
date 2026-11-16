@@ -9,17 +9,23 @@ function createSharedClient() {
   // Native events have no reliable request identity. Ignore their entire payload.
   client.$on("error", logger.engineError);
   client.$on("warn", logger.engineWarning);
-  // Query-only observation leaves model arguments/results unchanged. Preserve the
-  // generated public client type for existing injected-client/transaction callers;
-  // forward $on through the supported client extension component.
-  return client.$extends({
+  const extended = client.$extends({
     name: "safe-database-observability",
-    client: { $on: client.$on.bind(client) },
     query: {
       async $allOperations({ args, query }) {
         try { return await query(args); }
         catch (error) { logger.operationFailure(error); throw error; }
       },
+    },
+  });
+  // Extended clients hide $on. Preserve the existing public client contract
+  // without replacing or reconfiguring Prisma's proxy target.
+  const on = client.$on.bind(client);
+  return new Proxy({ $on: on }, {
+    get(target, property, receiver) {
+      if (Object.hasOwn(target, property)) return Reflect.get(target, property, receiver);
+      const value = Reflect.get(extended as object, property, extended);
+      return typeof value === "function" ? value.bind(extended) : value;
     },
   }) as unknown as PrismaClient;
 }
