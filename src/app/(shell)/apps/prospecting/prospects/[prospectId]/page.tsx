@@ -64,6 +64,7 @@ const SOURCE_LABELS: Record<string, string> = {
   reaMarketplace: "REA Partner Platform",
   industryCredentials: "Queensland OFT",
 };
+const REAL_ESTATE_SOURCE_KEYS = new Set(["propertyMarketIntelligence", "domainMarketplace", "reaMarketplace", "industryCredentials"]);
 
 export default async function ProspectResearchPage({ params }: { params: Promise<{ prospectId: string }> }) {
   const session = await getAuthorisedPlatformPageSession("prospecting.prospects.read");
@@ -128,17 +129,22 @@ export default async function ProspectResearchPage({ params }: { params: Promise
     if (prospect.contactEmail && company.email?.toLowerCase() === prospect.contactEmail.toLowerCase()) evidence.push("Email matches");
     if (prospect.contactPhone && company.phone && prospect.contactPhone.replace(/\s/g, "") === company.phone.replace(/\s/g, "")) evidence.push("Phone matches");
     if (evidence.length && (company.website || company.phone || company.email)) evidence.push("CRM has additional contact details");
-    return evidence.length ? [{ id: company.id, label: company.name, evidence: evidence.join(" · ") }] : [];
+    return evidence.length ? [{ id: company.id, label: company.name, evidence: evidence.join(" · "), website: company.website ?? undefined, email: company.email ?? undefined, phone: company.phone ?? undefined }] : [];
   });
   const contactSuggestions = contacts.flatMap((contact) => {
     const evidence: string[] = [];
     if (prospect.contactEmail && contact.email?.toLowerCase() === prospect.contactEmail.toLowerCase()) evidence.push("Email matches prospect contact");
     if (prospect.contactPhone && contact.phone && prospect.contactPhone.replace(/\s/g, "") === contact.phone.replace(/\s/g, "")) evidence.push("Phone matches prospect contact");
     if (normaliseName(`${contact.firstName} ${contact.lastName}`) === normaliseName(prospect.contactName)) evidence.push("Contact name matches");
-    return evidence.length ? [{ id: contact.id, label: [contact.firstName, contact.lastName].filter(Boolean).join(" "), evidence: evidence.join(" · ") }] : [];
+    return evidence.length ? [{ id: contact.id, label: [contact.firstName, contact.lastName].filter(Boolean).join(" "), evidence: evidence.join(" · "), email: contact.email ?? undefined, phone: contact.phone ?? undefined }] : [];
   });
   const canGenerateReport = Boolean(audit && contentAccessible);
   const reportUrl = existingReport ? `/opportunity-report/${existingReport.shareToken}?preview=1` : null;
+  const isRealEstateIndustry = /real\s*estate|property|buyers agency|realtor|realty/i.test(prospect.industry ?? "");
+  const sourceEntries = Object.entries(SOURCE_LABELS).filter(([key]) => !REAL_ESTATE_SOURCE_KEYS.has(key) || isRealEstateIndustry);
+  const metadata = (prospect.metadata as Record<string, unknown> | null) ?? {};
+  const hasLinkedCompany = typeof metadata.crm_company_id === "string";
+  const hasSuggestedWebsite = companySuggestions.some((suggestion) => Boolean(suggestion.website));
   const reportReadiness = existingReport
     ? { label: "Existing report available", detail: `A snapshot generated ${new Date(existingReport.generatedAt).toLocaleDateString("en-AU")} can be previewed without regenerating it.` }
     : !audit
@@ -146,6 +152,14 @@ export default async function ProspectResearchPage({ params }: { params: Promise
       : !contentAccessible
         ? { label: "Report unavailable", detail: "The website blocked the research probe. A prospect-facing report cannot be prepared from unverified content." }
         : { label: "Ready to prepare", detail: "The audit evidence is available. Prepare a snapshot when you are ready to review the prospect-facing version." };
+  const researchSteps = [
+    { label: "Business identified", detail: prospect.abn ? `ABN ${prospect.abn} verified` : "Verify the ABN or choose an existing CRM match.", complete: Boolean(prospect.abn), href: "#business-identity", action: prospect.abn ? null : "Review identity" },
+    { label: "Trading identity and website", detail: prospect.websiteUrl?.trim() ? prospect.websiteUrl : hasSuggestedWebsite ? "A CRM company may have the missing website." : "Add the business website to enable research.", complete: Boolean(prospect.websiteUrl?.trim()), href: "#business-identity", action: prospect.websiteUrl?.trim() ? null : hasSuggestedWebsite ? "Review CRM details" : "Add website" },
+    { label: "Research evidence", detail: audit ? `Audit captured ${new Date(audit.auditedAt).toLocaleDateString("en-AU")}` : "Run research to gather observable public evidence.", complete: Boolean(audit), href: "#audit-evidence", action: audit ? null : "Start research" },
+    { label: "Findings reviewed", detail: findings.length ? `${findings.length} finding${findings.length === 1 ? "" : "s"} recorded` : audit ? "No findings recorded in this audit." : "Evidence is required first.", complete: findings.length > 0, href: "#audit-evidence", action: findings.length ? null : "Review evidence" },
+    { label: "Digital Opportunity Report", detail: existingReport ? "Existing snapshot available for preview." : canGenerateReport ? "Evidence is ready to prepare a report." : reportReadiness.detail, complete: Boolean(existingReport), href: "#opportunity-report", action: existingReport || canGenerateReport ? "Open report section" : null },
+  ];
+
   const isResearch = prospect.stage === "audit_created";
   const isDiscovered = prospect.stage === "prospect";
   const researchDisabledReason = !prospect.websiteUrl?.trim()
@@ -179,6 +193,16 @@ export default async function ProspectResearchPage({ params }: { params: Promise
           </div>
         </div>
         {!reportUrl && !canGenerateReport ? <p className="text-xs leading-5 text-amber-200/90">{reportReadiness.detail}</p> : null}
+        <section className="dg-card" aria-label="Research progress">
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs uppercase tracking-wide text-violet-300">Research progress</p><h2 className="mt-2 text-lg font-semibold text-white">From identity to a conversation-ready report</h2></div><p className="text-xs text-slate-500">Only stages backed by this prospect record are marked complete.</p></div>
+          <ol className="mt-4 grid gap-2 md:grid-cols-5">
+            {researchSteps.map((step, index) => <li key={step.label} className={`rounded-lg border p-3 ${step.complete ? "border-emerald-500/25 bg-emerald-500/5" : "border-slate-800 bg-slate-950/40"}`}>
+              <div className="flex items-center gap-2"><span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-bold ${step.complete ? "bg-emerald-500/20 text-emerald-200" : "bg-slate-800 text-slate-400"}`}>{step.complete ? "✓" : index + 1}</span><p className="text-sm font-medium text-white">{step.label}</p></div>
+              <p className="mt-2 text-xs leading-5 text-slate-400">{step.detail}</p>
+              {step.action && !step.complete ? <a href={step.href} className="mt-2 inline-block text-xs font-semibold text-violet-300 hover:underline">{step.action} →</a> : null}
+            </li>)}
+          </ol>
+        </section>
 
         <section className="grid gap-4 lg:grid-cols-2">
           <div className="dg-card">
@@ -218,7 +242,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
           </div>
         </section>
 
-        <section className="dg-card">
+        <section id="audit-evidence" className="dg-card scroll-mt-24">
           <div className="flex items-center justify-between gap-3"><p className="text-xs uppercase tracking-wide text-slate-500">Audit evidence</p>{canWrite && !isDiscovered ? <ProspectAuditRefresh prospectId={prospect.id} hasAudit={Boolean(audit)} disabledReason={researchDisabledReason} /> : null}</div>
           {audit ? (
             <>
@@ -272,7 +296,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
             <div className="rounded-lg border border-slate-800 bg-slate-950/30 p-4">
               <h3 className="text-sm font-semibold text-white">Research sources</h3>
               <div className="mt-3 space-y-3">
-                {Object.entries(SOURCE_LABELS).map(([key, label]) => {
+                {sourceEntries.map(([key, label]) => {
                   const source = intelligenceSources[key];
                   return (
                     <div key={key} className="rounded-lg border border-slate-800/80 p-3">
