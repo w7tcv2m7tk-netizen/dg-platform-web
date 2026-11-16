@@ -51,7 +51,7 @@ const finding = (overrides = {}) => ({
 test("finance does not inherit real-estate assumptions and aligns all six pillars", async () => {
   const html = await render(fixture({ findings: [finding()] }));
   assert.match(html, /Opportunities specific to Finance/);
-  assert.match(html, /AI Visibility/);
+  assert.match(html, /AI Discoverability Readiness/);
   assert.match(html, /Reputation/);
   assert.match(html, /Conversion/);
   assert.match(html, /Growth signals/);
@@ -61,6 +61,17 @@ test("finance does not inherit real-estate assumptions and aligns all six pillar
   assert.doesNotMatch(html, /vendor and buyer/i);
   assert.match(html, /Confirmed gap/);
   assert.match(html, /captured/);
+  assert.match(html, /AI Discoverability Readiness/);
+  assert.match(html, /current evidence|evidence/i);
+});
+
+test("commercial language and evidence freshness are presented without hiding technical evidence", async () => {
+  const html = await render(fixture({ findings: [finding({ title: "No structured data detected", observed: "No structured data detected on the homepage." })], businessIntelligence: { sourceStatus: { website: { status: "observed" } } } }));
+  assert.match(html, /Help Google and AI platforms better understand your business/);
+  assert.match(html, /Technical finding · No structured data detected/);
+  assert.match(html, /Current evidence|Review suggested|Refresh recommended/);
+  assert.match(html, /not actual AI search visibility|AI Discoverability Readiness/);
+  assert.match(html, /Strategy Session discovery/);
 });
 
 test("real estate retains vendor-journey context only for the real-estate pack", async () => {

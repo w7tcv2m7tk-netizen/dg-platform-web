@@ -253,11 +253,26 @@ export function buildReportPillars(audit: { websiteHealth?: number | null; seoSc
   return [
     { key: "website", label: "Website Health", description: "Technical and on-page foundations", value: audit?.websiteHealth ?? null },
     { key: "seo", label: "SEO", description: "Organic search foundations", value: audit?.seoScore ?? null },
-    { key: "ai", label: "AI Visibility", description: "How clearly AI/search systems can understand the business", value: audit?.aiVisibility ?? null },
+    { key: "ai", label: "AI Discoverability Readiness", description: "Technical readiness only; not an observed AI search ranking", value: audit?.aiVisibility ?? null },
     { key: "reputation", label: "Reputation", description: "Public review and trust signals", value: value("reputation") },
     { key: "conversion", label: "Conversion", description: "How clearly interest becomes an enquiry", value: value("conversionReadiness") },
     { key: "growth", label: "Growth signals", description: "Observable demand and local relevance", value: value("growthSignals") },
   ];
+}
+
+export function commercialHeadlineFor(finding: ReportPresentationFinding): string {
+  const title = (finding.title || "").toLowerCase();
+  if (/structured data|schema/.test(title)) return "Help Google and AI platforms better understand your business";
+  if (/h1|heading|primary page topic/.test(title)) return "Make your primary offer immediately clear";
+  if (/primary action|call.to.action|cta|enquir/.test(title)) return "Turn interest into a clear next step";
+  if (/open graph|social sharing/.test(title)) return "Make shared links present your business professionally";
+  if (/review|reputation/.test(title)) return "Give buyers more confidence before they enquire";
+  if (/form|lead capture/.test(title)) return "Make it easier for interested buyers to raise their hand";
+  if (/local|suburb|service.area/.test(title)) return "Make your local relevance easier to verify";
+  if (/speed|performance/.test(title)) return "Make the experience faster and easier to use";
+  if (/accessib|mobile/.test(title)) return "Make the experience work for more visitors";
+  if (/missing|not detected|no .*detected/.test(title)) return "Close a visible gap in the buying journey";
+  return finding.title || "A practical digital opportunity";
 }
 
 export function buildReportPriorities(findings: ReportPresentationFinding[], pack: ReportPack, auditedAt: Date | string | null): ReportPriority[] {
@@ -265,7 +280,7 @@ export function buildReportPriorities(findings: ReportPresentationFinding[], pac
   const priorities = ranked.slice(0, 3).map((finding) => {
     const evidence = evidenceForFinding(finding, auditedAt);
     return {
-      title: finding.title || "Digital opportunity",
+      title: commercialHeadlineFor(finding),
       meaning: finding.interpretation || finding.detail || finding.observed || "The audit recorded an opportunity to review.",
       action: finding.recommendedAction || "Review this opportunity against the observed evidence.",
       evidenceStatus: evidence.status,

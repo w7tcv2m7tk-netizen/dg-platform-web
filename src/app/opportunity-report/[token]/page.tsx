@@ -10,6 +10,7 @@ import {
   buildSourceStatus,
   evidenceForFinding,
   evidenceStatusLabel,
+  commercialHeadlineFor,
   resolveReportIndustry,
   type ReportPresentationFinding,
 } from "@dg/platform-core/command-centre/growth-engine/report-presentation";
@@ -112,6 +113,8 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
     hasAudit: Boolean(audit),
   });
   const auditDate = audit?.auditedAt ? new Date(audit.auditedAt).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" }) : "Not recorded";
+  const evidenceAgeDays = audit?.auditedAt ? Math.max(0, Math.floor((Date.now() - new Date(audit.auditedAt).getTime()) / 86_400_000)) : null;
+  const freshness = evidenceAgeDays == null ? { label: "Freshness not recorded", tone: "slate" } : evidenceAgeDays <= 30 ? { label: `Current evidence · ${evidenceAgeDays} days old`, tone: "emerald" } : evidenceAgeDays <= 90 ? { label: `Review suggested · ${evidenceAgeDays} days old`, tone: "amber" } : { label: `Refresh recommended · ${evidenceAgeDays} days old`, tone: "amber" };
   const strategyUrl = "https://digitalgate.com.au/strategy-session";
 
   return (
@@ -153,6 +156,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
                 <p className="text-xs font-semibold uppercase tracking-wide text-violet-300">Snapshot</p>
                 <p className="mt-2 font-medium">{auditDate}</p>
                 <p className="mt-1 text-xs text-violet-200/80">Public signals only · no customer data</p>
+                <p className={`mt-2 inline-block rounded-full border px-2 py-1 text-[10px] font-semibold ${freshness.tone === "emerald" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-200" : freshness.tone === "amber" ? "border-amber-500/30 bg-amber-500/10 text-amber-200" : "border-slate-600 text-slate-300"}`}>{freshness.label}</p>
               </div>
             </div>
             <p className="mt-4 text-xs text-slate-500">Prepared {report.generatedAt.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })} · Evidence captured {auditDate} · Directional DigitalGate diagnostic scoring</p>
@@ -277,7 +281,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
             <div className="dg-report-card rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
               <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Connected footprint</p>
               <h2 className="mt-2 text-xl font-semibold text-white">Public profiles linked by the business</h2>
-              {socialPresenceScore != null ? <p className="mt-2 text-sm text-slate-400">Social presence {socialPresenceScore}/100 · website-linked channel coverage only. Activity, audience and engagement are not assessed.</p> : <p className="mt-2 text-sm text-slate-400">No social-presence score was recorded. Channel coverage is not an activity or audience claim.</p>}
+              {socialPresenceScore != null ? <p className="mt-2 text-sm text-slate-400">Social channel coverage {socialPresenceScore}/100 · website-linked channel coverage only. Activity, audience and engagement are not assessed.</p> : <p className="mt-2 text-sm text-slate-400">No social channel coverage score was recorded. Channel coverage is not an activity or audience claim.</p>}
               <div className="mt-4 flex flex-wrap gap-2">{Object.entries(publicProfiles).map(([network, url]) => url ? <a key={network} href={url} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm capitalize text-slate-200 transition hover:border-violet-400 hover:text-white" aria-label={`Open ${network} profile linked from the business website`}>{network} · website link ↗</a> : null)}{Object.keys(publicProfiles).length === 0 ? <p className="text-sm text-slate-400">No major social profile links were detected from the homepage.</p> : null}</div>
             </div>
           </div>
@@ -291,7 +295,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
                 const evidence = evidenceForFinding(finding, audit?.auditedAt);
                 return <article key={`${finding.title}-${index}`} className="rounded-xl border border-slate-700 bg-slate-950/40 p-5">
                   <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${evidence.status === "observed" ? "bg-emerald-500/15 text-emerald-200" : evidence.status === "confirmed_gap" ? "bg-amber-500/15 text-amber-200" : "bg-slate-500/15 text-slate-300"}`}>{evidenceStatusLabel(evidence.status)}</span><span className="text-[11px] uppercase tracking-wide text-slate-500">{evidence.source}</span></div>
-                  <h3 className="mt-3 font-semibold text-white">{finding.title || "Digital opportunity"}</h3>
+                  <h3 className="mt-3 font-semibold text-white">{commercialHeadlineFor(finding)}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-300">{businessMeaningFor(finding)}</p>
                   <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Evidence observed</p><p className="mt-1 text-sm text-slate-400">{finding.observed || finding.detail || "No direct observation text was recorded."}</p>
                   {finding.recommendedAction ? <><p className="mt-3 text-xs font-semibold uppercase tracking-wide text-violet-300">Recommended action</p><p className="mt-1 text-sm leading-6 text-violet-100">{finding.recommendedAction}</p></> : null}
@@ -310,7 +314,8 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
               const evidence = evidenceForFinding(finding, audit?.auditedAt);
               return <article key={`print-${finding.title}-${index}`} className="dg-report-card rounded-xl border border-slate-300 bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">{evidenceStatusLabel(evidence.status)} · {evidence.source}</p>
-                <h3 className="mt-2 font-semibold text-slate-900">{finding.title || "Digital opportunity"}</h3>
+                <h3 className="mt-2 font-semibold text-slate-900">{commercialHeadlineFor(finding)}</h3>
+                {finding.title && finding.title !== commercialHeadlineFor(finding) ? <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-500">Technical finding · {finding.title}</p> : null}
                 <p className="mt-1 text-sm text-slate-700">{finding.observed || finding.detail || "No direct observation text was recorded."}</p>
                 {finding.recommendedAction ? <p className="mt-2 text-sm text-slate-700"><b>Action:</b> {finding.recommendedAction}</p> : null}
                 <p className="mt-1 text-[11px] text-slate-500">{evidence.freshness ? `Freshness: ${new Date(evidence.freshness).toLocaleDateString("en-AU")}` : "Freshness: not recorded"}</p>
@@ -333,6 +338,13 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <div className="mt-5 grid gap-4 md:grid-cols-3">{roadmap.map((phase) => <div key={phase.period} className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5"><p className="text-xs font-semibold uppercase tracking-wide text-violet-400">{phase.period}</p><h3 className="mt-2 font-semibold text-white">{phase.title}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{phase.action}</p><p className="mt-3 text-[11px] text-slate-500">{phase.evidenceLed ? "Grounded in an audit finding" : "Framework guidance — not observed in this snapshot"}</p></div>)}</div>
         </section>
 
+        <section className="dg-report-section mt-10 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Strategy Session discovery</p>
+          <h2 className="mt-2 text-xl font-semibold text-white">What public evidence cannot tell us</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">These areas require the business&apos;s own context. They are discovery questions for the Strategy Session, not confirmed deficiencies.</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{["CRM ownership and follow-up","Enquiry response and handoff","Automation and internal process","Offline conversion and sales capacity","Customer retention and reactivation","Commercial priorities for the next 90 days"].map((item) => <div key={item} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3 text-sm text-slate-300">{item}</div>)}</div>
+        </section>
+
         <section id="next-step" className="dg-report-section mt-10 rounded-2xl border border-violet-400/40 bg-gradient-to-br from-violet-500/20 to-slate-900 p-7 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-300">Next step</p><h2 className="mt-2 text-2xl font-semibold text-white">Turn these opportunities into a practical plan</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200">Book a DigitalGate Strategy Session to review the evidence, identify the highest-value priorities and agree the next practical step. There is no obligation to proceed.</p>
@@ -340,7 +352,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         </section>
 
         <section className="dg-report-section mt-8 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
-          <h2 className="text-sm font-semibold text-white">Method and limits</h2><p className="mt-2 text-xs leading-5 text-slate-400">This report is based on observable public signals captured by DigitalGate at the time of the audit. Scores are directional rather than guarantees of search rankings, leads or revenue. Source status and freshness are shown where recorded; unavailable evidence is not treated as a negative result. Recommendations should be validated against business objectives, systems and the customer journey before implementation. Public share links are capability-protected; staff previews are tenant-scoped.</p>
+          <h2 className="text-sm font-semibold text-white">Method and limits</h2><p className="mt-2 text-xs leading-5 text-slate-400">This report is based on observable public signals captured by DigitalGate at the time of the audit. Scores are directional rather than guarantees of search rankings, leads or revenue. AI Discoverability Readiness measures observable technical readiness, not actual AI search visibility or ranking. Social channel coverage measures website-linked channels, not activity, audience or engagement. Source status and freshness are shown where recorded; unavailable evidence is not treated as a negative result. Recommendations should be validated against business objectives, systems and the customer journey before implementation. Public share links are capability-protected; staff previews are tenant-scoped.</p>
         </section>
         <footer className="mt-8 border-t border-slate-700 pt-5 text-xs text-slate-500">DigitalGate · AI-powered Business Operating Platform · The Gateway to Your Digital World™</footer>
       </div>
