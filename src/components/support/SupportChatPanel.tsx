@@ -129,7 +129,7 @@ export function SupportChatPanel({
         if (!res.ok) return;
         const json = await res.json().catch(() => null);
         const incoming = (json?.data?.messages ?? []) as SupportChatMessage[];
-        if (incoming.length) applyMessages(incoming, true);
+        if (incoming.length) { applyMessages(incoming, true); setError(null); }
       } catch {
         // Polling is best-effort; the next interval retries without duplicating messages.
       }
@@ -145,6 +145,7 @@ export function SupportChatPanel({
 
     setSending(true);
     setDraft("");
+    setError(null);
     try {
       const res = await fetch("/api/v1/support/messages", {
         method: "POST",
@@ -277,6 +278,12 @@ export function SupportChatPanel({
           })
         )}
       </div>
+
+      {error && messages.length > 0 ? (
+        <p role="alert" className="border-t border-amber-500/20 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
+          {error}
+        </p>
+      ) : null}
 
       <form
         onSubmit={sendMessage}

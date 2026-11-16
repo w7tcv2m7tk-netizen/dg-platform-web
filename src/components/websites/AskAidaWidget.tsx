@@ -107,7 +107,7 @@ export function AskAidaWidget({
 
   async function api(body: Record<string, unknown>) {
     const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), 15_000);
+    const timer = window.setTimeout(() => controller.abort(), 25_000);
     try {
       const res = await fetch("/api/public/aida", {
         method: "POST",
@@ -143,7 +143,7 @@ export function AskAidaWidget({
     writeToken(next);
   }
 
-  async function bootstrap() {
+  async function bootstrap(): Promise<boolean> {
     setError(null);
     setState("booting");
     try {
@@ -151,20 +151,22 @@ export function AskAidaWidget({
       if (res.status === 429) {
         setState("rate_limited");
         setError(json.error?.message ?? "Please wait a moment.");
-        return;
+        return false;
       }
       if (!res.ok || !json.data) {
         setState("error");
         setError(json.error?.message ?? "Aida is unavailable right now.");
-        return;
+        return false;
       }
       rememberToken(json.data.token);
       setMessages(json.data.messages ?? []);
       setState(json.data.leadCaptured ? "captured" : "ready");
       requestAnimationFrame(scrollToEnd);
+      return true;
     } catch {
       setState("error");
       setError("Aida took too long to respond. Check your connection and try again.");
+      return false;
     }
   }
 
@@ -262,9 +264,11 @@ export function AskAidaWidget({
 
   async function retry() {
     const text = lastPrompt?.text;
-    await bootstrap();
-    if (text) setDraft(text);
-    setError(null);
+    const ok = await bootstrap();
+    if (ok) {
+      if (text) setDraft(text);
+      setError(null);
+    }
   }
 
   useEffect(() => {

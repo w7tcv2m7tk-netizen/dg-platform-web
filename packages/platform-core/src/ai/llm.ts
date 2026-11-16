@@ -66,9 +66,6 @@ export class LlmChatError extends Error {
   }
 }
 
-const DEFAULT_TOTAL_DEADLINE_MS = 30_000;
-const DEFAULT_ATTEMPT_TIMEOUT_MS = 10_000;
-
 type LlmTransport = {
   provider: LlmProvider;
   model: string;
@@ -429,19 +426,20 @@ export async function llmChat(input: {
   safeErrors?: boolean;
   /** Exact ordered attempt plan. Omitted preserves all legacy routing. */
   executionPlan?: readonly LlmTransportPlanEntry[];
-  /** Total request deadline. Defaults to 30 seconds. */
+  /** Optional total request deadline. Omitted preserves legacy unbounded behavior. */
   deadlineMs?: number;
-  /** Per-provider attempt timeout. Defaults to 10 seconds. */
+  /** Optional per-provider attempt timeout. Omitted preserves legacy transport behavior. */
   attemptTimeoutMs?: number;
 }): Promise<LlmGenerateResult> {
   const tier = input.tier ?? "standard";
   const configured = resolveLlmTransports(tier);
   const constrained = input.executionPlan !== undefined;
   const invalidPlan = () => new LlmChatError("Invalid constrained transport plan", [], [], "transport_failed", false);
-  const deadlineMs = input.deadlineMs ?? DEFAULT_TOTAL_DEADLINE_MS;
-  const attemptTimeoutMs = input.attemptTimeoutMs ?? DEFAULT_ATTEMPT_TIMEOUT_MS;
-  if (!Number.isSafeInteger(deadlineMs) || deadlineMs < 1 || deadlineMs > 60_000 ||
-      !Number.isSafeInteger(attemptTimeoutMs) || attemptTimeoutMs < 1 || attemptTimeoutMs > deadlineMs) {
+  const deadlineMs = input.deadlineMs;
+  const attemptTimeoutMs = input.attemptTimeoutMs;
+  if ((deadlineMs !== undefined && (!Number.isSafeInteger(deadlineMs) || deadlineMs < 1 || deadlineMs > 60_000)) ||
+      (attemptTimeoutMs !== undefined && (!Number.isSafeInteger(attemptTimeoutMs) || attemptTimeoutMs < 1 ||
+        (deadlineMs !== undefined && attemptTimeoutMs > deadlineMs)))) {
     throw invalidPlan();
   }
   if (constrained && (!Array.isArray(input.executionPlan) || !input.executionPlan.length || input.executionPlan.length > 3)) throw invalidPlan();
@@ -475,9 +473,11 @@ export async function llmChat(input: {
   let lastError: unknown;
   let totalTimedOut = false;
   const totalController = new AbortController();
-  const totalTimer = setTimeout(() => { totalTimedOut = true; totalController.abort(); }, deadlineMs);
+  const totalTimer = deadlineMs === undefined
+    ? undefined
+    : setTimeout(() => { totalTimedOut = true; totalController.abort(); }, deadlineMs);
   const totalSignal = input.signal
-    ? AbortSignal.any([input.signal, totalController.signal])
+    ? (totalTimer === undefined ? input.signal : AbortSignal.any([input.signal, totalController.signal]))
     : totalController.signal;
 
   try {
@@ -485,8 +485,12 @@ export async function llmChat(input: {
       if (totalSignal.aborted) break;
       let attemptTimedOut = false;
       const attemptController = new AbortController();
-      const attemptTimer = setTimeout(() => { attemptTimedOut = true; attemptController.abort(); }, attemptTimeoutMs);
-      const attemptSignal = AbortSignal.any([totalSignal, attemptController.signal]);
+      const attemptTimer = attemptTimeoutMs === undefined
+        ? undefined
+        : setTimeout(() => { attemptTimedOut = true; attemptController.abort(); }, attemptTimeoutMs);
+      const attemptSignal = attemptTimer === undefined
+        ? totalSignal
+        : AbortSignal.any([totalSignal, attemptController.signal]);
       try {
         const result = await callTransport(
           transport,
@@ -523,11 +527,11 @@ export async function llmChat(input: {
         });
         if (!input.safeErrors) console.warn(`[ai] ${transport.provider} failed — trying next transport`, message);
       } finally {
-        clearTimeout(attemptTimer);
+        if (attemptTimer !== undefined) clearTimeout(attemptTimer);
       }
     }
   } finally {
-    clearTimeout(totalTimer);
+    if (totalTimer !== undefined) clearTimeout(totalTimer);
   }
 
   const aborted = totalSignal.aborted;
