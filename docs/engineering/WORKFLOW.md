@@ -29,7 +29,7 @@ Every work item must record:
 Operating rules:
 
 - Reconcile remote state and open PRs before implementing; do not duplicate completed work.
-- Use `/Users/okcomputers/Developer` exclusively. Never use Documents, Desktop or iCloud for worktrees.
+- Use the owner-approved local development root exclusively. Never use Documents, Desktop or iCloud for worktrees.
 - One engineering objective per branch/worktree. Do not edit another worktree by accident.
 - Preserve uncommitted work and never rewrite another branch's history.
 - Keep diffs narrow. Reuse existing architecture; do not create parallel systems.
@@ -48,9 +48,10 @@ A Production release remains NO-GO unless each applicable gate is independently 
 4. Checkout, billing, entitlement, tenant and access preservation checks.
 5. Fresh read-only Production schema/ledger preflight when schema or runtime authority changes.
 6. Signed, ordered migration plan; no speculative migration history.
-7. Stripe webhook, hold and event configuration sequencing where applicable.
+7. Historical Stripe webhook invocation termination, endpoint/alias isolation, hold and event configuration sequencing where applicable.
 8. Controlled deployment, post-release smoke and rollback evidence.
 9. Explicit owner approval for each protected Production operation and for opening checkout or customer invitations.
+10. For owner-assisted terminal operations, provide one pasteable command at a time with the expected result.
 
 Approval to implement is not approval to deploy. Approval to merge is not automatically approval to release. Provider activation and local-worker provisioning require separate approvals.
 
@@ -78,7 +79,7 @@ Reports are sanitised and published to the reporting repository. They must not c
 
 ## Current authority boundaries
 
-- Preserve the certified Production checkout and business access.
+- Preserve the certified Production baseline and business access; checkout remains fail-closed until separately approved.
 - Do not modify billing, grants, entitlements, tenant boundaries or customer data outside an approved migration.
 - Do not deploy to Production or activate local/cloud providers without separate owner approval.
 - Do not close a historical PR until any approved unique improvement is preserved in a focused branch/PR.
