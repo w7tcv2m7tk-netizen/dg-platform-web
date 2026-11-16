@@ -85,43 +85,54 @@ export function SupportChatPanel({
   const loadConversation = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const res = await fetch("/api/v1/support/conversation");
-    const json = await res.json().catch(() => null);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/v1/support/conversation", { signal: AbortSignal.timeout(15_000) });
+      const json = await res.json().catch(() => null);
+      setLoading(false);
 
-    if (!res.ok) {
-      if (json?.error?.code === "not_linked") {
-        setLinked(false);
-        setError(json.error.message);
+      if (!res.ok) {
+        if (json?.error?.code === "not_linked") {
+          setLinked(false);
+          setError(json.error.message);
+          return;
+        }
+        setError(json?.error?.message ?? "Unable to load chat");
         return;
       }
-      setError(json?.error?.message ?? "Unable to load chat");
-      return;
-    }
 
-    setLinked(true);
-    applyMessages(json.data.messages ?? [], false);
+      setLinked(true);
+      applyMessages(json.data.messages ?? [], false);
+    } catch {
+      setLoading(false);
+      setError("Support chat took too long to respond. Please try again.");
+    }
   }, [applyMessages]);
 
   useEffect(() => {
-    void loadConversation();
+    queueMicrotask(() => void loadConversation());
   }, [loadConversation]);
 
   useEffect(() => {
     if (!initialDraft?.trim()) return;
-    setDraft(initialDraft);
-    onDraftApplied?.();
+    queueMicrotask(() => {
+      setDraft(initialDraft);
+      onDraftApplied?.();
+    });
   }, [initialDraft, onDraftApplied]);
 
   useEffect(() => {
     if (!linked || loading) return;
 
     const timer = window.setInterval(async () => {
-      const res = await fetch(`/api/v1/support/messages?after=${lastId}`);
-      if (!res.ok) return;
-      const json = await res.json().catch(() => null);
-      const incoming = (json?.data?.messages ?? []) as SupportChatMessage[];
-      if (incoming.length) applyMessages(incoming, true);
+      try {
+        const res = await fetch(`/api/v1/support/messages?after=${lastId}`, { signal: AbortSignal.timeout(10_000) });
+        if (!res.ok) return;
+        const json = await res.json().catch(() => null);
+        const incoming = (json?.data?.messages ?? []) as SupportChatMessage[];
+        if (incoming.length) applyMessages(incoming, true);
+      } catch {
+        // Polling is best-effort; the next interval retries without duplicating messages.
+      }
     }, POLL_MS);
 
     return () => window.clearInterval(timer);
@@ -134,21 +145,28 @@ export function SupportChatPanel({
 
     setSending(true);
     setDraft("");
-    const res = await fetch("/api/v1/support/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text, surfacePath }),
-    });
-    const json = await res.json().catch(() => null);
-    setSending(false);
+    try {
+      const res = await fetch("/api/v1/support/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(15_000),
+        body: JSON.stringify({ message: text, surfacePath }),
+      });
+      const json = await res.json().catch(() => null);
+      setSending(false);
 
-    if (!res.ok) {
-      setError(json?.error?.message ?? "Could not send message");
+      if (!res.ok) {
+        setError(json?.error?.message ?? "Could not send message");
+        setDraft(text);
+        return;
+      }
+
+      applyMessages(json.data.messages ?? [], false);
+    } catch {
+      setSending(false);
       setDraft(text);
-      return;
+      setError("Support chat took too long to respond. Your message was not confirmed; please retry.");
     }
-
-    applyMessages(json.data.messages ?? [], false);
   }
 
   const shellClass = embedded
