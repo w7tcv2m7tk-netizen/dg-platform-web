@@ -6,6 +6,7 @@ import { createRequire } from "node:module";
 import ts from "typescript";
 import { renderToStaticMarkup } from "react-dom/server";
 import { generateGrowthReportSnapshot, loadGrowthReportSnapshot } from "../packages/platform-core/src/command-centre/growth-engine/report-snapshot.ts";
+import * as reportPresentation from "../packages/platform-core/src/command-centre/growth-engine/report-presentation.ts";
 
 const require = createRequire(import.meta.url);
 const publicAccess = { kind: "public", recordView: true };
@@ -69,6 +70,7 @@ function renderer(f,access) {
     "next/navigation":{notFound}, "@dg/database":{prisma:f.db},
     "@dg/platform-core/command-centre/growth-engine/report-snapshot":{loadGrowthReportSnapshot},
     "@/lib/prospect-report-access":{prospectReportAccess:async()=>access},
+    "@dg/platform-core/command-centre/growth-engine/report-presentation":reportPresentation,
   }).default;
 }
 async function render(page,token,preview) { return renderToStaticMarkup(await page({params:Promise.resolve({token}),searchParams:Promise.resolve({preview})})); }
@@ -334,6 +336,7 @@ for (const routeFile of ["src/app/opportunity/[token]/page.tsx", "src/app/opport
         "@dg/platform-core": { getPublicGrowthOpportunityReport: core.getPublicGrowthOpportunityReport },
         "@dg/database": { prisma: f.db },
         "@dg/platform-core/command-centre/growth-engine/report-snapshot": { loadGrowthReportSnapshot },
+        "@dg/platform-core/command-centre/growth-engine/report-presentation": reportPresentation,
         "@/lib/prospect-report-access": { prospectReportAccess: async () => previewAccess },
       }, { env: { DATABASE_URL: "postgresql://synthetic:synthetic@127.0.0.1:1/synthetic" } }).default;
       if (state === "active") assert.match(await render(page, f.report.shareToken, "1"), /Evidence A/);
