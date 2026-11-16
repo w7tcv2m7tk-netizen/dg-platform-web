@@ -1,6 +1,6 @@
 /** Owns a disposable loopback database. Never loads dotenv or accepts a database URL. */
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -25,17 +25,22 @@ try {
  run(path.join(pgBin, 'initdb'), ['-D', data, '-U', 'acquisition_test', '-A', 'trust', '--encoding=UTF8', '--locale=C', '-L', path.resolve(pgBin, '../share/postgresql')]);
  run(path.join(pgBin, 'pg_ctl'), ['-D', data, '-l', path.join(owned, 'server.log'), '-w', 'start', '-o', `-h 127.0.0.1 -p ${port} -k ${owned}`]);
  run(path.join(pgBin, 'createdb'), ['-h', '127.0.0.1', '-p', String(port), '-U', 'acquisition_test', 'acquisition_test']);
- // Pinned pre-change schema; apply the actual migration to it (not db push).
- const baseline = path.join(owned, 'baseline'); mkdirSync(path.join(baseline, 'models'), { recursive: true });
- for (const relative of ['schema.prisma', 'models/ai-visibility.prisma', 'models/business-brain.prisma']) {
-   const result = run('git', ['show', `f26e3e4761e8af66707919589a5ee883bb5d3ef8:packages/database/prisma/${relative}`], { encoding: 'utf8', stdio: 'pipe' });
-   writeFileSync(path.join(baseline, relative), result.stdout);
- }
- const sql = path.join(owned, 'baseline.sql');
- run('node_modules/.bin/prisma', ['migrate', 'diff', '--from-empty', '--to-schema-datamodel', baseline, '--script', '--output', sql]);
- run(path.join(pgBin, 'psql'), [...psql, '-f', sql]);
+ // Build the current schema, reverse only the additive migration under test,
+ // load legacy fixtures, then apply the real migration. This keeps the runner
+ // aligned with the current Prisma client without losing preservation coverage.
+ const prismaSource = path.resolve('packages/database/prisma');
+ const currentSchemaSql = path.join(owned, 'current-schema.sql');
+ run('node_modules/.bin/prisma', ['migrate', 'diff', '--from-empty', '--to-schema-datamodel', prismaSource, '--script', '--output', currentSchemaSql]);
+ run(path.join(pgBin, 'psql'), [...psql, '-f', currentSchemaSql]);
+ const preUnifiedSql = path.join(owned, 'pre-unified.sql');
+ writeFileSync(preUnifiedSql, [
+   'ALTER TABLE "growth_prospects" DROP COLUMN IF EXISTS "abn", DROP COLUMN IF EXISTS "identity_provenance";',
+   'ALTER TABLE "companies" DROP COLUMN IF EXISTS "abn", DROP COLUMN IF EXISTS "identity_provenance";',
+   '',
+ ].join('\n'));
+ run(path.join(pgBin, 'psql'), [...psql, '-f', preUnifiedSql]);
  run(path.join(pgBin, 'psql'), [...psql, '-f', 'scripts/fixtures/unified-acquisition-legacy.sql']);
- run(path.join(pgBin, 'psql'), [...psql, '-f', 'packages/database/prisma/migrations/20261020090000_unified_acquisition_identity/migration.sql']);
+ run(path.join(pgBin, 'psql'), [...psql, '-f', path.join(prismaSource, 'migrations', '20261020090000_unified_acquisition_identity', 'migration.sql')]);
  run(process.execPath, ['--test', '--test-timeout=30000', 'scripts/test-unified-acquisition-local-db.mjs']);
  run(process.execPath, ['--test', '--test-timeout=30000', 'scripts/test-prospecting-p1-concurrency.mjs']);
 } finally {
