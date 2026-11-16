@@ -82,7 +82,7 @@ function ProspectingUnavailable() {
       <section role="alert" className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-100">
         <p>Prospecting is temporarily unavailable. DigitalGate has kept unavailable signals out of the workspace rather than estimating them.</p>
         <div className="flex flex-wrap gap-3">
-          <a href="/apps/prospecting" className="inline-flex min-h-11 items-center rounded-lg bg-amber-200 px-4 font-semibold text-slate-950">Try again</a>
+          <a href="/apps/prospecting/today" className="inline-flex min-h-11 items-center rounded-lg bg-amber-200 px-4 font-semibold text-slate-950">Try again</a>
           <a href="/dashboard/advisor" className="inline-flex min-h-11 items-center rounded-lg border border-amber-200/30 px-4 font-semibold text-amber-50">Get help</a>
         </div>
       </section>
