@@ -281,7 +281,9 @@ test('prospect report readiness and CRM suggestions are explicit; sidebar defaul
  assert.match(detail,/isRealEstateIndustry/);
  assert.match(detail,/Research progress/);
  assert.match(detail,/hasSuggestedWebsite/);
- assert.match(relationship,/Use missing details/);
+ assert.match(relationship,/Use missing details/); assert.match(detail,/prospectWebsite={prospect.websiteUrl}/);
+ assert.match(detail,/isRealEstateIndustry \? <div/);
+
 
  assert.match(detail,/contactSuggestions/);
  assert.match(relationship,/Possible CRM matches/);

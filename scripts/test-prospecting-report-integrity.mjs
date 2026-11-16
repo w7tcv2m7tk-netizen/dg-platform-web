@@ -163,7 +163,7 @@ test("legacy report service uses same boundary and never selects newest audit or
 });
 test("internal open/print use authenticated preview; downstream copy never identifies anonymous readers",()=>{
   const actions=fs.readFileSync("src/components/prospecting/ProspectReportActions.tsx","utf8");
-  assert.match(actions,/window\.open\(`\$\{url\}\?preview=1`/); assert.match(actions,/href=\{`\$\{shareUrl\}\?preview=1`\}/);
+  assert.match(actions,/window\.open\(`\$\{absoluteUrl\(url\)\}\?preview=1`/); assert.match(actions,/href=\{`\$\{shareUrl\}\?preview=1`\}/);
   const today=fs.readFileSync("src/components/prospecting/ProspectingTodayActions.tsx","utf8");
   assert.doesNotMatch(today,/I saw you had a look/); assert.match(today,/Public report URL accessed/);
   for(const file of ["src/app/opportunity/[token]/page.tsx","src/app/opportunity-report/[token]/page.tsx"]) assert.match(fs.readFileSync(file,"utf8"),/prospectReportAccess\(preview\)/);

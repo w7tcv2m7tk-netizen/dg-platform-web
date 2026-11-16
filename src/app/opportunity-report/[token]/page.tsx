@@ -102,7 +102,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const priorities = buildReportPriorities(findings, pack, audit?.auditedAt ?? null);
   const insights = buildReportInsights(payload.industryInsights, pack);
   const roadmap = buildReportRoadmap(pack, priorities);
-  const sourceStatus = buildSourceStatus(intelligence.sourceStatus);
+  const sourceStatus = buildSourceStatus(intelligence.sourceStatus, industry.key);
   const verdict = buildExecutiveVerdict({
     businessHealth: audit?.businessHealth ?? null,
     pillars,
@@ -248,7 +248,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         <section id="industry" className="dg-report-section mt-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Industry context</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">Opportunities specific to {pack.label}</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">These are {insights.some((item) => item.framework) ? "framework prompts for the available evidence" : "selected from the observed audit evidence"}; they are not claims about competitors or commercial outcomes.</p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">These are industry guidance shaped by the available audit context; they are not claims about competitors or commercial outcomes.</p>
           <div className="mt-5 grid gap-4 md:grid-cols-3">
             {insights.map((item, index) => (
               <article key={`${item.title}-${index}`} className="dg-report-card rounded-xl border border-violet-500/20 bg-violet-500/5 p-5">
@@ -330,7 +330,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         <section id="roadmap" className="dg-report-section mt-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">90-day opportunity roadmap</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">A sequence based on this evidence</h2>
-          <div className="mt-5 grid gap-4 md:grid-cols-3">{roadmap.map((phase) => <div key={phase.period} className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5"><p className="text-xs font-semibold uppercase tracking-wide text-violet-400">{phase.period}</p><h3 className="mt-2 font-semibold text-white">{phase.title}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{phase.action}</p><p className="mt-3 text-[11px] text-slate-500">{phase.evidenceLed ? "Grounded in an observed finding" : "Framework guidance — not observed in this snapshot"}</p></div>)}</div>
+          <div className="mt-5 grid gap-4 md:grid-cols-3">{roadmap.map((phase) => <div key={phase.period} className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5"><p className="text-xs font-semibold uppercase tracking-wide text-violet-400">{phase.period}</p><h3 className="mt-2 font-semibold text-white">{phase.title}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{phase.action}</p><p className="mt-3 text-[11px] text-slate-500">{phase.evidenceLed ? "Grounded in an audit finding" : "Framework guidance — not observed in this snapshot"}</p></div>)}</div>
         </section>
 
         <section id="next-step" className="dg-report-section mt-10 rounded-2xl border border-violet-400/40 bg-gradient-to-br from-violet-500/20 to-slate-900 p-7 sm:p-8">

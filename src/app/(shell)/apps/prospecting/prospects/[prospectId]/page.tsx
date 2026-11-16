@@ -281,10 +281,10 @@ export default async function ProspectResearchPage({ params }: { params: Promise
           ) : <p className="mt-3 text-sm text-slate-400">No audit has been created for this prospect yet.</p>}
         </section>
 
-        {canWrite ? <details className="dg-card">
+        {canWrite ? <details id="business-identity" className="dg-card scroll-mt-24">
           <summary className="cursor-pointer text-sm font-semibold text-white">Business identity &amp; existing relationships</summary>
           <p className="mt-2 text-xs leading-5 text-slate-400">Administrative identity verification and CRM linking. Review suggested matches and confirm before linking; suggestions never mutate records automatically.</p>
-          <div className="mt-3"><ProspectRelationshipForm prospectId={prospect.id} abn={prospect.abn} companies={companies.map((c) => ({ id: c.id, label: c.name }))} contacts={contacts.map((c) => ({ id: c.id, label: [c.firstName, c.lastName].filter(Boolean).join(" ") }))} organisations={memberships.map((m) => ({ id: m.organisation.id, label: m.organisation.name }))} companySuggestions={companySuggestions} contactSuggestions={contactSuggestions} /></div>
+          <div className="mt-3"><ProspectRelationshipForm prospectId={prospect.id} abn={prospect.abn} companies={companies.map((c) => ({ id: c.id, label: c.name }))} contacts={contacts.map((c) => ({ id: c.id, label: [c.firstName, c.lastName].filter(Boolean).join(" ") }))} organisations={memberships.map((m) => ({ id: m.organisation.id, label: m.organisation.name }))} companySuggestions={companySuggestions} contactSuggestions={contactSuggestions} prospectWebsite={prospect.websiteUrl} prospectContactEmail={prospect.contactEmail} prospectContactPhone={prospect.contactPhone} /></div>
         </details> : null}
 
         <section className="dg-card">
@@ -327,7 +327,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
                 </div>
               </div>
 
-              {/real\s*estate/i.test(prospect.industry || "") ? <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-4">
+              {isRealEstateIndustry ? <div className="rounded-lg border border-violet-500/20 bg-violet-500/5 p-4">
                 <p className="text-xs uppercase tracking-wide text-violet-300">Real Estate acquisition intelligence</p>
                 <h3 className="mt-2 text-base font-semibold text-white">Vendor journey signals</h3>
                 {typeof acquisitionReadiness.score === "number" ? <div className="mt-4 rounded-lg border border-violet-500/30 bg-violet-500/10 p-4"><div className="flex items-end justify-between gap-4"><div><p className="text-xs uppercase tracking-wide text-violet-300">Acquisition readiness</p><p className="mt-1 text-xs text-slate-400">Evidence-weighted vendor acquisition readiness, not claimed conversion performance.</p></div><p className="text-3xl font-semibold text-white">{acquisitionReadiness.score}<span className="text-sm text-slate-500">/100</span></p></div><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-5">{[["Appraisal path",acquisitionReadiness.appraisalPath],["Local authority",acquisitionReadiness.localAuthority],["Reputation",acquisitionReadiness.reputation],["Social presence",acquisitionReadiness.socialPresence],["Discoverability",acquisitionReadiness.discoverability]].map(([label,value])=><div key={String(label)} className="rounded border border-slate-800 bg-slate-950/30 p-2"><p className="text-[10px] text-slate-500">{label}</p><p className="mt-1 text-sm font-semibold text-white">{value ?? "—"}<span className="text-[10px] text-slate-500">/100</span></p></div>)}</div></div> : null}

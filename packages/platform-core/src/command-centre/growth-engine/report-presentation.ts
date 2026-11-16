@@ -239,9 +239,10 @@ export function evidenceForFinding(finding: ReportPresentationFinding, auditedAt
   const text = `${finding.observed ?? ""} ${finding.detail ?? ""} ${finding.interpretation ?? ""}`.toLowerCase();
   const hasEvidence = Boolean(finding.observed || finding.detail);
   const explicit = finding.evidenceStatus;
+  const absence = /(?:^|\b)(?:no|not|without|lacks?|missing|absent|only\s+\d+)\b|not (?:observed|detected|assessed|present)|unavailable|unknown/.test(text);
   const status: ReportEvidenceStatus = explicit ?? (!hasEvidence ? "unavailable"
-    : /(?:^|\b)(?:no|not|without)\s+(?:clear|visible|single|evidence|detected|observed|found|present|assessed)|not (?:observed|detected|assessed)|unavailable|unknown/.test(text) ? "confirmed_gap"
-      : finding.confidence === "low" ? "limited" : "observed");
+    : finding.confidence === "low" ? "limited"
+      : absence ? "confirmed_gap" : "observed");
   const source = finding.source || (finding.domain ? `${finding.domain.replace(/_/g, " ")} observation` : "DigitalGate audit observation");
   const freshness = finding.observedAt ?? (auditedAt ? new Date(auditedAt).toISOString() : null);
   return { status, source, freshness };
@@ -315,15 +316,22 @@ export function buildExecutiveVerdict(input: {
   return `The current digital position is mixed but actionable.${scoreText}${strengthText}${weakText} The most useful commercial focus is ${focus}. Recommendations remain limited to the public signals captured for this snapshot.`;
 }
 
-export function buildSourceStatus(value: unknown): { label: string; status: string; note: string }[] {
+export function buildSourceStatus(value: unknown, industryKey?: ReportIndustryKey): { label: string; status: string; note: string }[] {
   if (!value || typeof value !== "object") return [];
   const record = value as Record<string, unknown>;
-  const labels: Record<string, string> = { website: "Website", abr: "ABR identity", google: "Google Places", propertyMarket: "Property market", marketplace: "Marketplace" };
+  const labels: Record<string, string> = {
+    website: "Website", abr: "ABR identity", google: "Google Places", googleBusinessProfile: "Google Business Profile",
+    businessIdentity: "ABR", socialProfiles: "Website-linked social profiles", marketplace: "Marketplace",
+    propertyMarket: "Property market", propertyMarketIntelligence: "Property market (Cotality)",
+    domainMarketplace: "Domain", reaMarketplace: "REA Partner Platform", industryCredentials: "Industry credentials",
+  };
+  const realEstateOnly = new Set(["propertyMarket", "propertyMarketIntelligence", "domainMarketplace", "reaMarketplace", "industryCredentials"]);
   return Object.entries(record).flatMap(([key, raw]) => {
+    if (industryKey !== "real_estate" && realEstateOnly.has(key)) return [];
     if (!raw || typeof raw !== "object") return [];
     const item = raw as { status?: unknown; note?: unknown };
     if (typeof item.status !== "string") return [];
-    return [{ label: labels[key] ?? key, status: item.status, note: typeof item.note === "string" ? item.note : "" }];
+    return [{ label: labels[key] ?? key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase()), status: item.status, note: typeof item.note === "string" ? item.note : "" }];
   });
 }
 

@@ -81,6 +81,25 @@ for (const industry of ["Real Estate", "Hospitality & Accommodation", "Finance",
   });
 }
 
+test("absence language is a confirmed gap and industry-specific sources are filtered", async () => {
+  const finance = await render(fixture({
+    industry: "Finance",
+    findings: [finding({ title: "No structured data detected", observed: "No structured data detected on the homepage.", detail: "No structured data detected on the homepage." })],
+    businessIntelligence: { sourceStatus: {
+      businessIdentity: { status: "verified_match" },
+      website: { status: "observed", note: "synthetic" },
+      propertyMarketIntelligence: { status: "unavailable", note: "Synthetic Cotality" },
+      reaMarketplace: { status: "unavailable", note: "Synthetic REA" },
+      industryCredentials: { status: "planned", note: "Synthetic OFT" },
+    } },
+  }));
+  assert.match(finance, /Confirmed gap/);
+  assert.doesNotMatch(finance, /Cotality|REA Partner|Queensland OFT|propertyMarketIntelligence|reaMarketplace|industryCredentials/i);
+  assert.match(finance, /ABR identity|Google Places|Website/);
+  const realEstate = await render(fixture({ industry: "Real Estate", findings: [finding()], businessIntelligence: { sourceStatus: { propertyMarketIntelligence: { status: "unavailable", note: "Synthetic Cotality" } } } }));
+  assert.match(realEstate, /Property market \(Cotality\)/);
+});
+
 test("incomplete and low-confidence evidence is labelled rather than invented", async () => {
   const incomplete = await render(fixture({ audit: false, findings: [] }));
   assert.match(incomplete, /does not contain enough evidence/i);

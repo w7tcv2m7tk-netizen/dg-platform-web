@@ -54,12 +54,15 @@ DigitalGate`);
     catch(e) { setError(e instanceof Error ? e.message : "Report generation failed."); }
     finally { setLoading(false); }
   }
-  async function copy() { if(shareUrl) await navigator.clipboard.writeText(shareUrl); }
+  function absoluteUrl(value: string) {
+    try { return new URL(value, window.location.origin).toString(); } catch { return value; }
+  }
+  async function copy() { if(shareUrl) await navigator.clipboard.writeText(absoluteUrl(shareUrl)); }
   async function exportPdf() {
     setLoading(true); setError(null);
     try {
       const { url }=await ensureReport();
-      const win=window.open(`${url}?preview=1`,"_blank");
+      const win=window.open(`${absoluteUrl(url)}?preview=1`,"_blank");
       if(!win) throw new Error("Allow pop-ups to open the report for PDF export.");
       window.setTimeout(()=>{ try { win.print(); } catch { /* user can still print from the opened report */ } },1200);
     } catch(e) { setError(e instanceof Error ? e.message : "Could not open PDF-ready report."); }
@@ -70,10 +73,11 @@ DigitalGate`);
     try {
       if(!to.trim()) throw new Error("Recipient email is required.");
       const { url, id }=await ensureReport();
-      const message=body.replace("REPORT_LINK",url);
+      const absolute = absoluteUrl(url);
+      const message=body.replace("REPORT_LINK",absolute);
       const res=await fetch("/api/v1/communications/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
         channel:"email",to:to.trim(),subject:subject.trim(),body:message,
-        metadata:{source:"prospecting_opportunity_report",prospectId,reportUrl:url,businessName}
+        metadata:{source:"prospecting_opportunity_report",prospectId,reportUrl:absolute,businessName}
       })});
       const json=await res.json().catch(()=>null);
       if(!res.ok) throw new Error(json?.error?.message || "Email send failed.");

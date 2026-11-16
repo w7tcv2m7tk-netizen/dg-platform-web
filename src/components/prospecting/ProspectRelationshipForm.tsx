@@ -40,7 +40,7 @@ export function ProspectRelationshipForm({ prospectId, abn, companies, contacts,
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not save"); }
     finally { setPending(false); }
   }
-  return <section id="business-identity" className="scroll-mt-24 rounded-xl border border-slate-800 p-4 space-y-4">
+  return <section className="rounded-xl border border-slate-800 p-4 space-y-4">
     <h2 className="font-semibold text-white">Business identity and existing relationships</h2>
     <form onSubmit={(event) => void submit(event, true)} className="flex flex-wrap items-end gap-3">
       <label className="text-sm text-slate-300">Australian ABN<input name="abn" defaultValue={abn ?? ""} required inputMode="numeric" className="mt-1 block rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-white" /></label>
