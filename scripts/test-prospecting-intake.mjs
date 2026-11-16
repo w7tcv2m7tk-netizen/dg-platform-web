@@ -276,7 +276,13 @@ test('prospect report readiness and CRM suggestions are explicit; sidebar defaul
  assert.match(actions,/initialReport/);
  assert.match(actions,/canShare/);
  assert.match(actions,/readiness/);
- assert.match(detail,/companySuggestions/);
+ assert.match(detail,/companySuggestions/); assert.match(detail,/REAL_ESTATE_SOURCE_KEYS/);
+ assert.match(detail,/sourceEntries/);
+ assert.match(detail,/isRealEstateIndustry/);
+ assert.match(detail,/Research progress/);
+ assert.match(detail,/hasSuggestedWebsite/);
+ assert.match(relationship,/Use missing details/);
+
  assert.match(detail,/contactSuggestions/);
  assert.match(relationship,/Possible CRM matches/);
  assert.match(relationship,/nothing is linked until you confirm/);
