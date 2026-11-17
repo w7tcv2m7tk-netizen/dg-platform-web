@@ -47,15 +47,22 @@ export type LlmTransportAttempt = LlmTransportPlanEntry & {
   usage?: LlmTokenUsage;
 };
 
+export type LlmChatFailureCode = "no_provider" | "timeout" | "aborted" | "transport_failed";
+
 export class LlmChatError extends Error {
   readonly attempts: LlmTransportAttempt[];
   readonly transportPlan: LlmTransportPlanEntry[];
+  readonly code: LlmChatFailureCode;
+  readonly retryable: boolean;
 
-  constructor(message: string, attempts: LlmTransportAttempt[], transportPlan: LlmTransportPlanEntry[]) {
+  constructor(message: string, attempts: LlmTransportAttempt[], transportPlan: LlmTransportPlanEntry[],
+    code: LlmChatFailureCode = "transport_failed", retryable = true) {
     super(message);
     this.name = "LlmChatError";
     this.attempts = attempts;
     this.transportPlan = transportPlan;
+    this.code = code;
+    this.retryable = retryable;
   }
 }
 
@@ -419,11 +426,22 @@ export async function llmChat(input: {
   safeErrors?: boolean;
   /** Exact ordered attempt plan. Omitted preserves all legacy routing. */
   executionPlan?: readonly LlmTransportPlanEntry[];
+  /** Optional total request deadline. Omitted preserves legacy unbounded behavior. */
+  deadlineMs?: number;
+  /** Optional per-provider attempt timeout. Omitted preserves legacy transport behavior. */
+  attemptTimeoutMs?: number;
 }): Promise<LlmGenerateResult> {
   const tier = input.tier ?? "standard";
   const configured = resolveLlmTransports(tier);
   const constrained = input.executionPlan !== undefined;
-  const invalidPlan = () => new LlmChatError("Invalid constrained transport plan", [], []);
+  const invalidPlan = () => new LlmChatError("Invalid constrained transport plan", [], [], "transport_failed", false);
+  const deadlineMs = input.deadlineMs;
+  const attemptTimeoutMs = input.attemptTimeoutMs;
+  if ((deadlineMs !== undefined && (!Number.isSafeInteger(deadlineMs) || deadlineMs < 1 || deadlineMs > 60_000)) ||
+      (attemptTimeoutMs !== undefined && (!Number.isSafeInteger(attemptTimeoutMs) || attemptTimeoutMs < 1 ||
+        (deadlineMs !== undefined && attemptTimeoutMs > deadlineMs)))) {
+    throw invalidPlan();
+  }
   if (constrained && (!Array.isArray(input.executionPlan) || !input.executionPlan.length || input.executionPlan.length > 3)) throw invalidPlan();
   const selected = constrained ? Array.from(input.executionPlan!).map((entry) => {
     if (!entry || Object.keys(entry).some((key) => key !== "provider" && key !== "model")) throw invalidPlan();
@@ -444,6 +462,8 @@ export async function llmChat(input: {
       "No LLM configured (AI_GATEWAY_API_KEY / VERCEL_OIDC_TOKEN, OPENAI_API_KEY, or ANTHROPIC_API_KEY)",
       [],
       [],
+      "no_provider",
+      false,
     );
   }
 
@@ -451,57 +471,87 @@ export async function llmChat(input: {
   const maxTokens = input.maxTokens ?? 1200;
   const attempts: LlmTransportAttempt[] = [];
   let lastError: unknown;
+  let totalTimedOut = false;
+  const totalController = new AbortController();
+  const totalTimer = deadlineMs === undefined
+    ? undefined
+    : setTimeout(() => { totalTimedOut = true; totalController.abort(); }, deadlineMs);
+  const totalSignal = input.signal
+    ? (totalTimer === undefined ? input.signal : AbortSignal.any([input.signal, totalController.signal]))
+    : totalController.signal;
 
-  for (const transport of chain) {
-    if (input.signal?.aborted) break;
-    try {
-      const result = await callTransport(
-        transport,
-        input.messages,
-        maxTokens,
-        input.signal,
-        constrained,
-      );
-      if (input.signal?.aborted) throw new Error("Request aborted");
-      attempts.push({
-        provider: transport.provider,
-        model: transport.model,
-        ok: true,
-        usage: result.usage,
-      });
-      return {
-        text: result.text,
-        provider: transport.provider,
-        model: transport.model,
-        latencyMs: Date.now() - started,
-        usage: result.usage,
-        attempts,
-      };
-    } catch (err) {
-      lastError = err;
-      const message = input.safeErrors
-        ? (input.signal?.aborted ? "Request aborted" : "Transport request failed")
-        : err instanceof Error ? err.message : String(err);
-      attempts.push({
-        provider: transport.provider,
-        model: transport.model,
-        ok: false,
-        error: message,
-      });
-      if (!input.safeErrors) console.warn(`[ai] ${transport.provider} failed — trying next transport`, message);
+  try {
+    for (const transport of chain) {
+      if (totalSignal.aborted) break;
+      let attemptTimedOut = false;
+      const attemptController = new AbortController();
+      const attemptTimer = attemptTimeoutMs === undefined
+        ? undefined
+        : setTimeout(() => { attemptTimedOut = true; attemptController.abort(); }, attemptTimeoutMs);
+      const attemptSignal = attemptTimer === undefined
+        ? totalSignal
+        : AbortSignal.any([totalSignal, attemptController.signal]);
+      try {
+        const result = await callTransport(
+          transport,
+          input.messages,
+          maxTokens,
+          attemptSignal,
+          constrained,
+        );
+        if (totalSignal.aborted) throw new Error("Request aborted");
+        attempts.push({
+          provider: transport.provider,
+          model: transport.model,
+          ok: true,
+          usage: result.usage,
+        });
+        return {
+          text: result.text,
+          provider: transport.provider,
+          model: transport.model,
+          latencyMs: Date.now() - started,
+          usage: result.usage,
+          attempts,
+        };
+      } catch (err) {
+        lastError = err;
+        const message = input.safeErrors
+          ? (attemptTimedOut ? "timeout" : totalSignal.aborted ? "Request aborted" : "transport_failed")
+          : err instanceof Error ? err.message : String(err);
+        attempts.push({
+          provider: transport.provider,
+          model: transport.model,
+          ok: false,
+          error: message,
+        });
+        if (!input.safeErrors) console.warn(`[ai] ${transport.provider} failed — trying next transport`, message);
+      } finally {
+        if (attemptTimer !== undefined) clearTimeout(attemptTimer);
+      }
     }
+  } finally {
+    if (totalTimer !== undefined) clearTimeout(totalTimer);
   }
 
+  const aborted = totalSignal.aborted;
   const lastMessage =
-    input.safeErrors ? "All eligible LLM transports failed" :
+    input.safeErrors ? (totalTimedOut ? "All eligible LLM transports timed out" : "All eligible LLM transports failed") :
     lastError instanceof Error ? lastError.message : "All LLM transports failed";
   const attemptSummary = attempts
     .map((a) => `${a.provider}/${a.model}${a.ok ? "" : `: ${a.error ?? "failed"}`}`)
     .join(" → ");
+  const failureCode: LlmChatFailureCode = aborted
+    ? (input.signal?.aborted ? "aborted" : "timeout")
+    : attempts.length > 0 && attempts.every((attempt) => attempt.error === "timeout")
+      ? "timeout"
+      : "transport_failed";
 
   throw new LlmChatError(
     `${lastMessage} [tried: ${attemptSummary}]`,
     attempts,
     transportPlan,
+    failureCode,
+    failureCode === "timeout" || failureCode === "transport_failed",
   );
 }

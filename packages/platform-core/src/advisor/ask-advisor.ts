@@ -265,6 +265,9 @@ export async function askBusinessAdvisor(
       ],
       maxTokens: 900,
       tier: "reasoning",
+      deadlineMs: 20_000,
+      attemptTimeoutMs: 9_000,
+      safeErrors: true,
     });
 
     const answer =

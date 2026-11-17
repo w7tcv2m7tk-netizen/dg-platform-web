@@ -118,6 +118,7 @@ export function AiAdvisorPanel({
       const res = await fetch("/api/v1/command/advisor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(25_000),
         body: JSON.stringify({
           organisationId,
           question: question.trim() || undefined,

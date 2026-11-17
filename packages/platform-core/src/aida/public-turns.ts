@@ -116,6 +116,9 @@ export async function runPublicAidaTurn(
     const result = await chat({
       tier: "standard",
       maxTokens: 700,
+      deadlineMs: 12_000,
+      attemptTimeoutMs: 6_000,
+      safeErrors: true,
       messages: [
         { role: "system", content: systemPrompt(retrievedBlock, input.pricingBrief) },
         ...recent,
