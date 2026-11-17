@@ -191,7 +191,7 @@ test("AI Call Centre empty activity directs the customer to setup or help", () =
 });
 
 test("Prospecting load failures provide retry and Advisor recovery paths", () => {
-  assert.match(prospectingPage, /redirect\([\s\S]*\/apps\/prospecting\/today/);
+  assert.match(prospectingPage, /redirect\([\s\S]*\/apps\/prospecting\/overview/);
   assert.match(prospectingPage, /\/apps\/prospecting\/overview/);
   for (const source of [read("src/app/(shell)/apps/prospecting/today/page.tsx"), read("src/components/prospecting/ProspectingOverview.tsx")]) {
     assert.match(source, /Try again/);

@@ -6,6 +6,7 @@ import { createRequire } from "node:module";
 import ts from "typescript";
 import { renderToStaticMarkup } from "react-dom/server";
 import { generateGrowthReportSnapshot, loadGrowthReportSnapshot } from "../packages/platform-core/src/command-centre/growth-engine/report-snapshot.ts";
+import * as reportPresentation from "../packages/platform-core/src/command-centre/growth-engine/report-presentation.ts";
 
 const require = createRequire(import.meta.url);
 const publicAccess = { kind: "public", recordView: true };
@@ -69,6 +70,7 @@ function renderer(f,access) {
     "next/navigation":{notFound}, "@dg/database":{prisma:f.db},
     "@dg/platform-core/command-centre/growth-engine/report-snapshot":{loadGrowthReportSnapshot},
     "@/lib/prospect-report-access":{prospectReportAccess:async()=>access},
+    "@dg/platform-core/command-centre/growth-engine/report-presentation":reportPresentation,
   }).default;
 }
 async function render(page,token,preview) { return renderToStaticMarkup(await page({params:Promise.resolve({token}),searchParams:Promise.resolve({preview})})); }
@@ -161,7 +163,7 @@ test("legacy report service uses same boundary and never selects newest audit or
 });
 test("internal open/print use authenticated preview; downstream copy never identifies anonymous readers",()=>{
   const actions=fs.readFileSync("src/components/prospecting/ProspectReportActions.tsx","utf8");
-  assert.match(actions,/window\.open\(`\$\{url\}\?preview=1`/); assert.match(actions,/href=\{`\$\{shareUrl\}\?preview=1`\}/);
+  assert.match(actions,/window\.open\(`\$\{absoluteUrl\(url\)\}\?preview=1`/); assert.match(actions,/href=\{`\$\{shareUrl\}\?preview=1`\}/);
   const today=fs.readFileSync("src/components/prospecting/ProspectingTodayActions.tsx","utf8");
   assert.doesNotMatch(today,/I saw you had a look/); assert.match(today,/Public report URL accessed/);
   for(const file of ["src/app/opportunity/[token]/page.tsx","src/app/opportunity-report/[token]/page.tsx"]) assert.match(fs.readFileSync(file,"utf8"),/prospectReportAccess\(preview\)/);
@@ -233,6 +235,10 @@ test("delivery recording executes against audit A after B and rejects a foreign 
   const prior=f.engagements.length;
   const refused=await route.PATCH(request("foreign-report-id"),{params:Promise.resolve({id:"p1"})});
   assert.equal(refused.status,409); assert.equal(f.engagements.length,prior);
+  const revokeRequest=new Request("https://app.example.test/api/report",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"revoke",reportId:f.report.id})});
+  const revoked=await route.PATCH(revokeRequest,{params:Promise.resolve({id:"p1"})});
+  assert.equal(revoked.status,200); assert.ok(f.reports[0].revokedAt);
+  assert.equal(f.engagements.at(-1).type,"report_revoked");
 });
 
 
@@ -334,6 +340,7 @@ for (const routeFile of ["src/app/opportunity/[token]/page.tsx", "src/app/opport
         "@dg/platform-core": { getPublicGrowthOpportunityReport: core.getPublicGrowthOpportunityReport },
         "@dg/database": { prisma: f.db },
         "@dg/platform-core/command-centre/growth-engine/report-snapshot": { loadGrowthReportSnapshot },
+        "@dg/platform-core/command-centre/growth-engine/report-presentation": reportPresentation,
         "@/lib/prospect-report-access": { prospectReportAccess: async () => previewAccess },
       }, { env: { DATABASE_URL: "postgresql://synthetic:synthetic@127.0.0.1:1/synthetic" } }).default;
       if (state === "active") assert.match(await render(page, f.report.shareToken, "1"), /Evidence A/);

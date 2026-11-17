@@ -881,3 +881,304 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     width: auto !important;
   }
 }
+
+/* Digital Opportunity Report — Phase 1 presentation */
+.dg-report-score-bar {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+}
+.dg-report-score-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #8b5cf6;
+}
+.dg-report-cover-wordmark {
+  margin: 0 0 12mm;
+  color: #111827;
+  font-size: 16pt;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+}
+
+.dg-report-print-cover,
+.dg-report-print-only {
+  display: none;
+}
+
+.dg-report-mobile-cta {
+  position: fixed;
+  z-index: 40;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem calc(0.7rem + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(5, 9, 26, 0.96);
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  backdrop-filter: blur(12px);
+}
+
+.dg-report-mobile-cta a {
+  flex: 0 0 auto;
+  border-radius: 0.65rem;
+  background: #8b5cf6;
+  padding: 0.65rem 0.8rem;
+  color: white;
+  font-weight: 700;
+}
+
+.dg-report-mobile-cta + * {
+  padding-bottom: 4.5rem;
+}
+
+@media (max-width: 767px) {
+  .dg-opportunity-report {
+    padding-bottom: 4.75rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .dg-report-mobile-cta {
+    display: none;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 13mm 13mm 14mm;
+  }
+
+  body,
+  .dg-opportunity-report {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+  }
+
+  .dg-opportunity-report * {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-color: #d6d3d1 !important;
+    color: #1f2937 !important;
+  }
+
+  .dg-opportunity-report h1,
+  .dg-opportunity-report h2,
+  .dg-opportunity-report h3,
+  .dg-opportunity-report strong,
+  .dg-opportunity-report b {
+    color: #111827 !important;
+  }
+
+  .dg-opportunity-report .text-violet-400,
+  .dg-opportunity-report .text-violet-300,
+  .dg-opportunity-report .text-violet-200,
+  .dg-opportunity-report .text-violet-100,
+  .dg-opportunity-report .text-emerald-300,
+  .dg-opportunity-report .text-emerald-200,
+  .dg-opportunity-report .text-amber-200 {
+    color: #4c1d95 !important;
+  }
+
+  .dg-opportunity-report a[href*="strategy-session"],
+  .dg-opportunity-report .dg-report-cover-cta {
+    background: #5b3df5 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .dg-opportunity-report .dg-report-mobile-cta,
+  .dg-opportunity-report .dg-report-web-header,
+  .dg-opportunity-report .dg-report-mobile-early-cta,
+  .dg-opportunity-report .dg-report-screen-only {
+    display: none !important;
+  }
+
+  .dg-opportunity-report .dg-report-print-only {
+    display: block !important;
+  }
+
+  .dg-opportunity-report .dg-report-print-cover {
+    display: block !important;
+    break-after: page;
+    min-height: 250mm;
+    padding: 10mm 4mm 0;
+    color: #1f2937 !important;
+  }
+
+  .dg-report-print-cover .dg-report-cover-wordmark {
+    margin-bottom: 10mm;
+    color: #111827 !important;
+  }
+  .dg-report-print-cover .dg-report-kicker,
+  .dg-report-print-cover .dg-report-confidential {
+    margin: 0;
+    color: #5b3df5 !important;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .dg-report-print-cover h1 {
+    margin: 18mm 0 5mm;
+    max-width: 150mm;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 34pt;
+    font-weight: 500;
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+  }
+
+  .dg-report-print-cover .dg-report-cover-sub {
+    max-width: 145mm;
+    color: #4b5563 !important;
+    font-size: 13pt;
+    line-height: 1.55;
+  }
+
+  .dg-report-print-cover .dg-report-cover-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7mm 10mm;
+    margin: 14mm 0 10mm;
+    padding: 5mm 0;
+    border-top: 1px solid #d6d3d1;
+    border-bottom: 1px solid #d6d3d1;
+    font-size: 9pt;
+    color: #4b5563 !important;
+  }
+
+  .dg-report-print-cover .dg-report-cover-meta span,
+  .dg-report-print-cover .dg-report-cover-meta b {
+    display: block;
+  }
+
+  .dg-report-print-cover .dg-report-cover-meta b {
+    margin-bottom: 1.5mm;
+    color: #111827 !important;
+  }
+
+  .dg-report-print-cover .dg-report-cover-score {
+    float: right;
+    min-width: 42mm;
+    margin: 0 0 8mm 8mm;
+    padding: 6mm;
+    border: 1px solid #d6d3d1;
+  }
+
+  .dg-report-print-cover .dg-report-cover-score span {
+    display: block;
+    color: #4b5563 !important;
+    font-size: 8pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .dg-report-print-cover .dg-report-cover-score strong {
+    display: block;
+    margin-top: 2mm;
+    font-size: 26pt;
+    line-height: 1;
+  }
+
+  .dg-report-print-cover .dg-report-cover-score small {
+    font-size: 11pt;
+    font-weight: 400;
+  }
+
+  .dg-report-print-cover .dg-report-cover-priorities {
+    display: grid;
+    gap: 4mm;
+    margin-top: 10mm;
+  }
+
+  .dg-report-print-cover .dg-report-cover-priorities > div {
+    break-inside: avoid;
+    border-top: 1px solid #d6d3d1;
+    padding-top: 3mm;
+  }
+
+  .dg-report-print-cover .dg-report-cover-priorities span {
+    color: #5b3df5 !important;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+  }
+
+  .dg-report-print-cover .dg-report-cover-priorities h2 {
+    margin: 1.5mm 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 16pt;
+    font-weight: 500;
+  }
+
+  .dg-report-print-cover .dg-report-cover-priorities p {
+    margin: 0;
+    color: #4b5563 !important;
+    font-size: 9pt;
+    line-height: 1.45;
+  }
+
+  .dg-opportunity-report .dg-report-score-bar {
+    background: #e5e7eb !important;
+  }
+  .dg-opportunity-report .dg-report-score-bar > span {
+    background: #5b3df5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .dg-report-print-cover .dg-report-cover-cta {
+    display: inline-block;
+    margin-top: 12mm;
+    padding: 4mm 6mm;
+    font-size: 10pt;
+    font-weight: 700;
+  }
+
+  .dg-opportunity-report .dg-report-section {
+    break-inside: avoid;
+  }
+
+  .dg-opportunity-report #evidence,
+  .dg-opportunity-report #industry,
+  .dg-opportunity-report #roadmap,
+  .dg-opportunity-report #next-step {
+    break-before: page;
+  }
+
+  .dg-opportunity-report details > summary {
+    list-style: none;
+  }
+
+  .dg-opportunity-report details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .dg-opportunity-report details {
+    border: 0 !important;
+    padding: 0 !important;
+  }
+
+  .dg-opportunity-report details > *:not(summary) {
+    display: block !important;
+  }
+
+  .dg-opportunity-report .dg-report-card {
+    break-inside: avoid;
+  }
+
+  .dg-opportunity-report footer {
+    color: #6b7280 !important;
+  }
+}

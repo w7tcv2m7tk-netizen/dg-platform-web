@@ -73,7 +73,12 @@ export function resolvePresenceIndustryPack(
   ) {
     return "accommodation";
   }
-  if (/real\s*estate|property|agency|realtor|sales agent/.test(s)) {
+  // Finance has a dedicated report pack but no separate presence pack; use
+  // general public-evidence guidance rather than inheriting Real Estate rules.
+  if (/finance|mortgage|lending|accounting|insurance|wealth|capital|broking/.test(s)) {
+    return "general";
+  }
+  if (/real\s*estate|realtor|buyers agency|realty|property (?:agency|management|group|sales)/.test(s)) {
     return "real_estate";
   }
   if (

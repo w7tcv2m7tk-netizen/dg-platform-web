@@ -19,11 +19,9 @@ export async function POST(req: Request, { params }: RouteParams) {
   if (!prospect || prospect.archivedAt) {
     return NextResponse.json({ error: { code: "not_found", message: "Prospect not found" } }, { status: 404 });
   }
-  let hasWebsite = false;
-  try { hasWebsite = ["http:", "https:"].includes(new URL(prospect.websiteUrl ?? "").protocol); } catch { /* Missing or invalid website. */ }
-  if (!hasWebsite) {
-    return NextResponse.json({ error: { code: "website_required", message: "Use Edit to add a valid business website before starting research." } }, { status: 422 });
-  }
+  // Research is allowed without a website: the presence audit records the
+  // missing-website limitation explicitly rather than blocking CRM/ABR
+  // evidence from progressing. Website probes only run for a valid HTTP(S) URL.
   const audit = await runGrowthProspectAudit({
     prospectId: id,
     scope,

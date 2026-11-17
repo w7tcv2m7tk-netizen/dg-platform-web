@@ -220,11 +220,16 @@ function googleCandidateMatchesProspect(prospect: { location: string | null; web
 async function enrichProspectBusinessIntelligence(prospect: {
   businessName: string; industry: string | null; location: string | null; websiteUrl: string | null;
 }): Promise<ProspectBusinessIntelligence> {
+  const hasWebsite = Boolean(prospect.websiteUrl?.trim());
   const sourceStatus: ProspectBusinessIntelligence["sourceStatus"] = {
-    website: { status: "analysed" },
+    website: hasWebsite
+      ? { status: "analysed" }
+      : { status: "not_available", note: "No website URL is recorded, so website, SEO and AI-readiness signals could not be measured." },
     businessIdentity: { status: abnLookupProvider.isConfigured() ? "searched" : "unavailable", note: abnLookupProvider.unavailableReason() },
     googleBusinessProfile: { status: googlePlacesProvider.isConfigured() ? "searched" : "unavailable", note: googlePlacesProvider.unavailableReason() },
-    socialProfiles: { status: "website_verified", note: "Public social profiles linked by the business website are captured as first-party public evidence." },
+    socialProfiles: hasWebsite
+      ? { status: "website_verified", note: "Public social profiles linked by the business website are captured as first-party public evidence." }
+      : { status: "not_available", note: "Social profiles cannot be verified without an identified business website." },
     linkedin: { status: "planned", note: "Public LinkedIn evidence requires a compliant public-profile discovery path; customer OAuth data is not used for prospects." },
     industryCredentials: { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
     propertyMarketIntelligence: { status: coreLogicCredentialsConfigured() ? "available" : "unavailable", note: coreLogicCredentialsConfigured() ? "Cotality connector available; locality evidence is verified before market intelligence is attached." : "Cotality connector is not configured." },

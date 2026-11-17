@@ -150,7 +150,7 @@ test('default Priorities page renders retry/help recovery for missing database a
   },{process:{env:{DATABASE_URL:database}},console:{error(){}}}).default;
   const html=renderToStaticMarkup(await page());
   assert.match(html,/Try again/);assert.match(html,/Get help/);assert.match(html,/rather than estimating/);
-  assert.match(html,/href="\/apps\/prospecting"/);assert.equal(queries,database?1:0);
+  assert.match(html,/href="\/apps\/prospecting\/today"/);assert.equal(queries,database?1:0);
  }
 });
 
@@ -219,7 +219,7 @@ test('prospect detail distinguishes Discover, Research without website, and qual
   const page=load('src/app/(shell)/apps/prospecting/prospects/[prospectId]/page.tsx',{
    'react/jsx-runtime':require('react/jsx-runtime'),'next/link':({children})=>children,'next/navigation':{notFound(){throw Error('not_found');}},
    '@dg/platform-core':{computeProspectOpportunityScore:score,getGrowthProspect:async()=>prospect,organisationGrowthScope:id=>({organisationId:id}),sessionHasFeature:()=>canWrite},
-   '@dg/database':{prisma:{growthProspectAudit:{findFirst:async()=>null},company:{findMany:async()=>[]},contact:{findMany:async()=>[]},membership:{findMany:async()=>[]}}},
+   '@dg/database':{prisma:{growthProspectAudit:{findFirst:async()=>null},growthProspectReport:{findFirst:async()=>null},company:{findMany:async()=>[]},contact:{findMany:async()=>[]},membership:{findMany:async()=>[]}}},
    '@/components/prospecting/ProspectRelationshipForm':{ProspectRelationshipForm:()=>null},
    '@/components/prospecting/ProspectingCustomerActions':{ProspectEditControl:()=>react.createElement('button',null,'Edit')},
    '@/components/prospecting/ProspectingPageHeader':{ProspectingPageHeader:()=>null},
@@ -231,13 +231,13 @@ test('prospect detail distinguishes Discover, Research without website, and qual
   return renderToStaticMarkup(await page({params:Promise.resolve({prospectId:'synthetic'})}));
  };
  const discovered=await render('prospect',null);assert.match(discovered,/>Start research</);assert.match(discovered,/Research has not started/);assert.match(discovered,/disabled=""[^>]*>Find decision-maker/);assert.doesNotMatch(discovered,/already moved beyond/);
- const missing=await render('audit_created',null);assert.match(missing,/Use Edit to add the business website/);assert.match(missing,/disabled=""[^>]*>Find decision-maker/);
+ const missing=await render('audit_created',null);assert.match(missing,/Website not identified/);assert.doesNotMatch(missing,/Use Edit to add the business website/);assert.match(missing,/disabled=""[^>]*>Find decision-maker/);
  const research=await render('audit_created','https://example.invalid');assert.doesNotMatch(research,/disabled=""[^>]*>Find decision-maker/);assert.match(research,/>Qualify</);
  const qualified=await render('qualified','https://example.invalid');assert.match(qualified,/Qualification complete/);assert.match(qualified,/disabled=""[^>]*>Find decision-maker/);
  const readOnly=await render('prospect',null,false);assert.doesNotMatch(readOnly,/>Start research<|>Find decision-maker<|>Edit</);
 });
 
-test('audit endpoint rejects missing websites and foreign/archived prospects before research',async()=>{
+test('audit endpoint runs research without a website and rejects foreign/archived prospects',async()=>{
  let session={organisationId:'synthetic-owner',clerkUserId:'synthetic-user'},denied=null,prospect={id:'synthetic',websiteUrl:null},reads=0,audits=0;
  const route=load('src/app/api/v1/prospecting/prospects/[id]/audit/route.ts',{
   '@dg/platform-core':{organisationGrowthScope:organisationId=>({organisationId}),getGrowthProspect:async(id,scope)=>{reads++;assert.equal(scope.organisationId,'synthetic-owner');return prospect;},runGrowthProspectAudit:async(input)=>{audits++;assert.equal(input.scope.organisationId,'synthetic-owner');return {id:'synthetic-audit'};}},
@@ -245,11 +245,11 @@ test('audit endpoint rejects missing websites and foreign/archived prospects bef
   '@/lib/platform-api':{requirePlatformAuth:async()=>session,isNextResponse:x=>Boolean(x?.status),requireFeature:()=>denied},
  },{URL}).POST;
  const call=()=>route({}, {params:Promise.resolve({id:'synthetic'})});
- assert.equal((await call()).status,422);assert.equal(audits,0);
- for(const websiteUrl of ['invalid','javascript:alert(1)','']){prospect={id:'synthetic',websiteUrl};assert.equal((await call()).status,422);}
- prospect=null;assert.equal((await call()).status,404);prospect={archivedAt:new Date(),websiteUrl:'https://example.invalid'};assert.equal((await call()).status,404);assert.equal(audits,0);
- prospect={id:'synthetic',websiteUrl:'https://example.invalid'};assert.equal((await call()).status,201);assert.equal(audits,1);
- const before=reads;denied={status:403};assert.equal((await call()).status,403);session={status:401};assert.equal((await call()).status,401);assert.equal(reads,before);assert.equal(audits,1);
+ assert.equal((await call()).status,201);assert.equal(audits,1);
+ for(const websiteUrl of ['invalid','javascript:alert(1)','']){prospect={id:'synthetic',websiteUrl};assert.equal((await call()).status,201);}
+ prospect=null;assert.equal((await call()).status,404);prospect={archivedAt:new Date(),websiteUrl:'https://example.invalid'};assert.equal((await call()).status,404);
+ prospect={id:'synthetic',websiteUrl:'https://example.invalid'};assert.equal((await call()).status,201);assert.equal(audits,5);
+ const before=reads;denied={status:403};assert.equal((await call()).status,403);session={status:401};assert.equal((await call()).status,401);assert.equal(reads,before);assert.equal(audits,5);
 });
 
 test('explicit Google and ABR combinations preserve selected listing fields and reset confirmation',()=>{
@@ -262,11 +262,40 @@ test('explicit Google and ABR combinations preserve selected listing fields and 
  tree=render();assert.equal(input(tree,'businessName').props.value,'Registry synthetic');assert.equal(input(tree,'abn').props.value,'10000000003');assert.equal(input(tree,'websiteUrl').props.value,'https://other.test');assert.equal(button(tree,'Add to pipeline').props.disabled,true);
 });
 
-test('Prospecting entry redirects to Today and preserves the legacy Overview URL',async()=>{
+test('prospect report readiness and CRM suggestions are explicit; sidebar defaults to Overview',()=>{
+ const detail=fs.readFileSync('src/app/(shell)/apps/prospecting/prospects/[prospectId]/page.tsx','utf8');
+ const actions=fs.readFileSync('src/components/prospecting/ProspectReportActions.tsx','utf8');
+ const relationship=fs.readFileSync('src/components/prospecting/ProspectRelationshipForm.tsx','utf8');
+ const manifest=fs.readFileSync('packages/platform-core/src/apps/builtins/prospecting.ts','utf8');
+ assert.match(detail,/No report yet/);
+ assert.match(detail,/Existing report available/);
+ assert.match(detail,/Report not ready/);
+ assert.match(detail,/existingReport/);
+ assert.match(detail,/initialReport=/);
+ assert.doesNotMatch(detail,/>Preview report</);
+ assert.match(actions,/initialReport/);
+ assert.match(actions,/canShare/);
+ assert.match(actions,/readiness/);
+ assert.match(detail,/companySuggestions/); assert.match(detail,/REAL_ESTATE_SOURCE_KEYS/);
+ assert.match(detail,/sourceEntries/);
+ assert.match(detail,/isRealEstateIndustry/);
+ assert.match(detail,/Research progress/);
+ assert.match(detail,/hasSuggestedWebsite/);
+ assert.match(relationship,/Use missing details/); assert.match(detail,/prospectWebsite={prospect.websiteUrl}/);
+ assert.match(detail,/isRealEstateIndustry \? <div/);
+
+
+ assert.match(detail,/contactSuggestions/);
+ assert.match(relationship,/Possible CRM matches/);
+ assert.match(relationship,/nothing is linked until you confirm/);
+ assert.match(manifest,/href: "\/apps\/prospecting\/overview"/);
+});
+
+test('Prospecting entry opens Overview by default and preserves explicit Today links',async()=>{
  const urls=[];
  const {default:page}=load('src/app/(shell)/apps/prospecting/page.tsx',{'next/navigation':{redirect:url=>urls.push(url)}});
- await page({searchParams:Promise.resolve({})});await page({searchParams:Promise.resolve({view:'overview'})});
- assert.deepEqual(urls,['/apps/prospecting/today','/apps/prospecting/overview']);
+ await page({searchParams:Promise.resolve({})});await page({searchParams:Promise.resolve({view:'overview'})});await page({searchParams:Promise.resolve({view:'today'})});
+ assert.deepEqual(urls,['/apps/prospecting/overview','/apps/prospecting/overview','/apps/prospecting/today']);
 });
 
 test('existing prospect Edit fills available Google details without changing identity or contact name',()=>{

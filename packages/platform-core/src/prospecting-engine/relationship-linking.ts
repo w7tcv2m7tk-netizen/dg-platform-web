@@ -27,12 +27,26 @@ export async function linkAcquisitionRelationship(input: {
         throw new AcquisitionError("identity_conflict", "The verified business identities differ");
       if (prospect.abn && !company.abn) await tx.company.update({ where: { id: companyId }, data: { abn: prospect.abn, identityProvenance: prospect.identityProvenance as Prisma.InputJsonValue } });
     }
+    let adoptedContactFields: string[] = [];
     if (contactId) {
       const contact = await tx.contact.findFirst({ where: { id: contactId, organisationId: input.organisationId, deletedAt: null } });
       if (!contact) throw new AcquisitionError("not_found", "CRM contact not found", 404);
       if (companyId && contact.companyId && contact.companyId !== companyId)
         throw new AcquisitionError("contact_company_conflict", "Contact belongs to another company; its association was preserved");
       // Even unassigned contacts are not reassigned by relationship intake.
+      // Adopt only missing prospect-facing fields after the operator explicitly links
+      // the contact. Existing prospect values and the CRM contact are never overwritten.
+      const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(" ").trim();
+      if (!prospect.contactName?.trim() && fullName) adoptedContactFields.push("contactName");
+      if (!prospect.contactEmail?.trim() && contact.email?.trim()) adoptedContactFields.push("contactEmail");
+      if (!prospect.contactPhone?.trim() && contact.phone?.trim()) adoptedContactFields.push("contactPhone");
+      if (adoptedContactFields.length) {
+        await tx.growthProspect.update({ where: { id: prospect.id }, data: {
+          ...(adoptedContactFields.includes("contactName") ? { contactName: fullName } : {}),
+          ...(adoptedContactFields.includes("contactEmail") ? { contactEmail: contact.email?.trim() } : {}),
+          ...(adoptedContactFields.includes("contactPhone") ? { contactPhone: contact.phone?.trim() } : {}),
+        } });
+      }
     }
     const target = input.customerOrganisationId;
     if (target) {
@@ -44,13 +58,13 @@ export async function linkAcquisitionRelationship(input: {
       if (!authorised.has(input.organisationId) || !authorised.has(target))
         throw new AcquisitionError("forbidden", "Active owner or admin authority in both organisations is required", 403);
     }
-    const unchanged = (!companyId || metadata.crm_company_id === companyId) && (!contactId || metadata.crm_contact_id === contactId) && (!target || prospect.convertedOrganisationId === target);
-    if (unchanged) return { prospectId: prospect.id, companyId, contactId, customerOrganisationId: prospect.convertedOrganisationId };
+    const unchanged = (!companyId || metadata.crm_company_id === companyId) && (!contactId || metadata.crm_contact_id === contactId) && (!target || prospect.convertedOrganisationId === target) && adoptedContactFields.length === 0;
+    if (unchanged) return { prospectId: prospect.id, companyId, contactId, customerOrganisationId: prospect.convertedOrganisationId, adoptedContactFields };
     await tx.growthProspect.update({ where: { id: prospect.id }, data: {
       ...(target ? { convertedOrganisationId: target } : {}),
       metadata: { ...metadata, ...(companyId ? { crm_company_id: companyId } : {}), ...(contactId ? { crm_contact_id: contactId } : {}) } as Prisma.InputJsonValue,
     } });
-    await tx.growthProspectEngagement.create({ data: { prospectId: prospect.id, type: "relationship_linked", metadata: { actorId: input.actorId, companyId: companyId ?? null, contactId: contactId ?? null, customerOrganisationId: target ?? null } } });
-    return { prospectId: prospect.id, companyId, contactId, customerOrganisationId: target ?? prospect.convertedOrganisationId };
+    await tx.growthProspectEngagement.create({ data: { prospectId: prospect.id, type: "relationship_linked", metadata: { actorId: input.actorId, companyId: companyId ?? null, contactId: contactId ?? null, customerOrganisationId: target ?? null, adoptedContactFields } } });
+    return { prospectId: prospect.id, companyId, contactId, customerOrganisationId: target ?? prospect.convertedOrganisationId, adoptedContactFields };
   });
 }

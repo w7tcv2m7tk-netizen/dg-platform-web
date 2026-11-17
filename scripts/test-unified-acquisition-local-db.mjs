@@ -126,6 +126,21 @@ await test('ABR lookup, persistence, tenant uniqueness, concurrency and customer
    assert.equal(await prisma.platformSubscription.count(), 1);
    assert.deepEqual(await prisma.activity.findUnique({ where: { id: activity.id } }), activity);
  });
+ await t.test('linking an existing contact adopts only missing prospect contact fields', async () => {
+   const adoptionProspect = await prisma.growthProspect.create({ data: { organisationId: org.id, businessName: 'Synthetic contact adoption', stage: 'prospect' } });
+   const linked = await linking.linkAcquisitionRelationship({ organisationId: org.id, prospectId: adoptionProspect.id, actorId: 'synthetic-owner', companyId: company.id, contactId: contact.id });
+   assert.deepEqual([...linked.adoptedContactFields], ['contactName', 'contactEmail']);
+   const adopted = await prisma.growthProspect.findUnique({ where: { id: adoptionProspect.id } });
+   assert.equal(adopted.contactName, 'Synthetic');
+   assert.equal(adopted.contactEmail, contact.email);
+   assert.equal(adopted.contactPhone, null);
+   const existing = await prisma.growthProspect.create({ data: { organisationId: org.id, businessName: 'Synthetic existing contact', contactName: 'Existing name', contactEmail: 'existing@example.invalid', stage: 'prospect' } });
+   const preserved = await linking.linkAcquisitionRelationship({ organisationId: org.id, prospectId: existing.id, actorId: 'synthetic-owner', companyId: company.id, contactId: contact.id });
+   assert.deepEqual([...preserved.adoptedContactFields], []);
+   const unchanged = await prisma.growthProspect.findUnique({ where: { id: existing.id } });
+   assert.equal(unchanged.contactName, 'Existing name');
+   assert.equal(unchanged.contactEmail, 'existing@example.invalid');
+ });
  await t.test('conflicting contacts and foreign CRM IDs are rejected without reassignment or membership grant', async () => {
    const wrongCompany = await prisma.company.create({ data: { organisationId: org.id, name: 'Other company' } });
    await assert.rejects(() => linking.linkAcquisitionRelationship({ organisationId: org.id, prospectId: ids[1], actorId: 'synthetic-owner', companyId: wrongCompany.id, contactId: contact.id }), e => e.code === 'contact_company_conflict');
