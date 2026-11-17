@@ -221,9 +221,10 @@ export function resolveReportIndustry(input: { industry?: string | null; industr
       : existing === "trades" ? "trades_services" : undefined;
   const value = normalise(input.industry);
   const keywordKey: ReportIndustryKey | undefined =
-    /(?:real estate|property|realtor|buyers agency|realty)/.test(value) ? "real_estate"
+    // Finance before property: "Property Finance" is a finance business, not an agency.
+    /(?:finance|mortgage|lending|accounting|insurance|wealth|capital|broking)/.test(value) ? "finance"
       : /(?:hospitality|accommodation|hotel|motel|resort|tourism|venue|restaurant|cafe|bar)/.test(value) ? "hospitality_accommodation"
-        : /(?:finance|mortgage|lending|accounting|insurance|wealth|capital|broking)/.test(value) ? "finance"
+        : /(?:real estate|realtor|buyers agency|realty|property (?:agency|management|group|sales))/.test(value) ? "real_estate"
           : /(?:trade|plumb|electr|build|hvac|landscap|paint|clean|maintenance|service area)/.test(value) ? "trades_services"
             : /(?:retail|commerce|ecommerce|e commerce|shop|store|wholesale|product)/.test(value) ? "retail_ecommerce"
               : /(?:music|artist|creative|media|publish|production|influencer|content)/.test(value) ? "music_creative" : undefined;

@@ -231,13 +231,13 @@ test('prospect detail distinguishes Discover, Research without website, and qual
   return renderToStaticMarkup(await page({params:Promise.resolve({prospectId:'synthetic'})}));
  };
  const discovered=await render('prospect',null);assert.match(discovered,/>Start research</);assert.match(discovered,/Research has not started/);assert.match(discovered,/disabled=""[^>]*>Find decision-maker/);assert.doesNotMatch(discovered,/already moved beyond/);
- const missing=await render('audit_created',null);assert.match(missing,/Use Edit to add the business website/);assert.match(missing,/disabled=""[^>]*>Find decision-maker/);
+ const missing=await render('audit_created',null);assert.match(missing,/Website not identified/);assert.doesNotMatch(missing,/Use Edit to add the business website/);assert.match(missing,/disabled=""[^>]*>Find decision-maker/);
  const research=await render('audit_created','https://example.invalid');assert.doesNotMatch(research,/disabled=""[^>]*>Find decision-maker/);assert.match(research,/>Qualify</);
  const qualified=await render('qualified','https://example.invalid');assert.match(qualified,/Qualification complete/);assert.match(qualified,/disabled=""[^>]*>Find decision-maker/);
  const readOnly=await render('prospect',null,false);assert.doesNotMatch(readOnly,/>Start research<|>Find decision-maker<|>Edit</);
 });
 
-test('audit endpoint rejects missing websites and foreign/archived prospects before research',async()=>{
+test('audit endpoint runs research without a website and rejects foreign/archived prospects',async()=>{
  let session={organisationId:'synthetic-owner',clerkUserId:'synthetic-user'},denied=null,prospect={id:'synthetic',websiteUrl:null},reads=0,audits=0;
  const route=load('src/app/api/v1/prospecting/prospects/[id]/audit/route.ts',{
   '@dg/platform-core':{organisationGrowthScope:organisationId=>({organisationId}),getGrowthProspect:async(id,scope)=>{reads++;assert.equal(scope.organisationId,'synthetic-owner');return prospect;},runGrowthProspectAudit:async(input)=>{audits++;assert.equal(input.scope.organisationId,'synthetic-owner');return {id:'synthetic-audit'};}},
@@ -245,11 +245,11 @@ test('audit endpoint rejects missing websites and foreign/archived prospects bef
   '@/lib/platform-api':{requirePlatformAuth:async()=>session,isNextResponse:x=>Boolean(x?.status),requireFeature:()=>denied},
  },{URL}).POST;
  const call=()=>route({}, {params:Promise.resolve({id:'synthetic'})});
- assert.equal((await call()).status,422);assert.equal(audits,0);
- for(const websiteUrl of ['invalid','javascript:alert(1)','']){prospect={id:'synthetic',websiteUrl};assert.equal((await call()).status,422);}
- prospect=null;assert.equal((await call()).status,404);prospect={archivedAt:new Date(),websiteUrl:'https://example.invalid'};assert.equal((await call()).status,404);assert.equal(audits,0);
- prospect={id:'synthetic',websiteUrl:'https://example.invalid'};assert.equal((await call()).status,201);assert.equal(audits,1);
- const before=reads;denied={status:403};assert.equal((await call()).status,403);session={status:401};assert.equal((await call()).status,401);assert.equal(reads,before);assert.equal(audits,1);
+ assert.equal((await call()).status,201);assert.equal(audits,1);
+ for(const websiteUrl of ['invalid','javascript:alert(1)','']){prospect={id:'synthetic',websiteUrl};assert.equal((await call()).status,201);}
+ prospect=null;assert.equal((await call()).status,404);prospect={archivedAt:new Date(),websiteUrl:'https://example.invalid'};assert.equal((await call()).status,404);
+ prospect={id:'synthetic',websiteUrl:'https://example.invalid'};assert.equal((await call()).status,201);assert.equal(audits,5);
+ const before=reads;denied={status:403};assert.equal((await call()).status,403);session={status:401};assert.equal((await call()).status,401);assert.equal(reads,before);assert.equal(audits,5);
 });
 
 test('explicit Google and ABR combinations preserve selected listing fields and reset confirmation',()=>{

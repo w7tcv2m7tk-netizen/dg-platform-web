@@ -44,9 +44,11 @@ export async function POST(req: Request, { params }: RouteParams) {
   });
   if (!prospect) return NextResponse.json({ error: { code: "not_found", message: "Prospect not found" } }, { status: 404 });
 
+  const stageOrder = ["prospect", "audit_created", "qualified", "report_sent", "email_opened", "report_viewed", "follow_up_due", "meeting_booked", "proposal_sent", "won", "onboarding", "lost"];
+  const currentRank = stageOrder.indexOf(prospect.stage);
   const nextStage =
     outcome === "not_interested" ? "lost" :
-    outcome === "interested" || outcome === "follow_up" || outcome === "no_answer" ? "follow_up_due" :
+    (outcome === "interested" || outcome === "follow_up" || outcome === "no_answer") && currentRank >= 0 && currentRank < stageOrder.indexOf("follow_up_due") ? "follow_up_due" :
     prospect.stage;
 
   const nextAction =

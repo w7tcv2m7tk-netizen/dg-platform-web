@@ -235,6 +235,10 @@ test("delivery recording executes against audit A after B and rejects a foreign 
   const prior=f.engagements.length;
   const refused=await route.PATCH(request("foreign-report-id"),{params:Promise.resolve({id:"p1"})});
   assert.equal(refused.status,409); assert.equal(f.engagements.length,prior);
+  const revokeRequest=new Request("https://app.example.test/api/report",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"revoke",reportId:f.report.id})});
+  const revoked=await route.PATCH(revokeRequest,{params:Promise.resolve({id:"p1"})});
+  assert.equal(revoked.status,200); assert.ok(f.reports[0].revokedAt);
+  assert.equal(f.engagements.at(-1).type,"report_revoked");
 });
 
 

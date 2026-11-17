@@ -36,7 +36,8 @@ export function ProspectRelationshipForm({ prospectId, abn, companies, contacts,
       const response = await fetch(`/api/v1/prospecting/prospects/${prospectId}/${identity ? "identity" : "relationships"}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message || "Could not save relationship");
-      setMessage(identity ? "ABN verified through ABR." : "Existing relationship linked."); router.refresh();
+      const adopted = Array.isArray(result.data?.adoptedContactFields) ? result.data.adoptedContactFields.length : 0;
+      setMessage(identity ? "ABN verified through ABR." : adopted ? `Existing relationship linked. Missing contact ${adopted === 1 ? "detail" : "details"} added from the CRM contact.` : "Existing relationship linked."); router.refresh();
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not save"); }
     finally { setPending(false); }
   }
@@ -48,7 +49,7 @@ export function ProspectRelationshipForm({ prospectId, abn, companies, contacts,
     </form>
     {(companySuggestions.length || contactSuggestions.length) ? <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
       <p className="text-sm font-medium text-white">Possible CRM matches</p>
-      <p className="mt-1 text-xs leading-5 text-slate-400">These are suggestions from existing tenant CRM records. Applying a suggestion only fills the selector; nothing is linked until you confirm below.</p>
+      <p className="mt-1 text-xs leading-5 text-slate-400">These are suggestions from existing tenant CRM records. Applying a suggestion only fills the selector; nothing is linked until you confirm below. Linking a contact adopts only missing name, email and phone fields onto this prospect.</p>
       <div className="mt-3 space-y-2">
         {companySuggestions.map((suggestion) => <div key={suggestion.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-950/50 p-2.5"><div><p className="text-sm text-slate-200">{suggestion.label}</p><p className="text-[11px] text-slate-500">{suggestion.evidence}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => setCompanyId(suggestion.id)} className="text-xs font-medium text-violet-300 hover:text-violet-200">Select company</button>{suggestion.website || suggestion.email || suggestion.phone ? <button type="button" disabled={pending} onClick={() => void adoptCompanyDetails(suggestion)} className="text-xs font-medium text-violet-300 hover:text-violet-200 disabled:opacity-40">Use missing details</button> : null}</div></div>)}
         {contactSuggestions.map((suggestion) => <div key={suggestion.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-950/50 p-2.5"><div><p className="text-sm text-slate-200">{suggestion.label}</p><p className="text-[11px] text-slate-500">{suggestion.evidence}</p></div><button type="button" onClick={() => setContactId(suggestion.id)} className="text-xs font-medium text-violet-300 hover:text-violet-200">Use contact</button></div>)}

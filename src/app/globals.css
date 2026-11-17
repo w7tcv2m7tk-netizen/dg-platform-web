@@ -883,6 +883,25 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
 }
 
 /* Digital Opportunity Report — Phase 1 presentation */
+.dg-report-score-bar {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+}
+.dg-report-score-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #8b5cf6;
+}
+.dg-report-cover-logo {
+  display: block;
+  width: 34mm;
+  height: auto;
+  margin-bottom: 12mm;
+}
+
 .dg-report-print-cover,
 .dg-report-print-only {
   display: none;
@@ -996,6 +1015,10 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     color: #1f2937 !important;
   }
 
+  .dg-report-print-cover .dg-report-cover-logo {
+    width: 38mm;
+    margin-bottom: 10mm;
+  }
   .dg-report-print-cover .dg-report-kicker,
   .dg-report-print-cover .dg-report-confidential {
     margin: 0;
@@ -1025,7 +1048,8 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
 
   .dg-report-print-cover .dg-report-cover-meta {
     display: flex;
-    gap: 10mm;
+    flex-wrap: wrap;
+    gap: 7mm 10mm;
     margin: 14mm 0 10mm;
     padding: 5mm 0;
     border-top: 1px solid #d6d3d1;
@@ -1105,6 +1129,14 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     line-height: 1.45;
   }
 
+  .dg-opportunity-report .dg-report-score-bar {
+    background: #e5e7eb !important;
+  }
+  .dg-opportunity-report .dg-report-score-bar > span {
+    background: #5b3df5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .dg-report-print-cover .dg-report-cover-cta {
     display: inline-block;
     margin-top: 12mm;

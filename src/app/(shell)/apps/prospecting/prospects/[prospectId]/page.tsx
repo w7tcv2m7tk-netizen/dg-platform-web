@@ -148,13 +148,13 @@ export default async function ProspectResearchPage({ params }: { params: Promise
   const reportReadiness = existingReport
     ? { label: "Existing report available", detail: `A snapshot generated ${new Date(existingReport.generatedAt).toLocaleDateString("en-AU")} can be previewed without regenerating it.` }
     : !audit
-      ? { label: "No report yet", detail: !prospect.websiteUrl?.trim() ? "Add the business website and complete research before preparing a report." : "Complete research before preparing a report." }
+      ? { label: "No report yet", detail: "Complete research before preparing a report. A missing website is recorded as a limitation rather than blocking the report." }
       : !contentAccessible
         ? { label: "Report unavailable", detail: "The website blocked the research probe. A prospect-facing report cannot be prepared from unverified content." }
         : { label: "Ready to prepare", detail: "The audit evidence is available. Prepare a snapshot when you are ready to review the prospect-facing version." };
   const researchSteps = [
     { label: "Business identified", detail: prospect.abn ? `ABN ${prospect.abn} verified` : "Verify the ABN or choose an existing CRM match.", complete: Boolean(prospect.abn), href: "#business-identity", action: prospect.abn ? null : "Review identity" },
-    { label: "Trading identity and website", detail: prospect.websiteUrl?.trim() ? prospect.websiteUrl : hasSuggestedWebsite ? "A CRM company may have the missing website." : "Add the business website to enable research.", complete: Boolean(prospect.websiteUrl?.trim()), href: "#business-identity", action: prospect.websiteUrl?.trim() ? null : hasSuggestedWebsite ? "Review CRM details" : "Add website" },
+    { label: "Verified identity", detail: prospect.abn ? `ABN ${prospect.abn}${prospect.websiteUrl?.trim() ? ` · ${prospect.websiteUrl}` : " · website not identified"}` : prospect.websiteUrl?.trim() ? `Website ${prospect.websiteUrl} — verify the ABN to complete identity.` : "Verify the ABN or choose an existing CRM match. A website is optional for research.", complete: Boolean(prospect.abn), href: "#business-identity", action: prospect.abn ? null : "Review identity" },
     { label: "Research evidence", detail: audit ? `Audit captured ${new Date(audit.auditedAt).toLocaleDateString("en-AU")}` : "Run research to gather observable public evidence.", complete: Boolean(audit), href: "#audit-evidence", action: audit ? null : "Start research" },
     { label: "Findings reviewed", detail: findings.length ? `${findings.length} finding${findings.length === 1 ? "" : "s"} recorded` : audit ? "No findings recorded in this audit." : "Evidence is required first.", complete: findings.length > 0, href: "#audit-evidence", action: findings.length ? null : "Review evidence" },
     { label: "Digital Opportunity Report", detail: existingReport ? "Existing snapshot available for preview." : canGenerateReport ? "Evidence is ready to prepare a report." : reportReadiness.detail, complete: Boolean(existingReport), href: "#opportunity-report", action: existingReport || canGenerateReport ? "Open report section" : null },
@@ -162,15 +162,13 @@ export default async function ProspectResearchPage({ params }: { params: Promise
 
   const isResearch = prospect.stage === "audit_created";
   const isDiscovered = prospect.stage === "prospect";
-  const researchDisabledReason = !prospect.websiteUrl?.trim()
-    ? "Use Edit to add the business website before starting research."
-    : undefined;
+  const researchDisabledReason = undefined;
   const decisionMakerDisabledReason = !isResearch
     ? isDiscovered
       ? "Start research first. Decision-maker research becomes available during Research once a website is identified."
       : "Decision-maker research is available during Research. Use Edit to update contact details in this lifecycle stage."
     : !prospect.websiteUrl
-      ? "Use Edit to add the business website before searching its public pages for a decision-maker."
+      ? "Add the business website in Edit to search its public pages for a decision-maker."
       : undefined;
 
   return (
@@ -218,7 +216,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
                 <ProspectAuditRefresh prospectId={prospect.id} hasAudit={Boolean(audit)} disabledReason={researchDisabledReason} />
                 <p className="text-sm text-slate-400">This prospect is in Discover. Start research to gather evidence and move it into Research.</p>
               </div> : null}
-              {!prospect.websiteUrl ? <p className="mt-3 text-sm text-slate-400">Website not identified. Use Edit to add the correct website for website checks and decision-maker research.</p> : null}
+              {!prospect.websiteUrl ? <p className="mt-3 text-sm text-slate-400">Website not identified. Research can still record ABR, CRM and public-evidence findings; website checks and decision-maker search remain unavailable until a website is added.</p> : null}
               <DecisionMakerResearch prospectId={prospect.id} disabledReason={decisionMakerDisabledReason} />
               <div className="mt-4"><ProspectEditControl prospect={prospect} /></div>
             </> : null}

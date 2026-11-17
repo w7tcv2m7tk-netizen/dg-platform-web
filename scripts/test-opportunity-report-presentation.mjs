@@ -74,6 +74,12 @@ test("commercial language and evidence freshness are presented without hiding te
   assert.match(html, /Strategy Session discovery/);
 });
 
+test("ambiguous property finance resolves to finance, not real estate",()=>{
+  for (const industry of ["Property Finance", "Property Finance Broker", "Agency Finance"]) {
+    assert.equal(presentation.resolveReportIndustry({ industry }).key, "finance", industry);
+  }
+});
+
 test("real estate retains vendor-journey context only for the real-estate pack", async () => {
   const html = await render(fixture({ industry: "Real Estate", findings: [finding()], businessIntelligence: { realEstateJourney: { hasAppraisalCta: false, suburbMentions: 2 } } }));
   assert.match(html, /Opportunities specific to Real Estate/);

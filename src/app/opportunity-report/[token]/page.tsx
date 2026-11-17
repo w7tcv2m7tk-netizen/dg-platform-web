@@ -120,11 +120,12 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   return (
     <main className="dg-opportunity-report min-h-screen bg-[#05091a] text-slate-100">
       <div className="dg-report-print-cover">
+        <img src="/brand/logo-dark.png" alt="DigitalGate" className="dg-report-cover-logo" />
         <p className="dg-report-kicker">DigitalGate · Digital Opportunity Review</p>
         <p className="dg-report-confidential">Private &amp; confidential · {pack.label}</p>
         <h1>{report.prospect.businessName}</h1>
         <p className="dg-report-cover-sub">An evidence-led review of the current digital position, with the three opportunities that matter first.</p>
-        <div className="dg-report-cover-meta"><span><b>Prepared</b>{report.generatedAt.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</span><span><b>Evidence</b>{auditDate}</span><span><b>Industry</b>{pack.label}</span></div>
+        <div className="dg-report-cover-meta"><span><b>Prepared</b>{report.generatedAt.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</span><span><b>Evidence</b>{auditDate}</span><span><b>Industry</b>{pack.label}</span><span><b>Website</b>{report.prospect.websiteUrl ? report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "Not identified"}</span></div>
         <div className="dg-report-cover-score"><span>Business Health</span><strong>{audit?.businessHealth ?? "—"}<small>/100</small></strong></div>
         <div className="dg-report-cover-priorities">{priorities.map((priority, index) => <div key={index}><span>0{index + 1}</span><h2>{priority.title}</h2><p>{priority.action}</p></div>)}</div>
         <p className="dg-report-cover-cta">Book a Strategy Session →</p>
@@ -147,8 +148,9 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <header className="border-b border-slate-700 pb-8">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div className="max-w-3xl">
+                <img src="/brand/logo.png" alt="DigitalGate" className="mb-5 h-5 w-auto" />
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-400">DigitalGate · Digital Opportunity Report</p>
-                <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">{report.prospect.industry || pack.label} · {report.prospect.location || "Location not recorded"}</p>
+                <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">{report.prospect.industry || pack.label} · {report.prospect.location || "Location not recorded"}{report.prospect.websiteUrl ? <> · <a href={report.prospect.websiteUrl} className="text-violet-300 underline decoration-violet-500/40 underline-offset-2" target="_blank" rel="noreferrer">{report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a></> : null}</p>
                 <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">{report.prospect.businessName}</h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">An evidence-led review of the current digital position, with a clear commercial next step.</p>
               </div>
@@ -207,6 +209,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
               <p className="text-xs uppercase tracking-wide text-violet-300">Business Health</p>
               <p className="mt-2 text-4xl font-semibold text-white">{audit?.businessHealth ?? "—"}<span className="text-base text-slate-400">/100</span></p>
               <p className="mt-2 text-xs text-violet-200">{scoreLabel(audit?.businessHealth ?? null)}</p>
+              <div className="dg-report-score-bar mt-3"><span style={{ width: `${Math.max(0, Math.min(100, Number(audit?.businessHealth ?? 0)))}%` }} /></div>
               <p className="mt-2 text-xs leading-5 text-slate-400">Directional composite, not a third-party ranking.</p>
             </div>
             {pillars.map((pillar) => (
@@ -214,6 +217,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
                 <p className="text-sm font-medium text-slate-300">{pillar.label}</p>
                 <p className="mt-2 text-2xl font-semibold text-white">{pillar.value ?? "—"}<span className="text-sm text-slate-500">/100</span></p>
                 <p className="mt-2 text-xs text-violet-300">{scoreLabel(pillar.value)}</p>
+                <div className="dg-report-score-bar mt-3"><span style={{ width: `${Math.max(0, Math.min(100, Number(pillar.value ?? 0)))}%` }} /></div>
                 <p className="mt-2 text-xs leading-5 text-slate-400">{pillar.description}</p>
               </div>
             ))}

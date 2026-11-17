@@ -1,5 +1,6 @@
 import {
   archiveGrowthProspect,
+  growthPipelineStages,
   restoreGrowthProspect,
   updateGrowthProspect,
   type ProspectPipelineStage,
@@ -32,6 +33,9 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     );
   }
 
+  if (typeof body.stage === "string" && !growthPipelineStages().includes(body.stage as never)) {
+    return NextResponse.json({ error: { code: "validation_error", message: "Unknown prospect stage" } }, { status: 422 });
+  }
   const updated = await updateGrowthProspect({
     prospectId: id,
     organisationId: session.organisationId,
