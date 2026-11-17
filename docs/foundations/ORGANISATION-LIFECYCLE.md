@@ -26,7 +26,8 @@ anywhere else fails the build.
 
 | Boundary | Location | Trigger |
 |---|---|---|
-| `createOrganisationForUser` | `packages/platform-core/src/org/memberships.ts` | Explicit `POST /api/v1/org/create` (user-initiated onboarding / multi-business creation) |
+| `createOrganisationForUser` | `packages/platform-core/src/org/memberships.ts` | Explicit `POST /api/v1/org/create` (existing-user multi-business creation) |
+| `createFirstOrganisationForUser` | `packages/platform-core/src/org/memberships.ts` | Explicit `POST /api/v1/onboarding/first-organisation` after Clerk authentication and verified primary email; creates the first organisation and owner membership in one transaction |
 | `createClientOrganisation` | `packages/platform-core/src/org/client-org.ts` | Operator-only Growth Engine prospect → client conversion (requires `PlatformOperatorContext`, C-3) |
 | `ensureWantdOrganisation` | `packages/platform-core/src/wantd/org.ts` | Manual admin script `scripts/ensure-wantd-org.mjs` — provisions the singleton Wantd marketplace org |
 | demo seed | `packages/platform-core/src/demo/seed.ts` | Demo/seed tooling only |
@@ -38,7 +39,7 @@ anywhere else fails the build.
 - Middleware
 - Dashboard / page loading
 - Sign-up
-- Onboarding page/API reads and Gen 2 configuration must not implicitly create a tenant. The explicit first-business action inside onboarding may call the allowlisted `POST /api/v1/org/create` boundary.
+- Onboarding reads/configures an existing tenant except for the explicit first-organisation action above; loading or progressing the wizard never creates one implicitly
 - Team-invite claiming when there is **no** invitation
 - Any "user synchronisation" or normal login/refresh
 
@@ -54,8 +55,8 @@ no pending invite and no `organisationId`, it returns `null` and creates nothing
 | B | Existing user + multiple memberships | Resolve the intended default organisation |
 | C | Existing user + valid active-org selection (`dg_active_org`) | Honour the selected organisation |
 | D | New user + valid invitation | Activate the existing invited membership (no org creation) |
-| E | New user + **no** invitation + **no** membership | **Do not create an organisation.** Enter explicit onboarding / memberless state |
-| F | Explicit first-business onboarding start / "Create Organisation" | Create an organisation intentionally through `POST /api/v1/org/create` → `createOrganisationForUser` |
+| E | New user + **no** invitation + **no** membership | Enter memberless onboarding; require verified email and an explicit first-organisation submission |
+| F | Explicit first-organisation submit | Create organisation + owner membership atomically (`createFirstOrganisationForUser`); retries return the existing owned organisation |
 | G | Operator prospect → client conversion | Create the client organisation intentionally (`createClientOrganisation`, operator-gated) |
 
 `dg_active_org` is a **browser cookie** (`src/lib/active-org-cookie.ts`), not a database
@@ -68,8 +69,9 @@ ignored, never "fixed" by creating an organisation.
 
 1. The **only** `prisma.organisation.create` sites are the four allowlisted files above.
 2. `provisionOrganisation` does not exist anywhere in the tree.
-3. Authentication / session / middleware / signup / onboarding / invite-claim paths contain
-   no organisation-creation calls.
+3. Authentication / session / middleware / signup / onboarding page loading / invite-claim
+   paths contain no organisation-creation calls. The explicit first-organisation route is
+   separately tested for authenticated, verified identity and retry restrictions.
 4. `claimTeamInvitesForUser` with no invite + no organisationId returns `null` (creates nothing).
 
 If a change reintroduces implicit provisioning, these tests fail.

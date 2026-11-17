@@ -1,16 +1,8 @@
 import { getDefaultEnabledAppIds } from "../apps/org-apps";
-import { isLegacyDemoOrganisation } from "../demo/types";
 import { isPlatformOperatorOrganisationId } from "../access/platform-authority";
 import { ORG_BRAND_PRESETS } from "./brand-presets";
 import { seedWordPressConnectorForTemplate } from "../connectors/wordpress/org-connector";
 import type { ProvisionOrganisationResult } from "./provision";
-
-const ACTIVE_BUSINESS_LIMIT_BY_TIER: Record<string, number | null> = {
-  starter: 1,
-  professional: 1,
-  business: 5,
-  enterprise: null,
-};
 
 export type OrgTemplate =
   | "default"
@@ -107,7 +99,7 @@ export async function listUserOrganisations(
 
   const { prisma } = await import("@dg/database");
 
-  let memberships = await prisma.membership.findMany({
+  const memberships = await prisma.membership.findMany({
     where: {
       clerkUserId,
       status: "active",
@@ -117,35 +109,7 @@ export async function listUserOrganisations(
     orderBy: { createdAt: "asc" },
   });
 
-  const isPlatformOperator = memberships.some((membership) =>
-    isPlatformOperatorOrganisationId(membership.organisationId),
-  );
-
-  // Platform operators always receive staff membership in the canonical demo tenant.
-  // Legacy DigitalGate demo organisations remain excluded.
-  if (isPlatformOperator) {
-    const { grantDemoAccess } = await import("../demo/seed");
-    await grantDemoAccess({ clerkUserId, access: "staff" });
-    memberships = await prisma.membership.findMany({
-      where: {
-        clerkUserId,
-        status: "active",
-        organisation: { status: { not: "archived" } },
-      },
-      include: { organisation: true },
-      orderBy: { createdAt: "asc" },
-    });
-  }
-
-  return sortPlatformOperatorFirst(
-    memberships.filter(
-      (m) =>
-        !isLegacyDemoOrganisation({
-          name: m.organisation.name,
-          slug: m.organisation.slug,
-        }),
-    ),
-  ).map((m) => ({
+  return sortPlatformOperatorFirst(memberships).map((m) => ({
     organisationId: m.organisationId,
     organisationName: m.organisation.name,
     organisationSlug: m.organisation.slug,
@@ -174,15 +138,7 @@ export async function resolveUserMembership(
       },
       include: { organisation: true },
     });
-    if (
-      active &&
-      !isLegacyDemoOrganisation({
-        name: active.organisation.name,
-        slug: active.organisation.slug,
-      })
-    ) {
-      return active;
-    }
+    if (active) return active;
   }
 
   const memberships = await prisma.membership.findMany({
@@ -195,15 +151,7 @@ export async function resolveUserMembership(
     orderBy: { createdAt: "asc" },
   });
 
-  const visibleMemberships = memberships.filter(
-    (m) =>
-      !isLegacyDemoOrganisation({
-        name: m.organisation.name,
-        slug: m.organisation.slug,
-      }),
-  );
-
-  return sortPlatformOperatorFirst(visibleMemberships)[0] ?? null;
+  return sortPlatformOperatorFirst(memberships)[0] ?? null;
 }
 
 export interface CreateOrganisationInput {
@@ -214,8 +162,86 @@ export interface CreateOrganisationInput {
   template?: OrgTemplate;
 }
 
+export type FirstOrganisationMembership = {
+  id: string;
+  organisationId: string;
+  role: string;
+  organisation: { slug: string };
+};
+
+/** Makes repeat submits idempotent without granting a new membership. */
+export function decideFirstOrganisation(
+  memberships: FirstOrganisationMembership[],
+):
+  | { kind: "create" }
+  | { kind: "retry"; result: ProvisionOrganisationResult }
+  | { kind: "conflict" } {
+  if (memberships.length === 0) return { kind: "create" };
+  if (memberships.length === 1 && memberships[0].role === "owner") {
+    const membership = memberships[0];
+    return {
+      kind: "retry",
+      result: {
+        organisationId: membership.organisationId,
+        membershipId: membership.id,
+        slug: membership.organisation.slug,
+        created: false,
+      },
+    };
+  }
+  return { kind: "conflict" };
+}
+
 /** Create an additional organisation for an existing user (multi-business). */
 export async function createOrganisationForUser(
+  input: CreateOrganisationInput,
+): Promise<ProvisionOrganisationResult> {
+  return createOrganisation(input);
+}
+
+/**
+ * Explicit first-organisation bootstrap for a verified human Clerk identity.
+ * Membership creation is part of the organisation insert transaction. A
+ * per-user advisory lock makes concurrent submits and network retries safe.
+ */
+export async function createFirstOrganisationForUser(
+  input: CreateOrganisationInput,
+): Promise<ProvisionOrganisationResult> {
+  const orgName = input.orgName.trim();
+  if (!orgName) throw new Error("Organisation name is required");
+  if (!process.env.DATABASE_URL) throw new Error("Platform database is not configured");
+
+  const { prisma } = await import("@dg/database");
+  const { created, result } = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`dg-first-org:${input.clerkUserId}`}))`;
+
+    const memberships = await tx.membership.findMany({
+      where: {
+        clerkUserId: input.clerkUserId,
+        status: "active",
+        organisation: { status: { not: "archived" } },
+      },
+      include: { organisation: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    const disposition = decideFirstOrganisation(memberships);
+    if (disposition.kind === "retry") {
+      return { created: false, result: disposition.result };
+    }
+    if (disposition.kind === "conflict") {
+      throw new Error("An existing organisation membership requires normal sign-in");
+    }
+
+    const result = await createOrganisationRecord(tx, input);
+    return { created: true, result };
+  });
+
+  if (created) await publishOrganisationCreated(input, result);
+  return result;
+}
+
+async function createOrganisation(
   input: CreateOrganisationInput,
 ): Promise<ProvisionOrganisationResult> {
   const orgName = input.orgName.trim();
@@ -223,7 +249,6 @@ export async function createOrganisationForUser(
     throw new Error("Organisation name is required");
   }
 
-  const template = input.template ?? "default";
   const slug = slugify(orgName) || slugify(input.email.split("@")[0]);
 
   if (!process.env.DATABASE_URL) {
@@ -236,43 +261,24 @@ export async function createOrganisationForUser(
   }
 
   const { prisma } = await import("@dg/database");
+  const result = await createOrganisationRecord(prisma, input, slug);
+  await publishOrganisationCreated(input, result);
+  return result;
+}
 
-  // Provisioning entitlement only: organisations remain isolated tenants.
-  const ownedActiveOrganisations = await prisma.membership.findMany({
-    where: {
-      clerkUserId: input.clerkUserId,
-      role: "owner",
-      status: "active",
-      organisation: { status: { not: "archived" } },
-    },
-    select: { organisationId: true },
-  });
-
-  if (ownedActiveOrganisations.length > 0) {
-    const subscriptions = await prisma.platformSubscription.findMany({
-      where: { organisationId: { in: ownedActiveOrganisations.map((m) => m.organisationId) } },
-      select: { planTier: true },
-    });
-    const tierRank: Record<string, number> = { starter: 0, professional: 1, business: 2, enterprise: 3 };
-    const accountTier = subscriptions
-      .map((s) => s.planTier)
-      .filter((tier): tier is string => Boolean(tier && tier in tierRank))
-      .sort((a, b) => tierRank[b] - tierRank[a])[0] ?? "starter";
-    const limit = ACTIVE_BUSINESS_LIMIT_BY_TIER[accountTier] ?? 1;
-
-    if (limit != null && ownedActiveOrganisations.length >= limit) {
-      const planName = accountTier === "business" ? "Scale" : accountTier === "professional" ? "Growth" : "Starter";
-      throw new Error(
-        `plan_business_limit: ${planName} supports up to ${limit} active business${limit === 1 ? "" : "es"} under this account. Upgrade the Core Platform plan to add another business.`,
-      );
-    }
-  }
-
+async function createOrganisationRecord(
+  db: import("@dg/database").Prisma.TransactionClient | typeof import("@dg/database").prisma,
+  input: CreateOrganisationInput,
+  requestedSlug?: string,
+): Promise<ProvisionOrganisationResult> {
+  const orgName = input.orgName.trim();
+  const template = input.template ?? "default";
+  const slug = requestedSlug ?? (slugify(orgName) || slugify(input.email.split("@")[0]));
   type InputJsonValue = import("@dg/database").Prisma.InputJsonValue;
 
   let uniqueSlug = slug;
   let suffix = 0;
-  while (await prisma.organisation.findUnique({ where: { slug: uniqueSlug } })) {
+  while (await db.organisation.findUnique({ where: { slug: uniqueSlug } })) {
     suffix += 1;
     uniqueSlug = `${slug}-${suffix}`;
   }
@@ -288,7 +294,7 @@ export async function createOrganisationForUser(
           ? ORG_BRAND_PRESETS.aetherra.patch
           : undefined;
 
-  const org = await prisma.organisation.create({
+  const org = await db.organisation.create({
     data: {
       name: orgName,
       slug: uniqueSlug,
@@ -362,19 +368,25 @@ export async function createOrganisationForUser(
 
   const membership = org.memberships[0];
 
-  const { platformEvents } = await import("../events");
-  await platformEvents.publish({
-    type: "organisation.created",
-    organisationId: org.id,
-    actorId: input.clerkUserId,
-    payload: { slug: org.slug, name: org.name, template },
-    occurredAt: new Date(),
-  });
-
   return {
     organisationId: org.id,
     membershipId: membership.id,
     slug: org.slug,
     created: true,
   };
+}
+
+async function publishOrganisationCreated(
+  input: CreateOrganisationInput,
+  result: ProvisionOrganisationResult,
+) {
+  if (!result.created) return;
+  const { platformEvents } = await import("../events");
+  await platformEvents.publish({
+    type: "organisation.created",
+    organisationId: result.organisationId,
+    actorId: input.clerkUserId,
+    payload: { slug: result.slug, name: input.orgName.trim(), template: input.template ?? "default" },
+    occurredAt: new Date(),
+  });
 }

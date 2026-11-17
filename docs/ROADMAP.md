@@ -19,46 +19,6 @@
 
 ---
 
-## AI Gateway slice roadmap
-
-**Approved direction: 7 October 2026.** This extends the canonical AI and Business Brain architecture; it does not expand the founding ship list or authorise implementing the whole future roadmap.
-
-| Slice | Scope and boundary |
-|-------|--------------------|
-| **1 — AI Gateway foundation** | Preserve the completed shared Gateway foundation and existing AI Assist contracts. |
-| **2 — Task routing & disclosure policy** | Preserve versioned task/execution/disclosure policies, tenant/actor context, exact-observation constraints and fail-closed recipient restrictions. |
-| **3 — Local Routine Execution** | Code merged through PR #987 and production code deployment verified; operational activation remains gated. Only asynchronous `local_routine` for `lead_summary` / `lead_follow_up`, with the locked `dg-fast:latest` model/digest/profile and fenced encrypted jobs. No specialist execution or autonomous tools. |
-| **4 — Local Specialist Execution** | Future controlled `dg-coder` / `local_specialist`, model transition management, specialist workloads and appropriate escalation within execution/disclosure policy. Not enabled by Slice 3 or this documentation approval. |
-| **5 — AI Governance, Autonomous Operations & Observability** | Future staged delivery of the Action Ledger, Aida Autonomy Ladder, evidence/provenance, persistent responsibilities, approval boundaries, execution verification, model/data disclosure provenance, incident readiness, business-impact measurement, operational observability and model routing/cost/latency optimisation. |
-
-Slice 3 production migration, encryption key, worker credentials, deployment and recipient approvals, and Mac worker/launchd installation remain separate operational gates. This roadmap does not apply or provision any of them. Slice 1–3 behaviour and AI Visibility exact-observation execution remain unchanged. See [AI Architecture](./ai/AI-ARCHITECTURE.md) and the existing [Slice 3 runbook](./ai/AI-GATEWAY-SLICE-3-RUNBOOK.md).
-
-When Slice 5 approaches, produce and approve a staged implementation plan with bounded capabilities, dependencies, acceptance tests and rollout gates. A proposed sequencing basis is: (1) structured provenance, ledger coverage and verification contracts; (2) capability-specific autonomy/approval boundaries and one bounded persistent responsibility; (3) incident reconstruction and defensible value measurement; (4) evidence-based operational/routing/cost/latency improvements. Content governance and broader reputation capabilities need separately scoped increments. This is planning direction, not permission to implement every item together. Routing optimisation must never override disclosure, tenant isolation, specialist contracts or exact observations.
-
-### Persistent Aida Responsibilities (future)
-
-Businesses should eventually be able to assign ongoing governed responsibilities: monitor overdue leads, advertising performance, reputation, website conversion health, vendor/listing campaigns and operational exceptions. Each responsibility needs an accountable owner, tenant/data/tool scope, trigger/cadence, evidence/freshness expectations, maximum autonomy level, approval boundary and measurable outcome, plus pause/revoke controls.
-
-Responsibilities generate observations, recommendations and authorised actions through the same [governance framework](./foundations/AI-GOVERNANCE.md), rechecking current permissions and connector authority. They are not an unrestricted autonomous agent and do not imply authority to send, publish, spend or modify records.
-
-### Business Impact / AI Value Measurement (future)
-
-`Work Eliminated → Work Accelerated → Work Improved`
-
-Measure defensible outcomes: time saved, response-time improvement, leads recovered, opportunities identified, processes automated and conversion/revenue influence. Relate measurements to business goals, evidence, baselines, observation periods and attribution uncertainty. Distinguish estimated savings and influence from observed results; avoid claiming causal revenue gains without support. Raw AI task counts are operational usage measures, not the primary measure of value.
-
-### AI Visibility → AI Reputation & Evidence (future)
-
-Preserve current exact-observation integrity. Evolve toward understanding how major AI/search systems understand, cite, mention and recommend a business; associations with locations/services/topics; supporting web/entity/reputation evidence; appropriately sourced competitor comparisons; and change over time. See the [presence and observation architecture](./foundations/SEO-AND-AI-VISIBILITY.md#ai-reputation--evidence--approved-roadmap-direction). This does not change current observation execution semantics.
-
-### Strategic watch items — intelligence signals only
-
-Monitor conversational advertising/sponsored agents; increasingly autonomous Google/Meta advertising; visual and multimodal AI discovery; broader paid-acquisition orchestration; Australian AI governance/regulatory developments; Australian data-residency/privacy expectations; emerging agent interoperability/tool protocols; and material changes in model/provider privacy, ZDR and data-retention policies.
-
-These are watch signals for future proposals, not committed features or statements of current legal compliance. Apply the [Briefing → DigitalGate development loop](./foundations/BUSINESS-BRAIN-KNOWLEDGE.md#briefing--digitalgate-development-loop): compare against current architecture/product, propose a change, obtain Ben approval, capture it in roadmap/Brain/docs, then implement when appropriate. Model privacy claims require current provider/account evidence; `store: false` is not ZDR.
-
----
-
 ## North star (wow moment)
 
 A new agency signs up, connects website + Google + Meta + Analytics + Stripe + email.
@@ -339,3 +299,18 @@ You wear several today — that's fine. Document so roles can split later.
 - [foundations/COMMERCIALLY-READY-V1.md](./foundations/COMMERCIALLY-READY-V1.md) — commercialisation operating target  
 - [PRODUCT-VISION.md](./PRODUCT-VISION.md)  
 - [PLATFORM-ARCHITECTURE.md](./PLATFORM-ARCHITECTURE.md)  
+
+## 2026-10-13 — Isolated hosted checkout rehearsal (blocked)
+
+- The dedicated Preview, isolated Neon branch, Clerk development instance and Stripe test-mode Checkout remained isolated. The gate was opened only for test-session creation and is closed again (revision 22). No payment details were submitted and no synthetic subscription was created.
+- Stripe’s hosted Checkout documentation identifies hCaptcha as part of Stripe.js fraud detection. Captured evidence associates the hCaptcha `/getcaptcha` request with a child `newassets.hcaptcha.com` challenge frame inside Stripe’s `HCaptchaInvisible.html` wrapper and `js.stripe.com` bridge, under the exact verified `checkout.stripe.com` test-session page. The request’s initiating frame and full ancestry were captured; the JavaScript call stack was unavailable. An independent TLS handshake verified the hCaptcha destination certificate. Stripe does not require this integration to use hCaptcha’s public demonstration sitekey.
+- Updated only the private harness with an exact HTTPS `POST` allowance for `/getcaptcha/<sitekey>` when the request frame ancestry matches that verified Stripe test Checkout session. The sitekey and binary body remain unrecorded. The allowance boundary suite passes (149 denial cases); other third-party requests remain blocked. After this change no request was denied, but headless Checkout displayed hCaptcha’s “Please try again” state. No CAPTCHA challenge was bypassed or solved automatically; challenge completion and payment submission remain blocked.
+- Checkout session creation and idempotent retry were verified for Starter (AUD $99/month), Growth (AUD $249/month) and Scale (AUD $499/month) in the earlier rehearsal; the earlier disposable sessions and fixtures were expired/removed. For human-assisted continuation, one fresh disposable Starter account/organisation and isolated tenant were created. Its new Stripe test Checkout session is open and unpaid, with an exact AUD 99 monthly line item and 14-day trial in the isolated attempt record; its Preview return targets are verified. The operator received this session’s Checkout link for normal-browser CAPTCHA completion. Gate closed at revision 22; the current Starter fixture is intentionally retained until operator completion or expiry.
+- **Verification hold:** the operator reports completing the Starter test checkout, but a fresh lookup of the exact handed-off Stripe session still reports `open` / `unpaid`, with no subscription. No matching Checkout completion event appears in the recent Stripe test events, and the isolated Neon tenant has no subscription, webhook receipt, or payment row; its checkout attempt remains `OPEN`. Therefore payment completion, trial activation, signed webhook processing, entitlements, authenticated access and tenant isolation are not verified. Do not create Growth or Scale sessions until this discrepancy is resolved. The gate remains closed; production release is not ready and no production or live billing changes were made.
+
+## 2026-10-13 — First-customer onboarding correction
+
+- Fixed the memberless-account dead end: after Clerk authentication and primary-email verification, `/onboarding` now presents an explicit first-organisation form. The dedicated endpoint derives identity and email from Clerk, refuses unauthenticated or unverified requests, and creates the organisation with its active owner membership in one database transaction. A per-user PostgreSQL transaction lock serializes retries; a retry returns the already-owned organisation without creating another tenant or membership. Existing non-owner/multi-organisation membership requests are rejected. The normal platform-session checks remain in force for later onboarding, plan selection and Stripe Checkout.
+- Preserved Clerk verification, Starter AUD $99/month, Growth AUD $249/month, Scale AUD $499/month and the shared 14-day trial configuration. Added regression coverage for first-time creation eligibility, retry idempotency, existing memberships, unauthorised/unverified identity, the no-login-loop handoff, and pricing/trial invariants. Updated [ORGANISATION-LIFECYCLE.md](./foundations/ORGANISATION-LIFECYCLE.md) to document this explicit creation boundary.
+- Verification: focused onboarding, tenant authority/isolation and billing tests pass (59/59); changed-file ESLint and `tsc --noEmit` pass. Full `npm run test:unit` reported 411/412 before the final two transaction-path cases were added. The lone failure is the unrelated `scripts/test-booking-overlap.mjs` concurrent date-update case, independently reproduced (24/25 in that file). No checkout gate, hosted environment, database, Stripe, Clerk or production configuration was changed for this code correction.
+- **Remaining rehearsal blockers:** the code correction has not been applied to the dedicated Vercel Preview deployment, so the existing Starter test user/session still need to be rechecked after an approved Preview update. The saved evidence still shows that Starter Checkout session open/unpaid, with no subscription or completion webhook. The isolated checkout gate remains closed. After the Preview update, resume with the existing disposable Starter identity, complete signup/onboarding and verify the full Stripe/webhook/entitlement/access lifecycle; only then continue to Growth and Scale. Production release remains blocked, and no merge or deployment was performed.
