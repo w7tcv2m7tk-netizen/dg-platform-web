@@ -1,0 +1,45 @@
+{
+  "reviewCadenceDays": 90,
+  "projects": [
+    {
+      "name": "dg-platform-web",
+      "owner": "DigitalGate Platform",
+      "classification": "production",
+      "permanent": true,
+      "reviewAt": "2027-02-15",
+      "customEnvironments": [
+        {
+          "slug": "p0-growth-binding",
+          "owner": "Checkout release",
+          "purpose": "Exact-head checkout binding verification",
+          "expiresAt": "2026-12-17",
+          "cleanupAction": "Retire alias, deployment, variables and Neon branch together after release evidence is accepted."
+        }
+      ]
+    },
+    {
+      "name": "dg-checkout-verification-20261012",
+      "owner": "DigitalGate Staging",
+      "classification": "staging",
+      "permanent": true,
+      "reviewAt": "2027-02-15",
+      "customEnvironments": [
+        {
+          "slug": "p0-acceptance-ea88c25",
+          "owner": "Checkout certification",
+          "purpose": "One-off restoration acceptance",
+          "expiresAt": "2026-12-17",
+          "cleanupAction": "Retire certification alias, deployment, variables and Neon branch together after acceptance."
+        }
+      ]
+    },
+    {
+      "name": "dg-runtime-candidate-probe-20261112",
+      "owner": "Runtime diagnostics",
+      "classification": "temporary",
+      "permanent": false,
+      "expiresAt": "2026-11-30",
+      "cleanupAction": "Preserve probe evidence, then retire project and both probe variables."
+    }
+  ]
+}

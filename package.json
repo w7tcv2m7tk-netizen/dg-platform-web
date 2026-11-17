@@ -158,7 +158,8 @@
     "test:local-synthetic": "node --test scripts/test-local-synthetic-env.mjs",
     "dev:synthetic": "node scripts/run-local-synthetic-app.mjs",
     "test:commercial-contract": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs scripts/commercial-contract.mjs",
-    "test:commercial-contract-safeguard": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-commercial-contract.mjs"
+    "test:commercial-contract-safeguard": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-commercial-contract.mjs",
+    "test:infrastructure-lifecycle": "node --test scripts/test-neon-branch-cleanup.mjs scripts/test-environment-lifecycle.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.6.4",
