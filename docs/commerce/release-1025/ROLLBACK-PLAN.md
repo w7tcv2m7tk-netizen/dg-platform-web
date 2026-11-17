@@ -1,6 +1,16 @@
 # Rollback and recovery — PR #1025
 
-## VERIFIED — safe boundaries
+## Current release gate — 5 November 2026
+
+The 25-row observation below is historical PR #1025 evidence, not the current
+expected ledger. The admission migration was later independently certified as
+entry 26. Before any release, capture and reconcile all 26 historical entries
+and the current gate/hold/drain state read-only. Do not reapply admission DDL or
+infer fresh state from this document. Current recovery metadata reports six-hour
+history, no snapshot schedule and an old manual recovery point; seven-day
+lookback, 15-minute RPO and two-hour RTO remain unverified owner gates.
+
+## HISTORICALLY VERIFIED — PR #1025 safe boundaries
 
 Checkout is blocked and hold inactive in the captured Production state. Schema is
 additive and all 25 migration entries are finished. Application rollback must leave

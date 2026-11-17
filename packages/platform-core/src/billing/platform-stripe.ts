@@ -399,6 +399,27 @@ async function provisionLockedCheckout(session: Stripe.Checkout.Session, databas
     },
   });
 
+  // The webhook has now verified the exact completed session, subscription
+  // ownership/status, catalogue terms and canonical projection. Reconcile the
+  // associated checkout attempt in the same transaction so a successful
+  // activation cannot leave an OPEN/AWAITING attempt holding the current-org
+  // slot. This is idempotent and does not delete durable attempt history.
+  await database.platformCheckoutAttempt.updateMany({
+    where: {
+      organisationId: org.id,
+      sessionId: session.id,
+      currentOrganisationId: org.id,
+      state: { in: ["OPEN", "AWAITING_WEBHOOK"] },
+    },
+    data: {
+      state: "EXPIRED",
+      currentOrganisationId: null,
+      leaseToken: null,
+      leaseUntil: null,
+      recoveryReason: "completed_subscription_terminal",
+    },
+  });
+
   return {
     handled: true as const,
     ok: true,
