@@ -1,15 +1,8 @@
 name: Checkout release verification
 on:
+  # This workflow is a required branch-ruleset check. Run it on every pull
+  # request so docs/governance-only changes still produce the required check.
   pull_request:
-    paths:
-      - '.github/workflows/checkout-release.yml'
-      - 'packages/database/**'
-      - 'packages/platform-core/**'
-      - 'src/**'
-      - 'scripts/**'
-      - 'package*.json'
-      - 'tsconfig.json'
-      - 'next.config.*'
   workflow_dispatch:
 permissions:
   contents: read
