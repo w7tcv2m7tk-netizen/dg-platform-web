@@ -120,7 +120,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   return (
     <main className="dg-opportunity-report min-h-screen bg-[#05091a] text-slate-100">
       <div className="dg-report-print-cover">
-        <img src="/brand/logo-dark.png" alt="DigitalGate" className="dg-report-cover-logo" />
+        <p className="dg-report-cover-wordmark">DIGITALGATE</p>
         <p className="dg-report-kicker">DigitalGate · Digital Opportunity Review</p>
         <p className="dg-report-confidential">Private &amp; confidential · {pack.label}</p>
         <h1>{report.prospect.businessName}</h1>

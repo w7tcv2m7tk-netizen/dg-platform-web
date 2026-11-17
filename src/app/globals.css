@@ -895,11 +895,12 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   border-radius: inherit;
   background: #8b5cf6;
 }
-.dg-report-cover-logo {
-  display: block;
-  width: 34mm;
-  height: auto;
-  margin-bottom: 12mm;
+.dg-report-cover-wordmark {
+  margin: 0 0 12mm;
+  color: #111827;
+  font-size: 16pt;
+  font-weight: 700;
+  letter-spacing: 0.32em;
 }
 
 .dg-report-print-cover,
@@ -1015,9 +1016,9 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     color: #1f2937 !important;
   }
 
-  .dg-report-print-cover .dg-report-cover-logo {
-    width: 38mm;
+  .dg-report-print-cover .dg-report-cover-wordmark {
     margin-bottom: 10mm;
+    color: #111827 !important;
   }
   .dg-report-print-cover .dg-report-kicker,
   .dg-report-print-cover .dg-report-confidential {
