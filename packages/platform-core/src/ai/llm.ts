@@ -5,7 +5,7 @@
  * Template fallback lives in callers (generate.ts, advisor, etc.).
  */
 
-export type LlmProvider = "gateway" | "openai" | "anthropic";
+export type LlmProvider = "gateway" | "openai" | "anthropic" | "deepseek";
 
 /** Cheap extraction / assist vs high-value reasoning (Sol via Gateway when available). */
 export type LlmTaskTier = "standard" | "reasoning";
@@ -77,6 +77,8 @@ const DEFAULT_GATEWAY_STANDARD_MODEL = "openai/gpt-5.4-mini";
 const DEFAULT_GATEWAY_REASONING_MODEL = "openai/gpt-5.6-sol";
 const DEFAULT_OPENAI_MODEL = "gpt-4o-mini";
 const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
+const DEFAULT_DEEPSEEK_MODEL = "deepseek-chat";
+const DEFAULT_DEEPSEEK_BASE_URL = "https://api.deepseek.com";
 
 /**
  * Bracket lookup so Next/Turbopack cannot replace this with an empty string
@@ -95,6 +97,26 @@ function openaiKey() {
 
 function anthropicKey() {
   return envTrim("ANTHROPIC_API_KEY");
+}
+
+function deepseekKey() {
+  return envTrim("DEEPSEEK_API_KEY");
+}
+
+function deepseekModel(): string {
+  return envTrim("DEEPSEEK_MODEL") || DEFAULT_DEEPSEEK_MODEL;
+}
+
+/** Public-data-only endpoint. Invalid or non-HTTPS overrides disable the transport. */
+function deepseekChatUrl(): string {
+  const raw = envTrim("DEEPSEEK_BASE_URL") || DEFAULT_DEEPSEEK_BASE_URL;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash) return "";
+    return `${url.origin}${url.pathname.replace(/\/$/, "")}/chat/completions`;
+  } catch {
+    return "";
+  }
 }
 
 /** AI Gateway API key, or Vercel OIDC on deployments. Never send OPENAI_API_KEY here (BYOK / misses Sol promo). */
@@ -125,10 +147,11 @@ function anthropicModel(): string {
   return envTrim("ANTHROPIC_MODEL") || DEFAULT_ANTHROPIC_MODEL;
 }
 
-function configuredTransports(tier: LlmTaskTier): LlmTransport[] {
+function configuredTransports(tier: LlmTaskTier, includePublicOnly = false): LlmTransport[] {
   const gateway = gatewayToken();
   const openai = openaiKey();
   const anthropic = anthropicKey();
+  const deepseek = includePublicOnly ? deepseekKey() : "";
   const available: LlmTransport[] = [];
   if (gateway) {
     available.push({
@@ -151,6 +174,13 @@ function configuredTransports(tier: LlmTaskTier): LlmTransport[] {
       apiKey: openai,
     });
   }
+  if (deepseek && deepseekChatUrl()) {
+    available.push({
+      provider: "deepseek",
+      model: deepseekModel(),
+      apiKey: deepseek,
+    });
+  }
   return available;
 }
 
@@ -163,8 +193,8 @@ function configuredTransports(tier: LlmTaskTier): LlmTransport[] {
  * standard Gateway model so free-tier / access errors don't fall straight to
  * a dead OpenAI BYOK quota.
  */
-export function resolveLlmTransports(tier: LlmTaskTier = "standard"): LlmTransport[] {
-  const available = expandGatewayModelFailover(configuredTransports(tier), tier);
+export function resolveLlmTransports(tier: LlmTaskTier = "standard", includePublicOnly = false): LlmTransport[] {
+  const available = expandGatewayModelFailover(configuredTransports(tier, includePublicOnly), tier);
   const preferred = preferredProvider();
   if (!preferred) return available;
   const head = available.filter((t) => t.provider === preferred);
@@ -212,6 +242,11 @@ export function llmConfigured(): boolean {
   return configuredTransports("standard").length > 0;
 }
 
+/** Public site only: includes the explicitly public-data-only DeepSeek transport. */
+export function llmConfiguredForPublicData(): boolean {
+  return configuredTransports("standard", true).length > 0;
+}
+
 export function llmConfiguredTransports(): LlmProvider[] {
   return configuredTransports("standard").map((t) => t.provider);
 }
@@ -236,7 +271,7 @@ async function callOpenAiCompatible(input: {
   model: string;
   messages: LlmChatMessage[];
   maxTokens: number;
-  label: "OpenAI" | "AI Gateway";
+  label: "OpenAI" | "AI Gateway" | "DeepSeek";
   signal?: AbortSignal;
   constrained?: boolean;
 }): Promise<LlmTransportResult> {
@@ -316,6 +351,24 @@ async function callGateway(input: {
     messages: input.messages,
     maxTokens: input.maxTokens,
     label: "AI Gateway",
+    signal: input.signal,
+  });
+}
+
+async function callDeepSeek(input: {
+  apiKey: string;
+  model: string;
+  messages: LlmChatMessage[];
+  maxTokens: number;
+  signal?: AbortSignal;
+}): Promise<LlmTransportResult> {
+  return callOpenAiCompatible({
+    url: deepseekChatUrl(),
+    apiKey: input.apiKey,
+    model: input.model,
+    messages: input.messages,
+    maxTokens: input.maxTokens,
+    label: "DeepSeek",
     signal: input.signal,
   });
 }
@@ -405,6 +458,15 @@ async function callTransport(
       constrained,
     });
   }
+  if (transport.provider === "deepseek") {
+    return callDeepSeek({
+      apiKey: transport.apiKey,
+      model: transport.model,
+      messages,
+      maxTokens,
+      signal,
+    });
+  }
   return callAnthropic({
     apiKey: transport.apiKey,
     model: transport.model,
@@ -430,9 +492,11 @@ export async function llmChat(input: {
   deadlineMs?: number;
   /** Optional per-provider attempt timeout. Omitted preserves legacy transport behavior. */
   attemptTimeoutMs?: number;
+  /** Adds the public-data-only DeepSeek transport when keyed. Never use for tenant data. */
+  publicDataOnly?: boolean;
 }): Promise<LlmGenerateResult> {
   const tier = input.tier ?? "standard";
-  const configured = resolveLlmTransports(tier);
+  const configured = resolveLlmTransports(tier, input.publicDataOnly === true);
   const constrained = input.executionPlan !== undefined;
   const invalidPlan = () => new LlmChatError("Invalid constrained transport plan", [], [], "transport_failed", false);
   const deadlineMs = input.deadlineMs;

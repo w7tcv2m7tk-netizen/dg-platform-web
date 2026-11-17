@@ -24,6 +24,7 @@
     "test:safe-prisma-logging": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-safe-prisma-logging.mjs",
     "test:stripe-webhook-setup-safety": "node --test scripts/test-stripe-webhook-setup-safety.mjs",
     "test:ai-reliability": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-reliability.mjs",
+    "test:ai-deepseek-public": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-deepseek-public.mjs",
     "test:ai-local-crypto": "node --experimental-strip-types --test scripts/test-ai-local-crypto.mjs",
     "test:ai-worker-auth": "node --experimental-strip-types --test scripts/test-ai-worker-auth.mjs",
     "test:ai-worker-provisioning": "node --experimental-strip-types --import ./scripts/register-ts-resolver.mjs --test scripts/test-ai-worker-provisioning.mjs",
