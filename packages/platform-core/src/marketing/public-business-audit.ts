@@ -66,12 +66,12 @@ async function resolveDgOrgId(input: {
 }
 
 export type PublicBusinessAuditPillars = {
-  websiteHealth: number;
-  searchVisibility: number;
-  aiVisibility: number;
-  reputation: number;
-  conversionReadiness: number;
-  growthSignals: number;
+  websiteHealth: number | null;
+  searchVisibility: number | null;
+  aiVisibility: number | null;
+  reputation: number | null;
+  conversionReadiness: number | null;
+  growthSignals: number | null;
 };
 
 export type PublicBusinessAuditOpportunity = {
@@ -86,7 +86,7 @@ export type PublicBusinessAuditOpportunity = {
 };
 
 export type PublicBusinessAuditPreview = {
-  overallScore: number;
+  overallScore: number | null;
   pillars: PublicBusinessAuditPillars;
   opportunities: PublicBusinessAuditOpportunity[];
 };
@@ -96,24 +96,24 @@ const POSITIVE_FINDING_TITLES = new Set(["structured data present"]);
 function scorePillars(audit: PresenceAuditResult): PublicBusinessAuditPillars {
   const s = audit.scores;
   return {
-    websiteHealth: s.websiteHealth ?? 0,
-    searchVisibility: s.seo ?? 0,
-    aiVisibility: s.aiVisibility ?? 0,
-    reputation: s.reputation ?? s.googleBusinessProfile ?? 0,
-    conversionReadiness: s.conversionReadiness ?? 0,
-    growthSignals: s.growthSignals ?? 0,
+    websiteHealth: s.websiteHealth ?? null,
+    searchVisibility: s.seo ?? null,
+    aiVisibility: s.aiVisibility ?? null,
+    reputation: s.reputation ?? s.googleBusinessProfile ?? null,
+    conversionReadiness: s.conversionReadiness ?? null,
+    growthSignals: s.growthSignals ?? null,
   };
 }
 
-function overallFromPillars(pillars: PublicBusinessAuditPillars): number {
-  return Math.round(
-    pillars.websiteHealth * 0.22 +
-      pillars.searchVisibility * 0.2 +
-      pillars.aiVisibility * 0.2 +
-      pillars.reputation * 0.14 +
-      pillars.conversionReadiness * 0.14 +
-      pillars.growthSignals * 0.1,
-  );
+function overallFromPillars(pillars: PublicBusinessAuditPillars): number | null {
+  const weighted = [
+    [pillars.websiteHealth, 0.22], [pillars.searchVisibility, 0.2], [pillars.aiVisibility, 0.2],
+    [pillars.reputation, 0.14], [pillars.conversionReadiness, 0.14], [pillars.growthSignals, 0.1],
+  ].filter((entry): entry is [number, number] => typeof entry[0] === "number");
+  const weight = weighted.reduce((sum, [, w]) => sum + w, 0);
+  return weighted.length >= 2 && weight >= 0.5
+    ? Math.round(weighted.reduce((sum, [value, w]) => sum + value * w, 0) / weight)
+    : null;
 }
 
 function opportunityCategory(f: {
@@ -197,7 +197,7 @@ export type PublicBusinessAuditProbeResult =
       reachable: boolean | null;
       title: string | null;
       https: boolean | null;
-      overallScore: number;
+      overallScore: number | null;
       pillars: PublicBusinessAuditPillars;
       opportunities: PublicBusinessAuditOpportunity[];
     }
@@ -208,7 +208,7 @@ export type PublicBusinessAuditSubmitResult =
       ok: true;
       leadId: string;
       auditSent: boolean;
-      overallScore: number;
+      overallScore: number | null;
       pillars: PublicBusinessAuditPillars;
       opportunities: PublicBusinessAuditOpportunity[];
       message: string;
@@ -490,6 +490,10 @@ export async function submitPublicBusinessAudit(input: {
       websiteHealth: preview.pillars.websiteHealth,
       findings: {
         items: audit.findings,
+        strengths: audit.strengths,
+        industryInsights: audit.industryInsights,
+        industryPack: audit.industryPack,
+        assessment: audit.scores.assessment,
         scorecard: {
           reputation: preview.pillars.reputation,
           conversionReadiness: preview.pillars.conversionReadiness,
@@ -570,10 +574,10 @@ export async function submitPublicBusinessAudit(input: {
     companyName: businessName,
     websiteUrl,
     email,
-    aiScore: preview.pillars.aiVisibility,
-    websiteScore: preview.pillars.websiteHealth,
-    seoScore: preview.pillars.searchVisibility,
-    overallScore: preview.overallScore,
+    aiScore: preview.pillars.aiVisibility ?? 0,
+    websiteScore: preview.pillars.websiteHealth ?? 0,
+    seoScore: preview.pillars.searchVisibility ?? 0,
+    overallScore: preview.overallScore ?? 0,
     opportunityCount: preview.opportunities.length,
     email1Sent: auditSent,
   });
