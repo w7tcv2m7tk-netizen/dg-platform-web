@@ -185,7 +185,9 @@ export async function postSupportClientMessage(
       aiMayReply,
     });
 
-    void queueSupportAiReply(
+    // Await the Aida turn so the request cannot terminate before the reply is
+    // persisted. The queue remains idempotent and checks for a newer answer.
+    await queueSupportAiReply(
       conversation.id,
       row.id,
       session.name,
