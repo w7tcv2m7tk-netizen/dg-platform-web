@@ -212,6 +212,9 @@ export type PublicBusinessAuditSubmitResult =
       pillars: PublicBusinessAuditPillars;
       opportunities: PublicBusinessAuditOpportunity[];
       message: string;
+      prospectId?: string;
+      reportId?: string;
+      reportUrl?: string;
     }
   | { ok: false; code: string; message: string };
 
@@ -338,6 +341,7 @@ export async function submitPublicBusinessAudit(input: {
   email?: string;
   phone?: string;
   industry?: string;
+  location?: string;
   website?: string;
 }): Promise<PublicBusinessAuditSubmitResult> {
   if (input.website?.trim()) {
@@ -472,6 +476,7 @@ export async function submitPublicBusinessAudit(input: {
       contactEmail: email,
       contactPhone: phone || null,
       industry: industry || null,
+      location: input.location?.trim() || null,
       websiteUrl,
       stage: "prospect",
       metadata: {
@@ -668,6 +673,9 @@ export async function submitPublicBusinessAudit(input: {
     message: auditSent
       ? "Your DigitalGate Business Audit™ is on its way — check your inbox shortly."
       : "Audit request received! We'll be in touch shortly.",
+    prospectId: prospect.id,
+    reportId: opportunityReport.id,
+    reportUrl,
   };
 }
 

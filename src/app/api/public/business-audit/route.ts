@@ -42,6 +42,7 @@ export async function POST(req: Request) {
     email?: string;
     phone?: string;
     industry?: string;
+    location?: string;
     /** honeypot */
     websiteHp?: string;
   } | null;
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
       email: body.email,
       phone: body.phone,
       industry: body.industry,
+      location: body.location,
       website: body.websiteHp,
     });
     if (!result.ok) {
