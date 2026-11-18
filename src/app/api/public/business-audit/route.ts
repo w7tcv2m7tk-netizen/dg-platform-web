@@ -4,6 +4,8 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 function siteSlugFrom(req: Request, bodySite?: string | null) {
   if (bodySite?.trim()) return bodySite.trim();
   try {
