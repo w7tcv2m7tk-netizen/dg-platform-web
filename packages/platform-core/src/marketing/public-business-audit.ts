@@ -583,9 +583,13 @@ export async function submitPublicBusinessAudit(input: {
     location: input.location?.trim() || undefined,
     audit,
   });
+  const topOpportunity = preview.opportunities[0] ?? null;
+  const pageContext = audit.probes.pages.length
+    ? ` Additional linked pages were observed (${audit.probes.pages.slice(0, 3).map((page) => page.title || page.url).join(", ")}), evidence for the services and conversion path discussed below.`
+    : "";
   const executiveSummary = synthesisedSummary
     ? `${synthesisedSummary} This assessment is based on observable public website evidence captured for this report.`
-    : `${businessName} was assessed from observable public website evidence. ${audit.strengths[0] ? `An observed strength is: ${audit.strengths[0]}` : "No strength was recorded in this snapshot."} ${audit.findings[0] ? `The first observed opportunity is: ${audit.findings[0].title}.` : "No material opportunity was confirmed from the available evidence."}`;
+    : `${businessName} appears to operate in ${industry || "its stated industry"}${input.location?.trim() ? `, serving customers around ${input.location.trim()}` : ""}. The public website evidence shows a ${audit.strengths[0] ? audit.strengths[0].replace(/\.$/, "").toLowerCase() : "limited verified public footprint"}. ${topOpportunity ? `The clearest observed opportunity is ${topOpportunity.title.toLowerCase()}, which matters because it affects how readily an interested customer can understand the offer and take the next step.` : "No material weakness was confirmed from the available evidence; the priority is to verify the commercial path before recommending change."}${pageContext} A practical next step is to review the observed conversion path and agree one measurable improvement with DigitalGate.`;
   const opportunityReport = await prisma.growthProspectReport.create({
     data: {
       prospectId: prospect.id,
