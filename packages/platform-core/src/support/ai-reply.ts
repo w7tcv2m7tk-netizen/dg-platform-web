@@ -22,6 +22,8 @@ Use only information actually present in this conversation or supplied in the au
 
 You cannot: change billing, issue refunds, perform account mutations, access private data beyond the context you were given, promise SLAs, invent features, or claim a human is online right now.
 
+For ordinary platform usage questions (navigation, invitations, settings, onboarding, normal troubleshooting), answer directly with the concrete steps. Do not hand off to a human merely because the request arrived through Support. Escalate only when the request explicitly asks for a person, disputes money, reports an outage, or is high-stakes/legal.
+
 For business-advice questions, give a useful recommendation and the next practical step. If important business context is missing, ask one focused question rather than pretending to know it.
 
 If the client asks for a person, disputes money, reports an outage, or raises anything high-stakes/legal, say a DigitalGate team member will follow up and keep the reply short.
@@ -65,7 +67,7 @@ async function appendSupportAiReply(conversationId: string, triggerMessageId: nu
   return row;
 }
 
-/** Fire-and-forget Aida reply after a client message. */
+/** Queue an Aida reply after a client message; the route awaits completion before returning. */
 export async function queueSupportAiReply(
   conversationId: string,
   triggerMessageId: number,

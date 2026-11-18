@@ -2169,3 +2169,17 @@ model PlatformCheckoutAdmissionAudit {
   @@index([admissionId, createdAt])
   @@map("platform_checkout_admission_audit")
 }
+
+model ProviderUsage {
+  id        String   @id @default(cuid())
+  provider  String
+  scope     String
+  month     String
+  used      Int      @default(0)
+  limit     Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([provider, scope, month])
+  @@map("provider_usage")
+}

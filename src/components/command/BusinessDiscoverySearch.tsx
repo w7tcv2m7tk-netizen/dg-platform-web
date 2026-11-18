@@ -1,13 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type ProviderStatus = {
   id: string;
   label: string;
   available: boolean;
   reason?: string;
+};
+
+type Usage = {
+  available: boolean;
+  month: string;
+  used: number;
+  limit: number;
+  remaining: number;
 };
 
 type Candidate = {
@@ -73,6 +81,16 @@ export function BusinessDiscoverySearch({
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [lastImport, setLastImport] = useState<string | null>(null);
+  const [usage, setUsage] = useState<Usage | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/v1/command/growth/discovery/usage")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => { if (active && json?.data?.available) setUsage(json.data); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   const allSelected = useMemo(
     () => candidates.length > 0 && candidates.every((c) => selected.has(c.key)),
@@ -196,6 +214,11 @@ export function BusinessDiscoverySearch({
             </span>
           ))}
         </div>
+        {usage ? (
+          <p className="mt-2 text-xs text-slate-400">
+            Google Places Text Search: {usage.used}/{usage.limit} used this month ({usage.remaining} remaining).
+          </p>
+        ) : null}
         <p className="mt-2 text-xs text-slate-500">
           Google Places for discovery · ABN Lookup for Australian business identity — building toward
           a full Business Intelligence Profile (website, reviews, SEO, AI Visibility, contacts).
