@@ -37,6 +37,7 @@ export type PresenceAuditResult = {
     hasAnalyticsHint: boolean;
     socialProfiles: { facebook?: string; instagram?: string; linkedin?: string; youtube?: string; tiktok?: string };
     appraisalSignals: { hasAppraisalCta: boolean; hasAppraisalForm: boolean; suburbMentions: number };
+    pages: Array<{ url: string; statusCode: number | null; title: string | null; hasH1: boolean; hasForm: boolean; hasPhoneLink: boolean; hasEmailLink: boolean; hasBookingLanguage: boolean; hasPricingLanguage: boolean; hasTrialLanguage: boolean; hasServiceLanguage: boolean; wordCount: number }>;
     error?: string;
   };
 };
@@ -211,6 +212,48 @@ function extractSignals(html: string, localTerms: string[] = []) {
   };
 }
 
+function discoverSameOriginPages(html: string, baseUrl: string): string[] {
+  let origin: string;
+  try { origin = new URL(baseUrl).origin; } catch { return []; }
+  const preferred = /(?:contact|about|service|solution|pricing|price|book|booking|enquir|quote|trial|demo|shop|product)/i;
+  const seen = new Set<string>();
+  const pages: string[] = [];
+  for (const match of html.matchAll(/href=["']([^"'#]+)["']/gi)) {
+    try {
+      const url = new URL(match[1], origin);
+      if (url.origin !== origin || !/^https?:$/.test(url.protocol)) continue;
+      if (!preferred.test(url.pathname)) continue;
+      if (/\.(?:jpg|jpeg|png|svg|webp|gif|pdf|css|js|ico)(?:$|\?)/i.test(url.pathname)) continue;
+      const clean = `${url.origin}${url.pathname}`.replace(/\/$/, "") || origin;
+      if (clean === origin.replace(/\/$/, "") || seen.has(clean)) continue;
+      seen.add(clean);
+      pages.push(clean);
+      if (pages.length >= 3) break;
+    } catch { /* ignore malformed links */ }
+  }
+  return pages;
+}
+
+function pageEvidence(url: string, html: string, statusCode: number | null) {
+  const signals = extractSignals(html);
+  const text = html.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ");
+  const lower = text.toLowerCase();
+  return {
+    url,
+    statusCode,
+    title: signals.title,
+    hasH1: signals.hasH1,
+    hasForm: signals.hasForm,
+    hasPhoneLink: signals.hasTelLink,
+    hasEmailLink: signals.hasMailto,
+    hasBookingLanguage: /\b(book|booking|availability|reserve|appointment|schedule a call|schedule a time)\b/i.test(text),
+    hasPricingLanguage: /\b(pricing|price list|packages?|from \$|starting at|plans?)\b/i.test(text),
+    hasTrialLanguage: /\b(free trial|start a trial|start free|request a demo|book a demo|get started)\b/i.test(text),
+    hasServiceLanguage: /\b(services?|solutions?|what we do|our work|capabilities)\b/i.test(text),
+    wordCount: lower.split(/\s+/).filter(Boolean).length,
+  };
+}
+
 /** Run a live presence probe against a prospect website (server-side). */
 export async function runPresenceAudit(
   input: PresenceAuditOptions,
@@ -242,6 +285,7 @@ export async function runPresenceAudit(
     hasAnalyticsHint: false,
     socialProfiles: {},
     appraisalSignals: { hasAppraisalCta: false, hasAppraisalForm: false, suburbMentions: 0 },
+    pages: [],
   };
 
   let websiteHealth = 20;
@@ -344,6 +388,19 @@ export async function runPresenceAudit(
           probes.hasAnalyticsHint = signals.hasAnalyticsHint;
           probes.socialProfiles = signals.socialProfiles;
           probes.appraisalSignals = signals.appraisalSignals;
+
+          const pageUrls = discoverSameOriginPages(html, probes.finalUrl || websiteUrl || "");
+          for (const pageUrl of pageUrls) {
+            try {
+              const pageRes = await safeExternalFetch(pageUrl, {
+                method: "GET",
+                signal: AbortSignal.timeout(5_000),
+                headers: { "user-agent": "DigitalGate-GrowthEngine-Audit/1.0 (+https://digitalgate.com.au)", accept: "text/html,application/xhtml+xml" },
+              });
+              const pageHtml = (pageRes.headers.get("content-type") || "").includes("html") ? (await pageRes.text()).slice(0, 1_000_000) : "";
+              if (pageHtml) probes.pages.push(pageEvidence(pageUrl, pageHtml, pageRes.status));
+            } catch { /* page evidence is optional; homepage evidence remains authoritative */ }
+          }
 
           const socialCount = Object.keys(signals.socialProfiles).length;
           if (socialCount > 0) {

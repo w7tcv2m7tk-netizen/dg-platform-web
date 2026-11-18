@@ -27,6 +27,8 @@ type BusinessIntelligence = {
   publicProfiles?: Record<string, string | undefined>;
   realEstateJourney?: { hasAppraisalCta?: boolean; hasAppraisalForm?: boolean; suburbMentions?: number; acquisitionReadiness?: { score?: number; appraisalPath?: number; localAuthority?: number; reputation?: number; socialPresence?: number; discoverability?: number } };
   socialAssessment?: { score?: number; channelCount?: number; basis?: string; activityStatus?: string; audienceStatus?: string; engagementStatus?: string };
+  reputationEvidence?: { score?: number | null; reviewSignal?: boolean; googleLocalSignal?: boolean; basis?: string };
+  conversionEvidence?: { hasForm?: boolean; hasPhoneLink?: boolean; hasEmailLink?: boolean; hasCtaLanguage?: boolean; basis?: string };
   sourceStatus?: Record<string, { status?: string; note?: string }>;
 };
 type AuditPayload = {
@@ -35,9 +37,10 @@ type AuditPayload = {
   industryInsights?: Array<{ title?: string; detail?: string; recommendedAction?: string }>;
   industryPack?: string;
   scorecard?: Record<string, unknown>;
-  assessment?: { status?: string; assessedPillars?: string[]; unavailablePillars?: string[]; evidenceCoveragePercent?: number; confidence?: string };
+  assessment?: { status?: string; assessedPillars?: string[]; unavailablePillars?: string[]; evidenceCoveragePercent?: number; sourceCoveragePercent?: number; sourceNotes?: string[]; weights?: Record<string, number>; confidence?: string };
   digitalGateSolutionMatches?: SolutionMatch[];
   businessIntelligence?: BusinessIntelligence;
+  researchContext?: { probes?: { pages?: Array<{ url?: string; title?: string | null; hasForm?: boolean; hasPhoneLink?: boolean; hasEmailLink?: boolean; hasBookingLanguage?: boolean; hasPricingLanguage?: boolean; hasTrialLanguage?: boolean; hasServiceLanguage?: boolean }> } };
 };
 
 function auditPayload(value: unknown): AuditPayload {
@@ -90,12 +93,15 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const strengths = Array.isArray(payload.strengths) ? payload.strengths.slice(0, 5) : [];
   const scorecard = payload.scorecard && typeof payload.scorecard === "object" ? payload.scorecard : {};
   const assessment = payload.assessment ?? {};
+  const assessedPages = Array.isArray(payload.researchContext?.probes?.pages) ? payload.researchContext.probes.pages : [];
   const solutionMatches = Array.isArray(payload.digitalGateSolutionMatches) ? payload.digitalGateSolutionMatches.slice(0, 3) : [];
   const intelligence = payload.businessIntelligence || {};
   const identity = intelligence.identity || {};
   const google = intelligence.google || {};
   const publicProfiles = intelligence.publicProfiles || {};
   const socialAssessment = intelligence.socialAssessment || {};
+  const reputationEvidence = intelligence.reputationEvidence || {};
+  const conversionEvidence = intelligence.conversionEvidence || {};
   const realEstateJourney = intelligence.realEstateJourney || {};
   const socialPresenceScore = typeof socialAssessment.score === "number" ? socialAssessment.score : null;
   const acquisitionReadiness = typeof realEstateJourney.acquisitionReadiness?.score === "number" ? realEstateJourney.acquisitionReadiness.score : null;
@@ -218,7 +224,8 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
               <p className="text-sm font-medium text-slate-300">Evidence completeness</p>
               <p className="mt-2 text-2xl font-semibold text-white">{assessment.evidenceCoveragePercent ?? 0}%</p>
               <p className="mt-2 text-xs text-violet-300">{assessment.status === "not_assessed" ? "Not assessed" : assessment.status === "partial" ? "Partial assessment" : "Assessed"}{assessment.confidence ? ` · ${assessment.confidence} confidence` : ""}</p>
-              <p className="mt-2 text-xs leading-5 text-slate-400">{(assessment.assessedPillars?.length ?? 0)} of {((assessment.assessedPillars?.length ?? 0) + (assessment.unavailablePillars?.length ?? 0)) || 6} pillars assessed. Unavailable evidence is not treated as a negative result.</p>
+              <p className="mt-2 text-xs leading-5 text-slate-400">{assessment.assessedPillars?.length ?? 0} of {((assessment.assessedPillars?.length ?? 0) + (assessment.unavailablePillars?.length ?? 0)) || 6} scoring pillars assessed. Source coverage: {assessment.sourceCoveragePercent ?? "not recorded"}%. Unavailable evidence is not treated as a negative result.</p>
+              {assessment.sourceNotes?.length ? <p className="mt-2 text-[11px] leading-4 text-slate-500">{assessment.sourceNotes.join(" ")}</p> : null}
             </div>
             {pillars.map((pillar) => (
               <div key={pillar.key} className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5">
@@ -238,6 +245,26 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
                 <li><span className="font-semibold text-slate-500">Unavailable</span> — not assessed; no conclusion inferred.</li>
               </ul>
             </div>
+            <div className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/40 p-5">
+              <p className="text-sm font-medium text-slate-300">Reputation evidence</p>
+              <p className="mt-2 text-2xl font-semibold text-white">{reputationEvidence.score ?? "Not assessed"}</p>
+              <p className="mt-2 text-xs leading-5 text-slate-400">{reputationEvidence.basis || "No reputation source was recorded in this snapshot."}</p>
+              <p className="mt-2 text-[11px] text-slate-500">Homepage review signal: {reputationEvidence.reviewSignal == null ? "not recorded" : reputationEvidence.reviewSignal ? "observed" : "not observed"} · Google/local signal: {reputationEvidence.googleLocalSignal == null ? "not recorded" : reputationEvidence.googleLocalSignal ? "observed" : "not observed"}.</p>
+            </div>
+            <div className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/40 p-5">
+              <p className="text-sm font-medium text-slate-300">Conversion pathways assessed</p>
+              <ul className="mt-2 space-y-1 text-xs leading-5 text-slate-400">
+                <li>Enquiry form: {conversionEvidence.hasForm == null ? "not assessed" : conversionEvidence.hasForm ? "observed" : "not observed on homepage"}</li>
+                <li>Phone link: {conversionEvidence.hasPhoneLink == null ? "not assessed" : conversionEvidence.hasPhoneLink ? "observed" : "not observed on homepage"}</li>
+                <li>Email link: {conversionEvidence.hasEmailLink == null ? "not assessed" : conversionEvidence.hasEmailLink ? "observed" : "not observed on homepage"}</li>
+                <li>Call-to-action language: {conversionEvidence.hasCtaLanguage == null ? "not assessed" : conversionEvidence.hasCtaLanguage ? "observed" : "not observed on homepage"}</li>
+              </ul>
+              <p className="mt-2 text-[11px] leading-4 text-slate-500">{conversionEvidence.basis || "Homepage evidence only; other pages were not exhaustively tested."}</p>
+            </div>
+            {assessedPages.length ? <div className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/40 p-5 lg:col-span-2">
+              <p className="text-sm font-medium text-slate-300">Additional pages assessed</p>
+              <div className="mt-3 space-y-2">{assessedPages.slice(0, 3).map((page, index) => <div key={`${page.url}-${index}`} className="rounded-lg border border-slate-700 bg-slate-950/40 p-3 text-xs text-slate-400"><p className="font-medium text-slate-200">{page.title || page.url}</p><p className="mt-1 break-all">{page.url}</p><p className="mt-1">Form: {page.hasForm ? "observed" : "not observed"} · Phone: {page.hasPhoneLink ? "observed" : "not observed"} · Email: {page.hasEmailLink ? "observed" : "not observed"} · Booking: {page.hasBookingLanguage ? "observed" : "not observed"} · Pricing: {page.hasPricingLanguage ? "observed" : "not observed"} · Trial/demo: {page.hasTrialLanguage ? "observed" : "not observed"} · Services: {page.hasServiceLanguage ? "observed" : "not observed"}</p></div>)}</div>
+            </div> : null}
             <div className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/40 p-5 lg:col-span-2">
               <p className="text-sm font-medium text-slate-300">Source and freshness</p>
               {sourceStatus.length ? <div className="mt-3 flex flex-wrap gap-2">{sourceStatus.map((source) => <span key={source.label} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1 text-xs text-slate-300">{source.label}: {source.status}{source.note ? ` · ${source.note}` : ""}</span>)}</div> : <p className="mt-3 text-xs leading-5 text-slate-400">Source-by-source status was not recorded in this snapshot. No verification claim is inferred.</p>}
@@ -364,7 +391,8 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         </section>
 
         <section className="dg-report-section mt-8 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
-          <h2 className="text-sm font-semibold text-white">Method and limits</h2><p className="mt-2 text-xs leading-5 text-slate-400">This report is based on observable public signals captured by DigitalGate at the time of the audit. Scores are directional rather than guarantees of search rankings, leads or revenue. AI Discoverability Readiness measures observable technical readiness, not actual AI search visibility or ranking. Social channel coverage measures website-linked channels, not activity, audience or engagement. Source status and freshness are shown where recorded; unavailable evidence is not treated as a negative result. Recommendations should be validated against business objectives, systems and the customer journey before implementation. Public share links are capability-protected; staff previews are tenant-scoped.</p>
+          <h2 className="text-sm font-semibold text-white">Method and limits</h2><p className="mt-2 text-xs leading-5 text-slate-400">This report is based on observable public signals captured by DigitalGate at the time of the audit. Scores are directional rather than guarantees of search rankings, leads or revenue. The composite is weighted only across assessed pillars: website 22%, search 20%, AI readiness 20%, reputation 14%, conversion 14% and growth signals 10%; weights are renormalised if a pillar is unavailable. Pillar coverage and source coverage are reported separately. AI Discoverability Readiness measures observable technical readiness, not actual AI search visibility or ranking. Social channel coverage measures website-linked channels, not activity, audience or engagement. Source status and freshness are shown where recorded; unavailable evidence is not treated as a negative result. Recommendations should be validated against business objectives, systems and the customer journey before implementation. Public share links are capability-protected; staff previews are tenant-scoped.</p>
+              {assessment.sourceNotes?.length ? <p className="mt-2 text-xs leading-5 text-slate-500">{assessment.sourceNotes.join(" ")}</p> : null}
         </section>
         <footer className="mt-8 border-t border-slate-700 pt-5 text-xs text-slate-500">DigitalGate · AI-powered Business Operating Platform · The Gateway to Your Digital World™</footer>
       </div>

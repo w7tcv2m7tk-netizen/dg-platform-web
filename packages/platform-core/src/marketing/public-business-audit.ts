@@ -11,6 +11,7 @@ import type { Prisma } from "@dg/database";
 import { sendMessage } from "../communications";
 import { composeEmailBody } from "../communications/email-html";
 import { runPresenceAudit } from "../command-centre/growth-engine/presence-audit";
+import { llmChat, llmConfigured } from "../ai/llm";
 import type { PresenceAuditResult } from "../command-centre/growth-engine/presence-audit";
 import { findDomainByHostname } from "../infrastructure/domains/inventory";
 import { createLead } from "../leads";
@@ -188,6 +189,35 @@ export function buildPublicBusinessAuditPreview(
     pillars,
     opportunities: prioritisedOpportunities(audit, 4),
   };
+}
+
+async function synthesisePublicAuditSummary(input: {
+  businessName: string;
+  industry?: string;
+  location?: string;
+  audit: PresenceAuditResult;
+}): Promise<string | null> {
+  if (!llmConfigured()) return null;
+  const findings = input.audit.findings.slice(0, 6).map((finding) => `${finding.title}: ${finding.observed || finding.detail}`).join("\n");
+  const strengths = input.audit.strengths.slice(0, 4).join("; ");
+  const pages = input.audit.probes.pages.slice(0, 3).map((page) => `${page.url} (form=${page.hasForm}, booking=${page.hasBookingLanguage}, pricing=${page.hasPricingLanguage}, phone=${page.hasPhoneLink}, email=${page.hasEmailLink})`).join("\n");
+  try {
+    const result = await llmChat({
+      messages: [
+        { role: "system", content: "You write a concise evidence-led business assessment for a DigitalGate Digital Opportunity Report. Use only the supplied observations. Never invent revenue, customer counts, rankings, competitors, traffic, reviews or performance metrics. Distinguish observed evidence from strategic hypotheses. Write 2 short paragraphs, under 150 words, Australian English, warm and commercially useful. Explain what the business appears to do, who its apparent customers may be, what is working, the most material observed opportunity, why it matters, and one practical next step." },
+        { role: "user", content: `Business: ${input.businessName}\nIndustry: ${input.industry || "not supplied"}\nLocation: ${input.location || "not supplied"}\nObserved strengths: ${strengths || "none recorded"}\nObserved findings:\n${findings || "none recorded"}\nPages assessed:\n${pages || "homepage only"}\nPillar assessment: ${JSON.stringify(input.audit.scores.assessment ?? {})}` },
+      ],
+      maxTokens: 340,
+      tier: "standard",
+      deadlineMs: 8_000,
+      attemptTimeoutMs: 4_000,
+      safeErrors: true,
+    });
+    const text = result.text?.trim().replace(/^Aida:\s*/i, "").slice(0, 1600);
+    return text || null;
+  } catch {
+    return null;
+  }
 }
 
 export type PublicBusinessAuditProbeResult =
@@ -498,12 +528,45 @@ export async function submitPublicBusinessAudit(input: {
         strengths: audit.strengths,
         industryInsights: audit.industryInsights,
         industryPack: audit.industryPack,
-        assessment: audit.scores.assessment,
+        assessment: {
+          ...(audit.scores.assessment ?? { status: "not_assessed", assessedPillars: [], unavailablePillars: [], evidenceCoveragePercent: 0, confidence: "low" }),
+          sourceCoveragePercent: audit.scores.assessment?.status === "not_assessed" ? 0 : 35,
+          sourceNotes: ["Website HTML observed from the public site; independent identity, Google Business Profile and review sources were not queried in this workflow."],
+          weights: { websiteHealth: 22, seo: 20, aiVisibility: 20, reputation: 14, conversionReadiness: 14, growthSignals: 10 },
+          confidence: audit.scores.assessment?.status === "not_assessed" ? "low" : "medium",
+        },
         scorecard: {
           reputation: preview.pillars.reputation,
           conversionReadiness: preview.pillars.conversionReadiness,
           growthSignals: preview.pillars.growthSignals,
           searchVisibility: preview.pillars.searchVisibility,
+        },
+        businessIntelligence: {
+          publicProfiles: audit.probes.socialProfiles,
+          socialAssessment: {
+            score: audit.scores.socialPresence ?? null,
+            channelCount: Object.values(audit.probes.socialProfiles).filter(Boolean).length,
+            basis: "Website-linked public profile links only; activity, audience and engagement are not assessed.",
+          },
+          reputationEvidence: {
+            score: audit.scores.reputation ?? null,
+            reviewSignal: audit.probes.hasReviewHint,
+            googleLocalSignal: audit.probes.hasMapsOrGbpHint,
+            basis: audit.scores.reputation == null ? "Reputation was not assessed from this evidence set." : "Homepage review/local signals observed; no external review count or star rating was queried in this workflow.",
+          },
+          conversionEvidence: {
+            hasForm: audit.probes.hasForm,
+            hasPhoneLink: audit.probes.hasTelLink,
+            hasEmailLink: audit.probes.hasMailto,
+            hasCtaLanguage: audit.probes.hasCtaLanguage,
+            basis: "Homepage HTML signals only; page-by-page booking, trial and registration pathways were not exhaustively tested.",
+          },
+          sourceStatus: {
+            website: { status: "observed", note: "Public website HTML observed in this snapshot." },
+            businessIdentity: { status: "not_queried", note: "ABR identity was not queried in this workflow." },
+            googleBusinessProfile: { status: "not_queried", note: "Google Business Profile was not queried in this workflow." },
+            socialProfiles: { status: Object.values(audit.probes.socialProfiles).filter(Boolean).length ? "website_verified" : "not_observed", note: "Only profile links present on the public website are shown." },
+          },
         },
         researchContext: {
           source: "public_business_audit",
@@ -514,13 +577,22 @@ export async function submitPublicBusinessAudit(input: {
       auditVersion: "public-business-audit-v2",
     },
   });
+  const synthesisedSummary = await synthesisePublicAuditSummary({
+    businessName,
+    industry: industry || undefined,
+    location: input.location?.trim() || undefined,
+    audit,
+  });
+  const executiveSummary = synthesisedSummary
+    ? `${synthesisedSummary} This assessment is based on observable public website evidence captured for this report.`
+    : `${businessName} was assessed from observable public website evidence. ${audit.strengths[0] ? `An observed strength is: ${audit.strengths[0]}` : "No strength was recorded in this snapshot."} ${audit.findings[0] ? `The first observed opportunity is: ${audit.findings[0].title}.` : "No material opportunity was confirmed from the available evidence."}`;
   const opportunityReport = await prisma.growthProspectReport.create({
     data: {
       prospectId: prospect.id,
       auditId: prospectAudit.id,
       prospectSnapshot: prospectReportIdentity(prospect),
       shareToken: randomBytes(24).toString("hex"),
-      executiveSummary: `Digital opportunity report for ${businessName}, grounded in the DigitalGate public business audit.`,
+      executiveSummary,
     },
   });
   await prisma.growthProspectEngagement.create({

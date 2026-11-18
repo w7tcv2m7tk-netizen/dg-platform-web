@@ -1,6 +1,6 @@
 import { INDUSTRY_TAXONOMY, type IndustryGroup } from "../../apps/industry-taxonomy";
 
-export type ReportIndustryKey = "real_estate" | "hospitality_accommodation" | "finance" | "trades_services" | "retail_ecommerce" | "music_creative" | "general";
+export type ReportIndustryKey = "real_estate" | "hospitality_accommodation" | "finance" | "trades_services" | "retail_ecommerce" | "music_creative" | "technology_marketing" | "general";
 export type ReportEvidenceStatus = "observed" | "confirmed_gap" | "limited" | "unavailable";
 
 export type ReportPresentationFinding = {
@@ -168,6 +168,26 @@ const packs: Record<ReportIndustryKey, ReportPack> = {
       { title: "Creative proof", detail: "Audience and work evidence should be easy to verify without inflated claims.", recommendedAction: "Strengthen verifiable portfolio evidence." },
     ],
   },
+  technology_marketing: {
+    key: "technology_marketing",
+    label: "Business Technology & Marketing",
+    canonicalGroup: "Technology & Marketing",
+    executiveFocus: "clear offer, credible proof and a measurable conversion path",
+    fallbackPriorities: [
+      { title: "Make the commercial offer concrete", meaning: "A buyer should understand the service, who it is for and the outcome without guessing.", action: "Clarify the service architecture, ideal customer and primary commercial outcome in the website hierarchy." },
+      { title: "Make proof easy to verify", meaning: "Technical capability is more persuasive when supported by evidence a buyer can inspect.", action: "Surface relevant work, process, credentials and measurable proof without inventing outcomes." },
+      { title: "Connect interest to a qualified conversation", meaning: "A technology or marketing buyer needs a clear next step and a reason to take it.", action: "Create one qualified conversation path with an explicit response expectation." },
+    ],
+    roadmap: [
+      { period: "0–30 days", title: "Sharpen the offer", action: "Clarify service, audience and the primary commercial next step." },
+      { period: "31–60 days", title: "Strengthen proof", action: "Make relevant work, process and trust evidence easy to verify." },
+      { period: "61–90 days", title: "Systemise qualification", action: "Connect qualified interest to CRM follow-up and measurable outcomes." },
+    ],
+    fallbackInsights: [
+      { title: "Offer clarity", detail: "Technology and marketing services are easier to buy when the audience, scope and outcome are explicit.", recommendedAction: "Review the service architecture and primary offer." },
+      { title: "Proof and qualification", detail: "Credible proof should reduce buyer uncertainty before a sales conversation.", recommendedAction: "Connect proof to a qualified next step." },
+    ],
+  },
   general: {
     key: "general",
     label: "General business",
@@ -227,7 +247,8 @@ export function resolveReportIndustry(input: { industry?: string | null; industr
         : /(?:real estate|realtor|buyers agency|realty|property (?:agency|management|group|sales))/.test(value) ? "real_estate"
           : /(?:trade|plumb|electr|build|hvac|landscap|paint|clean|maintenance|service area)/.test(value) ? "trades_services"
             : /(?:retail|commerce|ecommerce|e commerce|shop|store|wholesale|product)/.test(value) ? "retail_ecommerce"
-              : /(?:music|artist|creative|media|publish|production|influencer|content)/.test(value) ? "music_creative" : undefined;
+              : /(?:music|artist|creative|media|publish|production|influencer|content)/.test(value) ? "music_creative"
+        : /(?:technology|software|marketing|digital|web|saas|it |information technology|consult)/.test(value) ? "technology_marketing" : undefined;
   const key = existingKey ?? (group ? groupToKey[group.id] : undefined) ?? keywordKey ?? "general";
   return { key, pack: packs[key], canonicalGroup: group ?? INDUSTRY_TAXONOMY.find((candidate) => candidate.name === packs[key].canonicalGroup) };
 }
@@ -276,8 +297,14 @@ export function commercialHeadlineFor(finding: ReportPresentationFinding): strin
   return finding.title || "A practical digital opportunity";
 }
 
+function isPositiveFinding(finding: ReportPresentationFinding): boolean {
+  const text = `${finding.title || ""} ${finding.observed || ""} ${finding.detail || ""}`.trim().toLowerCase();
+  if (/(?:^|\b)(?:no|not|without|missing|absent|lacks?)\b/.test(text)) return false;
+  return /(?:present|observed|visible|supports?|foundation|linked|detected|available|working)/.test(text);
+}
+
 export function buildReportPriorities(findings: ReportPresentationFinding[], pack: ReportPack, auditedAt: Date | string | null): ReportPriority[] {
-  const ranked = [...findings].sort((a, b) => commercialRank(b) - commercialRank(a));
+  const ranked = findings.filter((finding) => !isPositiveFinding(finding)).sort((a, b) => commercialRank(b) - commercialRank(a));
   const priorities = ranked.slice(0, 3).map((finding) => {
     const evidence = evidenceForFinding(finding, auditedAt);
     return {

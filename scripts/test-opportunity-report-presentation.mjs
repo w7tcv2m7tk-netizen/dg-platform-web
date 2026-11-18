@@ -109,6 +109,31 @@ test("insufficient evidence renders Not Assessed, not a fabricated low score or 
   assert.doesNotMatch(html, /mixed but actionable/i);
 });
 
+
+test("technology and marketing is not downgraded to General Business", () => {
+  assert.equal(presentation.resolveReportIndustry({ industry: "Business Technology & Marketing" }).key, "technology_marketing");
+  assert.equal(presentation.resolveReportIndustry({ industry: "Digital Marketing Agency" }).key, "technology_marketing");
+});
+
+test("positive observations are not promoted as improvement priorities", () => {
+  const priorities = presentation.buildReportPriorities([
+    finding({ title: "Structured data present", observed: "JSON-LD was observed.", detail: "Valid structured data present.", severity: "opportunity" }),
+    finding({ title: "No enquiry form detected", observed: "No form was observed on the homepage.", detail: "No form was observed." }),
+  ], presentation.resolveReportIndustry({ industry: "Finance" }).pack, null);
+  assert.equal(priorities[0].title.includes("structured data"), false);
+  assert.equal(priorities.some((priority) => /structured data present/i.test(priority.title)), false);
+});
+
+test("strengths and connected footprint consume the same website-linked profiles", async () => {
+  const html = await render(fixture({
+    findings: [],
+    businessIntelligence: { publicProfiles: { facebook: "https://facebook.com/acme", instagram: "https://instagram.com/acme" } },
+  }));
+  assert.match(html, /facebook/);
+  assert.match(html, /instagram/);
+  assert.doesNotMatch(html, /No major social profile links were detected/);
+});
+
 test("ambiguous property finance resolves to finance, not real estate",()=>{
   for (const industry of ["Property Finance", "Property Finance Broker", "Agency Finance"]) {
     assert.equal(presentation.resolveReportIndustry({ industry }).key, "finance", industry);

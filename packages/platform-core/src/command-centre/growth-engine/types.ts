@@ -67,6 +67,9 @@ export interface ProspectScoreAssessment {
   assessedPillars: string[];
   unavailablePillars: string[];
   evidenceCoveragePercent: number;
+  sourceCoveragePercent?: number;
+  sourceNotes?: string[];
+  weights?: Record<string, number>;
   confidence: "low" | "medium" | "high";
 }
 
