@@ -247,24 +247,22 @@ export async function runPresenceAudit(
   let websiteHealth = 20;
   let seo = 15;
   let aiVisibility = 10;
-  let reputation = 25;
+  let reputation = 0;
+  let reputationEvidence = false;
+  let contentObserved = false;
   let conversionReadiness = 20;
   let growthSignals = 20;
 
   if (!websiteUrl) {
     findings.push({
       domain: "website",
-      severity: "critical",
-      title: "No website URL on file",
-      detail: `${input.businessName} has no website recorded — digital presence cannot be measured yet.`,
-      recommendedAction: "Add a website URL in Discovery, then re-run the audit.",
+      severity: "opportunity",
+      evidenceStatus: "unavailable",
+      confidence: "low",
+      title: "Website not identified — evidence unavailable",
+      detail: `${input.businessName} has no website identified in the available records, so website, SEO, AI readiness, conversion and reputation performance could not be assessed.`,
+      recommendedAction: "Confirm the business website, then re-run the audit. Missing evidence is not treated as poor performance.",
     });
-    websiteHealth = 8;
-    seo = 5;
-    aiVisibility = 5;
-    reputation = 10;
-    conversionReadiness = 8;
-    growthSignals = 8;
   } else {
     probes.https = websiteUrl.startsWith("https://");
 
@@ -321,10 +319,11 @@ export async function runPresenceAudit(
         websiteHealth += 35;
         const contentType = res.headers.get("content-type") ?? "";
         const html = contentType.includes("html")
-          ? (await res.text()).slice(0, 250_000)
+          ? (await res.text()).slice(0, 1_000_000)
           : "";
 
         if (html) {
+          contentObserved = true;
           const localTerms = (input.location || "")
             .split(",")
             .map((part) => part.replace(/\b(?:qld|nsw|vic|sa|wa|tas|nt|act|australia|\d{4})\b/gi, "").trim())
@@ -469,7 +468,6 @@ export async function runPresenceAudit(
             strengths.push("Structured data is present, helping machines interpret the business and page content.");
             aiVisibility += 25;
             seo += 10;
-            reputation += 10;
             growthSignals += 12;
             findings.push({
               domain: "ai_visibility",
@@ -485,7 +483,8 @@ export async function runPresenceAudit(
           } else {
             findings.push({
               domain: "ai_visibility",
-              severity: "critical",
+              severity: "opportunity",
+              evidenceStatus: "confirmed_gap",
               category: "AI & Search Visibility",
               title: "No structured data detected",
               observed: "No structured data detected",
@@ -554,7 +553,8 @@ export async function runPresenceAudit(
           // Reputation & presence
           if (signals.hasMapsOrGbpHint) {
             strengths.push("Local/Google Maps signals are visible on the homepage, supporting local entity confidence.");
-            reputation += 25;
+            reputationEvidence = true;
+            reputation = Math.max(reputation, 25) + 25;
             growthSignals += 10;
           } else {
             findings.push({
@@ -579,7 +579,8 @@ export async function runPresenceAudit(
           }
           if (signals.hasReviewHint) {
             strengths.push("Review or testimonial signals are visible, supporting online trust.");
-            reputation += 20;
+            reputationEvidence = true;
+            reputation = Math.max(reputation, 20) + 20;
           } else {
             findings.push({
               domain: "gbp",
@@ -630,17 +631,13 @@ export async function runPresenceAudit(
       probes.error = err instanceof Error ? err.message : "fetch_failed";
       findings.push({
         domain: "website",
-        severity: "critical",
-        title: "Website unreachable",
-        detail: `Live probe failed${probes.error ? `: ${probes.error}` : ""}.`,
-        recommendedAction: "Verify DNS/hosting before investing in SEO or AI Visibility.",
+        severity: "warning",
+        evidenceStatus: "unavailable",
+        confidence: "low",
+        title: "Website could not be observed",
+        detail: `The live probe did not observe the website${probes.error ? ` (${probes.error})` : ""}. This is treated as unavailable evidence, not a confirmed performance failure.`,
+        recommendedAction: "Confirm the website is publicly reachable, then re-run the audit.",
       });
-      websiteHealth = 12;
-      seo = 8;
-      aiVisibility = 5;
-      reputation = 12;
-      conversionReadiness = 10;
-      growthSignals = 10;
     }
   }
 
@@ -671,28 +668,44 @@ export async function runPresenceAudit(
     }
   }
 
-  const websiteHealthScore = clampScore(websiteHealth);
-  const seoScore = clampScore(seo);
-  const aiVisibilityScore = clampScore(aiVisibility);
-  const reputationScore = clampScore(reputation);
-  const conversionScore = clampScore(conversionReadiness);
-  const growthScore = clampScore(growthSignals);
+  const hasWebsite = Boolean(websiteUrl);
+  const websiteHealthScore = hasWebsite && (contentObserved || probes.contentAccessible) ? clampScore(websiteHealth) : null;
+  const seoScore = contentObserved ? clampScore(seo) : null;
+  const aiVisibilityScore = contentObserved ? clampScore(aiVisibility) : null;
+  const reputationScore = reputationEvidence ? clampScore(reputation) : null;
+  const conversionScore = contentObserved ? clampScore(conversionReadiness) : null;
+  const growthScore = contentObserved ? clampScore(growthSignals) : null;
+  const socialCount = Object.values(probes.socialProfiles).filter(Boolean).length;
+  const socialScore = contentObserved ? Math.min(100, socialCount * 20 + (socialCount > 0 ? 20 : 0)) : null;
 
-  const businessHealth = clampScore(
-    websiteHealthScore * 0.22 +
-      seoScore * 0.2 +
-      aiVisibilityScore * 0.2 +
-      reputationScore * 0.14 +
-      conversionScore * 0.14 +
-      growthScore * 0.1,
-  );
+  const weightedPillars = [
+    { key: "website", value: websiteHealthScore, weight: 0.22 },
+    { key: "seo", value: seoScore, weight: 0.2 },
+    { key: "ai", value: aiVisibilityScore, weight: 0.2 },
+    { key: "reputation", value: reputationScore, weight: 0.14 },
+    { key: "conversion", value: conversionScore, weight: 0.14 },
+    { key: "growth", value: growthScore, weight: 0.1 },
+  ];
+  const assessedPillars = weightedPillars.filter((pillar) => pillar.value != null);
+  const assessedWeight = assessedPillars.reduce((sum, pillar) => sum + pillar.weight, 0);
+  const businessHealth = assessedPillars.length >= 2 && assessedWeight >= 0.5
+    ? clampScore(assessedPillars.reduce((sum, pillar) => sum + (pillar.value as number) * pillar.weight, 0) / assessedWeight)
+    : null;
+  const assessment = {
+    status: businessHealth == null ? "not_assessed" as const : assessedPillars.length === weightedPillars.length ? "assessed" as const : "partial" as const,
+    assessedPillars: assessedPillars.map((pillar) => pillar.key),
+    unavailablePillars: weightedPillars.filter((pillar) => pillar.value == null).map((pillar) => pillar.key),
+    evidenceCoveragePercent: Math.round(assessedWeight * 100),
+    confidence: assessedWeight >= 0.8 ? "high" as const : assessedWeight >= 0.5 ? "medium" as const : "low" as const,
+  };
 
-  if (businessHealth < 45) {
+  if (businessHealth != null && businessHealth < 45) {
     findings.unshift({
       domain: "website",
-      severity: "critical",
+      severity: "warning",
+      evidenceStatus: "confirmed_gap",
       title: "Low DigitalGate Business Health Score™",
-      detail: `Composite score ${businessHealth}/100 from live presence probes.`,
+      detail: `Composite score ${businessHealth}/100 from verified public presence probes; evidence coverage ${assessment.evidenceCoveragePercent}%.`,
       recommendedAction: "Prioritise the weakest verified foundations first, then re-measure the Business Health Score.",
     });
   }
@@ -746,12 +759,14 @@ export async function runPresenceAudit(
     industryInsights,
     scores: {
       businessHealth,
+      assessment,
       websiteHealth: websiteHealthScore,
       seo: seoScore,
       aiVisibility: aiVisibilityScore,
       reputation: reputationScore,
       conversionReadiness: conversionScore,
       growthSignals: growthScore,
+      socialPresence: socialScore,
       googleBusinessProfile: reputationScore,
       digitalIdentity: websiteHealthScore,
     },

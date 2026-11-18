@@ -382,19 +382,23 @@ export async function runGrowthProspectAudit(input: {
   const socialChannelCount = Object.values(socialProfiles).filter(Boolean).length;
   // Evidence-safe social score: coverage + website integration only. We do not infer audience,
   // engagement or posting activity without a compliant observable source.
-  const socialPresenceScore = Math.min(100, socialChannelCount * 20 + (socialChannelCount > 0 ? 20 : 0));
+  const socialPresenceScore = presence.scores.socialPresence ?? null;
   const appraisal = presence.probes.appraisalSignals || {};
-  const reputationScore = presence.scores.reputation ?? 0;
+  const reputationScore = presence.scores.reputation;
   const localAuthorityScore = Math.min(100, (appraisal.suburbMentions ?? 0) * 20);
   const appraisalPathScore = (appraisal.hasAppraisalCta ? 50 : 0) + (appraisal.hasAppraisalForm ? 50 : 0);
-  const discoverabilityScore = Math.round(((presence.scores.seo ?? 0) + (presence.scores.aiVisibility ?? 0)) / 2);
-  const acquisitionReadinessScore = Math.round(
-    appraisalPathScore * 0.35 +
-    localAuthorityScore * 0.15 +
-    reputationScore * 0.2 +
-    socialPresenceScore * 0.15 +
-    discoverabilityScore * 0.15,
-  );
+  const discoverabilityScore = presence.scores.seo != null && presence.scores.aiVisibility != null
+    ? Math.round((presence.scores.seo + presence.scores.aiVisibility) / 2)
+    : null;
+  const acquisitionReadinessScore = presence.scores.assessment?.status === "not_assessed"
+    ? null
+    : Math.round(
+        appraisalPathScore * 0.35 +
+        localAuthorityScore * 0.15 +
+        (reputationScore ?? 0) * 0.2 +
+        (socialPresenceScore ?? 0) * 0.15 +
+        (discoverabilityScore ?? 0) * 0.15,
+      );
 
   const audit = await createGrowthProspectAudit({
     prospectId: prospect.id,
@@ -405,6 +409,7 @@ export async function runGrowthProspectAudit(input: {
       strengths: presence.strengths,
       industryInsights: presence.industryInsights,
       industryPack: presence.industryPack,
+      assessment: presence.scores.assessment,
       scorecard: {
         reputation: presence.scores.reputation ?? null,
         conversionReadiness: presence.scores.conversionReadiness ?? null,

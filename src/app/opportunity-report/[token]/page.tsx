@@ -35,6 +35,7 @@ type AuditPayload = {
   industryInsights?: Array<{ title?: string; detail?: string; recommendedAction?: string }>;
   industryPack?: string;
   scorecard?: Record<string, unknown>;
+  assessment?: { status?: string; assessedPillars?: string[]; unavailablePillars?: string[]; evidenceCoveragePercent?: number; confidence?: string };
   digitalGateSolutionMatches?: SolutionMatch[];
   businessIntelligence?: BusinessIntelligence;
 };
@@ -88,6 +89,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const findings = normalisedFindings(rawFindings);
   const strengths = Array.isArray(payload.strengths) ? payload.strengths.slice(0, 5) : [];
   const scorecard = payload.scorecard && typeof payload.scorecard === "object" ? payload.scorecard : {};
+  const assessment = payload.assessment ?? {};
   const solutionMatches = Array.isArray(payload.digitalGateSolutionMatches) ? payload.digitalGateSolutionMatches.slice(0, 3) : [];
   const intelligence = payload.businessIntelligence || {};
   const identity = intelligence.identity || {};
@@ -126,7 +128,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         <h1>{report.prospect.businessName}</h1>
         <p className="dg-report-cover-sub">An evidence-led review of the current digital position, with the three opportunities that matter first.</p>
         <div className="dg-report-cover-meta"><span><b>Prepared</b>{report.generatedAt.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</span><span><b>Evidence</b>{auditDate}</span><span><b>Industry</b>{pack.label}</span><span><b>Website</b>{report.prospect.websiteUrl ? report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "Not identified"}</span></div>
-        <div className="dg-report-cover-score"><span>Business Health</span><strong>{audit?.businessHealth ?? "—"}<small>/100</small></strong></div>
+        <div className="dg-report-cover-score"><span>Business Health</span><strong>{audit?.businessHealth == null ? "Not Assessed" : <>{audit.businessHealth}<small>/100</small></>}</strong></div>
         <div className="dg-report-cover-priorities">{priorities.map((priority, index) => <div key={index}><span>0{index + 1}</span><h2>{priority.title}</h2><p>{priority.action}</p></div>)}</div>
         <p className="dg-report-cover-cta">Book a Strategy Session →</p>
       </div>
@@ -207,10 +209,16 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-5">
               <p className="text-xs uppercase tracking-wide text-violet-300">Business Health</p>
-              <p className="mt-2 text-4xl font-semibold text-white">{audit?.businessHealth ?? "—"}<span className="text-base text-slate-400">/100</span></p>
+              <p className="mt-2 text-4xl font-semibold text-white">{audit?.businessHealth == null ? "Not Assessed" : <>{audit.businessHealth}<span className="text-base text-slate-400">/100</span></>}</p>
               <p className="mt-2 text-xs text-violet-200">{scoreLabel(audit?.businessHealth ?? null)}</p>
               <div className="dg-report-score-bar mt-3"><span style={{ width: `${Math.max(0, Math.min(100, Number(audit?.businessHealth ?? 0)))}%` }} /></div>
-              <p className="mt-2 text-xs leading-5 text-slate-400">Directional composite, not a third-party ranking.</p>
+              <p className="mt-2 text-xs leading-5 text-slate-400">Directional composite from assessed pillars; unavailable evidence is not scored.</p>
+            </div>
+            <div className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5">
+              <p className="text-sm font-medium text-slate-300">Evidence completeness</p>
+              <p className="mt-2 text-2xl font-semibold text-white">{assessment.evidenceCoveragePercent ?? 0}%</p>
+              <p className="mt-2 text-xs text-violet-300">{assessment.status === "not_assessed" ? "Not assessed" : assessment.status === "partial" ? "Partial assessment" : "Assessed"}{assessment.confidence ? ` · ${assessment.confidence} confidence` : ""}</p>
+              <p className="mt-2 text-xs leading-5 text-slate-400">{(assessment.assessedPillars?.length ?? 0)} of {((assessment.assessedPillars?.length ?? 0) + (assessment.unavailablePillars?.length ?? 0)) || 6} pillars assessed. Unavailable evidence is not treated as a negative result.</p>
             </div>
             {pillars.map((pillar) => (
               <div key={pillar.key} className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5">

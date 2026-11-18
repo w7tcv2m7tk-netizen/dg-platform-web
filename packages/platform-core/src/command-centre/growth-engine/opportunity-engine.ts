@@ -162,12 +162,12 @@ export function computeProspectOpportunityScore(
   const verified = [health, seo, ai, website].filter((v): v is number => typeof v === "number");
   const digitalGapScore = verified.length
     ? clamp(verified.reduce((sum, v) => sum + (100 - v), 0) / verified.length)
-    : 45;
+    : 0;
   // Need alone is not enough: prioritise gaps DigitalGate can demonstrably solve.
   // Research v2 persists solution matches from the same evidence used by the report.
   const solutionFitScore = solutionMatches.length
     ? clamp(45 + solutionMatches.length * 6 + highSolutionMatches * 7)
-    : 45;
+    : 0;
   const opportunityScore = clamp(digitalGapScore * 0.68 + solutionFitScore * 0.32);
   if (!input.audit) penalties.push("No verified presence audit yet");
   if (solutionMatches.length) {
@@ -182,7 +182,7 @@ export function computeProspectOpportunityScore(
   // Research confidence (0–100): evidence completeness, not prospect quality.
   let confidence = 0;
   if (input.websiteUrl) confidence += 15;
-  if (input.audit) confidence += 35;
+  if (verified.length) confidence += 35;
   if (input.industry?.trim()) confidence += 10;
   if (input.contactPhone) confidence += 10;
   if (input.contactEmail) confidence += 15;
@@ -194,7 +194,7 @@ export function computeProspectOpportunityScore(
 
   const isQualified = !["prospect", "audit_created", "lost", "won", "onboarding"].includes(input.stage);
   const contactable = Boolean(input.contactPhone || input.contactEmail);
-  const dailyTop3Eligible = isQualified && contactable && researchConfidence >= 55;
+  const dailyTop3Eligible = isQualified && contactable && researchConfidence >= 55 && verified.length > 0;
   // Contact Priority rewards fit, opportunity and evidence. Qualification is a gate,
   // not a score boost, so weak prospects cannot rank highly merely by advancing stage.
   const contactPriority = dailyTop3Eligible

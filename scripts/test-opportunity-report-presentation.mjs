@@ -74,6 +74,41 @@ test("commercial language and evidence freshness are presented without hiding te
   assert.match(html, /Strategy Session discovery/);
 });
 
+
+
+test("public report removes provider configuration and troubleshooting instructions", async () => {
+  const html = await render(fixture({
+    findings: [finding()],
+    businessIntelligence: {
+      sourceStatus: {
+        businessIdentity: { status: "unavailable", note: "Set GOOGLE_PLACES_API_KEY and configure credentials in the provider environment." },
+        googleBusinessProfile: { status: "provider_error", note: "Check Vercel environment variables and retry the provider." },
+      },
+    },
+  }));
+  assert.doesNotMatch(html, /GOOGLE_PLACES_API_KEY|API_KEY|Vercel environment|provider environment/i);
+  assert.doesNotMatch(html, /credentials in the provider/i);
+  assert.match(html, /Not available from the public evidence/);
+});
+
+test("insufficient evidence renders Not Assessed, not a fabricated low score or strength", async () => {
+  const empty = fixture({ findings: [] });
+  empty.audit = {
+    ...empty.audit,
+    businessHealth: null,
+    websiteHealth: null,
+    seoScore: null,
+    aiVisibility: null,
+    findings: { items: [], scorecard: { reputation: null, conversionReadiness: null, growthSignals: null, searchVisibility: null }, assessment: { status: "not_assessed", assessedPillars: [], unavailablePillars: ["website", "seo", "ai", "reputation", "conversion", "growth"], evidenceCoveragePercent: 0, confidence: "low" } },
+  };
+  const html = await render(empty);
+  assert.match(html, /Not Assessed/);
+  assert.match(html, /Evidence completeness/);
+  assert.match(html, /Unavailable evidence is not treated as a negative result/);
+  assert.doesNotMatch(html, /clearest observed strength/i);
+  assert.doesNotMatch(html, /mixed but actionable/i);
+});
+
 test("ambiguous property finance resolves to finance, not real estate",()=>{
   for (const industry of ["Property Finance", "Property Finance Broker", "Agency Finance"]) {
     assert.equal(presentation.resolveReportIndustry({ industry }).key, "finance", industry);

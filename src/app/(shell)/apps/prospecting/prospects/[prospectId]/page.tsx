@@ -248,7 +248,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               {contentAccessible ? <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[["Business Health", audit.businessHealth], ["AI Visibility", audit.aiVisibility], ["SEO", audit.seoScore], ["Website Health", audit.websiteHealth]].map(([label,value]) => (
                   <div key={String(label)} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-                    <p className="text-xs text-slate-500">{label}</p><p className="mt-1 text-xl font-semibold text-white">{value ?? "—"}/100</p>
+                    <p className="text-xs text-slate-500">{label}</p><p className="mt-1 text-xl font-semibold text-white">{value == null ? "Not assessed" : `${value}/100`}</p>
                   </div>
                 ))}
               </div> : null}
@@ -358,7 +358,7 @@ export default async function ProspectResearchPage({ params }: { params: Promise
               <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[["Business Health", audit.businessHealth], ["AI Visibility", audit.aiVisibility], ["SEO", audit.seoScore], ["Website Health", audit.websiteHealth]].map(([label,value]) => (
                   <div key={String(label)} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-                    <p className="text-xs text-slate-500">{label}</p><p className="mt-1 text-xl font-semibold text-white">{value ?? "—"}/100</p>
+                    <p className="text-xs text-slate-500">{label}</p><p className="mt-1 text-xl font-semibold text-white">{value == null ? "Not assessed" : `${value}/100`}</p>
                   </div>
                 ))}
               </div>

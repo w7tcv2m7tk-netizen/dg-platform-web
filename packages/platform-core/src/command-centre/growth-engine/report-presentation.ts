@@ -322,6 +322,7 @@ export function buildExecutiveVerdict(input: {
 }): string {
   if (!input.hasAudit) return "This snapshot does not contain enough evidence for a commercial verdict. No score or recommendation is inferred.";
   const assessed = input.pillars.filter((pillar) => pillar.value != null).sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+  if (!assessed.length) return "This snapshot does not contain enough assessed public evidence to produce a score, confirm a strength or confirm a weakness. The next step is to complete evidence collection before drawing a commercial conclusion.";
   const strongest = assessed[0];
   const weakest = assessed[assessed.length - 1];
   const first = input.priorities[0];
@@ -347,7 +348,16 @@ export function buildSourceStatus(value: unknown, industryKey?: ReportIndustryKe
     if (!raw || typeof raw !== "object") return [];
     const item = raw as { status?: unknown; note?: unknown };
     if (typeof item.status !== "string") return [];
-    return [{ label: labels[key] ?? key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase()), status: item.status, note: typeof item.note === "string" ? item.note : "" }];
+    const safeStatus = item.status === "unavailable" ? "not available"
+      : item.status === "no_confident_match" ? "no confident match"
+        : item.status === "planned" ? "not included"
+          : item.status === "provider_error" ? "temporarily unavailable"
+            : item.status.replace(/_/g, " ");
+    const rawNote = typeof item.note === "string" ? item.note : "";
+    const note = /(?:GOOGLE_|ABR_|API_KEY|credentials?|configured|environment|OAuth|provider)/i.test(rawNote)
+      ? "Not available from the public evidence included in this snapshot."
+      : rawNote;
+    return [{ label: labels[key] ?? key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase()), status: safeStatus, note }];
   });
 }
 
