@@ -12,6 +12,7 @@ const baselineRef = "8b01687fc235d16db6467a91551247e3f69444f9"; // Reviewed main
 const migration = "packages/database/prisma/migrations/20261009_platform_checkout_creation_gate/migration.sql";
 const appEntitlementsMigration = "packages/database/prisma/migrations/20261018_platform_subscription_app_entitlements/migration.sql";
 const subscriptionWebhookHoldMigration = "packages/database/prisma/migrations/20261019_platform_subscription_webhook_hold/migration.sql";
+const providerUsageMigration = "packages/database/prisma/migrations/20261118_provider_usage_budget/migration.sql";
 const pgBin = process.argv[2];
 if (!pgBin || !path.isAbsolute(pgBin)) throw new Error("Pass the installed PostgreSQL bin directory");
 // Do not inherit credentials, provider keys, dotenv configuration or Node preload hooks.
@@ -91,6 +92,7 @@ try {
   run(path.join(pgBin, "psql"), [...psql, "-f", "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql"]);
   run(path.join(pgBin, "psql"), [...psql, "-f", appEntitlementsMigration]);
   run(path.join(pgBin, "psql"), [...psql, "-f", subscriptionWebhookHoldMigration]);
+  run(path.join(pgBin, "psql"), [...psql, "-f", providerUsageMigration]);
   const { rehearseAdmissionMigration } = await import("./rehearse-checkout-admission-migration.mjs");
   await rehearseAdmissionMigration({ pgBin, psql, env, root, marker });
   run(path.join(root, "node_modules/.bin/prisma"), ["migrate", "diff", "--from-url", databaseUrl, "--to-schema-datamodel", "packages/database/prisma", "--exit-code"], { env });
@@ -101,6 +103,6 @@ try {
 } finally {
   if (existsSync(path.join(data, "postmaster.pid"))) run(path.join(pgBin, "pg_ctl"), ["-D", data, "-m", "immediate", "-w", "stop"]);
   rmSync(owned, { recursive: true, force: true });
-  writeFileSync(path.join(tmpdir(), `dg-${suite}-db-evidence.json`), JSON.stringify({ passed, suite, baselineRef, migrations: [migration, "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql", appEntitlementsMigration, subscriptionWebhookHoldMigration, "packages/database/prisma/migrations/20261027_single_use_checkout_admission/migration.sql"], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
+  writeFileSync(path.join(tmpdir(), `dg-${suite}-db-evidence.json`), JSON.stringify({ passed, suite, baselineRef, migrations: [migration, "packages/database/prisma/migrations/20261009_platform_checkout_attempt/migration.sql", appEntitlementsMigration, subscriptionWebhookHoldMigration, "packages/database/prisma/migrations/20261027_single_use_checkout_admission/migration.sql", providerUsageMigration], cluster: owned, host: "127.0.0.1", port, database: "dg_checkout_test", stopped: true, destroyed: true, completedAt: new Date().toISOString() }, null, 2));
   console.log("Disposable checkout PostgreSQL cluster stopped and destroyed");
 }
