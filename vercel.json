@@ -49,6 +49,5 @@
       "review/pr1035-finance-beta-20261101": false,
       "fix/aida-reliability-20261116": false
     }
-  },
-  "buildCommand": "npx prisma migrate deploy --schema packages/database/prisma && npm run build"
+  }
 }
