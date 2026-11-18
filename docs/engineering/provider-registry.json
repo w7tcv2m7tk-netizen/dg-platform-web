@@ -5,32 +5,82 @@
     {
       "id": "google_places",
       "purpose": "Business discovery: Text Search (New) only",
-      "credentials": ["GOOGLE_PLACES_API_KEY", "GOOGLE_GEOCODING_API_KEY", "GOOGLE_MAPS_API_KEY"],
-      "environmentScope": ["preview", "production"],
+      "credentials": [
+        "GOOGLE_PLACES_API_KEY",
+        "GOOGLE_GEOCODING_API_KEY",
+        "GOOGLE_MAPS_API_KEY"
+      ],
+      "environmentScope": [
+        "preview",
+        "production"
+      ],
       "model": null,
-      "consumptionLimit": { "monthlyTextSearch": 250, "dailyProviderQuota": 25, "perMinuteProviderQuota": 5, "scope": "per environment; Google quota shared" },
+      "consumptionLimit": {
+        "monthlyTextSearch": 250,
+        "dailyProviderQuota": 25,
+        "perMinuteProviderQuota": 5,
+        "scope": "per environment; Google quota shared"
+      },
       "fallback": "Skip provider with warning; ABN lookup and manual prospect entry remain available",
       "sku": "Text Search (New) Enterprise (field mask requests phone/website/rating)"
     },
     {
       "id": "abn_lookup",
       "purpose": "Australian business identity verification",
-      "credentials": ["ABR_GUID"],
-      "environmentScope": ["preview", "production"],
+      "credentials": [
+        "ABR_GUID"
+      ],
+      "environmentScope": [
+        "preview",
+        "production"
+      ],
       "model": null,
-      "consumptionLimit": { "notes": "ABR guidance; no paid overage configured" },
+      "consumptionLimit": {
+        "notes": "ABR guidance; no paid overage configured"
+      },
       "fallback": "Skip ABN enrichment; retain manual verification",
       "sku": "ABR web services"
     },
     {
       "id": "ai_gateway",
       "purpose": "Aida Public, Support and Advisor inference",
-      "credentials": ["AI_GATEWAY_API_KEY"],
-      "environmentScope": ["preview", "production"],
-      "model": { "standard": "openai/gpt-4o-mini", "reasoning": "openai/gpt-4o-mini", "env": ["DG_LLM_GATEWAY_MODEL", "DG_LLM_GATEWAY_REASONING_MODEL"] },
-      "consumptionLimit": { "notes": "Gateway free tier / project rate limits; no paid overage authorised" },
+      "credentials": [
+        "AI_GATEWAY_API_KEY"
+      ],
+      "environmentScope": [
+        "preview",
+        "production"
+      ],
+      "model": {
+        "standard": "openai/gpt-4o-mini",
+        "reasoning": "openai/gpt-4o-mini",
+        "env": [
+          "DG_LLM_GATEWAY_MODEL",
+          "DG_LLM_GATEWAY_REASONING_MODEL"
+        ]
+      },
+      "consumptionLimit": {
+        "notes": "Gateway free tier / project rate limits; no paid overage authorised"
+      },
       "fallback": "Advisor/Public deterministic fallback where implemented; Support records an AI-unavailable follow-up and preserves human escalation",
       "sku": "Vercel AI Gateway"
+    },
+    {
+      "id": "google_geocoding",
+      "purpose": "Address geocoding for property and location bias",
+      "credentials": [
+        "GOOGLE_GEOCODING_API_KEY"
+      ],
+      "environmentScope": [
+        "preview",
+        "production"
+      ],
+      "model": null,
+      "consumptionLimit": {
+        "notes": "Separate Google Geocoding SKU; not part of the Places Text Search monthly allowance"
+      },
+      "fallback": "Text-only discovery/property location hints remain available",
+      "sku": "Geocoding API"
     }
   ]
 }
