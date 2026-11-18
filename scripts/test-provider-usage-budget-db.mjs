@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
-  GOOGLE_PLACES_BUDGET_SCOPE_ENV,
+  GOOGLE_PLACES_SCOPE_ENV,
   GOOGLE_PLACES_MONTHLY_LIMIT_ENV,
   GooglePlacesBudgetExhausted,
   googlePlacesUsageSnapshot,
@@ -12,7 +12,7 @@ import {
 test("monthly allowance is atomic across concurrent reservations and retries", async () => {
   const scope = `budget-test-${process.pid}-${Date.now()}`;
   process.env[GOOGLE_PLACES_MONTHLY_LIMIT_ENV] = "2";
-  process.env[GOOGLE_PLACES_BUDGET_SCOPE_ENV] = scope;
+  process.env[GOOGLE_PLACES_SCOPE_ENV] = scope;
 
   const results = await Promise.allSettled(
     Array.from({ length: 16 }, () => reserveGooglePlacesTextSearch()),
