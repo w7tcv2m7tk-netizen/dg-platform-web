@@ -38,6 +38,7 @@ type AuditPayload = {
   industryPack?: string;
   scorecard?: Record<string, unknown>;
   assessment?: { status?: string; assessedPillars?: string[]; unavailablePillars?: string[]; evidenceCoveragePercent?: number; sourceCoveragePercent?: number; sourceNotes?: string[]; weights?: Record<string, number>; confidence?: string };
+  businessModel?: { type?: string; subtype?: string; confidence?: string; offering?: string; audiences?: string[]; marketOrientation?: string; conversionPaths?: string[]; discoveryChannels?: string[]; successIndicators?: string[]; isLocationBased?: boolean; evidence?: string[] };
   digitalGateSolutionMatches?: SolutionMatch[];
   businessIntelligence?: BusinessIntelligence;
   researchContext?: { probes?: { pages?: Array<{ url?: string; title?: string | null; hasForm?: boolean; hasPhoneLink?: boolean; hasEmailLink?: boolean; hasBookingLanguage?: boolean; hasPricingLanguage?: boolean; hasTrialLanguage?: boolean; hasServiceLanguage?: boolean }> } };
@@ -93,6 +94,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const strengths = Array.isArray(payload.strengths) ? payload.strengths.slice(0, 5) : [];
   const scorecard = payload.scorecard && typeof payload.scorecard === "object" ? payload.scorecard : {};
   const assessment = payload.assessment ?? {};
+  const businessModel = payload.businessModel ?? {};
   const assessedPages = Array.isArray(payload.researchContext?.probes?.pages) ? payload.researchContext.probes.pages : [];
   const solutionMatches = Array.isArray(payload.digitalGateSolutionMatches) ? payload.digitalGateSolutionMatches.slice(0, 3) : [];
   const intelligence = payload.businessIntelligence || {};
@@ -105,10 +107,13 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const realEstateJourney = intelligence.realEstateJourney || {};
   const socialPresenceScore = typeof socialAssessment.score === "number" ? socialAssessment.score : null;
   const acquisitionReadiness = typeof realEstateJourney.acquisitionReadiness?.score === "number" ? realEstateJourney.acquisitionReadiness.score : null;
-  const industry = resolveReportIndustry({ industry: report.prospect.industry, industryPack: payload.industryPack });
+  const industry = resolveReportIndustry({ industry: report.prospect.industry, industryPack: payload.industryPack, businessModel });
+  const relevantFindings = businessModel.type === "music_artist"
+    ? findings.filter((finding) => !/google maps|local business|local visibility|suburb authority|location information/i.test(`${finding.title} ${finding.category || ""}`))
+    : findings;
   const pack = industry.pack;
   const pillars = buildReportPillars(audit, scorecard);
-  const priorities = buildReportPriorities(findings, pack, audit?.auditedAt ?? null);
+  const priorities = buildReportPriorities(relevantFindings, pack, audit?.auditedAt ?? null);
   const insights = buildReportInsights(payload.industryInsights, pack);
   const roadmap = buildReportRoadmap(pack, priorities);
   const sourceStatus = buildSourceStatus(intelligence.sourceStatus, industry.key);
@@ -177,6 +182,15 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           </div>
         </div>
 
+        {businessModel.type && businessModel.type !== "general" ? <section id="business-model" className="dg-report-section mt-9 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Business understanding</p><h2 className="mt-2 text-2xl font-semibold text-white">{businessModel.subtype || pack.label}</h2></div><span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-200">{businessModel.confidence ?? "limited"} confidence</span></div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div><p className="text-xs uppercase tracking-wide text-slate-500">Apparent offering</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.offering || "Not reliably identified from the available evidence."}</p><p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Apparent audiences</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.audiences?.join(" · ") || "Not reliably identified."}</p></div>
+            <div><p className="text-xs uppercase tracking-wide text-slate-500">Conversion pathways</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.conversionPaths?.join(" · ") || "Not recorded."}</p><p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Discovery channels</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.discoveryChannels?.join(" · ") || "Not recorded."}</p><p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Market orientation</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.marketOrientation || "unknown"}{businessModel.isLocationBased === false ? " · location-based assumptions excluded" : ""}</p></div>
+          </div>
+          {businessModel.evidence?.length ? <p className="mt-4 border-t border-slate-700 pt-3 text-[11px] leading-5 text-slate-500">Evidence: {businessModel.evidence.join(" ")}</p> : null}
+        </section> : null}
+
         <section id="executive-summary" className="dg-report-section mt-9 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-6">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Executive summary</p>
           <p className="mt-3 max-w-4xl text-base leading-7 text-slate-200">{report.executiveSummary}</p>
@@ -226,10 +240,10 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
               <p className="mt-2 text-xs leading-5 text-slate-400">Directional composite from assessed pillars; unavailable evidence is not scored.</p>
             </div>
             <div className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5">
-              <p className="text-sm font-medium text-slate-300">Evidence completeness</p>
-              <p className="mt-2 text-2xl font-semibold text-white">{assessment.evidenceCoveragePercent ?? 0}%</p>
+              <p className="text-sm font-medium text-slate-300">Evidence coverage</p>
+              <p className="mt-2 text-2xl font-semibold text-white">{assessment.sourceCoveragePercent ?? 0}%</p>
               <p className="mt-2 text-xs text-violet-300">{assessment.status === "not_assessed" ? "Not assessed" : assessment.status === "partial" ? "Partial assessment" : "Assessed"}{assessment.confidence ? ` · ${assessment.confidence} confidence` : ""}</p>
-              <p className="mt-2 text-xs leading-5 text-slate-400">{assessment.assessedPillars?.length ?? 0} of {((assessment.assessedPillars?.length ?? 0) + (assessment.unavailablePillars?.length ?? 0)) || 6} scoring pillars assessed. Source coverage: {assessment.sourceCoveragePercent ?? "not recorded"}%. Unavailable evidence is not treated as a negative result.</p>
+              <p className="mt-2 text-xs leading-5 text-slate-400">Pillar assessment coverage: {assessment.evidenceCoveragePercent ?? 0}% ({assessment.assessedPillars?.length ?? 0} of {((assessment.assessedPillars?.length ?? 0) + (assessment.unavailablePillars?.length ?? 0)) || 6} pillars). Source coverage and pillar coverage are reported separately; unavailable evidence is not treated as a negative result.</p>
               {assessment.sourceNotes?.length ? <p className="mt-2 text-[11px] leading-4 text-slate-500">{assessment.sourceNotes.join(" ")}</p> : null}
             </div>
             {pillars.map((pillar) => (

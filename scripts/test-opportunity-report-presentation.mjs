@@ -103,8 +103,8 @@ test("insufficient evidence renders Not Assessed, not a fabricated low score or 
   };
   const html = await render(empty);
   assert.match(html, /Not Assessed/);
-  assert.match(html, /Evidence completeness/);
-  assert.match(html, /Unavailable evidence is not treated as a negative result/);
+  assert.match(html, /Evidence coverage/);
+  assert.match(html, /unavailable evidence is not treated as a negative result/);
   assert.doesNotMatch(html, /clearest observed strength/i);
   assert.doesNotMatch(html, /mixed but actionable/i);
 });

@@ -1,6 +1,6 @@
 import { INDUSTRY_TAXONOMY, type IndustryGroup } from "../../apps/industry-taxonomy";
 
-export type ReportIndustryKey = "real_estate" | "hospitality_accommodation" | "finance" | "trades_services" | "retail_ecommerce" | "music_creative" | "technology_marketing" | "general";
+export type ReportIndustryKey = "real_estate" | "hospitality_accommodation" | "finance" | "trades_services" | "retail_ecommerce" | "music_creative" | "music_artist" | "technology_marketing" | "general";
 export type ReportEvidenceStatus = "observed" | "confirmed_gap" | "limited" | "unavailable";
 
 export type ReportPresentationFinding = {
@@ -148,6 +148,26 @@ const packs: Record<ReportIndustryKey, ReportPack> = {
       { title: "Purchase confidence", detail: "Delivery, returns and verified reviews should support the purchase decision.", recommendedAction: "Strengthen purchase evidence." },
     ],
   },
+  music_artist: {
+    key: "music_artist",
+    label: "Music & Artists",
+    canonicalGroup: "Creator & Media",
+    executiveFocus: "artist identity, music discovery and a credible booking or collaboration path",
+    fallbackPriorities: [
+      { title: "Make artist identity unmistakable", meaning: "A promoter, collaborator or listener should understand the artist, genre and offer quickly.", action: "Clarify the artist positioning, music evidence and the primary next step in the page hierarchy." },
+      { title: "Make booking easy to verify", meaning: "Booking interest should move into a clear enquiry with a response expectation.", action: "Create a visible booking/event-enquiry route with relevant context and availability expectations." },
+      { title: "Strengthen artist discovery", meaning: "Releases, mixes and official profiles should support a coherent discovery journey.", action: "Connect artist profiles, releases or mixes and structured artist information." },
+    ],
+    roadmap: [
+      { period: "0–30 days", title: "Clarify the artist signal", action: "Make identity, genre, music evidence and booking action explicit." },
+      { period: "31–60 days", title: "Strengthen discovery proof", action: "Connect releases, mixes and official profiles into one journey." },
+      { period: "61–90 days", title: "Systemise booking follow-up", action: "Connect promoter enquiries to a measured response and follow-up path." },
+    ],
+    fallbackInsights: [
+      { title: "Artist identity", detail: "Music discovery starts with a coherent artist entity, genre and body of work.", recommendedAction: "Strengthen artist identity and profile consistency." },
+      { title: "Booking pathway", detail: "Promoters need a credible, direct route to discuss an event or collaboration.", recommendedAction: "Create a clear booking and response path." },
+    ],
+  },
   music_creative: {
     key: "music_creative",
     label: "Music & Creative Industries",
@@ -233,7 +253,14 @@ function canonicalGroup(industry?: string | null): IndustryGroup | undefined {
   );
 }
 
-export function resolveReportIndustry(input: { industry?: string | null; industryPack?: string | null }): { key: ReportIndustryKey; pack: ReportPack; canonicalGroup: IndustryGroup | undefined } {
+export function resolveReportIndustry(input: { industry?: string | null; industryPack?: string | null; businessModel?: { type?: string } | null }): { key: ReportIndustryKey; pack: ReportPack; canonicalGroup: IndustryGroup | undefined } {
+  const modelKey: ReportIndustryKey | undefined = input.businessModel?.type === "music_artist" ? "music_artist"
+    : input.businessModel?.type === "real_estate_agency" ? "real_estate"
+      : input.businessModel?.type === "accommodation" ? "hospitality_accommodation"
+        : input.businessModel?.type === "finance" ? "finance"
+          : input.businessModel?.type === "trades_services" ? "trades_services"
+            : input.businessModel?.type === "retail_ecommerce" ? "retail_ecommerce"
+              : input.businessModel?.type === "technology_marketing" ? "technology_marketing" : undefined;
   const group = canonicalGroup(input.industry);
   const existing = normalise(input.industryPack);
   const existingKey = existing === "real estate" ? "real_estate"
@@ -249,7 +276,7 @@ export function resolveReportIndustry(input: { industry?: string | null; industr
             : /(?:retail|commerce|ecommerce|e commerce|shop|store|wholesale|product)/.test(value) ? "retail_ecommerce"
               : /(?:music|artist|creative|media|publish|production|influencer|content)/.test(value) ? "music_creative"
         : /(?:technology|software|marketing|digital|web|saas|it |information technology|consult)/.test(value) ? "technology_marketing" : undefined;
-  const key = existingKey ?? (group ? groupToKey[group.id] : undefined) ?? keywordKey ?? "general";
+  const key = modelKey ?? existingKey ?? (group ? groupToKey[group.id] : undefined) ?? keywordKey ?? "general";
   return { key, pack: packs[key], canonicalGroup: group ?? INDUSTRY_TAXONOMY.find((candidate) => candidate.name === packs[key].canonicalGroup) };
 }
 

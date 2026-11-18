@@ -67,6 +67,39 @@ test("genuine observed weaknesses remain scored and are not hidden", async () =>
 });
 
 
+
+test("a contact form on a sampled page prevents a website-wide enquiry-form deficiency", async () => {
+  const original = globalThis.fetch;
+  const home = `<!doctype html><html><head><title>Studio</title></head><body><h1>Creative studio</h1><a href="/contact">Contact us</a></body></html>`;
+  const contact = `<!doctype html><html><head><title>Contact</title></head><body><h1>Contact us</h1><form><input name="email"><button>Send enquiry</button></form></body></html>`;
+  globalThis.fetch = async (url) => new Response(String(url).includes("/contact") ? contact : home, { status: 200, url: String(url), headers: { "content-type": "text/html" } });
+  try {
+    const result = await runPresenceAudit({ businessName: "Studio", industry: "Creative services", websiteUrl: "https://93.184.216.34/", publicPreview: true });
+    assert.ok(result.probes.pages.some((page) => page.hasForm));
+    assert.ok(result.strengths.some((strength) => /contact or enquiry page|conversion path/i.test(strength)));
+    assert.equal(result.findings.some((finding) => finding.title === "No enquiry form detected on the homepage"), false);
+    assert.ok((result.scores.conversionReadiness ?? 0) >= 65);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+test("music artist model avoids local-service assumptions and recognises booking pages", async () => {
+  const original = globalThis.fetch;
+  const home = `<!doctype html><html><head><title>Aetherra</title></head><body><h1>DJ and producer</h1><a href="/dj-and-event-bookings">DJ and Event Bookings</a><a href="/contact">Contact</a></body></html>`;
+  const booking = `<!doctype html><html><head><title>DJ and Event Bookings</title></head><body><h1>Book Aetherra</h1><form><input name="event"><button>Enquire</button></form></body></html>`;
+  globalThis.fetch = async (url) => new Response(String(url).includes("bookings") ? booking : home, { status: 200, url: String(url), headers: { "content-type": "text/html" } });
+  try {
+    const result = await runPresenceAudit({ businessName: "Aetherra", industry: "Music & Creative", websiteUrl: "https://93.184.216.34/", publicPreview: true });
+    assert.equal(result.businessModel.type, "music_artist");
+    assert.equal(result.scores.reputation, null);
+    assert.ok(result.strengths.some((strength) => /booking|event|appointment/i.test(strength)));
+    assert.equal(result.findings.some((finding) => /google maps|local visibility/i.test(finding.title)), false);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
 test("metadata after the first 250k characters is still observed", async () => {
   const padding = `<p>${"x".repeat(300_000)}</p>`;
   const lateHead = `<head><title>Late title</title><meta name="description" content="Late description"><meta name="viewport" content="width=device-width"></head>`;

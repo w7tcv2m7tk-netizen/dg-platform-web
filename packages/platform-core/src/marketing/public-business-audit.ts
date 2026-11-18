@@ -205,7 +205,7 @@ async function synthesisePublicAuditSummary(input: {
     const result = await llmChat({
       messages: [
         { role: "system", content: "You write a concise evidence-led business assessment for a DigitalGate Digital Opportunity Report. Use only the supplied observations. Never invent revenue, customer counts, rankings, competitors, traffic, reviews or performance metrics. Distinguish observed evidence from strategic hypotheses. Write 2 short paragraphs, under 150 words, Australian English, warm and commercially useful. Explain what the business appears to do, who its apparent customers may be, what is working, the most material observed opportunity, why it matters, and one practical next step." },
-        { role: "user", content: `Business: ${input.businessName}\nIndustry: ${input.industry || "not supplied"}\nLocation: ${input.location || "not supplied"}\nObserved strengths: ${strengths || "none recorded"}\nObserved findings:\n${findings || "none recorded"}\nPages assessed:\n${pages || "homepage only"}\nPillar assessment: ${JSON.stringify(input.audit.scores.assessment ?? {})}` },
+        { role: "user", content: `Business: ${input.businessName}\nIndustry: ${input.industry || "not supplied"}\nLocation: ${input.location || "not supplied"}\nBusiness model: ${JSON.stringify(input.audit.businessModel ?? {})}\nObserved strengths: ${strengths || "none recorded"}\nObserved findings:\n${findings || "none recorded"}\nPages assessed:\n${pages || "homepage only"}\nPillar assessment: ${JSON.stringify(input.audit.scores.assessment ?? {})}` },
       ],
       maxTokens: 340,
       tier: "standard",
@@ -498,24 +498,47 @@ export async function submitPublicBusinessAudit(input: {
   });
 
   const { prisma } = await import("@dg/database");
-  const prospect = await prisma.growthProspect.create({
-    data: {
-      organisationId,
-      businessName,
-      contactName: fullName,
-      contactEmail: email,
-      contactPhone: phone || null,
-      industry: industry || null,
-      location: input.location?.trim() || null,
-      websiteUrl,
-      stage: "prospect",
-      metadata: {
-        source: "free_audit",
-        leadId: lead.id,
-        capturePath: "gen2_public_business_audit",
-      } as Prisma.InputJsonValue,
-    },
+  const candidates = await prisma.growthProspect.findMany({
+    where: { organisationId, websiteUrl, archivedAt: null },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, metadata: true, stage: true },
+    take: 20,
   });
+  const reusable = candidates.find((candidate) => {
+    const metadata = candidate.metadata && typeof candidate.metadata === "object" ? candidate.metadata as Record<string, unknown> : {};
+    return metadata.capturePath === "gen2_public_business_audit" || metadata.source === "free_audit";
+  });
+  const prospect = reusable
+    ? await prisma.growthProspect.update({
+        where: { id: reusable.id },
+        data: {
+          businessName,
+          contactName: fullName,
+          contactEmail: email,
+          contactPhone: phone || null,
+          industry: industry || null,
+          location: input.location?.trim() || null,
+          websiteUrl,
+        },
+      })
+    : await prisma.growthProspect.create({
+        data: {
+          organisationId,
+          businessName,
+          contactName: fullName,
+          contactEmail: email,
+          contactPhone: phone || null,
+          industry: industry || null,
+          location: input.location?.trim() || null,
+          websiteUrl,
+          stage: "prospect",
+          metadata: {
+            source: "free_audit",
+            leadId: lead.id,
+            capturePath: "gen2_public_business_audit",
+          } as Prisma.InputJsonValue,
+        },
+      });
   const prospectAudit = await prisma.growthProspectAudit.create({
     data: {
       prospectId: prospect.id,
@@ -528,9 +551,11 @@ export async function submitPublicBusinessAudit(input: {
         strengths: audit.strengths,
         industryInsights: audit.industryInsights,
         industryPack: audit.industryPack,
+        businessModel: audit.businessModel,
         assessment: {
           ...(audit.scores.assessment ?? { status: "not_assessed", assessedPillars: [], unavailablePillars: [], evidenceCoveragePercent: 0, confidence: "low" }),
           sourceCoveragePercent: audit.scores.assessment?.status === "not_assessed" ? 0 : 35,
+          status: audit.scores.assessment?.status === "not_assessed" ? "not_assessed" : "partial",
           sourceNotes: ["Website HTML observed from the public site; independent identity, Google Business Profile and review sources were not queried in this workflow."],
           weights: { websiteHealth: 22, seo: 20, aiVisibility: 20, reputation: 14, conversionReadiness: 14, growthSignals: 10 },
           confidence: audit.scores.assessment?.status === "not_assessed" ? "low" : "medium",

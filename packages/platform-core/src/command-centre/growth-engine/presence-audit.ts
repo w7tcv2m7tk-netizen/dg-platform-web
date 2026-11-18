@@ -7,6 +7,7 @@
  */
 
 import { safeExternalFetch } from "./ssrf-guard";
+import { inferBusinessModel, type BusinessModelAssessment } from "./business-model";
 import type { ProspectAuditFinding, ProspectAuditScores } from "./types";
 
 export type PresenceAuditResult = {
@@ -15,6 +16,7 @@ export type PresenceAuditResult = {
   industryPack: PresenceIndustryPack;
   strengths: string[];
   industryInsights: Array<{ title: string; detail: string; recommendedAction: string }>;
+  businessModel: BusinessModelAssessment;
   probes: {
     websiteUrl: string | null;
     reachable: boolean | null;
@@ -61,6 +63,7 @@ export type PresenceIndustryPack =
   | "accommodation"
   | "real_estate"
   | "trades"
+  | "music_artist"
   | "general";
 
 export function resolvePresenceIndustryPack(
@@ -78,6 +81,9 @@ export function resolvePresenceIndustryPack(
   // general public-evidence guidance rather than inheriting Real Estate rules.
   if (/finance|mortgage|lending|accounting|insurance|wealth|capital|broking/.test(s)) {
     return "general";
+  }
+  if (/music|artist|musician|dj|producer|band|singer|creative|entertainment|record label/.test(s)) {
+    return "music_artist";
   }
   if (/real\s*estate|realtor|buyers agency|realty|property (?:agency|management|group|sales)/.test(s)) {
     return "real_estate";
@@ -98,6 +104,8 @@ function schemaRecommendation(pack: PresenceIndustryPack): string {
       return "Implement appropriate Organisation / LocalBusiness / accommodation schema and strengthen your machine-readable business information.";
     case "real_estate":
       return "Implement Organisation / RealEstateAgent (or LocalBusiness) schema and strengthen agent, suburb and listing entity signals.";
+    case "music_artist":
+      return "Implement appropriate MusicGroup or Person schema with official artist profiles, releases, booking details and verified links.";
     case "trades":
       return "Implement LocalBusiness / Service schema with clear service-area signals and machine-readable contact details.";
     default:
@@ -111,6 +119,8 @@ function conversionRecommendation(pack: PresenceIndustryPack): string {
       return "Introduce a prominent enquiry or booking pathway, particularly around high-intent sections of the homepage.";
     case "real_estate":
       return "Make appraisal and buyer-enquiry pathways unmistakable on high-intent pages.";
+    case "music_artist":
+      return "Make the booking, collaboration and event-enquiry path explicit, with a clear response expectation.";
     case "trades":
       return "Make call, quote and enquiry pathways unmistakable above the fold and on service pages.";
     default:
@@ -698,6 +708,33 @@ export async function runPresenceAudit(
     }
   }
 
+  const businessModel = inferBusinessModel({ businessName: input.businessName, industry: input.industry, location: input.location, probes });
+  const pageHasContactForm = probes.pages.some((page) => page.hasForm);
+  const pageHasBooking = probes.pages.some((page) => page.hasBookingLanguage);
+  const pageHasPricing = probes.pages.some((page) => page.hasPricingLanguage);
+  const pageHasTrial = probes.pages.some((page) => page.hasTrialLanguage);
+  if (pageHasContactForm) {
+    strengths.push("A separate contact or enquiry page with a detectable form was observed, providing an existing conversion path.");
+    conversionReadiness = Math.max(conversionReadiness, 65);
+  }
+  if (pageHasBooking) {
+    strengths.push("A booking, event or appointment pathway was observed on a sampled page.");
+    conversionReadiness = Math.max(conversionReadiness, 75);
+  }
+  if (pageHasPricing || pageHasTrial) growthSignals = Math.max(growthSignals, 55);
+  if (pageHasContactForm || pageHasBooking) {
+    findings.splice(0, findings.length, ...findings.filter((finding) => finding.title !== "No enquiry form detected on the homepage" && finding.title !== "Limited contact pathways"));
+  }
+  if (businessModel.type === "music_artist") {
+    findings.splice(0, findings.length, ...findings.filter((finding) => !/location information|google maps|localbusiness|suburb authority/i.test(`${finding.title} ${finding.category || ""}`)));
+    if (!pageHasBooking && !pageHasContactForm) {
+      findings.push({ domain: "website", severity: "warning", category: "Artist Conversion", title: "Booking and event-enquiry pathway was not detected", observed: "No booking, event or contact form was detected on the homepage or sampled pages.", detail: "For a music artist, promoter and event-booking intent needs a clear route to a conversation.", recommendedAction: conversionRecommendation(pack) });
+    }
+    if (!findings.some((finding) => /structured data|schema/i.test(finding.title))) {
+      findings.push({ domain: "ai_visibility", severity: "opportunity", category: "Artist Identity", title: "Artist-specific structured information was not detected", observed: "No MusicGroup or Person schema was observed.", detail: "Artist and release information is more useful to search and AI systems when expressed with the appropriate entity type.", recommendedAction: schemaRecommendation(pack) });
+    }
+  }
+
   if (!input.publicPreview) {
     if (!input.contactEmail && !input.contactPhone) {
       findings.push({
@@ -729,7 +766,7 @@ export async function runPresenceAudit(
   const websiteHealthScore = hasWebsite && (contentObserved || probes.contentAccessible) ? clampScore(websiteHealth) : null;
   const seoScore = contentObserved ? clampScore(seo) : null;
   const aiVisibilityScore = contentObserved ? clampScore(aiVisibility) : null;
-  const reputationScore = reputationEvidence ? clampScore(reputation) : null;
+  const reputationScore = businessModel.type === "music_artist" ? null : reputationEvidence ? clampScore(reputation) : null;
   const conversionScore = contentObserved ? clampScore(conversionReadiness) : null;
   const growthScore = contentObserved ? clampScore(growthSignals) : null;
   const socialCount = Object.values(probes.socialProfiles).filter(Boolean).length;
@@ -794,6 +831,11 @@ export async function runPresenceAudit(
               recommendedAction: "Review high-intent booking paths, location content, reputation signals and direct enquiry follow-up as one guest journey.",
             },
           ]
+        : pack === "music_artist"
+          ? [
+              { title: "Artist identity and booking", detail: "A music artist or DJ is discovered through a coherent identity, music evidence and a clear booking route rather than generic local-service signals.", recommendedAction: "Connect artist profile, releases or mixes, event proof and booking enquiry into one journey." },
+              { title: "Promoter and collaborator relationships", detail: "Bookings and creative opportunities depend on promoters, venues and collaborators being able to verify the artist and start a conversation.", recommendedAction: "Create a clear electronic press kit and booking pathway with a response expectation." },
+            ]
         : pack === "trades"
           ? [
               {
@@ -811,6 +853,7 @@ export async function runPresenceAudit(
             ];
 
   return {
+    businessModel,
     industryPack: pack,
     strengths: Array.from(new Set(strengths)).slice(0, 8),
     industryInsights,

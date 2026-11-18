@@ -409,6 +409,7 @@ export async function runGrowthProspectAudit(input: {
       strengths: presence.strengths,
       industryInsights: presence.industryInsights,
       industryPack: presence.industryPack,
+      businessModel: presence.businessModel,
       assessment: presence.scores.assessment,
       scorecard: {
         reputation: presence.scores.reputation ?? null,
