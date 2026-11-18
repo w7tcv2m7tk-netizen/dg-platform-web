@@ -204,7 +204,7 @@ async function synthesisePublicAuditSummary(input: {
   try {
     const result = await llmChat({
       messages: [
-        { role: "system", content: "You write a concise evidence-led business assessment for a DigitalGate Digital Opportunity Report. Use only the supplied observations. Never invent revenue, customer counts, rankings, competitors, traffic, reviews or performance metrics. Distinguish observed evidence from strategic hypotheses. Write 2 short paragraphs, under 150 words, Australian English, warm and commercially useful. Explain what the business appears to do, who its apparent customers may be, what is working, the most material observed opportunity, why it matters, and one practical next step." },
+        { role: "system", content: "You write a concise evidence-led business assessment for a DigitalGate Digital Opportunity Report. Use only the supplied observations. Never invent revenue, customer counts, rankings, competitors, traffic, reviews or performance metrics. Never state or imply that the business is successfully generating enquiries, bookings, sales or audience engagement merely because a pathway exists. Describe observed pathways only; do not infer commercial outcomes. Do not describe social links as strong audience performance. Distinguish observed evidence from strategic hypotheses. Write 2 short paragraphs, under 150 words, Australian English, warm and commercially useful. Explain what the business appears to do, who its apparent customers may be, what is working, the most material observed opportunity, why it matters, and one practical next step." },
         { role: "user", content: `Business: ${input.businessName}\nIndustry: ${input.industry || "not supplied"}\nLocation: ${input.location || "not supplied"}\nBusiness model: ${JSON.stringify(input.audit.businessModel ?? {})}\nObserved strengths: ${strengths || "none recorded"}\nObserved findings:\n${findings || "none recorded"}\nPages assessed:\n${pages || "homepage only"}\nPillar assessment: ${JSON.stringify(input.audit.scores.assessment ?? {})}` },
       ],
       maxTokens: 340,
@@ -584,7 +584,10 @@ export async function submitPublicBusinessAudit(input: {
             hasPhoneLink: audit.probes.hasTelLink,
             hasEmailLink: audit.probes.hasMailto,
             hasCtaLanguage: audit.probes.hasCtaLanguage,
-            basis: "Homepage HTML signals only; page-by-page booking, trial and registration pathways were not exhaustively tested.",
+            pageHasForm: audit.probes.pages.some((page) => page.hasForm),
+            pageHasBooking: audit.probes.pages.some((page) => page.hasBookingLanguage),
+            pageHasPricing: audit.probes.pages.some((page) => page.hasPricingLanguage),
+            basis: "Homepage and up to three sampled same-origin pages were checked. A capability observed on a sampled page is not reported as missing from the website.",
           },
           sourceStatus: {
             website: { status: "observed", note: "Public website HTML observed in this snapshot." },

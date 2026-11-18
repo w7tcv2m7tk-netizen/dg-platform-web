@@ -28,7 +28,7 @@ type BusinessIntelligence = {
   realEstateJourney?: { hasAppraisalCta?: boolean; hasAppraisalForm?: boolean; suburbMentions?: number; acquisitionReadiness?: { score?: number; appraisalPath?: number; localAuthority?: number; reputation?: number; socialPresence?: number; discoverability?: number } };
   socialAssessment?: { score?: number; channelCount?: number; basis?: string; activityStatus?: string; audienceStatus?: string; engagementStatus?: string };
   reputationEvidence?: { score?: number | null; reviewSignal?: boolean; googleLocalSignal?: boolean; basis?: string };
-  conversionEvidence?: { hasForm?: boolean; hasPhoneLink?: boolean; hasEmailLink?: boolean; hasCtaLanguage?: boolean; basis?: string };
+  conversionEvidence?: { hasForm?: boolean; hasPhoneLink?: boolean; hasEmailLink?: boolean; hasCtaLanguage?: boolean; pageHasForm?: boolean; pageHasBooking?: boolean; pageHasPricing?: boolean; basis?: string };
   sourceStatus?: Record<string, { status?: string; note?: string }>;
 };
 type AuditPayload = {
@@ -91,7 +91,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const payload = auditPayload(audit?.findings);
   const rawFindings = findingsFrom(audit?.findings);
   const findings = normalisedFindings(rawFindings);
-  const strengths = Array.isArray(payload.strengths) ? payload.strengths.slice(0, 5) : [];
+  const strengths = Array.isArray(payload.strengths) ? payload.strengths.slice(0, 8) : [];
   const scorecard = payload.scorecard && typeof payload.scorecard === "object" ? payload.scorecard : {};
   const assessment = payload.assessment ?? {};
   const businessModel = payload.businessModel ?? {};
@@ -277,6 +277,9 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
                 <li>Phone link: {conversionEvidence.hasPhoneLink == null ? "not assessed" : conversionEvidence.hasPhoneLink ? "observed" : "not observed on homepage"}</li>
                 <li>Email link: {conversionEvidence.hasEmailLink == null ? "not assessed" : conversionEvidence.hasEmailLink ? "observed" : "not observed on homepage"}</li>
                 <li>Call-to-action language: {conversionEvidence.hasCtaLanguage == null ? "not assessed" : conversionEvidence.hasCtaLanguage ? "observed" : "not observed on homepage"}</li>
+                <li>Contact/enquiry form on a sampled page: {conversionEvidence.pageHasForm == null ? "not sampled" : conversionEvidence.pageHasForm ? "observed" : "not observed"}</li>
+                <li>Booking/appointment pathway on a sampled page: {conversionEvidence.pageHasBooking == null ? "not sampled" : conversionEvidence.pageHasBooking ? "observed" : "not observed"}</li>
+                <li>Pricing/package information on a sampled page: {conversionEvidence.pageHasPricing == null ? "not sampled" : conversionEvidence.pageHasPricing ? "observed" : "not observed"}</li>
               </ul>
               <p className="mt-2 text-[11px] leading-4 text-slate-500">{conversionEvidence.basis || "Homepage evidence only; other pages were not exhaustively tested."}</p>
             </div>
