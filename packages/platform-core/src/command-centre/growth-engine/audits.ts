@@ -151,7 +151,7 @@ function buildDigitalGateSolutionMatches(
     benefit: "Connect activity to enquiries, pipeline and commercial outcomes rather than isolated marketing metrics.",
     relevance: "medium",
   });
-  if (presence.industryPack === "real_estate") {
+  if (presence.industryPack === "real_estate" && presence.scores.assessment?.status !== "not_assessed") {
     matches.push({
       capability: "Real Estate Industry App",
       opportunity: "Connect appraisal generation, prospecting, CRM follow-up and local market authority into one operating workflow.",

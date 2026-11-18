@@ -308,7 +308,7 @@ export function buildReportRoadmap(pack: ReportPack, priorities: ReportPriority[
 
 export function buildReportInsights(provided: unknown, pack: ReportPack) {
   const items = Array.isArray(provided) ? provided.filter((item): item is { title?: string; detail?: string; recommendedAction?: string } => Boolean(item && typeof item === "object")) : [];
-  if (items.length) return items.slice(0, 3).map((item) => ({ ...item, framework: false }));
+  if (items.length) return items.slice(0, 3).map((item) => ({ ...item, framework: true }));
   return pack.fallbackInsights.map((item) => ({ ...item, framework: true }));
 }
 
