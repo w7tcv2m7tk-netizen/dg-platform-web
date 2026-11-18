@@ -16,7 +16,7 @@ test("generated manifest and SQL are current", () => {
 test("manifest passes static coverage and boundary validation", () => {
   const manifest = readManifest(root);
   assert.deepEqual(validateManifest(root, manifest), []);
-  assert.equal(Object.keys(manifest.tables).length, 83);
+  assert.equal(Object.keys(manifest.tables).length, 84);
   assert.ok(manifest.requiredModules.includes("CRM"));
   assert.ok(manifest.requiredModules.includes("Business Brain"));
   assert.ok(manifest.requiredModules.includes("Checkout"));

@@ -845,6 +845,16 @@
       "columnPrivileges": {},
       "rationale": "General application CRUD required by Prisma relation traversal and the module's current operations."
     },
+    "provider_usage": {
+      "module": "Platform",
+      "privileges": [
+        "SELECT",
+        "INSERT",
+        "UPDATE"
+      ],
+      "columnPrivileges": {},
+      "rationale": "Monthly provider allowance rows are created and atomically incremented; no runtime delete path exists."
+    },
     "service_jobs": {
       "module": "Industry Applications",
       "privileges": [
