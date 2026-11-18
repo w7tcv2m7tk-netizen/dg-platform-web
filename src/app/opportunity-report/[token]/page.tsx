@@ -177,6 +177,11 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           </div>
         </div>
 
+        <section id="executive-summary" className="dg-report-section mt-9 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Executive summary</p>
+          <p className="mt-3 max-w-4xl text-base leading-7 text-slate-200">{report.executiveSummary}</p>
+        </section>
+
         <section id="opportunities" className="dg-report-section mt-9">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
