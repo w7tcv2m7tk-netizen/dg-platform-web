@@ -1379,6 +1379,8 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   .dg-premium-dark #next-step { background: transparent !important; }
 
   .dg-premium-report .dg-report-print-cover { display: none; }
+  .dg-premium-report h2,
+  .dg-premium-report h3 { font-family: Georgia, "Times New Roman", serif; letter-spacing: -0.02em; }
   .dg-premium-report .dg-report-mobile-cta { background: rgba(11, 16, 32, 0.96); }
 }
 
@@ -1438,4 +1440,82 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   .dg-premium-dark .dg-report-card { break-inside: avoid !important; page-break-inside: avoid !important; padding: 4mm !important; }
   .dg-premium-timeline > div { break-inside: avoid !important; page-break-inside: avoid !important; }
   .dg-opportunity-report { font-size: 10pt; }
+}
+
+/* Final unified light editorial system */
+@media screen {
+  .dg-premium-report .dg-premium-cover {
+    background:
+      radial-gradient(circle at 88% 12%, rgba(121, 80, 196, 0.12), transparent 22rem),
+      linear-gradient(120deg, #f5f1e8 0%, #fffdfa 58%, #e8e3ef 100%) !important;
+    color: #20283c !important;
+    border: 1px solid #d8d0c2 !important;
+    border-radius: 0 0 2.25rem 2.25rem !important;
+    box-shadow: 0 20px 50px rgba(64, 48, 24, 0.1) !important;
+  }
+  .dg-premium-report .dg-premium-cover .text-white,
+  .dg-premium-report .dg-premium-cover .text-slate-300,
+  .dg-premium-report .dg-premium-cover .text-slate-500,
+  .dg-premium-report .dg-premium-cover .text-violet-300,
+  .dg-premium-report .dg-premium-cover .text-violet-200,
+  .dg-premium-report .dg-premium-cover p,
+  .dg-premium-report .dg-premium-cover a,
+  .dg-premium-report .dg-premium-cover h1 { color: #20283c !important; }
+  .dg-premium-report .dg-premium-cover .text-violet-400 { color: #7950c4 !important; }
+  .dg-premium-report .dg-premium-cover .rounded-2xl {
+    background: #fffdfa !important;
+    border-color: #d8d0c2 !important;
+    color: #20283c !important;
+  }
+  .dg-premium-report .dg-premium-cover .rounded-2xl * { color: #20283c !important; }
+  .dg-premium-report .dg-premium-cover .rounded-2xl .text-violet-300 { color: #7950c4 !important; }
+  .dg-premium-report .dg-premium-cover details.rounded-xl.border {
+    background: #fffdfa !important;
+    border-color: #d8d0c2 !important;
+  }
+  .dg-premium-report .dg-premium-cover details summary,
+  .dg-premium-report .dg-premium-cover details summary *,
+  .dg-premium-report .dg-premium-cover details a { color: #20283c !important; }
+
+  .dg-premium-blueprint {
+    background: #e8e3ef !important;
+    border: 1px solid #d4cae0 !important;
+    border-radius: 1.75rem !important;
+    padding: 1.5rem !important;
+  }
+  .dg-premium-blueprint .text-white,
+  .dg-premium-blueprint p,
+  .dg-premium-blueprint h2,
+  .dg-premium-blueprint h3 { color: #20283c !important; }
+  .dg-premium-blueprint .text-violet-400,
+  .dg-premium-blueprint .text-violet-300,
+  .dg-premium-blueprint .text-violet-200 { color: #6940a8 !important; }
+  .dg-blueprint-map { border: 1px solid #d4cae0; border-radius: 1.25rem; background: rgba(255,253,250,0.58); padding: 0.75rem; overflow: hidden; }
+  .dg-blueprint-map svg { display: block; width: 100%; height: auto; min-height: 150px; }
+  .dg-blueprint-card { background: #fffdfa !important; border-color: #d8d0c2 !important; padding: 1.5rem !important; color: #4b5565 !important; overflow-wrap: anywhere; }
+  .dg-blueprint-card h3 { color: #20283c !important; font-family: Georgia, serif; }
+  .dg-blueprint-card p { color: #4b5565 !important; }
+  .dg-blueprint-card .text-violet-100,
+  .dg-blueprint-card .text-violet-200,
+  .dg-blueprint-card .text-violet-300 { color: #6940a8 !important; }
+
+  .dg-premium-strategy {
+    background: #eae3d5 !important;
+    border: 1px solid #d8d0c2 !important;
+    border-radius: 1.75rem !important;
+  }
+  .dg-premium-strategy .text-white,
+  .dg-premium-strategy .text-slate-200,
+  .dg-premium-strategy .text-slate-300,
+  .dg-premium-strategy p,
+  .dg-premium-strategy h2 { color: #20283c !important; }
+  .dg-premium-strategy .text-violet-300,
+  .dg-premium-strategy .text-violet-200 { color: #6940a8 !important; }
+  .dg-premium-report h2,
+  .dg-premium-report h3 { font-family: Georgia, "Times New Roman", serif; letter-spacing: -0.02em; }
+  .dg-premium-report .dg-report-mobile-cta {
+    background: #f5f1e8 !important;
+    border-top: 1px solid #d8d0c2;
+    color: #20283c !important;
+  }
 }

@@ -177,7 +177,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <header className="border-b border-slate-700 pb-8">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div className="max-w-3xl">
-                <img src="/brand/logo.png" alt="DigitalGate" className="mb-5 h-5 w-auto" />
+                <img src="/brand/logo-dark.png" alt="DigitalGate" className="mb-5 h-5 w-auto" />
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-400">DigitalGate · Digital Opportunity Report</p>
                 <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">{report.prospect.industry || pack.label} · {report.prospect.location || "Location not recorded"}{report.prospect.websiteUrl ? <> · <a href={report.prospect.websiteUrl} className="text-violet-300 underline decoration-violet-500/40 underline-offset-2" target="_blank" rel="noreferrer">{report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a></> : null}</p>
                 <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">{report.prospect.businessName}</h1>
@@ -239,11 +239,32 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <a href={strategyUrl} className="dg-report-mobile-early-cta mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-violet-500 px-5 text-sm font-semibold text-white md:hidden">Discuss these three priorities</a>
         </section>
 
-        {blueprint.length ? <section id="growth-blueprint" className="dg-report-section dg-premium-dark mt-10">
+        {blueprint.length ? <section id="growth-blueprint" className="dg-report-section dg-premium-blueprint mt-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">DigitalGate Growth Blueprint</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">How DigitalGate connects to the observed opportunities</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Only relevant capabilities are included. Findings are labelled separately from strategic hypotheses; no financial return is promised.</p>
-          <div className="mt-5 space-y-4">{blueprint.map((item, index) => <article key={`${item.capability}-${index}`} className="dg-report-card grid gap-4 rounded-2xl border border-slate-700 bg-slate-900/60 p-5 lg:grid-cols-[0.7fr_1.5fr]">
+          <div className="dg-blueprint-map mt-6" aria-label="DigitalGate capability map">
+            <svg viewBox="0 0 900 250" role="img">
+              <defs><linearGradient id="blueprint-line" x1="0" x2="1"><stop offset="0" stopColor="#B89A50" /><stop offset="1" stopColor="#7950C4" /></linearGradient></defs>
+              <path d="M450 125 C300 20 220 40 120 70" fill="none" stroke="url(#blueprint-line)" strokeWidth="2" />
+              <path d="M450 125 C450 40 450 30 450 18" fill="none" stroke="url(#blueprint-line)" strokeWidth="2" />
+              <path d="M450 125 C600 20 700 40 790 70" fill="none" stroke="url(#blueprint-line)" strokeWidth="2" />
+              <circle cx="450" cy="125" r="58" fill="#7950C4" />
+              <text x="450" y="121" textAnchor="middle" fill="#fffdfa" fontSize="13" fontWeight="700">{report.prospect.businessName.slice(0, 20)}</text>
+              <text x="450" y="138" textAnchor="middle" fill="#e8e3ef" fontSize="9">business objective</text>
+              <circle cx="120" cy="70" r="42" fill="#EAE3D5" stroke="#B89A50" />
+              <text x="120" y="69" textAnchor="middle" fill="#20283C" fontSize="10" fontWeight="700">{blueprint[0]?.capability.split(" ")[0] || "Discovery"}</text>
+              <text x="120" y="82" textAnchor="middle" fill="#6b604f" fontSize="8">capability 01</text>
+              <circle cx="450" cy="18" r="0" fill="none" />
+              <circle cx="450" cy="54" r="42" fill="#FFFDFA" stroke="#7950C4" />
+              <text x="450" y="53" textAnchor="middle" fill="#20283C" fontSize="10" fontWeight="700">{blueprint[1]?.capability.split(" ")[0] || "Conversion"}</text>
+              <text x="450" y="66" textAnchor="middle" fill="#6b604f" fontSize="8">capability 02</text>
+              <circle cx="780" cy="70" r="42" fill="#F5F1E8" stroke="#D8D0C2" />
+              <text x="780" y="69" textAnchor="middle" fill="#20283C" fontSize="10" fontWeight="700">{blueprint[2]?.capability.split(" ")[0] || "Measurement"}</text>
+              <text x="780" y="82" textAnchor="middle" fill="#6b604f" fontSize="8">capability 03</text>
+            </svg>
+          </div>
+          <div className="mt-6 space-y-5">{blueprint.map((item, index) => <article key={`${item.capability}-${index}`} className="dg-blueprint-card grid gap-5 rounded-2xl border p-6 lg:grid-cols-[0.8fr_1.4fr]">
             <div><p className="text-xs font-semibold uppercase tracking-wide text-violet-300">0{index + 1} · {item.capability}</p><h3 className="mt-2 text-lg font-semibold text-white">{item.objective}</h3><p className="mt-2 text-xs leading-5 text-slate-500">{item.evidenceType === "verified_finding" ? "Verified finding" : "Strategic hypothesis"} · {item.evidence}</p></div>
             <div className="grid gap-3 sm:grid-cols-2"><div><p className="text-xs uppercase tracking-wide text-slate-500">Proposed action</p><p className="mt-1 text-sm leading-6 text-slate-200">{item.action}</p></div><div><p className="text-xs uppercase tracking-wide text-slate-500">Intended benefit</p><p className="mt-1 text-sm leading-6 text-slate-200">{item.benefit}</p></div><div className="sm:col-span-2"><p className="text-xs uppercase tracking-wide text-slate-500">Success indicator</p><p className="mt-1 text-sm leading-6 text-violet-200">{item.measure}</p></div></div>
           </article>)}</div>
@@ -434,7 +455,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">{discoveryQuestions.map((item) => <div key={item} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3 text-sm text-slate-300">{item}</div>)}</div>
         </section>
 
-        <section id="next-step" className="dg-report-section dg-premium-dark mt-10 rounded-2xl p-7 sm:p-8">
+        <section id="next-step" className="dg-report-section dg-premium-strategy mt-10 rounded-2xl p-7 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-300">Next step</p><h2 className="mt-2 text-2xl font-semibold text-white">Turn these opportunities into a practical plan</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200">Book a DigitalGate Strategy Session to review the evidence, identify the highest-value priorities and agree the next practical step. There is no obligation to proceed.</p>
           <div className="mt-5 flex flex-wrap gap-3"><a href={strategyUrl} className="inline-flex min-h-11 items-center rounded-xl bg-violet-500 px-5 text-sm font-semibold text-white hover:bg-violet-400">Book a Strategy Session</a><a href="mailto:hello@digitalgate.com.au" className="inline-flex min-h-11 items-center rounded-xl border border-violet-300/30 px-5 text-sm font-semibold text-violet-100">Ask a question</a></div>

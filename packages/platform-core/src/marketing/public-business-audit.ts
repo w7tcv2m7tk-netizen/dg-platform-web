@@ -100,7 +100,9 @@ function scorePillars(audit: PresenceAuditResult): PublicBusinessAuditPillars {
     websiteHealth: s.websiteHealth ?? null,
     searchVisibility: s.seo ?? null,
     aiVisibility: s.aiVisibility ?? null,
-    reputation: s.reputation ?? s.googleBusinessProfile ?? null,
+    // No independent review/GBP source is queried in the public workflow. Homepage
+    // review hints are observed trust signals, not an independent reputation score.
+    reputation: null,
     conversionReadiness: s.conversionReadiness ?? null,
     growthSignals: s.growthSignals ?? null,
   };
@@ -185,7 +187,7 @@ export function buildPublicBusinessAuditPreview(
 ): PublicBusinessAuditPreview {
   const pillars = scorePillars(audit);
   return {
-    overallScore: audit.scores.businessHealth ?? overallFromPillars(pillars),
+    overallScore: overallFromPillars(pillars),
     pillars,
     opportunities: prioritisedOpportunities(audit, 4),
   };
