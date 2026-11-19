@@ -1221,7 +1221,8 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   .dg-premium-report .text-slate-500 { color: #647084 !important; }
   .dg-premium-report .text-violet-300,
   .dg-premium-report .text-violet-400 { color: #6d28d9 !important; }
-  .dg-premium-report .text-violet-100 { color: #4c1d95 !important; }
+  .dg-premium-report .text-violet-100,
+  .dg-premium-report .text-violet-200 { color: #4c1d95 !important; }
   .dg-premium-report .dg-premium-cover .rounded-2xl {
     background: rgba(255,255,255,0.08) !important;
     border-color: rgba(255,255,255,0.16) !important;
@@ -1259,7 +1260,8 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   .dg-premium-cover .text-violet-200,
   .dg-premium-cover a { color: #f4efe3 !important; }
   .dg-premium-cover h1 { font-size: clamp(2.8rem, 8vw, 5.8rem) !important; line-height: 0.94 !important; letter-spacing: -0.045em !important; }
-  .dg-premium-cover .rounded-2xl { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.18) !important; }
+  .dg-premium-report .dg-premium-cover .rounded-2xl { background: rgba(255,255,255,0.08) !important; border-color: rgba(255,255,255,0.18) !important; color: #f4efe3 !important; }
+  .dg-premium-report .dg-premium-cover .rounded-2xl * { color: #f4efe3 !important; }
 
   .dg-premium-opportunities { display: block !important; }
   .dg-premium-opportunities > article {
