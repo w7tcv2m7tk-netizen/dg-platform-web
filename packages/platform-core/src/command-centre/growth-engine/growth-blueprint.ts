@@ -13,8 +13,9 @@ export type GrowthBlueprintItem = {
 
 function capabilityFor(priority: ReportPriority, model: BusinessModelAssessment): string {
   const text = `${priority.title} ${priority.meaning} ${priority.action}`.toLowerCase();
-  if (/booking|event|appointment|enquir|form|conversion path|quote/.test(text)) return "DigitalGate CRM & Automation";
   if (/schema|structured|artist identity|ai visibility|discover/.test(text)) return "AI Visibility™ + Website Manager";
+  if (/analytics|tracking|measurement/.test(text)) return "DigitalGate Analytics";
+  if (/booking|event|appointment|enquir|form|conversion path|quote/.test(text)) return "DigitalGate CRM & Automation";
   if (/analytics|tracking|measure/.test(text)) return "DigitalGate Analytics";
   if (/reputation|review|local/.test(text)) return "Reputation & Local Visibility";
   if (/real estate|appraisal|listing/.test(text)) return "DigitalGate Real Estate App";
@@ -26,9 +27,9 @@ function capabilityFor(priority: ReportPriority, model: BusinessModelAssessment)
 
 function objectiveFor(priority: ReportPriority, model: BusinessModelAssessment): string {
   const text = `${priority.title} ${priority.meaning}`.toLowerCase();
+  if (/schema|structured|artist identity/.test(text)) return "Make the business and its offer easier for search and AI systems to understand.";
   if (/booking|event|appointment/.test(text)) return "Make it easier for a promoter, guest or customer to start a booking conversation.";
   if (/enquir|form|conversion path|cta/.test(text)) return "Turn existing interest into a measurable enquiry and follow-up path.";
-  if (/schema|structured|artist identity/.test(text)) return "Make the business and its offer easier for search and AI systems to understand.";
   if (/analytics|tracking|measurement/.test(text)) return "Make commercial activity and enquiry outcomes measurable.";
   if (/reputation|review/.test(text)) return "Strengthen verifiable trust at the point of decision.";
   return `Support ${model.successIndicators[0]?.toLowerCase() || "a measurable commercial next step"}.`;
