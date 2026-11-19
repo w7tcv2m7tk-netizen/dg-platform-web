@@ -305,12 +305,13 @@ export function buildReportPillars(audit: { websiteHealth?: number | null; seoSc
     { key: "ai", label: "AI Discoverability Readiness", description: "Technical readiness only; not an observed AI search ranking", value: audit?.aiVisibility ?? null },
     { key: "reputation", label: "Reputation", description: "Public review and trust signals", value: value("reputation") },
     { key: "conversion", label: "Conversion", description: "How clearly interest becomes an enquiry", value: value("conversionReadiness") },
-    { key: "growth", label: "Growth signals", description: "Observable demand and local relevance", value: value("growthSignals") },
+    { key: "growth", label: "Growth signals", description: "Observable public growth infrastructure and conversion signals; not demand", value: value("growthSignals") },
   ];
 }
 
 export function commercialHeadlineFor(finding: ReportPresentationFinding): string {
   const title = (finding.title || "").toLowerCase();
+  if (/analytics|tracking/.test(title)) return "Verify analytics and conversion tracking coverage";
   if (/structured data|schema/.test(title)) return "Help Google and AI platforms better understand your business";
   if (/h1|heading|primary page topic/.test(title)) return "Make your primary offer immediately clear";
   if (/primary action|call.to.action|cta|enquir/.test(title)) return "Turn interest into a clear next step";
@@ -355,6 +356,7 @@ export function buildReportPriorities(findings: ReportPresentationFinding[], pac
 export function buildReportRoadmap(pack: ReportPack, priorities: ReportPriority[]) {
   return pack.roadmap.map((phase, index) => ({
     ...phase,
+    title: priorities[index]?.framework === false ? priorities[index].title : phase.title,
     action: priorities[index]?.framework === false ? priorities[index].action : phase.action,
     evidenceLed: priorities[index]?.framework === false,
   }));

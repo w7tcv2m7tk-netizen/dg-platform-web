@@ -35,17 +35,48 @@ function objectiveFor(priority: ReportPriority, model: BusinessModelAssessment):
   return `Support ${model.successIndicators[0]?.toLowerCase() || "a measurable commercial next step"}.`;
 }
 
+function detailFor(capability: string, model: BusinessModelAssessment, index: number) {
+  if (/AI Visibility|Website Manager/.test(capability)) return {
+    benefit: "A clearer, machine-readable identity and a more consistent path from discovery to interest.",
+    measure: "Structured entity and profile information verified; key discovery pages correctly understood in a follow-up audit.",
+  };
+  if (/CRM & Automation/.test(capability)) return {
+    benefit: "Every enquiry has an owner, a next action and a measurable follow-up state.",
+    measure: model.successIndicators[index] || "Qualified enquiries logged and followed up within an agreed response window.",
+  };
+  if (/Analytics/.test(capability)) return {
+    benefit: "A verified measurement baseline rather than assuming analytics are absent.",
+    measure: "Analytics/tracking presence confirmed and key enquiry or conversion events recorded.",
+  };
+  if (/SEO/.test(capability)) return {
+    benefit: "Stronger technical and content foundations for relevant discovery.",
+    measure: "Priority pages indexed and technically valid; search visibility reviewed against a documented baseline.",
+  };
+  if (/Reputation/.test(capability)) return {
+    benefit: "More verifiable trust evidence at the point of decision.",
+    measure: "Verified review or trust sources displayed and linked to relevant conversion paths.",
+  };
+  return {
+    benefit: model.successIndicators[index] || "A clearer, measurable path from interest to a commercial conversation.",
+    measure: model.successIndicators[index] || "A defined enquiry or conversion outcome, measured after implementation.",
+  };
+}
+
 export function buildGrowthBlueprint(input: {
   model: BusinessModelAssessment;
   priorities: ReportPriority[];
 }): GrowthBlueprintItem[] {
-  return input.priorities.slice(0, 3).map((priority, index) => ({
-    objective: objectiveFor(priority, input.model),
-    evidence: priority.framework ? "Strategic hypothesis — framework guidance, not a confirmed finding." : `${priority.evidenceLabel}: ${priority.meaning}`,
-    evidenceType: priority.framework ? "strategic_hypothesis" : "verified_finding",
-    capability: capabilityFor(priority, input.model),
-    action: priority.action,
-    benefit: input.model.successIndicators[index] || input.model.successIndicators[0] || "A clearer, measurable path from interest to a commercial conversation.",
-    measure: input.model.successIndicators[index] || input.model.successIndicators[0] || "A defined enquiry or conversion outcome, measured after implementation.",
-  }));
+  return input.priorities.slice(0, 3).map((priority, index) => {
+    const capability = capabilityFor(priority, input.model);
+    const detail = detailFor(capability, input.model, index);
+    return {
+      objective: objectiveFor(priority, input.model),
+      evidence: priority.framework ? "Strategic hypothesis — framework guidance, not a confirmed finding." : `${priority.evidenceLabel}: ${priority.meaning}`,
+      evidenceType: priority.framework ? "strategic_hypothesis" as const : "verified_finding" as const,
+      capability,
+      action: priority.action,
+      benefit: detail.benefit,
+      measure: detail.measure,
+    };
+  });
 }

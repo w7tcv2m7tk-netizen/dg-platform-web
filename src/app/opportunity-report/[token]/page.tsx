@@ -110,7 +110,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const socialPresenceScore = typeof socialAssessment.score === "number" ? socialAssessment.score : null;
   const acquisitionReadiness = typeof realEstateJourney.acquisitionReadiness?.score === "number" ? realEstateJourney.acquisitionReadiness.score : null;
   const industry = resolveReportIndustry({ industry: report.prospect.industry, industryPack: payload.industryPack, businessModel });
-  const relevantFindings = businessModel.type === "music_artist"
+  const relevantFindings = businessModel.isLocationBased === false
     ? findings.filter((finding) => !/google maps|local business|local visibility|suburb authority|location|prospect location|local area/i.test(`${finding.title} ${finding.category || ""}`))
     : findings;
   const pack = industry.pack;
@@ -147,7 +147,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
             : ["Where does customer interest currently enter the business?", "Who owns follow-up and what happens next?", "Which commercial outcome should improve first?"];
 
   return (
-    <main className="dg-opportunity-report min-h-screen bg-[#05091a] text-slate-100">
+    <main className="dg-opportunity-report dg-premium-report min-h-screen">
       <div className="dg-report-print-cover">
         <p className="dg-report-cover-wordmark">DIGITALGATE</p>
         <p className="dg-report-kicker">DigitalGate · Digital Opportunity Review</p>
@@ -162,7 +162,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
 
 
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-14">
-        <div className="dg-report-web-header">
+        <div className="dg-report-web-header dg-premium-cover">
           {access.kind === "preview" ? <p className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">Staff preview — this access does not record prospect engagement.</p> : null}
           <details className="mb-6 rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm text-slate-300 lg:hidden">
             <summary className="cursor-pointer font-medium text-white">On this page</summary>
@@ -221,9 +221,9 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
             <a href="#evidence" className="text-sm text-violet-300">See the evidence ↓</a>
           </div>
           <p className="mt-3 max-w-4xl leading-7 text-slate-300">{verdict}</p>
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="dg-premium-opportunities mt-5 grid gap-4 md:grid-cols-3">
             {priorities.map((priority, index) => (
-              <article key={`${priority.title}-${index}`} className="dg-report-card rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+              <article key={`${priority.title}-${index}`} data-index={String(index + 1).padStart(2, "0")} className="dg-report-card rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-xs font-semibold uppercase tracking-wide text-violet-300">0{index + 1} · {priority.framework ? "Framework" : "Priority"}</span>
                   <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${priority.evidenceStatus === "confirmed_gap" ? "bg-amber-500/15 text-amber-200" : priority.evidenceStatus === "observed" ? "bg-emerald-500/15 text-emerald-200" : "bg-slate-500/15 text-slate-300"}`}>{priority.evidenceLabel}</span>
@@ -239,7 +239,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <a href={strategyUrl} className="dg-report-mobile-early-cta mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-violet-500 px-5 text-sm font-semibold text-white md:hidden">Discuss these three priorities</a>
         </section>
 
-        {blueprint.length ? <section id="growth-blueprint" className="dg-report-section mt-10">
+        {blueprint.length ? <section id="growth-blueprint" className="dg-report-section dg-premium-dark mt-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">DigitalGate Growth Blueprint</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">How DigitalGate connects to the observed opportunities</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Only relevant capabilities are included. Findings are labelled separately from strategic hypotheses; no financial return is promised.</p>
@@ -257,30 +257,32 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
             </div>
             <p className="text-xs text-slate-500">Captured {auditDate}</p>
           </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-5">
-              <p className="text-xs uppercase tracking-wide text-violet-300">Business Health</p>
-              <p className="mt-2 text-4xl font-semibold text-white">{audit?.businessHealth == null ? "Not Assessed" : <>{audit.businessHealth}<span className="text-base text-slate-400">/100</span></>}</p>
-              <p className="mt-2 text-xs text-violet-200">{scoreLabel(audit?.businessHealth ?? null)}</p>
-              <div className="dg-report-score-bar mt-3"><span style={{ width: `${Math.max(0, Math.min(100, Number(audit?.businessHealth ?? 0)))}%` }} /></div>
-              <p className="mt-2 text-xs leading-5 text-slate-400">Directional composite from assessed pillars; unavailable evidence is not scored.</p>
+          <div className="dg-premium-evidence-hero">
+            <div className="dg-health-ring" aria-label={`Business Health ${audit?.businessHealth ?? "Not Assessed"}`}>
+              <svg viewBox="0 0 120 120" role="img">
+                <circle cx="60" cy="60" r="48" pathLength="100" className="dg-health-ring-track" />
+                <circle cx="60" cy="60" r="48" pathLength="100" className="dg-health-ring-value" style={{ strokeDasharray: `${audit?.businessHealth ?? 0} ${100 - (audit?.businessHealth ?? 0)}` }} />
+              </svg>
+              <div className="dg-health-ring-label"><span>{audit?.businessHealth ?? "—"}</span><small>/100</small><em>{scoreLabel(audit?.businessHealth ?? null)}</em></div>
             </div>
-            <div className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5">
-              <p className="text-sm font-medium text-slate-300">Evidence coverage</p>
-              <p className="mt-2 text-2xl font-semibold text-white">{assessment.sourceCoveragePercent ?? 0}%</p>
-              <p className="mt-2 text-xs text-violet-300">{assessment.status === "not_assessed" ? "Not assessed" : assessment.status === "partial" ? "Partial assessment" : "Assessed"}{assessment.confidence ? ` · ${assessment.confidence} confidence` : ""}</p>
-              <p className="mt-2 text-xs leading-5 text-slate-400">Pillar assessment coverage: {assessment.evidenceCoveragePercent ?? 0}% ({assessment.assessedPillars?.length ?? 0} of {((assessment.assessedPillars?.length ?? 0) + (assessment.unavailablePillars?.length ?? 0)) || 6} pillars). Source coverage and pillar coverage are reported separately; unavailable evidence is not treated as a negative result.</p>
+            <div className="dg-premium-evidence-copy">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-700">Digital business health</p>
+              <h3>One directional view, with its evidence boundary stated.</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">Weighted only across assessed pillars and renormalised when a capability is unavailable. This is not a third-party ranking.</p>
+              <div className="dg-evidence-pills">
+                <span>Source coverage <b>{assessment.sourceCoveragePercent ?? 0}%</b></span>
+                <span>Pillar coverage <b>{assessment.evidenceCoveragePercent ?? 0}%</b></span>
+                <span>Confidence <b>{assessment.confidence ?? "low"}</b></span>
+                <span>Status <b>{assessment.status === "not_assessed" ? "Not assessed" : assessment.status === "partial" ? "Partial" : "Assessed"}</b></span>
+              </div>
               {assessment.sourceNotes?.length ? <p className="mt-2 text-[11px] leading-4 text-slate-500">{assessment.sourceNotes.join(" ")}</p> : null}
             </div>
-            {pillars.map((pillar) => (
-              <div key={pillar.key} className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5">
-                <p className="text-sm font-medium text-slate-300">{pillar.label}</p>
-                <p className="mt-2 text-2xl font-semibold text-white">{pillar.value ?? "—"}<span className="text-sm text-slate-500">/100</span></p>
-                <p className="mt-2 text-xs text-violet-300">{scoreLabel(pillar.value)}</p>
-                <div className="dg-report-score-bar mt-3"><span style={{ width: `${Math.max(0, Math.min(100, Number(pillar.value ?? 0)))}%` }} /></div>
-                <p className="mt-2 text-xs leading-5 text-slate-400">{pillar.description}</p>
-              </div>
-            ))}
+          </div>
+          <div className="dg-pillar-chart mt-6">
+            <div className="dg-pillar-chart-header"><h3>Pillar assessment</h3><span>Assessed from visible public evidence only</span></div>
+            {pillars.map((pillar) => <div key={pillar.key} className="dg-pillar-row"><div className="dg-pillar-row-label"><span>{pillar.label}</span><b>{pillar.value == null ? "Not Assessed" : `${pillar.value}/100`}</b></div><div className="dg-pillar-row-track"><i style={{ width: `${Math.max(0, Math.min(100, Number(pillar.value ?? 0)))}%` }} /></div><p>{pillar.description}</p></div>)}
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <div className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/40 p-5">
               <p className="text-sm font-medium text-slate-300">Evidence status</p>
               <ul className="mt-3 space-y-2 text-xs leading-5 text-slate-400">
@@ -422,7 +424,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         <section id="roadmap" className="dg-report-section mt-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">90-day opportunity roadmap</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">A sequence based on this evidence</h2>
-          <div className="mt-5 grid gap-4 md:grid-cols-3">{roadmap.map((phase) => <div key={phase.period} className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5"><p className="text-xs font-semibold uppercase tracking-wide text-violet-400">{phase.period}</p><h3 className="mt-2 font-semibold text-white">{phase.title}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{phase.action}</p><p className="mt-3 text-[11px] text-slate-500">{phase.evidenceLed ? "Grounded in an audit finding" : "Framework guidance — not observed in this snapshot"}</p></div>)}</div>
+          <div className="dg-premium-timeline mt-5 grid gap-4 md:grid-cols-3">{roadmap.map((phase) => <div key={phase.period} className="dg-report-card rounded-xl border border-slate-700 bg-slate-900/70 p-5"><p className="text-xs font-semibold uppercase tracking-wide text-violet-400">{phase.period}</p><h3 className="mt-2 font-semibold text-white">{phase.title}</h3><p className="mt-3 text-sm leading-6 text-slate-300">{phase.action}</p><p className="mt-3 text-[11px] text-slate-500">{phase.evidenceLed ? "Grounded in an audit finding" : "Framework guidance — not observed in this snapshot"}</p></div>)}</div>
         </section>
 
         <section className="dg-report-section mt-10 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
@@ -432,7 +434,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">{discoveryQuestions.map((item) => <div key={item} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3 text-sm text-slate-300">{item}</div>)}</div>
         </section>
 
-        <section id="next-step" className="dg-report-section mt-10 rounded-2xl border border-violet-400/40 bg-gradient-to-br from-violet-500/20 to-slate-900 p-7 sm:p-8">
+        <section id="next-step" className="dg-report-section dg-premium-dark mt-10 rounded-2xl p-7 sm:p-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-300">Next step</p><h2 className="mt-2 text-2xl font-semibold text-white">Turn these opportunities into a practical plan</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200">Book a DigitalGate Strategy Session to review the evidence, identify the highest-value priorities and agree the next practical step. There is no obligation to proceed.</p>
           <div className="mt-5 flex flex-wrap gap-3"><a href={strategyUrl} className="inline-flex min-h-11 items-center rounded-xl bg-violet-500 px-5 text-sm font-semibold text-white hover:bg-violet-400">Book a Strategy Session</a><a href="mailto:hello@digitalgate.com.au" className="inline-flex min-h-11 items-center rounded-xl border border-violet-300/30 px-5 text-sm font-semibold text-violet-100">Ask a question</a></div>

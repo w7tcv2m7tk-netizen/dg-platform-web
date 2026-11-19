@@ -1202,3 +1202,148 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     color: #6b7280 !important;
   }
 }
+
+/* Premium consultancy report — screen theme */
+@media screen {
+  .dg-premium-report {
+    background:
+      radial-gradient(circle at 8% 0%, rgba(139, 92, 246, 0.12), transparent 28rem),
+      radial-gradient(circle at 92% 30%, rgba(201, 162, 39, 0.1), transparent 24rem),
+      #f4f0e7 !important;
+    color: #172033 !important;
+  }
+  .dg-premium-report .dg-report-section { border-color: transparent !important; }
+  .dg-premium-report .text-white,
+  .dg-premium-report .text-slate-100,
+  .dg-premium-report .text-slate-200,
+  .dg-premium-report .text-slate-300,
+  .dg-premium-report .text-slate-400 { color: #273044 !important; }
+  .dg-premium-report .text-slate-500 { color: #647084 !important; }
+  .dg-premium-report .text-violet-300,
+  .dg-premium-report .text-violet-400 { color: #6d28d9 !important; }
+  .dg-premium-report .dg-report-card,
+  .dg-premium-report .rounded-xl.border,
+  .dg-premium-report .rounded-2xl.border {
+    background: rgba(255,255,255,0.82) !important;
+    border-color: #ded7c9 !important;
+    color: #273044 !important;
+    box-shadow: 0 12px 32px rgba(72, 58, 34, 0.06);
+  }
+  .dg-premium-report .dg-report-card p,
+  .dg-premium-report .dg-report-card li,
+  .dg-premium-report .dg-report-card h2,
+  .dg-premium-report .dg-report-card h3 { color: #273044 !important; }
+  .dg-premium-report .dg-report-card .text-violet-200,
+  .dg-premium-report .dg-report-card .text-violet-300 { color: #6d28d9 !important; }
+
+  .dg-premium-cover {
+    background: linear-gradient(135deg, #0b1020 0%, #141a31 62%, #1c1535 100%) !important;
+    border: 0 !important;
+    border-radius: 0 0 2.25rem 2.25rem !important;
+    padding: clamp(1.5rem, 4vw, 3.5rem) !important;
+    box-shadow: 0 24px 60px rgba(23, 15, 48, 0.22);
+  }
+  .dg-premium-cover .text-white,
+  .dg-premium-cover .text-slate-300,
+  .dg-premium-cover .text-slate-500,
+  .dg-premium-cover .text-violet-300,
+  .dg-premium-cover .text-violet-200,
+  .dg-premium-cover a { color: #f4efe3 !important; }
+  .dg-premium-cover h1 { font-size: clamp(2.8rem, 8vw, 5.8rem) !important; line-height: 0.94 !important; letter-spacing: -0.045em !important; }
+  .dg-premium-cover .rounded-2xl { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.18) !important; }
+
+  .dg-premium-opportunities { display: block !important; }
+  .dg-premium-opportunities > article {
+    background: transparent !important;
+    border-width: 0 0 1px !important;
+    border-color: #d9d1c2 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 1.4rem 0.2rem !important;
+    display: grid;
+    grid-template-columns: minmax(3rem, 0.2fr) 1.6fr;
+    gap: 1rem;
+  }
+  .dg-premium-opportunities > article > div { grid-column: 2; }
+  .dg-premium-opportunities > article::before {
+    content: attr(data-index);
+    grid-column: 1;
+    grid-row: 1 / span 8;
+    font: 600 clamp(2.4rem, 5vw, 4.4rem)/1 "Georgia", serif;
+    color: #c9a227;
+    opacity: 0.82;
+  }
+  .dg-premium-opportunities > article h3 { font: 600 clamp(1.5rem, 3vw, 2rem)/1.12 "Georgia", serif; color: #111827 !important; }
+  .dg-premium-opportunities > article p { max-width: 58rem; }
+
+  .dg-premium-evidence-hero {
+    display: grid;
+    grid-template-columns: minmax(10rem, 14rem) 1fr;
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border: 1px solid #ded7c9;
+    border-radius: 1.75rem;
+    background: #fffdf8;
+  }
+  .dg-health-ring { position: relative; width: min(100%, 14rem); aspect-ratio: 1; margin: 0 auto; }
+  .dg-health-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .dg-health-ring-track { fill: none; stroke: #e7dfd2; stroke-width: 8; }
+  .dg-health-ring-value { fill: none; stroke: #7c3aed; stroke-width: 8; stroke-linecap: round; transition: stroke-dasharray 600ms ease; }
+  .dg-health-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dg-health-ring-label span { font: 600 clamp(2rem, 5vw, 3.3rem)/1 "Georgia", serif; color: #111827; }
+  .dg-health-ring-label small { color: #6b7280; font-size: 0.8rem; }
+  .dg-health-ring-label em { margin-top: 0.35rem; color: #6d28d9; font-size: 0.68rem; font-style: normal; text-transform: uppercase; letter-spacing: 0.12em; }
+  .dg-premium-evidence-copy h3 { margin-top: 0.4rem; font: 600 clamp(1.5rem, 3vw, 2.2rem)/1.2 "Georgia", serif; color: #111827; max-width: 42rem; }
+  .dg-evidence-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .dg-evidence-pills span { border: 1px solid #ded7c9; border-radius: 999px; background: #f8f5ee; padding: 0.4rem 0.7rem; font-size: 0.68rem; color: #596274; }
+  .dg-evidence-pills b { color: #111827; }
+  .dg-pillar-chart { border-top: 1px solid #d9d1c2; padding-top: 1.25rem; }
+  .dg-pillar-chart-header { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; }
+  .dg-pillar-chart-header h3 { font: 600 1.4rem/1.2 "Georgia", serif; color: #111827; }
+  .dg-pillar-chart-header span { font-size: 0.7rem; color: #79808e; }
+  .dg-pillar-row { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(8rem, 2fr); align-items: center; gap: 0.75rem 1.25rem; padding: 0.8rem 0; border-bottom: 1px solid #e4ddcf; }
+  .dg-pillar-row-label { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.85rem; color: #3f4859; }
+  .dg-pillar-row-label b { color: #111827; }
+  .dg-pillar-row-track { height: 0.55rem; border-radius: 999px; background: #e9e2d5; overflow: hidden; }
+  .dg-pillar-row-track i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7c3aed, #c9a227); }
+  .dg-pillar-row p { grid-column: 1 / -1; margin: -0.2rem 0 0; font-size: 0.72rem; color: #79808e; }
+
+  .dg-premium-dark,
+  .dg-premium-dark .dg-report-card {
+    background: linear-gradient(135deg, #10162a, #17142b) !important;
+    border-color: rgba(255,255,255,0.16) !important;
+    color: #f4efe3 !important;
+    box-shadow: 0 18px 45px rgba(17, 15, 35, 0.18);
+  }
+  .dg-premium-dark .text-white,
+  .dg-premium-dark .text-slate-200,
+  .dg-premium-dark .text-slate-300,
+  .dg-premium-dark .text-slate-400,
+  .dg-premium-dark .text-violet-200,
+  .dg-premium-dark .text-violet-300,
+  .dg-premium-dark p,
+  .dg-premium-dark h2,
+  .dg-premium-dark h3 { color: #f4efe3 !important; }
+  .dg-premium-dark .text-slate-500 { color: #b6b0c8 !important; }
+  .dg-premium-dark .dg-report-card { background: rgba(255,255,255,0.045) !important; }
+
+  .dg-premium-timeline { position: relative; display: block !important; padding-left: 2.5rem; }
+  .dg-premium-timeline::before { content: ""; position: absolute; left: 0.72rem; top: 0.4rem; bottom: 0.4rem; width: 2px; background: linear-gradient(#7c3aed, #c9a227); }
+  .dg-premium-timeline > div { position: relative; background: transparent !important; border: 0 !important; border-bottom: 1px solid #ded7c9 !important; border-radius: 0 !important; box-shadow: none !important; padding: 1.2rem 0 !important; }
+  .dg-premium-timeline > div::before { content: ""; position: absolute; left: -2.18rem; top: 1.5rem; width: 0.8rem; height: 0.8rem; border-radius: 999px; background: #7c3aed; box-shadow: 0 0 0 5px #f4f0e7; }
+  .dg-premium-timeline > div p:first-child { color: #6d28d9 !important; letter-spacing: 0.16em; }
+  .dg-premium-timeline > div h3 { font: 600 1.25rem/1.25 "Georgia", serif; color: #111827 !important; }
+  .dg-premium-timeline > div p { color: #465064 !important; }
+  .dg-premium-dark.dg-report-section { border-radius: 1.75rem; }
+  .dg-premium-dark #next-step { background: transparent !important; }
+
+  .dg-premium-report .dg-report-print-cover { display: none; }
+  .dg-premium-report .dg-report-mobile-cta { background: rgba(11, 16, 32, 0.96); }
+}
+
+@media (max-width: 767px) {
+  .dg-premium-evidence-hero { grid-template-columns: 1fr; }
+  .dg-premium-opportunities > article { grid-template-columns: 2.5rem 1fr; }
+  .dg-pillar-row { grid-template-columns: 1fr; }
+}

@@ -135,11 +135,11 @@ function localRecommendation(pack: PresenceIndustryPack): string {
     case "accommodation":
       return "Strengthen your location/entity signals across the website and relevant business profiles.";
     case "real_estate":
-      return "Strengthen suburb coverage, Google Business Profile and local entity signals across the website.";
+      return "Verify whether a Google Business Profile exists, then strengthen suburb coverage and local entity signals across the website.";
     case "trades":
-      return "Strengthen service-area pages, Google Business Profile and local entity signals.";
+      return "Verify whether a Google Business Profile exists, then review service-area pages and local entity signals.";
     default:
-      return "Strengthen location/entity signals across the website and relevant business profiles.";
+      return "Verify whether a relevant Google Business Profile or local listing exists before treating profile creation as an opportunity.";
   }
 }
 
@@ -652,8 +652,10 @@ export async function runPresenceAudit(
             findings.push({
               domain: "gbp",
               severity: "opportunity",
+              evidenceStatus: "limited",
+              confidence: "low",
               category: "Local & Regional Visibility",
-              title: "Location information could not be fully established",
+              title: "Local/GBP signals were not identified and were not independently verified",
               observed:
                 "No clear Google Maps / Business Profile / LocalBusiness hints were detected on the homepage.",
               interpretation:
