@@ -460,6 +460,7 @@ export async function submitPublicBusinessAudit(input: {
     businessName,
     websiteUrl,
     industry: industry || null,
+    location: input.location?.trim() || null,
     contactEmail: email,
     contactPhone: phone || null,
     publicPreview: false,

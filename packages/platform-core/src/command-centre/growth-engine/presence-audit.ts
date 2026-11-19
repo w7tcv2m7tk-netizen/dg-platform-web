@@ -714,11 +714,11 @@ export async function runPresenceAudit(
   const pageHasPricing = probes.pages.some((page) => page.hasPricingLanguage);
   const pageHasTrial = probes.pages.some((page) => page.hasTrialLanguage);
   if (pageHasContactForm) {
-    strengths.push("A separate contact or enquiry page with a detectable form was observed, providing an existing conversion path.");
+    strengths.unshift("A separate contact or enquiry page with a detectable form was observed, providing an existing conversion path.");
     conversionReadiness = Math.max(conversionReadiness, 65);
   }
   if (pageHasBooking) {
-    strengths.push("A booking, event or appointment pathway was observed on a sampled page.");
+    strengths.unshift("A booking, event or appointment pathway was observed on a sampled page.");
     conversionReadiness = Math.max(conversionReadiness, 75);
   }
   if (pageHasPricing || pageHasTrial) growthSignals = Math.max(growthSignals, 55);

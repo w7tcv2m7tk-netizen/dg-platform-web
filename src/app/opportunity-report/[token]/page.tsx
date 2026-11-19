@@ -109,7 +109,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const acquisitionReadiness = typeof realEstateJourney.acquisitionReadiness?.score === "number" ? realEstateJourney.acquisitionReadiness.score : null;
   const industry = resolveReportIndustry({ industry: report.prospect.industry, industryPack: payload.industryPack, businessModel });
   const relevantFindings = businessModel.type === "music_artist"
-    ? findings.filter((finding) => !/google maps|local business|local visibility|suburb authority|location information/i.test(`${finding.title} ${finding.category || ""}`))
+    ? findings.filter((finding) => !/google maps|local business|local visibility|suburb authority|location|prospect location|local area/i.test(`${finding.title} ${finding.category || ""}`))
     : findings;
   const pack = industry.pack;
   const pillars = buildReportPillars(audit, scorecard);
