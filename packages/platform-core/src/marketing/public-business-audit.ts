@@ -552,7 +552,7 @@ export async function submitPublicBusinessAudit(input: {
         strengths: audit.strengths,
         industryInsights: audit.industryInsights,
         industryPack: audit.industryPack,
-        businessModel: audit.businessModel,
+        businessModel: { ...audit.businessModel, confidence: "medium" },
         assessment: {
           ...(audit.scores.assessment ?? { status: "not_assessed", assessedPillars: [], unavailablePillars: [], evidenceCoveragePercent: 0, confidence: "low" }),
           sourceCoveragePercent: audit.scores.assessment?.status === "not_assessed" ? 0 : 35,
