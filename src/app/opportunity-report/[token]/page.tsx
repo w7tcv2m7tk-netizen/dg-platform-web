@@ -399,25 +399,6 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           </article>)}</div>
         </section> : null}
 
-        <section id="evidence-list" className="dg-report-section mt-10">
-          <details className="dg-report-screen-only rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
-            <summary className="cursor-pointer text-lg font-semibold text-white">All findings and evidence <span className="text-sm font-normal text-slate-400">({findings.length})</span></summary>
-            <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              {findings.length ? findings.map((finding, index) => {
-                const evidence = evidenceForFinding(finding, audit?.auditedAt);
-                return <article key={`${finding.title}-${index}`} className="rounded-xl border border-slate-700 bg-slate-950/40 p-5">
-                  <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${evidence.status === "observed" ? "bg-emerald-500/15 text-emerald-200" : evidence.status === "confirmed_gap" ? "bg-amber-500/15 text-amber-200" : "bg-slate-500/15 text-slate-300"}`}>{evidenceStatusLabel(evidence.status)}</span><span className="text-[11px] uppercase tracking-wide text-slate-500">{evidence.source}</span></div>
-                  <h3 className="mt-3 font-semibold text-white">{commercialHeadlineFor(finding)}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{businessMeaningFor(finding)}</p>
-                  <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Evidence observed</p><p className="mt-1 text-sm text-slate-400">{finding.observed || finding.detail || "No direct observation text was recorded."}</p>
-                  {finding.recommendedAction ? <><p className="mt-3 text-xs font-semibold uppercase tracking-wide text-violet-300">Recommended action</p><p className="mt-1 text-sm leading-6 text-violet-100">{finding.recommendedAction}</p></> : null}
-                  <p className="mt-3 text-[11px] text-slate-500">{evidence.freshness ? `Freshness: ${new Date(evidence.freshness).toLocaleDateString("en-AU")}` : "Freshness: not recorded"}</p>
-                </article>;
-              }) : <p className="text-sm text-slate-400">The snapshot does not contain individual findings.</p>}
-            </div>
-          </details>
-        </section>
-
         <section className="dg-report-print-only dg-report-section mt-8">
           <h2>Findings appendix</h2>
           <p className="mt-2 text-sm text-slate-400">Full evidence captured in this snapshot. Source and freshness are shown where recorded.</p>
@@ -461,6 +442,25 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-300">Next step</p><h2 className="mt-2 text-2xl font-semibold text-white">Turn these opportunities into a practical plan</h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-200">Book a DigitalGate Strategy Session to review the evidence, identify the highest-value priorities and agree the next practical step. There is no obligation to proceed.</p>
           <div className="mt-5 flex flex-wrap gap-3"><a href={strategyUrl} className="inline-flex min-h-11 items-center rounded-xl bg-violet-500 px-5 text-sm font-semibold text-white hover:bg-violet-400">Book a Strategy Session</a><a href="mailto:hello@digitalgate.com.au" className="inline-flex min-h-11 items-center rounded-xl border border-violet-300/30 px-5 text-sm font-semibold text-violet-100">Ask a question</a></div>
+        </section>
+
+        <section id="evidence-list" className="dg-report-section mt-10">
+          <details className="dg-report-screen-only rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
+            <summary className="cursor-pointer text-lg font-semibold text-white">All findings and evidence <span className="text-sm font-normal text-slate-400">({findings.length})</span></summary>
+            <div className="mt-5 grid gap-4 lg:grid-cols-2">
+              {findings.length ? findings.map((finding, index) => {
+                const evidence = evidenceForFinding(finding, audit?.auditedAt);
+                return <article key={`${finding.title}-${index}`} className="rounded-xl border border-slate-700 bg-slate-950/40 p-5">
+                  <div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${evidence.status === "observed" ? "bg-emerald-500/15 text-emerald-200" : evidence.status === "confirmed_gap" ? "bg-amber-500/15 text-amber-200" : "bg-slate-500/15 text-slate-300"}`}>{evidenceStatusLabel(evidence.status)}</span><span className="text-[11px] uppercase tracking-wide text-slate-500">{evidence.source}</span></div>
+                  <h3 className="mt-3 font-semibold text-white">{commercialHeadlineFor(finding)}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-300">{businessMeaningFor(finding)}</p>
+                  <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Evidence observed</p><p className="mt-1 text-sm text-slate-400">{finding.observed || finding.detail || "No direct observation text was recorded."}</p>
+                  {finding.recommendedAction ? <><p className="mt-3 text-xs font-semibold uppercase tracking-wide text-violet-300">Recommended action</p><p className="mt-1 text-sm leading-6 text-violet-100">{finding.recommendedAction}</p></> : null}
+                  <p className="mt-3 text-[11px] text-slate-500">{evidence.freshness ? `Freshness: ${new Date(evidence.freshness).toLocaleDateString("en-AU")}` : "Freshness: not recorded"}</p>
+                </article>;
+              }) : <p className="text-sm text-slate-400">The snapshot does not contain individual findings.</p>}
+            </div>
+          </details>
         </section>
 
         <section className="dg-report-section mt-8 rounded-xl border border-slate-800 bg-slate-950/60 p-5">

@@ -29,7 +29,8 @@ function capabilityFor(priority: ReportPriority, model: BusinessModelAssessment)
 
 function objectiveFor(priority: ReportPriority, model: BusinessModelAssessment): string {
   const text = `${priority.title} ${priority.meaning}`.toLowerCase();
-  if (/schema|structured|artist identity/.test(text)) return "Make the business and its offer easier for search and AI systems to understand.";
+  if (/schema|structured/.test(text)) return "Make the business and its offer easier for search and AI systems to understand.";
+  if (/artist identity|positioning|profile/.test(text)) return "Clarify the artist identity, genre and offer so promoters can decide whether to engage.";
   if (/booking|event|appointment/.test(text)) return "Make it easier for a promoter, guest or customer to start a booking conversation.";
   if (/enquir|form|conversion path|cta/.test(text)) return "Turn existing interest into a measurable enquiry and follow-up path.";
   if (/analytics|tracking|measurement/.test(text)) return "Make commercial activity and enquiry outcomes measurable.";
