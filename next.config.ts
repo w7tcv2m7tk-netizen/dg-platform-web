@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     "/**": ["./node_modules/.prisma/client/*.node"],
     "/api/v1/websites/[id]/default-footer": ["./marketing/pages/footer.html"],
     "/icon": ["./public/brand/dg-icon.png"],
+    "/opportunity-report/[token]/pdf": ["./public/brand/logo-navy-transparent.png"],
   },
   // Dreamscape HTTPS proxy (Fixie/QuotaGuard) uses undici ProxyAgent on Node only.
   serverExternalPackages: ["undici", "imapflow"],
