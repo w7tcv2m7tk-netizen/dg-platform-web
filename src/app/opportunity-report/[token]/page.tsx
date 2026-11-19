@@ -149,7 +149,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   return (
     <main className="dg-opportunity-report dg-premium-report min-h-screen">
       <div className="dg-report-print-cover">
-        <p className="dg-report-cover-wordmark">DIGITALGATE</p>
+        <img src="/brand/logo-navy.png" alt="DigitalGate" className="dg-report-cover-logo mb-5 h-6 w-auto" />
         <p className="dg-report-kicker">DigitalGate · Digital Opportunity Review</p>
         <p className="dg-report-document-title">Digital Opportunity Report</p>
         <p className="dg-report-confidential">Private &amp; confidential · {pack.label}</p>
@@ -178,7 +178,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <header className="border-b border-slate-700 pb-8">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div className="max-w-3xl">
-                <p className="dg-cover-wordmark">DIGITALGATE</p>
+                <img src="/brand/logo-navy.png" alt="DigitalGate" className="dg-cover-logo mb-5 h-6 w-auto" />
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-400">DigitalGate</p>
                 <p className="dg-report-document-title">Digital Opportunity Report</p>
                 <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">{report.prospect.industry || pack.label} · {report.prospect.location || "Location not recorded"}{report.prospect.websiteUrl ? <> · <a href={report.prospect.websiteUrl} className="text-violet-300 underline decoration-violet-500/40 underline-offset-2" target="_blank" rel="noreferrer">{report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a></> : null}</p>
@@ -466,8 +466,9 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         <section className="dg-report-section mt-8 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
           <h2 className="text-sm font-semibold text-white">Method and limits</h2><p className="mt-2 text-xs leading-5 text-slate-400">This report is based on observable public signals captured by DigitalGate at the time of the audit. Scores are directional rather than guarantees of search rankings, leads or revenue. The composite is weighted only across assessed pillars: website 22%, search 20%, AI readiness 20%, reputation 14%, conversion 14% and growth signals 10%; weights are renormalised if a pillar is unavailable. Pillar coverage and source coverage are reported separately. AI Discoverability Readiness measures observable technical readiness, not actual AI search visibility or ranking. Social channel coverage measures website-linked channels, not activity, audience or engagement. Growth Signals combines observed social links, analytics markers, conversion forms and sampled service, pricing or trial pages; it does not represent revenue or demand. Analytics non-detection is limited evidence, not a confirmed absence. Source status and freshness are shown where recorded; unavailable evidence is not treated as a negative result. Recommendations should be validated against business objectives, systems and the customer journey before implementation. Public share links are capability-protected; staff previews are tenant-scoped.</p>
               {assessment.sourceNotes?.length ? <p className="mt-2 text-xs leading-5 text-slate-500">{assessment.sourceNotes.join(" ")}</p> : null}
+          <img src="/brand/logo-navy.png" alt="DigitalGate" className="dg-report-print-brand mt-5 h-4 w-auto" />
         </section>
-        <footer className="mt-8 border-t border-slate-700 pt-5 text-xs text-slate-500">DigitalGate · AI-powered Business Operating Platform · The Gateway to Your Digital World™</footer>
+        <footer className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-slate-700 pt-5 text-xs text-slate-500"><span className="flex items-center gap-3"><img src="/brand/logo-navy.png" alt="DigitalGate" className="h-4 w-auto" /> DigitalGate · AI-powered Business Operating Platform</span><span>The Gateway to Your Digital World™</span></footer>
       </div>
 
       <div className="dg-report-mobile-cta"><span>Ready to discuss the evidence?</span><a href={strategyUrl}>Book a Strategy Session</a></div>
