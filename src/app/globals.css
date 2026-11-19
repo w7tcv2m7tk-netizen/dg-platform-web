@@ -1221,6 +1221,15 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   .dg-premium-report .text-slate-500 { color: #647084 !important; }
   .dg-premium-report .text-violet-300,
   .dg-premium-report .text-violet-400 { color: #6d28d9 !important; }
+  .dg-premium-report .text-violet-100 { color: #4c1d95 !important; }
+  .dg-premium-report .dg-premium-cover .rounded-2xl {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.16) !important;
+  }
+  .dg-premium-report .dg-premium-cover .rounded-2xl * { color: #f4efe3 !important; }
+  .dg-premium-report .dg-premium-cover .text-violet-300 { color: #c4b5fd !important; }
+  .dg-premium-report .dg-premium-cover .text-violet-200 { color: #ddd6fe !important; }
+  .dg-premium-report .dg-premium-cover .text-slate-500 { color: #c9c5d6 !important; }
   .dg-premium-report .dg-report-card,
   .dg-premium-report .rounded-xl.border,
   .dg-premium-report .rounded-2xl.border {
@@ -1327,6 +1336,27 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   .dg-premium-dark h3 { color: #f4efe3 !important; }
   .dg-premium-dark .text-slate-500 { color: #b6b0c8 !important; }
   .dg-premium-dark .dg-report-card { background: rgba(255,255,255,0.045) !important; }
+  .dg-premium-report .dg-premium-dark .rounded-xl.border,
+  .dg-premium-report .dg-premium-dark .rounded-2xl.border,
+  .dg-premium-report .dg-premium-dark .dg-report-card {
+    background: rgba(255,255,255,0.055) !important;
+    border-color: rgba(255,255,255,0.16) !important;
+    color: #f4efe3 !important;
+  }
+  .dg-premium-report .dg-premium-dark .rounded-xl.border *,
+  .dg-premium-report .dg-premium-dark .rounded-2xl.border *,
+  .dg-premium-report .dg-premium-dark .dg-report-card * { color: #f4efe3 !important; }
+  .dg-premium-report .dg-premium-dark .text-slate-500 { color: #c2bbd0 !important; }
+  .dg-premium-report .dg-report-card .rounded-lg.border {
+    background: #f8f5ee !important;
+    border-color: #e2dccf !important;
+  }
+  .dg-premium-report .dg-report-card .rounded-lg.border p { color: #465064 !important; }
+  .dg-premium-report .dg-report-card .rounded-full.border {
+    background: #efe9dd !important;
+    border-color: #ddd5c6 !important;
+    color: #465064 !important;
+  }
 
   .dg-premium-timeline { position: relative; display: block !important; padding-left: 2.5rem; }
   .dg-premium-timeline::before { content: ""; position: absolute; left: 0.72rem; top: 0.4rem; bottom: 0.4rem; width: 2px; background: linear-gradient(#7c3aed, #c9a227); }
