@@ -151,6 +151,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
       <div className="dg-report-print-cover">
         <p className="dg-report-cover-wordmark">DIGITALGATE</p>
         <p className="dg-report-kicker">DigitalGate · Digital Opportunity Review</p>
+        <p className="dg-report-document-title">Digital Opportunity Report</p>
         <p className="dg-report-confidential">Private &amp; confidential · {pack.label}</p>
         <h1>{report.prospect.businessName}</h1>
         <p className="dg-report-cover-sub">An evidence-led review of the current digital position, with the three opportunities that matter first.</p>
@@ -178,7 +179,8 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div className="max-w-3xl">
                 <img src="/brand/logo-dark.png" alt="DigitalGate" className="mb-5 h-5 w-auto" />
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-400">DigitalGate · Digital Opportunity Report</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-400">DigitalGate</p>
+                <p className="dg-report-document-title">Digital Opportunity Report</p>
                 <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">{report.prospect.industry || pack.label} · {report.prospect.location || "Location not recorded"}{report.prospect.websiteUrl ? <> · <a href={report.prospect.websiteUrl} className="text-violet-300 underline decoration-violet-500/40 underline-offset-2" target="_blank" rel="noreferrer">{report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a></> : null}</p>
                 <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">{report.prospect.businessName}</h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">An evidence-led review of the current digital position, with a clear commercial next step.</p>

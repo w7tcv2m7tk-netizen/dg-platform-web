@@ -578,7 +578,7 @@ export async function submitPublicBusinessAudit(input: {
             basis: "Website-linked public profile links only; activity, audience and engagement are not assessed.",
           },
           reputationEvidence: {
-            score: audit.scores.reputation ?? null,
+            score: null,
             reviewSignal: audit.probes.hasReviewHint,
             googleLocalSignal: audit.probes.hasMapsOrGbpHint,
             basis: audit.scores.reputation == null ? "Reputation was not assessed from this evidence set." : "Homepage review/local signals observed; no external review count or star rating was queried in this workflow.",

@@ -1519,3 +1519,31 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     color: #20283c !important;
   }
 }
+
+@media screen {
+  .dg-premium-report .dg-report-document-title {
+    margin: 0.25rem 0 0;
+    font: 600 clamp(1.3rem, 3vw, 2.25rem)/1.1 Georgia, "Times New Roman", serif;
+    color: #7950c4 !important;
+    letter-spacing: -0.025em;
+  }
+  .dg-premium-report .dg-report-mobile-cta { background: #f5f1e8 !important; }
+  .dg-premium-report .rounded-lg.border {
+    background: #fffdfa !important;
+    border-color: #d8d0c2 !important;
+  }
+  .dg-premium-report .rounded-lg.border * { color: #4b5565 !important; }
+  .dg-premium-report .rounded-full.border {
+    background: #f5f1e8 !important;
+    border-color: #d8d0c2 !important;
+    color: #4b5565 !important;
+  }
+}
+@media print {
+  .dg-report-document-title {
+    margin: 0 0 7mm;
+    font-size: 20pt;
+    font-family: Georgia, "Times New Roman", serif;
+    color: #20283c !important;
+  }
+}
