@@ -1231,6 +1231,14 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   .dg-premium-report .dg-premium-cover .text-violet-300 { color: #c4b5fd !important; }
   .dg-premium-report .dg-premium-cover .text-violet-200 { color: #ddd6fe !important; }
   .dg-premium-report .dg-premium-cover .text-slate-500 { color: #c9c5d6 !important; }
+  .dg-premium-report .dg-premium-cover details {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.18) !important;
+    color: #f4efe3 !important;
+  }
+  .dg-premium-report .dg-premium-cover details summary,
+  .dg-premium-report .dg-premium-cover details summary *,
+  .dg-premium-report .dg-premium-cover details a { color: #f4efe3 !important; }
   .dg-premium-report .dg-report-card,
   .dg-premium-report .rounded-xl.border,
   .dg-premium-report .rounded-2xl.border {
@@ -1378,4 +1386,56 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   .dg-premium-evidence-hero { grid-template-columns: 1fr; }
   .dg-premium-opportunities > article { grid-template-columns: 2.5rem 1fr; }
   .dg-pillar-row { grid-template-columns: 1fr; }
+}
+
+/* Premium report print overrides — keep the PDF readable and avoid orphan pages */
+@media print {
+  .dg-premium-report #evidence,
+  .dg-premium-report #industry,
+  .dg-premium-report #roadmap,
+  .dg-premium-report #next-step,
+  .dg-premium-report #growth-blueprint {
+    break-before: auto !important;
+    page-break-before: auto !important;
+  }
+  .dg-premium-report .dg-report-section { break-inside: auto !important; page-break-inside: auto !important; }
+  .dg-premium-report #evidence { break-before: page !important; page-break-before: always !important; }
+  .dg-premium-report .dg-premium-evidence-hero { break-inside: avoid !important; page-break-inside: avoid !important; }
+  .dg-premium-report section .grid.lg\:grid-cols-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 5mm !important; }
+  .dg-premium-evidence-hero {
+    display: block !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+  .dg-health-ring {
+    position: relative !important;
+    width: 42mm !important;
+    height: 42mm !important;
+    margin: 0 0 7mm !important;
+  }
+  .dg-health-ring svg { width: 42mm !important; height: 42mm !important; display: block !important; transform: rotate(-90deg) !important; }
+  .dg-health-ring svg circle { fill: none !important; }
+  .dg-health-ring-track { stroke: #ded7c9 !important; stroke-width: 8 !important; }
+  .dg-health-ring-value { stroke: #6d28d9 !important; stroke-width: 8 !important; stroke-linecap: round !important; }
+  .dg-health-ring-label { position: absolute !important; inset: 0 !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; }
+  .dg-health-ring-label span { color: #111827 !important; font: 600 25pt/1 Georgia, serif !important; }
+  .dg-health-ring-label small { color: #6b7280 !important; font-size: 8pt !important; }
+  .dg-health-ring-label em { color: #6d28d9 !important; font-size: 6.5pt !important; font-style: normal !important; text-transform: uppercase !important; }
+  .dg-premium-evidence-copy h3 { font: 600 18pt/1.2 Georgia, serif !important; color: #111827 !important; }
+  .dg-evidence-pills { display: flex !important; flex-wrap: wrap !important; gap: 2mm !important; margin-top: 3mm !important; }
+  .dg-evidence-pills span { border: 1px solid #ded7c9 !important; border-radius: 99px !important; padding: 1mm 2.5mm !important; font-size: 7.5pt !important; color: #465064 !important; }
+  .dg-pillar-row { display: block !important; break-inside: avoid !important; page-break-inside: avoid !important; padding: 2.5mm 0 !important; border-bottom: 1px solid #e4ddcf !important; }
+  .dg-pillar-row-label { display: flex !important; justify-content: space-between !important; gap: 8mm !important; font-size: 9pt !important; color: #273044 !important; }
+  .dg-pillar-row-label b { color: #111827 !important; }
+  .dg-pillar-row-track { display: none !important; }
+  .dg-pillar-row p { margin: 1mm 0 0 !important; font-size: 7.5pt !important; color: #647084 !important; }
+  .dg-premium-opportunities { display: block !important; }
+  .dg-premium-opportunities > article { display: block !important; padding: 5mm 0 !important; break-inside: avoid !important; page-break-inside: avoid !important; }
+  .dg-premium-opportunities > article::before { display: none !important; }
+  .dg-premium-opportunities > article h3 { font-size: 15pt !important; }
+  .dg-premium-dark .space-y-4 { display: block !important; }
+  .dg-premium-dark .dg-report-card { break-inside: avoid !important; page-break-inside: avoid !important; padding: 4mm !important; }
+  .dg-premium-timeline > div { break-inside: avoid !important; page-break-inside: avoid !important; }
+  .dg-opportunity-report { font-size: 10pt; }
 }
