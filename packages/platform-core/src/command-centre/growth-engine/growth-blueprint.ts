@@ -13,7 +13,9 @@ export type GrowthBlueprintItem = {
 
 function capabilityFor(priority: ReportPriority, model: BusinessModelAssessment): string {
   const text = `${priority.title} ${priority.meaning} ${priority.action}`.toLowerCase();
-  if (/schema|structured|artist identity|ai visibility|discover/.test(text)) return "AI Visibility™ + Website Manager";
+  if (/schema|structured/.test(text)) return "AI Visibility™";
+  if (/artist identity|positioning|profile/.test(text)) return "Website Manager + Artist Profile";
+  if (/ai visibility|discover/.test(text)) return "AI Visibility™";
   if (/analytics|tracking|measurement/.test(text)) return "DigitalGate Analytics";
   if (/booking|event|appointment|enquir|form|conversion path|quote/.test(text)) return "DigitalGate CRM & Automation";
   if (/analytics|tracking|measure/.test(text)) return "DigitalGate Analytics";
@@ -66,17 +68,36 @@ export function buildGrowthBlueprint(input: {
   model: BusinessModelAssessment;
   priorities: ReportPriority[];
 }): GrowthBlueprintItem[] {
-  return input.priorities.slice(0, 3).map((priority, index) => {
+  const out: GrowthBlueprintItem[] = [];
+  const seen = new Set<string>();
+  for (const [index, priority] of input.priorities.entries()) {
     const capability = capabilityFor(priority, input.model);
+    const objective = objectiveFor(priority, input.model);
+    const key = `${capability}|${objective}`.toLowerCase();
+    if (seen.has(key)) continue;
     const detail = detailFor(capability, input.model, index);
-    return {
-      objective: objectiveFor(priority, input.model),
+    seen.add(key);
+    out.push({
+      objective,
       evidence: priority.framework ? "Strategic hypothesis — framework guidance, not a confirmed finding." : `${priority.evidenceLabel}: ${priority.meaning}`,
       evidenceType: priority.framework ? "strategic_hypothesis" as const : "verified_finding" as const,
       capability,
       action: priority.action,
       benefit: detail.benefit,
       measure: detail.measure,
-    };
-  });
+    });
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+
+export function shortCapability(capability: string): string {
+  if (/AI Visibility/i.test(capability)) return "AI visibility";
+  if (/Analytics/i.test(capability)) return "Analytics";
+  if (/Artist Profile/i.test(capability)) return "Artist identity";
+  if (/CRM/i.test(capability)) return "CRM & follow-up";
+  if (/Website/i.test(capability)) return "Website";
+  if (/SEO/i.test(capability)) return "Search";
+  if (/Reputation/i.test(capability)) return "Reputation";
+  return capability.slice(0, 16);
 }

@@ -14,7 +14,7 @@ import {
   resolveReportIndustry,
   type ReportPresentationFinding,
 } from "@dg/platform-core/command-centre/growth-engine/report-presentation";
-import { buildGrowthBlueprint } from "@dg/platform-core/command-centre/growth-engine/growth-blueprint";
+import { buildGrowthBlueprint, shortCapability } from "@dg/platform-core/command-centre/growth-engine/growth-blueprint";
 import { prospectReportAccess } from "@/lib/prospect-report-access";
 
 export const dynamic = "force-dynamic";
@@ -205,73 +205,6 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <p className="mt-3 max-w-4xl text-base leading-7 text-slate-200">{report.executiveSummary}</p>
         </section>
 
-        {businessModel.type && businessModel.type !== "general" ? <section id="business-model" className="dg-report-section mt-9 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Business understanding</p><h2 className="mt-2 text-2xl font-semibold text-white">{businessModel.subtype || pack.label}</h2></div><span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-200">{businessModel.confidence ?? "limited"} confidence</span></div>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <div><p className="text-xs uppercase tracking-wide text-slate-500">Apparent offering</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.offering || "Not reliably identified from the available evidence."}</p><p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Apparent audiences</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.audiences?.join(" · ") || "Not reliably identified."}</p></div>
-            <div><p className="text-xs uppercase tracking-wide text-slate-500">Conversion pathways</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.conversionPaths?.join(" · ") || "Not recorded."}</p><p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Discovery channels</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.discoveryChannels?.join(" · ") || "Not recorded."}</p><p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Market orientation</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.marketOrientation || "unknown"}{businessModel.isLocationBased === false ? " · location-based assumptions excluded" : ""}</p></div>
-          </div>
-          {businessModel.evidence?.length ? <p className="mt-4 border-t border-slate-700 pt-3 text-[11px] leading-5 text-slate-500">Evidence: {businessModel.evidence.join(" ")}</p> : null}
-        </section> : null}
-
-        <section id="opportunities" className="dg-report-section mt-9">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">The first three opportunities</p>
-              <h2 className="mt-2 text-2xl font-semibold text-white">What to focus on first</h2>
-            </div>
-            <a href="#evidence" className="text-sm text-violet-300">See the evidence ↓</a>
-          </div>
-          <p className="mt-3 max-w-4xl leading-7 text-slate-300">{verdict}</p>
-          <div className="dg-premium-opportunities mt-5 grid gap-4 md:grid-cols-3">
-            {priorities.map((priority, index) => (
-              <article key={`${priority.title}-${index}`} data-index={String(index + 1).padStart(2, "0")} className="dg-report-card rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-violet-300">0{index + 1} · {priority.framework ? "Framework" : "Priority"}</span>
-                  <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${priority.evidenceStatus === "confirmed_gap" ? "bg-amber-500/15 text-amber-200" : priority.evidenceStatus === "observed" ? "bg-emerald-500/15 text-emerald-200" : "bg-slate-500/15 text-slate-300"}`}>{priority.evidenceLabel}</span>
-                </div>
-                <h3 className="mt-4 text-lg font-semibold leading-tight text-white">{priority.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{priority.meaning}</p>
-                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-300">Recommended action</p>
-                <p className="mt-1 text-sm leading-6 text-violet-100">{priority.action}</p>
-                <p className="mt-4 border-t border-slate-700 pt-3 text-[11px] leading-4 text-slate-500">{priority.source}{priority.freshness ? ` · captured ${new Date(priority.freshness).toLocaleDateString("en-AU")}` : ""}</p>
-              </article>
-            ))}
-          </div>
-          <a href={strategyUrl} className="dg-report-mobile-early-cta mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-violet-500 px-5 text-sm font-semibold text-white md:hidden">Discuss these three priorities</a>
-        </section>
-
-        {blueprint.length ? <section id="growth-blueprint" className="dg-report-section dg-premium-blueprint mt-10">
-          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">DigitalGate Growth Blueprint</p>
-          <h2 className="mt-2 text-2xl font-semibold text-white">How DigitalGate connects to the observed opportunities</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Only relevant capabilities are included. Findings are labelled separately from strategic hypotheses; no financial return is promised.</p>
-          <div className="dg-blueprint-map mt-6" aria-label="DigitalGate capability map">
-            <svg viewBox="0 0 900 250" role="img">
-              <defs><linearGradient id="blueprint-line" x1="0" x2="1"><stop offset="0" stopColor="#B89A50" /><stop offset="1" stopColor="#7950C4" /></linearGradient></defs>
-              <path d="M450 125 C300 20 220 40 120 70" fill="none" stroke="url(#blueprint-line)" strokeWidth="2" />
-              <path d="M450 125 C450 40 450 30 450 18" fill="none" stroke="url(#blueprint-line)" strokeWidth="2" />
-              <path d="M450 125 C600 20 700 40 790 70" fill="none" stroke="url(#blueprint-line)" strokeWidth="2" />
-              <circle cx="450" cy="125" r="58" fill="#7950C4" />
-              <text x="450" y="121" textAnchor="middle" fill="#fffdfa" fontSize="13" fontWeight="700">{report.prospect.businessName.slice(0, 20)}</text>
-              <text x="450" y="138" textAnchor="middle" fill="#e8e3ef" fontSize="9">business objective</text>
-              <circle cx="120" cy="70" r="42" fill="#EAE3D5" stroke="#B89A50" />
-              <text x="120" y="69" textAnchor="middle" fill="#20283C" fontSize="10" fontWeight="700">{blueprint[0]?.capability.split(" ")[0] || "Discovery"}</text>
-              <text x="120" y="82" textAnchor="middle" fill="#6b604f" fontSize="8">capability 01</text>
-              <circle cx="450" cy="18" r="0" fill="none" />
-              <circle cx="450" cy="54" r="42" fill="#FFFDFA" stroke="#7950C4" />
-              <text x="450" y="53" textAnchor="middle" fill="#20283C" fontSize="10" fontWeight="700">{blueprint[1]?.capability.split(" ")[0] || "Conversion"}</text>
-              <text x="450" y="66" textAnchor="middle" fill="#6b604f" fontSize="8">capability 02</text>
-              <circle cx="780" cy="70" r="42" fill="#F5F1E8" stroke="#D8D0C2" />
-              <text x="780" y="69" textAnchor="middle" fill="#20283C" fontSize="10" fontWeight="700">{blueprint[2]?.capability.split(" ")[0] || "Measurement"}</text>
-              <text x="780" y="82" textAnchor="middle" fill="#6b604f" fontSize="8">capability 03</text>
-            </svg>
-          </div>
-          <div className="mt-6 space-y-5">{blueprint.map((item, index) => <article key={`${item.capability}-${index}`} className="dg-blueprint-card grid gap-5 rounded-2xl border p-6 lg:grid-cols-[0.8fr_1.4fr]">
-            <div><p className="text-xs font-semibold uppercase tracking-wide text-violet-300">0{index + 1} · {item.capability}</p><h3 className="mt-2 text-lg font-semibold text-white">{item.objective}</h3><p className="mt-2 text-xs leading-5 text-slate-500">{item.evidenceType === "verified_finding" ? "Verified finding" : "Strategic hypothesis"} · {item.evidence}</p></div>
-            <div className="grid gap-3 sm:grid-cols-2"><div><p className="text-xs uppercase tracking-wide text-slate-500">Proposed action</p><p className="mt-1 text-sm leading-6 text-slate-200">{item.action}</p></div><div><p className="text-xs uppercase tracking-wide text-slate-500">Intended benefit</p><p className="mt-1 text-sm leading-6 text-slate-200">{item.benefit}</p></div><div className="sm:col-span-2"><p className="text-xs uppercase tracking-wide text-slate-500">Success indicator</p><p className="mt-1 text-sm leading-6 text-violet-200">{item.measure}</p></div></div>
-          </article>)}</div>
-        </section> : null}
-
         <section id="evidence" className="dg-report-section mt-10">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -361,6 +294,42 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           ) : null}
         </section>
 
+        {businessModel.type && businessModel.type !== "general" ? <section id="business-model" className="dg-report-section mt-9 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Business understanding</p><h2 className="mt-2 text-2xl font-semibold text-white">{businessModel.subtype || pack.label}</h2></div><span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-200">{businessModel.confidence ?? "limited"} confidence</span></div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div><p className="text-xs uppercase tracking-wide text-slate-500">Apparent offering</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.offering || "Not reliably identified from the available evidence."}</p><p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Apparent audiences</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.audiences?.join(" · ") || "Not reliably identified."}</p></div>
+            <div><p className="text-xs uppercase tracking-wide text-slate-500">Conversion pathways</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.conversionPaths?.join(" · ") || "Not recorded."}</p><p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Discovery channels</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.discoveryChannels?.join(" · ") || "Not recorded."}</p><p className="mt-3 text-xs uppercase tracking-wide text-slate-500">Market orientation</p><p className="mt-1 text-sm leading-6 text-slate-200">{businessModel.marketOrientation || "unknown"}{businessModel.isLocationBased === false ? " · location-based assumptions excluded" : ""}</p></div>
+          </div>
+          {businessModel.evidence?.length ? <p className="mt-4 border-t border-slate-700 pt-3 text-[11px] leading-5 text-slate-500">Evidence: {businessModel.evidence.join(" ")}</p> : null}
+        </section> : null}
+
+        <section id="opportunities" className="dg-report-section mt-9">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">The first three opportunities</p>
+              <h2 className="mt-2 text-2xl font-semibold text-white">What to focus on first</h2>
+            </div>
+            <a href="#evidence" className="text-sm text-violet-300">See the evidence ↓</a>
+          </div>
+          <p className="mt-3 max-w-4xl leading-7 text-slate-300">{verdict}</p>
+          <div className="dg-premium-opportunities mt-5 grid gap-4 md:grid-cols-3">
+            {priorities.map((priority, index) => (
+              <article key={`${priority.title}-${index}`} data-index={String(index + 1).padStart(2, "0")} className="dg-report-card rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-violet-300">0{index + 1} · {priority.framework ? "Framework" : "Priority"}</span>
+                  <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${priority.evidenceStatus === "confirmed_gap" ? "bg-amber-500/15 text-amber-200" : priority.evidenceStatus === "observed" ? "bg-emerald-500/15 text-emerald-200" : "bg-slate-500/15 text-slate-300"}`}>{priority.evidenceLabel}</span>
+                </div>
+                <h3 className="mt-4 text-lg font-semibold leading-tight text-white">{priority.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{priority.meaning}</p>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-300">Recommended action</p>
+                <p className="mt-1 text-sm leading-6 text-violet-100">{priority.action}</p>
+                <p className="mt-4 border-t border-slate-700 pt-3 text-[11px] leading-4 text-slate-500">{priority.source}{priority.freshness ? ` · captured ${new Date(priority.freshness).toLocaleDateString("en-AU")}` : ""}</p>
+              </article>
+            ))}
+          </div>
+          <a href={strategyUrl} className="dg-report-mobile-early-cta mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-violet-500 px-5 text-sm font-semibold text-white md:hidden">Discuss these three priorities</a>
+        </section>
+
         <section id="industry" className="dg-report-section mt-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Industry context</p>
           <h2 className="mt-2 text-2xl font-semibold text-white">Opportunities specific to {pack.label}</h2>
@@ -398,6 +367,37 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
             </div>
           </div>
         </section>
+
+        {blueprint.length ? <section id="growth-blueprint" className="dg-report-section dg-premium-blueprint mt-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">DigitalGate Growth Blueprint</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">How DigitalGate connects to the observed opportunities</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Only relevant capabilities are included. Findings are labelled separately from strategic hypotheses; no financial return is promised.</p>
+          <div className="dg-blueprint-map mt-6" aria-label="DigitalGate capability map">
+            <svg viewBox="0 0 900 250" role="img">
+              <defs><linearGradient id="blueprint-line" x1="0" x2="1"><stop offset="0" stopColor="#B89A50" /><stop offset="1" stopColor="#7950C4" /></linearGradient></defs>
+              <path d="M450 125 C300 20 220 40 120 70" fill="none" stroke="url(#blueprint-line)" strokeWidth="2" />
+              <path d="M450 125 C450 40 450 30 450 18" fill="none" stroke="url(#blueprint-line)" strokeWidth="2" />
+              <path d="M450 125 C600 20 700 40 790 70" fill="none" stroke="url(#blueprint-line)" strokeWidth="2" />
+              <circle cx="450" cy="125" r="58" fill="#7950C4" />
+              <text x="450" y="121" textAnchor="middle" fill="#fffdfa" fontSize="13" fontWeight="700">{report.prospect.businessName.slice(0, 20)}</text>
+              <text x="450" y="138" textAnchor="middle" fill="#e8e3ef" fontSize="9">business objective</text>
+              <circle cx="120" cy="70" r="42" fill="#EAE3D5" stroke="#B89A50" />
+              <text x="120" y="69" textAnchor="middle" fill="#20283C" fontSize="10" fontWeight="700">{shortCapability(blueprint[0]?.capability || "Discovery")}</text>
+              <text x="120" y="82" textAnchor="middle" fill="#6b604f" fontSize="8">capability 01</text>
+              <circle cx="450" cy="18" r="0" fill="none" />
+              <circle cx="450" cy="54" r="42" fill="#FFFDFA" stroke="#7950C4" />
+              <text x="450" y="53" textAnchor="middle" fill="#20283C" fontSize="10" fontWeight="700">{shortCapability(blueprint[1]?.capability || "Conversion")}</text>
+              <text x="450" y="66" textAnchor="middle" fill="#6b604f" fontSize="8">capability 02</text>
+              <circle cx="780" cy="70" r="42" fill="#F5F1E8" stroke="#D8D0C2" />
+              <text x="780" y="69" textAnchor="middle" fill="#20283C" fontSize="10" fontWeight="700">{shortCapability(blueprint[2]?.capability || "Measurement")}</text>
+              <text x="780" y="82" textAnchor="middle" fill="#6b604f" fontSize="8">capability 03</text>
+            </svg>
+          </div>
+          <div className="mt-6 space-y-5">{blueprint.map((item, index) => <article key={`${item.capability}-${index}`} className="dg-blueprint-card grid gap-5 rounded-2xl border p-6 lg:grid-cols-[0.8fr_1.4fr]">
+            <div><p className="text-xs font-semibold uppercase tracking-wide text-violet-300">0{index + 1} · {item.capability}</p><h3 className="mt-2 text-lg font-semibold text-white">{item.objective}</h3><p className="mt-2 text-xs leading-5 text-slate-500">{item.evidenceType === "verified_finding" ? "Verified finding" : "Strategic hypothesis"} · {item.evidence}</p></div>
+            <div className="grid gap-3 sm:grid-cols-2"><div><p className="text-xs uppercase tracking-wide text-slate-500">Proposed action</p><p className="mt-1 text-sm leading-6 text-slate-200">{item.action}</p></div><div><p className="text-xs uppercase tracking-wide text-slate-500">Intended benefit</p><p className="mt-1 text-sm leading-6 text-slate-200">{item.benefit}</p></div><div className="sm:col-span-2"><p className="text-xs uppercase tracking-wide text-slate-500">Success indicator</p><p className="mt-1 text-sm leading-6 text-violet-200">{item.measure}</p></div></div>
+          </article>)}</div>
+        </section> : null}
 
         <section id="evidence-list" className="dg-report-section mt-10">
           <details className="dg-report-screen-only rounded-2xl border border-slate-700 bg-slate-900/60 p-5">
