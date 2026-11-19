@@ -1558,3 +1558,9 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     letter-spacing: 0.28em;
   }
 }
+
+@media print {
+  .dg-opportunity-report .dg-report-print-cover .dg-report-cover-priorities { display: none !important; }
+  .dg-opportunity-report .dg-report-print-cover { min-height: 0 !important; }
+  .dg-opportunity-report footer { display: none !important; }
+}
