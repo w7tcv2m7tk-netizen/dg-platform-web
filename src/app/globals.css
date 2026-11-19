@@ -1547,3 +1547,14 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     color: #20283c !important;
   }
 }
+
+@media screen {
+  .dg-premium-report .dg-premium-cover .dg-cover-wordmark {
+    margin: 0 0 1.4rem;
+    color: #20283c !important;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(1.5rem, 3vw, 2.15rem);
+    font-weight: 700;
+    letter-spacing: 0.28em;
+  }
+}

@@ -178,7 +178,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <header className="border-b border-slate-700 pb-8">
             <div className="flex flex-wrap items-start justify-between gap-5">
               <div className="max-w-3xl">
-                <img src="/brand/logo-dark.png" alt="DigitalGate" className="mb-5 h-5 w-auto" />
+                <p className="dg-cover-wordmark">DIGITALGATE</p>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-violet-400">DigitalGate</p>
                 <p className="dg-report-document-title">Digital Opportunity Report</p>
                 <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">{report.prospect.industry || pack.label} · {report.prospect.location || "Location not recorded"}{report.prospect.websiteUrl ? <> · <a href={report.prospect.websiteUrl} className="text-violet-300 underline decoration-violet-500/40 underline-offset-2" target="_blank" rel="noreferrer">{report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a></> : null}</p>
@@ -200,6 +200,11 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           </div>
         </div>
 
+        <section id="executive-summary" className="dg-report-section mt-9 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Executive summary</p>
+          <p className="mt-3 max-w-4xl text-base leading-7 text-slate-200">{report.executiveSummary}</p>
+        </section>
+
         {businessModel.type && businessModel.type !== "general" ? <section id="business-model" className="dg-report-section mt-9 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
           <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Business understanding</p><h2 className="mt-2 text-2xl font-semibold text-white">{businessModel.subtype || pack.label}</h2></div><span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-200">{businessModel.confidence ?? "limited"} confidence</span></div>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -208,11 +213,6 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           </div>
           {businessModel.evidence?.length ? <p className="mt-4 border-t border-slate-700 pt-3 text-[11px] leading-5 text-slate-500">Evidence: {businessModel.evidence.join(" ")}</p> : null}
         </section> : null}
-
-        <section id="executive-summary" className="dg-report-section mt-9 rounded-2xl border border-violet-500/20 bg-violet-500/5 p-6">
-          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Executive summary</p>
-          <p className="mt-3 max-w-4xl text-base leading-7 text-slate-200">{report.executiveSummary}</p>
-        </section>
 
         <section id="opportunities" className="dg-report-section mt-9">
           <div className="flex flex-wrap items-end justify-between gap-3">
