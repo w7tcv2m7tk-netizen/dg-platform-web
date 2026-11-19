@@ -39,6 +39,10 @@ function objectiveFor(priority: ReportPriority, model: BusinessModelAssessment):
 }
 
 function detailFor(capability: string, model: BusinessModelAssessment, index: number) {
+  if (/Artist Profile/.test(capability)) return {
+    benefit: "A coherent artist identity and booking path that promoters and collaborators can understand quickly.",
+    measure: "Artist positioning, EPK/profile evidence and booking page checked against a documented completeness criteria.",
+  };
   if (/AI Visibility|Website Manager/.test(capability)) return {
     benefit: "A clearer, machine-readable identity and a more consistent path from discovery to interest.",
     measure: "Structured entity and profile information verified; key discovery pages correctly understood in a follow-up audit.",

@@ -155,9 +155,9 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
   const hp = pageStart(doc,fonts,"Digital business health","What the public signals show");
   let hy = H-104;
   hy = block(hp,verdict,M,hy,CW,fonts.serif,10.5,BODY,1.45)-12;
-  const ringX=M+55, ringY=hy-55;
-  hp.drawCircle({x:ringX,y:ringY,size:45,color:CHAMP,borderColor:STONE,borderWidth:1});
-  hp.drawCircle({x:ringX,y:ringY,size:36,color:PAPER});
+  const ringX=M+60, ringY=hy-62;
+  hp.drawCircle({x:ringX,y:ringY,size:54,color:CHAMP,borderColor:STONE,borderWidth:1});
+  hp.drawCircle({x:ringX,y:ringY,size:44,color:PAPER});
   hp.drawText(audit?.businessHealth == null ? "—" : String(audit.businessHealth),{x:ringX-17,y:ringY-8,size:24,font:fonts.serifBold,color:SLATE});
   hp.drawText("/100",{x:ringX-14,y:ringY-21,size:7,font:fonts.body,color:BODY});
   hp.drawText("Business Health",{x:M+116,y:ringY+10,size:11,font:fonts.serifBold,color:SLATE});
@@ -204,7 +204,7 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
   });
   by -= 150;
   blueprint.slice(0,3).forEach((item: any,i:number) => {
-    const ev = `${item.evidenceType==="verified_finding"?"Verified finding":"Strategic hypothesis"}: ${item.evidence.replace(/^[^:]+:\s*/,"")}`;
+    const ev = `${item.evidenceType==="verified_finding"?"Verified finding":"Strategic hypothesis"}: ${item.evidence.replace(/^(?:Verified finding|Strategic hypothesis)[:\s—-]+/i,"")}`;
     const evH=height(ev,fonts.body,7.2,CW-28,1.25), actH=height(`Action: ${item.action}`,fonts.body,7.2,CW-28,1.25);
     const cardH=20+18+evH+actH+38;
     bp.drawRectangle({x:M,y:by-cardH,width:CW,height:cardH,color:PAPER,borderColor:STONE,borderWidth:0.6});
