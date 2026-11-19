@@ -37,9 +37,11 @@ export type PresenceAuditResult = {
     hasMapsOrGbpHint: boolean;
     hasReviewHint: boolean;
     hasAnalyticsHint: boolean;
+    ogImageUrl: string | null;
+    faviconUrl: string | null;
     socialProfiles: { facebook?: string; instagram?: string; linkedin?: string; youtube?: string; tiktok?: string };
     appraisalSignals: { hasAppraisalCta: boolean; hasAppraisalForm: boolean; suburbMentions: number };
-    pages: Array<{ url: string; statusCode: number | null; title: string | null; hasH1: boolean; hasForm: boolean; hasPhoneLink: boolean; hasEmailLink: boolean; hasBookingLanguage: boolean; hasPricingLanguage: boolean; hasTrialLanguage: boolean; hasServiceLanguage: boolean; wordCount: number }>;
+    pages: Array<{ url: string; statusCode: number | null; title: string | null; hasH1: boolean; hasForm: boolean; hasPhoneLink: boolean; hasEmailLink: boolean; hasBookingLanguage: boolean; hasPricingLanguage: boolean; hasTrialLanguage: boolean; hasServiceLanguage: boolean; hasAnalyticsHint: boolean; wordCount: number }>;
     error?: string;
   };
 };
@@ -154,10 +156,23 @@ function normaliseUrl(raw: string | null | undefined): string | null {
   }
 }
 
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&nbsp;/gi, " ")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)));
+}
+
+function absoluteUrl(value: string | null | undefined, base: string): string | null {
+  if (!value?.trim()) return null;
+  try { const url = new URL(value.trim(), base); return /^https?:$/.test(url.protocol) ? url.toString() : null; } catch { return null; }
+}
+
 function extractSignals(html: string, localTerms: string[] = []) {
   const lower = html.toLowerCase();
   const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  const title = titleMatch?.[1]?.replace(/\s+/g, " ").trim().slice(0, 200) || null;
+  const title = titleMatch?.[1]?.replace(/\s+/g, " ").trim().slice(0, 200) ? decodeHtmlEntities(titleMatch[1].replace(/\s+/g, " ").trim().slice(0, 200)) : null;
   const hasMetaDescription = /<meta[^>]+name=["']description["'][^>]*>/i.test(html);
   const hasViewport = /<meta[^>]+name=["']viewport["'][^>]*>/i.test(html);
   const hasOpenGraph = lower.includes('property="og:') || lower.includes("property='og:");
@@ -182,6 +197,9 @@ function extractSignals(html: string, localTerms: string[] = []) {
     /gtag\(|google-analytics|googletagmanager|gtm\.js|fbq\(|facebook\.net\/.*fbevents|hotjar|clarity\.ms/i.test(
       html,
     );
+  const ogImageMatch = html.match(/<meta[^>]+(?:property|name)=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+    || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']og:image["']/i);
+  const faviconMatch = html.match(/<link[^>]+rel=["'][^"']*(?:icon|shortcut icon)[^"']*["'][^>]+href=["']([^"']+)["']/i);
 
   const socialProfiles: { facebook?: string; instagram?: string; linkedin?: string; youtube?: string; tiktok?: string } = {};
   const hrefs = Array.from(html.matchAll(/href=["']([^"'#]+)["']/gi), (m) => m[1]);
@@ -219,6 +237,8 @@ function extractSignals(html: string, localTerms: string[] = []) {
     hasMapsOrGbpHint,
     hasReviewHint,
     hasAnalyticsHint,
+    ogImage: ogImageMatch?.[1] || null,
+    favicon: faviconMatch?.[1] || null,
   };
 }
 
@@ -260,6 +280,7 @@ function pageEvidence(url: string, html: string, statusCode: number | null) {
     hasPricingLanguage: /\b(pricing|price list|packages?|from \$|starting at|plans?)\b/i.test(text),
     hasTrialLanguage: /\b(free trial|start a trial|start free|request a demo|book a demo|get started)\b/i.test(text),
     hasServiceLanguage: /\b(services?|solutions?|what we do|our work|capabilities)\b/i.test(text),
+    hasAnalyticsHint: signals.hasAnalyticsHint,
     wordCount: lower.split(/\s+/).filter(Boolean).length,
   };
 }
@@ -293,6 +314,8 @@ export async function runPresenceAudit(
     hasMapsOrGbpHint: false,
     hasReviewHint: false,
     hasAnalyticsHint: false,
+    ogImageUrl: null,
+    faviconUrl: null,
     socialProfiles: {},
     appraisalSignals: { hasAppraisalCta: false, hasAppraisalForm: false, suburbMentions: 0 },
     pages: [],
@@ -396,6 +419,8 @@ export async function runPresenceAudit(
           probes.hasMapsOrGbpHint = signals.hasMapsOrGbpHint;
           probes.hasReviewHint = signals.hasReviewHint;
           probes.hasAnalyticsHint = signals.hasAnalyticsHint;
+          probes.ogImageUrl = absoluteUrl(signals.ogImage, probes.finalUrl || websiteUrl || "");
+          probes.faviconUrl = absoluteUrl(signals.favicon, probes.finalUrl || websiteUrl || "");
           probes.socialProfiles = signals.socialProfiles;
           probes.appraisalSignals = signals.appraisalSignals;
 
@@ -673,12 +698,14 @@ export async function runPresenceAudit(
               domain: "website",
               severity: "opportunity",
               category: "Measurement",
-              title: "Analytics / tracking not detected",
-              observed: "Analytics / tracking not detected",
+              evidenceStatus: "limited",
+              confidence: "low",
+              title: "Analytics / tracking was not identified on the homepage",
+              observed: "Common analytics or tracking signals were not identified in the homepage HTML. This is not a confirmed absence.",
               interpretation:
-                "We couldn’t identify common analytics or tracking signals during the audit.",
+                "The public homepage did not expose common analytics signals; implementation may exist elsewhere or be configured without a visible marker.",
               detail:
-                "We couldn’t identify common analytics or tracking signals during the audit.",
+                "Common analytics or tracking signals were not identified in the homepage HTML; further verification is required before treating this as a confirmed gap.",
               recommendedAction:
                 "Confirm analytics, Search Console and conversion tracking are correctly implemented so you can measure traffic, enquiries and bookings.",
             });
@@ -722,6 +749,12 @@ export async function runPresenceAudit(
     conversionReadiness = Math.max(conversionReadiness, 75);
   }
   if (pageHasPricing || pageHasTrial) growthSignals = Math.max(growthSignals, 55);
+  const pageHasAnalytics = probes.pages.some((page) => page.hasAnalyticsHint);
+  if (pageHasAnalytics) {
+    strengths.unshift("Analytics or tracking signals were observed on a sampled page.");
+    growthSignals = Math.max(growthSignals, 60);
+    findings.splice(0, findings.length, ...findings.filter((finding) => !/analytics|tracking/i.test(finding.title)));
+  }
   if (pageHasContactForm || pageHasBooking) {
     findings.splice(0, findings.length, ...findings.filter((finding) => finding.title !== "No enquiry form detected on the homepage" && finding.title !== "Limited contact pathways"));
   }

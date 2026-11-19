@@ -895,6 +895,16 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   border-radius: inherit;
   background: #8b5cf6;
 }
+.dg-report-cover-image {
+  display: block;
+  width: min(100%, 150mm);
+  max-height: 48mm;
+  margin: 8mm 0 0;
+  object-fit: cover;
+  border-radius: 4mm;
+  border: 1px solid #d6d3d1;
+}
+
 .dg-report-cover-wordmark {
   margin: 0 0 12mm;
   color: #111827;
@@ -1016,7 +1026,17 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
     color: #1f2937 !important;
   }
 
-  .dg-report-print-cover .dg-report-cover-wordmark {
+  .dg-report-print-cover .dg-report-cover-image {
+  display: block;
+  width: min(100%, 150mm);
+  max-height: 48mm;
+  margin: 8mm 0 0;
+  object-fit: cover;
+  border-radius: 4mm;
+  border: 1px solid #d6d3d1;
+}
+
+.dg-report-cover-wordmark {
     margin-bottom: 10mm;
     color: #111827 !important;
   }

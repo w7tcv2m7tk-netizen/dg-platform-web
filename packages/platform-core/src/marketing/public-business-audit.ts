@@ -568,6 +568,7 @@ export async function submitPublicBusinessAudit(input: {
           searchVisibility: preview.pillars.searchVisibility,
         },
         businessIntelligence: {
+          brandImageUrl: audit.probes.ogImageUrl || audit.probes.faviconUrl || null,
           publicProfiles: audit.probes.socialProfiles,
           socialAssessment: {
             score: audit.scores.socialPresence ?? null,

@@ -100,6 +100,14 @@ test("music artist model avoids local-service assumptions and recognises booking
   }
 });
 
+
+test("displayed page titles decode HTML entities", async () => {
+  await withMockedFetch(`<!doctype html><html><head><title>Roe &amp; Co &#8211; Realty</title></head><body><h1>Hello</h1></body></html>`, async () => {
+    const result = await runPresenceAudit({ businessName: "Roe", websiteUrl: "https://93.184.216.34/", publicPreview: true });
+    assert.equal(result.probes.title, "Roe & Co – Realty");
+  });
+});
+
 test("metadata after the first 250k characters is still observed", async () => {
   const padding = `<p>${"x".repeat(300_000)}</p>`;
   const lateHead = `<head><title>Late title</title><meta name="description" content="Late description"><meta name="viewport" content="width=device-width"></head>`;

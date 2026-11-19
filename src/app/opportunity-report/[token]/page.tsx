@@ -14,6 +14,7 @@ import {
   resolveReportIndustry,
   type ReportPresentationFinding,
 } from "@dg/platform-core/command-centre/growth-engine/report-presentation";
+import { buildGrowthBlueprint } from "@dg/platform-core/command-centre/growth-engine/growth-blueprint";
 import { prospectReportAccess } from "@/lib/prospect-report-access";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ type SolutionMatch = { capability?: string; opportunity?: string; evidence?: str
 type BusinessIntelligence = {
   identity?: { abn?: string; registeredName?: string; registeredLocation?: string };
   google?: { placeId?: string; rating?: number; reviewCount?: number; category?: string; address?: string; phone?: string; website?: string; mapsUri?: string };
+  brandImageUrl?: string | null;
   publicProfiles?: Record<string, string | undefined>;
   realEstateJourney?: { hasAppraisalCta?: boolean; hasAppraisalForm?: boolean; suburbMentions?: number; acquisitionReadiness?: { score?: number; appraisalPath?: number; localAuthority?: number; reputation?: number; socialPresence?: number; discoverability?: number } };
   socialAssessment?: { score?: number; channelCount?: number; basis?: string; activityStatus?: string; audienceStatus?: string; engagementStatus?: string };
@@ -101,6 +103,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const identity = intelligence.identity || {};
   const google = intelligence.google || {};
   const publicProfiles = intelligence.publicProfiles || {};
+  const brandImageUrl = intelligence.brandImageUrl || null;
   const socialAssessment = intelligence.socialAssessment || {};
   const reputationEvidence = intelligence.reputationEvidence || {};
   const conversionEvidence = intelligence.conversionEvidence || {};
@@ -116,6 +119,9 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const priorities = buildReportPriorities(relevantFindings, pack, audit?.auditedAt ?? null);
   const insights = buildReportInsights(payload.industryInsights, pack);
   const roadmap = buildReportRoadmap(pack, priorities);
+  const blueprint = businessModel.type && businessModel.type !== "general"
+    ? buildGrowthBlueprint({ model: businessModel as Parameters<typeof buildGrowthBlueprint>[0]["model"], priorities })
+    : [];
   const sourceStatus = buildSourceStatus(intelligence.sourceStatus, industry.key);
   const verdict = buildExecutiveVerdict({
     businessHealth: audit?.businessHealth ?? null,
@@ -129,6 +135,17 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const evidenceAgeDays = audit?.auditedAt ? Math.max(0, Math.floor((Date.now() - new Date(audit.auditedAt).getTime()) / 86_400_000)) : null;
   const freshness = evidenceAgeDays == null ? { label: "Freshness not recorded", tone: "slate" } : evidenceAgeDays <= 30 ? { label: `Current evidence · ${evidenceAgeDays} days old`, tone: "emerald" } : evidenceAgeDays <= 90 ? { label: `Review suggested · ${evidenceAgeDays} days old`, tone: "amber" } : { label: `Refresh recommended · ${evidenceAgeDays} days old`, tone: "amber" };
   const strategyUrl = "https://digitalgate.com.au/strategy-session";
+  const discoveryQuestions = businessModel.type === "music_artist"
+    ? ["Which bookings, promoters or venues are the priority for the next 90 days?", "How are booking enquiries currently received and followed up?", "Which releases, mixes or artist profiles best represent the offer?", "What would make a promoter or collaborator confident enough to start a conversation?"]
+    : businessModel.type === "real_estate_agency"
+      ? ["Where do appraisal enquiries come from today and who owns follow-up?", "Which suburbs and seller segments are the highest-value focus?", "How are buyer enquiries qualified and handed to agents?"]
+      : businessModel.type === "accommodation"
+        ? ["Which booking channels are most valuable and how is direct enquiry handled?", "What guest experience or repeat-stay opportunity matters most?", "Where does availability or booking interest currently stall?"]
+        : businessModel.type === "finance"
+          ? ["Which client segments and advice categories are the priority?", "How is trust and suitability evidence presented before a consultation?", "Who owns qualified enquiry follow-up?"]
+          : businessModel.type === "technology_marketing"
+            ? ["Which service, trial or demonstration is the primary commercial offer?", "How are qualified demonstrations and subscriptions measured?", "Where does onboarding or retention lose momentum?"]
+            : ["Where does customer interest currently enter the business?", "Who owns follow-up and what happens next?", "Which commercial outcome should improve first?"];
 
   return (
     <main className="dg-opportunity-report min-h-screen bg-[#05091a] text-slate-100">
@@ -138,6 +155,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         <p className="dg-report-confidential">Private &amp; confidential · {pack.label}</p>
         <h1>{report.prospect.businessName}</h1>
         <p className="dg-report-cover-sub">An evidence-led review of the current digital position, with the three opportunities that matter first.</p>
+        {brandImageUrl ? <img src={brandImageUrl} alt={`${report.prospect.businessName} website brand asset`} className="dg-report-cover-image" /> : null}
         <div className="dg-report-cover-meta"><span><b>Prepared</b>{report.generatedAt.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</span><span><b>Evidence</b>{auditDate}</span><span><b>Industry</b>{pack.label}</span><span><b>Website</b>{report.prospect.websiteUrl ? report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "Not identified"}</span></div>
         <div className="dg-report-cover-score"><span>Business Health</span><strong>{audit?.businessHealth == null ? "Not Assessed" : <>{audit.businessHealth}<small>/100</small></>}</strong></div>
         <div className="dg-report-cover-priorities">{priorities.map((priority, index) => <div key={index}><span>0{index + 1}</span><h2>{priority.title}</h2><p>{priority.action}</p></div>)}</div>
@@ -166,6 +184,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
                 <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">{report.prospect.industry || pack.label} · {report.prospect.location || "Location not recorded"}{report.prospect.websiteUrl ? <> · <a href={report.prospect.websiteUrl} className="text-violet-300 underline decoration-violet-500/40 underline-offset-2" target="_blank" rel="noreferrer">{report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a></> : null}</p>
                 <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">{report.prospect.businessName}</h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">An evidence-led review of the current digital position, with a clear commercial next step.</p>
+                {brandImageUrl ? <figure className="mt-5 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900"><img src={brandImageUrl} alt={`${report.prospect.businessName} public website brand asset`} className="max-h-72 w-full object-cover" loading="eager" /><figcaption className="px-3 py-2 text-[10px] text-slate-500">Public website Open Graph or icon asset. Not a screenshot; brand imagery only.</figcaption></figure> : null}
               </div>
               <div className="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4 text-sm text-violet-100">
                 <p className="text-xs font-semibold uppercase tracking-wide text-violet-300">Snapshot</p>
@@ -222,6 +241,16 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           </div>
           <a href={strategyUrl} className="dg-report-mobile-early-cta mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-violet-500 px-5 text-sm font-semibold text-white md:hidden">Discuss these three priorities</a>
         </section>
+
+        {blueprint.length ? <section id="growth-blueprint" className="dg-report-section mt-10">
+          <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">DigitalGate Growth Blueprint</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">How DigitalGate connects to the observed opportunities</h2>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">Only relevant capabilities are included. Findings are labelled separately from strategic hypotheses; no financial return is promised.</p>
+          <div className="mt-5 space-y-4">{blueprint.map((item, index) => <article key={`${item.capability}-${index}`} className="dg-report-card grid gap-4 rounded-2xl border border-slate-700 bg-slate-900/60 p-5 lg:grid-cols-[0.7fr_1.5fr]">
+            <div><p className="text-xs font-semibold uppercase tracking-wide text-violet-300">0{index + 1} · {item.capability}</p><h3 className="mt-2 text-lg font-semibold text-white">{item.objective}</h3><p className="mt-2 text-xs leading-5 text-slate-500">{item.evidenceType === "verified_finding" ? "Verified finding" : "Strategic hypothesis"} · {item.evidence}</p></div>
+            <div className="grid gap-3 sm:grid-cols-2"><div><p className="text-xs uppercase tracking-wide text-slate-500">Proposed action</p><p className="mt-1 text-sm leading-6 text-slate-200">{item.action}</p></div><div><p className="text-xs uppercase tracking-wide text-slate-500">Intended benefit</p><p className="mt-1 text-sm leading-6 text-slate-200">{item.benefit}</p></div><div className="sm:col-span-2"><p className="text-xs uppercase tracking-wide text-slate-500">Success indicator</p><p className="mt-1 text-sm leading-6 text-violet-200">{item.measure}</p></div></div>
+          </article>)}</div>
+        </section> : null}
 
         <section id="evidence" className="dg-report-section mt-10">
           <div className="flex flex-wrap items-end justify-between gap-3">
@@ -342,7 +371,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
             <div className="dg-report-card rounded-2xl border border-slate-700 bg-slate-900/70 p-5">
               <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Connected footprint</p>
               <h2 className="mt-2 text-xl font-semibold text-white">Public profiles linked by the business</h2>
-              {socialPresenceScore != null ? <p className="mt-2 text-sm text-slate-400">Social channel coverage {socialPresenceScore}/100 · website-linked channel coverage only. Activity, audience and engagement are not assessed.</p> : <p className="mt-2 text-sm text-slate-400">No social channel coverage score was recorded. Channel coverage is not an activity or audience claim.</p>}
+              {socialPresenceScore != null ? <p className="mt-2 text-sm text-slate-400">Social channel coverage {socialPresenceScore}/100 · 20 points per website-linked platform plus 20 for connected integration, capped at 100. Activity, audience and engagement are not assessed.</p> : <p className="mt-2 text-sm text-slate-400">No social channel coverage score was recorded. Channel coverage is not an activity or audience claim.</p>}
               <div className="mt-4 flex flex-wrap gap-2">{Object.entries(publicProfiles).map(([network, url]) => url ? <a key={network} href={url} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm capitalize text-slate-200 transition hover:border-violet-400 hover:text-white" aria-label={`Open ${network} profile linked from the business website`}>{network} · website link ↗</a> : null)}{Object.keys(publicProfiles).length === 0 ? <p className="text-sm text-slate-400">No major social profile links were detected from the homepage.</p> : null}</div>
             </div>
           </div>
@@ -403,7 +432,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
           <p className="text-xs font-semibold uppercase tracking-widest text-violet-400">Strategy Session discovery</p>
           <h2 className="mt-2 text-xl font-semibold text-white">What public evidence cannot tell us</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">These areas require the business&apos;s own context. They are discovery questions for the Strategy Session, not confirmed deficiencies.</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{["CRM ownership and follow-up","Enquiry response and handoff","Automation and internal process","Offline conversion and sales capacity","Customer retention and reactivation","Commercial priorities for the next 90 days"].map((item) => <div key={item} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3 text-sm text-slate-300">{item}</div>)}</div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">{discoveryQuestions.map((item) => <div key={item} className="rounded-lg border border-slate-800 bg-slate-950/40 p-3 text-sm text-slate-300">{item}</div>)}</div>
         </section>
 
         <section id="next-step" className="dg-report-section mt-10 rounded-2xl border border-violet-400/40 bg-gradient-to-br from-violet-500/20 to-slate-900 p-7 sm:p-8">
@@ -413,7 +442,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         </section>
 
         <section className="dg-report-section mt-8 rounded-xl border border-slate-800 bg-slate-950/60 p-5">
-          <h2 className="text-sm font-semibold text-white">Method and limits</h2><p className="mt-2 text-xs leading-5 text-slate-400">This report is based on observable public signals captured by DigitalGate at the time of the audit. Scores are directional rather than guarantees of search rankings, leads or revenue. The composite is weighted only across assessed pillars: website 22%, search 20%, AI readiness 20%, reputation 14%, conversion 14% and growth signals 10%; weights are renormalised if a pillar is unavailable. Pillar coverage and source coverage are reported separately. AI Discoverability Readiness measures observable technical readiness, not actual AI search visibility or ranking. Social channel coverage measures website-linked channels, not activity, audience or engagement. Source status and freshness are shown where recorded; unavailable evidence is not treated as a negative result. Recommendations should be validated against business objectives, systems and the customer journey before implementation. Public share links are capability-protected; staff previews are tenant-scoped.</p>
+          <h2 className="text-sm font-semibold text-white">Method and limits</h2><p className="mt-2 text-xs leading-5 text-slate-400">This report is based on observable public signals captured by DigitalGate at the time of the audit. Scores are directional rather than guarantees of search rankings, leads or revenue. The composite is weighted only across assessed pillars: website 22%, search 20%, AI readiness 20%, reputation 14%, conversion 14% and growth signals 10%; weights are renormalised if a pillar is unavailable. Pillar coverage and source coverage are reported separately. AI Discoverability Readiness measures observable technical readiness, not actual AI search visibility or ranking. Social channel coverage measures website-linked channels, not activity, audience or engagement. Growth Signals combines observed social links, analytics markers, conversion forms and sampled service, pricing or trial pages; it does not represent revenue or demand. Analytics non-detection is limited evidence, not a confirmed absence. Source status and freshness are shown where recorded; unavailable evidence is not treated as a negative result. Recommendations should be validated against business objectives, systems and the customer journey before implementation. Public share links are capability-protected; staff previews are tenant-scoped.</p>
               {assessment.sourceNotes?.length ? <p className="mt-2 text-xs leading-5 text-slate-500">{assessment.sourceNotes.join(" ")}</p> : null}
         </section>
         <footer className="mt-8 border-t border-slate-700 pt-5 text-xs text-slate-500">DigitalGate · AI-powered Business Operating Platform · The Gateway to Your Digital World™</footer>
