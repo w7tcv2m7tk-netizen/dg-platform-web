@@ -1231,7 +1231,7 @@ html.dg-shell-scroll-lock:not([data-theme="light"]) body {
   .dg-premium-report .dg-premium-cover .text-violet-300 { color: #c4b5fd !important; }
   .dg-premium-report .dg-premium-cover .text-violet-200 { color: #ddd6fe !important; }
   .dg-premium-report .dg-premium-cover .text-slate-500 { color: #c9c5d6 !important; }
-  .dg-premium-report .dg-premium-cover details {
+  .dg-premium-report .dg-premium-cover details.rounded-xl.border {
     background: rgba(255,255,255,0.08) !important;
     border-color: rgba(255,255,255,0.18) !important;
     color: #f4efe3 !important;
