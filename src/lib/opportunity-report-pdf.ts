@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
+import { PDFDocument, PDFName, PDFString, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
 import {
   buildExecutiveVerdict,
   buildReportPillars,
@@ -61,6 +61,14 @@ function pill(page: PDFPage, text: string, x: number, y: number, fonts: Fonts, f
   page.drawText(text,{x:x+7,y:y+1,size:7,font:fonts.body,color});
   return w;
 }
+function link(page: PDFPage, doc: PDFDocument, x: number, y: number, width: number, height: number, url: string) {
+  const annotation = doc.context.obj({ Type: "Annot", Subtype: "Link", Rect: [x, y, x + width, y + height], Border: [0,0,0], A: { Type: "Action", S: "URI", URI: PDFString.of(url) } });
+  const existing = page.node.lookup(PDFName.of("Annots"));
+  const arr = existing && "push" in (existing as any) ? existing as any : doc.context.obj([]);
+  arr.push(annotation);
+  page.node.set(PDFName.of("Annots"), arr);
+}
+
 function footer(pages: PDFPage[], fonts: Fonts, logo?: PDFImage) {
   pages.forEach((p,i) => {
     rule(p,27);
@@ -83,7 +91,10 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
   const strengths = Array.isArray(data.strengths) ? data.strengths.filter((x: unknown): x is string => typeof x === "string").slice(0,6) : [];
   const industry = resolveReportIndustry({ industry:prospect.industry, industryPack:clean(data.industryPack), businessModel:model });
   const pillars = buildReportPillars(audit, scorecard);
-  const priorities = buildReportPriorities(findings as any, industry.pack, audit?.auditedAt ?? null);
+  const relevantFindings = model.isLocationBased === false
+    ? findings.filter((finding) => !/\b(?:local|gbp|google maps|google business|maps|suburb|location|localbusiness|local listing)\b/i.test(`${finding.title || ""} ${finding.category || ""}`))
+    : findings;
+  const priorities = buildReportPriorities(relevantFindings as any, industry.pack, audit?.auditedAt ?? null);
   const blueprint = buildGrowthBlueprint({ model:model as any, priorities });
   const roadmap = buildReportRoadmap(industry.pack, priorities);
   const verdict = buildExecutiveVerdict({ businessHealth:audit?.businessHealth ?? null, pillars, priorities, pack:industry.pack, auditedAt:audit?.auditedAt ?? null, hasAudit:Boolean(audit) });
@@ -115,8 +126,11 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
   cover.drawText(audit?.businessHealth == null ? "—" : String(audit.businessHealth),{x:sx-17,y:sy-8,size:26,font:fonts.serifBold,color:SLATE});
   cover.drawText("/100",{x:sx-14,y:sy-21,size:7,font:fonts.body,color:BODY});
   cover.drawText("BUSINESS HEALTH",{x:sx-32,y:sy+52,size:6.5,font:fonts.bold,color:PURPLE});
+  eyebrow(cover,"Inside this report",M,276,fonts);
+  priorities.slice(0,3).forEach((priority: ReportPriority,i:number)=>{ cover.drawText(`0${i+1}`,{x:M,y:256-i*18,size:7,font:fonts.bold,color:GOLD}); cover.drawText(priority.title.slice(0,82),{x:M+20,y:256-i*18,size:8.2,font:fonts.body,color:BODY}); });
   cover.drawRectangle({x:M,y:132,width:155,height:30,color:PURPLE});
   cover.drawText("Book a Strategy Session",{x:M+13,y:142,size:9.5,font:fonts.bold,color:WHITE});
+  link(cover,doc,M,132,155,30,"https://digitalgate.com.au/strategy-session");
   cover.drawText("digitalgate.com.au/strategy-session",{x:M+168,y:142,size:7.5,font:fonts.body,color:PURPLE});
   cover.drawText("Private & confidential",{x:M,y:94,size:7,font:fonts.body,color:BODY});
 
@@ -220,6 +234,7 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
   block(rd,"Turn the evidence into a practical plan with a DigitalGate Strategy Session.",M+16,ry-38,CW-32,fonts.serifBold,13,SLATE,1.25);
   block(rd,"No obligation. The session starts with the verified findings and the business context only you can provide.",M+16,ry-62,CW-32,fonts.body,7.8,BODY,1.35);
   rd.drawText("digitalgate.com.au/strategy-session",{x:M+16,y:ry-84,size:7.5,font:fonts.bold,color:PURPLE});
+  link(rd,doc,M+10,ry-92,180,16,"https://digitalgate.com.au/strategy-session");
 
   // 7. Supporting evidence + method
   let evp = pageStart(doc,fonts,"Supporting evidence","Appendix · findings and methodology");
