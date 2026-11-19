@@ -103,7 +103,6 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
   const identity = intelligence.identity || {};
   const google = intelligence.google || {};
   const publicProfiles = intelligence.publicProfiles || {};
-  const brandImageUrl = intelligence.brandImageUrl || null;
   const socialAssessment = intelligence.socialAssessment || {};
   const reputationEvidence = intelligence.reputationEvidence || {};
   const conversionEvidence = intelligence.conversionEvidence || {};
@@ -155,7 +154,6 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
         <p className="dg-report-confidential">Private &amp; confidential · {pack.label}</p>
         <h1>{report.prospect.businessName}</h1>
         <p className="dg-report-cover-sub">An evidence-led review of the current digital position, with the three opportunities that matter first.</p>
-        {brandImageUrl ? <img src={brandImageUrl} alt={`${report.prospect.businessName} website brand asset`} className="dg-report-cover-image" /> : null}
         <div className="dg-report-cover-meta"><span><b>Prepared</b>{report.generatedAt.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</span><span><b>Evidence</b>{auditDate}</span><span><b>Industry</b>{pack.label}</span><span><b>Website</b>{report.prospect.websiteUrl ? report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "") : "Not identified"}</span></div>
         <div className="dg-report-cover-score"><span>Business Health</span><strong>{audit?.businessHealth == null ? "Not Assessed" : <>{audit.businessHealth}<small>/100</small></>}</strong></div>
         <div className="dg-report-cover-priorities">{priorities.map((priority, index) => <div key={index}><span>0{index + 1}</span><h2>{priority.title}</h2><p>{priority.action}</p></div>)}</div>
@@ -184,7 +182,6 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
                 <p className="mt-3 text-xs uppercase tracking-[0.16em] text-slate-500">{report.prospect.industry || pack.label} · {report.prospect.location || "Location not recorded"}{report.prospect.websiteUrl ? <> · <a href={report.prospect.websiteUrl} className="text-violet-300 underline decoration-violet-500/40 underline-offset-2" target="_blank" rel="noreferrer">{report.prospect.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a></> : null}</p>
                 <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white sm:text-5xl">{report.prospect.businessName}</h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-300">An evidence-led review of the current digital position, with a clear commercial next step.</p>
-                {brandImageUrl ? <figure className="mt-5 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900"><img src={brandImageUrl} alt={`${report.prospect.businessName} public website brand asset`} className="max-h-72 w-full object-cover" loading="eager" /><figcaption className="px-3 py-2 text-[10px] text-slate-500">Public website Open Graph or icon asset. Not a screenshot; brand imagery only.</figcaption></figure> : null}
               </div>
               <div className="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4 text-sm text-violet-100">
                 <p className="text-xs font-semibold uppercase tracking-wide text-violet-300">Snapshot</p>
