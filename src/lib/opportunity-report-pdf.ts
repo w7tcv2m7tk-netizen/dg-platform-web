@@ -171,7 +171,7 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
     rule(op,oy); oy -= 18;
   });
   oy -= 2; eyebrow(op,"Observed strengths",M,oy,fonts); oy -= 18;
-  if (strengths.length) for (const s of strengths.slice(0,5)) { op.drawText("✓",{x:M,y:oy,size:7,font:fonts.bold,color:GOLD}); oy = block(op,s,M+13,oy,CW-13,fonts.body,7.8,BODY,1.3)-7; }
+  if (strengths.length) for (const s of strengths.slice(0,5)) { op.drawText("•",{x:M,y:oy,size:7,font:fonts.bold,color:GOLD}); oy = block(op,s,M+13,oy,CW-13,fonts.body,7.8,BODY,1.3)-7; }
   else block(op,"No strength evidence was recorded in this snapshot.",M,oy,CW,fonts.body,8,BODY,1.3);
 
   // 5. Growth Blueprint
