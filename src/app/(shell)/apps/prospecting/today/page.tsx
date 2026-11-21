@@ -4,6 +4,7 @@ import { acquisitionLifecycle, getDailyOpportunityBriefing } from "@dg/platform-
 
 import { ProspectingTodayActions } from "@/components/prospecting/ProspectingTodayActions";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { dedupeByKey } from "@/lib/prospecting-daily-three";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,7 @@ async function loadPriorities(session: { organisationId: string; clerkUserId: st
     };
   });
 
-  const rows = allRows.slice(0, 3);
+  const rows = dedupeByKey(allRows, (row) => row.prospectId).slice(0, 3);
   const contactRows = rows.filter((row) => !["prospect", "audit_created"].includes(row.stage));
 
   return { briefing, rows, contactRows };

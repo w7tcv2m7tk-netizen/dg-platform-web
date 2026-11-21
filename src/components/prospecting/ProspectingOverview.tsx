@@ -4,6 +4,7 @@ import { getDailyOpportunityBriefing, getGrowthEngineSummary } from "@dg/platfor
 
 import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { buildDailyThreeSummary } from "@/lib/prospecting-daily-three";
 
 export const dynamic = "force-dynamic";
 
@@ -50,9 +51,10 @@ export default async function ProspectingOverview() {
     ).length ?? 0;
   const next = briefing?.rows?.[0] ?? null;
   const nextIsResearch = next?.stage === "prospect" || next?.stage === "audit_created";
-  const dailyTarget = 3;
-  const dailyReady = Math.min(dailyTarget, ready);
-  const dailyRemaining = Math.max(0, dailyTarget - dailyReady);
+  const daily = buildDailyThreeSummary(ready);
+  const dailyTarget = daily.target;
+  const dailyReady = daily.prepared;
+  const dailyRemaining = daily.remaining;
 
   return (
     <>

@@ -7,7 +7,7 @@ const support = readFileSync("packages/platform-core/src/support/ai-reply.ts", "
 
 test("Prospecting overview is the default and exposes a Daily 3 workflow", () => {
   assert.match(overview, /DigitalGate Daily 3/);
-  assert.match(overview, /dailyTarget = 3/);
+  assert.match(overview, /buildDailyThreeSummary\(ready\)/);
   assert.match(overview, /href="\/apps\/prospecting\/today"/);
   assert.match(overview, /Three qualified conversations, every working day/);
 });
