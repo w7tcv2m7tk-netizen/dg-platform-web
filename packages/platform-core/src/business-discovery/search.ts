@@ -17,6 +17,10 @@ import type {
 
 const PROVIDERS: BusinessDataProvider[] = [googlePlacesProvider, abnLookupProvider];
 
+// In-flight only: identical concurrent Places requests share one billable call.
+// Nothing is retained after the request settles, so no Google content is stored.
+const inFlightGoogleSearches = new Map<string, Promise<DiscoveryCandidate[]>>();
+
 function providerStatus(p: BusinessDataProvider): DiscoveryProviderStatus {
   const available = p.isConfigured();
   return {
@@ -173,13 +177,35 @@ export async function searchBusinessDiscovery(
         }
         if (!looksLikeName && placesOk) return [];
       }
+      const runSearch = async () => {
+        try {
+          return await provider.search(ctx);
+        } catch (err) {
+          warnings.push(
+            `${provider.label}: ${err instanceof Error ? err.message : "search failed"}`,
+          );
+          return [] as DiscoveryCandidate[];
+        }
+      };
+
+      if (provider.id !== "google_places") return runSearch();
+
+      const key = JSON.stringify({
+        textQuery: ctx.textQuery,
+        location: ctx.location,
+        radiusKm: ctx.radiusKm,
+        latitude: ctx.latitude,
+        longitude: ctx.longitude,
+        limit: ctx.limit,
+      });
+      const existing = inFlightGoogleSearches.get(key);
+      if (existing) return existing;
+      const pending = runSearch();
+      inFlightGoogleSearches.set(key, pending);
       try {
-        return await provider.search(ctx);
-      } catch (err) {
-        warnings.push(
-          `${provider.label}: ${err instanceof Error ? err.message : "search failed"}`,
-        );
-        return [];
+        return await pending;
+      } finally {
+        inFlightGoogleSearches.delete(key);
       }
     }),
   );

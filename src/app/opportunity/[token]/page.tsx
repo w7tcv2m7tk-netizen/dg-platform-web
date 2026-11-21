@@ -176,7 +176,7 @@ function ScoreBlock({
           emphasis ? "text-sky-300" : "text-white"
         }`}
       >
-        {value ?? "—"}
+        {value == null ? "Not assessed" : value}
       </p>
     </div>
   );

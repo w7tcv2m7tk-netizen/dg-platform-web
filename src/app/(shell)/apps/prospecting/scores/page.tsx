@@ -126,7 +126,7 @@ export default async function ProspectingScoresPage() {
                     <div key={String(label)} className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-3">
                       <dt className="text-xs uppercase tracking-wide text-slate-500">{label}</dt>
                       <dd className="mt-1 text-lg font-semibold text-slate-100">
-                        {typeof value === "number" ? value : "—"}
+                        {typeof value === "number" ? value : "Not assessed"}
                       </dd>
                     </div>
                   ))}

@@ -118,7 +118,7 @@ function ScoreChip({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2">
       <p className="text-[10px] uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-0.5 text-lg font-semibold text-white">{value ?? "—"}</p>
+      <p className="mt-0.5 text-lg font-semibold text-white">{value == null ? "Not assessed" : value}</p>
     </div>
   );
 }

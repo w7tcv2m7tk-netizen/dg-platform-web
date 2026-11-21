@@ -151,7 +151,7 @@ function buildDigitalGateSolutionMatches(
     benefit: "Connect activity to enquiries, pipeline and commercial outcomes rather than isolated marketing metrics.",
     relevance: "medium",
   });
-  if (presence.industryPack === "real_estate") {
+  if (presence.industryPack === "real_estate" && presence.scores.assessment?.status !== "not_assessed") {
     matches.push({
       capability: "Real Estate Industry App",
       opportunity: "Connect appraisal generation, prospecting, CRM follow-up and local market authority into one operating workflow.",
@@ -220,11 +220,16 @@ function googleCandidateMatchesProspect(prospect: { location: string | null; web
 async function enrichProspectBusinessIntelligence(prospect: {
   businessName: string; industry: string | null; location: string | null; websiteUrl: string | null;
 }): Promise<ProspectBusinessIntelligence> {
+  const hasWebsite = Boolean(prospect.websiteUrl?.trim());
   const sourceStatus: ProspectBusinessIntelligence["sourceStatus"] = {
-    website: { status: "analysed" },
+    website: hasWebsite
+      ? { status: "analysed" }
+      : { status: "not_available", note: "No website URL is recorded, so website, SEO and AI-readiness signals could not be measured." },
     businessIdentity: { status: abnLookupProvider.isConfigured() ? "searched" : "unavailable", note: abnLookupProvider.unavailableReason() },
     googleBusinessProfile: { status: googlePlacesProvider.isConfigured() ? "searched" : "unavailable", note: googlePlacesProvider.unavailableReason() },
-    socialProfiles: { status: "website_verified", note: "Public social profiles linked by the business website are captured as first-party public evidence." },
+    socialProfiles: hasWebsite
+      ? { status: "website_verified", note: "Public social profiles linked by the business website are captured as first-party public evidence." }
+      : { status: "not_available", note: "Social profiles cannot be verified without an identified business website." },
     linkedin: { status: "planned", note: "Public LinkedIn evidence requires a compliant public-profile discovery path; customer OAuth data is not used for prospects." },
     industryCredentials: { status: "planned", note: "Licence or registration data will only be shown when verified against an authoritative public register." },
     propertyMarketIntelligence: { status: coreLogicCredentialsConfigured() ? "available" : "unavailable", note: coreLogicCredentialsConfigured() ? "Cotality connector available; locality evidence is verified before market intelligence is attached." : "Cotality connector is not configured." },
@@ -377,19 +382,23 @@ export async function runGrowthProspectAudit(input: {
   const socialChannelCount = Object.values(socialProfiles).filter(Boolean).length;
   // Evidence-safe social score: coverage + website integration only. We do not infer audience,
   // engagement or posting activity without a compliant observable source.
-  const socialPresenceScore = Math.min(100, socialChannelCount * 20 + (socialChannelCount > 0 ? 20 : 0));
+  const socialPresenceScore = presence.scores.socialPresence ?? null;
   const appraisal = presence.probes.appraisalSignals || {};
-  const reputationScore = presence.scores.reputation ?? 0;
+  const reputationScore = presence.scores.reputation;
   const localAuthorityScore = Math.min(100, (appraisal.suburbMentions ?? 0) * 20);
   const appraisalPathScore = (appraisal.hasAppraisalCta ? 50 : 0) + (appraisal.hasAppraisalForm ? 50 : 0);
-  const discoverabilityScore = Math.round(((presence.scores.seo ?? 0) + (presence.scores.aiVisibility ?? 0)) / 2);
-  const acquisitionReadinessScore = Math.round(
-    appraisalPathScore * 0.35 +
-    localAuthorityScore * 0.15 +
-    reputationScore * 0.2 +
-    socialPresenceScore * 0.15 +
-    discoverabilityScore * 0.15,
-  );
+  const discoverabilityScore = presence.scores.seo != null && presence.scores.aiVisibility != null
+    ? Math.round((presence.scores.seo + presence.scores.aiVisibility) / 2)
+    : null;
+  const acquisitionReadinessScore = presence.scores.assessment?.status === "not_assessed"
+    ? null
+    : Math.round(
+        appraisalPathScore * 0.35 +
+        localAuthorityScore * 0.15 +
+        (reputationScore ?? 0) * 0.2 +
+        (socialPresenceScore ?? 0) * 0.15 +
+        (discoverabilityScore ?? 0) * 0.15,
+      );
 
   const audit = await createGrowthProspectAudit({
     prospectId: prospect.id,
@@ -400,6 +409,8 @@ export async function runGrowthProspectAudit(input: {
       strengths: presence.strengths,
       industryInsights: presence.industryInsights,
       industryPack: presence.industryPack,
+      businessModel: presence.businessModel,
+      assessment: presence.scores.assessment,
       scorecard: {
         reputation: presence.scores.reputation ?? null,
         conversionReadiness: presence.scores.conversionReadiness ?? null,

@@ -388,8 +388,8 @@ export async function POST(req: Request) {
         leadCaptured: Boolean(conversation.leadId),
       }),
     });
-  } catch (err) {
-    console.error("[ask-aida]", err instanceof Error ? err.message : "failed");
+  } catch {
+    console.error("[ask-aida] request_failed");
     return NextResponse.json(
       { error: { code: "server_error", message: "Aida is unavailable right now. Please try again." } },
       { status: 500 },

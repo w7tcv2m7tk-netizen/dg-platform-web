@@ -4,6 +4,7 @@ import { acquisitionLifecycle, getDailyOpportunityBriefing } from "@dg/platform-
 
 import { ProspectingTodayActions } from "@/components/prospecting/ProspectingTodayActions";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { dedupeByKey } from "@/lib/prospecting-daily-three";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function ProspectingTodayPage() {
 
   return (
     <>
-      <ProspectingPageHeader title="Today" description="Your three highest-priority relationships, with evidence and the next action." />
+      <ProspectingPageHeader title="Today’s Priorities" description="Your three highest-priority relationships, with evidence and the next action." />
       <main className="dg-page-main space-y-5">
         <a href="/apps/prospecting/overview" className="text-sm text-violet-300">Open Overview →</a>
         <section className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -69,7 +70,7 @@ async function loadPriorities(session: { organisationId: string; clerkUserId: st
     };
   });
 
-  const rows = allRows.slice(0, 3);
+  const rows = dedupeByKey(allRows, (row) => row.prospectId).slice(0, 3);
   const contactRows = rows.filter((row) => !["prospect", "audit_created"].includes(row.stage));
 
   return { briefing, rows, contactRows };
@@ -77,12 +78,12 @@ async function loadPriorities(session: { organisationId: string; clerkUserId: st
 
 function ProspectingUnavailable() {
   return <>
-    <ProspectingPageHeader title="Today" description="Your three highest-priority relationships, with evidence and the next action." />
+    <ProspectingPageHeader title="Today’s Priorities" description="Your three highest-priority relationships, with evidence and the next action." />
     <main className="dg-page-main">
       <section role="alert" className="space-y-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-100">
         <p>Prospecting is temporarily unavailable. DigitalGate has kept unavailable signals out of the workspace rather than estimating them.</p>
         <div className="flex flex-wrap gap-3">
-          <a href="/apps/prospecting" className="inline-flex min-h-11 items-center rounded-lg bg-amber-200 px-4 font-semibold text-slate-950">Try again</a>
+          <a href="/apps/prospecting/today" className="inline-flex min-h-11 items-center rounded-lg bg-amber-200 px-4 font-semibold text-slate-950">Try again</a>
           <a href="/dashboard/advisor" className="inline-flex min-h-11 items-center rounded-lg border border-amber-200/30 px-4 font-semibold text-amber-50">Get help</a>
         </div>
       </section>

@@ -11,7 +11,10 @@ const nextConfig: NextConfig = {
   // Bundle the canonical marketing footer into the "reset footer" route so it
   // can be read at runtime on Vercel (Studio "Reset footer to default").
   outputFileTracingIncludes: {
+    "/**": ["./node_modules/.prisma/client/*.node"],
     "/api/v1/websites/[id]/default-footer": ["./marketing/pages/footer.html"],
+    "/icon": ["./public/brand/dg-icon.png"],
+    "/opportunity-report/[token]/pdf": ["./public/brand/logo-navy-transparent.png"],
   },
   // Dreamscape HTTPS proxy (Fixie/QuotaGuard) uses undici ProxyAgent on Node only.
   serverExternalPackages: ["undici", "imapflow"],

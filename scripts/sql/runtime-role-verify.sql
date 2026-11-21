@@ -79,6 +79,7 @@ INSERT INTO dg_runtime_expected_tables VALUES ('pm_leases', ARRAY['SELECT','INSE
 INSERT INTO dg_runtime_expected_tables VALUES ('pm_maintenance_requests', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('pm_properties', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('properties', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
+INSERT INTO dg_runtime_expected_tables VALUES ('provider_usage', ARRAY['SELECT','INSERT','UPDATE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('service_jobs', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('stay_bookings', ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[], '{}'::jsonb);
 INSERT INTO dg_runtime_expected_tables VALUES ('stripe_webhook_receipts', ARRAY['SELECT','INSERT','UPDATE']::text[], '{}'::jsonb);
