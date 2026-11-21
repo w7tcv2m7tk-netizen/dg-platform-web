@@ -75,7 +75,13 @@ export async function queueSupportAiReply(
   clientEmail: string,
   surfacePath?: string,
 ) {
-  if (!aiEnabled()) return;
+  if (!aiEnabled()) {
+    // Never accept a customer question into silence. Record a clear support
+    // fallback so the client sees a response and human escalation remains possible.
+    try { await appendSupportAiReply(conversationId, triggerMessageId, SUPPORT_AI_UNAVAILABLE_REPLY); }
+    catch { console.error("[support-ai] fallback message unavailable"); }
+    return;
+  }
 
   // Small delay so the client POST returns before Aida appears.
   await new Promise((r) => setTimeout(r, 400));
@@ -213,7 +219,10 @@ ${businessContextPrompt}` : SYSTEM_PROMPT },
     });
 
     const text = sanitizeReply(result.text ?? "");
-    if (!text) return;
+    if (!text) {
+      await appendSupportAiReply(conversationId, triggerMessageId, SUPPORT_AI_UNAVAILABLE_REPLY);
+      return;
+    }
 
     const row = await appendSupportAiReply(conversationId, triggerMessageId, text);
     if (row) void formatSupportMessage(row, clientName);
