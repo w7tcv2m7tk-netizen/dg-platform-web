@@ -280,6 +280,12 @@ export function resolveReportIndustry(input: { industry?: string | null; industr
   return { key, pack: packs[key], canonicalGroup: group ?? INDUSTRY_TAXONOMY.find((candidate) => candidate.name === packs[key].canonicalGroup) };
 }
 
+export function reconcileReportFindings<T extends ReportPresentationFinding>(findings: T[], strengths: string[] = []): T[] {
+  const structuredPresent = strengths.some((strength) => /structured data/i.test(strength))
+    || findings.some((finding) => /structured data present/i.test(finding.title || ""));
+  return findings.filter((finding) => !(structuredPresent && /no structured data/i.test(finding.title || "")));
+}
+
 export function evidenceStatusLabel(status: ReportEvidenceStatus): string {
   return status === "observed" ? "Observed" : status === "confirmed_gap" ? "Confirmed gap" : status === "limited" ? "Limited evidence" : "Unavailable";
 }

@@ -10,6 +10,7 @@ import {
   buildSourceStatus,
   evidenceForFinding,
   evidenceStatusLabel,
+  reconcileReportFindings,
   commercialHeadlineFor,
   resolveReportIndustry,
   type ReportPresentationFinding,
@@ -92,8 +93,8 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
 
   const payload = auditPayload(audit?.findings);
   const rawFindings = findingsFrom(audit?.findings);
-  const findings = normalisedFindings(rawFindings);
   const strengths = Array.isArray(payload.strengths) ? payload.strengths.slice(0, 8) : [];
+  const findings = reconcileReportFindings(normalisedFindings(rawFindings), strengths);
   const scorecard = payload.scorecard && typeof payload.scorecard === "object" ? payload.scorecard : {};
   const assessment = payload.assessment ?? {};
   const businessModel = payload.businessModel ?? {};
@@ -164,7 +165,7 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
 
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-14">
         <div className="dg-report-web-header dg-premium-cover">
-          {access.kind === "preview" ? <p className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">Staff preview — this access does not record prospect engagement.</p> : null}
+          {access.kind === "preview" ? <p className="dg-report-screen-only mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">Staff preview — this access does not record prospect engagement.</p> : null}
           <details className="mb-6 rounded-xl border border-slate-700 bg-slate-900/50 px-4 py-3 text-sm text-slate-300 lg:hidden">
             <summary className="cursor-pointer font-medium text-white">On this page</summary>
             <nav className="mt-3 grid gap-2" aria-label="Report sections">
@@ -473,7 +474,6 @@ export default async function OpportunityReportPage({ params, searchParams }: { 
 
       <div className="dg-report-mobile-cta"><span>Ready to discuss the evidence?</span><a href={strategyUrl}>Book a Strategy Session</a></div>
 
-      {access.kind === "preview" ? <p className="dg-report-print-only">Staff preview — engagement is not recorded.</p> : null}
     </main>
   );
 }

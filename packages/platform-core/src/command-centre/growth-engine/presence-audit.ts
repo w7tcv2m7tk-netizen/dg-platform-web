@@ -367,16 +367,17 @@ export async function runPresenceAudit(
       probes.reachable = true;
       probes.contentAccessible = res.ok || (res.status >= 200 && res.status < 400);
       probes.statusCode = res.status;
-      probes.finalUrl = res.url;
-      probes.https = res.url.startsWith("https://");
+      probes.finalUrl = (res as Response & { dgFinalUrl?: string }).dgFinalUrl || res.url || websiteUrl;
+      probes.https = (probes.finalUrl || "").startsWith("https://");
 
       if (!probes.https) {
         findings.push({
           domain: "identity",
           severity: "warning",
-          title: "Website is not on HTTPS",
-          detail: "The final website URL uses HTTP — browsers and AI crawlers treat this as a trust gap.",
-          recommendedAction: "Recommend SSL before any paid digital work.",
+          title: "Website remained on HTTP after redirects",
+          observed: `Final URL after redirects: ${probes.finalUrl || websiteUrl}`,
+          detail: "The final URL observed by the audit remained HTTP after redirect handling; this is a verified HTTPS deficiency, not an assumption from the source URL alone.",
+          recommendedAction: "Verify the redirect chain and enable HTTPS before paid digital work.",
         });
         websiteHealth -= 15;
       }

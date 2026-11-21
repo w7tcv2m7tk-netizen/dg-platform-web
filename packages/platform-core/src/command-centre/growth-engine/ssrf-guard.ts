@@ -184,10 +184,16 @@ export async function safeExternalFetch(
     const res = await doFetch(currentUrl, { ...init, redirect: "manual" });
 
     const isRedirect = res.status >= 300 && res.status < 400;
-    if (!isRedirect) return res;
+    if (!isRedirect) {
+      try { Object.defineProperty(res, "dgFinalUrl", { value: currentUrl, configurable: true }); } catch { /* response is authoritative when immutable */ }
+      return res;
+    }
 
     const location = res.headers.get("location");
-    if (!location) return res;
+    if (!location) {
+      try { Object.defineProperty(res, "dgFinalUrl", { value: currentUrl, configurable: true }); } catch { /* response is authoritative when immutable */ }
+      return res;
+    }
 
     // Resolve relative redirects against the current URL before re-checking.
     currentUrl = new URL(location, currentUrl).toString();

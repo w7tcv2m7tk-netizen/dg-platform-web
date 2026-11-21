@@ -7,6 +7,7 @@ import {
   buildReportPriorities,
   buildReportRoadmap,
   evidenceForFinding,
+  reconcileReportFindings,
   resolveReportIndustry,
   type ReportPriority,
 } from "@dg/platform-core/command-centre/growth-engine/report-presentation";
@@ -89,15 +90,16 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
   const model = payload(data.businessModel);
   const assessment = payload(data.assessment);
   const strengths = Array.isArray(data.strengths) ? data.strengths.filter((x: unknown): x is string => typeof x === "string").slice(0,6) : [];
+  const cleanFindings = reconcileReportFindings(findings as any, strengths);
   const industry = resolveReportIndustry({ industry:prospect.industry, industryPack:clean(data.industryPack), businessModel:model });
   const pillars = buildReportPillars(audit, scorecard);
-  const relevantFindings = model.isLocationBased === false
-    ? findings.filter((finding) => !/\b(?:local|gbp|google maps|google business|maps|suburb|location|localbusiness|local listing)\b/i.test(`${finding.title || ""} ${finding.category || ""}`))
-    : findings;
+  const relevantFindings = (model.isLocationBased === false ? cleanFindings : findings).filter((finding) => !/\b(?:local|gbp|google maps|google business|maps|suburb|location|localbusiness|local listing)\b/i.test(`${finding.title || ""} ${finding.category || ""}`));
   const priorities = buildReportPriorities(relevantFindings as any, industry.pack, audit?.auditedAt ?? null);
   const blueprint = buildGrowthBlueprint({ model:model as any, priorities });
   const roadmap = buildReportRoadmap(industry.pack, priorities);
   const verdict = buildExecutiveVerdict({ businessHealth:audit?.businessHealth ?? null, pillars, priorities, pack:industry.pack, auditedAt:audit?.auditedAt ?? null, hasAudit:Boolean(audit) });
+  const evidenceAgeDays = audit?.auditedAt ? Math.max(0, Math.floor((Date.now() - new Date(audit.auditedAt).getTime()) / 86_400_000)) : null;
+  const freshnessLabel = evidenceAgeDays == null ? "Evidence date not recorded" : evidenceAgeDays <= 30 ? `Evidence age: ${evidenceAgeDays} days · current` : evidenceAgeDays <= 90 ? `Evidence age: ${evidenceAgeDays} days · refresh recommended` : `Evidence age: ${evidenceAgeDays} days · historical — refresh before a commercial decision`;
 
   const doc = await PDFDocument.create();
   const fonts: Fonts = {
@@ -118,6 +120,7 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
   block(cover,prospect.businessName,M,H-182,CW,fonts.serifBold,nameSize,SLATE,1.08);
   cover.drawText([prospect.industry,prospect.location].filter(Boolean).join(" · ") || industry.pack.label,{x:M,y:H-230,size:8.5,font:fonts.bold,color:PURPLE});
   cover.drawText(`Prepared ${fmt(report.generatedAt)} · Evidence captured ${fmt(audit?.auditedAt)}`,{x:M,y:H-250,size:7.5,font:fonts.body,color:BODY});
+  cover.drawText(freshnessLabel,{x:M,y:H-264,size:7,font:fonts.bold,color:evidenceAgeDays != null && evidenceAgeDays > 90 ? rgb(0.55,0.36,0.05) : PURPLE});
   cover.drawLine({start:{x:M,y:H-278},end:{x:M+165,y:H-278},thickness:1,color:GOLD});
   block(cover,"An evidence-led review of the current digital position, with a clear commercial next step.",M,H-308,CW*0.68,fonts.serif,14,SLATE,1.3);
   const sx = W-M-54, sy = H-245;

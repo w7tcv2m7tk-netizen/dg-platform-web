@@ -56,6 +56,22 @@ test("partial evidence produces a partial assessment without inventing reputatio
   });
 });
 
+
+test("HTTPS deficiency uses the final redirect URL, not the submitted scheme", async () => {
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = async () => { const response = new Response("<html><head><title>HTTP final</title></head><body></body></html>", { status: 200, headers: { "content-type": "text/html" } }); Object.defineProperty(response, "dgFinalUrl", { value: "http://93.184.216.34/landing" }); return response; };
+    const httpFinal = await runPresenceAudit({ businessName: "Redirect", websiteUrl: "https://93.184.216.34/", publicPreview: true });
+    assert.equal(httpFinal.probes.https, false);
+    assert.ok(httpFinal.findings.some((finding) => /remained on HTTP/i.test(finding.title)));
+
+    globalThis.fetch = async () => { const response = new Response("<html><head><title>HTTPS final</title></head><body></body></html>", { status: 200, headers: { "content-type": "text/html" } }); Object.defineProperty(response, "dgFinalUrl", { value: "https://93.184.216.34/landing" }); return response; };
+    const httpsFinal = await runPresenceAudit({ businessName: "Redirect", websiteUrl: "http://93.184.216.34/", publicPreview: true });
+    assert.equal(httpsFinal.probes.https, true);
+    assert.equal(httpsFinal.findings.some((finding) => /remained on HTTP/i.test(finding.title)), false);
+  } finally { globalThis.fetch = original; }
+});
+
 test("genuine observed weaknesses remain scored and are not hidden", async () => {
   await withMockedFetch(html("<p>Generic page without structure</p>"), async () => {
     const result = await runPresenceAudit({ businessName: "Genuine Weakness", websiteUrl: "https://93.184.216.34/", publicPreview: true });

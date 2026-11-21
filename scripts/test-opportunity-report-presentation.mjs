@@ -117,6 +117,17 @@ test("technology and marketing is not downgraded to General Business", () => {
   assert.equal(presentation.resolveReportIndustry({ industry: "Digital Marketing Agency" }).key, "technology_marketing");
 });
 
+
+test("observed structured data suppresses a contradictory missing-schema finding", () => {
+  const reconciled = presentation.reconcileReportFindings([
+    finding({ title: "Structured data present", observed: "JSON-LD observed." }),
+    finding({ title: "No structured data detected", observed: "No structured data detected." }),
+    finding({ title: "No enquiry form detected", observed: "No form observed." }),
+  ], ["Structured data is present"]);
+  assert.equal(reconciled.some((item) => /No structured data/i.test(item.title || "")), false);
+  assert.equal(reconciled.some((item) => /No enquiry form/i.test(item.title || "")), true);
+});
+
 test("positive observations are not promoted as improvement priorities", () => {
   const priorities = presentation.buildReportPriorities([
     finding({ title: "Structured data present", observed: "JSON-LD was observed.", detail: "Valid structured data present.", severity: "opportunity" }),
