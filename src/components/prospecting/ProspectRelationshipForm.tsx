@@ -12,6 +12,7 @@ export function ProspectRelationshipForm({ prospectId, abn, companies, contacts,
   const [companyId, setCompanyId] = useState("");
   const [contactId, setContactId] = useState("");
   const [customerOrganisationId, setCustomerOrganisationId] = useState("");
+  const [researchCta, setResearchCta] = useState(false);
   async function adoptCompanyDetails(suggestion: Suggestion) {
     const changes: Record<string, string> = {};
     if (!prospectWebsite?.trim() && suggestion.website) changes.websiteUrl = suggestion.website;
@@ -37,7 +38,9 @@ export function ProspectRelationshipForm({ prospectId, abn, companies, contacts,
       const result = await response.json();
       if (!response.ok) throw new Error(result.error?.message || "Could not save relationship");
       const adopted = Array.isArray(result.data?.adoptedContactFields) ? result.data.adoptedContactFields.length : 0;
-      setMessage(identity ? "ABN verified through ABR." : adopted ? `Existing relationship linked. Missing contact ${adopted === 1 ? "detail" : "details"} added from the CRM contact.` : "Existing relationship linked."); router.refresh();
+      setMessage(identity ? "ABN verified through ABR. Continue to research when identity is complete." : adopted ? `Existing relationship linked. Missing contact ${adopted === 1 ? "detail" : "details"} added from the CRM contact.` : "Existing relationship linked. Continue to research when identity is complete.");
+      if (!identity) setResearchCta(true);
+      router.refresh();
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not save"); }
     finally { setPending(false); }
   }
@@ -60,5 +63,6 @@ export function ProspectRelationshipForm({ prospectId, abn, companies, contacts,
       <button disabled={pending} className="min-h-11 self-end rounded-lg border border-violet-500 px-3 text-sm text-violet-200">Link selected relationships</button>
     </form>
     {message ? <p role="status" className="text-sm text-slate-300">{message}</p> : null}
+    {researchCta ? <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3 text-sm text-emerald-100"><p className="font-medium">Relationship linked. Next: research this business.</p><p className="mt-1 text-xs leading-5 text-emerald-100/80">The linked CRM contact supplies identity, not public website evidence. Run research to gather observable evidence and create the audit before preparing a report.</p><a href={`/apps/prospecting/prospects/${prospectId}#audit-evidence`} className="mt-2 inline-block text-xs font-semibold text-emerald-200 underline">Continue to research →</a></div> : null}
   </section>;
 }
