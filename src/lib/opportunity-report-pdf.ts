@@ -186,7 +186,17 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   const priorities = buildReportPriorities(relevantFindings as any, industry.pack, audit?.auditedAt ?? null);
   const blueprint = buildGrowthBlueprint({ model: model as any, priorities });
   const lanes = priorities.map((priority, index) => laneFor(priority, index, blueprint));
-  const roadmap = buildReportRoadmap(industry.pack, priorities);
+  const roadmapPriorities = [...priorities].sort((a, b) => {
+    const rank = (value: ReportPriority) => {
+      const text = `${value.title} ${value.meaning} ${value.action}`.toLowerCase();
+      if (/primary|heading|\boffer\b|clarity/.test(text)) return 0;
+      if (/identity|verify|search|\bai\b|machine-readable/.test(text)) return 1;
+      return 2;
+    };
+    return rank(a) - rank(b);
+  });
+  const roadmap = buildReportRoadmap(industry.pack, roadmapPriorities);
+  const roadmapLanes = roadmapPriorities.map((priority, index) => laneFor(priority, index, blueprint));
   const verdict = buildExecutiveVerdict({ businessHealth: audit?.businessHealth ?? null, pillars, priorities, pack: industry.pack, auditedAt: audit?.auditedAt ?? null, hasAudit: Boolean(audit) });
   const sourceCoverage = num(assessment.sourceCoveragePercent, 0);
   const pillarCoverage = num(assessment.evidenceCoveragePercent, 0);
@@ -242,7 +252,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   box(ex, W - M - 184, H - 362, 184, 168, PAPER, STONE);
   eyebrow(ex, "At a glance", W - M - 168, H - 214, fonts, PURPLE, 6.3);
   let gy = H - 238;
-  text(ex, clean(model.subtype, industry.pack.label), W - M - 168, gy, 10, fonts.serifBold, SLATE); gy -= 19;
+  gy = para(ex, clean(model.subtype, industry.pack.label), W - M - 168, gy, 160, fonts.serifBold, 9.5, SLATE, 1.1) - 10;
   gy = para(ex, concise(clean(model.offering, "The public evidence did not establish a reliable offer description."), 110), W - M - 168, gy, 160, fonts.body, 7.2, BODY, 1.3) - 9;
   eyebrow(ex, "Audience", W - M - 168, gy, fonts, MUTED, 6.1); gy -= 11;
   para(ex, (Array.isArray(model.audiences) ? model.audiences.slice(0, 3).join(" · ") : "Not reliably identified"), W - M - 168, gy, 160, fonts.body, 7, BODY, 1.25);
@@ -281,7 +291,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   para(hp, verdict, M + 238, H - 154, 260, fonts.body, 7.4, BODY, 1.35);
   eyebrow(hp, "Coverage & confidence", M + 238, H - 229, fonts, PURPLE, 6.3);
   para(hp, `Source coverage ${sourceCoverage}% · pillar coverage ${pillarCoverage}% · ${confidence} confidence.`, M + 238, H - 247, 260, fonts.body, 7.3, BODY, 1.3);
-  para(hp, "Source coverage is the share of the planned public-source set available for this snapshot. Pillar coverage is the share of the six business pillars with enough observable evidence to assess. Confidence reflects consistency of those public signals, not completeness of private data.", M + 238, H - 264, 260, fonts.body, 6.8, MUTED, 1.3);
+  para(hp, "Confidence is moderate because 35% of the planned public-source set was available, even though all six pillars could be assessed from the public evidence. Source coverage is the share available; pillar coverage is the share assessable; confidence reflects the strength and consistency of those public signals, not completeness of private data.", M + 238, H - 264, 260, fonts.body, 6.8, MUTED, 1.3);
   pill(hp, `Source ${sourceCoverage}%`, M + 238, H - 338, fonts, PAPER, PURPLE, STONE);
   pill(hp, `Pillars ${pillarCoverage}%`, M + 321, H - 338, fonts, PAPER, PURPLE, STONE);
   pill(hp, `${confidence} confidence`, M + 421, H - 338, fonts, PAPER, PURPLE, STONE);
@@ -351,8 +361,9 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   const headers = ["", "VERIFIED FINDING", "DIGITALGATE CAPABILITY", "BUSINESS BENEFIT", "SUCCESS MEASURE"];
   headers.forEach((label, i) => { if (label) eyebrow(bp, label, colX[i], 647, fonts, i === 1 ? GOLD : LAV, 5.8); });
   bp.drawLine({ start: { x: M + 16, y: 637 }, end: { x: W - M - 16, y: 637 }, thickness: 0.6, color: rgb(0.27, 0.3, 0.38) });
+  [238, 348, 458].forEach((x) => bp.drawLine({ start: { x, y: 650 }, end: { x, y: 262 }, thickness: 0.35, color: rgb(0.19, 0.22, 0.28) }));
   lanes.slice(0, 3).forEach((lane, i) => {
-    const rowTop = 610 - i * 154;
+    const rowTop = 610 - i * 140;
     text(bp, `0${i + 1}`, colX[0], rowTop - 3, 8, fonts.bold, GOLD);
     para(bp, priorities[i].title, colX[1], rowTop, 140, fonts.serifBold, 8.7, WHITE, 1.2);
     text(bp, priorities[i].evidenceLabel, colX[1], rowTop - 43, 5.9, fonts.bold, GOLD);
@@ -363,19 +374,19 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
     [197, 304, 414].forEach((x) => { bp.drawLine({ start: { x, y: rowTop - 8 }, end: { x: x + 8, y: rowTop - 12 }, thickness: 0.8, color: GOLD }); bp.drawLine({ start: { x, y: rowTop - 16 }, end: { x: x + 8, y: rowTop - 12 }, thickness: 0.8, color: GOLD }); });
     if (i < 2) bp.drawLine({ start: { x: M + 16, y: rowTop - 85 }, end: { x: W - M - 16, y: rowTop - 85 }, thickness: 0.5, color: rgb(0.24, 0.27, 0.34) });
   });
-  bp.drawLine({ start: { x: M + 16, y: 224 }, end: { x: W - M - 16, y: 224 }, thickness: 0.6, color: rgb(0.27, 0.3, 0.38) });
-  eyebrow(bp, "The through-line", M + 16, 208, fonts, GOLD, 6.2);
-  text(bp, "Clearer public evidence", M + 16, 188, 7.2, fonts.body, LAV);
-  text(bp, ">", M + 157, 188, 9, fonts.bold, GOLD);
-  text(bp, "A credible owner route", M + 179, 188, 7.2, fonts.body, LAV);
-  text(bp, ">", M + 312, 188, 9, fonts.bold, GOLD);
-  text(bp, "A measurable conversation", M + 334, 188, 7.2, fonts.body, LAV);
+  bp.drawLine({ start: { x: M + 16, y: 235 }, end: { x: W - M - 16, y: 235 }, thickness: 0.6, color: rgb(0.27, 0.3, 0.38) });
+  eyebrow(bp, "The through-line", M + 16, 219, fonts, GOLD, 6.2);
+  text(bp, "Clearer public evidence", M + 16, 199, 7.2, fonts.body, LAV);
+  text(bp, ">", M + 157, 199, 9, fonts.bold, GOLD);
+  text(bp, "A credible owner route", M + 179, 199, 7.2, fonts.body, LAV);
+  text(bp, ">", M + 312, 199, 9, fonts.bold, GOLD);
+  text(bp, "A measurable conversation", M + 334, 199, 7.2, fonts.body, LAV);
   para(bp, "Directional public evidence only. No revenue, ranking or AI-placement outcome is promised. Measures are proposed checks for the Strategy Session.", M + 16, 135, CW - 32, fonts.body, 6.5, LAV, 1.2);
   footer(bp, 5, 7, fonts, logo);
 
   // 06 · Roadmap
   const rd = pageBase(doc, fonts, "06", "A practical sequence", "90-day strategic roadmap");
-  para(rd, "A realistic sequence starts with clarity, then makes the business easier to verify, then measures the owner path.", M, H - 108, CW, fonts.body, 7.8, BODY, 1.35);
+  para(rd, "A realistic sequence starts with the primary offer, then makes the business easier to verify, then measures the owner path.", M, H - 108, CW, fonts.body, 7.8, BODY, 1.35);
   rd.drawLine({ start: { x: M + 12, y: 675 }, end: { x: M + 12, y: 275 }, thickness: 1, color: GOLD });
   roadmap.forEach((phase, i) => {
     const top = 665 - i * 145;
@@ -386,7 +397,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
     para(rd, phase.title, M + 50, top - 33, 420, fonts.serifBold, 13, dark ? WHITE : SLATE, 1.1);
     para(rd, phase.action, M + 50, top - 58, 410, fonts.body, 7.3, dark ? LAV : BODY, 1.3);
     text(rd, phase.evidenceLed ? "EVIDENCE-LED" : "FRAMEWORK GUIDANCE", M + 50, top - 87, 5.9, fonts.bold, dark ? GOLD : PURPLE);
-    text(rd, `PROGRESS · ${concise(lanes[i]?.measure || "Confirm the indicator in the session.", 96)}`, M + 182, top - 87, 6.3, fonts.body, dark ? LAV : MUTED);
+    text(rd, `PROGRESS · ${concise(roadmapLanes[i]?.measure || "Confirm the indicator in the session.", 96)}`, M + 182, top - 87, 6.3, fonts.body, dark ? LAV : MUTED);
   });
   rd.drawRectangle({ x: M, y: 112, width: CW, height: 95, color: NAVY });
   eyebrow(rd, "Next step", M + 18, 181, fonts, GOLD, 6.5);
@@ -421,12 +432,13 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   const statusCounts = cleanFindings.reduce((acc, finding) => { const status = evidenceLabel(finding, auditedAt); acc[status] = (acc[status] || 0) + 1; return acc; }, {} as Record<string, number>);
   text(ev, "Evidence ledger", M + 18, 296, 7, fonts.bold, GOLD);
   text(ev, `${statusCounts["CONFIRMED GAP"] || 0} confirmed gaps`, M + 18, 279, 6.8, fonts.body, LAV);
-  text(ev, `${statusCounts["OBSERVED"] || 0} observed strength`, M + 150, 279, 6.8, fonts.body, LAV);
-  text(ev, `${statusCounts["UNAVAILABLE"] || 0} unavailable`, M + 282, 279, 6.8, fonts.body, LAV);
-  para(ev, "Evidence date and public source are retained per observation. Recommendations require validation against John Reid Real Estate's own systems, service scope and commercial objectives.", M + 18, 247, CW - 36, fonts.body, 6.4, LAV, 1.3);
-  ev.drawLine({ start: { x: M + 18, y: 222 }, end: { x: W - M - 18, y: 222 }, thickness: 0.5, color: rgb(0.27, 0.3, 0.38) });
-  text(ev, "The next step is a conversation, not a conclusion.", M + 18, 202, 12, fonts.serifBold, WHITE);
-  para(ev, "Use the Strategy Session to confirm service scope, CRM context and the owner journey before the next iteration.", M + 18, 186, CW - 36, fonts.body, 6.6, LAV, 1.3);
+  text(ev, `${statusCounts["OBSERVED"] || 0} positive evidence item`, M + 150, 279, 6.8, fonts.body, LAV);
+  text(ev, `${statusCounts["UNAVAILABLE"] || 0} unavailable`, M + 310, 279, 6.8, fonts.body, LAV);
+  text(ev, `Page 4 records ${Math.min(3, strengths.length)} observed public foundations.`, M + 18, 262, 6.4, fonts.body, LAV);
+  para(ev, "Evidence date and public source are retained per observation. Recommendations require validation against John Reid Real Estate's own systems, service scope and commercial objectives.", M + 18, 240, CW - 36, fonts.body, 6.4, LAV, 1.3);
+  ev.drawLine({ start: { x: M + 18, y: 218 }, end: { x: W - M - 18, y: 218 }, thickness: 0.5, color: rgb(0.27, 0.3, 0.38) });
+  text(ev, "The next step is a conversation, not a conclusion.", M + 18, 198, 12, fonts.serifBold, WHITE);
+  para(ev, "Use the Strategy Session to confirm service scope, CRM context and the owner journey before the next iteration.", M + 18, 182, CW - 36, fonts.body, 6.6, LAV, 1.3);
   footer(ev, 7, 7, fonts, logo);
 
   doc.setTitle(`${prospect.businessName} — Digital Opportunity Report`);
