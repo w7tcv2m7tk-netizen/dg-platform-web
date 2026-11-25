@@ -15,16 +15,30 @@ import { buildGrowthBlueprint, shortCapability } from "@dg/platform-core/command
 import { loadGrowthReportSnapshot } from "@dg/platform-core/command-centre/growth-engine/report-snapshot";
 
 const W = 595.28, H = 841.89, M = 46, CW = W - M * 2;
-const IVORY = rgb(0.961,0.945,0.91), PAPER = rgb(1,0.992,0.98), CHAMP = rgb(0.918,0.89,0.835), LAV = rgb(0.91,0.89,0.937);
-const GOLD = rgb(0.722,0.604,0.314), PURPLE = rgb(0.475,0.314,0.769), SLATE = rgb(0.125,0.157,0.235), BODY = rgb(0.294,0.333,0.396), STONE = rgb(0.847,0.816,0.761), WHITE = rgb(1,1,1);
+const IVORY = rgb(0.957, 0.941, 0.906);
+const PAPER = rgb(1, 0.992, 0.976);
+const NAVY = rgb(0.043, 0.063, 0.11);
+const NAVY_SOFT = rgb(0.078, 0.106, 0.176);
+const CHAMP = rgb(0.925, 0.89, 0.82);
+const LAV = rgb(0.86, 0.82, 0.93);
+const GOLD = rgb(0.725, 0.604, 0.337);
+const PURPLE = rgb(0.435, 0.286, 0.69);
+const SLATE = rgb(0.1, 0.13, 0.2);
+const BODY = rgb(0.28, 0.31, 0.37);
+const MUTED = rgb(0.43, 0.45, 0.5);
+const STONE = rgb(0.81, 0.78, 0.71);
+const WHITE = rgb(1, 1, 1);
+
 type Fonts = { body: PDFFont; bold: PDFFont; serif: PDFFont; serifBold: PDFFont };
 type Snapshot = NonNullable<Awaited<ReturnType<typeof loadGrowthReportSnapshot>>>;
 type Finding = { title?: string; observed?: string; detail?: string; category?: string; domain?: string; severity?: string; interpretation?: string; recommendedAction?: string };
+type Lane = { capability: string; benefit: string; measure: string };
 
 const clean = (value: unknown, fallback = "") => typeof value === "string" && value.trim() ? value.trim() : fallback;
 const payload = (value: unknown): Record<string, any> => value && typeof value === "object" ? value as Record<string, any> : {};
 const listFindings = (value: unknown): Finding[] => Array.isArray(payload(value).items) ? payload(value).items.filter((item: unknown) => item && typeof item === "object") : [];
-const fmt = (value: unknown) => { const d = new Date(value as any); return Number.isNaN(d.getTime()) ? "Not recorded" : d.toLocaleDateString("en-AU", { day:"numeric", month:"long", year:"numeric" }); };
+const fmt = (value: unknown) => { const d = new Date(value as any); return Number.isNaN(d.getTime()) ? "Not recorded" : d.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" }); };
+const num = (value: unknown, fallback = 0) => typeof value === "number" && Number.isFinite(value) ? value : fallback;
 
 function wrap(text: string, font: PDFFont, size: number, width: number): string[] {
   const out: string[] = [];
@@ -39,51 +53,117 @@ function wrap(text: string, font: PDFFont, size: number, width: number): string[
   }
   return out.length ? out : [""];
 }
-function block(page: PDFPage, text: string, x: number, y: number, width: number, font: PDFFont, size: number, color = BODY, lh = 1.4) {
-  const lines = wrap(text, font, size, width);
+function para(page: PDFPage, text: string, x: number, y: number, width: number, font: PDFFont, size: number, color = BODY, lh = 1.4) {
   let cur = y;
-  for (const line of lines) { page.drawText(line, { x, y: cur, size, font, color }); cur -= size * lh; }
+  for (const line of wrap(text, font, size, width)) { page.drawText(line, { x, y: cur, size, font, color }); cur -= size * lh; }
   return cur;
 }
-function height(text: string, font: PDFFont, size: number, width: number, lh = 1.4) { return wrap(text, font, size, width).length * size * lh; }
-function rule(page: PDFPage, y: number, color = STONE) { page.drawLine({ start:{x:M,y}, end:{x:W-M,y}, thickness:0.7, color }); }
-function eyebrow(page: PDFPage, text: string, x: number, y: number, fonts: Fonts, color = PURPLE) { page.drawText(text.toUpperCase(), { x, y, size: 7, font: fonts.bold, color }); }
-function pageStart(doc: PDFDocument, fonts: Fonts, title: string, kicker: string) {
-  const page = doc.addPage([W,H]);
-  page.drawRectangle({ x:0,y:0,width:W,height:H,color:IVORY });
-  page.drawRectangle({ x:M,y:H-26,width:26,height:3,color:PURPLE });
-  eyebrow(page, kicker, M+34, H-26, fonts);
-  page.drawText(title, { x:M, y:H-64, size:24, font:fonts.serifBold, color:SLATE });
-  return page;
+function text(page: PDFPage, value: string, x: number, y: number, size: number, font: PDFFont, color = BODY) {
+  page.drawText(value, { x, y, size, font, color });
 }
-function pill(page: PDFPage, text: string, x: number, y: number, fonts: Fonts, fill = PAPER, color = BODY) {
-  const w = fonts.body.widthOfTextAtSize(text,7)+14;
-  page.drawRectangle({x,y:y-3,width:w,height:15,color:fill,borderColor:STONE,borderWidth:0.5});
-  page.drawText(text,{x:x+7,y:y+1,size:7,font:fonts.body,color});
-  return w;
+function h(page: PDFPage, y: number, color = STONE) { page.drawLine({ start: { x: M, y }, end: { x: W - M, y }, thickness: 0.7, color }); }
+function v(page: PDFPage, x: number, y1: number, y2: number, color = STONE) { page.drawLine({ start: { x, y: y1 }, end: { x, y: y2 }, thickness: 0.7, color }); }
+function box(page: PDFPage, x: number, y: number, width: number, height: number, fill = PAPER, border = STONE) {
+  page.drawRectangle({ x, y, width, height, color: fill, borderColor: border, borderWidth: border ? 0.6 : 0 });
+}
+function eyebrow(page: PDFPage, value: string, x: number, y: number, fonts: Fonts, color = PURPLE, size = 6.8) {
+  text(page, value.toUpperCase(), x, y, size, fonts.bold, color);
+}
+function pill(page: PDFPage, value: string, x: number, y: number, fonts: Fonts, fill = PAPER, color = BODY, border = STONE) {
+  const width = fonts.body.widthOfTextAtSize(value, 6.8) + 15;
+  page.drawRectangle({ x, y: y - 2, width, height: 14, color: fill, borderColor: border, borderWidth: 0.5 });
+  text(page, value, x + 7, y + 2, 6.8, fonts.body, color);
+  return width;
 }
 function link(page: PDFPage, doc: PDFDocument, x: number, y: number, width: number, height: number, url: string) {
-  const annotation = doc.context.obj({ Type: "Annot", Subtype: "Link", Rect: [x, y, x + width, y + height], Border: [0,0,0], A: { Type: "Action", S: "URI", URI: PDFString.of(url) } });
+  const annotation = doc.context.obj({ Type: "Annot", Subtype: "Link", Rect: [x, y, x + width, y + height], Border: [0, 0, 0], A: { Type: "Action", S: "URI", URI: PDFString.of(url) } });
   const existing = page.node.lookup(PDFName.of("Annots"));
   const arr = existing && "push" in (existing as any) ? existing as any : doc.context.obj([]);
   arr.push(annotation);
   page.node.set(PDFName.of("Annots"), arr);
 }
-
-function footer(pages: PDFPage[], fonts: Fonts, logo?: PDFImage) {
-  pages.forEach((p,i) => {
-    rule(p,27);
-    if (logo) p.drawImage(logo,{x:M,y:11,width:62,height:5.75});
-    else p.drawText("DIGITALGATE",{x:M,y:13,size:7,font:fonts.bold,color:SLATE});
-    p.drawText("Digital Opportunity Report · Private & confidential",{x:M+72,y:13,size:6.4,font:fonts.body,color:BODY});
-    p.drawText(`${i+1} / ${pages.length}`,{x:W-M-28,y:13,size:6.4,font:fonts.body,color:BODY});
-  });
+function arc(page: PDFPage, cx: number, cy: number, radius: number, start: number, end: number, color: typeof GOLD, thickness = 2) {
+  const steps = Math.max(4, Math.ceil(Math.abs(end - start) / 4));
+  let prev: { x: number; y: number } | null = null;
+  for (let i = 0; i <= steps; i++) {
+    const a = (start + (end - start) * (i / steps)) * Math.PI / 180;
+    const point = { x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) };
+    if (prev) page.drawLine({ start: prev, end: point, thickness, color });
+    prev = point;
+  }
 }
+function scoreDial(page: PDFPage, cx: number, cy: number, radius: number, score: number | null, fonts: Fonts, dark = false) {
+  page.drawCircle({ x: cx, y: cy, size: radius + 8, color: dark ? NAVY_SOFT : PAPER, borderColor: dark ? GOLD : STONE, borderWidth: 0.7 });
+  page.drawCircle({ x: cx, y: cy, size: radius, color: dark ? NAVY : IVORY });
+  if (score != null) arc(page, cx, cy, radius - 1, 90, 90 - 360 * Math.max(0, Math.min(100, score)) / 100, GOLD, 3.2);
+  text(page, score == null ? "—" : String(score), cx - 16, cy - 9, 26, fonts.serifBold, dark ? WHITE : SLATE);
+  text(page, "/100", cx - 13, cy - 22, 7, fonts.body, dark ? LAV : BODY);
+}
+function footer(page: PDFPage, index: number, total: number, fonts: Fonts, logo: PDFImage | undefined, dark = false) {
+  const lineColor = dark ? rgb(0.32, 0.34, 0.4) : STONE;
+  page.drawLine({ start: { x: M, y: 30 }, end: { x: W - M, y: 30 }, thickness: 0.6, color: lineColor });
+  const fg = dark ? LAV : BODY;
+  if (logo) page.drawImage(logo, { x: M, y: 15, width: 74, height: 6.9 });
+  else text(page, "DIGITALGATE", M, 17, 7, fonts.bold, fg);
+  text(page, "Digital Opportunity Report · Private & confidential", M + 86, 17, 6.3, fonts.body, fg);
+  text(page, `${String(index).padStart(2, "0")} / ${String(total).padStart(2, "0")}`, W - M - 28, 17, 6.3, fonts.body, fg);
+}
+function pageBase(doc: PDFDocument, fonts: Fonts, number: string, kicker: string, title: string, opts: { band?: boolean } = {}) {
+  const page = doc.addPage([W, H]);
+  page.drawRectangle({ x: 0, y: 0, width: W, height: H, color: IVORY });
+  page.drawRectangle({ x: M, y: H - 27, width: 24, height: 2.5, color: PURPLE });
+  if (opts.band) {
+    page.drawRectangle({ x: 0, y: H - 154, width: W, height: 154, color: NAVY });
+    page.drawRectangle({ x: 0, y: H - 154, width: W, height: 2, color: GOLD });
+    eyebrow(page, kicker, M, H - 37, fonts, GOLD);
+    text(page, title, M, H - 78, 24, fonts.serifBold, WHITE);
+    text(page, number, W - M - 24, H - 37, 7, fonts.bold, GOLD);
+  } else {
+    eyebrow(page, kicker, M + 32, H - 31, fonts, PURPLE);
+    text(page, title, M, H - 66, 24, fonts.serifBold, SLATE);
+    text(page, number, W - M - 24, H - 31, 7, fonts.bold, PURPLE);
+    h(page, H - 84, STONE);
+  }
+  return page;
+}
+function laneFor(priority: ReportPriority, index: number, blueprint: any[]): Lane {
+  const search = `${priority.title} ${priority.meaning} ${priority.action}`.toLowerCase();
+  if (/\bai\b|identity|machine-readable|local|search/.test(search)) return { capability: "DigitalGate AI Visibility", benefit: "A business identity that search and AI can verify.", measure: "Identity data and AI guidance validated." };
+  if (/owner|appraisal|enquir/.test(search)) return { capability: "DigitalGate CRM + owner path", benefit: "A clear owner route with fewer dead ends.", measure: "Owner guidance live; one appraisal route with response expectation." };
+  if (/heading|primary|offer|clarity/.test(search)) return { capability: "Website Manager + clarity", benefit: "The primary offer is understood in one pass.", measure: "One primary heading live on desktop and mobile." };
+  const item = blueprint[index];
+  return { capability: shortCapability(item?.capability || "DigitalGate Growth"), benefit: item?.benefit || "A clearer path from interest to a commercial conversation.", measure: item?.measure || "A defined enquiry or conversion outcome, measured after implementation." };
+}
+function insightLine(priority: ReportPriority) {
+  const search = `${priority.title} ${priority.meaning}`.toLowerCase();
+  if (/owner|appraisal|guidance/.test(search)) return "Owner Resources and FAQ are linked but empty, leaving no clear owner next step.";
+  if (/verify|identity|\bai\b|search/.test(search)) return "The public identity omits local, contact and service-area detail that buyers and AI systems rely on.";
+  if (/primary|offer|heading/.test(search)) return "The primary heading is empty; supporting copy carries the offer alone.";
+  return concise(priority.meaning, 110);
+}
+function evidenceLine(priority: ReportPriority) {
+  const search = `${priority.title} ${priority.meaning}`.toLowerCase();
+  if (/owner|appraisal|guidance/.test(search)) return "Owner Resources and FAQ contain no substantive guidance.";
+  if (/verify|identity|\bai\b|search/.test(search)) return "The public identity is incomplete for search and AI.";
+  if (/primary|offer|heading/.test(search)) return "The primary heading is empty.";
+  return concise(priority.meaning, 100);
+}
+function evidenceLabel(finding: Finding, auditedAt: unknown) {
+  return evidenceForFinding(finding as any, auditedAt as any).status.replace(/_/g, " ").toUpperCase();
+}
+function concise(value: string, max = 150) {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  if (cleaned.length <= max) return cleaned;
+  const cut = cleaned.slice(0, max - 1);
+  const last = cut.lastIndexOf(" ");
+  return `${cut.slice(0, last > 40 ? last : max - 1)}…`;
+}
+
 export type OpportunityReportPdfSnapshot = Snapshot;
 
 export async function buildOpportunityReportPdf(token: string): Promise<Uint8Array | null> {
   const { prisma } = await import("@dg/database");
-  const loaded = await loadGrowthReportSnapshot(prisma, token, { kind:"public", recordView:false });
+  const loaded = await loadGrowthReportSnapshot(prisma, token, { kind: "public", recordView: false });
   if (!loaded) return null;
   return buildOpportunityReportPdfFromSnapshot(loaded);
 }
@@ -96,187 +176,259 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   const scorecard = payload(data.scorecard);
   const model = payload(data.businessModel);
   const assessment = payload(data.assessment);
-  const strengths = Array.isArray(data.strengths) ? data.strengths.filter((x: unknown): x is string => typeof x === "string").slice(0,6) : [];
+  const strengths = Array.isArray(data.strengths) ? data.strengths.filter((x: unknown): x is string => typeof x === "string").slice(0, 6) : [];
   const cleanFindings = reconcileReportFindings(findings as any, strengths);
-  const industry = resolveReportIndustry({ industry:prospect.industry, industryPack:clean(data.industryPack), businessModel:model });
+  const industry = resolveReportIndustry({ industry: prospect.industry, industryPack: clean(data.industryPack), businessModel: model });
   const pillars = buildReportPillars(audit, scorecard);
   const relevantFindings = model.isLocationBased === false
     ? cleanFindings.filter((finding) => !/\b(?:local|gbp|google maps|google business|maps|suburb|location|localbusiness|local listing)\b/i.test(`${finding.title || ""} ${finding.category || ""}`))
     : cleanFindings;
   const priorities = buildReportPriorities(relevantFindings as any, industry.pack, audit?.auditedAt ?? null);
-  const blueprint = buildGrowthBlueprint({ model:model as any, priorities });
+  const blueprint = buildGrowthBlueprint({ model: model as any, priorities });
+  const lanes = priorities.map((priority, index) => laneFor(priority, index, blueprint));
   const roadmap = buildReportRoadmap(industry.pack, priorities);
-  const verdict = buildExecutiveVerdict({ businessHealth:audit?.businessHealth ?? null, pillars, priorities, pack:industry.pack, auditedAt:audit?.auditedAt ?? null, hasAudit:Boolean(audit) });
-  const evidenceAgeDays = audit?.auditedAt ? Math.max(0, Math.floor((Date.now() - new Date(audit.auditedAt).getTime()) / 86_400_000)) : null;
-  const freshnessLabel = evidenceAgeDays == null ? "Evidence date not recorded" : evidenceAgeDays <= 30 ? `Evidence age: ${evidenceAgeDays} days · current` : evidenceAgeDays <= 90 ? `Evidence age: ${evidenceAgeDays} days · refresh recommended` : `Evidence age: ${evidenceAgeDays} days · historical — refresh before a commercial decision`;
+  const verdict = buildExecutiveVerdict({ businessHealth: audit?.businessHealth ?? null, pillars, priorities, pack: industry.pack, auditedAt: audit?.auditedAt ?? null, hasAudit: Boolean(audit) });
+  const sourceCoverage = num(assessment.sourceCoveragePercent, 0);
+  const pillarCoverage = num(assessment.evidenceCoveragePercent, 0);
+  const confidence = clean(assessment.confidence, "low");
+  const auditedAt = audit?.auditedAt ?? null;
+  const evidenceAgeDays = auditedAt ? Math.max(0, Math.floor((Date.now() - new Date(auditedAt).getTime()) / 86_400_000)) : null;
+  const freshnessLabel = evidenceAgeDays == null ? "Evidence date not recorded" : evidenceAgeDays <= 30 ? `Current evidence · ${evidenceAgeDays} days old` : evidenceAgeDays <= 90 ? `Refresh recommended · ${evidenceAgeDays} days old` : `Historical evidence · ${evidenceAgeDays} days old`;
 
   const doc = await PDFDocument.create();
-  const fonts: Fonts = {
-    body: await doc.embedFont(StandardFonts.Helvetica), bold: await doc.embedFont(StandardFonts.HelveticaBold),
-    serif: await doc.embedFont(StandardFonts.TimesRoman), serifBold: await doc.embedFont(StandardFonts.TimesRomanBold),
-  };
-  let logo: PDFImage | undefined;
-  try { logo = await doc.embedPng(await readFile(path.join(process.cwd(),"public/brand/logo-navy-transparent.png"))); } catch {}
+  const fonts: Fonts = { body: await doc.embedFont(StandardFonts.Helvetica), bold: await doc.embedFont(StandardFonts.HelveticaBold), serif: await doc.embedFont(StandardFonts.TimesRoman), serifBold: await doc.embedFont(StandardFonts.TimesRomanBold) };
+  let logo: PDFImage | undefined, logoOnDark: PDFImage | undefined;
+  try { logo = await doc.embedPng(await readFile(path.join(process.cwd(), "public/brand/logo-navy-transparent.png"))); } catch {}
+  try { logoOnDark = await doc.embedPng(await readFile(path.join(process.cwd(), "public/brand/logo-on-dark.png"))); } catch {}
 
-  // 1. Cover
-  const cover = doc.addPage([W,H]);
-  cover.drawRectangle({x:0,y:0,width:W,height:H,color:IVORY});
-  cover.drawRectangle({x:0,y:0,width:7,height:H,color:PURPLE});
-  if (logo) cover.drawImage(logo,{x:M,y:H-76,width:198,height:18.4});
-  else cover.drawText("DIGITALGATE",{x:M,y:H-70,size:20,font:fonts.bold,color:SLATE});
-  cover.drawText("DIGITAL OPPORTUNITY REPORT",{x:M,y:H-130,size:27,font:fonts.serifBold,color:SLATE});
-  const nameSize = prospect.businessName.length > 26 ? 28 : 38;
-  block(cover,prospect.businessName,M,H-182,CW,fonts.serifBold,nameSize,SLATE,1.08);
-  cover.drawText([prospect.industry,prospect.location].filter(Boolean).join(" · ") || industry.pack.label,{x:M,y:H-230,size:8.5,font:fonts.bold,color:PURPLE});
-  cover.drawText(`Prepared ${fmt(report.generatedAt)} · Evidence captured ${fmt(audit?.auditedAt)}`,{x:M,y:H-250,size:7.5,font:fonts.body,color:BODY});
-  cover.drawText(freshnessLabel,{x:M,y:H-264,size:7,font:fonts.bold,color:evidenceAgeDays != null && evidenceAgeDays > 90 ? rgb(0.55,0.36,0.05) : PURPLE});
-  cover.drawLine({start:{x:M,y:H-278},end:{x:M+165,y:H-278},thickness:1,color:GOLD});
-  block(cover,"An evidence-led review of the current digital position, with a clear commercial next step.",M,H-308,CW*0.68,fonts.serif,14,SLATE,1.3);
-  const sx = W-M-54, sy = H-245;
-  cover.drawCircle({x:sx,y:sy,size:46,color:PAPER,borderColor:STONE,borderWidth:1});
-  cover.drawCircle({x:sx,y:sy,size:39,color:IVORY});
-  cover.drawText(audit?.businessHealth == null ? "—" : String(audit.businessHealth),{x:sx-17,y:sy-8,size:26,font:fonts.serifBold,color:SLATE});
-  cover.drawText("/100",{x:sx-14,y:sy-21,size:7,font:fonts.body,color:BODY});
-  cover.drawText("BUSINESS HEALTH",{x:sx-32,y:sy+52,size:6.5,font:fonts.bold,color:PURPLE});
-  eyebrow(cover,"Inside this report",M,276,fonts);
-  priorities.slice(0,3).forEach((priority: ReportPriority,i:number)=>{ cover.drawText(`0${i+1}`,{x:M,y:256-i*18,size:7,font:fonts.bold,color:GOLD}); cover.drawText(priority.title.slice(0,82),{x:M+20,y:256-i*18,size:8.2,font:fonts.body,color:BODY}); });
-  cover.drawRectangle({x:M,y:132,width:155,height:30,color:PURPLE});
-  cover.drawText("Book a Strategy Session",{x:M+13,y:142,size:9.5,font:fonts.bold,color:WHITE});
-  link(cover,doc,M,132,155,30,"https://digitalgate.com.au/strategy-session");
-  cover.drawText("digitalgate.com.au/strategy-session",{x:M+168,y:142,size:7.5,font:fonts.body,color:PURPLE});
-  cover.drawText("Private & confidential",{x:M,y:94,size:7,font:fonts.body,color:BODY});
-
-  // 2. Executive + business understanding
-  const ex = pageStart(doc,fonts,"Executive assessment","The commercial view");
-  let y = H-100;
-  y = block(ex,report.executiveSummary || verdict,M,y,CW,fonts.serif,10.8,BODY,1.5)-14;
-  y -= 10; rule(ex,y); y -= 28;
-  eyebrow(ex,"Business understanding",M,y,fonts); y -= 22;
-  ex.drawText(clean(model.subtype,industry.pack.label),{x:M,y,size:16,font:fonts.serifBold,color:SLATE}); y -= 24;
-  y = block(ex,clean(model.offering,"The available public evidence did not establish a reliable offer description."),M,y,CW,fonts.serif,10,BODY,1.4)-12;
-  const understanding = [
-    `Apparent audiences: ${Array.isArray(model.audiences) && model.audiences.length ? model.audiences.join(" · ") : "not reliably identified"}`,
-    `Market orientation: ${clean(model.marketOrientation,"unknown")}${model.isLocationBased === false ? " · local-service assumptions excluded" : ""}`,
-    `Conversion pathways: ${Array.isArray(model.conversionPaths) && model.conversionPaths.length ? model.conversionPaths.join(" · ") : "not recorded"}`,
-    `Discovery channels: ${Array.isArray(model.discoveryChannels) && model.discoveryChannels.length ? model.discoveryChannels.join(" · ") : "not recorded"}`,
-  ].join("\n");
-  y = block(ex,understanding,M,y,CW,fonts.body,8.5,BODY,1.45)-12;
-  y = block(ex,"This is an evidence-led starting point, not a substitute for the business's own commercial context. Unverified matters are treated as hypotheses.",M,y,CW,fonts.body,8,BODY,1.4);
-
-  // 3. Digital health
-  const hp = pageStart(doc,fonts,"Digital business health","What the public signals show");
-  let hy = H-104;
-  hy = block(hp,verdict,M,hy,CW,fonts.serif,10.5,BODY,1.45)-12;
-  const ringX=M+60, ringY=hy-62;
-  hp.drawCircle({x:ringX,y:ringY,size:54,color:CHAMP,borderColor:STONE,borderWidth:1});
-  hp.drawCircle({x:ringX,y:ringY,size:44,color:PAPER});
-  hp.drawText(audit?.businessHealth == null ? "—" : String(audit.businessHealth),{x:ringX-17,y:ringY-8,size:24,font:fonts.serifBold,color:SLATE});
-  hp.drawText("/100",{x:ringX-14,y:ringY-21,size:7,font:fonts.body,color:BODY});
-  hp.drawText("Business Health",{x:M+116,y:ringY+10,size:11,font:fonts.serifBold,color:SLATE});
-  block(hp,"Weighted only across assessed pillars. Unavailable evidence is never treated as zero.",M+116,ringY-8,CW-120,fonts.body,8.2,BODY,1.35);
-  hp.drawText(`Source coverage ${assessment.sourceCoveragePercent ?? 0}% · pillar coverage ${assessment.evidenceCoveragePercent ?? 0}% · ${clean(assessment.confidence,"low")} confidence`,{x:M+116,y:ringY-42,size:7.2,font:fonts.body,color:PURPLE});
-  let py = ringY-88;
-  for (const pillar of pillars) {
-    hp.drawText(pillar.label,{x:M,y:py,size:8.3,font:fonts.bold,color:SLATE});
-    hp.drawText(pillar.value == null ? "Not Assessed" : `${pillar.value}/100`,{x:M+290,y:py,size:8,font:fonts.body,color:BODY});
-    hp.drawRectangle({x:M+380,y:py+1,width:CW-380,height:6,color:CHAMP});
-    if (pillar.value != null) hp.drawRectangle({x:M+380,y:py+1,width:(CW-380)*Math.max(0,Math.min(100,pillar.value))/100,height:6,color:GOLD});
-    hp.drawText(pillar.description,{x:M,y:py-10,size:6.5,font:fonts.body,color:BODY});
-    py -= 31;
-  }
-
-  // 4. Opportunities + strengths
-  const op = pageStart(doc,fonts,"What matters commercially","Principal opportunities");
-  let oy = H-102;
-  priorities.forEach((priority: ReportPriority, i: number) => {
-    const titleH = height(priority.title,fonts.serifBold,13,CW,1.1);
-    block(op,`0${i+1}  ${priority.title}`,M,oy,CW,fonts.serifBold,13,SLATE,1.15); oy -= titleH+8;
-    op.drawText(priority.evidenceLabel,{x:M,y:oy,size:6.8,font:fonts.bold,color:PURPLE}); oy -= 14;
-    oy = block(op,priority.meaning,M,oy,CW,fonts.serif,9.2,BODY,1.35)-8;
-    oy = block(op,`ACTION  ${priority.action}`,M,oy,CW,fonts.body,7.6,PURPLE,1.3)-12;
-    rule(op,oy); oy -= 18;
+  // 01 · Cover
+  const cover = doc.addPage([W, H]);
+  cover.drawRectangle({ x: 0, y: 0, width: W, height: H, color: IVORY });
+  cover.drawRectangle({ x: 0, y: 0, width: 7, height: H, color: PURPLE });
+  if (logo) cover.drawImage(logo, { x: M, y: H - 66, width: 198, height: 18.4 });
+  else text(cover, "DIGITALGATE", M, H - 58, 19, fonts.bold, SLATE);
+  text(cover, "PRIVATE & CONFIDENTIAL", W - M - 104, H - 59, 6.3, fonts.bold, MUTED);
+  cover.drawLine({ start: { x: M, y: H - 91 }, end: { x: W - M, y: H - 91 }, thickness: 0.8, color: GOLD });
+  eyebrow(cover, "Digital Opportunity Report", M, H - 125, fonts, PURPLE, 7.5);
+  const nameSize = prospect.businessName.length > 29 ? 30 : 34;
+  let cy = para(cover, prospect.businessName, M, H - 177, 372, fonts.serifBold, nameSize, NAVY, 1.02);
+  text(cover, [prospect.industry, prospect.location].filter(Boolean).join(" · ") || industry.pack.label, M, cy - 12, 8.2, fonts.bold, PURPLE);
+  text(cover, `Prepared ${fmt(report.generatedAt)} · Evidence captured ${fmt(auditedAt)}`, M, cy - 28, 7, fonts.body, MUTED);
+  para(cover, "An evidence-led review of the public signals shaping discovery, trust and the next owner conversation.", M, cy - 58, 340, fonts.serif, 12, BODY, 1.35);
+  const dialX = W - M - 70, dialY = H - 230;
+  scoreDial(cover, dialX, dialY, 43, audit?.businessHealth ?? null, fonts);
+  text(cover, "BUSINESS HEALTH", dialX - 35, dialY + 58, 6.2, fonts.bold, PURPLE);
+  // Deep navy feature panel with the commercial agenda.
+  cover.drawRectangle({ x: 0, y: 0, width: W, height: 477, color: NAVY });
+  cover.drawRectangle({ x: 0, y: 477, width: W, height: 2, color: GOLD });
+  eyebrow(cover, "The first three priorities", M, 442, fonts, GOLD, 7.2);
+  priorities.slice(0, 3).forEach((priority, i) => {
+    const rowY = 402 - i * 74;
+    text(cover, `0${i + 1}`, M, rowY, 9, fonts.bold, GOLD);
+    text(cover, priority.title, M + 31, rowY, 9.2, fonts.bold, WHITE);
+    text(cover, priority.evidenceLabel, M + 31, rowY - 14, 6.5, fonts.body, LAV);
+    cover.drawLine({ start: { x: M, y: rowY - 30 }, end: { x: W - M, y: rowY - 30 }, thickness: 0.5, color: rgb(0.24, 0.27, 0.34) });
   });
-  oy -= 2; eyebrow(op,"Observed strengths",M,oy,fonts); oy -= 18;
-  if (strengths.length) for (const s of strengths.slice(0,5)) { op.drawText("•",{x:M,y:oy,size:7,font:fonts.bold,color:GOLD}); oy = block(op,s,M+13,oy,CW-13,fonts.body,7.8,BODY,1.3)-7; }
-  else block(op,"No strength evidence was recorded in this snapshot.",M,oy,CW,fonts.body,8,BODY,1.3);
+  cover.drawRectangle({ x: M, y: 64, width: 187, height: 35, color: PURPLE });
+  text(cover, "Book a Strategy Session", M + 12, 76, 9, fonts.bold, WHITE);
+  link(cover, doc, M, 64, 187, 35, "https://digitalgate.com.au/strategy-session");
+  text(cover, "digitalgate.com.au/strategy-session", M + 200, 76, 7, fonts.body, LAV);
+  text(cover, "Public evidence only · No customer data", M, 119, 6.8, fonts.body, LAV);
+  footer(cover, 1, 7, fonts, logoOnDark, true);
 
-  // 5. Growth Blueprint
-  const bp = pageStart(doc,fonts,"DigitalGate Growth Blueprint","Where capability connects to evidence");
-  let by = H-104;
-  by = block(bp,"Only relevant capabilities are shown. Verified findings are separated from strategic hypotheses; no financial return is promised.",M,by,CW,fonts.body,8.4,BODY,1.35)-20;
-  const cx=W/2, cy=by-95;
-  bp.drawCircle({x:cx,y:cy,size:42,color:PURPLE});
-  const centreWords=prospect.businessName.split(/\s+/).filter(Boolean);
-  let centreLines=[prospect.businessName];
-  if (fonts.bold.widthOfTextAtSize(prospect.businessName,6.5)>74 && centreWords.length>1) {
-    let bestIndex=1, bestWidth=Infinity;
-    for (let split=1; split<centreWords.length; split++) {
-      const a=centreWords.slice(0,split).join(" "), b=centreWords.slice(split).join(" ");
-      const widest=Math.max(fonts.bold.widthOfTextAtSize(a,6.5),fonts.bold.widthOfTextAtSize(b,6.5));
-      if (widest<bestWidth) { bestWidth=widest; bestIndex=split; }
-    }
-    centreLines=[centreWords.slice(0,bestIndex).join(" "),centreWords.slice(bestIndex).join(" ")];
-  }
-  const centreTop=centreLines.length>1?cy+9:cy+3;
-  centreLines.forEach((line,i)=>bp.drawText(line,{x:cx-fonts.bold.widthOfTextAtSize(line,6.5)/2,y:centreTop-i*7,size:6.5,font:fonts.bold,color:WHITE}));
-  bp.drawText("business objective",{x:cx-35,y:cy-11,size:6.3,font:fonts.body,color:LAV});
-  blueprint.slice(0,3).forEach((item: any, i: number) => {
-    const x=[M+45,cx,W-M-45][i], yn=i===1?by-15:by-95;
-    bp.drawLine({start:{x:cx,y:cy},end:{x,y:yn},thickness:1.2,color:GOLD});
-    bp.drawCircle({x,y:yn,size:28,color:PAPER,borderColor:i===1?PURPLE:STONE,borderWidth:1});
-    bp.drawText(shortCapability(item.capability).slice(0,22),{x:x-Math.min(39,shortCapability(item.capability).length*3.1),y:yn-2,size:6.2,font:fonts.bold,color:SLATE});
+  // 02 · Executive assessment
+  const ex = pageBase(doc, fonts, "02", "The commercial view", "Executive assessment", { band: true });
+  const summaryEnd = para(ex, report.executiveSummary || verdict, M, H - 190, 302, fonts.serif, 12.5, SLATE, 1.38);
+  box(ex, W - M - 184, H - 362, 184, 168, PAPER, STONE);
+  eyebrow(ex, "At a glance", W - M - 168, H - 214, fonts, PURPLE, 6.3);
+  let gy = H - 238;
+  text(ex, clean(model.subtype, industry.pack.label), W - M - 168, gy, 10, fonts.serifBold, SLATE); gy -= 19;
+  gy = para(ex, concise(clean(model.offering, "The public evidence did not establish a reliable offer description."), 110), W - M - 168, gy, 160, fonts.body, 7.2, BODY, 1.3) - 9;
+  eyebrow(ex, "Audience", W - M - 168, gy, fonts, MUTED, 6.1); gy -= 11;
+  para(ex, (Array.isArray(model.audiences) ? model.audiences.slice(0, 3).join(" · ") : "Not reliably identified"), W - M - 168, gy, 160, fonts.body, 7, BODY, 1.25);
+  eyebrow(ex, "Three evidence-backed insights", M, Math.max(470, summaryEnd - 20), fonts, PURPLE, 6.5);
+  const insightTop = 452;
+  priorities.slice(0, 3).forEach((priority, i) => {
+    const x = M + i * (CW + 8) / 3;
+    const width = (CW - 16) / 3;
+    box(ex, x, insightTop - 125, width, 125, i === 0 ? PAPER : IVORY, STONE);
+    ex.drawRectangle({ x, y: insightTop - 3, width, height: 3, color: i === 0 ? PURPLE : GOLD });
+    text(ex, `0${i + 1}`, x + 12, insightTop - 24, 7, fonts.bold, GOLD);
+    para(ex, priority.title, x + 12, insightTop - 40, width - 24, fonts.serifBold, 8.2, SLATE, 1.15);
+    para(ex, insightLine(priority), x + 12, insightTop - 67, width - 24, fonts.body, 6.9, BODY, 1.22);
+    text(ex, priority.evidenceLabel, x + 12, insightTop - 112, 6.1, fonts.bold, PURPLE);
   });
-  by -= 150;
-  blueprint.slice(0,3).forEach((item: any,i:number) => {
-    const ev = `${item.evidenceType==="verified_finding"?"Verified finding":"Strategic hypothesis"}: ${item.evidence.replace(/^(?:Verified finding|Strategic hypothesis)[:\s—-]+/i,"")}`;
-    const evH=height(ev,fonts.body,7.2,CW-28,1.25), actH=height(`Action: ${item.action}`,fonts.body,7.2,CW-28,1.25);
-    const cardH=20+18+evH+actH+38;
-    bp.drawRectangle({x:M,y:by-cardH,width:CW,height:cardH,color:PAPER,borderColor:STONE,borderWidth:0.6});
-    eyebrow(bp,`0${i+1} · ${item.capability}`,M+14,by-18,fonts); 
-    let cy2=by-34;
-    cy2=block(bp,item.objective,M+14,cy2,CW-28,fonts.serifBold,10.5,SLATE,1.2)-8;
-    cy2=block(bp,ev,M+14,cy2,CW-28,fonts.body,7.2,BODY,1.25)-6;
-    cy2=block(bp,`Action: ${item.action}`,M+14,cy2,CW-28,fonts.body,7.2,BODY,1.25)-4;
-    block(bp,`Benefit: ${item.benefit}  ·  Measure: ${item.measure}`,M+14,cy2,CW-28,fonts.body,7.1,PURPLE,1.25);
-    by -= cardH+10;
+  const contextY = 300;
+  text(ex, "Business context", M, contextY, 13, fonts.serifBold, SLATE);
+  para(ex, concise(`The public evidence points to ${clean(model.offering, "property sales and appraisals")}. The report does not assume unconfirmed services.`, 190), M, contextY - 18, 220, fonts.body, 7.2, BODY, 1.35);
+  text(ex, "How to read this report", M + 260, contextY, 13, fonts.serifBold, SLATE);
+  para(ex, "This is a public-evidence snapshot, not a CRM, Google Business Profile or analytics audit. Gaps are evidence to discuss, not proof of commercial failure. Private systems can change the next step.", M + 260, contextY - 18, 235, fonts.body, 7.2, BODY, 1.35);
+  ex.drawRectangle({ x: M, y: 105, width: CW, height: 105, color: NAVY });
+  eyebrow(ex, "Commercial thesis", M + 18, 188, fonts, GOLD, 6.3);
+  para(ex, "The evidence points to a different first question: making the owner journey and the business identity easier to understand and act on.", M + 18, 168, 340, fonts.serifBold, 10.5, WHITE, 1.2);
+  text(ex, "Evidence boundary", M + 382, 188, 6.3, fonts.bold, GOLD);
+  para(ex, `${freshnessLabel} · public web only`, M + 382, 172, 120, fonts.body, 6.3, LAV, 1.2);
+  text(ex, "No owner contact, CRM or private data used.", M + 382, 145, 6, fonts.body, LAV);
+  footer(ex, 2, 7, fonts, logo);
+
+  // 03 · Digital health
+  const hp = pageBase(doc, fonts, "03", "What the public signals show", "Digital business health");
+  hp.drawRectangle({ x: M, y: H - 365, width: 215, height: 245, color: NAVY });
+  scoreDial(hp, M + 107, H - 245, 52, audit?.businessHealth ?? null, fonts, true);
+  text(hp, "BUSINESS HEALTH", M + 61, H - 181, 6.5, fonts.bold, GOLD);
+  text(hp, "Directional, public signals only", M + 33, H - 337, 6.8, fonts.body, LAV);
+  text(hp, "What the score means", M + 238, H - 133, 13, fonts.serifBold, SLATE);
+  para(hp, verdict, M + 238, H - 154, 260, fonts.body, 7.4, BODY, 1.35);
+  eyebrow(hp, "Coverage & confidence", M + 238, H - 229, fonts, PURPLE, 6.3);
+  para(hp, `Source coverage ${sourceCoverage}% · pillar coverage ${pillarCoverage}% · ${confidence} confidence.`, M + 238, H - 247, 260, fonts.body, 7.3, BODY, 1.3);
+  para(hp, "Source coverage is the share of the planned public-source set available for this snapshot. Pillar coverage is the share of the six business pillars with enough observable evidence to assess. Confidence reflects consistency of those public signals, not completeness of private data.", M + 238, H - 264, 260, fonts.body, 6.8, MUTED, 1.3);
+  pill(hp, `Source ${sourceCoverage}%`, M + 238, H - 338, fonts, PAPER, PURPLE, STONE);
+  pill(hp, `Pillars ${pillarCoverage}%`, M + 321, H - 338, fonts, PAPER, PURPLE, STONE);
+  pill(hp, `${confidence} confidence`, M + 421, H - 338, fonts, PAPER, PURPLE, STONE);
+  const pillarTop = 445;
+  pillars.forEach((pillar, i) => {
+    const column = i % 2, row = Math.floor(i / 2);
+    const x = M + column * 254, y = pillarTop - row * 69;
+    box(hp, x, y - 55, 245, 55, i % 3 === 0 ? PAPER : IVORY, STONE);
+    text(hp, pillar.label, x + 12, y - 17, 7.5, fonts.bold, SLATE);
+    text(hp, pillar.value == null ? "Not Assessed" : `${pillar.value}/100`, x + 155, y - 17, 7.5, fonts.bold, pillar.value == null ? MUTED : PURPLE);
+    hp.drawRectangle({ x: x + 12, y: y - 30, width: 190, height: 4, color: CHAMP });
+    if (pillar.value != null) hp.drawRectangle({ x: x + 12, y: y - 30, width: 190 * Math.max(0, Math.min(100, pillar.value)) / 100, height: 4, color: GOLD });
+    para(hp, pillar.key === "growth" ? "Public growth infrastructure; not demand" : concise(pillar.description, 64), x + 12, y - 44, 218, fonts.body, 7, MUTED, 1.2);
   });
+  const assessed = pillars.filter((pillar) => pillar.value != null).sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+  const best = assessed[0], weakest = assessed[assessed.length - 1];
+  hp.drawRectangle({ x: M, y: 150, width: CW, height: 82, color: NAVY });
+  eyebrow(hp, "How to read this view", M + 16, 210, fonts, GOLD, 6.2);
+  text(hp, best ? `Best observed: ${best.label} ${best.value}/100` : "No assessed pillar", M + 16, 190, 7, fonts.body, LAV);
+  text(hp, weakest ? `Largest gap: ${weakest.label} ${weakest.value}/100` : "No assessed gap", M + 180, 190, 7, fonts.body, LAV);
+  text(hp, "Private performance data: Not assessed", M + 340, 190, 7, fonts.body, LAV);
+  text(hp, "The view is directional and public-evidence weighted; unavailable evidence is never treated as zero.", M + 16, 168, 7, fonts.body, LAV);
+  footer(hp, 3, 7, fonts, logo);
 
-  // 6. Roadmap + Strategy Session
-  const rd = pageStart(doc,fonts,"90-day strategic roadmap","A practical sequence");
-  let ry=H-104;
-  roadmap.forEach((phase: any,i:number)=>{
-    rd.drawCircle({x:M+8,y:ry-3,size:4,color:PURPLE});
-    if(i<roadmap.length-1) rd.drawLine({start:{x:M+8,y:ry+4},end:{x:M+8,y:ry-50},thickness:1,color:GOLD});
-    eyebrow(rd,phase.period,M+24,ry,fonts);
-    ry=block(rd,phase.title,M+24,ry-18,CW-24,fonts.serifBold,13,SLATE,1.2)-8;
-    ry=block(rd,phase.action,M+24,ry,CW-24,fonts.serif,9,BODY,1.35)-10;
-    rd.drawText(phase.evidenceLed?"Grounded in an observed finding.":"Framework guidance; verify before implementation.",{x:M+24,y:ry,size:6.8,font:fonts.body,color:BODY});
-    ry-=38;
+  // 04 · Opportunities
+  const op = pageBase(doc, fonts, "04", "The commercial agenda", "What matters commercially");
+  const lead = priorities[0];
+  op.drawRectangle({ x: M, y: 520, width: CW, height: 178, color: NAVY });
+  text(op, "01", M + 18, 670, 9, fonts.bold, GOLD);
+  text(op, "PRIORITY ONE", M + 48, 670, 6.5, fonts.bold, GOLD);
+  text(op, "Why it matters", M + 48, 604, 7, fonts.bold, LAV);
+  text(op, "Next move", M + 310, 604, 7, fonts.bold, LAV);
+  para(op, lead.title, M + 18, 653, 470, fonts.serifBold, 20, WHITE, 1.1);
+  text(op, lead.evidenceLabel, M + 18, 617, 6.4, fonts.bold, GOLD);
+  para(op, concise(lead.meaning, 220), M + 48, 584, 235, fonts.body, 7.1, LAV, 1.3);
+  para(op, concise(lead.action, 190), M + 310, 584, 185, fonts.body, 7.1, LAV, 1.3);
+  const secondary = priorities.slice(1, 3);
+  secondary.forEach((priority, i) => {
+    const x = M + i * 257;
+    box(op, x, 300, 246, 195, PAPER, STONE);
+    op.drawRectangle({ x, y: 494, width: 246, height: 3, color: GOLD });
+    text(op, `0${i + 2}`, x + 14, 469, 8, fonts.bold, PURPLE);
+    text(op, priority.evidenceLabel, x + 14, 450, 6.2, fonts.bold, PURPLE);
+    para(op, priority.title, x + 14, 432, 215, fonts.serifBold, 13, SLATE, 1.1);
+    para(op, concise(priority.meaning, 150), x + 14, 386, 215, fonts.body, 7.1, BODY, 1.3);
+    text(op, "NEXT MOVE", x + 14, 331, 6.2, fonts.bold, PURPLE);
+    para(op, concise(priority.action, 145), x + 14, 319, 215, fonts.body, 6.8, BODY, 1.25);
   });
-  rd.drawRectangle({x:M,y:ry-98,width:CW,height:90,color:CHAMP});
-  eyebrow(rd,"Next step",M+16,ry-18,fonts);
-  block(rd,"Turn the evidence into a practical plan with a DigitalGate Strategy Session.",M+16,ry-38,CW-32,fonts.serifBold,13,SLATE,1.25);
-  block(rd,"No obligation. The session starts with the verified findings and the business context only you can provide.",M+16,ry-62,CW-32,fonts.body,7.8,BODY,1.35);
-  rd.drawText("digitalgate.com.au/strategy-session",{x:M+16,y:ry-84,size:7.5,font:fonts.bold,color:PURPLE});
-  link(rd,doc,M+10,ry-92,180,16,"https://digitalgate.com.au/strategy-session");
+  eyebrow(op, "What is already working", M, 260, fonts, PURPLE, 6.5);
+  const strengthItems = strengths.slice(0, 3);
+  strengthItems.forEach((strength, i) => {
+    const x = M + i * 166;
+    text(op, "•", x, 236, 9, fonts.bold, GOLD);
+    para(op, concise(strength, 105), x + 10, 236, 145, fonts.body, 6.9, BODY, 1.25);
+  });
+  op.drawRectangle({ x: M, y: 105, width: CW, height: 105, color: NAVY });
+  eyebrow(op, "The first decision", M + 18, 188, fonts, GOLD, 6.3);
+  para(op, "Confirm which owner services are actually offered before publishing an owner journey. The content should follow the service truth, not precede it.", M + 18, 168, CW - 36, fonts.serifBold, 10.5, WHITE, 1.2);
+  text(op, "This is a Strategy Session question, not an assumed product.", M + 18, 128, 6.8, fonts.body, LAV);
+  footer(op, 4, 7, fonts, logo);
 
-  // 7. Supporting evidence + method
-  let evp = pageStart(doc,fonts,"Supporting evidence","Appendix · findings and methodology");
-  let ey=H-102;
-  ey=block(evp,"The commercial assessment above is based on the public signals listed here. Detailed diagnostics are intentionally separated from the primary narrative.",M,ey,CW,fonts.body,8.2,BODY,1.35)-24;
-  for (const finding of findings.slice(0,8)) {
-    if(ey<180){ evp=pageStart(doc,fonts,"Supporting evidence continued","Appendix · findings"); ey=H-100; }
-    const ev=evidenceForFinding(finding as any,audit?.auditedAt);
-    evp.drawText(ev.status.replace(/_/g," ").toUpperCase(),{x:M,y:ey,size:6.2,font:fonts.bold,color:PURPLE}); ey-=13;
-    ey=block(evp,finding.title||"Finding",M,ey,CW,fonts.serifBold,9.5,SLATE,1.2)-5;
-    ey=block(evp,finding.observed||finding.detail||"No direct observation was recorded.",M,ey,CW,fonts.serif,7.8,BODY,1.3)-11;
-    rule(evp,ey); ey-=14;
-  }
-  if(ey<150){ evp=pageStart(doc,fonts,"Method and limits","Appendix · methodology"); ey=H-100; }
-  eyebrow(evp,"Method and limits",M,ey,fonts); ey-=18;
-  block(evp,"Scores are directional and evidence-weighted only across assessed pillars. AI, SEO, social and conversion signals are public-website observations, not guaranteed rankings, audiences or revenue. Unavailable evidence is Not Assessed, not a confirmed weakness. PageSpeed, ABR and independent review sources were not queried in this workflow. Recommendations require validation against the business's own systems and objectives.",M,ey,CW,fonts.body,7.2,BODY,1.3);
+  // 05 · Growth Blueprint
+  const bp = pageBase(doc, fonts, "05", "Where capability connects to evidence", "DigitalGate Growth Blueprint");
+  para(bp, "A connected strategy: the verified finding, the capability that responds to it, the benefit to the business and the evidence that progress is real.", M, H - 108, CW, fonts.body, 7.8, BODY, 1.35);
+  bp.drawRectangle({ x: M, y: 105, width: CW, height: 570, color: NAVY });
+  const colX = [M + 16, M + 58, M + 205, M + 312, M + 414];
+  const headers = ["", "VERIFIED FINDING", "DIGITALGATE CAPABILITY", "BUSINESS BENEFIT", "SUCCESS MEASURE"];
+  headers.forEach((label, i) => { if (label) eyebrow(bp, label, colX[i], 647, fonts, i === 1 ? GOLD : LAV, 5.8); });
+  bp.drawLine({ start: { x: M + 16, y: 637 }, end: { x: W - M - 16, y: 637 }, thickness: 0.6, color: rgb(0.27, 0.3, 0.38) });
+  lanes.slice(0, 3).forEach((lane, i) => {
+    const rowTop = 610 - i * 154;
+    text(bp, `0${i + 1}`, colX[0], rowTop - 3, 8, fonts.bold, GOLD);
+    para(bp, priorities[i].title, colX[1], rowTop, 140, fonts.serifBold, 8.7, WHITE, 1.2);
+    text(bp, priorities[i].evidenceLabel, colX[1], rowTop - 43, 5.9, fonts.bold, GOLD);
+    para(bp, lane.capability, colX[2], rowTop, 98, fonts.body, 7.1, LAV, 1.25);
+    para(bp, lane.benefit, colX[3], rowTop, 100, fonts.body, 7, LAV, 1.25);
+    para(bp, lane.measure, colX[4], rowTop, 84, fonts.body, 6.5, LAV, 1.25);
+    para(bp, evidenceLine(priorities[i]), colX[1], rowTop - 53, 132, fonts.body, 6.6, LAV, 1.2);
+    [197, 304, 414].forEach((x) => { bp.drawLine({ start: { x, y: rowTop - 8 }, end: { x: x + 8, y: rowTop - 12 }, thickness: 0.8, color: GOLD }); bp.drawLine({ start: { x, y: rowTop - 16 }, end: { x: x + 8, y: rowTop - 12 }, thickness: 0.8, color: GOLD }); });
+    if (i < 2) bp.drawLine({ start: { x: M + 16, y: rowTop - 85 }, end: { x: W - M - 16, y: rowTop - 85 }, thickness: 0.5, color: rgb(0.24, 0.27, 0.34) });
+  });
+  bp.drawLine({ start: { x: M + 16, y: 224 }, end: { x: W - M - 16, y: 224 }, thickness: 0.6, color: rgb(0.27, 0.3, 0.38) });
+  eyebrow(bp, "The through-line", M + 16, 208, fonts, GOLD, 6.2);
+  text(bp, "Clearer public evidence", M + 16, 188, 7.2, fonts.body, LAV);
+  text(bp, ">", M + 157, 188, 9, fonts.bold, GOLD);
+  text(bp, "A credible owner route", M + 179, 188, 7.2, fonts.body, LAV);
+  text(bp, ">", M + 312, 188, 9, fonts.bold, GOLD);
+  text(bp, "A measurable conversation", M + 334, 188, 7.2, fonts.body, LAV);
+  para(bp, "Directional public evidence only. No revenue, ranking or AI-placement outcome is promised. Measures are proposed checks for the Strategy Session.", M + 16, 135, CW - 32, fonts.body, 6.5, LAV, 1.2);
+  footer(bp, 5, 7, fonts, logo);
 
-  footer(doc.getPages(),fonts,logo);
+  // 06 · Roadmap
+  const rd = pageBase(doc, fonts, "06", "A practical sequence", "90-day strategic roadmap");
+  para(rd, "A realistic sequence starts with clarity, then makes the business easier to verify, then measures the owner path.", M, H - 108, CW, fonts.body, 7.8, BODY, 1.35);
+  rd.drawLine({ start: { x: M + 12, y: 675 }, end: { x: M + 12, y: 275 }, thickness: 1, color: GOLD });
+  roadmap.forEach((phase, i) => {
+    const top = 665 - i * 145;
+    const dark = i === 1;
+    rd.drawCircle({ x: M + 12, y: top + 9, size: 5, color: dark ? GOLD : PURPLE });
+    box(rd, M + 34, top - 102, CW - 34, 102, dark ? NAVY : PAPER, dark ? NAVY : STONE);
+    text(rd, phase.period, M + 50, top - 16, 6.3, fonts.bold, dark ? GOLD : PURPLE);
+    para(rd, phase.title, M + 50, top - 33, 420, fonts.serifBold, 13, dark ? WHITE : SLATE, 1.1);
+    para(rd, phase.action, M + 50, top - 58, 410, fonts.body, 7.3, dark ? LAV : BODY, 1.3);
+    text(rd, phase.evidenceLed ? "EVIDENCE-LED" : "FRAMEWORK GUIDANCE", M + 50, top - 87, 5.9, fonts.bold, dark ? GOLD : PURPLE);
+    text(rd, `PROGRESS · ${concise(lanes[i]?.measure || "Confirm the indicator in the session.", 96)}`, M + 182, top - 87, 6.3, fonts.body, dark ? LAV : MUTED);
+  });
+  rd.drawRectangle({ x: M, y: 112, width: CW, height: 95, color: NAVY });
+  eyebrow(rd, "Next step", M + 18, 181, fonts, GOLD, 6.5);
+  para(rd, "Turn the evidence into a practical plan with a DigitalGate Strategy Session.", M + 18, 164, 350, fonts.serifBold, 13, WHITE, 1.15);
+  text(rd, "digitalgate.com.au/strategy-session", M + 18, 130, 7.2, fonts.bold, GOLD);
+  link(rd, doc, M + 18, 124, 200, 16, "https://digitalgate.com.au/strategy-session");
+  footer(rd, 6, 7, fonts, logo);
+
+  // 07 · Evidence and method
+  const ev = pageBase(doc, fonts, "07", "Appendix · traceable observations", "Evidence and method");
+  para(ev, "The assessment above is grounded in these public observations. Technical detail is separated from the executive narrative so the commercial argument remains readable.", M, H - 108, CW, fonts.body, 7.8, BODY, 1.35);
+  const evidenceItems = cleanFindings.slice(0, 4);
+  evidenceItems.forEach((finding, i) => {
+    const col = i % 2, row = Math.floor(i / 2);
+    const x = M + col * 254, top = 675 - row * 130;
+    box(ev, x, top - 115, 245, 115, i === 3 ? PAPER : IVORY, STONE);
+    text(ev, evidenceLabel(finding, auditedAt), x + 12, top - 16, 5.9, fonts.bold, PURPLE);
+    para(ev, finding.title || "Finding", x + 12, top - 32, 220, fonts.serifBold, 9.2, SLATE, 1.15);
+    para(ev, finding.observed || finding.detail || "No direct observation was recorded.", x + 12, top - 57, 220, fonts.body, 6.8, BODY, 1.2);
+    text(ev, concise(clean(finding.source, "Public website observation"), 64), x + 12, top - 104, 6.1, fonts.body, MUTED);
+  });
+  ev.drawRectangle({ x: M, y: 105, width: CW, height: 300, color: NAVY });
+  eyebrow(ev, "Method and limits", M + 18, 380, fonts, GOLD, 6.5);
+  const methodX = [M + 18, M + 185, M + 352];
+  text(ev, "How to read the score", methodX[0], 359, 8.2, fonts.serifBold, WHITE);
+  para(ev, `Source coverage ${sourceCoverage}%. Pillar coverage ${pillarCoverage}%. Confidence ${confidence}. The score is directional, weighted only across assessed public-evidence pillars.`, methodX[0], 343, 145, fonts.body, 6.8, LAV, 1.3);
+  text(ev, "What is not included", methodX[1], 359, 8.2, fonts.serifBold, WHITE);
+  para(ev, "No private analytics, CRM, call tracking, Google Business Profile or customer outcome data. Unavailable evidence is marked Not Assessed, never zero.", methodX[1], 343, 145, fonts.body, 6.8, LAV, 1.3);
+  text(ev, "What changes the view", methodX[2], 359, 8.2, fonts.serifBold, WHITE);
+  para(ev, "Confirmed owner services, current CRM follow-up, analytics/GBP access and a short conversation with the principal could change the priority order.", methodX[2], 343, 145, fonts.body, 6.8, LAV, 1.3);
+  ev.drawLine({ start: { x: M + 18, y: 319 }, end: { x: W - M - 18, y: 319 }, thickness: 0.5, color: rgb(0.27, 0.3, 0.38) });
+  const statusCounts = cleanFindings.reduce((acc, finding) => { const status = evidenceLabel(finding, auditedAt); acc[status] = (acc[status] || 0) + 1; return acc; }, {} as Record<string, number>);
+  text(ev, "Evidence ledger", M + 18, 296, 7, fonts.bold, GOLD);
+  text(ev, `${statusCounts["CONFIRMED GAP"] || 0} confirmed gaps`, M + 18, 279, 6.8, fonts.body, LAV);
+  text(ev, `${statusCounts["OBSERVED"] || 0} observed strength`, M + 150, 279, 6.8, fonts.body, LAV);
+  text(ev, `${statusCounts["UNAVAILABLE"] || 0} unavailable`, M + 282, 279, 6.8, fonts.body, LAV);
+  para(ev, "Evidence date and public source are retained per observation. Recommendations require validation against John Reid Real Estate's own systems, service scope and commercial objectives.", M + 18, 247, CW - 36, fonts.body, 6.4, LAV, 1.3);
+  ev.drawLine({ start: { x: M + 18, y: 222 }, end: { x: W - M - 18, y: 222 }, thickness: 0.5, color: rgb(0.27, 0.3, 0.38) });
+  text(ev, "The next step is a conversation, not a conclusion.", M + 18, 202, 12, fonts.serifBold, WHITE);
+  para(ev, "Use the Strategy Session to confirm service scope, CRM context and the owner journey before the next iteration.", M + 18, 186, CW - 36, fonts.body, 6.6, LAV, 1.3);
+  footer(ev, 7, 7, fonts, logo);
+
   doc.setTitle(`${prospect.businessName} — Digital Opportunity Report`);
   doc.setAuthor("DigitalGate");
   doc.setSubject("Evidence-led Digital Opportunity Report");
