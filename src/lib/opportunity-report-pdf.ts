@@ -198,6 +198,8 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   const roadmap = buildReportRoadmap(industry.pack, roadmapPriorities);
   const roadmapLanes = roadmapPriorities.map((priority, index) => laneFor(priority, index, blueprint));
   const verdict = buildExecutiveVerdict({ businessHealth: audit?.businessHealth ?? null, pillars, priorities, pack: industry.pack, auditedAt: audit?.auditedAt ?? null, hasAudit: Boolean(audit) });
+  const pillarLabel = (pillar: { key: string; label: string }) => pillar.key === "ai" ? "AI discoverability readiness" : pillar.label;
+  const verdictDisplay = verdict.replace(/\bai discoverability readiness\b/gi, "AI discoverability readiness");
   const sourceCoverage = num(assessment.sourceCoveragePercent, 0);
   const pillarCoverage = num(assessment.evidenceCoveragePercent, 0);
   const confidence = clean(assessment.confidence, "low");
@@ -232,7 +234,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   cover.drawRectangle({ x: 0, y: 0, width: W, height: 477, color: NAVY });
   cover.drawRectangle({ x: 0, y: 477, width: W, height: 2, color: GOLD });
   eyebrow(cover, "The first three priorities", M, 442, fonts, GOLD, 7.2);
-  priorities.slice(0, 3).forEach((priority, i) => {
+  roadmapPriorities.slice(0, 3).forEach((priority, i) => {
     const rowY = 402 - i * 74;
     text(cover, `0${i + 1}`, M, rowY, 9, fonts.bold, GOLD);
     text(cover, priority.title, M + 31, rowY, 9.2, fonts.bold, WHITE);
@@ -288,7 +290,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   text(hp, "BUSINESS HEALTH", M + 61, H - 181, 6.5, fonts.bold, GOLD);
   text(hp, "Directional, public signals only", M + 33, H - 337, 6.8, fonts.body, LAV);
   text(hp, "What the score means", M + 238, H - 133, 13, fonts.serifBold, SLATE);
-  para(hp, verdict, M + 238, H - 154, 260, fonts.body, 7.4, BODY, 1.35);
+  para(hp, verdictDisplay, M + 238, H - 154, 260, fonts.body, 7.4, BODY, 1.35);
   eyebrow(hp, "Coverage & confidence", M + 238, H - 229, fonts, PURPLE, 6.3);
   para(hp, `Source coverage ${sourceCoverage}% · pillar coverage ${pillarCoverage}% · ${confidence} confidence.`, M + 238, H - 247, 260, fonts.body, 7.3, BODY, 1.3);
   para(hp, "Confidence is moderate because 35% of the planned public-source set was available, even though all six pillars could be assessed from the public evidence. Source coverage is the share available; pillar coverage is the share assessable; confidence reflects the strength and consistency of those public signals, not completeness of private data.", M + 238, H - 264, 260, fonts.body, 6.8, MUTED, 1.3);
@@ -300,7 +302,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
     const column = i % 2, row = Math.floor(i / 2);
     const x = M + column * 254, y = pillarTop - row * 69;
     box(hp, x, y - 55, 245, 55, i % 3 === 0 ? PAPER : IVORY, STONE);
-    text(hp, pillar.label, x + 12, y - 17, 7.5, fonts.bold, SLATE);
+    text(hp, pillarLabel(pillar), x + 12, y - 17, 7.5, fonts.bold, SLATE);
     text(hp, pillar.value == null ? "Not Assessed" : `${pillar.value}/100`, x + 155, y - 17, 7.5, fonts.bold, pillar.value == null ? MUTED : PURPLE);
     hp.drawRectangle({ x: x + 12, y: y - 30, width: 190, height: 4, color: CHAMP });
     if (pillar.value != null) hp.drawRectangle({ x: x + 12, y: y - 30, width: 190 * Math.max(0, Math.min(100, pillar.value)) / 100, height: 4, color: GOLD });
@@ -310,8 +312,8 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   const best = assessed[0], weakest = assessed[assessed.length - 1];
   hp.drawRectangle({ x: M, y: 150, width: CW, height: 82, color: NAVY });
   eyebrow(hp, "How to read this view", M + 16, 210, fonts, GOLD, 6.2);
-  text(hp, best ? `Best observed: ${best.label} ${best.value}/100` : "No assessed pillar", M + 16, 190, 7, fonts.body, LAV);
-  text(hp, weakest ? `Largest gap: ${weakest.label} ${weakest.value}/100` : "No assessed gap", M + 180, 190, 7, fonts.body, LAV);
+  text(hp, best ? `Best observed: ${pillarLabel(best)} ${best.value}/100` : "No assessed pillar", M + 16, 190, 7, fonts.body, LAV);
+  text(hp, weakest ? `Largest gap: ${pillarLabel(weakest)} ${weakest.value}/100` : "No assessed gap", M + 180, 190, 7, fonts.body, LAV);
   text(hp, "Private performance data: Not assessed", M + 340, 190, 7, fonts.body, LAV);
   text(hp, "The view is directional and public-evidence weighted; unavailable evidence is never treated as zero.", M + 16, 168, 7, fonts.body, LAV);
   footer(hp, 3, 7, fonts, logo);
@@ -355,33 +357,29 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
 
   // 05 · Growth Blueprint
   const bp = pageBase(doc, fonts, "05", "Where capability connects to evidence", "DigitalGate Growth Blueprint");
-  para(bp, "A connected strategy: the verified finding, the capability that responds to it, the benefit to the business and the evidence that progress is real.", M, H - 108, CW, fonts.body, 7.8, BODY, 1.35);
-  bp.drawRectangle({ x: M, y: 105, width: CW, height: 570, color: NAVY });
-  const colX = [M + 16, M + 58, M + 205, M + 312, M + 414];
-  const headers = ["", "VERIFIED FINDING", "DIGITALGATE CAPABILITY", "BUSINESS BENEFIT", "SUCCESS MEASURE"];
-  headers.forEach((label, i) => { if (label) eyebrow(bp, label, colX[i], 647, fonts, i === 1 ? GOLD : LAV, 5.8); });
-  bp.drawLine({ start: { x: M + 16, y: 637 }, end: { x: W - M - 16, y: 637 }, thickness: 0.6, color: rgb(0.27, 0.3, 0.38) });
-  [238, 348, 458].forEach((x) => bp.drawLine({ start: { x, y: 650 }, end: { x, y: 262 }, thickness: 0.35, color: rgb(0.19, 0.22, 0.28) }));
-  lanes.slice(0, 3).forEach((lane, i) => {
-    const rowTop = 610 - i * 140;
-    text(bp, `0${i + 1}`, colX[0], rowTop - 3, 8, fonts.bold, GOLD);
-    para(bp, priorities[i].title, colX[1], rowTop, 140, fonts.serifBold, 8.7, WHITE, 1.2);
-    text(bp, priorities[i].evidenceLabel, colX[1], rowTop - 43, 5.9, fonts.bold, GOLD);
-    para(bp, lane.capability, colX[2], rowTop, 98, fonts.body, 7.1, LAV, 1.25);
-    para(bp, lane.benefit, colX[3], rowTop, 100, fonts.body, 7, LAV, 1.25);
-    para(bp, lane.measure, colX[4], rowTop, 84, fonts.body, 6.5, LAV, 1.25);
-    para(bp, evidenceLine(priorities[i]), colX[1], rowTop - 53, 132, fonts.body, 6.6, LAV, 1.2);
-    [197, 304, 414].forEach((x) => { bp.drawLine({ start: { x, y: rowTop - 8 }, end: { x: x + 8, y: rowTop - 12 }, thickness: 0.8, color: GOLD }); bp.drawLine({ start: { x, y: rowTop - 16 }, end: { x: x + 8, y: rowTop - 12 }, thickness: 0.8, color: GOLD }); });
-    if (i < 2) bp.drawLine({ start: { x: M + 16, y: rowTop - 85 }, end: { x: W - M - 16, y: rowTop - 85 }, thickness: 0.5, color: rgb(0.24, 0.27, 0.34) });
+  para(bp, "A connected strategy: the verified finding, the DigitalGate response, the business benefit and the evidence that progress is real.", M, H - 108, CW, fonts.body, 7.8, BODY, 1.35);
+  const cardTop = 682, cardHeight = 160, cardGap = 14;
+  roadmapPriorities.slice(0, 3).forEach((priority, i) => {
+    const lane = roadmapLanes[i];
+    const top = cardTop - i * (cardHeight + cardGap);
+    const leftWidth = 154, rightX = M + leftWidth, rightWidth = CW - leftWidth;
+    bp.drawRectangle({ x: M, y: top - cardHeight, width: leftWidth, height: cardHeight, color: NAVY });
+    box(bp, rightX, top - cardHeight, rightWidth, cardHeight, PAPER, STONE);
+    bp.drawRectangle({ x: M, y: top - 3, width: CW, height: 3, color: GOLD });
+    eyebrow(bp, `0${i + 1} · Verified finding`, M + 14, top - 21, fonts, GOLD, 6.1);
+    const titleEnd = para(bp, priority.title, M + 14, top - 40, leftWidth - 28, fonts.serifBold, 9.3, WHITE, 1.12);
+    text(bp, priority.evidenceLabel, M + 14, titleEnd - 9, 6.2, fonts.bold, GOLD);
+    para(bp, evidenceLine(priority), M + 14, titleEnd - 27, leftWidth - 28, fonts.body, 6.5, LAV, 1.2);
+    eyebrow(bp, "DigitalGate response", rightX + 16, top - 21, fonts, PURPLE, 6.1);
+    para(bp, lane.capability, rightX + 16, top - 40, rightWidth - 32, fonts.serifBold, 9.4, SLATE, 1.1);
+    para(bp, priority.action, rightX + 16, top - 56, rightWidth - 32, fonts.body, 7.2, BODY, 1.25);
+    const bottomLabelY = top - 108;
+    eyebrow(bp, "Expected benefit", rightX + 16, bottomLabelY, fonts, PURPLE, 5.9);
+    eyebrow(bp, "Success indicator", rightX + 178, bottomLabelY, fonts, PURPLE, 5.9);
+    para(bp, lane.benefit, rightX + 16, bottomLabelY - 14, 146, fonts.body, 6.7, BODY, 1.2);
+    para(bp, lane.measure, rightX + 178, bottomLabelY - 14, 150, fonts.body, 6.7, BODY, 1.2);
   });
-  bp.drawLine({ start: { x: M + 16, y: 235 }, end: { x: W - M - 16, y: 235 }, thickness: 0.6, color: rgb(0.27, 0.3, 0.38) });
-  eyebrow(bp, "The through-line", M + 16, 219, fonts, GOLD, 6.2);
-  text(bp, "Clearer public evidence", M + 16, 199, 7.2, fonts.body, LAV);
-  text(bp, ">", M + 157, 199, 9, fonts.bold, GOLD);
-  text(bp, "A credible owner route", M + 179, 199, 7.2, fonts.body, LAV);
-  text(bp, ">", M + 312, 199, 9, fonts.bold, GOLD);
-  text(bp, "A measurable conversation", M + 334, 199, 7.2, fonts.body, LAV);
-  para(bp, "Directional public evidence only. No revenue, ranking or AI-placement outcome is promised. Measures are proposed checks for the Strategy Session.", M + 16, 135, CW - 32, fonts.body, 6.5, LAV, 1.2);
+  para(bp, "Directional public evidence only. No revenue, ranking or AI-placement outcome is promised. Measures are proposed checks for the Strategy Session.", M, 135, CW, fonts.body, 6.4, MUTED, 1.25);
   footer(bp, 5, 7, fonts, logo);
 
   // 06 · Roadmap
