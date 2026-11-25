@@ -323,6 +323,7 @@ export function commercialHeadlineFor(finding: ReportPresentationFinding): strin
   if (/primary action|call.to.action|cta|enquir/.test(title)) return "Turn interest into a clear next step";
   if (/open graph|social sharing/.test(title)) return "Make shared links present your business professionally";
   if (/review|reputation/.test(title)) return "Give buyers more confidence before they enquire";
+  if (/llms|ai\/llm|ai discovery|answer engine/.test(title)) return "Make your business easier for AI assistants to verify";
   if (/form|lead capture/.test(title)) return "Make it easier for interested buyers to raise their hand";
   if (/local|suburb|service.area/.test(title)) return "Make your local relevance easier to verify";
   if (/speed|performance/.test(title)) return "Make the experience faster and easier to use";
@@ -333,6 +334,7 @@ export function commercialHeadlineFor(finding: ReportPresentationFinding): strin
 
 function isPositiveFinding(finding: ReportPresentationFinding): boolean {
   const text = `${finding.title || ""} ${finding.observed || ""} ${finding.detail || ""}`.trim().toLowerCase();
+  if (finding.severity === "warning" || finding.severity === "critical") return false;
   if (/(?:^|\b)(?:no|not|without|missing|absent|lacks?)\b/.test(text)) return false;
   return /(?:present|observed|visible|supports?|foundation|linked|detected|available|working)/.test(text);
 }

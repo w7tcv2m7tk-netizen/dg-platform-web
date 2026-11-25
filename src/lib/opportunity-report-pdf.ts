@@ -79,11 +79,18 @@ function footer(pages: PDFPage[], fonts: Fonts, logo?: PDFImage) {
     p.drawText(`${i+1} / ${pages.length}`,{x:W-M-28,y:13,size:6.4,font:fonts.body,color:BODY});
   });
 }
+export type OpportunityReportPdfSnapshot = Snapshot;
+
 export async function buildOpportunityReportPdf(token: string): Promise<Uint8Array | null> {
   const { prisma } = await import("@dg/database");
   const loaded = await loadGrowthReportSnapshot(prisma, token, { kind:"public", recordView:false });
   if (!loaded) return null;
-  const { report, audit, prospect } = loaded as Snapshot;
+  return buildOpportunityReportPdfFromSnapshot(loaded);
+}
+
+/** Pure renderer used by the hosted route and the local acceptance harness. */
+export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityReportPdfSnapshot): Promise<Uint8Array> {
+  const { report, audit, prospect } = loaded;
   const data = payload(audit?.findings);
   const findings = listFindings(audit?.findings) as Finding[];
   const scorecard = payload(data.scorecard);
@@ -93,7 +100,9 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
   const cleanFindings = reconcileReportFindings(findings as any, strengths);
   const industry = resolveReportIndustry({ industry:prospect.industry, industryPack:clean(data.industryPack), businessModel:model });
   const pillars = buildReportPillars(audit, scorecard);
-  const relevantFindings = (model.isLocationBased === false ? cleanFindings : findings).filter((finding) => !/\b(?:local|gbp|google maps|google business|maps|suburb|location|localbusiness|local listing)\b/i.test(`${finding.title || ""} ${finding.category || ""}`));
+  const relevantFindings = model.isLocationBased === false
+    ? cleanFindings.filter((finding) => !/\b(?:local|gbp|google maps|google business|maps|suburb|location|localbusiness|local listing)\b/i.test(`${finding.title || ""} ${finding.category || ""}`))
+    : cleanFindings;
   const priorities = buildReportPriorities(relevantFindings as any, industry.pack, audit?.auditedAt ?? null);
   const blueprint = buildGrowthBlueprint({ model:model as any, priorities });
   const roadmap = buildReportRoadmap(industry.pack, priorities);
@@ -195,12 +204,24 @@ export async function buildOpportunityReportPdf(token: string): Promise<Uint8Arr
   const bp = pageStart(doc,fonts,"DigitalGate Growth Blueprint","Where capability connects to evidence");
   let by = H-104;
   by = block(bp,"Only relevant capabilities are shown. Verified findings are separated from strategic hypotheses; no financial return is promised.",M,by,CW,fonts.body,8.4,BODY,1.35)-20;
-  const cx=W/2, cy=by-66;
+  const cx=W/2, cy=by-95;
   bp.drawCircle({x:cx,y:cy,size:42,color:PURPLE});
-  bp.drawText(prospect.businessName.slice(0,18),{x:cx-Math.min(66,prospect.businessName.length*4.2),y:cy+3,size:7.5,font:fonts.bold,color:WHITE});
-  bp.drawText("business objective",{x:cx-35,y:cy-10,size:6.3,font:fonts.body,color:LAV});
+  const centreWords=prospect.businessName.split(/\s+/).filter(Boolean);
+  let centreLines=[prospect.businessName];
+  if (fonts.bold.widthOfTextAtSize(prospect.businessName,6.5)>74 && centreWords.length>1) {
+    let bestIndex=1, bestWidth=Infinity;
+    for (let split=1; split<centreWords.length; split++) {
+      const a=centreWords.slice(0,split).join(" "), b=centreWords.slice(split).join(" ");
+      const widest=Math.max(fonts.bold.widthOfTextAtSize(a,6.5),fonts.bold.widthOfTextAtSize(b,6.5));
+      if (widest<bestWidth) { bestWidth=widest; bestIndex=split; }
+    }
+    centreLines=[centreWords.slice(0,bestIndex).join(" "),centreWords.slice(bestIndex).join(" ")];
+  }
+  const centreTop=centreLines.length>1?cy+9:cy+3;
+  centreLines.forEach((line,i)=>bp.drawText(line,{x:cx-fonts.bold.widthOfTextAtSize(line,6.5)/2,y:centreTop-i*7,size:6.5,font:fonts.bold,color:WHITE}));
+  bp.drawText("business objective",{x:cx-35,y:cy-11,size:6.3,font:fonts.body,color:LAV});
   blueprint.slice(0,3).forEach((item: any, i: number) => {
-    const x=[M+45,cx,W-M-45][i], yn=i===1?by-6:by-65;
+    const x=[M+45,cx,W-M-45][i], yn=i===1?by-15:by-95;
     bp.drawLine({start:{x:cx,y:cy},end:{x,y:yn},thickness:1.2,color:GOLD});
     bp.drawCircle({x,y:yn,size:28,color:PAPER,borderColor:i===1?PURPLE:STONE,borderWidth:1});
     bp.drawText(shortCapability(item.capability).slice(0,22),{x:x-Math.min(39,shortCapability(item.capability).length*3.1),y:yn-2,size:6.2,font:fonts.bold,color:SLATE});

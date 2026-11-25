@@ -137,6 +137,14 @@ test("positive observations are not promoted as improvement priorities", () => {
   assert.equal(priorities.some((priority) => /structured data present/i.test(priority.title)), false);
 });
 
+test("warning findings containing detected language remain commercial priorities", () => {
+  const priorities = presentation.buildReportPriorities([
+    finding({ title: "Limited suburb authority signals on the homepage", category: "Local Authority", severity: "warning", observed: "Only 2 target-area suburb references were detected in the homepage HTML." }),
+  ], presentation.resolveReportIndustry({ industry: "Real Estate" }).pack, null);
+  assert.equal(priorities[0].framework, false);
+  assert.match(priorities[0].title, /local relevance/i);
+});
+
 test("strengths and connected footprint consume the same website-linked profiles", async () => {
   const html = await render(fixture({
     findings: [],
@@ -147,6 +155,22 @@ test("strengths and connected footprint consume the same website-linked profiles
   assert.doesNotMatch(html, /No major social profile links were detected/);
 });
 
+
+test("local, booking and review priorities map to distinct capabilities", () => {
+  const local = presentation.buildReportPriorities([finding({ title: "Make your local relevance easier to verify", category: "Local Authority", severity: "warning", observed: "Only 2 suburb references were detected." })], presentation.resolveReportIndustry({ industry: "Real Estate" }).pack, null)[0];
+  const booking = presentation.buildReportPriorities([finding({ title: "Make direct booking the obvious path", category: "Conversion", severity: "warning", observed: "A booking path was not visible." })], presentation.resolveReportIndustry({ industry: "Hospitality & Accommodation" }).pack, null)[0];
+  const review = presentation.buildReportPriorities([finding({ title: "Public testimonials lack review markup", category: "Reputation", severity: "warning", observed: "No review schema was detected.", interpretation: "The business has review evidence but no review schema.", recommendedAction: "Add verified review markup for attributable testimonials." })], presentation.resolveReportIndustry({ industry: "Real Estate" }).pack, null)[0];
+  const blueprint = buildGrowthBlueprint({ model: { type: "real_estate_agency", successIndicators: ["Appraisal enquiries"], subtype: "Agency", confidence: "high", evidence: [], offering: "", audiences: [], marketOrientation: "local", conversionPaths: [], discoveryChannels: [], isLocationBased: true }, priorities: [local, booking, review] });
+  assert.match(blueprint[0].capability, /Local Visibility/);
+  assert.match(blueprint[1].capability, /CRM/);
+  assert.match(blueprint[2].capability, /Review|Trust/);
+  assert.match(blueprint[2].objective, /trust/i);
+  assert.doesNotMatch(blueprint[2].objective, /AI assistants/i);
+});
+
+test("AI discovery language receives a customer-facing headline", () => {
+  assert.equal(presentation.commercialHeadlineFor({ title: "No AI/LLM discovery file" }), "Make your business easier for AI assistants to verify");
+});
 
 test("Growth Blueprint is capability-specific, evidence-labelled and business-model-specific", () => {
   const priorities = presentation.buildReportPriorities([finding({ title: "No booking enquiry path detected", detail: "No booking path was observed." })], presentation.resolveReportIndustry({ industry: "Music & Creative" }).pack, null);
