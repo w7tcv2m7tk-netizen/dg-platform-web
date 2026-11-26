@@ -98,11 +98,11 @@ export function buildProposalServiceLines(input: {
     },
   ];
 
-  const health = input.businessHealth ?? 100;
+  const health = input.businessHealth;
   const needAi =
     boost.aiWeak ||
     (input.aiVisibility != null && input.aiVisibility < 70) ||
-    health < 75;
+    (health != null && health < 75);
   const needSeo =
     boost.seoWeak ||
     boost.websiteWeak ||

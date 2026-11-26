@@ -3,6 +3,8 @@ export * from "./scope";
 export * from "./prospects";
 export * from "./audits";
 export * from "./presence-audit";
+export * from "./business-model";
+export * from "./growth-blueprint";
 export * from "./decision-maker-research";
 export * from "./reports";
 export * from "./proposals";

@@ -30,16 +30,22 @@ function buildExecutiveSummary(input: {
   aiVisibility: number | null;
   findings: ProspectAuditFinding[];
 }) {
-  const score = input.businessHealth ?? 0;
   const critical = input.findings.filter((f) => f.severity === "critical").length;
   const top = input.findings.slice(0, 3).map((f) => f.title);
+  const healthText = input.businessHealth == null
+    ? `A live presence audit of ${input.businessName} did not collect enough verified public evidence to produce a Digital Business Health score. Missing evidence is not treated as poor performance.`
+    : `${input.businessName} scored ${input.businessHealth}/100 on Digital Business Health from the verified public evidence available in this snapshot.`;
 
   return [
-    `${input.businessName} scored ${score}/100 on Digital Business Health from a live presence audit.`,
-    `Website ${input.websiteHealth ?? "—"} · SEO ${input.seoScore ?? "—"} · AI Visibility ${input.aiVisibility ?? "—"}.`,
+    healthText,
+    input.businessHealth == null
+      ? "The report focuses on evidence completeness and verified findings rather than an unsupported composite score."
+      : `Website ${input.websiteHealth ?? "Not assessed"} · SEO ${input.seoScore ?? "Not assessed"} · AI Visibility ${input.aiVisibility ?? "Not assessed"}.`,
     critical > 0
       ? `${critical} critical finding${critical === 1 ? "" : "s"} need attention before growth spend.`
-      : "No critical blockers — focus on opportunity-level improvements.",
+      : input.businessHealth == null
+        ? "No weakness is confirmed solely because evidence was unavailable."
+        : "No critical blockers were confirmed in the available evidence.",
     top.length ? `Priorities: ${top.join("; ")}.` : "",
   ]
     .filter(Boolean)

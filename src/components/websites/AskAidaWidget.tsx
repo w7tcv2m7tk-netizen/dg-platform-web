@@ -106,28 +106,35 @@ export function AskAidaWidget({
   }, []);
 
   async function api(body: Record<string, unknown>) {
-    const res = await fetch("/api/public/aida", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        siteSlug,
-        pageSlug,
-        token: token || readToken(),
-        honeypot,
-        ...body,
-      }),
-    });
-    const json = (await res.json().catch(() => null)) as {
-      data?: {
-        token?: string;
-        messages?: ChatMessage[];
-        action?: string;
-        leadCaptured?: boolean;
-        status?: string;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 25_000);
+    try {
+      const res = await fetch("/api/public/aida", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          siteSlug,
+          pageSlug,
+          token: token || readToken(),
+          honeypot,
+          ...body,
+        }),
+      });
+      const json = (await res.json().catch(() => null)) as {
+        data?: {
+          token?: string;
+          messages?: ChatMessage[];
+          action?: string;
+          leadCaptured?: boolean;
+          status?: string;
+        };
+        error?: { code?: string; message?: string };
       };
-      error?: { code?: string; message?: string };
-    };
-    return { res, json };
+      return { res, json };
+    } finally {
+      window.clearTimeout(timer);
+    }
   }
 
   function rememberToken(next?: string) {
@@ -136,24 +143,31 @@ export function AskAidaWidget({
     writeToken(next);
   }
 
-  async function bootstrap() {
+  async function bootstrap(): Promise<boolean> {
     setError(null);
     setState("booting");
-    const { res, json } = await api({ action: "bootstrap" });
-    if (res.status === 429) {
-      setState("rate_limited");
-      setError(json.error?.message ?? "Please wait a moment.");
-      return;
-    }
-    if (!res.ok || !json.data) {
+    try {
+      const { res, json } = await api({ action: "bootstrap" });
+      if (res.status === 429) {
+        setState("rate_limited");
+        setError(json.error?.message ?? "Please wait a moment.");
+        return false;
+      }
+      if (!res.ok || !json.data) {
+        setState("error");
+        setError(json.error?.message ?? "Aida is unavailable right now.");
+        return false;
+      }
+      rememberToken(json.data.token);
+      setMessages(json.data.messages ?? []);
+      setState(json.data.leadCaptured ? "captured" : "ready");
+      requestAnimationFrame(scrollToEnd);
+      return true;
+    } catch {
       setState("error");
-      setError(json.error?.message ?? "Aida is unavailable right now.");
-      return;
+      setError("Aida took too long to respond. Check your connection and try again.");
+      return false;
     }
-    rememberToken(json.data.token);
-    setMessages(json.data.messages ?? []);
-    setState(json.data.leadCaptured ? "captured" : "ready");
-    requestAnimationFrame(scrollToEnd);
   }
 
   async function openPanel() {
@@ -179,72 +193,82 @@ export function AskAidaWidget({
       },
     ]);
     requestAnimationFrame(scrollToEnd);
-    const { res, json } = await api({
-      action: "message",
-      text: value,
-      quickActionId,
-    });
-    if (res.status === 429) {
-      setState("rate_limited");
-      setError(json.error?.message ?? "Too many messages. Please wait.");
-      return;
-    }
-    if (res.status === 404) {
-      writeToken("");
-      setToken("");
+    try {
+      const { res, json } = await api({
+        action: "message",
+        text: value,
+        quickActionId,
+      });
+      if (res.status === 429) {
+        setState("rate_limited");
+        setDraft(value);
+        setError(json.error?.message ?? "Too many messages. Please wait.");
+        return;
+      }
+      if (res.status === 404) {
+        writeToken("");
+        setToken("");
+        setState("error");
+        setDraft(value);
+        setError("This conversation expired. Retry to start a new one.");
+        return;
+      }
+      if (!res.ok || !json.data) {
+        setState("error");
+        setDraft(value);
+        setError(json.error?.message ?? "Something went wrong. Try again.");
+        return;
+      }
+      rememberToken(json.data.token);
+      setMessages(json.data.messages ?? []);
+      if (json.data.action === "capture" || json.data.action === "handoff") {
+        setState("capture");
+      } else {
+        setState("ready");
+      }
+      requestAnimationFrame(scrollToEnd);
+    } catch {
       setState("error");
-      setError("This conversation expired. Retry to start a new one.");
-      return;
+      setDraft(value);
+      setError("Aida took too long to respond. Check your connection and try again.");
     }
-    if (!res.ok || !json.data) {
-      setState("error");
-      setError(json.error?.message ?? "Something went wrong. Try again.");
-      return;
-    }
-    rememberToken(json.data.token);
-    setMessages(json.data.messages ?? []);
-    if (json.data.action === "capture" || json.data.action === "handoff") {
-      setState("capture");
-    } else {
-      setState("ready");
-    }
-    requestAnimationFrame(scrollToEnd);
   }
 
   async function submitCapture(e: FormEvent) {
     e.preventDefault();
     setState("thinking");
     setError(null);
-    const { res, json } = await api({
-      action: "capture",
-      name: capture.name,
-      email: capture.email,
-      phone: capture.phone,
-      businessName: capture.businessName,
-      website: capture.website,
-    });
-    if (!res.ok || !json.data) {
+    try {
+      const { res, json } = await api({
+        action: "capture",
+        name: capture.name,
+        email: capture.email,
+        phone: capture.phone,
+        businessName: capture.businessName,
+        website: capture.website,
+      });
+      if (!res.ok || !json.data) {
+        setState("capture");
+        setError(json.error?.message ?? "Could not send those details.");
+        return;
+      }
+      rememberToken(json.data.token);
+      setMessages(json.data.messages ?? messages);
+      setState("captured");
+      requestAnimationFrame(scrollToEnd);
+    } catch {
       setState("capture");
-      setError(json.error?.message ?? "Could not send those details.");
-      return;
+      setError("Aida took too long to respond. Check your connection and try again.");
     }
-    rememberToken(json.data.token);
-    setMessages(json.data.messages ?? messages);
-    setState("captured");
-    requestAnimationFrame(scrollToEnd);
   }
 
   async function retry() {
-    if (messages.length === 0 || !readToken()) {
-      await bootstrap();
-      return;
+    const text = lastPrompt?.text;
+    const ok = await bootstrap();
+    if (ok) {
+      if (text) setDraft(text);
+      setError(null);
     }
-    if (lastPrompt) {
-      await send(lastPrompt.text, lastPrompt.quickActionId);
-      return;
-    }
-    setState("ready");
-    setError(null);
   }
 
   useEffect(() => {

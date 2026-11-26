@@ -1,5 +1,6 @@
 import type { DiscoveryCandidate } from "../types";
 import { candidateKey, type BusinessDataProvider, type ProviderSearchContext } from "./types";
+import { reserveGooglePlacesTextSearch } from "../google-budget";
 
 type PlacesSearchResponse = {
   places?: Array<{
@@ -43,6 +44,9 @@ export const googlePlacesProvider: BusinessDataProvider = {
   async search(ctx: ProviderSearchContext): Promise<DiscoveryCandidate[]> {
     const apiKey = placesApiKey();
     if (!apiKey) return [];
+
+    // Persistently reserve before any billable Text Search request.
+    await reserveGooglePlacesTextSearch();
 
     const body: Record<string, unknown> = {
       textQuery: ctx.textQuery,

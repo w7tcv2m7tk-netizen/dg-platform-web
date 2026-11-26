@@ -1,4 +1,4 @@
-import { llmChat, llmConfigured } from "../ai/llm";
+import { LlmChatError, llmChat, llmConfigured } from "../ai/llm";
 import { buildAidaEvidenceContext, formatAidaEvidencePrompt } from "../ai/evidence-context";
 import { resolveEnabledAppIds } from "../apps/org-apps";
 import { getBusinessContext, buildAiSystemPrompt } from "../org/business-context";
@@ -6,6 +6,9 @@ import { getOrganisationBusinessProfile } from "../org/onboarding-profile";
 import { gatherOverviewLiveMetrics } from "../overview/gather-live-metrics";
 import { captureDigitalTwinSnapshot } from "../twin/capture-snapshot";
 import { formatSupportMessage } from "./format";
+
+const SUPPORT_AI_UNAVAILABLE_REPLY =
+  "I couldn’t reach the AI service just now. Please try again in a moment, or a DigitalGate team member will follow up.";
 
 const SYSTEM_PROMPT = `You are Aida, DigitalGate's AI Business Advisor and Platform Support Assistant for the authenticated DigitalGate platform (Australian digital platform: websites, marketing, CRM, automation, real estate tools, accommodation apps, and the client portal at app.digitalgate.com.au).
 
@@ -18,6 +21,8 @@ You have two jobs:
 Use only information actually present in this conversation or supplied in the authenticated organisation evidence below. Treat evidence marked unavailable as unknown, never as zero. When quoting operational figures, prefer the supplied source/freshness metadata and do not imply a provider is live when the evidence is a snapshot.
 
 You cannot: change billing, issue refunds, perform account mutations, access private data beyond the context you were given, promise SLAs, invent features, or claim a human is online right now.
+
+For ordinary platform usage questions (navigation, invitations, settings, onboarding, normal troubleshooting), answer directly with the concrete steps. Do not hand off to a human merely because the request arrived through Support. Escalate only when the request explicitly asks for a person, disputes money, reports an outage, or is high-stakes/legal.
 
 For business-advice questions, give a useful recommendation and the next practical step. If important business context is missing, ask one focused question rather than pretending to know it.
 
@@ -40,7 +45,29 @@ function aiEnabled(): boolean {
   return llmConfigured();
 }
 
-/** Fire-and-forget Aida reply after a client message. */
+async function appendSupportAiReply(conversationId: string, triggerMessageId: number, text: string) {
+  const { prisma } = await import("@dg/database");
+  const fresh = await prisma.supportConversation.findUnique({
+    where: { id: conversationId },
+    select: { aiPaused: true },
+  });
+  if (!fresh || fresh.aiPaused) return null;
+  const race = await prisma.supportMessage.findFirst({
+    where: { conversationId, id: { gt: triggerMessageId }, senderRole: { in: ["ai", "staff"] } },
+    select: { id: true },
+  });
+  if (race) return null;
+  const row = await prisma.supportMessage.create({
+    data: { conversationId, senderRole: "ai", body: text },
+  });
+  await prisma.supportConversation.update({
+    where: { id: conversationId },
+    data: { lastMessageAt: new Date() },
+  });
+  return row;
+}
+
+/** Queue an Aida reply after a client message; the route awaits completion before returning. */
 export async function queueSupportAiReply(
   conversationId: string,
   triggerMessageId: number,
@@ -48,7 +75,13 @@ export async function queueSupportAiReply(
   clientEmail: string,
   surfacePath?: string,
 ) {
-  if (!aiEnabled()) return;
+  if (!aiEnabled()) {
+    // Never accept a customer question into silence. Record a clear support
+    // fallback so the client sees a response and human escalation remains possible.
+    try { await appendSupportAiReply(conversationId, triggerMessageId, SUPPORT_AI_UNAVAILABLE_REPLY); }
+    catch { console.error("[support-ai] fallback message unavailable"); }
+    return;
+  }
 
   // Small delay so the client POST returns before Aida appears.
   await new Promise((r) => setTimeout(r, 400));
@@ -138,8 +171,8 @@ export async function queueSupportAiReply(
         formatAidaEvidencePrompt(buildAidaEvidenceContext(context)),
       ].join("\n");
     }
-  } catch (err) {
-    console.warn("[support-ai] business context unavailable", err instanceof Error ? err.message : err);
+  } catch {
+    console.warn("[support-ai] business_context_unavailable");
   }
 
   const safeSurfacePath = surfacePath?.startsWith("/") && !surfacePath.includes("?") && !surfacePath.includes("#")
@@ -180,43 +213,26 @@ ${businessContextPrompt}` : SYSTEM_PROMPT },
       ],
       maxTokens: 550,
       tier: "standard",
+      deadlineMs: 12_000,
+      attemptTimeoutMs: 6_000,
+      safeErrors: true,
     });
 
     const text = sanitizeReply(result.text ?? "");
-    if (!text) return;
+    if (!text) {
+      await appendSupportAiReply(conversationId, triggerMessageId, SUPPORT_AI_UNAVAILABLE_REPLY);
+      return;
+    }
 
-    const fresh = await prisma.supportConversation.findUnique({
-      where: { id: conversationId },
-      select: { aiPaused: true },
-    });
-    if (!fresh || fresh.aiPaused) return;
-
-    const race = await prisma.supportMessage.findFirst({
-      where: {
-        conversationId,
-        id: { gt: triggerMessageId },
-        senderRole: { in: ["ai", "staff"] },
-      },
-      select: { id: true },
-    });
-    if (race) return;
-
-    const row = await prisma.supportMessage.create({
-      data: {
-        conversationId,
-        senderRole: "ai",
-        body: text,
-      },
-    });
-
-    await prisma.supportConversation.update({
-      where: { id: conversationId },
-      data: { lastMessageAt: new Date() },
-    });
-
-    void row;
-    void formatSupportMessage(row, clientName);
+    const row = await appendSupportAiReply(conversationId, triggerMessageId, text);
+    if (row) void formatSupportMessage(row, clientName);
   } catch (err) {
-    console.error("[support-ai]", err);
+    const code = err instanceof LlmChatError ? err.code : "ai_error";
+    console.error("[support-ai]", code);
+    try {
+      await appendSupportAiReply(conversationId, triggerMessageId, SUPPORT_AI_UNAVAILABLE_REPLY);
+    } catch {
+      console.error("[support-ai] fallback message unavailable");
+    }
   }
 }

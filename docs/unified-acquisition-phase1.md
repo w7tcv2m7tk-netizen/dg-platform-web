@@ -41,7 +41,7 @@ Priorities reuse existing scoring and saved audits. Due follow-ups precede other
 - `node scripts/run-unified-acquisition-local-db.mjs /opt/homebrew/opt/postgresql@18/bin`
 - Regression scripts and production compilation results are recorded in the delivery report.
 
-The local runner removes inherited database URLs, binds only loopback on a random non-default port, materialises a pinned pre-change schema, applies the exact migration, tests synthetic ABR responses and fixtures, then stops and removes its owned cluster. ABR HTTP is intercepted in the test loader; no registry or customer service receives fixture requests. Event dispatch is stubbed to avoid external integrations; canonical CRM services and PostgreSQL queries run locally.
+The local runner removes inherited database URLs, binds only loopback on a random non-default port, materialises the current schema, removes only the additive unified-acquisition columns, applies the exact migration, tests synthetic ABR responses and fixtures, then stops and removes its owned cluster. ABR HTTP is intercepted in the test loader; no registry or customer service receives fixture requests. Event dispatch is stubbed to avoid external integrations; canonical CRM services and PostgreSQL queries run locally.
 
 This evidence does not establish Production readiness. Live ABR credentials, authenticated browser integration and a separately authorised legacy-data reconciliation rehearsal remain rollout gates.
 
@@ -49,7 +49,7 @@ This evidence does not establish Production readiness. Live ABR credentials, aut
 
 - Prisma Client generation: passed (6.19.3).
 - TypeScript `--noEmit --incremental false`: passed.
-- Disposable PostgreSQL migration/integration suite: 15 tests passed. Includes pre-migration duplicate metadata and orphan rows, 12 concurrent intake requests, a single creation event, synthetic ABR name/ABN lookup and outages, CRM retries, contact conflicts, customer status/membership/subscription/entitlement/history preservation, lifecycle mapping, Top 3 and rendered evidence/industry safeguards.
+- Disposable PostgreSQL migration/integration suite: 16 tests passed. Includes pre-migration duplicate metadata and orphan rows, 12 concurrent intake requests, a single creation event, synthetic ABR name/ABN lookup and outages, CRM retries, contact conflicts, customer status/membership/subscription/entitlement/history preservation, lifecycle mapping, Top 3 and rendered evidence/industry safeguards.
 - Existing regression suites: 85 tests passed across Prospecting navigation/report/mobile, Growth ownership/mutation/isolation, contact-company isolation, customer lifecycle, Growth suite consistency and discovery relevance. Navigation/mobile source assertions were updated for the approved landing experience and actual existing refresh behavior.
 - Optimized `npx next build`: passed. Build ran without a configured remote database. Initial sandbox-only compiler port binding failure was resolved by allowing local build subprocesses.
 - ESLint: no findings in the new identity, linking, lifecycle, form and priorities modules. Whole changed-file lint retains two pre-existing `react-hooks/set-state-in-effect` errors in SidebarNav and three existing unused-variable warnings in navigation.ts. The two SidebarNav errors were reproduced against its unchanged baseline source; unrelated badge behavior was preserved.

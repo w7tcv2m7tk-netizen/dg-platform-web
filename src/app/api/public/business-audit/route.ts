@@ -4,6 +4,8 @@ import {
 } from "@dg/platform-core";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 60;
+
 function siteSlugFrom(req: Request, bodySite?: string | null) {
   if (bodySite?.trim()) return bodySite.trim();
   try {
@@ -42,6 +44,7 @@ export async function POST(req: Request) {
     email?: string;
     phone?: string;
     industry?: string;
+    location?: string;
     /** honeypot */
     websiteHp?: string;
   } | null;
@@ -88,6 +91,7 @@ export async function POST(req: Request) {
       email: body.email,
       phone: body.phone,
       industry: body.industry,
+      location: body.location,
       website: body.websiteHp,
     });
     if (!result.ok) {

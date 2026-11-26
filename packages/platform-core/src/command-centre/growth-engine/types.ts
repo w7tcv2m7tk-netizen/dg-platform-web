@@ -60,22 +60,36 @@ export interface Prospect {
   updatedAt: Date;
 }
 
+export type ProspectScoreValue = number | null;
+
+export interface ProspectScoreAssessment {
+  status: "not_assessed" | "partial" | "assessed";
+  assessedPillars: string[];
+  unavailablePillars: string[];
+  evidenceCoveragePercent: number;
+  sourceCoveragePercent?: number;
+  sourceNotes?: string[];
+  weights?: Record<string, number>;
+  confidence: "low" | "medium" | "high";
+}
+
 export interface ProspectAuditScores {
-  /** DigitalGate Business Health Score™ (composite). */
-  businessHealth: number;
-  aiVisibility?: number;
+  /** DigitalGate Business Health Score™ (composite); null when evidence is insufficient. */
+  businessHealth: ProspectScoreValue;
+  assessment?: ProspectScoreAssessment;
+  aiVisibility?: ProspectScoreValue;
   /** Search Visibility (SEO fundamentals + indexing signals). */
-  seo?: number;
-  websiteHealth?: number;
-  googleBusinessProfile?: number;
-  socialPresence?: number;
-  digitalIdentity?: number;
+  seo?: ProspectScoreValue;
+  websiteHealth?: ProspectScoreValue;
+  googleBusinessProfile?: ProspectScoreValue;
+  socialPresence?: ProspectScoreValue;
+  digitalIdentity?: ProspectScoreValue;
   /** Reputation & Presence (GBP / reviews / consistency signals). */
-  reputation?: number;
+  reputation?: ProspectScoreValue;
   /** Conversion Readiness (CTAs, contact paths, forms). */
-  conversionReadiness?: number;
+  conversionReadiness?: ProspectScoreValue;
   /** Business Growth Signals (systems that support visibility & leads). */
-  growthSignals?: number;
+  growthSignals?: ProspectScoreValue;
 }
 
 /** AI Audit Engine output for a prospect business */
@@ -101,6 +115,9 @@ export interface ProspectAuditFinding {
   interpretation?: string;
   /** Email / report section label (e.g. Conversion, Measurement). */
   category?: string;
+  /** Explicit evidence state; unavailable must never be rendered as a confirmed weakness. */
+  evidenceStatus?: "observed" | "confirmed_gap" | "limited" | "unavailable";
+  confidence?: "high" | "medium" | "low";
 }
 
 /** Interactive branded report shared with prospect */

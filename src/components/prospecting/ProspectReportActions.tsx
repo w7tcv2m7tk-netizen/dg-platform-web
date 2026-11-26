@@ -8,16 +8,21 @@ type Props = {
   recipientName?: string | null;
   recipientEmail?: string | null;
   businessName: string;
+  initialReport?: { url: string; id: string } | null;
+  readiness?: { label: string; detail: string } | null;
 };
 
-export function ProspectReportActions({ prospectId, canGenerate, recipientName, recipientEmail, businessName }: Props) {
-  const [report,setReport]=useState<{ url: string; id: string }|null>(null);
+export function ProspectReportActions({ prospectId, canGenerate, recipientName, recipientEmail, businessName, initialReport = null, readiness = null }: Props) {
+  const [report,setReport]=useState<{ url: string; id: string }|null>(initialReport);
   const shareUrl=report?.url ?? null;
+  const canShare=Boolean(shareUrl || canGenerate);
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState<string|null>(null);
   const [emailOpen,setEmailOpen]=useState(false);
   const [sending,setSending]=useState(false);
   const [sent,setSent]=useState(false);
+  const [revoking,setRevoking]=useState(false);
+  const [revoked,setRevoked]=useState(false);
   const [to,setTo]=useState(recipientEmail || "");
   const [subject,setSubject]=useState(`${businessName} — Digital Opportunity Report`);
   const firstName=(recipientName || "").trim().split(/\s+/)[0] || "there";
@@ -51,26 +56,41 @@ DigitalGate`);
     catch(e) { setError(e instanceof Error ? e.message : "Report generation failed."); }
     finally { setLoading(false); }
   }
-  async function copy() { if(shareUrl) await navigator.clipboard.writeText(shareUrl); }
+  function absoluteUrl(value: string) {
+    try { return new URL(value, window.location.origin).toString(); } catch { return value; }
+  }
+  async function copy() { if(shareUrl) await navigator.clipboard.writeText(absoluteUrl(shareUrl)); }
   async function exportPdf() {
     setLoading(true); setError(null);
     try {
       const { url }=await ensureReport();
-      const win=window.open(`${url}?preview=1`,"_blank");
-      if(!win) throw new Error("Allow pop-ups to open the report for PDF export.");
-      window.setTimeout(()=>{ try { win.print(); } catch { /* user can still print from the opened report */ } },1200);
+      const pdfUrl=`${absoluteUrl(url)}/pdf`;
+      const win=window.open(pdfUrl,"_blank");
+      if(!win) throw new Error("Allow pop-ups to open the report PDF.");
     } catch(e) { setError(e instanceof Error ? e.message : "Could not open PDF-ready report."); }
     finally { setLoading(false); }
+  }
+  async function revoke() {
+    if(!report) return;
+    setRevoking(true); setError(null); setRevoked(false);
+    try {
+      const res=await fetch(`/api/v1/prospecting/prospects/${prospectId}/report`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"revoke",reportId:report.id})});
+      const json=await res.json().catch(()=>null);
+      if(!res.ok || json?.data?.revoked !== true) throw new Error(json?.error?.message || "Could not revoke the report link.");
+      setReport(null); setRevoked(true); setSent(false);
+    } catch(e) { setError(e instanceof Error ? e.message : "Could not revoke the report link."); }
+    finally { setRevoking(false); }
   }
   async function sendEmail() {
     setSending(true); setError(null); setSent(false);
     try {
       if(!to.trim()) throw new Error("Recipient email is required.");
       const { url, id }=await ensureReport();
-      const message=body.replace("REPORT_LINK",url);
+      const absolute = absoluteUrl(url);
+      const message=body.replace("REPORT_LINK",absolute);
       const res=await fetch("/api/v1/communications/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
         channel:"email",to:to.trim(),subject:subject.trim(),body:message,
-        metadata:{source:"prospecting_opportunity_report",prospectId,reportUrl:url,businessName}
+        metadata:{source:"prospecting_opportunity_report",prospectId,reportUrl:absolute,businessName}
       })});
       const json=await res.json().catch(()=>null);
       if(!res.ok) throw new Error(json?.error?.message || "Email send failed.");
@@ -84,14 +104,17 @@ DigitalGate`);
   }
 
   return <div className="mt-5">
+    {!shareUrl && readiness ? <p role="status" className="mb-3 text-xs leading-5 text-slate-400"><span className="font-medium text-slate-300">{readiness.label}.</span> {readiness.detail}</p> : null}
     <div className="flex flex-wrap gap-2">
       <button type="button" onClick={()=>void generate()} disabled={!canGenerate||loading} className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40">{loading?"Generating…":shareUrl?"Generate latest snapshot":"Generate share link"}</button>
       {shareUrl ? <><a href={`${shareUrl}?preview=1`} target="_blank" rel="noreferrer" className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500">Open report</a><button type="button" onClick={()=>void copy()} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500">Copy link</button></> : null}
-      <button type="button" onClick={()=>void exportPdf()} disabled={!canGenerate||loading} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-40">Export PDF</button>
-      <button type="button" onClick={()=>setEmailOpen(true)} disabled={!canGenerate} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-40">Email report</button>
+      <button type="button" onClick={()=>void exportPdf()} disabled={!canShare||loading} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-40">Export PDF</button>
+      <button type="button" onClick={()=>setEmailOpen(true)} disabled={!canShare} className="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500 disabled:opacity-40">Email report</button>
+      {report ? <button type="button" onClick={()=>void revoke()} disabled={revoking} className="rounded-lg border border-rose-500/40 px-4 py-2 text-sm text-rose-200 hover:bg-rose-500/10 disabled:opacity-40">{revoking?"Revoking…":"Revoke link"}</button> : null}
     </div>
     {shareUrl ? <p className="mt-3 break-all text-xs text-slate-400">{shareUrl}</p> : null}
     {sent ? <p className="mt-3 text-xs text-emerald-300">Report email sent and recorded.</p> : null}
+    {revoked ? <p className="mt-3 text-xs text-amber-200">Secure report link revoked. Generating a new snapshot creates a new link.</p> : null}
     {error ? <p className="mt-3 text-xs text-rose-300">{error}</p> : null}
     {emailOpen ? <div className="mt-4 max-w-2xl rounded-xl border border-violet-500/25 bg-slate-950/60 p-4">
       <div className="flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-white">Email Digital Opportunity Report</p><p className="mt-1 text-xs text-slate-400">Review before sending through DigitalGate Communications.</p></div><button type="button" onClick={()=>setEmailOpen(false)} className="text-sm text-slate-400 hover:text-white">Close</button></div>

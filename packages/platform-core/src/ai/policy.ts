@@ -6,7 +6,9 @@ export type AiClassification = "public" | "platform_internal" | "tenant_confiden
 export type AiLane = "local_routine" | "local_specialist" | "cloud_standard" | "cloud_reasoning" | "exact_observation";
 export type AiCapability = "routine" | "specialist_coding" | "reasoning";
 /** Gateway-managed upstream routing is admissible only for explicitly non-confidential inputs. */
-export type AiRecipient = { transport: LlmProvider; upstream: "openai" | "anthropic" | "gateway_managed"; model: string };
+/** DeepSeek is intentionally excluded: it is a public site transport, not a gateway tenant recipient. */
+type AiCloudTransport = Exclude<LlmProvider, "deepseek">;
+export type AiRecipient = { transport: AiCloudTransport; upstream: "openai" | "anthropic" | "gateway_managed"; model: string };
 export type AiDisclosurePolicy = {
   version: 1;
   classification: AiClassification;
@@ -119,6 +121,7 @@ export type AiDeployment = AiRecipient & { lane: "cloud_standard" | "cloud_reaso
 /** Unknown configured models are not capability-certified. Legacy callers keep their existing chain. */
 export function describeAiDeployments(configured: readonly LlmTransportPlanEntry[], observer?: RoutingTraceObserver): AiDeployment[] {
   return configured.flatMap(({ provider, model }, index): AiDeployment[] => {
+    if (provider === "deepseek") return [];
     const deployments = describeAiDeployment(provider, model);
     observeRouting(observer, () => ({ stage: "certification", index, transport: provider, model: evidenceModel(model),
       reason: deployments.length ? "policy_certified" : "uncertified_candidate" }));

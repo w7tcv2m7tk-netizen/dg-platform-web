@@ -4,6 +4,7 @@ import { getDailyOpportunityBriefing, getGrowthEngineSummary } from "@dg/platfor
 
 import { ProspectingPageHeader } from "@/components/prospecting/ProspectingPageHeader";
 import { getAuthorisedPlatformPageSession } from "@/lib/platform-page-feature";
+import { buildDailyThreeSummary } from "@/lib/prospecting-daily-three";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,10 @@ export default async function ProspectingOverview() {
     ).length ?? 0;
   const next = briefing?.rows?.[0] ?? null;
   const nextIsResearch = next?.stage === "prospect" || next?.stage === "audit_created";
+  const daily = buildDailyThreeSummary(ready);
+  const dailyTarget = daily.target;
+  const dailyReady = daily.prepared;
+  const dailyRemaining = daily.remaining;
 
   return (
     <>
@@ -93,6 +98,29 @@ export default async function ProspectingOverview() {
           </div>
         </section>
 
+        <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.06] p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">DigitalGate Daily 3</p>
+              <h2 className="mt-1 text-lg font-semibold text-white">Three qualified conversations, every working day</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                {dailyRemaining > 0
+                  ? `${dailyReady} of ${dailyTarget} qualified contacts are ready. ${dailyRemaining} more ${dailyRemaining === 1 ? "conversation needs" : "conversations need"} research or preparation.`
+                  : `${dailyTarget} qualified contacts are ready. Work the evidence, record the outcome and keep follow-ups separate from new contacts.`}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/apps/prospecting/today" className="inline-flex min-h-11 items-center rounded-lg bg-emerald-500 px-4 text-sm font-semibold text-slate-950 hover:bg-emerald-400">Open Daily 3 →</Link>
+              <Link href="/apps/prospecting/discovery" className="inline-flex min-h-11 items-center rounded-lg border border-emerald-500/30 px-4 text-sm font-semibold text-emerald-100 hover:bg-emerald-500/10">Add prospects</Link>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <DailyMetric label="Target" value={`${dailyTarget}`} />
+            <DailyMetric label="Prepared" value={`${dailyReady}`} />
+            <DailyMetric label="Remaining" value={`${dailyRemaining}`} />
+          </div>
+        </section>
+
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <QueueCard label="Ready to contact" value={ready} href="/apps/prospecting/today" detail="Prioritised next actions" />
           <QueueCard label="Follow-ups due" value={followUps} href="/apps/prospecting/activity" detail="Calls, emails and tasks" />
@@ -128,6 +156,9 @@ export default async function ProspectingOverview() {
   );
 }
 
+function DailyMetric({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-xl border border-emerald-500/15 bg-slate-950/35 px-3 py-3"><p className="text-[10px] uppercase tracking-wide text-emerald-300/80">{label}</p><p className="mt-1 text-2xl font-semibold tabular-nums text-white">{value}</p></div>;
+}
 function QueueCard({ label, value, href, detail }: { label: string; value: number; href: string; detail: string }) {
   return <Link href={href} className="rounded-2xl border border-slate-800 bg-slate-950/45 p-4 transition hover:border-violet-500/40 hover:bg-slate-900/60"><p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">{label}</p><p className="mt-2 text-3xl font-semibold tabular-nums text-white">{value}</p><p className="mt-1 text-xs text-slate-500">{detail}</p></Link>;
 }

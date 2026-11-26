@@ -138,6 +138,7 @@ const PRIVILEGE_OVERRIDES = {
   platform_referral_ledger: { privileges: ["SELECT", "INSERT"], rationale: "Commercial ledger is append-only." },
   partner_commission_events: { privileges: ["SELECT", "INSERT"], rationale: "Commission event ledger is append-only." },
   growth_prospect_engagements: { privileges: ["SELECT", "INSERT"], rationale: "Engagement evidence is appended and read; no runtime mutation path exists." },
+  provider_usage: { privileges: ["SELECT", "INSERT", "UPDATE"], rationale: "Monthly provider allowance rows are created and atomically incremented; no runtime delete path exists." },
   agent_actions: { privileges: ["SELECT", "INSERT"], rationale: "Aida action history is append-only." },
   aida_conversations: { privileges: ["SELECT", "INSERT", "UPDATE"], rationale: "Conversation creation/read/update is required; no runtime delete path exists." },
   platform_checkout_creation_gate: {

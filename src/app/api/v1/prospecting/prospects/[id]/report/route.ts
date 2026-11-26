@@ -39,11 +39,16 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   const prospect = await getGrowthProspect(id, organisationGrowthScope(session.organisationId));
   if (!prospect || prospect.archivedAt) return NextResponse.json({ error: { code: "not_found", message: "Prospect not found" } }, { status: 404 });
   const body = await req.json().catch(() => null);
-  if (body?.action !== "email_sent") return NextResponse.json({ error: { code: "validation_error", message: "Unsupported report action" } }, { status: 422 });
-  if (typeof body.reportId !== "string" || !body.reportId.trim()) return NextResponse.json({ error: { code: "validation_error", message: "The delivered report snapshot is required" } }, { status: 422 });
+  if (!["email_sent", "revoke"].includes(body?.action)) return NextResponse.json({ error: { code: "validation_error", message: "Unsupported report action" } }, { status: 422 });
+  if (typeof body.reportId !== "string" || !body.reportId.trim()) return NextResponse.json({ error: { code: "validation_error", message: "The report snapshot is required" } }, { status: 422 });
   const { prisma } = await import("@dg/database");
   const report = await prisma.growthProspectReport.findFirst({ where: { id: body.reportId, prospectId: id, revokedAt: null } });
   if (!report?.auditId) return NextResponse.json({ error: { code: "report_required", message: "Active report snapshot not found" } }, { status: 409 });
+  if (body.action === "revoke") {
+    await prisma.growthProspectReport.update({ where: { id: report.id }, data: { revokedAt: new Date() } });
+    await prisma.growthProspectEngagement.create({ data: { prospectId: id, reportId: report.id, type: "report_revoked", metadata: { actorId: session.clerkUserId } } });
+    return NextResponse.json({ data: { revoked: true } });
+  }
   const audit = await prisma.growthProspectAudit.findFirst({
     where: { id: report.auditId, prospectId: id, prospect: { organisationId: session.organisationId } },
   });
@@ -51,6 +56,10 @@ export async function PATCH(req: Request, { params }: RouteParams) {
   const recipientEmail = String(body?.to || "").trim();
   await prisma.growthProspectEngagement.create({ data: { prospectId: id, reportId: report.id, type: "report_emailed", metadata: { actorId: session.clerkUserId, to: recipientEmail, subject: String(body?.subject || "") } } });
   await prisma.growthProspectReport.update({ where: { id: report.id }, data: { sentAt: report.sentAt ?? new Date() } });
+  // Keep the acquisition lifecycle truthful without rewinding later stages.
+  if (["prospect", "audit_created", "email_opened"].includes(prospect.stage)) {
+    await prisma.growthProspect.update({ where: { id }, data: { stage: "report_sent" } });
+  }
 
   // A manually delivered Prospecting report enters the same five-email
   // Digital Opportunity Report nurture as an inbound Business Audit.

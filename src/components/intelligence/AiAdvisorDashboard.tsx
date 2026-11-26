@@ -196,6 +196,7 @@ export function AiAdvisorDashboard({ data }: { data: BusinessAdvisorBundle }) {
       const res = await fetch("/api/v1/ai/advisor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(25_000),
         body: JSON.stringify({ question: trimmed, contextLabel }),
       });
       const json = await res.json().catch(() => ({}));

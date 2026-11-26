@@ -125,8 +125,8 @@ export function resolveIndustryPack(
 
   const verticalMap: Array<{ id: IndustryPackId; needles: string[] }> = [
     { id: "digitalgate", needles: ["digitalgate", "software", "saas", "platform operator"] },
-    { id: "real_estate", needles: ["real estate", "real_estate", "real-estate", "property", "agency"] },
     { id: "finance", needles: ["finance", "mortgage", "broker", "lending", "accountant"] },
+    { id: "real_estate", needles: ["real estate", "real_estate", "real-estate", "realtor", "buyers agency", "realty"] },
     { id: "services", needles: ["services", "cleaner", "cleaning", "service business"] },
     { id: "trades", needles: ["trade", "plumber", "electric", "builder", "hvac"] },
     {
