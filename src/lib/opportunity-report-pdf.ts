@@ -15,6 +15,7 @@ import { buildGrowthBlueprint, shortCapability } from "@dg/platform-core/command
 import { loadGrowthReportSnapshot } from "@dg/platform-core/command-centre/growth-engine/report-snapshot";
 
 const W = 595.28, H = 841.89, M = 46, CW = W - M * 2;
+const PREMIUM_REPORT_VERSION = "V1";
 const IVORY = rgb(0.957, 0.941, 0.906);
 const PAPER = rgb(1, 0.992, 0.976);
 const NAVY = rgb(0.043, 0.063, 0.11);
@@ -127,26 +128,62 @@ function pageBase(doc: PDFDocument, fonts: Fonts, number: string, kicker: string
   return page;
 }
 function laneFor(priority: ReportPriority, index: number, blueprint: any[]): Lane {
+  const title = priority.title.toLowerCase();
   const search = `${priority.title} ${priority.meaning} ${priority.action}`.toLowerCase();
-  if (/\bai\b|identity|machine-readable|local|search/.test(search)) return { capability: "DigitalGate AI Visibility", benefit: "A business identity that search and AI can verify.", measure: "Identity data and AI guidance validated." };
-  if (/owner|appraisal|enquir/.test(search)) return { capability: "DigitalGate CRM + owner path", benefit: "A clear owner route with fewer dead ends.", measure: "Owner guidance live; one appraisal route with response expectation." };
-  if (/heading|primary|offer|clarity/.test(search)) return { capability: "Website Manager + clarity", benefit: "The primary offer is understood in one pass.", measure: "One primary heading live on desktop and mobile." };
+  if (/analytics|tracking|measurement/.test(search)) return { capability: "DigitalGate Analytics", benefit: "A verified measurement baseline rather than assumed tracking.", measure: "Analytics presence and key enquiry events confirmed." };
+  if (/booking|event|appointment|reservation/.test(title)) return { capability: "DigitalGate CRM & Automation", benefit: "A clear booking enquiry path with fewer dead ends.", measure: "Booking enquiry route and response expectation validated." };
+  if (/proof|review|trust|credential/.test(search)) return { capability: "Review & Trust", benefit: "More verifiable proof at the point of decision.", measure: "A verified proof source linked to the relevant conversion path." };
+  if (/owner/.test(title)) return { capability: "DigitalGate CRM + owner path", benefit: "A clear owner route with fewer dead ends.", measure: "Owner guidance live; one appraisal route with response expectation." };
+  if (/primary|heading|\boffer\b|clarity/.test(title)) return { capability: "Website Manager + clarity", benefit: "The primary offer is understood in one pass.", measure: "One primary heading live on desktop and mobile." };
+  if (/local|suburb|gbp|google business|map/.test(title)) return { capability: "Local visibility", benefit: "A local footprint search and AI can verify.", measure: "Service-area and local-entity evidence validated." };
+  if (/artist|artist identity|artist profile/.test(title)) return { capability: "Website Manager + Artist Profile", benefit: "A coherent artist identity and booking path.", measure: "Artist identity and booking evidence validated." };
+  if (/identity|verify|search|\bai\b|machine-readable/.test(search)) return { capability: "DigitalGate AI Visibility", benefit: "A business identity that search and AI can verify.", measure: "Identity data and AI guidance validated." };
   const item = blueprint[index];
   return { capability: shortCapability(item?.capability || "DigitalGate Growth"), benefit: item?.benefit || "A clearer path from interest to a commercial conversation.", measure: item?.measure || "A defined enquiry or conversion outcome, measured after implementation." };
 }
-function insightLine(priority: ReportPriority) {
+function thesisFor(industryKey: string): string {
+  if (industryKey === "real_estate") return "The evidence points to a different first question: making the seller and owner journey, and the business identity, easier to understand and act on.";
+  if (industryKey === "hospitality_accommodation") return "The evidence points to a different first question: making direct booking and guest trust easier to understand and act on.";
+  if (industryKey === "technology_marketing") return "The evidence points to a different first question: making the commercial offer, proof and qualification path easier to verify.";
+  if (industryKey === "music_artist" || industryKey === "music_creative") return "The evidence points to a different first question: making the artist identity and booking evidence easier to understand.";
+  return "The evidence points to a different first question: making the offer and enquiry path easier to understand and act on.";
+}
+function decisionFor(industryKey: string): string {
+  if (industryKey === "real_estate") return "Confirm the actual service model and seller/owner journey before publishing a new path.";
+  if (industryKey === "hospitality_accommodation") return "Confirm the direct-booking path and availability truth before promoting it.";
+  if (industryKey === "technology_marketing") return "Confirm the primary commercial offer and qualification path before adding more proof.";
+  if (industryKey === "music_artist" || industryKey === "music_creative") return "Confirm which booking or collaboration path is active before expanding promotion.";
+  return "Confirm the offer and enquiry path before publishing a new journey.";
+}
+function identityInsight(industryKey: string): string {
+  if (industryKey === "music_artist" || industryKey === "music_creative") return "The artist identity, release evidence and booking path are not yet consistent for search and AI.";
+  if (industryKey === "hospitality_accommodation") return "The business identity omits location, booking and guest-service detail that visitors and AI systems rely on.";
+  if (industryKey === "technology_marketing") return "The public offer and proof are not yet easy for buyers and AI systems to verify.";
+  return "The public identity omits local, contact and service-area detail that buyers and AI systems rely on.";
+}
+function insightLine(priority: ReportPriority, industryKey: string) {
+  if (priority.framework) return "Framework guidance to clarify the next commercial step.";
+  const title = priority.title.toLowerCase();
   const search = `${priority.title} ${priority.meaning}`.toLowerCase();
-  if (/owner|appraisal|guidance/.test(search)) return "Owner Resources and FAQ are linked but empty, leaving no clear owner next step.";
-  if (/verify|identity|\bai\b|search/.test(search)) return "The public identity omits local, contact and service-area detail that buyers and AI systems rely on.";
-  if (/primary|offer|heading/.test(search)) return "The primary heading is empty; supporting copy carries the offer alone.";
-  return concise(priority.meaning, 110);
+  if (/analytics|tracking|measurement/.test(search)) return "Analytics signals were not identified on the homepage; verification is required.";
+  if (/review|trust|proof|credential/.test(search)) return "The public evidence shows client proof, but not yet a clearly verifiable review source.";
+  if (/owner/.test(title)) return "Owner-facing guidance is linked but does not yet lead to a clear next step.";
+  if (/local|suburb|gbp|google business|map/.test(title)) return "Local and suburb evidence are not yet presented consistently on the public site.";
+  if (/primary|heading|\boffer\b|clarity/.test(title)) return "The primary heading is empty; supporting copy carries the offer alone.";
+  if (/identity|verify|search|\bai\b|machine-readable/.test(search)) return identityInsight(industryKey);
+  return "The public evidence points to a practical next question for the Strategy Session.";
 }
 function evidenceLine(priority: ReportPriority) {
+  if (priority.framework) return "Framework guidance only; not observed in this snapshot.";
+  const title = priority.title.toLowerCase();
   const search = `${priority.title} ${priority.meaning}`.toLowerCase();
-  if (/owner|appraisal|guidance/.test(search)) return "Owner Resources and FAQ contain no substantive guidance.";
-  if (/verify|identity|\bai\b|search/.test(search)) return "The public identity is incomplete for search and AI.";
-  if (/primary|offer|heading/.test(search)) return "The primary heading is empty.";
-  return concise(priority.meaning, 100);
+  if (/analytics|tracking|measurement/.test(search)) return "Analytics/tracking was not identified on the homepage; verification is required.";
+  if (/review|trust|proof|credential/.test(search)) return "Public proof signals need a clearer, verifiable source.";
+  if (/owner/.test(title)) return "Owner-facing guidance lacks a clear next step in the fetched pages.";
+  if (/local|suburb|gbp|google business|map/.test(title)) return "Local entity and suburb evidence need verification.";
+  if (/primary|heading|\boffer\b|clarity/.test(title)) return "The primary heading is empty.";
+  if (/identity|verify|search|\bai\b|machine-readable/.test(search)) return "The public identity is incomplete for search and AI.";
+  return "Further public evidence is required before a commercial decision.";
 }
 function evidenceLabel(finding: Finding, auditedAt: unknown) {
   return evidenceForFinding(finding as any, auditedAt as any).status.replace(/_/g, " ").toUpperCase();
@@ -188,9 +225,10 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   const lanes = priorities.map((priority, index) => laneFor(priority, index, blueprint));
   const roadmapPriorities = [...priorities].sort((a, b) => {
     const rank = (value: ReportPriority) => {
-      const text = `${value.title} ${value.meaning} ${value.action}`.toLowerCase();
-      if (/primary|heading|\boffer\b|clarity/.test(text)) return 0;
-      if (/identity|verify|search|\bai\b|machine-readable/.test(text)) return 1;
+      const title = value.title.toLowerCase();
+      if (/owner|appraisal|artist|local|suburb|booking|event|review|proof/.test(title)) return 2;
+      if (/primary|heading|clarity/.test(title)) return 0;
+      if (/identity|\bai\b|llms|machine-readable|analytics|tracking|measurement|structured/.test(`${value.title} ${value.meaning}`.toLowerCase())) return 1;
       return 2;
     };
     return rank(a) - rank(b);
@@ -205,7 +243,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   const confidence = clean(assessment.confidence, "low");
   const auditedAt = audit?.auditedAt ?? null;
   const evidenceAgeDays = auditedAt ? Math.max(0, Math.floor((Date.now() - new Date(auditedAt).getTime()) / 86_400_000)) : null;
-  const freshnessLabel = evidenceAgeDays == null ? "Evidence date not recorded" : evidenceAgeDays <= 30 ? `Current evidence · ${evidenceAgeDays} days old` : evidenceAgeDays <= 90 ? `Refresh recommended · ${evidenceAgeDays} days old` : `Historical evidence · ${evidenceAgeDays} days old`;
+  const freshnessLabel = evidenceAgeDays == null ? "Evidence date not recorded" : evidenceAgeDays <= 30 ? `Current evidence · ${evidenceAgeDays} ${evidenceAgeDays === 1 ? "day" : "days"} old` : evidenceAgeDays <= 90 ? `Refresh recommended · ${evidenceAgeDays} ${evidenceAgeDays === 1 ? "day" : "days"} old` : `Historical evidence · ${evidenceAgeDays} ${evidenceAgeDays === 1 ? "day" : "days"} old`;
 
   const doc = await PDFDocument.create();
   const fonts: Fonts = { body: await doc.embedFont(StandardFonts.Helvetica), bold: await doc.embedFont(StandardFonts.HelveticaBold), serif: await doc.embedFont(StandardFonts.TimesRoman), serifBold: await doc.embedFont(StandardFonts.TimesRomanBold) };
@@ -226,7 +264,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   let cy = para(cover, prospect.businessName, M, H - 177, 372, fonts.serifBold, nameSize, NAVY, 1.02);
   text(cover, [prospect.industry, prospect.location].filter(Boolean).join(" · ") || industry.pack.label, M, cy - 12, 8.2, fonts.bold, PURPLE);
   text(cover, `Prepared ${fmt(report.generatedAt)} · Evidence captured ${fmt(auditedAt)}`, M, cy - 28, 7, fonts.body, MUTED);
-  para(cover, "An evidence-led review of the public signals shaping discovery, trust and the next owner conversation.", M, cy - 58, 340, fonts.serif, 12, BODY, 1.35);
+  para(cover, "An evidence-led review of the public signals shaping discovery, trust and the next commercial conversation.", M, cy - 58, 340, fonts.serif, 12, BODY, 1.35);
   const dialX = W - M - 70, dialY = H - 230;
   scoreDial(cover, dialX, dialY, 43, audit?.businessHealth ?? null, fonts);
   text(cover, "BUSINESS HEALTH", dialX - 35, dialY + 58, 6.2, fonts.bold, PURPLE);
@@ -267,20 +305,20 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
     ex.drawRectangle({ x, y: insightTop - 3, width, height: 3, color: i === 0 ? PURPLE : GOLD });
     text(ex, `0${i + 1}`, x + 12, insightTop - 24, 7, fonts.bold, GOLD);
     para(ex, priority.title, x + 12, insightTop - 40, width - 24, fonts.serifBold, 8.2, SLATE, 1.15);
-    para(ex, insightLine(priority), x + 12, insightTop - 67, width - 24, fonts.body, 6.9, BODY, 1.22);
+    para(ex, insightLine(priority, industry.key), x + 12, insightTop - 67, width - 24, fonts.body, 6.9, BODY, 1.22);
     text(ex, priority.evidenceLabel, x + 12, insightTop - 112, 6.1, fonts.bold, PURPLE);
   });
   const contextY = 300;
   text(ex, "Business context", M, contextY, 13, fonts.serifBold, SLATE);
-  para(ex, concise(`The public evidence points to ${clean(model.offering, "property sales and appraisals")}. The report does not assume unconfirmed services.`, 190), M, contextY - 18, 220, fonts.body, 7.2, BODY, 1.35);
+  para(ex, concise(`The public evidence points to ${clean(model.offering, "the public offer")}. The report does not assume unconfirmed services.`, 190), M, contextY - 18, 220, fonts.body, 7.2, BODY, 1.35);
   text(ex, "How to read this report", M + 260, contextY, 13, fonts.serifBold, SLATE);
   para(ex, "This is a public-evidence snapshot, not a CRM, Google Business Profile or analytics audit. Gaps are evidence to discuss, not proof of commercial failure. Private systems can change the next step.", M + 260, contextY - 18, 235, fonts.body, 7.2, BODY, 1.35);
   ex.drawRectangle({ x: M, y: 105, width: CW, height: 105, color: NAVY });
   eyebrow(ex, "Commercial thesis", M + 18, 188, fonts, GOLD, 6.3);
-  para(ex, "The evidence points to a different first question: making the owner journey and the business identity easier to understand and act on.", M + 18, 168, 340, fonts.serifBold, 10.5, WHITE, 1.2);
+  para(ex, thesisFor(industry.key), M + 18, 168, 340, fonts.serifBold, 10.5, WHITE, 1.2);
   text(ex, "Evidence boundary", M + 382, 188, 6.3, fonts.bold, GOLD);
   para(ex, `${freshnessLabel} · public web only`, M + 382, 172, 120, fonts.body, 6.3, LAV, 1.2);
-  text(ex, "No owner contact, CRM or private data used.", M + 382, 145, 6, fonts.body, LAV);
+  para(ex, "No customer contact, CRM or private data used.", M + 382, 145, 120, fonts.body, 6, LAV, 1.2);
   footer(ex, 2, 7, fonts, logo);
 
   // 03 · Digital health
@@ -293,7 +331,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   para(hp, verdictDisplay, M + 238, H - 154, 260, fonts.body, 7.4, BODY, 1.35);
   eyebrow(hp, "Coverage & confidence", M + 238, H - 229, fonts, PURPLE, 6.3);
   para(hp, `Source coverage ${sourceCoverage}% · pillar coverage ${pillarCoverage}% · ${confidence} confidence.`, M + 238, H - 247, 260, fonts.body, 7.3, BODY, 1.3);
-  para(hp, "Confidence is moderate because 35% of the planned public-source set was available, even though all six pillars could be assessed from the public evidence. Source coverage is the share available; pillar coverage is the share assessable; confidence reflects the strength and consistency of those public signals, not completeness of private data.", M + 238, H - 264, 260, fonts.body, 6.8, MUTED, 1.3);
+  para(hp, `Confidence is ${confidence} because ${sourceCoverage}% of the planned public-source set was available, even though all six pillars could be assessed from the public evidence. Source coverage is the share available; pillar coverage is the share assessable; confidence reflects the strength and consistency of those public signals, not completeness of private data.`, M + 238, H - 264, 260, fonts.body, 6.8, MUTED, 1.3);
   pill(hp, `Source ${sourceCoverage}%`, M + 238, H - 338, fonts, PAPER, PURPLE, STONE);
   pill(hp, `Pillars ${pillarCoverage}%`, M + 321, H - 338, fonts, PAPER, PURPLE, STONE);
   pill(hp, `${confidence} confidence`, M + 421, H - 338, fonts, PAPER, PURPLE, STONE);
@@ -347,11 +385,11 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   strengthItems.forEach((strength, i) => {
     const x = M + i * 166;
     text(op, "•", x, 236, 9, fonts.bold, GOLD);
-    para(op, concise(strength, 105), x + 10, 236, 145, fonts.body, 6.9, BODY, 1.25);
+    para(op, strength, x + 10, 236, 145, fonts.body, 6.3, BODY, 1.2);
   });
   op.drawRectangle({ x: M, y: 105, width: CW, height: 105, color: NAVY });
   eyebrow(op, "The first decision", M + 18, 188, fonts, GOLD, 6.3);
-  para(op, "Confirm which owner services are actually offered before publishing an owner journey. The content should follow the service truth, not precede it.", M + 18, 168, CW - 36, fonts.serifBold, 10.5, WHITE, 1.2);
+  para(op, decisionFor(industry.key), M + 18, 168, CW - 36, fonts.serifBold, 10.5, WHITE, 1.2);
   text(op, "This is a Strategy Session question, not an assumed product.", M + 18, 128, 6.8, fonts.body, LAV);
   footer(op, 4, 7, fonts, logo);
 
@@ -384,7 +422,7 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
 
   // 06 · Roadmap
   const rd = pageBase(doc, fonts, "06", "A practical sequence", "90-day strategic roadmap");
-  para(rd, "A realistic sequence starts with the primary offer, then makes the business easier to verify, then measures the owner path.", M, H - 108, CW, fonts.body, 7.8, BODY, 1.35);
+  para(rd, "A realistic sequence starts with the foundational correction, then builds verifiable evidence, then develops the strongest commercial path.", M, H - 108, CW, fonts.body, 7.8, BODY, 1.35);
   rd.drawLine({ start: { x: M + 12, y: 675 }, end: { x: M + 12, y: 275 }, thickness: 1, color: GOLD });
   roadmap.forEach((phase, i) => {
     const top = 665 - i * 145;
@@ -392,8 +430,9 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
     rd.drawCircle({ x: M + 12, y: top + 9, size: 5, color: dark ? GOLD : PURPLE });
     box(rd, M + 34, top - 102, CW - 34, 102, dark ? NAVY : PAPER, dark ? NAVY : STONE);
     text(rd, phase.period, M + 50, top - 16, 6.3, fonts.bold, dark ? GOLD : PURPLE);
-    para(rd, phase.title, M + 50, top - 33, 420, fonts.serifBold, 13, dark ? WHITE : SLATE, 1.1);
-    para(rd, phase.action, M + 50, top - 58, 410, fonts.body, 7.3, dark ? LAV : BODY, 1.3);
+    const roadmapPriority = roadmapPriorities[i];
+    para(rd, roadmapPriority?.title || phase.title, M + 50, top - 33, 420, fonts.serifBold, 13, dark ? WHITE : SLATE, 1.1);
+    para(rd, roadmapPriority?.action || phase.action, M + 50, top - 58, 410, fonts.body, 7.3, dark ? LAV : BODY, 1.3);
     text(rd, phase.evidenceLed ? "EVIDENCE-LED" : "FRAMEWORK GUIDANCE", M + 50, top - 87, 5.9, fonts.bold, dark ? GOLD : PURPLE);
     text(rd, `PROGRESS · ${concise(roadmapLanes[i]?.measure || "Confirm the indicator in the session.", 96)}`, M + 182, top - 87, 6.3, fonts.body, dark ? LAV : MUTED);
   });
@@ -425,22 +464,20 @@ export async function buildOpportunityReportPdfFromSnapshot(loaded: OpportunityR
   text(ev, "What is not included", methodX[1], 359, 8.2, fonts.serifBold, WHITE);
   para(ev, "No private analytics, CRM, call tracking, Google Business Profile or customer outcome data. Unavailable evidence is marked Not Assessed, never zero.", methodX[1], 343, 145, fonts.body, 6.8, LAV, 1.3);
   text(ev, "What changes the view", methodX[2], 359, 8.2, fonts.serifBold, WHITE);
-  para(ev, "Confirmed owner services, current CRM follow-up, analytics/GBP access and a short conversation with the principal could change the priority order.", methodX[2], 343, 145, fonts.body, 6.8, LAV, 1.3);
+  para(ev, "Confirmed service scope, current first-party follow-up, analytics/GBP access and a short conversation with the principal could change the priority order.", methodX[2], 343, 145, fonts.body, 6.8, LAV, 1.3);
   ev.drawLine({ start: { x: M + 18, y: 319 }, end: { x: W - M - 18, y: 319 }, thickness: 0.5, color: rgb(0.27, 0.3, 0.38) });
   const statusCounts = cleanFindings.reduce((acc, finding) => { const status = evidenceLabel(finding, auditedAt); acc[status] = (acc[status] || 0) + 1; return acc; }, {} as Record<string, number>);
   text(ev, "Evidence ledger", M + 18, 296, 7, fonts.bold, GOLD);
-  text(ev, `${statusCounts["CONFIRMED GAP"] || 0} confirmed gaps`, M + 18, 279, 6.8, fonts.body, LAV);
-  text(ev, `${statusCounts["OBSERVED"] || 0} positive evidence item`, M + 150, 279, 6.8, fonts.body, LAV);
-  text(ev, `${statusCounts["UNAVAILABLE"] || 0} unavailable`, M + 310, 279, 6.8, fonts.body, LAV);
+  text(ev, `${statusCounts["CONFIRMED GAP"] || 0} confirmed gaps · ${statusCounts["LIMITED"] || 0} limited · ${statusCounts["OBSERVED"] || 0} positive · ${statusCounts["UNAVAILABLE"] || 0} unavailable`, M + 18, 279, 6.4, fonts.body, LAV);
   text(ev, `Page 4 records ${Math.min(3, strengths.length)} observed public foundations.`, M + 18, 262, 6.4, fonts.body, LAV);
-  para(ev, "Evidence date and public source are retained per observation. Recommendations require validation against John Reid Real Estate's own systems, service scope and commercial objectives.", M + 18, 240, CW - 36, fonts.body, 6.4, LAV, 1.3);
+  para(ev, `Evidence date and public source are retained per observation. Recommendations require validation against ${prospect.businessName}'s own systems, service scope and commercial objectives.`, M + 18, 240, CW - 36, fonts.body, 6.4, LAV, 1.3);
   ev.drawLine({ start: { x: M + 18, y: 218 }, end: { x: W - M - 18, y: 218 }, thickness: 0.5, color: rgb(0.27, 0.3, 0.38) });
   text(ev, "The next step is a conversation, not a conclusion.", M + 18, 198, 12, fonts.serifBold, WHITE);
-  para(ev, "Use the Strategy Session to confirm service scope, CRM context and the owner journey before the next iteration.", M + 18, 182, CW - 36, fonts.body, 6.6, LAV, 1.3);
+  para(ev, "Use the Strategy Session to confirm service scope, first-party context and the strongest commercial path before the next iteration.", M + 18, 182, CW - 36, fonts.body, 6.6, LAV, 1.3);
   footer(ev, 7, 7, fonts, logo);
 
   doc.setTitle(`${prospect.businessName} — Digital Opportunity Report`);
   doc.setAuthor("DigitalGate");
-  doc.setSubject("Evidence-led Digital Opportunity Report");
+  doc.setSubject(`DigitalGate Premium Report ${PREMIUM_REPORT_VERSION} — Evidence-led Digital Opportunity Report`);
   return doc.save();
 }

@@ -36,7 +36,7 @@ for (const file of files) {
       x: width - 194, y: height - 14, size: 5.8, font, color: rgb(0.475, 0.314, 0.769),
     });
   }
-  doc.setSubject("LOCAL ONLY — not hosted acceptance");
+  doc.setSubject(`${doc.getSubject() || "DigitalGate Premium Report V1"} · LOCAL ONLY — not hosted acceptance`);
   doc.setKeywords(["DigitalGate", "Digital Opportunity Report", "LOCAL ONLY", "not hosted acceptance"]);
   const saved = await doc.save();
   const slug = file.replace(/\.json$/i, "");
@@ -60,6 +60,7 @@ for (const file of files) {
     pageSize: "A4 595.28 x 841.89 pt",
     localOnly: true,
     hostedAcceptance: false,
+    designVersion: "V1",
     label: "LOCAL ONLY · NOT HOSTED ACCEPTANCE",
     links: { strategySession: "https://digitalgate.com.au/strategy-session" },
   });
